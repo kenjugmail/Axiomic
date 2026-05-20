@@ -1,0 +1,150 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "specialist",
+    "objectives": [
+      "State the structure of a design system.",
+      "Apply design tokens for theming + accessibility.",
+      "Reason about atomic-design hierarchy."
+    ],
+    "prereqs": [
+      "visual-design-typography",
+      "wireframing-and-prototyping"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Design systems: why + what",
+      "body": "**Design system**: codified library of components + patterns + guidelines + tokens used across products.\n\nWithout a design system: each designer/team picks their own colors, type, components → inconsistent UX, duplicated work, accessibility gaps.\n\nWith a design system: shared source of truth. Same Button component used in all products; updating once propagates. Designers + devs reference the same elements.\n\n**Major design systems**:\n- **Material Design** (Google): Android default; widely adopted.\n- **Apple HIG (Human Interface Guidelines)**: iOS / macOS standard.\n- **Microsoft Fluent**: Windows + Microsoft 365.\n- **IBM Carbon**: open-source, enterprise.\n- **Atlassian Design System**: Jira, Confluence.\n- **Salesforce Lightning**: large CRM ecosystem.\n- **GitHub Primer**: GitHub.com.\n- **Shopify Polaris**: e-commerce admin.\n- **Adobe Spectrum**: Adobe products.\n\nEach codifies thousands of decisions about typography, color, spacing, components, motion, content tone, accessibility.\n\n**Components of a design system**:\n- **Foundations / tokens**: colors, type, spacing, radii, shadows, motion durations.\n- **Components**: Button, Card, Modal, Form, Navigation, etc.\n- **Patterns**: how components combine. Modal-confirmation, form-validation patterns.\n- **Guidelines**: voice + tone, content writing, accessibility rules.\n- **Documentation**: usage examples, do's + don'ts.\n\n**Storybook** (popular open-source tool): runs your component library as an interactive catalog. Developers + designers see the same source. Used by GitHub, Lyft, Adobe, etc."
+    },
+    {
+      "kind": "text",
+      "title": "Design tokens",
+      "body": "**Design tokens**: named values for design decisions. e.g., 'color-primary-500' = #0066CC.\n\nWhy: instead of designs + code hard-coding #0066CC everywhere, both reference the token. Change the token → both update.\n\n**Token hierarchy** (3 levels):\n\n1. **Primitive tokens** (or 'reference'): raw values. `blue-50`, `blue-100`, ... `blue-900`. Just the colors, no semantic meaning.\n2. **Semantic tokens**: meaning-based. `color-primary` (= `blue-500`), `color-text-primary` (= `gray-900`), `color-bg-surface` (= `white`). Designers + devs use these.\n3. **Component tokens**: scoped to a component. `button-bg-primary-default` (= `color-primary`). Most-specific; usually inherited from semantic.\n\nBenefits:\n- **Dark mode**: redefine semantic tokens per theme. Component code doesn't change.\n- **Brand variation**: a single token map per brand; rest is shared.\n- **Accessibility**: enforce contrast in semantic tokens.\n- **Density**: 'comfortable' vs 'compact' modes via spacing tokens.\n\n**Token format**: JSON or platform-specific (Style Dictionary by Amazon converts JSON to CSS, iOS, Android).\n\n```json\n{\n  \"color\": {\n    \"primary\": {\n      \"500\": { \"value\": \"#0066CC\" }\n    },\n    \"text\": {\n      \"primary\": { \"value\": \"{color.gray.900}\" }\n    }\n  }\n}\n```\n\n**W3C Design Tokens Community Group**: developing a standard format. Tokens Studio + Figma integration.\n\n**Adopt incrementally**: large products can't switch overnight. Migrate token-by-token + component-by-component. Track via 'token coverage' metric."
+    },
+    {
+      "kind": "text",
+      "title": "Atomic design + the design-system organization",
+      "body": "**Atomic Design** (Brad Frost 2013): organize components into hierarchical levels.\n\n- **Atoms**: smallest units. Button, Input, Label, Icon.\n- **Molecules**: combinations of atoms. SearchField = Input + Button. Form Field = Label + Input + ErrorMessage.\n- **Organisms**: more complex combinations. Header = Logo + Navigation + UserMenu. Card = Image + Title + Body + Button.\n- **Templates**: page-level layouts (without content).\n- **Pages**: templates with real content.\n\nNomenclature is sometimes contested (alternatives: components/patterns/templates). The principle: BUILD UP from small reusable pieces.\n\n**Design-system team structure**:\n- **Federation**: small core team + contributors from product teams. Most common.\n- **Centralized**: dedicated team owns + updates. Quality high; pace slower.\n- **Decentralized**: each team builds own. Fragmented; not really a design system.\n\n**Adoption challenges**:\n- **Convincing teams**: 'we're special / fast / different' resistance.\n- **Customization needs**: not every product fits the system perfectly.\n- **Versioning**: when system updates, products may break.\n- **Documentation debt**: docs lag implementation.\n\n**Governance**:\n- **Contribution model**: how teams propose changes. Often PR-style.\n- **Review process**: maintainer reviews; design + dev + accessibility check.\n- **Release cadence**: regular updates with semver.\n- **Deprecation**: how to retire patterns gracefully.\n\n**Modern + emerging**:\n- **Headless components** (Radix, Headless UI): unstyled accessible primitives. Each product adds its own styles. Removes styling debate from the system.\n- **shadcn/ui**: copy-paste components rather than NPM dependency. Each project owns + customizes.\n- **AI-generated components**: vibrant area. Galileo AI, Uizard, v0 generate UI from text prompts. Used for early ideation; refined by humans for production."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ds_tokens",
+        "kind": "guided_derivation",
+        "question": "Design a token-based color system",
+        "goal": "Design system supports both light + dark mode. Define semantic tokens that work in both.",
+        "steps": [
+          {
+            "prompt": "Primitive layer: define color scales. Example: gray-50, gray-100, ..., gray-900 (light to dark). What about for primary brand?",
+            "motivation": "Scale.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Just gray.",
+                "Each brand color has its scale: primary-50, primary-100, ..., primary-900 (light to dark blue, say). Same for semantic colors (success, warning, error).",
+                "Random.",
+                "Just one shade."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Scales for each hue."
+            ],
+            "reveal": "Scales (50-900) for each color: neutral, primary, success, warning, error. ~50-100 primitives."
+          },
+          {
+            "prompt": "Semantic layer: 'color-text-primary'. Light theme = gray-900 (dark text on light bg). Dark theme value?",
+            "motivation": "Theme-dependent.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "gray-900.",
+                "gray-50 (light text on dark bg) — semantic stays the same name, primitive mapping reverses for dark.",
+                "white.",
+                "Same as light."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Reverse direction."
+            ],
+            "reveal": "Dark theme: color-text-primary = gray-50 (light gray). The SEMANTIC token's name is theme-agnostic; the underlying primitive flips."
+          },
+          {
+            "prompt": "Critical: ensure contrast in BOTH themes. e.g., color-text-primary on color-bg-surface ≥ 4.5:1. How verify?",
+            "motivation": "Constraint checking.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Manual.",
+                "Tooling: tokens-studio-Figma plugin, Stark for design, automated tests in code. Compute contrast ratios across all combinations + flag any below WCAG threshold.",
+                "Designer's eye.",
+                "Skip."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Automated check."
+            ],
+            "reveal": "Automate contrast checks across all combinations. Both themes. Modern systems include this as a CI test on token changes. Prevents accidental accessibility regressions."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Tokens: primitives → semantic → component, theme-swap at semantic layer}}$$ Design tokens make multi-theme + multi-brand systems tractable. Without tokens, themes require touching every component. With tokens, themes are a single primitive-mapping file swap. Modern tools (Style Dictionary, Tokens Studio, the W3C tokens spec) standardize the workflow. Accessibility enforcement at the token layer prevents regressions."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ds_adopt",
+        "kind": "multiple_choice",
+        "question": "Your company has 10 product teams + introduces a design system. Six months in, only 2 teams have adopted it. What's typical + how to improve?",
+        "options": [
+          "Force them.",
+          "Common: adoption is slow because: (1) teams have custom needs; (2) migration takes time; (3) docs may be unclear. Improve by: dedicated migration help; documenting use-cases; sponsorship from leadership; making opt-out painful (org-wide design reviews flag non-compliant designs).",
+          "Give up.",
+          "Add more components."
+        ],
+        "correctIndex": 1,
+        "explanation": "Design-system adoption is THE hardest part. Common reasons for slow adoption: customization needs, migration cost, unclear docs, lack of leadership backing, change-aversion. Fixes: dedicated migration help (a 'design system team' that goes to product teams + helps them migrate), prominent docs + examples, executive sponsorship ('every new feature uses the system'), social pressure (design reviews flag non-compliant designs). Most mature systems take 2-3 years to reach high adoption."
+      },
+      "hints": [
+        "Why is adoption slow?",
+        "What works?"
+      ],
+      "workedSolution": "Adoption is slow because: teams busy with features, customization needs, learning curve, governance friction. Fixes: pair each product team with a system contributor; document examples; leadership backing; phase-in (new code = system; gradual migrate). Major systems (Material, Polaris, Carbon) took years to reach >90% adoption across products.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ds_tokens",
+        "kind": "math_expression",
+        "question": "Design system has 80 color primitives + 30 semantic + 50 component tokens. Total tokens (for a single theme)?",
+        "acceptedAnswers": [
+          "160"
+        ],
+        "hint": "80 + 30 + 50."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ds_brand",
+        "kind": "scenario",
+        "question": "Multi-brand design system",
+        "prompt": "Your company acquires 3 smaller brands + wants to unify on one design system while keeping distinct brand identities. Walk through the token + component strategy."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ds",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why design tokens have become foundational to modern design systems.",
+        "rubric": "Mentions that tokens decouple design decisions (semantic intent) from raw values; enable themes (light/dark) + brands + accessibility constraints by swapping primitive mappings; provide a contract between designers + developers (both reference the same names); without tokens, multi-theme + multi-brand systems are impractical."
+      }
+    }
+  ]
+}

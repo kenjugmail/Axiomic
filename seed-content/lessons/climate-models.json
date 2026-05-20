@@ -1,0 +1,152 @@
+{
+  "meta": {
+    "timeMinutes": 28,
+    "difficulty": "specialist",
+    "objectives": [
+      "Outline the structure of a General Circulation Model (GCM).",
+      "Distinguish parameterizations from resolved physics.",
+      "Reason about model ensembles + uncertainty quantification."
+    ],
+    "prereqs": [
+      "atmospheric-physics",
+      "ocean-circulation"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "General Circulation Models: the workhorses",
+      "body": "**A GCM** discretizes Earth's atmosphere + ocean on a 3D grid + solves the equations of fluid dynamics + thermodynamics + chemistry on each grid cell.\n\n**Grid resolution**:\n- Modern GCMs: ~100 km × 100 km horizontal × ~30-100 vertical levels.\n- Regional Climate Models (RCMs): downscale to ~10 km.\n- 'Cloud-resolving' or 'storm-resolving' (NICAM, ICON): ~1-3 km globally (only feasible on top supercomputers).\n\n**Equations solved (Navier-Stokes + state equation + tracers)**:\n- Momentum (3D): $\\partial \\mathbf{u}/\\partial t + \\mathbf{u} \\cdot \\nabla \\mathbf{u} = -\\nabla p / \\rho + \\mathbf{g} + 2\\Omega \\times \\mathbf{u} + \\nabla \\cdot \\boldsymbol{\\tau}$.\n- Mass continuity, thermodynamic energy.\n- Tracer transport (humidity, ozone, aerosols, CO₂).\n- Surface fluxes (radiation, sensible + latent heat).\n\n**Components**:\n- **AGCM** (Atmospheric GCM): atmosphere only; sea-surface temperatures prescribed.\n- **OGCM** (Ocean GCM): ocean only; surface forcing prescribed.\n- **Coupled GCM** (AOGCM): atmosphere + ocean interact + evolve together.\n- **Earth System Model (ESM)**: AOGCM + carbon cycle + chemistry + ice sheets + vegetation.\n\n**The IPCC ensemble** (CMIP6, 2019+): ~100 models from ~50 institutions. Different equations, different parameterizations, different resolutions. The ensemble spread is itself a measure of structural uncertainty.\n\n**Computational cost**: a CMIP6-class century-long simulation: ~10^16 floating-point operations, several months of supercomputer time. Climate modeling is among the largest scientific computing workloads (alongside cosmology + protein folding)."
+    },
+    {
+      "kind": "text",
+      "title": "Parameterizations + the sub-grid problem",
+      "body": "Many physical processes are SMALLER than the grid cell (clouds = ~km; convection = ~10 km; turbulence = mm). A 100-km grid CAN'T resolve them. Instead: **parameterize** — represent their bulk effect through formulas.\n\n**Major parameterizations**:\n- **Convection**: thunderstorms transport heat + moisture vertically. Schemes: Tiedtke, Zhang-McFarlane, Kain-Fritsch. Each makes assumptions about triggering, mass flux, entrainment.\n- **Clouds**: stratiform vs cumulus; ice vs liquid; optical properties. Parameterized using cloud-fraction schemes (Tiedtke, Sundqvist).\n- **Boundary layer turbulence**: TKE-based, K-profile, or YSU schemes. Mix near-surface heat + moisture vertically.\n- **Radiation**: detailed line-by-line is too expensive; use broadband / RRTM schemes that pre-compute optical depths.\n- **Aerosols + chemistry**: simplified species + reaction networks.\n\n**Tuning**: model parameters are adjusted so the model reproduces present-day climate (top-of-atmosphere radiation balance, global temperature, precipitation patterns). NOT a free fit — physical constraints + observational targets limit the tuning. But tuning IS a known source of intermodel similarity-via-tuning.\n\n**Why parameterizations dominate uncertainty**: the climate sensitivity range (2.5-4°C per CO₂ doubling) reflects different parameterization choices, especially for CLOUDS. Cloud feedback is the largest source of model spread.\n\n**Recent progress**: cloud-resolving models at 1-3 km no longer need cumulus parameterization — they resolve convection. Run at hyperscale, they reduce cloud-feedback uncertainty. The NextGEMS + ICON projects push toward routine km-scale global simulations.\n\n**ML emulators**: deep-learning models trained on GCM output run 10-1000× faster. Used for ensemble expansion + downscaling. Active research area (NVIDIA's Earth-2, GraphCast, ECMWF's AIFS)."
+    },
+    {
+      "kind": "text",
+      "title": "Ensembles + uncertainty quantification",
+      "body": "**Three sources of climate-prediction uncertainty**:\n\n1. **Internal variability**: chaotic year-to-year variations. ENSO, NAO, decadal oscillations. Dominates short-term (<20 year) predictions; small for long-term (>50 year).\n2. **Model uncertainty**: different models give different answers. Captured by multi-model ensembles (CMIP6).\n3. **Scenario uncertainty**: future emissions are unknown. SSP1-1.9 (1.5°C target) vs SSP5-8.5 (very high emissions) span ~3-5°C end-of-century warming difference.\n\n**Ensemble types**:\n- **Initial-condition ensemble**: same model, perturbed initial conditions. Samples internal variability.\n- **Multi-model ensemble**: different models, same scenario. Samples model uncertainty.\n- **Perturbed-physics ensemble**: same model, varied parameter values within plausible ranges. Samples parameterization uncertainty.\n\n**Best practice**: report ensemble means + spreads. The spread is the uncertainty bar. CMIP6's central estimate of climate sensitivity is ~3.0°C, but the model range is 2.0-5.6°C.\n\n**Emergent constraints** (Cox et al, Sherwood et al): observable quantities in the present-day climate that correlate with future projections across models. e.g., 'models that better reproduce observed tropical-Pacific variability project less warming' → constrains the ensemble.\n\n**Storylines**: instead of single 'best estimate', report multiple plausible futures + their implications. Used in IPCC AR6 (low / medium / high climate-sensitivity storylines).\n\n**Validation**:\n- Reproduce historical climate (CMIP historical runs 1850-2014): models match observed warming pattern, with some biases.\n- Reproduce past climates (paleoclimate simulations: Last Glacial Maximum, mid-Holocene): tests model under different forcings.\n- Out-of-sample predictions: 1990 IPCC FAR projections have been remarkably accurate (within their uncertainty bands)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_models_param",
+        "kind": "guided_derivation",
+        "question": "Why is cloud parameterization the dominant uncertainty",
+        "goal": "Decompose climate sensitivity into feedbacks: λ_Planck + λ_water-vapor + λ_lapse-rate + λ_clouds + λ_albedo.",
+        "steps": [
+          {
+            "prompt": "Each feedback strengthens or weakens the response per W/m² forcing. Models agree on which feedbacks?",
+            "motivation": "Identify well-constrained.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "All feedbacks are well-constrained.",
+                "Planck (-3.2 W/m²/K) is essentially exact; water-vapor (+1.6) + lapse-rate (-0.6) are well-constrained by basic physics + observations; surface-albedo feedback constrained by ice/snow physics.",
+                "None.",
+                "Just Planck."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Which feedbacks have strong theoretical or observational constraints?"
+            ],
+            "reveal": "Planck (basic physics), water-vapor (observations + theory), lapse-rate (combined with water-vapor), surface-albedo — all relatively well-constrained."
+          },
+          {
+            "prompt": "Cloud feedback estimates range from approximately +0.1 to +1.0 W/m²/K across models. Why so uncertain?",
+            "motivation": "Sub-grid + multiple competing effects.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Clouds don't matter.",
+                "Clouds are sub-grid (parameterized); they have multiple competing effects (low clouds reflect sunlight → cooling; high clouds absorb IR → warming); net sign depends on cloud type + altitude responses to warming. Observations of cloud response are limited.",
+                "Computational limits.",
+                "Just political."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "High vs low clouds have opposite effects."
+            ],
+            "reveal": "Low clouds cool (high albedo); high clouds warm (greenhouse). Net feedback depends on which dominates. Models disagree on cloud-distribution shifts under warming."
+          },
+          {
+            "prompt": "Result: ensemble climate sensitivity ranges 2.5-4.5°C/doubling. The wide range mostly traces to cloud-feedback differences. Strategy to narrow?",
+            "motivation": "Resolve clouds explicitly.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Use a single 'best' model.",
+                "Cloud-resolving simulations (1-3 km) eliminate the cumulus parameterization — clouds form from resolved dynamics. Compare to satellite observations.",
+                "Ignore clouds.",
+                "Train ML on noise."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "What removes the parameterization?"
+            ],
+            "reveal": "Cloud-resolving GCMs at km-scale resolution. Initial results suggest 2.5-3.5°C sensitivity range, narrower than CMIP6 ensemble. Active frontier of climate science."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Cloud feedback is the dominant climate-sensitivity uncertainty}}$$ The IPCC's 'likely range' of 2.5-4°C reflects this. Reducing cloud uncertainty requires either higher-resolution models (resolve cloud-scale dynamics) or better satellite observations (constrain cloud responses to warming directly). Both are active research. A narrowed sensitivity range would dramatically tighten policy implications — the gap between 2°C and 4°C warming corresponds to qualitatively different impacts."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_models_pred",
+        "kind": "multiple_choice",
+        "question": "Climate models from 1990 (IPCC FAR) projected ~1.0°C warming by 2020. Actual observed warming by 2020: ~1.2°C. What does this tell us about model skill?",
+        "options": [
+          "Models are useless.",
+          "Models are good within their uncertainty bands; the slight underprediction is consistent with subsequent improvements (faster Arctic warming, ocean heat content). 1990 models didn't have full coupled ocean-atmosphere or aerosol forcing.",
+          "Models always underpredict.",
+          "Random luck."
+        ],
+        "correctIndex": 1,
+        "explanation": "1990 FAR projected 0.7-1.5°C by 2020 (central ~1.0°C); observed 1.2°C is in the upper half but well within the band. Most variance came from policy/emissions uncertainty (close to mid-scenario). Direct model improvements: better Arctic dynamics, ocean heat uptake, aerosol radiative effects. The 1990 predictions were skillful — better than random, well-calibrated, mostly within bands."
+      },
+      "hints": [
+        "What did 1990 predict vs observed?",
+        "What's the assessment?"
+      ],
+      "workedSolution": "1990 FAR scenarios: 0.7-1.5°C warming by 2020 (central ~1.0). Observed: ~1.2°C. Within model spread. Subsequent IPCC reports (SAR 1995, TAR 2001, AR4 2007, AR5 2014, AR6 2021) progressively improved. Climate sensitivity range has narrowed slightly (2.5-4°C vs older 1.5-4.5°C). Out-of-sample skill demonstrated — the field's track record is strong, especially given uncertainty about exact emission trajectories.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_models_cell",
+        "kind": "math_expression",
+        "question": "GCM grid: 100×100 km cells, 30 vertical levels. Cells over Earth's 5.1×10^8 km² surface?",
+        "acceptedAnswers": [
+          "1.53e6",
+          "1530000",
+          "approximately 1.5 million cells"
+        ],
+        "hint": "5.1e8 / 1e4 ≈ 5.1e4 horizontal cells × 30 levels."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_models_emerg",
+        "kind": "scenario",
+        "question": "Decision-making under deep uncertainty",
+        "prompt": "A regional government must decide on coastal infrastructure with 100-year design lifetimes. Different models project 0.5-1.5m sea-level rise. Walk through how to make the decision."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_models",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why climate models continue to be improved + run despite ~50 years of development + the basic answer (warming continues at human-emission-driven pace) being clear.",
+        "rubric": "Mentions that the magnitude + regional patterns + timing of impacts requires fine-grained projection (which crops fail where + when, where to build seawalls, which species shift); cloud + ice-sheet uncertainties remain large enough to span order-of-magnitude impact differences; adaptation + mitigation policy depends on knowing specifics. The 'is warming happening' question is settled; 'how much, where, when, what' continues to drive research."
+      }
+    }
+  ]
+}

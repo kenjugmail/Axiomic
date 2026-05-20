@@ -1,0 +1,158 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intro",
+    "objectives": [
+      "Apply Newton's laws to static equilibrium.",
+      "Compute normal + shear stress.",
+      "Reason about stress concentrations + free-body diagrams."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Static equilibrium + free-body diagrams",
+      "body": "**Statics**: study of bodies in equilibrium. Newton's first law: net force + net torque both zero.\n\n**Equilibrium equations** (2D):\n$$\\sum F_x = 0, \\quad \\sum F_y = 0, \\quad \\sum M = 0$$\n\nThree equations → can solve for 3 unknown reactions. Beyond 3 unknowns: STATICALLY INDETERMINATE; need additional info (deflections, material behavior).\n\n**Free-body diagram (FBD)**:\n1. Isolate the body of interest.\n2. Show all external forces + moments.\n3. Coordinate system.\n4. Replace constraints with reactions.\n\n**Supports + reactions**:\n- **Pin (hinge)**: 2 reactions (x + y), no moment.\n- **Roller**: 1 reaction (perpendicular).\n- **Fixed (cantilever)**: 3 reactions (x + y + moment).\n- **Smooth contact**: 1 reaction (normal).\n- **Cable**: tension along cable.\n\n**Common load types**:\n- **Concentrated load**: force at a point.\n- **Distributed load**: force per length. Replace with equivalent point load at centroid.\n- **Couple / moment**: pure rotation, no net force.\n\n**Solving statics**:\n1. Draw FBD with coordinate axes.\n2. Identify supports + their reactions.\n3. Apply equilibrium equations.\n4. Solve for unknown reactions.\n\n**Trusses + beams + frames**: structural systems built from members. Truss = pin-connected, members in pure tension/compression. Frame = rigid-connected, members have bending. Beam = single member with distributed loads.\n\n**Method of joints (trusses)**: equilibrium at each joint; 2 equations per joint; solve member forces. Computer-aided structural analysis (CASA) automates for large structures."
+    },
+    {
+      "kind": "text",
+      "title": "Stress + strain + Hooke's law",
+      "body": "**Stress** $\\sigma = F/A$: force per cross-sectional area. Units: Pa, MPa, GPa, psi.\n\n**Two main kinds**:\n- **Normal stress**: perpendicular to cross-section. Tension (+) or compression (-).\n- **Shear stress** $\\tau$: parallel to cross-section.\n\n**Strain** $\\epsilon = \\Delta L / L$: fractional length change. Dimensionless.\n\n**Hooke's law** (elastic regime):\n$$\\sigma = E \\epsilon$$\n\nWhere $E$ = Young's modulus.\n\n**Common material values**:\n- Steel: $E \\approx 200$ GPa.\n- Aluminum: $E \\approx 70$ GPa.\n- Concrete: $E \\approx 30$ GPa.\n- Wood: $E \\approx 10-15$ GPa.\n- Polymers: $E \\approx 1-5$ GPa.\n\n**Poisson's ratio** $\\nu$: lateral strain / axial strain when stretched. Most metals: 0.25-0.35.\n\n**Shear modulus** $G = E / [2(1+\\nu)]$.\n\n**Beam bending**:\n- Normal stress varies linearly across cross-section: $\\sigma(y) = M y / I$ where $M$ = bending moment, $I$ = moment of inertia, $y$ = distance from neutral axis.\n- Max at the outermost fiber: $\\sigma_{max} = M c / I$ where $c$ = half-depth.\n- For a rectangular cross-section ($b \\times h$): $I = b h^3 / 12$.\n- For circular cross-section (diameter $d$): $I = \\pi d^4 / 64$.\n- Cross-section shape matters: I-beam concentrates material where stress is highest, vastly more efficient than solid bar.\n\n**Combined loading**: superposition of normal + bending + shear + torsion. Mohr's circle for transforming stress state.\n\n**Yield + ultimate strength**:\n- $\\sigma_y$: yield stress (start of plastic deformation).\n- $\\sigma_u$: ultimate stress (max stress before fracture).\n- Design typically targets $\\sigma_{applied} \\le \\sigma_y / n_{safety}$ where $n$ = safety factor (1.5-3+)."
+    },
+    {
+      "kind": "text",
+      "title": "Stress concentrations + failure",
+      "body": "**Stress concentration**: stress is NOT uniform — concentrates at geometric features (holes, notches, fillets, sharp corners).\n\n**Stress-concentration factor** $K_t$: ratio of peak stress to nominal.\n- Small hole in plate: $K_t \\approx 3$ (peak stress 3× the nominal far-field).\n- Sharp notch: $K_t = 5-10$+.\n- Smoothly-filleted transition: $K_t \\approx 1.5-2$.\n\n**Examples**:\n- Comet airliner (1954): square windows. Stress concentration at corners → fatigue → crashes.\n- Liberty Ships (WWII): sharp deck-hatch corners. Cracks initiated there.\n- Modern airliners: oval windows + radiused corners everywhere.\n\n**Avoid stress risers**:\n- Round all corners (large fillet radius).\n- Avoid sudden cross-section changes.\n- If holes needed: large rounded transitions.\n- For dynamically-loaded parts (fatigue): even more care.\n\n**Failure theories**:\n- **Maximum normal stress**: fail at $\\sigma_u$. Brittle materials.\n- **Maximum shear stress (Tresca)**: fail when shear reaches max. Ductile.\n- **Von Mises (distortion energy)**: $\\sigma_{vM} = \\sqrt{\\frac{1}{2}[(\\sigma_1-\\sigma_2)^2+(\\sigma_2-\\sigma_3)^2+(\\sigma_1-\\sigma_3)^2]}$ fail when $\\sigma_{vM} = \\sigma_y$. The workhorse for ductile metals.\n\n**Fatigue**: cyclic loading at sub-yield stresses. Cracks grow each cycle. Eventual sudden fracture. Critical for rotating + reciprocating + vibrating components.\n\n**Fatigue limit**: stress below which infinite cycles possible. Steel: ~50% of $\\sigma_u$. Aluminum: NO fatigue limit; finite life at any stress.\n\n**Modern design**:\n- **FEA (Finite Element Analysis)**: numerical stress + deflection in complex geometries. Tools: ANSYS, Abaqus, SolidWorks Simulation, NASTRAN.\n- **Topology optimization**: ML/optimization-driven design that places material where stress is high, removes where low. Used in aerospace + automotive lightweighting. Often produces organic-looking forms.\n- **Generative design**: AI-driven design alternatives. Tools: Autodesk Generative Design, nTopology."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_stat_beam",
+        "kind": "guided_derivation",
+        "question": "Compute beam bending stress",
+        "goal": "Cantilever beam: rectangular cross-section 50 mm × 100 mm, length 1 m, point load 5 kN at the free end.",
+        "steps": [
+          {
+            "prompt": "Max bending moment at the wall: $M = F \\cdot L = 5000 \\times 1 = ?$",
+            "motivation": "Lever arm.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "5000 N·m",
+                "5 kN·m",
+                "5000"
+              ]
+            },
+            "hints": [
+              "F × L."
+            ],
+            "reveal": "M = 5000 N·m at the support."
+          },
+          {
+            "prompt": "Moment of inertia: $I = bh^3/12 = 0.05 \\times 0.1^3 / 12 = ?$",
+            "motivation": "Geometry.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "4.17e-6 m^4",
+                "~4.17e-6",
+                "4.17 × 10^-6"
+              ]
+            },
+            "hints": [
+              "0.05 × 0.001 / 12."
+            ],
+            "reveal": "$I = 4.17 \\times 10^{-6}$ m⁴."
+          },
+          {
+            "prompt": "Max bending stress: $\\sigma = M c / I$ where $c = h/2 = 0.05$ m.",
+            "motivation": "Apply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~60 MPa",
+                "60e6 Pa",
+                "60 MPa"
+              ]
+            },
+            "hints": [
+              "5000 × 0.05 / 4.17e-6 ≈ 6e7 Pa."
+            ],
+            "reveal": "$\\sigma_{max} \\approx 60$ MPa at outermost fiber at the wall."
+          },
+          {
+            "prompt": "Mild steel yield ~250 MPa. Safety factor?",
+            "motivation": "Compare.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~4.2",
+                "4",
+                "250/60"
+              ]
+            },
+            "hints": [
+              "250/60."
+            ],
+            "reveal": "Safety factor ~4. Generous for static load + reasonable for moderate fatigue. Design choice depends on load type + criticality."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\sigma_{max} = M c / I; I = bh^3/12 \\text{ for rectangle}}$$ Beam stress analysis is foundational mechanical engineering. Real beams: I-beams (cross-section shape optimized for bending), T-beams, channel sections. FEA handles complex geometries; hand calc for sanity checks + initial sizing. Modern design tools (SolidWorks Simulation, ANSYS Workbench) make FEA accessible — but the hand calc tells you if the FEA result is sensible."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_stat_concentration",
+        "kind": "multiple_choice",
+        "question": "Why are airplane windows oval, not square?",
+        "options": [
+          "Decoration.",
+          "Square corners have stress concentration factor ~3-5. Under cyclic pressurization, fatigue cracks initiate at corners. De Havilland Comet (1954) crashed multiple times from this. All modern pressurized aircraft have oval windows.",
+          "Random.",
+          "Aesthetics."
+        ],
+        "correctIndex": 1,
+        "explanation": "Comet history: square windows + cyclic cabin pressurization → fatigue cracks at corners → catastrophic failures. Multiple aircraft lost. After investigation: oval windows mandatory. Stress concentration: $K_t \\approx 3-5$ at square corner; $K_t \\approx 2$ at oval. Same load, much higher cycles to failure. Engineering response: ALWAYS round corners, especially in cyclically-loaded structures. The Comet investigation is a foundational case study in materials + structural engineering education."
+      },
+      "hints": [
+        "Why oval?",
+        "Comet history?"
+      ],
+      "workedSolution": "Square corners: stress concentration ~3-5×. Cyclic pressurization causes fatigue. Oval: smoother stress distribution. Comet 1954 disasters → mandatory rounding. Same principle: any sharp internal corner concentrates stress. Avoid in cyclically-loaded parts. Modern aerospace + automotive design routinely uses generous radii.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_stat_stress",
+        "kind": "math_expression",
+        "question": "Steel rod, cross-section 200 mm², F = 50 kN. Tensile stress?",
+        "acceptedAnswers": [
+          "250 MPa",
+          "250"
+        ],
+        "hint": "50000 / 200e-6 = 2.5e8 Pa."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_stat_truss",
+        "kind": "scenario",
+        "question": "Analyzing a roof truss",
+        "prompt": "A roof truss spans 12 m with a uniform snow load + central HVAC unit. Walk through how you'd analyze member forces via the method of joints."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_stat",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why understanding stress concentrations is critical for designing real mechanical structures.",
+        "rubric": "Mentions that real designs have geometric features (holes, fillets, notches) that concentrate stress 2-10× nominal; cyclic loading + stress concentrations together cause most fatigue failures; design discipline requires radiusing all corners + avoiding sudden cross-section changes; FEA + experience tell where stress concentrates. Comet windows + Liberty Ship corners are foundational case studies."
+      }
+    }
+  ]
+}

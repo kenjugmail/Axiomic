@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "specialist",
+    "objectives": [
+      "Apply Lipinski's Rule of Five.",
+      "Outline structure-activity relationships.",
+      "Reason about prodrug design + bioisosteres."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Lipinski's Rule of Five + drug-like properties",
+      "body": "**Lipinski's Rule of Five (Pfizer 1997)**: empirical rules for oral bioavailability.\n\nA molecule is likely orally absorbable if no more than one of:\n- Molecular weight > 500 Da.\n- LogP > 5 (too lipophilic).\n- Hydrogen-bond donors > 5.\n- Hydrogen-bond acceptors > 10.\n\n(Numbers ARE 5, hence 'Rule of Five'.)\n\nExceptions: natural products + some specific classes (antibiotics, fungicides) often violate but are still oral.\n\n**Extensions + refinements**:\n- **Veber's rules** (GSK 2002): also consider rotatable bonds (≤10) + polar surface area (≤140 Å²).\n- **Lead-like rules**: smaller starting molecules to allow for growth. MW ≤350.\n- **Egan plot, Pfizer rule of 3** for fragments.\n\n**LogP**: octanol-water partition coefficient. Measures lipophilicity.\n- $\\log P < 0$: very polar; poor membrane crossing.\n- $\\log P = 1-3$: balanced; good oral bioavailability.\n- $\\log P > 5$: very lipophilic; poor solubility; tends to bind plasma proteins + accumulate in fat.\n\n**LogD**: like logP but accounts for ionization at physiological pH (7.4). More relevant for ionizable drugs.\n\n**pKa**: ionization constant. Influences solubility + absorption + tissue distribution.\n- **Acids** (carboxylic): ionized at pH > pKa.\n- **Bases** (amines): ionized at pH < pKa.\n- Most drugs ionizable. Weak bases (pKa 6-9) typical for CNS drugs.\n\n**Drug-likeness scores**:\n- **QED (Quantitative Estimate of Drug-likeness)**: 0-1 score from properties.\n- **Synthetic accessibility (SA score)**: how easy to make.\n- **Pan-Assay Interference Compounds (PAINS)**: chemical features prone to false-positives in screens. Avoid.\n- **REOS (Rapid Elimination of Swill)**: filter rules.\n\n**Beyond Lipinski's RoF**:\n- **Targeted protein degradation** (PROTACs, molecular glues): often violate RoF (MW 600-1200) but still oral. Lenalidomide is small. Many PROTACs are large.\n- **Macrocyclic compounds**: high MW but rigid → can cross membranes. Vancomycin, cyclosporine.\n- **Biologics**: monoclonal antibodies (~150 kDa), peptides — entirely different rules. Injected.\n- **Beyond Rule of Five (bRo5)**: active research area for hard-to-drug targets."
+    },
+    {
+      "kind": "text",
+      "title": "SAR + bioisosteres + the optimization cycle",
+      "body": "**SAR (Structure-Activity Relationship)**: empirical mapping of chemical structure changes to biological activity.\n\nMedicinal-chemist workflow:\n1. Start with HIT (compound with some activity).\n2. Modify functional groups, ring systems, linkers.\n3. Test activity + selectivity + ADME.\n4. Repeat ~50-500 cycles.\n\n**Modifications**:\n- **Bioisosteres**: replace one group with another with similar physicochemical properties + biological effect. Examples:\n  - F for H: improves metabolic stability.\n  - $\\equiv$N for $-$Cl: similar electronics.\n  - Tetrazole for $-$COOH: similar acidity, better PK.\n  - SF₅ for $-$CF₃: novel bioisostere.\n  - $-$CH₂$-$ for $-$O$-$ in heterocycles.\n- **Cyclization (ring closure)**: rigidify, can improve potency + selectivity.\n- **Stereochemistry**: enantiomers can have different activities. Many drugs chiral; one enantiomer often dominant. Modern pharmacopeia increasingly single-enantiomer (esomeprazole vs racemic omeprazole; levodopa vs racemic).\n- **Prodrugs**: chemically modified to improve PK; active form released in body (next slide).\n\n**Common SAR moves**:\n- Improve potency: add binding contacts to target.\n- Improve selectivity: distinguish from off-targets.\n- Improve solubility: more polar groups (carboxylic acid, amine).\n- Improve permeability: less polar / smaller / fewer H-bond donors.\n- Improve metabolic stability: block CYP-prone positions (often para of aromatic rings).\n- Improve half-life: slower clearance.\n- Reduce hERG cardiotoxicity: avoid certain features.\n- Improve safety: avoid PAINS, idiosyncratic toxicity flags.\n\n**Hit-to-lead + lead-to-candidate** stages refine compound over years. ~10⁵ to 10⁶ compounds screened to find a hit; ~50-500 SAR-optimized to identify candidate.\n\n**Modern computational + ML support**:\n- **QSAR (Quantitative SAR)**: predict activity from structure.\n- **Generative chemistry models**: propose novel scaffolds with desired properties.\n- **Active learning**: ML proposes compounds; experimental testing refines model. Insilico Medicine + others use.\n- **DEL (DNA-Encoded Libraries)**: 10⁹+ compounds tagged with DNA barcodes for ultra-high-throughput screening.\n- **Cryo-EM + AlphaFold**: target structures for structure-based design."
+    },
+    {
+      "kind": "text",
+      "title": "Prodrugs + ADC + modern molecular design",
+      "body": "**Prodrug**: drug that is INACTIVE until metabolized into its active form. Used to:\n- Improve oral absorption (esterify polar group → lipophilic ester → absorbed → hydrolyzed in body).\n- Improve solubility (phosphate prodrug of insoluble parent).\n- Improve duration (slow release of active drug).\n- Targeted delivery (activated only at site of action).\n\n**Examples**:\n- **Codeine → morphine** (via CYP2D6).\n- **Valacyclovir → acyclovir** (better F: 50% vs 15%).\n- **Tenofovir disoproxil + alafenamide**: prodrugs of tenofovir; better cell-targeting.\n- **Fosphenytoin → phenytoin**: water-soluble for IV admin.\n- **Enalapril → enalaprilat**: active ACE inhibitor.\n- **Capecitabine → 5-FU**: targeted at tumor.\n- **Aspirin**: technically prodrug for salicylic acid.\n\n**Antibody-Drug Conjugates (ADCs)**:\n- Monoclonal antibody (targeting) + linker + cytotoxic payload.\n- Delivers payload to specific cells (e.g., HER2+ cancer).\n- 12+ FDA-approved ADCs as of 2024.\n- Examples: trastuzumab emtansine, brentuximab vedotin, enfortumab vedotin, sacituzumab govitecan.\n- Linker design critical: stable in circulation, releases payload inside target cell. Common: cleavable (cathepsin, disulfide) or non-cleavable.\n- Drug-Antibody Ratio (DAR): typically 4-8 payloads per antibody.\n\n**PROTACs + molecular glues**: explained in drug-targets lesson. Emerging.\n\n**Macrocyclic + cyclic peptides**: rigid yet large structures. Can engage hard targets (PPIs) while maintaining cell permeability. Cyclosporine (older example), modern: cyclic peptide therapies in trials.\n\n**Covalent drugs**: form covalent bond with target. Permanent inhibition until protein turnover.\n- **Aspirin**: irreversibly acetylates COX-1.\n- **Omeprazole + PPIs**: irreversibly bind H+/K+ ATPase.\n- **Penicillins**: covalently bind transpeptidase.\n- **Ibrutinib**: covalent BTK inhibitor.\n- **Sotorasib + adagrasib**: covalent KRAS G12C.\n- **Osimertinib**: covalent EGFR T790M inhibitor.\n- Trade-off: high efficacy but irreversible side effects if off-target. Modern covalent drugs use mild electrophiles (acrylamide warheads) for selectivity.\n\n**Allosteric modulators**: bind site distinct from orthosteric. May potentiate or reduce response.\n- **Benzodiazepines**: GABA-A positive allosteric modulators.\n- **Cinacalcet**: calcium-sensing receptor (CaSR) modulator.\n- **Cenicriviroc, maraviroc**: CCR5 (HIV entry) negative allosteric modulators.\n- Active research area for GPCRs + ion channels.\n\n**Cell-penetrating + targeted modalities**: peptide tags, nanoparticles, polymer conjugates. Improve delivery."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_med_lipinski",
+        "kind": "guided_derivation",
+        "question": "Apply Lipinski + ADME prediction",
+        "goal": "Compound: MW = 350 Da, logP = 3.5, H-bond donors = 2, H-bond acceptors = 5. Predict oral bioavailability.",
+        "steps": [
+          {
+            "prompt": "Check Lipinski's RoF: any violations?",
+            "motivation": "Apply.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "3 violations.",
+                "Zero violations: MW < 500 ✓, logP < 5 ✓, HBD < 5 ✓, HBA < 10 ✓. Drug-like.",
+                "1 violation.",
+                "All violations."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Compare each."
+            ],
+            "reveal": "Zero violations. Drug-like by Lipinski."
+          },
+          {
+            "prompt": "Implications for oral bioavailability?",
+            "motivation": "Lipinski meaning.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Definitely oral.",
+                "Likely orally absorbable (high probability) but not guaranteed. Other factors matter: solubility, transit time, transporter substrates, metabolism. Need actual ADME assays.",
+                "Definitely not oral.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "RoF predicts likelihood, not certainty."
+            ],
+            "reveal": "Likely orally bioavailable but need actual data. Lipinski-compliant molecules have ~70% chance of oral bioavailability; non-compliant ~10-30%. Predictor not guarantor."
+          },
+          {
+            "prompt": "If compound's logP became 6 (very lipophilic), expected effect?",
+            "motivation": "Apply.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "More soluble.",
+                "LESS soluble + potentially POOR ABSORPTION despite high permeability. Lipinski violation; bioavailability concerns. Common with large + lipophilic kinase inhibitors. Often improved via solubility tweaks (salt formation, prodrug, amorphous solid dispersion).",
+                "Same.",
+                "Better absorption."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "LogP > 5 → poor solubility."
+            ],
+            "reveal": "LogP > 5 = poor solubility. Drug may not dissolve well in GI tract → poor absorption. Solutions: formulation tricks (amorphous dispersion, lipid-based, salt forms), pro-drug, or alternative chemistry to reduce logP."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{RoF predicts oral bioavailability; one violation OK, two becomes concern}}$$ Lipinski's RoF is the medicinal chemist's first-pass filter. Most marketed oral drugs comply. Common violations: kinase inhibitors (often MW > 500, logP > 5), natural products. Modern extensions (Veber, MPO scoring) + ML-based predictors refine. For peptides + ADCs + PROTACs: different rules entirely."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_med_chiral",
+        "kind": "multiple_choice",
+        "question": "Many drugs come in single-enantiomer form despite originally being approved as racemic mixtures (e.g., esomeprazole vs omeprazole). Why?",
+        "options": [
+          "Marketing.",
+          "Often one enantiomer has the desired activity + the other contributes to toxicity or interferes with absorption. Switching to single-enantiomer can improve safety, potency, half-life, or PK consistency. Sometimes also extends patent life ('chiral switch').",
+          "Random.",
+          "Decoration."
+        ],
+        "correctIndex": 1,
+        "explanation": "Enantiomers have IDENTICAL physical properties (mass, melting point, chromatography on achiral) but interact differently with chiral biological targets. The 'right' enantiomer (eutomer) has desired activity; the 'wrong' (distomer) may be inert, antagonistic, or toxic.\n\nClassic example: thalidomide. The R-enantiomer is sedative; S-enantiomer caused birth defects. (However, the molecule racemizes in body, so single-enantiomer drug wouldn't have prevented the disaster — practical lesson is broader.)\n\nChiral switches: esomeprazole (S-omeprazole) vs racemic omeprazole; levocetirizine (R-cetirizine) vs racemic. Modern drug development typically single-enantiomer (~80% of new approvals). Both for safety/efficacy + extends patent.\n\nManufacturing: asymmetric synthesis or chiral chromatography. More expensive than racemic but worth it."
+      },
+      "hints": [
+        "Why single-enantiomer?",
+        "Manufacturing?"
+      ],
+      "workedSolution": "Eutomer (active) vs distomer (may be inert/toxic). Single-enantiomer: better PK + lower distomer-related side effects. Examples: esomeprazole, levocetirizine, escitalopram, dexmedetomidine. Manufacturing: asymmetric synthesis or chiral resolution. Costs more but worth it for the clinical + commercial benefits. Modern: ~80% of new drug approvals are single-enantiomer.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_med_mw",
+        "kind": "math_expression",
+        "question": "An average antibody (IgG) has MW ~150,000 Da. Compared to a small-molecule drug at 500 Da, ratio?",
+        "acceptedAnswers": [
+          "300x",
+          "300",
+          "150000/500"
+        ],
+        "hint": "$150000/500 = 300$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_med_kinase",
+        "kind": "scenario",
+        "question": "Designing a selective kinase inhibitor",
+        "prompt": "Kinase A is your target; closely related Kinase B is responsible for toxicity if also inhibited. Walk through the medicinal-chemistry strategy to gain selectivity."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_med",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why Lipinski's Rule of Five remains the dominant drug-likeness filter despite numerous extensions + alternatives.",
+        "rubric": "Mentions that RoF is simple, well-validated against historical oral drugs, easy to compute from structure alone; the four parameters capture the major absorption + permeability constraints; complex extensions (Veber, QED, MPO) refine but don't replace. Modern: ML-based drug-likeness scores capture more dimensions but RoF remains the universal heuristic + the first thing medicinal chemists check."
+      }
+    }
+  ]
+}

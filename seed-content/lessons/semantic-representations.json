@@ -1,0 +1,133 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "State the goals of lexical-semantic resources (WordNet, FrameNet).",
+      "Distinguish distributional from logical semantics.",
+      "Reason about ambiguity + word sense disambiguation."
+    ],
+    "prereqs": [
+      "tokenization-and-bpe"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Lexical semantics + WordNet",
+      "body": "**Lexical semantics**: the meaning of individual words + their relations.\n\nKey relations:\n- **Synonymy**: 'big' ↔ 'large' (in some contexts).\n- **Antonymy**: 'big' ↔ 'small'.\n- **Hyponymy** / **hypernymy**: 'cat' is-a 'mammal' (hyperonym); 'tabby' is-a 'cat'.\n- **Meronymy** / **holonymy**: 'wheel' part-of 'car'.\n- **Polysemy**: one word, multiple related senses ('bank' = financial / river edge).\n- **Homonymy**: one word, unrelated senses ('bark' = tree skin / dog sound).\n\n**WordNet** (Princeton, Miller 1985+): structured database of English words. Words grouped into **synsets** (groups of synonyms representing one concept). Synsets linked by hyponymy, antonymy, meronymy. ~120K synsets in WordNet 3.0.\n\n**WordNet's structure**:\n```\nnoun.animal:\n  cat (sense 1: a feline) → hypernym: feline → mammal → vertebrate → animal\n  cat (sense 2: a person) → hypernym: person → ...\n  cat (sense 3: cat-o'-nine-tails) → ...\n```\nMost common nouns have 2-5 senses; most common verbs 5-10.\n\n**Uses**:\n- **Information retrieval**: query expansion. Search for 'car' → also expand to 'automobile', 'auto'.\n- **WSD (word sense disambiguation)**: pick which sense applies in context.\n- **Ontology / knowledge representation**: hypernymy chains for inference.\n- **Semantic similarity**: distance in the WordNet hierarchy as a similarity metric (Wu-Palmer, Resnik).\n\nMultilingual: WordNet exists for ~200 languages with varying coverage. Open Multilingual WordNet aligns synsets across languages."
+    },
+    {
+      "kind": "text",
+      "title": "FrameNet + semantic-role labeling",
+      "body": "**FrameNet** (Fillmore 1976+): word meanings represented in terms of **frames** — abstract conceptual structures with **frame elements** (roles).\n\n'Commerce_buy' frame:\n- Buyer (who's purchasing)\n- Seller (who's selling)\n- Goods (what's transferred)\n- Money (the payment)\n- Time, Place, etc.\n\nMany verbs evoke the same frame: 'buy', 'purchase', 'acquire'. The frame captures the SHARED meaning + slot structure.\n\n**Semantic-role labeling (SRL)**: tag each predicate's arguments. 'John bought the book at Amazon for \\$10' →\n- Predicate: BOUGHT (Commerce_buy frame).\n- Buyer: John.\n- Goods: the book.\n- Seller: Amazon.\n- Money: \\$10.\n\nThe **PropBank** alternative uses fixed role labels (Arg0, Arg1, ...) without frame structure. More compact but less semantically informative.\n\nDeep-learning SRL: BERT + a tagging head. State of the art ~88% F1 on English PropBank.\n\n**Why SRL matters**:\n- **Question answering**: 'Who bought the book?' maps to filling the Buyer slot.\n- **Information extraction**: extract structured records from text.\n- **Machine translation**: align predicate-argument structures.\n- **Reading comprehension**: surface form differs but semantic structure is shared.\n\nThe semantic-role-labeling task has lost some prominence to end-to-end LLMs that do the underlying QA / IE / RC tasks without explicit SRL. But it remains useful for structured extraction + interpretability."
+    },
+    {
+      "kind": "text",
+      "title": "Distributional semantics + the rise of embeddings",
+      "body": "**Distributional hypothesis** (Harris 1954, Firth 'a word is characterized by the company it keeps' 1957): words appearing in similar contexts have similar meanings.\n\nThis is the basis of every modern word embedding. Operationalized via:\n\n- **Co-occurrence matrices**: count how often word $w$ appears near word $v$. Then SVD/factorize → dense vectors. (Pre-2013 LSA / LSI.)\n- **Word2Vec** (Mikolov 2013): train a small neural net to predict context from word (skip-gram) or word from context (CBOW). The trained weights ARE the embeddings.\n- **GloVe** (Pennington 2014): factorize the (log-)co-occurrence matrix with bias terms. Closed-form objective.\n- **fastText** (Bojanowski 2017): word embeddings as the sum of n-gram embeddings → captures morphology.\n- **Contextual embeddings** (ELMo, BERT 2018+): word embedding depends on context. 'bank' near 'river' vs near 'money' produces different vectors.\n\n**Why distributional semantics dominates**:\n- **Scales**: free supervision (just text). Billions of tokens easily.\n- **Captures gradient meaning**: cosine similarity gives a continuous similarity, not the discrete WordNet 'is-a-synonym-or-not'.\n- **Cross-lingual**: train multilingual embeddings on parallel/comparable corpora. Find words with similar contexts in different languages → cross-lingual alignment.\n\n**Where it fails / extends**:\n- **Logical reasoning**: distributional semantics doesn't natively do quantifiers, negation, scope.\n- **Compositional meaning**: 'red car' is similar to 'car'; 'fake fur' is NOT similar to 'fur' (it's NOT fur). Embeddings struggle with non-intersective adjectives.\n- **Knowledge facts**: WordNet 'cat is-a mammal' is a discrete fact; distributional embeddings know cats + mammals are similar but don't crisply represent the hypernymy.\n\nThe modern view: distributional + symbolic hybrids. LLMs encode distributional semantics + are augmented with retrieval over symbolic knowledge bases."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sem_wsd",
+        "kind": "guided_derivation",
+        "question": "Derive a simple WSD baseline",
+        "goal": "Word: 'bank'. Senses: 'financial-institution' vs 'river-edge'. Disambiguate 'I deposited money in the bank yesterday'.",
+        "steps": [
+          {
+            "prompt": "The simplest WSD method: **Lesk algorithm**. For each sense, look up the sense's WordNet GLOSS (definition + examples). Compute overlap (count of shared words) with the context. Sense `financial-institution` gloss might contain: 'place where money is deposited, accounts, loans'. Sense `river-edge` gloss: 'land beside a stream of water'. Context: 'deposited money yesterday'. Which sense wins?",
+            "motivation": "Match the gloss to the context.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "financial-institution (overlaps 'money', 'deposited').",
+                "river-edge.",
+                "Neither.",
+                "Tie."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Count word overlap."
+            ],
+            "reveal": "Financial-institution wins on 'money' + 'deposited' overlap."
+          },
+          {
+            "prompt": "Lesk is crude. A neural WSD looks at the embedding of 'bank' in this context (BERT[bank] in context) + compares to embedded sense definitions. The pick has the highest cosine similarity. This solves a problem Lesk doesn't. What is the problem Lesk has?",
+            "motivation": "Limits of bag-of-words.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Lesk requires WordNet.",
+                "Lesk only sees exact lexical overlap; it can't recognize that 'money' is semantically similar to 'finance', or that 'deposited' implies banking. Neural embeddings encode these.",
+                "Lesk is too slow.",
+                "Lesk is biased against river-edge senses."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Lexical vs semantic similarity."
+            ],
+            "reveal": "Lesk requires exact word overlap; misses semantic similarity. Neural WSD uses embedding similarity → can recognize 'finance' relates to 'bank' even without exact match."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Modern WSD: contextual BERT embedding + nearest-sense}}$$ The state-of-the-art (BERT + WordNet) WSD systems achieve ~80% F1 on standard benchmarks. The 'gloss as queryable sense definition' idea (Huang 2019) makes WSD as simple as embedding-similarity. For most downstream NLP tasks, explicit WSD has been subsumed by contextual representations — BERT's 'bank' in a financial context IS automatically the financial sense."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sem_compose",
+        "kind": "multiple_choice",
+        "question": "Why does 'fake fur' break the standard distributional-embedding intuition that 'modifier + noun' should be similar to the noun?",
+        "options": [
+          "It doesn't; embeddings handle it fine.",
+          "'Fake' is a non-intersective adjective (a fake X is NOT an X). Pure compositional embeddings produce something similar to 'fur', but the actual meaning is closer to 'not-fur'.",
+          "Because 'fake' is rare.",
+          "Because of capitalization."
+        ],
+        "correctIndex": 1,
+        "explanation": "Adjective-noun composition is intersective for 'red car' (red ∩ car) but NOT for 'fake fur', 'former president', 'alleged criminal'. A fake X is, in fact, not an X. Compositional vector-space models (just adding/multiplying the embeddings) silently produce wrong meanings for these. Resolution requires either explicit semantic typing or large enough models to learn the patterns implicitly."
+      },
+      "hints": [
+        "What does 'fake' do to meaning?",
+        "How does additive composition behave?"
+      ],
+      "workedSolution": "Adjectives split into intersective ('red'), subsective ('skilled' — a skilled doctor is a doctor), and non-intersective/privative ('fake', 'former'). Naive vector composition (add or multiply word vectors) works for intersective; fails for the others. Better: matrix-based composition (Baroni-Zamparelli 2010) where adjectives are matrices that TRANSFORM noun vectors. Large LLMs learn these implicitly.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sem_wn",
+        "kind": "math_expression",
+        "question": "WordNet has ~120K synsets. Average polysemy of a common noun is ~3 senses. For 'fish' which has 7 senses, what's the WSD prior (most-common-sense baseline)?",
+        "acceptedAnswers": [
+          "1/7",
+          "~14%",
+          "0.143"
+        ],
+        "hint": "Uniformly random pick over 7 senses."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sem_ie",
+        "kind": "scenario",
+        "question": "Building an info-extraction system",
+        "prompt": "Your team needs to extract 'who bought what from whom for how much' from financial news. Walk through whether to use SRL, fine-tuned BERT-NER, or instruct a LLM with few-shot prompts."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sem",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why distributional semantics (Word2Vec, BERT) effectively replaced classical lexical semantics (WordNet) for most NLP tasks.",
+        "rubric": "Mentions that distributional methods scale (need only text, billions of tokens), provide continuous similarity (better than discrete relations), capture context (BERT's 'bank' in context = correct sense automatically), and feed into end-to-end neural systems naturally. WordNet remains valuable for tasks needing crisp symbolic structure (formal semantics, ontology building, knowledge bases)."
+      }
+    }
+  ]
+}

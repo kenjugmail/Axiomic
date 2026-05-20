@@ -1,0 +1,144 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "specialist",
+    "objectives": [
+      "Outline highway geometric design.",
+      "Apply pavement design + traffic-flow theory.",
+      "Reason about transit + AV integration."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Highway geometric design",
+      "body": "**Geometric design**: 3D shape of roadway. Sight distance, alignment, gradients, cross-section.\n\n**Design speed**: speed for which features are designed. Higher than posted typically. Determines:\n- Curve radii (centrifugal force vs friction).\n- Sight distances.\n- Super-elevation (banking).\n- Lane widths.\n\n**Horizontal alignment**: plan view.\n- **Tangents** (straight sections).\n- **Circular curves**: $R$ = radius.\n- **Transition (spiral) curves**: gradually increase curvature. Allow gradual super-elevation transitions.\n- **Min radius**: at design speed + super-elevation + friction.\n  - $R_{min} = v^2 / [g(e + f)]$ where $v$ = velocity, $e$ = super-elevation, $f$ = side friction.\n  - At 100 km/h, $e = 0.08, f = 0.12$: $R_{min} \\approx 396$ m.\n\n**Vertical alignment**: profile.\n- **Grades**: limit on steepness (highway typically 3-6%, mountain road up to 7-9%).\n- **Vertical curves**: parabolic, smooth grade changes.\n- **Sight distance**: must see ahead far enough to stop or pass. K-values (sag/crest curves).\n\n**Cross-section**:\n- **Lanes**: 3.5-3.65 m (12 ft) freeway; narrower local.\n- **Shoulders**: 1.5-3 m. Refuge + maintenance + emergency.\n- **Median**: separates opposing traffic.\n- **Sidewalks** for pedestrians (urban).\n- **Bike lanes**: increasingly common.\n- **Drainage**: crown (1-2% slope) sheds rain.\n\n**Intersections**:\n- **At-grade**: traffic signals, stop signs, roundabouts, all-way stop.\n- **Grade-separated** (interchanges): freeway. Diamond, cloverleaf, directional, single-point-urban (SPUI), diverging-diamond.\n- **Roundabouts**: increasingly used; safer + smoother flow.\n\n**Standards** (USA): AASHTO 'Green Book' (A Policy on Geometric Design of Highways and Streets). Updates every ~5 years.\n\n**Modern design**:\n- **Complete Streets**: design for all users (pedestrians, bikes, transit, cars).\n- **Vision Zero**: design for zero traffic fatalities.\n- **3D + BIM**: civil software (Civil 3D, OpenRoads, GeoMedia).\n- **GIS integration**: design + asset management.\n- **Drone surveying**: faster, more accurate base data.\n- **AV-ready design**: lane markings, signage, sensors."
+    },
+    {
+      "kind": "text",
+      "title": "Pavement + traffic flow",
+      "body": "**Pavement types**:\n- **Flexible pavement (asphalt)**: layered (subgrade + base + binder + surface). Distributes load via multiple layers. Most highways. ~70% of USA roads.\n- **Rigid pavement (concrete)**: thick slab over base. Higher initial cost; longer life. Used for high-traffic + ports + airports.\n- **Composite**: asphalt over concrete (over-lay of old concrete pavement).\n\n**Design**:\n- **AASHTO 1993 (or Mechanistic-Empirical Pavement Design Guide, MEPDG)**: design based on traffic loadings (ESALs — Equivalent Single Axle Loads), subgrade strength, environment, materials.\n- **Layer thickness**: balance cost + life.\n- **Reliability**: design for desired probability of survival to end of design life.\n\n**Distress mechanisms**:\n- **Fatigue cracking**: bottom-up cracking from repeated bending.\n- **Rutting**: permanent deformation in wheel paths.\n- **Thermal cracking**: cold-temperature cracks.\n- **Reflection cracking**: cracks in old layer propagate up.\n- **Stripping**: asphalt-aggregate bond failure.\n\n**Pavement management**:\n- Monitor (visual + automated surveys, falling-weight deflectometer).\n- Schedule maintenance: crack sealing, overlays, full reconstruction.\n- Life-cycle cost analysis: balance investment timing.\n\n**Traffic-flow theory**:\n\n**Fundamentals**:\n- **Flow** $q$ (vehicles/hour).\n- **Density** $k$ (vehicles/mile or km).\n- **Speed** $v$ (mph or km/h).\n- Relationship: $q = k v$.\n\n**Speed-density relationships**:\n- **Greenshields linear**: $v = v_f (1 - k/k_j)$ where $v_f$ = free-flow speed, $k_j$ = jam density.\n- **Capacity**: max flow $q_{max} = v_f k_j / 4$ at $v = v_f/2$, $k = k_j/2$.\n- **Greenberg, Underwood, others**: more complex relations.\n\n**Levels of Service (LOS)** A-F:\n- A: free flow.\n- B: stable, slight restriction.\n- C: stable, restricted.\n- D: high-density approaching unstable.\n- E: unstable; capacity.\n- F: forced flow; congestion.\n\n**Congestion + queuing**:\n- Queues form when demand > capacity (bottleneck, accident).\n- Shockwave: speed of queue propagation.\n- Modeled with kinematic-wave theory.\n\n**Traffic signal timing**:\n- Cycle length (typically 60-120 seconds).\n- Green time per approach proportional to demand.\n- Coordinated signals on arterials (progression / 'green wave').\n- Adaptive systems: SCATS, SCOOT, InSync. Adjust in real-time.\n\n**Modern**:\n- **Connected + autonomous vehicles (CAV)**: V2V, V2I communication; cooperative adaptive cruise control.\n- **Demand-responsive pricing**: tolls vary with congestion (e.g., I-66 in Northern Virginia, I-15 San Diego).\n- **Micromobility**: bikes, e-scooters, e-bikes. Reshape urban transport.\n- **Mobility-as-a-Service (MaaS)**: integrated multi-modal apps."
+    },
+    {
+      "kind": "text",
+      "title": "Transit + AV + the urban transport transformation",
+      "body": "**Public transit modes**:\n- **Bus**: cheap + flexible. Most common. Often coverage-focused.\n- **Bus Rapid Transit (BRT)**: dedicated lanes, frequent service, prepaid boarding. Latin America (Bogotá TransMilenio, Curitiba) leads.\n- **Light Rail Transit (LRT)**: dedicated track at-grade or elevated. Higher capacity than bus.\n- **Heavy Rail Metro**: grade-separated; highest capacity. NYC, London, Tokyo, Beijing, etc.\n- **Commuter Rail**: longer-distance regional. UK rail, Tokyo Yamanote, NYC LIRR/Metro-North.\n- **High-Speed Rail**: 250+ km/h. China (huge network), Japan, France, Spain. USA lags.\n- **Maglev**: experimental + Shanghai operational.\n\n**Capacity** (passengers per hour per direction):\n- Mixed-traffic bus: ~1500.\n- BRT: ~25,000.\n- LRT: ~20,000.\n- Heavy rail metro: ~50,000-80,000.\n- Cars (freeway lane): ~2000-2400.\n\nDensity advantage of rail HUGE. Why metros are essential in dense cities.\n\n**Operating + capital costs** vary by mode + city. Heavy rail capital: ~\\$0.5-2B per mile. BRT: ~\\$50M per mile. Operating ratio (fares / cost) varies 30-80%.\n\n**Network design**:\n- Coverage vs ridership trade-off.\n- Trunk-and-feeder vs grid networks.\n- Transit-oriented development (TOD): coordinate land use + transit.\n\n**Autonomous vehicles (AVs)**:\n\n**Levels of autonomy** (SAE):\n- L0: no automation.\n- L1: driver assistance (cruise control).\n- L2: partial (Tesla Autopilot, GM Super Cruise). Driver must monitor.\n- L3: conditional (limited environments). Mercedes EQS has L3 in Germany highways.\n- L4: high (fully autonomous in defined area). Waymo (Phoenix, SF), Cruise (now paused), Apollo Go (China cities). Geofenced.\n- L5: full (anywhere). Not yet commercial.\n\n**Status (2024)**:\n- **Waymo**: ~50,000 commercial robotaxi trips/week in SF, Phoenix, LA, Austin. Expanding.\n- **Cruise (GM)**: paused after October 2023 accident; relaunching limited.\n- **Apollo Go (Baidu)**: ~tens of thousands of weekly rides in Beijing, Wuhan + others.\n- **Tesla FSD**: L2 highway/city; supervised; ongoing improvements.\n- **Trucking**: Aurora, Kodiak, Plus, Waymo Via, Embark (defunct). Highway L4 in development.\n\n**AV implications**:\n- Safety: human drivers cause ~95% of crashes. AVs could reduce dramatically (eventually).\n- Capacity: cooperative driving could increase road capacity 50-100% (no human delay).\n- Land use: less parking needed if cars travel constantly.\n- Equity: who has access? Pricing matters.\n- Employment: ~5M USA trucking + ride-share drivers face displacement.\n\n**Urban transport future**:\n- **Multimodal**: walk + bike + bus + metro + ride-share + AV. Apps coordinate.\n- **Electrification**: buses + delivery + cars rapidly electrifying.\n- **15-minute cities**: walkable mixed-use; reduce auto-dependence.\n- **Reducing car dependency**: parking minimums removed, congestion pricing, transit investment.\n- **Climate**: transport ~25-30% of USA emissions. Decarbonizing critical."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_trans_curve",
+        "kind": "guided_derivation",
+        "question": "Compute curve radius",
+        "goal": "Highway design speed 100 km/h. Super-elevation $e = 0.06$, side friction $f = 0.14$. Min curve radius?",
+        "steps": [
+          {
+            "prompt": "Convert speed: $v = 100$ km/h = ? m/s",
+            "motivation": "Conversion.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "27.8 m/s",
+                "~27.8",
+                "100/3.6"
+              ]
+            },
+            "hints": [
+              "100/3.6."
+            ],
+            "reveal": "$v \\approx 27.8$ m/s."
+          },
+          {
+            "prompt": "Min radius: $R_{min} = v^2 / [g(e + f)]$.",
+            "motivation": "Plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~393 m",
+                "393",
+                "~390"
+              ]
+            },
+            "hints": [
+              "$27.8^2 / (9.81 \\times 0.20) = 773 / 1.96 = 393$."
+            ],
+            "reveal": "$R_{min} \\approx 393$ m."
+          },
+          {
+            "prompt": "AASHTO Green Book recommends typically ROUND UP for design. Acceptable values?",
+            "motivation": "Practical.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Exactly 393.",
+                "Use a round-number that's the smallest above min — say 400 m or 420 m. Standard practice rounds to convenient values for surveying + construction.",
+                "300 m.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Round up."
+            ],
+            "reveal": "Round up to 400 m or higher. Provides slight margin. Standard practice: round to 50 or 100 m increments. Modern: 3D modeling allows precise curves, but documentation + surveying still favor round numbers."
+          }
+        ],
+        "finalResult": "$$\\boxed{R_{min} = v^2 / [g(e + f)]}$$ Horizontal curve design balances speed + super-elevation + side friction. AASHTO publishes tables of $R_{min}$ vs design speed for typical $e + f$ combinations. Tight curves on high-speed roads = uncomfortable + crash-prone; gentle = safe + smooth. Design speed influences ALL geometry (curves, sight distance, super-elevation, lane width)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_trans_av",
+        "kind": "multiple_choice",
+        "question": "Why has full L5 autonomous driving proven much harder than L4 (geofenced)?",
+        "options": [
+          "Magic.",
+          "Open-world driving requires handling EVERY possible scenario: weather, construction, edge cases, pedestrians, animals, unusual situations. L4 limits the domain (specific cities, weather, road types) → solvable. L5 requires solving long tail of corner cases reliably. ~99.99% may not be enough.",
+          "Random.",
+          "Marketing."
+        ],
+        "correctIndex": 1,
+        "explanation": "Long-tail problem: 99% of driving is routine + AVs handle it. The remaining 1% — kids chasing balls, double-parked trucks, construction zones, snow, signal failures, animals — is where humans use judgment + AVs struggle. L4 sidesteps by limiting to better-mapped + better-understood environments. L5 (anywhere) requires solving every scenario reliably. The 1000:1 ratio of routine to corner cases means each '9' of reliability requires exponentially more data + engineering. Waymo, Cruise, etc. are scaling L4 carefully; L5 may take decades.\n\nAlternative: better infrastructure (V2V, V2I, smart roads). Mixed AV+human traffic during long transition. Maybe full L5 in select corridors first, then expansion."
+      },
+      "hints": [
+        "What's the long tail?",
+        "Why L4 easier?"
+      ],
+      "workedSolution": "Driving has rare-but-critical scenarios (corner cases). 99% of miles routine; 1% requires judgment. L4 (geofenced) limits the domain → finite scenarios → solvable. L5 (anywhere) requires solving the full long tail. Each '9' of reliability exponentially harder. Waymo + Cruise scaling L4 carefully. L5 may take decades. Pivot: better infrastructure + maps + sensors + reliability engineering across the long tail. Mixed AV+human traffic during transition.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_trans_cap",
+        "kind": "math_expression",
+        "question": "Greenshields: free-flow speed 100 km/h, jam density 200 veh/km. Capacity?",
+        "acceptedAnswers": [
+          "5000 veh/h",
+          "5000"
+        ],
+        "hint": "$q_{max} = v_f k_j / 4 = 100 × 200 / 4 = 5000$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_trans_bus",
+        "kind": "scenario",
+        "question": "Bus Rapid Transit feasibility",
+        "prompt": "A mid-size USA city considers BRT vs LRT vs more conventional buses. Walk through the cost-benefit analysis."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_trans",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why transportation engineering is increasingly multi-modal + integrated rather than focused on highways alone.",
+        "rubric": "Mentions that car-dependent design hits limits (congestion, parking, emissions, equity); multi-modal (walk, bike, transit, AV, car-share) better serves diverse needs + cities; integrated planning (land use + transport) reduces total trips; modern engineering increasingly includes equity, sustainability, climate, + safety alongside efficiency. The discipline has broadened beyond pavement + traffic flow."
+      }
+    }
+  ]
+}

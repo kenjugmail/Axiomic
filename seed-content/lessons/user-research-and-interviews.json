@@ -1,0 +1,147 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intro",
+    "objectives": [
+      "Distinguish qualitative from quantitative research.",
+      "Outline contextual inquiry + jobs-to-be-done.",
+      "Reason about sample sizes + bias."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why user research?",
+      "body": "Designing without research = designing for yourself. Your guesses about users are systematically biased: you're an expert in the system, comfortable with jargon, motivated to find features.\n\n**Goals of user research**:\n- Discover unmet needs (problem identification).\n- Understand how users currently solve the problem (current behavior).\n- Identify barriers to adoption (mental models, anxieties).\n- Validate or invalidate design hypotheses.\n- Measure usability + satisfaction.\n\n**Qualitative vs quantitative**:\n- **Qualitative**: interviews, observation, diary studies. SMALL samples (5-20). DEPTH of understanding. Generates hypotheses.\n- **Quantitative**: surveys, analytics, A/B tests, log analysis. LARGE samples (1000s+). BREADTH + statistical evidence. Tests hypotheses.\n\nUse qualitative to figure out WHAT to build; quantitative to confirm + measure impact.\n\n**Common methods**:\n- **User interview**: 30-60 min semi-structured conversation. Open-ended questions.\n- **Contextual inquiry**: observe users in their natural environment using the product.\n- **Diary study**: users log usage over days/weeks. Captures sporadic usage that interviews miss.\n- **Card sorting** (for IA): users group concepts into categories of their own choosing.\n- **Surveys**: closed-ended questions to many users. Useful AFTER qualitative has informed which questions to ask.\n- **Usability tests**: users attempt tasks while researcher observes (covered in detail later).\n\n**The expert blind spot**: experienced designers consistently underestimate first-time-user difficulty. Watching one new user struggle with your product reveals more bugs than weeks of internal review."
+    },
+    {
+      "kind": "text",
+      "title": "Contextual inquiry + jobs-to-be-done",
+      "body": "**Contextual inquiry** (Beyer + Holtzblatt 1998): observe + interview users IN THEIR CONTEXT (workplace, home).\n\nFour principles:\n1. **Context**: see actual work, not abstract recall.\n2. **Partnership**: user is the expert; researcher learns.\n3. **Interpretation**: ask 'why' to understand reasoning.\n4. **Focus**: have research questions but follow interesting threads.\n\nVs interview: contextual inquiry reveals how users ACTUALLY work, not how they REMEMBER working. People consistently misreport: they describe ideal workflows, forget edge cases, omit workarounds.\n\n**Jobs-to-be-done (JTBD)** (Christensen, Ulwick): users 'hire' products to get jobs done. Focus on the JOB, not features.\n\nE.g., milkshake's job: 'help me stay alert + not bored on a long commute' (Ulwick + Christensen classic example). Then: milkshakes compete with bagels + donuts, not other beverages.\n\nJBD interview format:\n- 'When did you start trying to solve X?'\n- 'What were you doing before?'\n- 'What pushed you to try a solution?'\n- 'What did you consider? Why did you reject options?'\n- 'What does success look like?'\n\nResult: framework of FUNCTIONAL job (efficient commute) + EMOTIONAL job (feel productive) + SOCIAL job (look responsible). Each can drive features.\n\n**Persona vs JTBD**: personas describe USERS ('40-year-old marketing manager'). JTBD describes SITUATIONS ('on a long commute, alone'). Same person has multiple jobs. JTBD is criticized as overly restrictive but powerful for prioritization."
+    },
+    {
+      "kind": "text",
+      "title": "Sample sizes + bias",
+      "body": "**How many users to interview?**\n\nNielsen (1993, 2000): in usability testing, ~5 users reveal ~80% of usability problems. Diminishing returns after that.\n\nQualitative research: similar pattern. 5-7 users per major segment is the rule of thumb. Beyond 10-15, you're hearing similar themes — 'saturation'.\n\n**Why so few?** You're not estimating population parameters. You're discovering categories of issues. Few users have unique issues; many share. Once you've seen a class of problem in 2-3 users, more users probably won't add much insight.\n\n**Caveats**:\n- Segments: if you have 4 user types, 5 each = 20 users total.\n- Edge cases: rare-but-critical issues require larger samples or targeted recruiting.\n- Generalizability: small samples → don't generalize to numbers (NOT 'X% of users do Y').\n\n**Quantitative research** sample sizes:\n- Survey: 30-100 for rough comparisons; 300+ for confidence intervals; 1000+ for representative population estimates.\n- A/B test: depends on baseline rate + minimum-detectable-effect. ~10,000 users for 1% detection at high power.\n\n**Bias in research**:\n- **Selection bias**: recruited users may not represent target population (sample from forum vs random).\n- **Confirmation bias**: researcher hears what they expect.\n- **Demand characteristics**: users say what they think you want.\n- **Recall bias**: people misremember.\n- **Acquiescence bias**: 'yes' bias in surveys.\n- **Survivorship**: surveying current users misses those who churned.\n\n**Mitigations**: standardized questions (script), recording + double-coding, neutral phrasing, talking to NON-users + former-users, behavior-based data (analytics) alongside self-report."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_research_n",
+        "kind": "guided_derivation",
+        "question": "Apply Nielsen's '5 users' insight",
+        "goal": "Project: design a new check-out flow for e-commerce. How many users to test in initial discovery phase?",
+        "steps": [
+          {
+            "prompt": "Initial qualitative discovery: usability + interview. Per Nielsen, ~5 users reveal ~80% of major usability issues. But might have user segments. What segments matter?",
+            "motivation": "Segmenting.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "No segments.",
+                "Returning vs new buyer; mobile vs desktop; perhaps demographic / geographic. Each substantively-different segment warrants 5+ interviews.",
+                "All users equal.",
+                "Random sampling."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Segments with different behaviors."
+            ],
+            "reveal": "Returning customers, new customers, mobile vs desktop. For 4 substantive segments: 5 each = 20 users."
+          },
+          {
+            "prompt": "After 20 qualitative interviews, you have hypotheses about issues. Now want to MEASURE prevalence. What's appropriate next step?",
+            "motivation": "Move to quant.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "More interviews.",
+                "Quant: survey current customers OR analytics on existing checkout flow, OR run A/B test. Sample sizes much larger.",
+                "Stop.",
+                "Ask designers."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Quantitative."
+            ],
+            "reveal": "Quant validation: analytics on cart abandonment, survey for satisfaction, A/B test new flow vs old. Sample 1000s+."
+          },
+          {
+            "prompt": "If a key issue (say, 'mobile users abandon at payment step') was reported by 3 of 20 interview participants, can you say '15% of all users abandon at payment'?",
+            "motivation": "Beware of small N.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Yes, 15%.",
+                "NO — qualitative N is too small for population estimates. The 3-of-20 tells you the issue EXISTS + is worth investigating; not the rate. Need quant data (analytics, broad survey) for the rate.",
+                "Yes if recruited randomly.",
+                "Try."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Qual vs quant."
+            ],
+            "reveal": "3-of-20 = 'the issue is common enough to surface' but not a population estimate. Confounded by recruiting + interview bias. Quant data (analytics: 27% of mobile users abandon at payment) gives the real rate."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{5-7 per segment for qual; 100s-1000s for quant}}$$ The qual+quant pipeline: small samples for discovery + hypothesis generation; large samples for measurement + validation. Each stage answers different questions. Treating qual numbers as quantitative ('15% of users have this issue!') is a classic + costly mistake. Use the right method for the question."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_research_say",
+        "kind": "multiple_choice",
+        "question": "A researcher conducts user interviews + finds users SAY they value privacy highly. But analytics show users routinely give up privacy for convenience (one-click sign-in, location sharing). What's happening?",
+        "options": [
+          "Users are lying.",
+          "Common pattern: stated preferences ≠ revealed preferences. People say what they think they should value; behavior shows what they actually trade off. Always weight observed behavior more than self-report.",
+          "Bad analytics.",
+          "Need more research."
+        ],
+        "correctIndex": 1,
+        "explanation": "Stated vs revealed preferences (behavioral economics term). People say they value privacy but accept default settings, give location to maps, sign in with Google, share data for discounts. Cognitive dissonance + social desirability bias. Always weight behavior over self-report; or design research that doesn't rely on self-report (observed behavior, A/B tests, log analysis). Self-reported sentiment surveys are SLIPPERY."
+      },
+      "hints": [
+        "What do behavior + stated preferences disagree on?",
+        "Which to trust?"
+      ],
+      "workedSolution": "Classic gap: stated vs revealed preference. Self-report distorted by social desirability + recall + idealization. Behavior data (analytics, A/B tests, observation) is more reliable. Research best practice: ground claims in behavior; use self-report for SENTIMENT (how users feel) + intent (what they hoped to do), not facts. Triangulate methods.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_research_n",
+        "kind": "math_expression",
+        "question": "Initial discovery phase. 4 user segments. Per Nielsen 5 each. Total interviews?",
+        "acceptedAnswers": [
+          "20"
+        ],
+        "hint": "4 × 5."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_research_jbd",
+        "kind": "scenario",
+        "question": "Applying JTBD to a meeting tool",
+        "prompt": "Your team wants to compete with Zoom but isn't sure on what dimensions. Use JTBD interview to identify the underlying job people are 'hiring' meetings for."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_research",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why qualitative + quantitative methods are complementary in UX research.",
+        "rubric": "Mentions that qualitative discovers hypotheses (what problems exist, why, in what context); quantitative measures + validates (how big, for what segments); using only one method misses crucial information. Qual + quant pipeline is standard in mature UX teams; treating them as alternatives loses the strengths of both."
+      }
+    }
+  ]
+}

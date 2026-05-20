@@ -1,0 +1,160 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "intro",
+    "objectives": [
+      "Outline ADME + first-order kinetics.",
+      "Compute half-life + clearance + volume of distribution.",
+      "Reason about repeated dosing + steady state."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Pharmacokinetics: what the body does to a drug",
+      "body": "**Pharmacokinetics (PK)** = absorption + distribution + metabolism + excretion (ADME).\n\n**Absorption**: drug entering bloodstream.\n- **Oral**: must cross GI epithelium + survive first-pass liver metabolism. **Bioavailability** $F$ = fraction reaching systemic circulation. Aspirin: ~70%. Lipinski-friendly drugs target >30%. IV: F = 1 by definition.\n- **IV**: instant, complete. Reference for absolute bioavailability.\n- **IM, SC**: depot. Slow absorption.\n- **Inhaled**: rapid (alveolar surface large). Salbutamol, insulin (Afrezza).\n- **Transdermal**: slow + steady (nicotine patches, fentanyl patches).\n- **Sublingual, buccal**: bypass first-pass (nitroglycerin).\n\n**Distribution**: drug spreading from blood to tissues.\n- **Volume of distribution** $V_d$: apparent volume the body would need to hold the dose at the measured plasma concentration. $V_d = \\text{dose}/C_0$.\n- $V_d \\sim 3$ L (plasma volume): drug stays in blood. Albumin-bound, large polar.\n- $V_d \\sim 15$ L: extracellular fluid. Penicillin.\n- $V_d \\sim 42$ L: total body water. Ethanol.\n- $V_d > 100$ L: tissue-sequestered. Digoxin (~500 L), amiodarone (5000+ L). Concentrate in fat or muscle.\n- High $V_d$ → low plasma concentration → drug accumulates in tissues → long half-life in some cases.\n\n**Metabolism**: chemical transformation, usually in liver.\n- **Phase I**: oxidation (CYP450 enzymes), reduction, hydrolysis. Often adds polar groups.\n- **Phase II**: conjugation (glucuronidation, sulfation, etc.). Makes drug more water-soluble for excretion.\n- **CYP3A4**: metabolizes ~50% of marketed drugs. Inhibitors (grapefruit juice, ketoconazole) raise drug levels; inducers (rifampin, St John's wort) lower them.\n- **Prodrugs**: inactive parent, activated by metabolism. Codeine → morphine via CYP2D6.\n- **Genetic polymorphisms**: CYP2D6 'poor metabolizers' (5-10%) vs 'ultra-rapid' (1-5%) have very different drug responses. Pharmacogenomics.\n\n**Excretion**: drug + metabolites out.\n- **Renal**: kidney filtration + tubular secretion. Polar small drugs.\n- **Biliary**: liver → bile → feces. Glucuronides, large drugs.\n- **Pulmonary**: volatiles (anesthetics, ethanol).\n- **Sweat, saliva, breast milk**: minor + sometimes important (lactation prescribing).\n\n**Renal/hepatic impairment**: clearance reduced → dose adjustments needed."
+    },
+    {
+      "kind": "text",
+      "title": "First-order kinetics + half-life + clearance",
+      "body": "Most drugs follow **first-order elimination**: rate of elimination ∝ concentration.\n$$\\frac{dC}{dt} = -k_e C$$\n\nSolution: $C(t) = C_0 e^{-k_e t}$. Exponential decay.\n\n**Half-life** $t_{1/2}$: time for concentration to halve.\n$$t_{1/2} = \\ln 2 / k_e \\approx 0.693 / k_e$$\n\nDoesn't depend on starting concentration (key feature of first-order).\n\n**Examples**:\n- Acetaminophen: $t_{1/2}$ ~2-3 hr.\n- Ibuprofen: 2-4 hr.\n- Warfarin: 36-42 hr.\n- Fluoxetine: 4-6 days (active metabolite norfluoxetine: 7-15 days). Very long.\n- Amiodarone: 30-60 days (extreme — months to wash out).\n- Atorvastatin: 14 hr.\n- Caffeine: 5 hr typical (longer in pregnancy + on oral contraceptives).\n\n**Clearance** $CL$: volume of plasma cleared per unit time. Units: L/hr or mL/min.\n$$CL = k_e \\cdot V_d$$\n\nClearance is what the BODY can clear; rate of elimination = CL × C.\n\n**Hepatic clearance** depends on liver blood flow + enzyme activity. Saturation possible at high doses → zero-order kinetics (alcohol, phenytoin at therapeutic doses).\n\n**Renal clearance** depends on GFR + drug's renal handling. Reduced in CKD; dose adjustments standard.\n\n**Steady state** reached after ~5 half-lives of REPEATED dosing.\n- After 1 t½: 50% of SS.\n- After 3 t½: 87.5%.\n- After 4 t½: 93.75%.\n- After 5 t½: 96.9%. Considered steady state.\n\n**Steady-state concentration** $C_{ss}$ for continuous infusion:\n$$C_{ss} = \\text{rate of infusion} / CL$$\n\nFor oral repeated dosing:\n$$\\bar{C}_{ss} = \\frac{F \\cdot \\text{dose}}{CL \\cdot \\tau}$$\n\nWhere $\\tau$ = dose interval, $F$ = bioavailability.\n\n**Peak-to-trough ratio** at SS depends on $\\tau/t_{1/2}$:\n- $\\tau = t_{1/2}$: 2:1 ratio.\n- $\\tau = 2 t_{1/2}$: 4:1.\n- $\\tau = 3 t_{1/2}$: 8:1.\n\n**Loading dose**: bring level to SS faster. $D_L = C_{ss,\\text{target}} \\times V_d / F$.\n\n**The viz below** shows plasma concentration over time for repeated oral dosing. Drag dose, half-life, dose interval, absorption rate. Watch:\n- Accumulation to steady state over ~5 half-lives.\n- Peak-trough swing depends on $\\tau/t_{1/2}$.\n- Higher dose or shorter interval → higher SS.\n- Slower absorption ($k_a$) → lower peak, similar trough.\n- The shaded ribbon shows steady-state C_max + C_min.",
+      "viz": "pk-curve"
+    },
+    {
+      "kind": "text",
+      "title": "Special populations + pharmacogenomics",
+      "body": "**Pediatrics**:\n- Neonates: immature liver enzymes, low GFR. Many drugs accumulate.\n- Older children: high GFR per body mass; some drugs cleared FASTER. Often dosed mg/kg.\n- Adolescents: adult-like.\n\n**Elderly**:\n- Reduced GFR (~50% by age 80).\n- Reduced hepatic blood flow.\n- Altered body composition (more fat, less water).\n- Polypharmacy = drug-drug interactions.\n- Beers Criteria: drugs to avoid in elderly.\n\n**Pregnancy**:\n- Increased blood volume, GFR, hepatic metabolism.\n- Many drugs need higher doses.\n- Teratogenicity (drugs harm fetus): isotretinoin, ACE inhibitors, valproate, warfarin (after 1st trimester).\n- FDA categories A/B/C/D/X retired; now narrative descriptions.\n\n**Renal impairment**: dose reduction or longer interval for renally-cleared drugs.\n- eGFR (estimated glomerular filtration rate): standard biomarker. CKD-EPI 2021 equation.\n- Common adjustments: aminoglycosides, vancomycin, NOACs (apixaban, etc.), gabapentin, ranitidine, allopurinol, metformin.\n\n**Hepatic impairment**: Child-Pugh scoring. Reduce dose for drugs with high hepatic extraction.\n\n**Obesity**: $V_d$ for lipophilic drugs greatly increased. Body-mass-based dosing for some; lean-body-mass for others. Active area of research.\n\n**Pharmacogenomics**:\n- **CYP2D6**: codeine, tramadol, tamoxifen, many SSRIs. PMs lack active enzyme; UMs make too much. FDA labels include CPIC guidance.\n- **CYP2C19**: clopidogrel (PMs may not activate → stroke risk on Plavix). PPIs (omeprazole vs alternatives).\n- **CYP2C9 + VKORC1**: warfarin dosing. ~30% variability.\n- **TPMT**: thiopurines (6-MP, azathioprine). Mutations → severe toxicity.\n- **HLA-B*57:01**: abacavir hypersensitivity (testing mandatory).\n- **HLA-B*15:02**: carbamazepine Stevens-Johnson syndrome in Asian populations.\n- **DPYD**: 5-fluorouracil + capecitabine. Deficiency → fatal toxicity.\n\n**Clinical implementation**: pharmacogenomic testing growing. Mayo, Vanderbilt + others have preemptive testing programs. Cost dropping ($100-500 for panel).\n\n**Therapeutic drug monitoring (TDM)**: measure drug levels in plasma. Used for narrow-therapeutic-index drugs:\n- Vancomycin (target trough or AUC).\n- Aminoglycosides.\n- Digoxin.\n- Antiepileptics (phenytoin, valproate, carbamazepine).\n- Lithium.\n- Immunosuppressants (cyclosporine, tacrolimus, sirolimus).\n- Some antibiotics (now AUC-based for vanc).\n- Methotrexate (for rescue dosing).\n\nTDM guides dose adjustments to maintain therapeutic levels + avoid toxicity."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_pk_halflife",
+        "kind": "guided_derivation",
+        "question": "Compute steady-state concentration",
+        "goal": "Drug: $V_d$ = 50 L, half-life 6 hr. Oral 500 mg every 12 hr. Bioavailability F = 0.8. Compute SS average concentration.",
+        "steps": [
+          {
+            "prompt": "Elimination rate constant $k_e = \\ln 2 / t_{1/2}$.",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.116 /hr",
+                "0.116",
+                "~0.116"
+              ]
+            },
+            "hints": [
+              "0.693/6."
+            ],
+            "reveal": "$k_e \\approx 0.116$ /hr."
+          },
+          {
+            "prompt": "Clearance: $CL = k_e \\times V_d$.",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "5.78 L/hr",
+                "5.78",
+                "~5.8 L/hr"
+              ]
+            },
+            "hints": [
+              "0.116 × 50."
+            ],
+            "reveal": "$CL \\approx 5.78$ L/hr."
+          },
+          {
+            "prompt": "SS average: $\\bar{C}_{ss} = F \\cdot D / (CL \\cdot \\tau)$. Plug in.",
+            "motivation": "Plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~5.77 mg/L",
+                "5.77",
+                "~5.8"
+              ]
+            },
+            "hints": [
+              "$0.8 \\times 500 / (5.78 \\times 12)$."
+            ],
+            "reveal": "$\\bar{C}_{ss} \\approx 5.77$ mg/L average. Peak + trough swing around this."
+          },
+          {
+            "prompt": "Time to reach steady state?",
+            "motivation": "~5 half-lives.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~30 hr",
+                "30 hr",
+                "5 × 6"
+              ]
+            },
+            "hints": [
+              "5 × t_{1/2}."
+            ],
+            "reveal": "~5 half-lives = 30 hours. By then the body has reached >95% of steady state. To reach faster, give a loading dose: $D_L = C_{ss} \\cdot V_d / F = 5.77 \\times 50 / 0.8 \\approx 360$ mg."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\bar{C}_{ss} = F \\cdot D / (CL \\cdot \\tau); SS \\text{ in } \\sim 5 \\, t_{1/2}}$$ These are the fundamental PK equations. Every prescriber + clinical pharmacist uses them. Drugs with narrow therapeutic index (vanco, lithium, anticonvulsants) need TDM to verify SS is within target range. Modern Bayesian-PK software (PrecisePK, InsightRX) refines individual estimates from sparse measurements."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_pk_grapefruit",
+        "kind": "multiple_choice",
+        "question": "Why does grapefruit juice interact with so many drugs?",
+        "options": [
+          "Random.",
+          "Furanocoumarins in grapefruit irreversibly inhibit intestinal CYP3A4. Drugs metabolized by CYP3A4 (statins, calcium-channel blockers, some immunosuppressants, many psychiatric drugs) have reduced first-pass metabolism → much higher bioavailability → toxicity risk. Effect lasts ~24-48 hr.",
+          "Cosmetic.",
+          "Marketing."
+        ],
+        "correctIndex": 1,
+        "explanation": "Grapefruit's furanocoumarins (bergamottin + 6,7-dihydroxybergamottin) irreversibly destroy intestinal CYP3A4. Effect: drugs normally metabolized in gut wall reach plasma with higher F. Examples: simvastatin (5× increase), felodipine, nifedipine, amiodarone, cyclosporine, tacrolimus, buspirone, many statins. Some drugs counter-intuitively decreased (fexofenadine — uptake transporter inhibited too). Effect lasts ~24-48 hr after one glass. Patient education + drug labels warn. Specific to grapefruit, Seville orange, pomelo; not common oranges. One of the most-known dietary drug interactions."
+      },
+      "hints": [
+        "What's the mechanism?",
+        "Which drugs?"
+      ],
+      "workedSolution": "Furanocoumarins irreversibly inhibit intestinal CYP3A4 → reduced first-pass metabolism → higher F for CYP3A4 substrates. Lasts 24-48 hr. ~85 commonly-prescribed drugs affected (statins, calcium channel blockers, immunosuppressants, many psychiatric drugs, some antiarrhythmics). Patient counseling + drug labels warn. Specific to grapefruit, Seville orange, pomelo.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_pk_t90",
+        "kind": "math_expression",
+        "question": "Drug with half-life 4 hours. How long to reach 95% of steady state?",
+        "acceptedAnswers": [
+          "~20 hr",
+          "20 hours",
+          "5 × 4"
+        ],
+        "hint": "~5 half-lives."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_pk_dose",
+        "kind": "scenario",
+        "question": "Designing a dosing regimen",
+        "prompt": "A drug has $V_d$ = 40 L, half-life 12 hr. Target SS plasma 10 mg/L. Walk through the choice of dose + interval + need for a loading dose."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_pk",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why steady state is reached in ~5 half-lives regardless of the dose or interval chosen.",
+        "rubric": "Mentions that first-order kinetics means the FRACTION of drug eliminated per unit time is constant; after each half-life, half the previous level remains + half is replaced; after 5 half-lives the level approaches 96.9% of the asymptotic steady-state value; dose + interval determine the LEVEL of SS but not the time to reach it. Critical for therapeutic monitoring — sample at SS, not before."
+      }
+    }
+  ]
+}

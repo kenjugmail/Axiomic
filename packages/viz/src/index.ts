@@ -11,6 +11,11 @@ export { ActivationFunctionGallery } from "./components/ActivationFunctionGaller
 export { LorenzAttractor } from "./components/LorenzAttractor";
 export { DoublePendulum } from "./components/DoublePendulum";
 export { PhasePortrait1D } from "./components/PhasePortrait1D";
+export { SolarPVCurve } from "./components/SolarPVCurve";
+export { CarnotCycle } from "./components/CarnotCycle";
+export { BeamDeflection } from "./components/BeamDeflection";
+export { PKCurve } from "./components/PKCurve";
+export { ROCCurve } from "./components/ROCCurve";
 export { SoftmaxTemperatureSlider } from "./quiz/SoftmaxTemperatureSlider";
 export { AttentionHeatmapExplorer } from "./quiz/AttentionHeatmapExplorer";
 export { GradientDescent2D } from "./quiz/GradientDescent2D";

@@ -1,0 +1,129 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish lattice from code-based PQ approaches.",
+      "Recognize ML-KEM (Kyber) + ML-DSA (Dilithium).",
+      "Reason about hybrid migration strategies."
+    ],
+    "prereqs": [
+      "public-key-primitives"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why we need post-quantum crypto",
+      "body": "Shor's algorithm (1994) on a sufficiently-large fault-tolerant quantum computer breaks:\n- **RSA**: reduces to integer factoring; Shor solves in polynomial time.\n- **Diffie-Hellman, ECDH, ECDSA**: reduces to discrete-log; Shor solves these too.\n\nBoth foundational asymmetric primitives are quantum-vulnerable. Symmetric crypto (AES) is only halved by Grover's algorithm; doubling key length restores security. Hash functions are similarly impacted; SHA-256 → SHA-384 for the quantum-secure equivalent.\n\n**Timeline**:\n- Today: ~1000-qubit noisy quantum computers exist (IBM, Google). NOT enough for Shor on RSA-2048 (estimated need: ~4000 logical / 20M physical qubits).\n- Expected: large-scale fault-tolerant QC in 10-20 years.\n- **Harvest-now-decrypt-later**: adversaries record encrypted traffic NOW + decrypt when QC arrives. So data with > 10-year confidentiality requirement should already be migrating.\n\n**NIST PQC standardization** finalized 2024:\n- **ML-KEM** (Kyber): key encapsulation (replaces ECDH).\n- **ML-DSA** (Dilithium): digital signatures (replaces RSA, ECDSA).\n- **SLH-DSA** (SPHINCS+): backup hash-based signatures.\n- **FALCON**: small-signature alternative."
+    },
+    {
+      "kind": "text",
+      "title": "Lattice-based crypto, the dominant approach",
+      "body": "**Learning-With-Errors (LWE)** problem: given $A$ (matrix), $b = A s + e$ (vector, where $s$ is small + $e$ is small noise), find $s$. Believed hard for quantum computers (no known quantum speedup beyond polynomial).\n\nModern lattice cryptosystems are built on **Module-LWE** (MLWE), a structured variant for efficiency. The structure: $A$ is built from polynomials in a ring like $\\mathbb{Z}_q[x]/(x^n + 1)$.\n\n**ML-KEM** (Kyber):\n- KeyGen: sample $A$ (public matrix), $s$ (secret vector), $e$ (small error). Public key: $(A, b = As + e)$.\n- Encapsulate: pick random $r, e_1, e_2$. Ciphertext: $(u = A^T r + e_1, v = b^T r + e_2 + \\lceil q/2 \\rceil \\cdot m)$.\n- Decapsulate: $v - s^T u \\approx \\lceil q/2 \\rceil \\cdot m + \\text{small}$. Round to recover $m$.\n\nProof sketch: the security relies on MLWE being hard. Adversary seeing $b$ cannot distinguish it from random without solving MLWE.\n\n**Key sizes**: Kyber-768 ~ 1.2KB public key, 1.1KB ciphertext (vs X25519's 32 bytes — significantly larger). Trade-off: post-quantum security."
+    },
+    {
+      "kind": "text",
+      "title": "Hybrid migration: belt + suspenders",
+      "body": "**Hybrid approach**: combine classical + post-quantum primitives. Compute shared secret = $\\text{KDF}(\\text{X25519}(...) \\| \\text{Kyber}(...))$. Security: relies on at LEAST ONE remaining unbroken. If Kyber turns out to have a flaw, X25519 still protects. If X25519 falls to quantum, Kyber still protects.\n\n**Production deployments 2024-2025**:\n- **Chrome + Cloudflare**: X25519+Kyber768 in TLS 1.3. Default for many connections.\n- **AWS KMS**: PQ-safe key wrapping options.\n- **Signal Protocol**: post-quantum extension (PQXDH) for forward secrecy against future QC.\n- **Apple iMessage**: PQ3 (Kyber + ECDH hybrid) launched 2024.\n\n**Pain points**:\n- **Bandwidth**: Kyber keys are 40× larger than X25519. Handshake size up significantly. Mobile + low-bandwidth scenarios hurt most.\n- **CPU**: Kyber ops are ~10x slower than X25519. Manageable on modern CPUs; matters on IoT.\n- **Library maturity**: PQ libs are newer; less battle-tested. Bugs are still being found.\n\nMigration timeline: full PQ-only TLS expected ~2030-2035. Hybrid is the bridge."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_pq_lwe",
+        "kind": "guided_derivation",
+        "question": "Sketch LWE-based key exchange",
+        "goal": "Alice + Bob agree on shared secret using LWE.",
+        "steps": [
+          {
+            "prompt": "Public parameters: matrix $A$. Alice picks small secret $s_A$, error $e_A$, sends $b_A = A s_A + e_A$. Bob picks small $s_B$, error $e_B$, sends $b_B = A^T s_B + e_B$. Each computes a shared value. What does Alice compute?",
+            "motivation": "Inner product across the shared.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "s_A^T b_B = s_A^T A^T s_B + s_A^T e_B = (A s_A)^T s_B + s_A^T e_B"
+              ]
+            },
+            "hints": [
+              "Multiply Alice's secret by Bob's public."
+            ],
+            "reveal": "Alice computes $s_A^T b_B = s_A^T A^T s_B + s_A^T e_B$."
+          },
+          {
+            "prompt": "Bob computes $b_A^T s_B = (A s_A + e_A)^T s_B = s_A^T A^T s_B + e_A^T s_B$. The two values agree up to error terms (both small). Rounding strips the errors. Why is this secure?",
+            "motivation": "LWE hardness.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Eavesdropper has $b_A, b_B$ — both LWE samples; recovering $s_A, s_B$ is the LWE problem (believed hard, even quantumly).",
+                "RSA-style.",
+                "Obscure.",
+                "By inspection."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "What hard problem does the eavesdropper face?"
+            ],
+            "reveal": "Eavesdropper has $b_A = A s_A + e_A$ and $b_B$. Recovering $s_A$ from $b_A$ = the LWE problem, believed quantum-hard. So the shared secret stays secret."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{LWE: hard to recover } s \\text{ from } As + e}$$ Even quantum computers don't have a known efficient attack. Foundation of Kyber + Dilithium. The full Kyber spec adds structure (Module-LWE) for efficiency + careful parameter tuning for security."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_pq_hybrid",
+        "kind": "multiple_choice",
+        "question": "Cloudflare's TLS deploys X25519+Kyber768 hybrid. What's the security guarantee?",
+        "options": [
+          "Same as X25519 alone.",
+          "Secure as long as AT LEAST one of {X25519, Kyber768} remains unbroken.",
+          "Secure only if BOTH break.",
+          "Insecure."
+        ],
+        "correctIndex": 1,
+        "explanation": "Hybrid: shared secret is derived from BOTH X25519 + Kyber via KDF. To break it, attacker must break both. So even if a flaw is found in Kyber (new construction, less battle-tested), X25519 still provides classical-level security. And if quantum computers arrive + break X25519, Kyber still provides PQ security. Belt + suspenders."
+      },
+      "hints": [
+        "What's the threat model for hybrid PQ?",
+        "Need attacker to break both pieces."
+      ],
+      "workedSolution": "Hybrid combines two key-agreement primitives via KDF. Attacker must break BOTH to recover the shared secret. Defense-in-depth: covers the 'X25519 broken by quantum' scenario AND the 'Kyber turns out to have a subtle flaw' scenario. The cost: larger keys + handshakes. Standard recommendation during the PQ migration period.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_pq_kybersize",
+        "kind": "math_expression",
+        "question": "Kyber768 public-key bytes. vs X25519's 32 bytes. Ratio (rounded)?",
+        "acceptedAnswers": [
+          "~40",
+          "40",
+          "1184/32"
+        ],
+        "hint": "Roughly 40×."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_pq_migrate",
+        "kind": "scenario",
+        "question": "Migrating a long-term archive",
+        "prompt": "Your team archives medical records that must remain confidential for 80 years. Walk through the migration plan to post-quantum + the harvest-now-decrypt-later threat."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_pq",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why the post-quantum migration is happening now, decades before fault-tolerant quantum computers are expected.",
+        "rubric": "Mentions that adversaries record encrypted traffic now + decrypt when quantum capability arrives (harvest-now-decrypt-later); data with multi-decade confidentiality requirements (state secrets, medical records, banking) need PQ encryption today; the migration itself takes 10+ years."
+      }
+    }
+  ]
+}

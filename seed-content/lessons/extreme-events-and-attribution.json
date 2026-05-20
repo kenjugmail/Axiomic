@@ -1,0 +1,152 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "specialist",
+    "objectives": [
+      "Distinguish weather from climate.",
+      "Outline event-attribution methodology.",
+      "Reason about extreme heat + precipitation trends."
+    ],
+    "prereqs": [
+      "climate-models"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Weather vs climate; trends in extremes",
+      "body": "**Weather**: short-term atmospheric state. Today, this week.\n**Climate**: long-term statistics (mean, variance, extremes) of weather over 30+ years.\n\nNo single weather event can be 'caused by' climate change; but the STATISTICS of events shift.\n\n**Heat extremes**: warming increases mean → tail probability rises dramatically.\n- Pre-industrial: 100-year heat event.\n- +1°C warming: now ~10-year event in many regions.\n- +2°C warming: ~3-year event.\n- +3°C warming: every year (now the 'normal').\n\nThe shift in tail probability comes from the shift of the entire distribution PLUS often a VARIANCE increase.\n\n**Precipitation extremes**: Clausius-Clapeyron says vapor pressure rises ~7% per °C. So peak rain rates rise ~7%/°C; extreme rainfall is well-established to be intensifying. Recent decades: 1-3%/°C observed for daily extremes, more for sub-daily.\n\n**Hurricanes**: warmer SSTs increase intensity (basic thermodynamic limit, Emanuel 1986). Frequency unclear; latest research suggests SLOWER but more intense storms with more rain. Rapid intensification (24-hour strengthening) becoming more common.\n\n**Drought**: 'flash' drought (rapid evapotranspiration in heat domes) is a new pattern. Warming exacerbates drought even with stable precipitation, by raising water demand.\n\n**Wildfires**: warming + drying + earlier snowmelt + longer fire season. Western US, Mediterranean, southeast Australia all see large increases. Megafires (>100,000 acres) are now common.\n\n**Cold extremes**: declining. Cold-extreme records broken much less often than warm-extreme records (~1:4 ratio in US since 2000).\n\n**Compound events**: e.g., heat + drought, simultaneously affecting many regions. Increasing in frequency."
+    },
+    {
+      "kind": "text",
+      "title": "Event attribution: did climate change CAUSE this?",
+      "body": "**Attribution science** asks: how much did climate change contribute to a specific event?\n\nTwo main approaches:\n\n**1. Fraction of Attributable Risk (FAR)**:\n- Run model ensembles with HISTORICAL forcing (including anthropogenic GHGs).\n- Run ensembles with NATURAL-ONLY forcing (counterfactual: no anthropogenic emissions).\n- Probability of the observed event in each. Ratio is the 'risk ratio'.\n- FAR = 1 - 1/RR. e.g., RR=5 → FAR=0.8 → 80% of the event's probability attributable to humans.\n\n**2. Storyline approach**:\n- Hold the dynamics constant (same weather pattern), vary the thermodynamic background (warmer atmosphere).\n- Quantify how much MORE intense the event was due to warming.\n- Doesn't address probability changes but quantifies intensity changes.\n\n**Example attributions**:\n- 2003 European heatwave (Stott et al 2004, first attribution study): RR ~2-4. 'Human influence at least doubled the probability of this event.'\n- 2010 Russian heatwave: RR ~3. ~75% attributable.\n- 2021 Pacific Northwest heatwave (Philip et al 2021): 'virtually impossible' without climate change.\n- 2022 Pakistan floods: ~50% more rain due to climate change (Otto et al 2022).\n- Hurricane Harvey 2017 rainfall: ~15% higher due to warming (Risser-Wehner 2017).\n\n**World Weather Attribution** (van Oldenborgh et al, ongoing): rapid attribution within weeks of major events. Provides scientific input for media + policy discussion at the time it matters.\n\n**Limitations**: model resolution, observational sparsity, internal variability. Tropical-cyclone attribution especially uncertain. Cold-event attribution complicated. But for heat + precipitation extremes, attribution is now well-established + routine."
+    },
+    {
+      "kind": "text",
+      "title": "Climate change + the insurance industry",
+      "body": "Insurance + reinsurance industries face climate-change risk directly. Their analytics are some of the most rigorous outside academia.\n\n**Trends in insured losses**:\n- 2020s: ~\\$100-300 billion/year globally, up ~3× since 2000.\n- Driven by combination of (1) more extreme events, (2) more exposed assets, (3) more development in vulnerable areas (Florida coast, California fire zones).\n- Attributing to climate vs exposure: difficult; insurance analytics try both.\n\n**Industry response**:\n- **Withdrawing from high-risk areas**: State Farm + Allstate withdrew from California homeowner market 2023. Some Florida insurers withdrew due to hurricane risk. Result: state-backed last-resort insurance (CA Fair Plan, Florida Citizens) growing.\n- **Repricing**: premiums rising 10-20%/year in fire + flood prone areas.\n- **Climate scenario modeling**: large reinsurers (Munich Re, Swiss Re) publish climate-risk-adjusted scenarios.\n- **'Protection gap'**: gap between economic loss + insured loss. Larger in developing countries; widening with climate-driven events.\n\n**Mortgage + financial linkages**: federal flood insurance (NFIP in US) subsidizes development in floodplains. The 2019 Risk Rating 2.0 reform began phasing in actuarially-fair rates → some communities now uninsurable at affordable rates. Foreshadows broader withdrawal of capital from climate-exposed regions.\n\n**The 'climate Minsky moment'** (Mark Carney): asset stranding scenario where climate-physical or transition risk suddenly re-prices fossil-fuel + at-risk-region assets, triggering financial-system instability.\n\n**Adaptation**: relocating, hardening, building codes, defensive infrastructure (seawalls, fire-resistant designs). Cost projections: trillions of dollars over the century. Comparable to or larger than mitigation costs in many regions."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_attr_pnw",
+        "kind": "guided_derivation",
+        "question": "Apply FAR to the 2021 PNW heatwave",
+        "goal": "2021 Pacific Northwest heatwave: 116°F (47°C) in Portland, 121°F (49°C) in Lytton BC (set Canadian all-time record, then town burned in subsequent wildfire). 1000+ deaths. How attributable to climate change?",
+        "steps": [
+          {
+            "prompt": "Pre-industrial probability of this event: vanishingly small (perhaps 1 in 1000-10000 years). Modern (with warming): 1 in 1000 years (approximately). Risk ratio?",
+            "motivation": "Estimate ratio.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "1.",
+                "10-100×.",
+                "1000×.",
+                "Effectively infinite (would have been 'virtually impossible' without warming).",
+                "Negative."
+              ],
+              "correctIndex": 3
+            },
+            "hints": [
+              "Pre-industrial probability was so low this event would not occur."
+            ],
+            "reveal": "Risk ratio is 'effectively infinite' or 'virtually impossible' without climate change. Attribution paper (Philip et al 2021) concluded as such."
+          },
+          {
+            "prompt": "FAR = 1 - 1/RR. For RR→∞, FAR→1. Implications?",
+            "motivation": "Interpret.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Nothing happened.",
+                "ALL of the event's probability is attributable to climate change. Without anthropogenic warming, this specific event would not have happened.",
+                "Half-and-half.",
+                "Equal split between natural + anthropogenic."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "FAR=1 means 100%."
+            ],
+            "reveal": "100% attributable. Without warming this event would not have happened in any recognizable form. This is a strong statement, supported by multiple independent analyses."
+          },
+          {
+            "prompt": "Does this mean climate change caused EVERY heat death in PNW that week?",
+            "motivation": "Subtle.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Yes, every death.",
+                "No — but the event's existence + its severity were attributable. Without climate change, no heat dome of that magnitude → no deaths from that heat dome. So in a counterfactual world, those specific deaths would not have occurred.",
+                "Half the deaths.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Counterfactual reasoning."
+            ],
+            "reveal": "In a counterfactual world without anthropogenic warming, the heat dome that killed 1000+ people would not have formed. Those deaths are attributable to climate change in the same way deaths in a flood caused by a dam break are attributable to the dam break."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{2021 PNW: virtually impossible without anthropogenic warming}}$$ The Philip et al 2021 attribution study + multiple follow-ups concluded climate change was a NECESSARY condition for the event. The 'compound extremes' (heat + drought + fire) are increasingly correlated. Modern attribution science can rapidly assess major events; provides scientific basis for liability claims, insurance pricing, adaptation planning. This was a 1000-year event in the modern climate; would have been ~1-in-10,000 or rarer in the pre-industrial."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_attr_skeptic",
+        "kind": "multiple_choice",
+        "question": "A friend says: 'we've always had hurricanes. Climate change isn't responsible for any specific one.' What's the right rebuttal?",
+        "options": [
+          "They're right.",
+          "True that hurricanes have always existed, but the STATISTICS have shifted: warmer SSTs increase potential intensity (Emanuel 1986 thermodynamic limit), warmer atmosphere holds more moisture (Clausius-Clapeyron, ~7%/°C), sea-level rise amplifies storm surge. Specific events become more probable + more intense. Attribution quantifies the shift.",
+          "They're partly right.",
+          "Each storm is random."
+        ],
+        "correctIndex": 1,
+        "explanation": "The claim that 'individual events can't be attributed' is outdated by ~20 years. Modern attribution science routinely quantifies how much more probable + intense specific events are due to human warming. Hurricane Harvey (2017) had ~15% more rain due to warming; Maria (2017) intensified faster due to record SSTs; the 2017 Atlantic hurricane season was overall ~15% more intense per the Knutson et al review. These are specific, quantitative answers."
+      },
+      "hints": [
+        "Has any specific event been attributed?",
+        "What's the mechanism?"
+      ],
+      "workedSolution": "Yes; modern attribution science quantifies attribution for hundreds of events. Mechanisms: warmer SSTs → higher potential intensity; warmer atmosphere → more rain (Clausius-Clapeyron); higher sea level → bigger surge. Each is well-established physics + empirically observed. Specific storms shift probability; not 'caused by' but with a measurable contribution from warming.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_attr_cc",
+        "kind": "math_expression",
+        "question": "Atmosphere warms 2°C. Clausius-Clapeyron predicts how much increase in extreme rainfall intensity?",
+        "acceptedAnswers": [
+          "14%",
+          "~14%",
+          "approximately 14"
+        ],
+        "hint": "~7% per °C × 2°C."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_attr_lit",
+        "kind": "scenario",
+        "question": "Climate litigation",
+        "prompt": "A coastal city sues fossil-fuel companies for damage from sea-level rise + storms. Walk through what attribution science can + can't provide for the case."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_attr",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why event attribution moved from 'cannot attribute' (1990s) to 'routinely attribute heat + precipitation extremes' (2020s).",
+        "rubric": "Mentions that improved climate models (higher resolution, better ensembles), longer observational records, established methodology (FAR, storyline), rapid-attribution infrastructure (World Weather Attribution), and a clearer signal-to-noise as warming exceeds natural variability all combined to make attribution quantitatively reliable for major event categories. Single events were always shaped by both climate + weather; the question shifted from 'attribute or not' to 'how much'."
+      }
+    }
+  ]
+}

@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "State the Nyquist-Shannon sampling theorem.",
+      "Distinguish bit depth from sample rate.",
+      "Reason about aliasing + dithering."
+    ],
+    "prereqs": [
+      "acoustics-and-psychoacoustics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Sampling: continuous → discrete time",
+      "body": "Digital audio is discrete samples of a continuous waveform.\n\n**Sample rate** $f_s$: samples per second (Hz). Common rates:\n- **44.1 kHz**: CD audio. Captures up to 22.05 kHz (above audible range for most adults).\n- **48 kHz**: video / pro audio standard.\n- **96 kHz**: high-end pro audio.\n- **192 kHz**: niche; extreme audiophile.\n- **8 kHz**: telephony (captures up to 4 kHz, speech-intelligible).\n- **44.1 / 48 kHz × 2 (88.2, 96) or × 4 (176.4, 192)**: integer multiples.\n\n**Nyquist-Shannon sampling theorem**: a signal band-limited below $f_s/2$ can be perfectly reconstructed from its samples at rate $f_s$.\n$$f_{\\text{max}} < f_s/2 \\quad \\text{(Nyquist frequency)}$$\n\nIntuition: at sample rate $f_s$, the highest representable frequency has two samples per cycle (one peak, one trough). At lower sampling, the same waveform would be ambiguous.\n\n**Aliasing**: if input contains frequencies ABOVE $f_s/2$, they 'fold back' into the audible range as false frequencies. A 30 kHz tone sampled at 44.1 kHz appears as $44.1 - 30 = 14.1$ kHz — wrong frequency, audible artifact.\n\n**Anti-aliasing filter**: a low-pass filter before sampling, removing frequencies above $f_s/2$. Mandatory in ADCs. Modern designs use steep-cutoff digital filters (linear-phase IIR, polyphase).\n\n**Reconstruction**: from samples back to continuous waveform. Theoretically: convolve with sinc function. In practice: DACs use multistage interpolation + low-pass filtering.\n\n**Why 44.1 + 48 kHz**: 44.1 = Sony's pick (related to NTSC video framerate × 3-line audio sampling). 48 = pro / video standard. Above 22 kHz isn't necessary for audibility; higher rates help in mixing (anti-aliasing margin, transient processing) but inaudible directly."
+    },
+    {
+      "kind": "text",
+      "title": "Bit depth + dynamic range",
+      "body": "**Bit depth**: bits per sample. Determines dynamic range + noise floor.\n\nCommon:\n- **16-bit**: CD audio, consumer files. 65,536 quantization levels.\n- **24-bit**: pro recording + mixing. 16.7 million levels.\n- **32-bit float**: pro mixing in DAWs. Effectively infinite dynamic range.\n\n**Dynamic range** = ratio between loudest + quietest representable sample. For $n$-bit linear PCM:\n$$\\text{DR} \\approx 6.02 n + 1.76 \\,\\text{dB}$$\n- 16-bit: ~96 dB.\n- 24-bit: ~144 dB.\n- 32-bit float: ~1500 dB theoretical (way beyond any analog system).\n\n**Why higher bit depth in mixing**:\n- Many tracks summed amplifies quantization noise.\n- Effects (especially nonlinear: compression, distortion) magnify noise.\n- Bit-depth headroom prevents accumulated error from being audible.\n- 32-bit float: no clipping in intermediate processing.\n\n**Final master is usually 16/24-bit**: reduce from 32-bit float at master step, with **dithering**.\n\n**Quantization noise**: error between true sample value + nearest quantization level. Approximately uniform [-q/2, +q/2] where q is the LSB step. For high-amplitude signals, sounds like white noise. For low-amplitude signals (~1 LSB), looks like a distorted version of the signal — correlated, audible as gritty distortion.\n\n**Dithering**: add small random noise BEFORE quantization. Decorrelates quantization error → sounds like benign noise. Critical when converting from 24-bit → 16-bit (the final mastering step).\n\n**Dither types**:\n- TPDF (triangular probability density function): standard, doesn't add a DC component.\n- Noise-shaped dither: moves the dither noise to less-audible frequencies (high frequencies; ear less sensitive). MORE listener-friendly. Many mastering plugins offer.\n\n**Audible difference between 16-bit + 24-bit dithered**: blind tests show most listeners CAN'T reliably distinguish (Meyer + Moran 2007). Higher bit depths matter in production; for finished masters, 16/24-bit is adequate."
+    },
+    {
+      "kind": "text",
+      "title": "Aliasing + the digital domain pitfalls",
+      "body": "Aliasing isn't just an input issue. INSIDE the digital domain, processing can create new frequencies above the Nyquist limit, which then alias.\n\n**Nonlinear processing aliasing**:\n- Distortion / saturation: creates harmonics. A 5 kHz sine through hard clipping creates 15, 25, 35, ... kHz overtones. At 44.1 kHz sampling: 25 kHz → aliases to 19.1 kHz. 35 kHz → 9.1 kHz. Audible as a 'cheap digital' sound.\n- Compression: less aliasing because compression is roughly linear at most levels.\n- Synthesis: digital oscillators producing rich waveforms (square, saw, FM) generate harmonics that alias.\n\n**Solutions**:\n- **Oversampling**: process at 2× or 4× the sample rate, then anti-alias filter + decimate back. Standard for distortion/saturation plugins. CPU cost: 2-4× more.\n- **Band-limited synthesis**: synthesize waveforms with harmonics explicitly limited to <Nyquist. Wavetables, additive synthesis, BLEP/PolyBLEP techniques.\n- **Higher sample rates**: working at 96 kHz pushes Nyquist to 48 kHz, leaving headroom for harmonics before aliasing.\n\n**Listening for aliasing**: rough, gritty, 'digital' artifact. Cleanly-tuned harmonics shouldn't alias; if you hear non-harmonic 'sparkle' or buzzy artifacts, suspect aliasing.\n\n**Sample-rate conversion**: changing between 44.1 + 48 kHz isn't trivial. Naive methods cause aliasing or alias-image artifacts. Quality conversion uses polyphase filters or sinc interpolation. Tools: SoX, Resampler, Voxengo r8brain.\n\n**Jitter**: timing inaccuracy in the sample clock. Causes phase noise; audible artifacts in very-low-jitter systems. Modern interfaces have <100 picoseconds jitter; most production setups have negligible issues.\n\n**Latency** in digital audio:\n- ADC + DAC: ~2-5 ms each.\n- Plugins: depends; many introduce buffering (a few ms to 100s of ms).\n- Round-trip recording latency: typically 5-20 ms. Higher latencies feel disconnected when playing instruments.\n- USB / FireWire / Thunderbolt audio interfaces optimized for low latency."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dig_nyquist",
+        "kind": "guided_derivation",
+        "question": "Apply Nyquist to a specific signal",
+        "goal": "Microphone captures audio with frequencies up to 18 kHz. What minimum sample rate to avoid aliasing? (Plus practical considerations.)",
+        "steps": [
+          {
+            "prompt": "Theoretical minimum: $f_s > 2 \\times f_{\\text{max}}$. Compute.",
+            "motivation": "Nyquist.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "36 kHz",
+                "36000",
+                ">36000"
+              ]
+            },
+            "hints": [
+              "2 × 18 kHz."
+            ],
+            "reveal": "Strictly: anything above 36 kHz."
+          },
+          {
+            "prompt": "In practice, anti-aliasing filters aren't infinitely steep. They roll off over a transition band. So real systems use sample rates somewhat higher than 2× the max signal. Common choices for 18 kHz?",
+            "motivation": "Filter design.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "36 kHz exactly.",
+                "44.1 kHz or 48 kHz — gives ~3-6 kHz transition band for the anti-alias filter to roll off cleanly without affecting the audible signal.",
+                "100 kHz.",
+                "8 kHz."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Standard rates."
+            ],
+            "reveal": "44.1 or 48 kHz. Provides margin for the anti-alias filter to roll off without affecting audible content."
+          },
+          {
+            "prompt": "Why is 44.1 kHz used for CD audio specifically?",
+            "motivation": "History.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Historical: derived from PCM-encoded audio on PAL/NTSC video formats. 44.1 = 245×60×3 ≈ 44,100 — fit the available bits in video.",
+                "Cultural.",
+                "Bit alignment."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Old PCM standards."
+            ],
+            "reveal": "Historical: PCM video standards yielded ~44 kHz. Sony picked 44.1 for Compact Disc in 1980. 48 kHz came later for digital video synchronization. Both are now standard — DAWs handle either + conversion when needed."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Nyquist: } f_s > 2 f_{\\text{max}}, \\text{ practically with margin}}$$ All digital audio respects Nyquist; the only question is how much margin + filter slope. 44.1 / 48 kHz cover audible range comfortably. 96 / 192 kHz exist for production headroom (anti-alias margin, transient response, pitch-shifting headroom) — not for direct listening, where they're inaudibly different from 48 kHz."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dig_dither",
+        "kind": "multiple_choice",
+        "question": "When converting a 24-bit master to 16-bit CD format, why is dithering recommended?",
+        "options": [
+          "Random tradition.",
+          "Quantization error in the truncation step is signal-correlated (creates audible 'gritty' distortion at low levels). Adding small random noise (dither) before truncating decorrelates the error → sounds like benign hiss instead. Critical for low-level signals (fades, reverb tails).",
+          "Just for fun.",
+          "Required by law."
+        ],
+        "correctIndex": 1,
+        "explanation": "Without dither, truncating bit depth produces signal-correlated quantization noise → audible distortion especially at low signal levels (the noise becomes a distorted version of the signal). Dither adds uncorrelated noise that masks the distortion. Result: noise floor sounds like white/pink hiss, which is far less objectionable than rough distortion. TPDF (triangular) dither is industry standard for 24→16 conversion. Noise-shaped dither pushes noise to less-audible HF region. Always dither when reducing bit depth."
+      },
+      "hints": [
+        "What does truncation create?",
+        "What does dither do?"
+      ],
+      "workedSolution": "Truncation: signal-correlated quantization error. At low levels = audible gritty distortion. Dither: small uncorrelated noise (~1 LSB amplitude) added before truncating. Decorrelates the error → sounds like benign hiss, perceptually masked by the music. Critical step in mastering for final delivery formats (CD 16-bit, streaming 16-bit). Modern noise-shaped dither concentrates noise above 10 kHz (less audible).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_dig_dr",
+        "kind": "math_expression",
+        "question": "16-bit linear PCM dynamic range?",
+        "acceptedAnswers": [
+          "96 dB",
+          "~96",
+          "96"
+        ],
+        "hint": "6 × 16 = 96 dB."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_dig_alias",
+        "kind": "scenario",
+        "question": "Diagnose a distorted digital recording",
+        "prompt": "A live recording sampled at 44.1 kHz has strange high-pitched whistles + 'sizzle' on cymbals. Walk through whether this could be aliasing + what to do."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dig",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why higher sample rates (96 kHz, 192 kHz) are used in production but typically NOT audible in finished masters.",
+        "rubric": "Mentions that higher rates give the anti-alias filter more headroom + allow nonlinear processing (saturation, FM) to produce harmonics without aliasing; in production, the math is cleaner; for direct listening, content above 22 kHz is inaudible to humans. Blind tests consistently fail to distinguish 48 vs 96 kHz when end-listener delivery is the same. Production-tier convenience, not audible difference."
+      }
+    }
+  ]
+}

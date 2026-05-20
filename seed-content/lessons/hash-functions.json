@@ -1,0 +1,125 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "State the three security properties of a cryptographic hash.",
+      "Reason about output length + birthday attacks.",
+      "Recognize when MAC vs hash vs HMAC is right."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The three properties of a cryptographic hash",
+      "body": "A cryptographic hash function $H: \\{0,1\\}^* \\to \\{0,1\\}^n$ should satisfy three properties:\n\n1. **Preimage resistance**: given $h$, infeasible to find any $m$ with $H(m) = h$. Cost: $O(2^n)$ brute force.\n2. **Second-preimage resistance**: given $m_1$, infeasible to find $m_2 \\neq m_1$ with $H(m_1) = H(m_2)$. Cost: $O(2^n)$.\n3. **Collision resistance**: infeasible to find any $m_1 \\neq m_2$ with $H(m_1) = H(m_2)$. Cost: $O(2^{n/2})$ (birthday bound — much weaker than the others).\n\nThe birthday attack on collisions means: for $n = 128$ output (e.g., MD5), collisions are findable in $2^{64}$ work — feasible. For $n = 256$ (SHA-256, BLAKE3): $2^{128}$ — currently infeasible.\n\nProduction default for new code: **SHA-256 or BLAKE3**. Avoid MD5 (broken collisions since 2004) and SHA-1 (broken in 2017). The transition cost across the industry has taken decades; new code starts with the right primitive from day one."
+    },
+    {
+      "kind": "text",
+      "title": "Length-extension + HMAC",
+      "body": "**Merkle-Damgård** hashes (MD5, SHA-1, SHA-256) have a structural property: given $H(m)$ and the length of $m$, an attacker can compute $H(m \\| \\text{pad} \\| m')$ for any $m'$ without knowing $m$.\n\nConsequence: NEVER use plain hash as a MAC. The naive `MAC = H(secret || message)` is vulnerable to length-extension — an attacker who sees a valid MAC can extend the message + compute a new valid MAC.\n\n**HMAC** (RFC 2104) fixes this: $\\text{HMAC}(K, m) = H(K \\oplus \\text{opad} \\| H(K \\oplus \\text{ipad} \\| m))$. The nested-hash construction prevents length-extension. Provably secure under reasonable assumptions about the underlying hash.\n\nModern hashes (SHA-3, BLAKE3) don't have the length-extension property — they're sponge-based or HAIFA-based. So `H(K || M)` is safe with SHA-3. But HMAC is still the portable default; works correctly with every hash function.\n\nKey takeaway: use HMAC-SHA256, not raw SHA256, for authentication. Use SHA256 for hashing values where authentication isn't needed (e.g., content-addressable storage, Merkle trees)."
+    },
+    {
+      "kind": "text",
+      "title": "Merkle trees + content addressing",
+      "body": "**Merkle tree**: a binary tree where each internal node is $H(\\text{left} \\| \\text{right})$. The root commits to all leaves; any leaf can be verified against the root with a proof of $O(\\log n)$ hashes.\n\nUses:\n- **Git**: every commit hash is the root of a Merkle tree over the commit's files. Tampering with any file changes its hash → propagates up → changes the commit hash → caught at integrity check.\n- **Bitcoin**: each block's Merkle root commits to its transactions. Lightweight clients can verify transaction inclusion with $O(\\log n)$ proof.\n- **Certificate Transparency**: every issued TLS certificate is appended to a Merkle log. Any modification of past certificates is detectable. Browsers verify CT inclusion in modern TLS.\n- **Content-addressed storage** (IPFS, Bazel cache, npm tarballs): hash of content = identifier. Same content always has same identifier; deduplication is automatic; integrity is free.\n\nThe pattern: hash creates an unforgeable summary of data. Trees + chains of hashes scale this to large structures. The basis of nearly every modern data-integrity system."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_hash_birthday",
+        "kind": "guided_derivation",
+        "question": "Derive birthday-bound collision cost",
+        "goal": "Hash output $n$ bits. After $q$ queries, expected collisions?",
+        "steps": [
+          {
+            "prompt": "Each pair of queries collides with probability $1/2^n$. Number of pairs in $q$ queries: $\\binom{q}{2} \\approx q^2 / 2$. Expected collisions?",
+            "motivation": "Linearity of expectation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "q^2 / 2^{n+1}",
+                "q^2 / (2 * 2^n)"
+              ]
+            },
+            "hints": [
+              "Expected = pairs × per-pair probability."
+            ],
+            "reveal": "Expected collisions $\\approx q^2/2^{n+1}$."
+          },
+          {
+            "prompt": "For 50% probability of at least one collision, $q \\approx ?$",
+            "motivation": "Solve $q^2/2^{n+1} = 1$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2^{n/2}",
+                "sqrt(2^n)"
+              ]
+            },
+            "hints": [
+              "$q \\approx \\sqrt{2 \\cdot 2^n} \\approx 2^{n/2}$."
+            ],
+            "reveal": "$q \\approx 2^{n/2}$ — the birthday bound."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Collision cost: } O(2^{n/2}), \\text{ not } O(2^n)}$$ This is why 'collision resistance' needs DOUBLE the hash length compared to preimage resistance. SHA-256: 256-bit output gives 128-bit collision security. For long-term security, that's still enough; for higher margin, SHA-384 or BLAKE3-384."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hash_mac",
+        "kind": "multiple_choice",
+        "question": "Storing user passwords. Which is correct?",
+        "options": [
+          "Store `SHA256(password)` directly.",
+          "Store `Argon2id(salt, password)` (purpose-built password hash, not a general crypto hash).",
+          "Store `HMAC(secret, password)`.",
+          "Store the password in cleartext."
+        ],
+        "correctIndex": 1,
+        "explanation": "Password hashes need to be SLOW (resist offline brute-force) + memory-hard (resist GPU/ASIC). SHA256 is too fast — attacker computes billions of guesses/sec on GPU. Argon2id (PHC winner 2015) is purpose-built: tunable memory + time cost, dramatically harder for attackers to parallelize."
+      },
+      "hints": [
+        "What's the threat model for password storage?",
+        "SHA256 was designed to be fast; password hashing wants slow + memory-hard."
+      ],
+      "workedSolution": "Threat: attacker steals the password hash database + tries offline brute-force. Fast hashes (SHA256) allow billions of guesses/sec on modern GPUs. Argon2id (memory-hard) + bcrypt (slow) + scrypt are purpose-built to defeat this. OWASP 2024 recommends Argon2id with cost parameters tuned to ~250ms per hash on production hardware.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_hash_sha256",
+        "kind": "math_expression",
+        "question": "SHA-256 output bits. Birthday-collision cost?",
+        "acceptedAnswers": [
+          "2^128",
+          "2 to the 128",
+          "128 bits"
+        ],
+        "hint": "Half the output bits."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_hash_md5",
+        "kind": "scenario",
+        "question": "Why MD5 is gone",
+        "prompt": "Your team finds a third-party library using MD5 for cryptographic content addressing. Walk through the specific risks + the right migration path."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_hash",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why content-addressed storage (Git, IPFS, npm) gives integrity for free.",
+        "rubric": "Mentions that the identifier IS the hash of the content; can't substitute content without changing the identifier; downloaders re-verify the hash; tampering is detected immediately + cryptographically."
+      }
+    }
+  ]
+}

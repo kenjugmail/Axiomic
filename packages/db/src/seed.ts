@@ -1952,6 +1952,414 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P25 — Healthcare ML Engineer path. EHR + coding, medical imaging
+  // AI, clinical decision support (uses ROC viz), clinical NLP +
+  // ambient scribes, predictive modeling, clinical genomics,
+  // trials + RWE, fairness + equity.
+  seedMasteryPath({
+    slug: "healthcare-ml-engineer",
+    title: "Healthcare ML Engineer",
+    description:
+      "From EHR data + coding standards (ICD/SNOMED/LOINC/FHIR) through medical imaging deep learning, ROC-based clinical decision support (interactive viz), clinical NLP + AI scribes, predictive modeling + drift, clinical genomics + pharmacogenomics, RCT + adaptive trials + RWE, and AI fairness + health equity. The clinical-ML stack end-to-end.",
+    nodes: [
+      { slug: "ehr-and-medical-coding", title: "EHR + Medical Coding", level: "apprentice", order: 1, pages: ["ehr-systems", "icd-snomed-loinc", "fhir-omop"], prereqs: [], description: "EHR systems + data types, ICD/CPT/SNOMED/LOINC + RxNorm, HL7/FHIR + OMOP CDM, phenotyping + biases." },
+      { slug: "medical-imaging-ai", title: "Medical Imaging AI", level: "practitioner", order: 2, pages: ["modalities", "cnn-transformer-medical", "fda-samd"], prereqs: [], description: "X-ray/CT/MRI/US/PET/pathology, U-Net + nnU-Net + foundation models, FDA SaMD pathway + bias considerations." },
+      { slug: "clinical-decision-support", title: "Clinical Decision Support", level: "practitioner", order: 3, pages: ["confusion-bayes", "roc-auc-calibration", "nnt-utility"], prereqs: ["ehr-and-medical-coding"], description: "Sensitivity + specificity + PPV + Bayes (interactive ROC viz), AUC + calibration, NNT + decision-curve analysis." },
+      { slug: "clinical-nlp", title: "Clinical NLP + AI Scribes", level: "practitioner", order: 4, pages: ["clinical-text", "deid-llm", "scribes-deployment"], prereqs: ["ehr-and-medical-coding"], description: "Clinical text tasks (NER, negation, normalization), de-identification + LLM challenges, ambient AI scribes (Nuance DAX, Abridge)." },
+      { slug: "predictive-modeling-clinical", title: "Clinical Predictive Modeling", level: "specialist", order: 5, pages: ["model-types", "internal-external-validation", "deployment-mlops"], prereqs: ["clinical-decision-support"], description: "Diagnostic vs prognostic vs treatment effect, internal + external + temporal validation, deployment + drift + Epic Sepsis lessons." },
+      { slug: "genomics-clinical", title: "Clinical Genomics + PGx", level: "specialist", order: 6, pages: ["clinical-testing", "pharmacogenomics-precision-onc", "gwas-prs-alphamissense"], prereqs: [], description: "Genomic testing modalities, pharmacogenomics + precision oncology + companion diagnostics, GWAS + polygenic risk scores + AlphaMissense." },
+      { slug: "trial-design-and-rwe", title: "Clinical Trials + RWE", level: "specialist", order: 7, pages: ["rct-fundamentals", "adaptive-platform-bayesian", "rwe-rwd"], prereqs: [], description: "RCT design + endpoints + bias, adaptive + platform (RECOVERY) + Bayesian trials, real-world evidence + target trial emulation." },
+      { slug: "health-equity-and-bias-in-ml", title: "Health Equity + ML Fairness", level: "expert", order: 8, pages: ["bias-sources", "fairness-metrics-impossibility", "mitigations-governance"], prereqs: ["clinical-decision-support", "predictive-modeling-clinical"], description: "Sources of bias (Obermeyer 2019), fairness metrics + Kleinberg impossibility, mitigations + governance + regulation." },
+    ],
+  });
+
+  // P24 — Pharmacologist path. PK + PD + drug targets + medicinal
+  // chemistry + pipeline + clinical pharm + tox + modern modalities.
+  // Uses new pk-curve viz in pharmacokinetics lesson.
+  seedMasteryPath({
+    slug: "pharmacologist",
+    title: "Pharmacologist",
+    description:
+      "From ADME + pharmacokinetics (interactive PK-curve viz) through receptor binding + dose-response, drug targets + GPCRs + kinases, medicinal chemistry + Lipinski's Rule of Five, the clinical-trial pipeline + FDA, drug-drug interactions + Beers Criteria, toxicology + Paracelsus, and biologics + mRNA + gene therapy. The pharmacology stack end-to-end.",
+    nodes: [
+      { slug: "pharmacokinetics", title: "Pharmacokinetics + ADME", level: "apprentice", order: 1, pages: ["adme", "halflife-clearance", "steady-state"], prereqs: [], description: "Absorption + distribution + metabolism + excretion, first-order kinetics + half-life + clearance, steady-state with PK-curve viz." },
+      { slug: "pharmacodynamics", title: "Pharmacodynamics + Hill", level: "practitioner", order: 2, pages: ["receptor-binding", "agonists-antagonists", "therapeutic-window"], prereqs: [], description: "Hill equation + receptor occupancy, agonists vs antagonists vs partial agonists, therapeutic index + selectivity." },
+      { slug: "drug-targets", title: "Drug Targets + Druggability", level: "practitioner", order: 3, pages: ["target-families", "gpcr-kinase", "validation-druggability"], prereqs: [], description: "GPCRs + kinases + ion channels + nuclear + transporters, signaling pathways, target validation + the KRAS G12C breakthrough." },
+      { slug: "medicinal-chemistry", title: "Medicinal Chemistry", level: "specialist", order: 4, pages: ["lipinski", "sar-bioisosteres", "prodrugs-modalities"], prereqs: [], description: "Lipinski's Rule of Five, SAR + bioisosteres + chirality, prodrugs + ADCs + covalent + PROTACs." },
+      { slug: "drug-development-pipeline", title: "Drug Development Pipeline", level: "specialist", order: 5, pages: ["preclinical", "phases-1-2-3", "accelerated-pathways"], prereqs: [], description: "IND + preclinical, Phase I/II/III + endpoints + biomarkers, accelerated approval + RWE + companion diagnostics." },
+      { slug: "clinical-pharmacology", title: "Clinical Pharmacology + DDIs", level: "specialist", order: 6, pages: ["ddi", "polypharmacy-beers", "pharmacogenomics-tdm"], prereqs: ["pharmacokinetics", "pharmacodynamics"], description: "DDI mechanisms + CYP induction/inhibition, polypharmacy + Beers Criteria + deprescribing, pharmacogenomics + TDM." },
+      { slug: "toxicology", title: "Toxicology + Risk", level: "practitioner", order: 7, pages: ["paracelsus", "preclinical-tox", "acetaminophen"], prereqs: [], description: "Dose-response in toxicology, in vitro + in vivo testing + alternatives + risk assessment, acetaminophen + heavy metals + antidotes." },
+      { slug: "modern-modalities", title: "Modern Modalities (Biologics, mRNA, CAR-T)", level: "expert", order: 8, pages: ["biologics-mabs", "mrna-lnp", "gene-cell-therapy"], prereqs: ["pharmacokinetics", "drug-development-pipeline"], description: "mAbs + ADCs + bispecifics, mRNA + LNPs (Nobel 2023), gene therapy + CRISPR + CAR-T + cure paradigm." },
+    ],
+  });
+
+  // P23 — Civil / Structural Engineer path. Structural analysis +
+  // concrete + steel + soils + foundations + water + transport +
+  // construction management. Uses new beam-deflection viz.
+  seedMasteryPath({
+    slug: "civil-engineer",
+    title: "Civil Engineer",
+    description:
+      "From structural analysis + shear-moment diagrams (interactive beam-deflection viz) through reinforced concrete + structural steel, soil mechanics + foundations, water resources, transportation, and construction management. The civil + structural engineering stack end-to-end.",
+    nodes: [
+      { slug: "structural-analysis", title: "Structural Analysis", level: "apprentice", order: 1, pages: ["beams-reactions", "shear-moment", "trusses-frames"], prereqs: [], description: "Reactions + internal forces, shear + moment diagrams (interactive beam viz), trusses + frames + indeterminate." },
+      { slug: "concrete-and-rebar", title: "Reinforced Concrete", level: "practitioner", order: 2, pages: ["concrete-mix", "rebar-composite", "prestressed-durability"], prereqs: [], description: "Concrete chemistry + low-carbon, rebar + composite action, pre-stressed + durability." },
+      { slug: "steel-design", title: "Structural Steel Design", level: "practitioner", order: 3, pages: ["steel-shapes", "buckling-slenderness", "connections-systems"], prereqs: [], description: "Steel grades + shapes, column buckling + slenderness, connections + lateral systems." },
+      { slug: "soil-mechanics", title: "Soil Mechanics", level: "practitioner", order: 4, pages: ["soil-classification", "effective-stress", "consolidation"], prereqs: [], description: "Soil classification + properties, Terzaghi effective stress + liquefaction, consolidation + settlement." },
+      { slug: "foundations", title: "Foundations", level: "specialist", order: 5, pages: ["shallow-deep", "bearing-capacity", "pile-design"], prereqs: ["soil-mechanics"], description: "Shallow vs deep, bearing capacity, pile types + group effects + load testing." },
+      { slug: "water-resources", title: "Water Resources", level: "practitioner", order: 6, pages: ["hydro-cycle", "manning-channels", "treatment-distribution"], prereqs: [], description: "Hydrologic cycle + budgets, pipe + open-channel + Manning, water treatment + distribution + aging." },
+      { slug: "transportation-engineering", title: "Transportation Engineering", level: "specialist", order: 7, pages: ["geometric-design", "pavement-traffic-flow", "transit-av"], prereqs: [], description: "Highway geometric design, pavement + traffic flow, transit + AV + urban transformation." },
+      { slug: "construction-management", title: "Construction Management", level: "expert", order: 8, pages: ["delivery-lifecycle", "cpm-evm", "cost-risk"], prereqs: [], description: "Project delivery methods, CPM + earned value, cost estimation + risk + megaprojects." },
+    ],
+  });
+
+  // P22 — Mechanical Engineer path. Statics, dynamics, thermo,
+  // fluids, heat transfer, machine design, manufacturing,
+  // mechatronics. Thermo lesson uses new carnot-cycle viz.
+  seedMasteryPath({
+    slug: "mechanical-engineer",
+    title: "Mechanical Engineer",
+    description:
+      "From statics + stress through kinematics + dynamics + Lagrangian methods, thermodynamics + the Carnot cycle (interactive viz), fluid mechanics + Reynolds, heat transfer, machine design + gears + bearings, manufacturing processes + DFM, and mechatronics + PID control. The mechanical-engineering stack end-to-end.",
+    nodes: [
+      { slug: "statics-and-stress", title: "Statics + Stress", level: "apprentice", order: 1, pages: ["equilibrium", "stress-strain", "concentrations"], prereqs: [], description: "Static equilibrium + FBDs, stress + strain + Hooke's law, beam bending + stress concentrations." },
+      { slug: "kinematics-and-dynamics", title: "Kinematics + Dynamics", level: "practitioner", order: 2, pages: ["kinematics", "newton-forces", "rotational-lagrangian"], prereqs: [], description: "Position-velocity-acceleration, Newton's laws + force analysis, rotational dynamics + Lagrangian methods." },
+      { slug: "thermodynamics-engineering", title: "Thermodynamics + Carnot", level: "practitioner", order: 3, pages: ["thermo-laws", "carnot-cycle", "refrigeration"], prereqs: [], description: "Three laws of thermodynamics, Carnot cycle (interactive P-V viz), real engine cycles + heat pumps." },
+      { slug: "fluid-mechanics", title: "Fluid Mechanics", level: "practitioner", order: 4, pages: ["bernoulli", "reynolds-laminar-turbulent", "pipe-flow"], prereqs: [], description: "Bernoulli + the energy equation, Reynolds + laminar vs turbulent, pipe flow + pumps + drag." },
+      { slug: "heat-transfer", title: "Heat Transfer", level: "practitioner", order: 5, pages: ["three-modes", "heat-exchangers", "insulation"], prereqs: ["thermodynamics-engineering"], description: "Conduction + convection + radiation, heat exchangers + effectiveness-NTU, insulation + R-values + passive house." },
+      { slug: "machine-design", title: "Machine Design", level: "specialist", order: 6, pages: ["elements", "gears", "bearings-fasteners"], prereqs: ["statics-and-stress"], description: "Machine elements + design process, gears + ratios, bearings + fasteners + joint design." },
+      { slug: "manufacturing-processes", title: "Manufacturing Processes", level: "practitioner", order: 7, pages: ["forming-machining", "cnc-modern", "dfm-additive"], prereqs: [], description: "Forming + machining + additive, CNC + Industry 4.0, Design for Manufacturing + additive revolution." },
+      { slug: "mechatronics-and-control", title: "Mechatronics + Control", level: "specialist", order: 8, pages: ["sensors-actuators", "pid-control", "embedded-real-time"], prereqs: [], description: "Sensors + actuators + power electronics, feedback control + PID tuning, real-time embedded control + Industry 4.0." },
+    ],
+  });
+
+  // P21 — Renewable Energy Engineer path. Solar + wind +
+  // batteries + grid + hydrogen + geothermal + nuclear +
+  // economics. Includes a new solar-pv-curve interactive viz.
+  seedMasteryPath({
+    slug: "renewable-energy-engineer",
+    title: "Renewable Energy Engineer",
+    description:
+      "From photovoltaic physics + I-V curves through wind turbine aerodynamics, Li-ion + flow batteries, grid integration + frequency control, green hydrogen + fuel cells, geothermal + hydro, nuclear fission + fusion, and LCOE + carbon pricing. The full clean-energy engineering stack.",
+    nodes: [
+      { slug: "solar-pv-fundamentals", title: "Solar PV Fundamentals", level: "apprentice", order: 1, pages: ["pv-effect", "iv-mpp", "balance-of-system"], prereqs: [], description: "Photovoltaic effect + Shockley-Queisser, I-V curve + MPPT (interactive viz), system design + balance-of-system." },
+      { slug: "wind-energy", title: "Wind Energy", level: "practitioner", order: 2, pages: ["betz-limit", "turbine-architecture", "wind-farms"], prereqs: [], description: "Wind power equation + Betz limit, turbine components + gearbox vs direct-drive, wind farms + wake effects + grid integration." },
+      { slug: "battery-storage", title: "Battery Storage", level: "practitioner", order: 3, pages: ["lion-chemistry", "c-rate-cycle", "grid-storage"], prereqs: [], description: "Li-ion chemistry (LFP/NMC), C-rate + cycle life, grid-scale storage + flow batteries + emerging chemistries." },
+      { slug: "grid-integration", title: "Grid Integration", level: "specialist", order: 4, pages: ["freq-voltage", "transmission", "duck-curve"], prereqs: ["solar-pv-fundamentals", "wind-energy"], description: "Frequency + voltage stability, HVDC + smart grids, duck-curve + inertia + grid-forming inverters." },
+      { slug: "hydrogen-economy", title: "Hydrogen Economy", level: "specialist", order: 5, pages: ["h2-production", "electrolysis", "fuel-cells-uses"], prereqs: [], description: "Gray/blue/green H₂, electrolysis (AEL/PEM/SOE), fuel cells + heavy transport + industrial uses." },
+      { slug: "geothermal-and-hydro", title: "Geothermal + Hydro", level: "practitioner", order: 6, pages: ["geothermal-egs", "hydroelectric", "pumped-storage"], prereqs: [], description: "Geothermal heat + EGS breakthroughs, hydroelectric power + types, pumped storage + tidal + complementarity." },
+      { slug: "nuclear-fundamentals", title: "Nuclear Fission + Fusion", level: "specialist", order: 7, pages: ["fission-chain", "reactor-generations", "safety-fusion"], prereqs: [], description: "Fission + chain reaction control, Gen II/III/IV + SMRs, safety + waste + ITER + NIF fusion." },
+      { slug: "energy-economics-and-policy", title: "Energy Economics + Policy", level: "expert", order: 8, pages: ["lcoe", "carbon-pricing", "transition-pathway"], prereqs: ["solar-pv-fundamentals", "wind-energy", "battery-storage"], description: "Levelized Cost of Energy (LCOE), carbon pricing + ETS, energy markets + transition pathways." },
+    ],
+  });
+
+  // P20 — Materials Scientist path. Crystal structure + defects
+  // + mechanical properties + phase diagrams + electronic +
+  // polymers + composites + characterization.
+  seedMasteryPath({
+    slug: "materials-scientist",
+    title: "Materials Scientist",
+    description:
+      "From crystal structure + Bravais lattices through defects + dislocations, mechanical properties + fracture, phase diagrams + heat treatment, band theory + semiconductors, polymer architecture, composites + metamaterials, and XRD / SEM / TEM characterization. The materials-science stack end-to-end.",
+    nodes: [
+      { slug: "crystal-structure-and-symmetry", title: "Crystal Structure + Symmetry", level: "apprentice", order: 1, pages: ["bravais-lattices", "miller-indices", "close-packing"], prereqs: [], description: "7 crystal systems + 14 Bravais lattices, Miller indices for planes + directions, FCC/BCC/HCP + close packing." },
+      { slug: "defects-and-microstructure", title: "Defects + Microstructure", level: "practitioner", order: 2, pages: ["point-defects", "dislocations", "grain-boundaries"], prereqs: ["crystal-structure-and-symmetry"], description: "Point + line + planar defects, dislocation glide + Burgers vectors, grain boundaries + Hall-Petch." },
+      { slug: "mechanical-properties", title: "Mechanical Properties + Fracture", level: "practitioner", order: 3, pages: ["stress-strain", "ductile-brittle", "fatigue-griffith"], prereqs: ["defects-and-microstructure"], description: "Stress-strain + Young's modulus, ductile vs brittle (DBTT, Liberty Ships), fatigue + Griffith fracture toughness." },
+      { slug: "phase-diagrams-and-thermodynamics", title: "Phase Diagrams + Thermo", level: "practitioner", order: 4, pages: ["gibbs-free-energy", "binary-eutectic", "heat-treatment"], prereqs: ["crystal-structure-and-symmetry"], description: "Gibbs free energy + phase rule, binary phase diagrams + lever rule, heat treatment + martensite + precipitation." },
+      { slug: "electronic-properties", title: "Electronic Properties + Semiconductors", level: "specialist", order: 5, pages: ["band-theory", "doping-pn", "solar-leds"], prereqs: ["crystal-structure-and-symmetry"], description: "Band theory + Fermi level, n/p doping + transistors, solar cells + LEDs + wide-bandgap power devices." },
+      { slug: "polymers-and-soft-matter", title: "Polymers + Soft Matter", level: "practitioner", order: 6, pages: ["polymer-structure", "tg-crystallinity", "thermosets"], prereqs: [], description: "Polymer architecture + synthesis, glass transition + crystallinity, thermoplastics vs thermosets vs elastomers." },
+      { slug: "composites-and-engineered-materials", title: "Composites + Engineered Materials", level: "practitioner", order: 7, pages: ["composite-types", "rule-of-mixtures", "metamaterials"], prereqs: ["mechanical-properties", "polymers-and-soft-matter"], description: "PMC/MMC/CMC, rule of mixtures + anisotropy, foams + auxetics + metamaterials + 3D-printed lattices." },
+      { slug: "characterization-techniques", title: "Characterization Techniques", level: "specialist", order: 8, pages: ["xrd-bragg", "sem-tem-afm", "spectroscopy"], prereqs: ["crystal-structure-and-symmetry"], description: "XRD + Bragg's law, SEM + TEM + AFM electron microscopy, XPS + FTIR + NMR spectroscopy." },
+    ],
+  });
+
+  // P19 — Aerospace Engineer path. Orbital mechanics, aero,
+  // propulsion, structures, flight dynamics + control,
+  // re-entry, spacecraft, GNC. The full aerospace stack.
+  seedMasteryPath({
+    slug: "aerospace-engineer",
+    title: "Aerospace Engineer",
+    description:
+      "From Kepler + vis-viva orbital mechanics through aerodynamics + compressibility, the Tsiolkovsky rocket equation, structural design + fatigue, fly-by-wire flight control, atmospheric reentry + heat shields, spacecraft subsystems, and GNC + Kalman filtering. The aerospace stack end-to-end.",
+    nodes: [
+      { slug: "orbital-mechanics", title: "Orbital Mechanics", level: "apprentice", order: 1, pages: ["kepler-laws", "vis-viva", "hohmann"], prereqs: [], description: "Kepler's three laws, vis-viva + orbital energy, Hohmann transfer + delta-v budgets." },
+      { slug: "aerodynamics", title: "Aerodynamics", level: "practitioner", order: 2, pages: ["bernoulli-lift-drag", "compressibility-mach", "boundary-layer"], prereqs: [], description: "Bernoulli + lift/drag/stall, subsonic/transonic/supersonic/hypersonic regimes, boundary layer + Reynolds." },
+      { slug: "propulsion", title: "Propulsion + Rocket Equation", level: "practitioner", order: 3, pages: ["tsiolkovsky", "isp-thrust", "jets-rockets"], prereqs: ["orbital-mechanics"], description: "Tsiolkovsky equation derivation + the tyranny of mass ratio, specific impulse + thrust-to-weight, jet vs rocket vs ion." },
+      { slug: "structures-and-materials", title: "Aero Structures + Materials", level: "practitioner", order: 4, pages: ["load-paths", "fatigue", "composites"], prereqs: [], description: "Load paths + safety factors, fatigue (Comet, Aloha 243), composites + advanced alloys + 3D printing." },
+      { slug: "flight-dynamics-and-control", title: "Flight Dynamics + Control", level: "specialist", order: 5, pages: ["six-dof", "stability", "fly-by-wire"], prereqs: ["aerodynamics"], description: "Six DOF + control surfaces, static + dynamic stability + modes, fly-by-wire + envelope protection." },
+      { slug: "atmospheric-reentry", title: "Atmospheric Reentry + EDL", level: "expert", order: 6, pages: ["reentry-physics", "ballistic-lifting", "heat-shields"], prereqs: ["aerodynamics", "structures-and-materials"], description: "Reentry kinetic energy + plasma sheath, ballistic vs lifting vs skip reentry, ablative vs reusable heat shields." },
+      { slug: "spacecraft-design", title: "Spacecraft Subsystems", level: "specialist", order: 7, pages: ["subsystems", "power-thermal", "comms-dsn"], prereqs: ["orbital-mechanics"], description: "Bus + payload, ADCS + propulsion + structure, power + thermal + comms budgets." },
+      { slug: "avionics-and-guidance", title: "Avionics + GNC + Kalman", level: "expert", order: 8, pages: ["gnc-stack", "kalman-filter", "ins-gps"], prereqs: ["flight-dynamics-and-control", "spacecraft-design"], description: "Guidance/Navigation/Control stack, Kalman filter + sensor fusion, INS + GPS + visual-inertial." },
+    ],
+  });
+
+  // P18 — Audio Engineer / Music Producer path. Acoustics +
+  // psychoacoustics, digital audio + DSP, mixing + dynamics,
+  // synthesis, mastering + LUFS, spatial audio, DAWs + plugins.
+  seedMasteryPath({
+    slug: "audio-engineer",
+    title: "Audio Engineer",
+    description:
+      "From acoustic + psychoacoustic foundations through Nyquist sampling, FFT-based DSP, EQ + compression mixing, subtractive + FM + wavetable synthesis, LUFS-aware mastering, binaural + Atmos spatial audio, and DAW + plugin ecosystems. Music production + audio engineering end-to-end.",
+    nodes: [
+      { slug: "acoustics-and-psychoacoustics", title: "Acoustics + Psychoacoustics", level: "apprentice", order: 1, pages: ["sound-waves-spl", "equal-loudness", "masking-critical-bands"], prereqs: [], description: "Sound wave properties + SPL, Fletcher-Munson equal-loudness contours, auditory masking + critical bands." },
+      { slug: "digital-audio-fundamentals", title: "Digital Audio Fundamentals", level: "practitioner", order: 2, pages: ["nyquist-sampling", "bit-depth-dither", "aliasing"], prereqs: ["acoustics-and-psychoacoustics"], description: "Nyquist-Shannon sampling, bit depth + dynamic range + dithering, aliasing + oversampling." },
+      { slug: "dsp-and-fft", title: "DSP + FFT", level: "practitioner", order: 3, pages: ["fft", "spectrogram-stft", "fir-iir"], prereqs: ["digital-audio-fundamentals"], description: "DFT/FFT + frequency resolution, spectrogram + STFT + mel-spec, FIR vs IIR digital filters." },
+      { slug: "mixing-and-dynamics", title: "Mixing + Dynamics", level: "specialist", order: 4, pages: ["mixing-workflow", "eq", "compression"], prereqs: ["dsp-and-fft"], description: "Mixing workflow + gain staging, EQ + frequency tuning, compression + side-chain + parallel processing." },
+      { slug: "synthesis-techniques", title: "Synthesis Techniques", level: "specialist", order: 5, pages: ["subtractive-analog", "fm-additive-wavetable", "polyphony"], prereqs: ["dsp-and-fft"], description: "Subtractive analog synthesis, FM + additive + wavetable + granular, polyphony + voice management." },
+      { slug: "mastering", title: "Mastering + LUFS", level: "expert", order: 6, pages: ["loudness-war-lufs", "mastering-chain", "delivery-formats"], prereqs: ["mixing-and-dynamics"], description: "LUFS + the end of the loudness war, mastering chain (EQ + multi-band + saturation + limiter), delivery formats (CD, streaming, vinyl)." },
+      { slug: "spatial-audio", title: "Spatial Audio (Stereo + Atmos + Binaural)", level: "specialist", order: 7, pages: ["stereo-perception", "surround-atmos", "binaural-hrtf"], prereqs: ["acoustics-and-psychoacoustics"], description: "Stereo perception + ITD/ILD, surround + Dolby Atmos object-based, binaural rendering via HRTF + VR." },
+      { slug: "music-tech-and-daws", title: "Music Tech + DAWs", level: "specialist", order: 8, pages: ["daw-overview", "midi", "plugin-ecosystem"], prereqs: ["digital-audio-fundamentals"], description: "DAWs (Logic / Pro Tools / Live / FL), MIDI + MPE, plugin formats + ecosystem + AI tools." },
+    ],
+  });
+
+  // P17 — UX Designer path. Design-discipline complement to
+  // frontend-engineer: research, IA, interaction principles,
+  // typography, prototyping, usability, design systems,
+  // metrics + experimentation.
+  seedMasteryPath({
+    slug: "ux-designer",
+    title: "UX Designer",
+    description:
+      "From qualitative + quantitative user research through information architecture, Norman's interaction principles + Fitts's Law, typography + color systems, Figma prototyping, usability testing + SUS, design tokens + atomic design, and HEART metrics + A/B testing. The UX-design discipline end-to-end.",
+    nodes: [
+      { slug: "user-research-and-interviews", title: "User Research + Interviews", level: "apprentice", order: 1, pages: ["qual-vs-quant", "contextual-jbd", "samples-bias"], prereqs: [], description: "Qualitative vs quantitative methods, contextual inquiry + jobs-to-be-done, sample-size + bias mitigation." },
+      { slug: "information-architecture", title: "Information Architecture", level: "practitioner", order: 2, pages: ["ia-fundamentals", "card-sort-tree-test", "nav-patterns"], prereqs: ["user-research-and-interviews"], description: "IA principles, card sorting + tree testing, navigation patterns + Hick's Law." },
+      { slug: "interaction-design-principles", title: "Interaction Design Principles", level: "practitioner", order: 3, pages: ["norman-principles", "feedback-patterns", "fitts-sizing"], prereqs: ["user-research-and-interviews"], description: "Norman's principles (affordances, mappings, feedback, constraints), feedback latency rules, Fitts's Law + control sizing." },
+      { slug: "visual-design-typography", title: "Visual Design + Typography", level: "practitioner", order: 4, pages: ["typography", "hierarchy-grids", "color-accessibility"], prereqs: [], description: "Typography fundamentals, hierarchy + whitespace + grids, color systems + WCAG accessibility." },
+      { slug: "wireframing-and-prototyping", title: "Wireframing + Prototyping", level: "specialist", order: 5, pages: ["fidelity", "figma-workflow", "interactive-handoff"], prereqs: ["interaction-design-principles"], description: "Low + mid + high fidelity, Figma workflow + components + variants, interactive prototyping + dev handoff." },
+      { slug: "usability-testing", title: "Usability Testing", level: "specialist", order: 6, pages: ["test-protocol", "think-aloud", "sus-metrics"], prereqs: ["user-research-and-interviews"], description: "Usability-test protocol, think-aloud method, task success + SUS + HEART metrics." },
+      { slug: "design-systems-and-tokens", title: "Design Systems + Tokens", level: "specialist", order: 7, pages: ["design-systems", "tokens-themes", "atomic-design"], prereqs: ["visual-design-typography", "wireframing-and-prototyping"], description: "Design-system structure, design tokens for theming + accessibility, atomic-design hierarchy." },
+      { slug: "ux-metrics-and-experimentation", title: "UX Metrics + Experimentation", level: "expert", order: 8, pages: ["heart-framework", "ab-testing", "goodhart-dark-patterns"], prereqs: ["usability-testing", "user-research-and-interviews"], description: "Google HEART framework, A/B test design + sample sizes, Goodhart's Law + dark patterns + ethical metrics." },
+    ],
+  });
+
+  // P16 — Game Developer path. Real-time interactive systems:
+  // loop, rendering, shaders, physics, AI, networking, animation,
+  // engines + build.
+  seedMasteryPath({
+    slug: "game-developer",
+    title: "Game Developer",
+    description:
+      "From game loops + ECS architecture through GPU rendering, PBR shaders, rigid-body physics, FSM/BT/GOAP game AI, rollback multiplayer netcode, skeletal animation, and engine + build pipelines. Real-time interactive systems end-to-end.",
+    nodes: [
+      { slug: "game-loop-and-architecture", title: "Game Loop + Architecture", level: "apprentice", order: 1, pages: ["frame-budget", "fixed-variable-timestep", "ecs"], prereqs: [], description: "Fixed vs variable timestep, frame-time budgeting, ECS + data-oriented design." },
+      { slug: "rendering-pipeline", title: "GPU Rendering Pipeline", level: "practitioner", order: 2, pages: ["pipeline-stages", "forward-deferred", "culling-batching"], prereqs: ["game-loop-and-architecture"], description: "Vertex/fragment pipeline, MVP transformations, forward vs deferred, culling + draw-call batching." },
+      { slug: "shaders-and-glsl", title: "Shaders + GLSL", level: "practitioner", order: 3, pages: ["shader-languages", "pbr-microfacet", "shader-optimization"], prereqs: ["rendering-pipeline"], description: "Vertex/fragment shaders in GLSL/HLSL, PBR Cook-Torrance microfacet, GPU warp divergence + optimization." },
+      { slug: "physics-and-collision", title: "Physics + Collision", level: "practitioner", order: 4, pages: ["rigid-integration", "collision-detection", "constraint-solvers"], prereqs: ["game-loop-and-architecture"], description: "Symplectic Euler / Verlet integration, broad-phase + narrow-phase collision (SAT/GJK), iterative impulse solvers." },
+      { slug: "game-ai-and-fsm", title: "Game AI (FSM, BT, GOAP)", level: "specialist", order: 5, pages: ["fsm-bt", "astar-navmesh", "goap-utility"], prereqs: ["game-loop-and-architecture"], description: "Finite-state machines + behavior trees, A* + navigation meshes, GOAP planning + utility AI." },
+      { slug: "networking-and-multiplayer", title: "Networking + Multiplayer", level: "specialist", order: 6, pages: ["client-server-p2p", "rollback-lockstep", "lag-compensation"], prereqs: ["game-loop-and-architecture"], description: "Client-server vs P2P, lockstep + rollback netcode (GGPO), client-side prediction + lag compensation." },
+      { slug: "animation-and-skeletal", title: "Skeletal Animation", level: "specialist", order: 7, pages: ["lbs-skinning", "fk-ik", "state-machines-blending"], prereqs: ["rendering-pipeline"], description: "Linear blend skinning, forward + inverse kinematics, animation state machines + blend trees, motion matching." },
+      { slug: "game-engines-and-build", title: "Game Engines + Build Pipeline", level: "expert", order: 8, pages: ["unreal-unity-godot", "asset-pipeline", "live-ops"], prereqs: ["game-loop-and-architecture", "rendering-pipeline"], description: "Unity/Unreal/Godot/custom engines, asset cooking + multi-platform builds, live-service operations + monetization." },
+    ],
+  });
+
+  // P15 — Hardware Engineer path. Digital logic, RTL/HDL, CPU
+  // microarchitecture, memory + interconnect, FPGA, ASIC flow,
+  // ML accelerators. Complements compiler-engineer + systems-
+  // engineer + ml-engineer with the hardware layer.
+  seedMasteryPath({
+    slug: "hardware-engineer",
+    title: "Hardware Engineer",
+    description:
+      "From Boolean logic + flip-flops through RTL/Verilog, CPU pipelines + branch prediction, cache hierarchies + DRAM/NAND, FPGA architecture + place-and-route, the ASIC RTL-to-GDSII flow, high-speed SerDes + NoCs, and ML accelerators (GPU SMs, TPU systolic arrays, roofline analysis). The full hardware stack.",
+    nodes: [
+      { slug: "digital-logic", title: "Digital Logic", level: "apprentice", order: 1, pages: ["gates-boolean", "comb-blocks", "flip-flops-timing"], prereqs: [], description: "Gates + Boolean algebra, combinational blocks (adder/MUX/decoder), flip-flops + setup/hold timing." },
+      { slug: "rtl-and-hdl", title: "RTL + Hardware Description Languages", level: "practitioner", order: 2, pages: ["verilog-vhdl", "behavioral-structural", "blocking-nonblocking"], prereqs: ["digital-logic"], description: "Verilog/VHDL syntax, behavioral vs structural RTL, always blocks + blocking vs non-blocking semantics." },
+      { slug: "cpu-microarchitecture", title: "CPU Microarchitecture", level: "practitioner", order: 3, pages: ["five-stage-pipeline", "hazards-forwarding", "branch-prediction"], prereqs: ["digital-logic", "rtl-and-hdl"], description: "Classical 5-stage pipeline, data + control hazards, branch prediction + speculative execution + Spectre." },
+      { slug: "memory-systems-hw", title: "Memory Systems Hardware", level: "practitioner", order: 4, pages: ["cache-hierarchy", "dram-sram", "nand-flash"], prereqs: ["digital-logic"], description: "Cache hierarchy + AMAT, DRAM/SRAM/HBM, NAND flash + SSD trade-offs." },
+      { slug: "fpga-design", title: "FPGA Design", level: "specialist", order: 5, pages: ["lut-bram-dsp", "fpga-flow", "fpga-applications"], prereqs: ["rtl-and-hdl"], description: "LUTs/BRAMs/DSPs, place-and-route + timing closure, FPGA in networking + radar + ML." },
+      { slug: "asic-design-flow", title: "ASIC Design Flow (RTL→GDSII)", level: "specialist", order: 6, pages: ["asic-flow", "verification", "tape-out"], prereqs: ["rtl-and-hdl"], description: "RTL-to-GDSII flow (synthesis, P&R, STA, DRC, LVS), UVM + functional verification, process nodes + tape-out economics." },
+      { slug: "high-speed-interconnect", title: "High-Speed Interconnect", level: "specialist", order: 7, pages: ["serdes", "pcie-cxl", "noc"], prereqs: ["digital-logic"], description: "SerDes electrical + encoding, PCIe/DDR/CXL/HBM, NoC topologies + cache coherence." },
+      { slug: "accelerators-and-systolic", title: "Accelerators + Systolic Arrays", level: "expert", order: 8, pages: ["gpu-sm-tensor", "tpu-systolic", "roofline"], prereqs: ["digital-logic", "memory-systems-hw"], description: "GPU SM + tensor cores, TPU systolic array, roofline + arithmetic-intensity model." },
+    ],
+  });
+
+  // P14 — Neuroscientist path. Brain + cognition complement to
+  // ml-engineer / ai-researcher: neurons, synapses, coding,
+  // anatomy, imaging, computational models, decision-making,
+  // consciousness.
+  seedMasteryPath({
+    slug: "neuroscientist",
+    title: "Neuroscientist",
+    description:
+      "From single neurons through synaptic plasticity, neural coding, brain anatomy + circuits, neuroimaging modalities, computational models, decision-making + cognition, and consciousness. The brain + behavior end-to-end.",
+    nodes: [
+      { slug: "neurons-and-action-potentials", title: "Neurons + Action Potentials", level: "apprentice", order: 1, pages: ["resting-potential", "hodgkin-huxley", "refractory"], prereqs: [], description: "Nernst equation, Hodgkin-Huxley mechanism, refractory periods, channel pharmacology." },
+      { slug: "synapses-and-plasticity", title: "Synapses + Plasticity", level: "practitioner", order: 2, pages: ["chemical-electrical", "ltp-nmda", "stdp-hebb"], prereqs: ["neurons-and-action-potentials"], description: "Chemical vs electrical synapses, neurotransmitters + receptors, LTP/LTD via NMDA, STDP + Hebb's rule." },
+      { slug: "neural-coding", title: "Neural Coding + Information", level: "practitioner", order: 3, pages: ["rate-temporal", "population-codes", "shannon-info"], prereqs: ["neurons-and-action-potentials"], description: "Rate vs temporal codes, population vectors + Bayesian decoding, mutual information + sparse coding." },
+      { slug: "brain-anatomy-and-circuits", title: "Brain Anatomy + Circuits", level: "practitioner", order: 4, pages: ["divisions-lobes", "cortical-column", "hippocampus-bg-cerebellum"], prereqs: ["neurons-and-action-potentials"], description: "Major brain divisions, canonical 6-layer cortical column, hippocampus + basal ganglia + cerebellum roles." },
+      { slug: "neuroimaging", title: "Neuroimaging", level: "specialist", order: 5, pages: ["fmri-eeg-meg", "bold-interpretation", "bci-prosthetics"], prereqs: ["brain-anatomy-and-circuits"], description: "fMRI / EEG / MEG / ECoG / calcium tradeoffs, BOLD interpretation + reverse-inference fallacy, BCIs + prosthetics." },
+      { slug: "computational-neuroscience", title: "Computational Neuroscience", level: "specialist", order: 6, pages: ["lif-models", "hopfield-attractors", "neuro-ai"], prereqs: ["neurons-and-action-potentials"], description: "Integrate-and-fire models, attractor + Hopfield networks, what biological vs artificial NNs share + differ." },
+      { slug: "decision-making-and-cognition", title: "Decision-Making + Cognition", level: "expert", order: 7, pages: ["drift-diffusion", "value-vmpfc", "explore-exploit"], prereqs: ["brain-anatomy-and-circuits"], description: "Drift-diffusion model + LIP accumulator, value coding in vmPFC + prospect theory, exploration vs exploitation foraging." },
+      { slug: "consciousness-and-attention", title: "Consciousness + Attention", level: "expert", order: 8, pages: ["gwt-iit-hot", "attention-types", "binding-ncc"], prereqs: ["brain-anatomy-and-circuits"], description: "Theories of consciousness (GWT, IIT, HOT), attention vs awareness, binding problem + neural correlates of consciousness." },
+    ],
+  });
+
+  // P13 — Climate Scientist path. Earth-system science:
+  // atmospheric + ocean physics, carbon cycle, climate models,
+  // paleoclimate, extreme-event attribution, mitigation, tipping.
+  seedMasteryPath({
+    slug: "climate-scientist",
+    title: "Climate Scientist",
+    description:
+      "From atmospheric radiative balance through ocean circulation, carbon cycle, GCM modeling, paleoclimate proxies, extreme-event attribution, mitigation pathways, and tipping-point adaptation. Earth-system science end-to-end.",
+    nodes: [
+      { slug: "atmospheric-physics", title: "Atmospheric Physics", level: "apprentice", order: 1, pages: ["radiative-balance", "greenhouse-effect", "vertical-structure"], prereqs: [], description: "Earth's effective temperature from radiative balance, greenhouse gases + radiative forcing, troposphere/stratosphere/lapse rates." },
+      { slug: "ocean-circulation", title: "Ocean Circulation", level: "practitioner", order: 2, pages: ["wind-thc", "amoc", "enso"], prereqs: ["atmospheric-physics"], description: "Wind-driven gyres + Ekman transport, thermohaline circulation + AMOC, El Niño / La Niña + global teleconnections." },
+      { slug: "carbon-cycle", title: "The Carbon Cycle", level: "practitioner", order: 3, pages: ["reservoirs-fluxes", "co2-lifetime", "ocean-acidification"], prereqs: ["atmospheric-physics"], description: "Atmosphere/ocean/land reservoirs + fluxes, CO₂ lifetime spectrum + the long tail, ocean acidification + biological feedbacks." },
+      { slug: "climate-models", title: "General Circulation Models", level: "specialist", order: 4, pages: ["gcm-structure", "parameterizations", "cmip-ensembles"], prereqs: ["atmospheric-physics", "ocean-circulation"], description: "GCM/AGCM/OGCM/ESM structure, sub-grid parameterizations, multi-model ensembles + uncertainty quantification." },
+      { slug: "paleoclimate-proxies", title: "Paleoclimate Proxies", level: "specialist", order: 5, pages: ["ice-cores-trees", "milankovitch", "petm-warm-worlds"], prereqs: ["atmospheric-physics", "carbon-cycle"], description: "Ice cores + tree rings + sediments + corals, Milankovitch cycles + glacial-interglacial, deep-time analogs (Pliocene, PETM)." },
+      { slug: "extreme-events-and-attribution", title: "Extreme Events + Attribution", level: "specialist", order: 6, pages: ["extreme-trends", "far-storyline", "insurance-financial"], prereqs: ["climate-models"], description: "Heat / precip / hurricane / fire / drought trends, event-attribution methodology (FAR, storyline), insurance + climate-financial risk." },
+      { slug: "mitigation-and-pathways", title: "Mitigation + Emission Pathways", level: "specialist", order: 7, pages: ["ssps", "wedges", "iam-discount-rate"], prereqs: ["carbon-cycle"], description: "RCP → SSP scenarios, carbon budget for 1.5°C/2°C, mitigation wedges, IAMs + the discount-rate debate." },
+      { slug: "adaptation-and-tipping-points", title: "Adaptation + Tipping Points", level: "expert", order: 8, pages: ["tipping-elements", "adaptation-strategies", "loss-and-damage"], prereqs: ["climate-models", "ocean-circulation"], description: "Major tipping elements (GIS / WAIS / AMOC / Amazon / corals), adaptation strategies + costs, limits + loss-and-damage." },
+    ],
+  });
+
+  // P12 — Embedded Systems Engineer path. MCU architecture, RTOS +
+  // real-time constraints, bare-metal memory, peripheral drivers,
+  // interrupts, power, bootloaders + OTA, safety-critical.
+  seedMasteryPath({
+    slug: "embedded-systems-engineer",
+    title: "Embedded Systems Engineer",
+    description:
+      "From Cortex-M architecture through real-time scheduling, bare-metal memory + linker scripts, peripheral drivers (UART/SPI/I2C), interrupt design, low-power techniques, secure bootloaders + OTA, and safety-critical certification (ISO 26262, DO-178C). The MCU-engineering toolkit.",
+    nodes: [
+      { slug: "microcontroller-architecture", title: "Microcontroller Architecture", level: "apprentice", order: 1, pages: ["cortex-m", "registers-vector-table"], prereqs: [], description: "ARM Cortex-M family, register file (R0-R15, MSP/PSP), memory map, vector table + reset sequence." },
+      { slug: "real-time-constraints", title: "Real-Time Constraints + Scheduling", level: "practitioner", order: 2, pages: ["hard-firm-soft", "rms-edf", "priority-inversion"], prereqs: ["microcontroller-architecture"], description: "Hard/firm/soft real-time, rate-monotonic scheduling + Liu-Layland bound, priority inversion + the Mars Pathfinder fix." },
+      { slug: "memory-and-bare-metal", title: "Memory + Bare-Metal Startup", level: "practitioner", order: 3, pages: ["linker-scripts", "startup", "stack-mpu"], prereqs: ["microcontroller-architecture"], description: "Linker scripts, .text/.data/.bss/.heap/.stack, reset handler, stack overflow + MPU protection." },
+      { slug: "peripheral-drivers", title: "Peripheral Drivers (UART/SPI/I2C)", level: "practitioner", order: 4, pages: ["serial-protocols", "memory-mapped-io", "polling-irq-dma"], prereqs: ["microcontroller-architecture"], description: "Serial-protocol comparison, memory-mapped register interfaces, polling vs interrupt-driven vs DMA." },
+      { slug: "interrupts-and-isr", title: "Interrupts + ISR Design", level: "specialist", order: 5, pages: ["irq-entry-exit", "nvic-priority", "isr-discipline"], prereqs: ["peripheral-drivers"], description: "Hardware-stacked context, NVIC priority + preemption, worst-case latency analysis, ISR-discipline + producer-consumer pattern." },
+      { slug: "power-management", title: "Power Management", level: "specialist", order: 6, pages: ["sleep-modes", "wake-sources", "battery-budget"], prereqs: ["peripheral-drivers"], description: "Cortex-M sleep modes, wake sources + latency, peripheral clock gating + DVFS, battery-budget math." },
+      { slug: "bootloaders-and-ota", title: "Bootloaders + OTA Updates", level: "specialist", order: 7, pages: ["bootloader-basics", "ota-protocol", "a-b-partitions"], prereqs: ["memory-and-bare-metal"], description: "Bootloader role + secure boot, OTA download/verify/install protocol, A/B partitioning for fail-safe updates." },
+      { slug: "safety-critical-systems", title: "Safety-Critical Systems", level: "expert", order: 8, pages: ["iec-iso-do", "lockstep-redundancy", "misra-static-analysis"], prereqs: ["real-time-constraints", "memory-and-bare-metal"], description: "IEC 61508 / ISO 26262 / DO-178C, lockstep cores + diversity-of-redundancy, MISRA C + qualified toolchains." },
+    ],
+  });
+
+  // P11 — NLP Linguist path. Linguistics-grounded NLP: tokenization,
+  // morphology, syntax, semantics, statistical + neural LMs,
+  // translation, multilingual + low-resource. Complements ml-engineer
+  // / ai-researcher / multimodal-engineer with a language-aware angle.
+  seedMasteryPath({
+    slug: "nlp-linguist",
+    title: "NLP Linguist",
+    description:
+      "From subword tokenization through morphological typology, dependency parsing, lexical + distributional semantics, statistical + neural language models, neural translation, and multilingual + low-resource NLP. The linguistics-grounded view of modern NLP.",
+    nodes: [
+      { slug: "tokenization-and-bpe", title: "Tokenization + BPE", level: "apprentice", order: 1, pages: ["tokenization", "bpe-algorithm"], prereqs: [], description: "Character / word / subword tokenization, BPE + WordPiece + SentencePiece, vocab-size trade-offs." },
+      { slug: "morphology-and-typology", title: "Morphology + Language Typology", level: "apprentice", order: 2, pages: ["typology", "morphological-analysis"], prereqs: ["tokenization-and-bpe"], description: "Isolating / fusional / agglutinative / polysynthetic, stemming + lemmatization, why BPE wins for agglutinative languages." },
+      { slug: "syntax-and-parsing", title: "Syntax + Dependency Parsing", level: "practitioner", order: 3, pages: ["dependency-grammar", "biaffine-parsing"], prereqs: ["tokenization-and-bpe"], description: "Phrase-structure vs dependency grammar, transition-based + biaffine graph-based parsers, parsing-as-tagging in transformers." },
+      { slug: "semantic-representations", title: "Semantic Representations", level: "practitioner", order: 4, pages: ["wordnet", "framenet-srl", "distributional"], prereqs: ["tokenization-and-bpe"], description: "WordNet + FrameNet + semantic-role labeling, distributional semantics, why contextual embeddings won." },
+      { slug: "statistical-language-models", title: "Statistical Language Models", level: "practitioner", order: 5, pages: ["n-grams", "smoothing-kn", "perplexity"], prereqs: ["tokenization-and-bpe"], description: "N-gram chain-rule, MLE + smoothing (Laplace, Kneser-Ney), perplexity + cross-entropy." },
+      { slug: "neural-embeddings", title: "Neural Word + Sentence Embeddings", level: "specialist", order: 6, pages: ["word2vec", "glove", "elmo-bert"], prereqs: ["statistical-language-models"], description: "Word2Vec skip-gram + negative sampling, GloVe co-occurrence factorization, ELMo + BERT contextual embeddings." },
+      { slug: "translation-and-alignment", title: "Machine Translation + Alignment", level: "specialist", order: 7, pages: ["ibm-models", "attention-seq2seq", "bleu-comet"], prereqs: ["neural-embeddings"], description: "IBM word-alignment models, attention as soft alignment, BLEU + COMET evaluation." },
+      { slug: "multilingual-and-low-resource", title: "Multilingual + Low-Resource NLP", level: "expert", order: 8, pages: ["mbert-xlmr", "adapters-lora", "long-tail-languages"], prereqs: ["neural-embeddings", "translation-and-alignment"], description: "Multilingual transfer, mBERT + XLM-R + the curse of multilinguality, adapters + LoRA, the long tail of ~7000 languages." },
+    ],
+  });
+
+  // P10 — Financial Engineer (quant finance) path. Time value of
+  // money, no-arb pricing, Black-Scholes, Greeks, Monte Carlo,
+  // fixed income, market microstructure, portfolio theory.
+  seedMasteryPath({
+    slug: "financial-engineer",
+    title: "Financial Engineer",
+    description:
+      "From time value of money through no-arbitrage pricing, Black-Scholes, option Greeks + hedging, Monte Carlo simulation, fixed income, market microstructure, and portfolio theory. The full quant-finance toolkit.",
+    nodes: [
+      { slug: "time-value-of-money", title: "Time Value of Money", level: "apprentice", order: 1, pages: ["pv-fv", "compounding", "npv"], prereqs: [], description: "Present + future value, discrete vs continuous compounding, NPV + capital budgeting." },
+      { slug: "no-arbitrage-pricing", title: "No-Arbitrage Pricing", level: "practitioner", order: 2, pages: ["arbitrage-principle", "risk-neutral", "put-call-parity"], prereqs: ["time-value-of-money"], description: "Replication arguments, FTAP + the risk-neutral measure, put-call parity, forward pricing." },
+      { slug: "black-scholes", title: "Black-Scholes Model", level: "specialist", order: 3, pages: ["bsm-formula", "bsm-pde", "implied-vol"], prereqs: ["no-arbitrage-pricing"], description: "BSM assumptions + closed-form, delta-hedging derivation, implied vol + the smile." },
+      { slug: "greeks-and-hedging", title: "Greeks + Dynamic Hedging", level: "specialist", order: 4, pages: ["delta-gamma-vega", "gamma-scalping", "vega-risk"], prereqs: ["black-scholes"], description: "The Greeks, dynamic delta-hedging, gamma scalping = the vol trade, vega + vanna risk." },
+      { slug: "monte-carlo-finance", title: "Monte Carlo in Finance", level: "specialist", order: 5, pages: ["mc-pricing", "variance-reduction", "lsm-americans"], prereqs: ["black-scholes"], description: "MC for derivative pricing, variance reduction, Longstaff-Schwartz for Americans." },
+      { slug: "fixed-income", title: "Fixed Income", level: "specialist", order: 6, pages: ["bond-pricing", "duration-convexity", "yield-curve"], prereqs: ["time-value-of-money"], description: "Bond pricing + YTM, duration + convexity for risk, the yield curve + forward rates." },
+      { slug: "market-microstructure", title: "Market Microstructure", level: "expert", order: 7, pages: ["limit-order-book", "spread-impact", "hft"], prereqs: ["no-arbitrage-pricing"], description: "Limit order book, spread + market impact, Kyle's lambda, market makers + HFT." },
+      { slug: "portfolio-theory", title: "Portfolio Theory", level: "specialist", order: 8, pages: ["markowitz", "capm", "factor-models"], prereqs: ["time-value-of-money"], description: "Markowitz mean-variance, CAPM + the SML, Fama-French + factor models." },
+    ],
+  });
+
+  // P9 — Compiler Engineer path. Lexing, parsing, ASTs, types,
+  // SSA IR, optimization passes, register allocation, JIT. Sits
+  // beneath algorithms-engineer + systems-engineer.
+  seedMasteryPath({
+    slug: "compiler-engineer",
+    title: "Compiler Engineer",
+    description:
+      "From lexical analysis through parsing, ASTs, type systems, SSA-form IR, optimization passes, register allocation, and JIT runtime. The full compiler pipeline as practiced in production toolchains (clang, rustc, V8, HotSpot).",
+    nodes: [
+      { slug: "lexical-analysis", title: "Lexical Analysis", level: "apprentice", order: 1, pages: ["regex-nfa-dfa", "maximal-munch"], prereqs: [], description: "Regex → NFA → DFA via Thompson + subset construction, maximal-munch rule, hand-written vs generated lexers." },
+      { slug: "parsing-strategies", title: "Parsing Strategies", level: "practitioner", order: 2, pages: ["ll-vs-lr", "pratt-parsing", "error-recovery"], prereqs: ["lexical-analysis"], description: "LL vs LR, recursive descent, Pratt parsing for expression precedence, error recovery for IDEs." },
+      { slug: "abstract-syntax-trees", title: "Abstract Syntax Trees", level: "practitioner", order: 3, pages: ["ast-design", "visitor-pattern", "source-positions"], prereqs: ["parsing-strategies"], description: "AST vs CST, discriminated-union node types, visitor pattern, source position spans for diagnostics." },
+      { slug: "type-systems", title: "Type Systems (Hindley-Milner)", level: "specialist", order: 4, pages: ["hindley-milner", "unification", "polymorphism"], prereqs: ["abstract-syntax-trees"], description: "Hindley-Milner principal types, unification + occurs-check, parametric vs ad-hoc vs subtype polymorphism." },
+      { slug: "ir-and-ssa", title: "IR + SSA Form", level: "specialist", order: 5, pages: ["llvm-ir", "ssa", "dominance-frontier"], prereqs: ["abstract-syntax-trees"], description: "Why an IR, SSA invariant + φ-functions, dominators + dominance frontiers (Cytron et al)." },
+      { slug: "optimization-passes", title: "Optimization Passes", level: "specialist", order: 6, pages: ["classical-opts", "inlining", "lto-pgo"], prereqs: ["ir-and-ssa"], description: "Classical passes + ordering, why inlining is #1, LTO + PGO + BOLT." },
+      { slug: "codegen-and-registers", title: "Codegen + Register Allocation", level: "expert", order: 7, pages: ["instruction-selection", "graph-coloring", "linear-scan"], prereqs: ["ir-and-ssa"], description: "Instruction selection, register allocation as graph coloring (Chaitin), linear-scan for JITs." },
+      { slug: "jit-and-runtime", title: "JIT Compilation + Runtime", level: "expert", order: 8, pages: ["tiered-jit", "deoptimization", "jit-vs-aot"], prereqs: ["codegen-and-registers", "optimization-passes"], description: "Tiered JITs (V8, HotSpot, RyuJIT), speculative type optimization + deopt, JIT vs AOT trade-offs." },
+    ],
+  });
+
+  // P8 — Cryptographer path. Deeper crypto complement to
+  // security-engineer: hash functions, block ciphers, AEAD,
+  // public-key primitives, zero-knowledge proofs, post-quantum,
+  // password hashing, side-channels.
+  seedMasteryPath({
+    slug: "cryptographer",
+    title: "Cryptographer",
+    description:
+      "From hash functions through block-cipher design, authenticated encryption, public-key primitives, zero-knowledge proofs, post-quantum schemes, password hashing, and side-channel attacks. The deeper crypto complement to security-engineer.",
+    nodes: [
+      { slug: "hash-functions", title: "Cryptographic Hash Functions", level: "apprentice", order: 1, pages: ["hash-properties", "hmac", "merkle-trees"], prereqs: [], description: "Preimage / 2nd-preimage / collision resistance, HMAC, Merkle trees, the birthday bound." },
+      { slug: "block-cipher-design", title: "Block Cipher Design (AES)", level: "practitioner", order: 2, pages: ["aes-rounds", "confusion-diffusion", "aes-ni"], prereqs: ["hash-functions"], description: "AES round structure, Shannon's confusion + diffusion, constant-time S-boxes, AES-NI." },
+      { slug: "authenticated-encryption", title: "Authenticated Encryption (AEAD)", level: "practitioner", order: 3, pages: ["aead", "aes-gcm", "nonce-reuse"], prereqs: ["block-cipher-design"], description: "Why encrypt-then-MAC is the right shape, AES-GCM = CTR + GHASH, nonce-reuse catastrophe, ChaCha20-Poly1305." },
+      { slug: "public-key-primitives", title: "Public-Key Primitives", level: "specialist", order: 4, pages: ["diffie-hellman", "rsa", "ecdsa-nonces"], prereqs: ["hash-functions"], description: "DH/ECDH, RSA encrypt vs sign, ECDSA nonce-reuse (PS3 + Bitcoin breaks), X25519." },
+      { slug: "zero-knowledge-proofs", title: "Zero-Knowledge Proofs", level: "expert", order: 5, pages: ["zk-properties", "snarks-vs-starks", "schnorr"], prereqs: ["public-key-primitives"], description: "Completeness / soundness / zero-knowledge, SNARKs vs STARKs vs Bulletproofs, zk-rollups." },
+      { slug: "post-quantum-cryptography", title: "Post-Quantum Cryptography", level: "expert", order: 6, pages: ["shor", "lattice-lwe", "kyber-dilithium"], prereqs: ["public-key-primitives"], description: "Shor's threat, LWE, Kyber + Dilithium + SPHINCS+, hybrid migration (X25519 + Kyber768)." },
+      { slug: "password-hashing", title: "Password Hashing", level: "practitioner", order: 7, pages: ["argon2id", "salts-peppers", "constant-time-cmp"], prereqs: ["hash-functions"], description: "Argon2id memory-hardness, bcrypt / scrypt / PBKDF2 trade-offs, salts, constant-time comparison." },
+      { slug: "side-channel-attacks", title: "Side-Channel Attacks", level: "expert", order: 8, pages: ["timing-power-em", "spectre-meltdown", "constant-time-discipline"], prereqs: ["block-cipher-design", "public-key-primitives"], description: "Timing / power / EM / microarchitectural channels, Spectre + Meltdown, constant-time discipline." },
+    ],
+  });
+
+  // P7 — Operating Systems path. The kernel-level foundation
+  // under every other engineering discipline. Sits beneath
+  // algorithms-engineer, distributed-systems, systems-engineer,
+  // and container-deployment concerns.
+  seedMasteryPath({
+    slug: "operating-systems",
+    title: "Operating Systems",
+    description:
+      "Processes + threads, virtual memory, file systems, scheduling, synchronization, system calls, interrupts + I/O, and container isolation. The kernel-level foundation under every other engineering discipline.",
+    nodes: [
+      { slug: "processes-and-threads", title: "Processes & Threads", level: "apprentice", order: 1, pages: ["process-model", "fork-cow"], prereqs: [], description: "Process vs thread, fork() + copy-on-write, the C10K story, modern coroutines." },
+      { slug: "virtual-memory", title: "Virtual Memory", level: "practitioner", order: 2, pages: ["page-tables", "tlb", "mmap"], prereqs: ["processes-and-threads"], description: "Page tables, TLB, page faults (minor/major/COW), mmap as a unified abstraction." },
+      { slug: "file-systems", title: "File Systems", level: "practitioner", order: 3, pages: ["inodes", "journaling", "fsync"], prereqs: [], description: "Inodes, journaling vs copy-on-write, fsync + group commit, ext4/XFS/ZFS." },
+      { slug: "scheduling", title: "Scheduling", level: "practitioner", order: 4, pages: ["cfs", "real-time-scheduling"], prereqs: ["processes-and-threads"], description: "Cooperative vs preemptive, Linux CFS fairness, SCHED_FIFO/RR/DEADLINE for real-time." },
+      { slug: "synchronization", title: "Synchronization", level: "specialist", order: 5, pages: ["mutex-rwlock", "futex", "lock-free"], prereqs: ["processes-and-threads"], description: "Mutex/RWLock/spinlock, futex fast-path, lock-free + the ABA problem." },
+      { slug: "system-calls", title: "System Calls", level: "specialist", order: 6, pages: ["syscall-abi", "io-uring"], prereqs: ["processes-and-threads"], description: "User/kernel transition, syscall ABI, io_uring as syscall-bypass for high-IOPS." },
+      { slug: "interrupts-and-io", title: "Interrupts & I/O", level: "expert", order: 7, pages: ["interrupts", "dma", "polling-vs-interrupt"], prereqs: ["system-calls"], description: "Interrupt-driven I/O, DMA, interrupt coalescing, when polling (DPDK/SPDK) beats interrupts." },
+      { slug: "container-isolation", title: "Container Isolation", level: "expert", order: 8, pages: ["namespaces", "cgroups", "microvm"], prereqs: ["processes-and-threads", "virtual-memory", "file-systems"], description: "Containers vs VMs, namespaces + cgroups, the security limits, microvms (Firecracker, Kata)." },
+    ],
+  });
+
+  // P6 — Frontend Engineer path. Modern web stack: DOM rendering,
+  // JS runtime, React, accessibility, performance budgets,
+  // TypeScript, testing, build tooling. Complements security,
+  // networking, and data-engineer paths.
+  seedMasteryPath({
+    slug: "frontend-engineer",
+    title: "Frontend Engineer",
+    description:
+      "From browser rendering through React, accessibility, performance budgets, TypeScript, testing, and build tooling. The modern web stack as practiced in 2024-2025.",
+    nodes: [
+      { slug: "dom-and-rendering", title: "DOM & Rendering Pipeline", level: "apprentice", order: 1, pages: ["dom", "render-pipeline"], prereqs: [], description: "Layout vs paint vs composite. Why transform animations are smooth + others aren't." },
+      { slug: "javascript-runtime", title: "JavaScript Runtime", level: "practitioner", order: 2, pages: ["event-loop", "v8-tiers"], prereqs: ["dom-and-rendering"], description: "Event loop, microtasks vs macrotasks, V8's optimization tiers, hidden-class deopts." },
+      { slug: "react-and-state", title: "React + State Management", level: "practitioner", order: 3, pages: ["react", "state-colocation"], prereqs: ["javascript-runtime"], description: "UI = f(state), memoization, state colocation, when to use Context vs Zustand." },
+      { slug: "accessibility", title: "Accessibility (WCAG)", level: "practitioner", order: 4, pages: ["wcag", "aria"], prereqs: ["dom-and-rendering"], description: "WCAG AA, semantic HTML over ARIA, keyboard navigation, color contrast." },
+      { slug: "performance-budgets", title: "Performance Budgets", level: "specialist", order: 5, pages: ["core-web-vitals", "lazy-loading"], prereqs: ["dom-and-rendering", "javascript-runtime"], description: "Core Web Vitals, LCP optimization, code splitting, mobile-first budgets." },
+      { slug: "typescript-types", title: "TypeScript Type System", level: "specialist", order: 6, pages: ["structural-typing", "generics"], prereqs: ["javascript-runtime"], description: "Structural typing, generics + inference, narrowing, branded types, intentional unsoundness." },
+      { slug: "testing-frontend", title: "Frontend Testing", level: "specialist", order: 7, pages: ["testing-trophy", "testing-library"], prereqs: ["react-and-state"], description: "The testing trophy (integration > unit), Testing Library, Playwright e2e, accessibility-as-tests." },
+      { slug: "build-and-bundle", title: "Build & Bundle", level: "expert", order: 8, pages: ["vite", "tree-shaking", "code-splitting"], prereqs: ["javascript-runtime", "typescript-types"], description: "Modern bundlers (Vite, esbuild, Turbopack), tree-shaking, code-splitting, source maps in production." },
+    ],
+  });
+
   // P5 — Networking path. The network-stack foundation:
   // IP/TCP/UDP, HTTP/REST, TLS, DNS, CDNs, load balancers,
   // QUIC/HTTP3, network failure modes. Sits beneath every

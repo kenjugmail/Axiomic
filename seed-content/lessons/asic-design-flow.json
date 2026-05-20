@@ -1,0 +1,146 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "specialist",
+    "objectives": [
+      "Outline the RTL-to-GDSII flow.",
+      "Distinguish synthesis from place-and-route.",
+      "Reason about DRC, LVS, and tape-out gates."
+    ],
+    "prereqs": [
+      "rtl-and-hdl"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "ASIC vs FPGA + the design hierarchy",
+      "body": "**ASIC (Application-Specific Integrated Circuit)**: custom chip fabricated for a specific design. Once fabricated, can't change.\n\n**Trade-offs vs FPGA**:\n- ✅ ~10× faster, more power-efficient, smaller area.\n- ✅ Cheaper per unit at high volumes.\n- ❌ Massive NRE: \\$10-100M for advanced nodes.\n- ❌ Tape-out turnaround: 3-9 months.\n- ❌ Can't be changed once fabricated.\n\n**Design hierarchy**:\n- **Cell**: smallest unit. NAND, NOR, FF, MUX (from standard-cell library).\n- **Block**: a few thousand gates implementing a functional unit (ALU, register file).\n- **Module**: thousands-millions of gates (a CPU core, a memory controller).\n- **Chip / SoC**: entire silicon die. Modern: 10+ billion transistors.\n\n**Modern process nodes**:\n- 28 nm: cheap, mature. Used for low-cost products.\n- 16/14 nm: previous gen, still widely used.\n- 7 nm: TSMC, current high-end.\n- 5 nm: Apple M-series, NVIDIA H100.\n- 3 nm: Apple A17, M3.\n- 2 nm (coming 2025): Intel + TSMC roadmap.\n\nEach node ~30% smaller + ~25% faster than previous. Node costs grow exponentially: 7nm tape-out ~\\$10M; 3nm ~\\$80M+.\n\n**Standard-cell libraries**: pre-designed cells (NAND2_X1, FF, AOI22 etc.) characterized for timing/power/area at each process node. Provided by the foundry or third parties (Arm Artisan). Modern libraries have ~1000-5000 cells of varying drive strengths.\n\n**IP blocks**: pre-designed modules (USB, PCIe, DDR, ARM cores). Licensed for ~\\$M each. SoCs are mostly licensed IP + a few proprietary blocks.\n\n**The team**: front-end designers (RTL + verification), back-end designers (synthesis, P&R, timing), DV (design verification, ~50-70% of headcount in modern projects), physical design, test, layout. Modern advanced-node tape-outs employ hundreds-thousands of engineers + take years."
+    },
+    {
+      "kind": "text",
+      "title": "RTL-to-GDSII flow",
+      "body": "**GDSII (or OASIS)**: the geometric file format submitted to the foundry. Describes layout polygons per layer.\n\nThe 12-stage flow from RTL → GDSII:\n\n1. **RTL design** (Verilog/SystemVerilog).\n2. **Functional verification**: simulation, formal verification, emulation (Veloce, Palladium, Zebu, Protium).\n3. **Synthesis**: RTL → technology-mapped gate netlist. Tools: Synopsys Design Compiler, Cadence Genus.\n4. **Equivalence checking**: prove synthesized netlist matches RTL. Tools: Synopsys Formality, Cadence Conformal.\n5. **Floorplanning**: lay out major blocks on chip; place macros (memories, IP); plan power grid.\n6. **Placement**: assign each cell a location. Tools: Synopsys IC Compiler, Cadence Innovus.\n7. **Clock-tree synthesis (CTS)**: build clock distribution network to minimize skew.\n8. **Routing**: connect all cells via metal layers. Modern designs have 10-20 metal layers.\n9. **Static Timing Analysis (STA)**: verify timing closure across all corners (process / voltage / temperature combinations).\n10. **DRC (Design Rule Check)**: verify layout meets foundry geometric rules (spacing, widths, density).\n11. **LVS (Layout vs Schematic)**: verify layout's connectivity matches the synthesized netlist.\n12. **GDSII tape-out + manufacturing handoff**.\n\n**Tool suites** ('Big 3 EDA'): Synopsys, Cadence, Siemens (formerly Mentor). Each owns multi-million-dollar tools. License fees ~\\$1M/seat/year for advanced flows.\n\n**Open-source alternatives**: Yosys (synthesis), OpenROAD (P&R), Magic / KLayout (layout). Used by Google's MPW (Multi-Project Wafer) initiatives (Caravel, OpenLane). Free 130 nm + 90 nm tape-outs available for educational use.\n\n**Closure metrics**:\n- **Timing closure**: 0 violations in STA.\n- **DRC clean**: 0 DRC errors.\n- **LVS clean**: 0 LVS errors.\n- **Power closure**: meets target power.\n- **Area closure**: meets die-size budget.\n\nAll must be closed simultaneously before tape-out."
+    },
+    {
+      "kind": "text",
+      "title": "Verification + the 70% rule",
+      "body": "**Verification consumes ~50-70% of an ASIC project's effort**. Why: a bug discovered after tape-out costs ~\\$10-50M (re-spin: months of delay + new mask set).\n\n**Verification methodology**:\n\n**Directed tests**: hand-written testbenches covering specific scenarios. Necessary but insufficient.\n\n**Constrained random**: generate random stimuli with constraints (e.g., 'random valid Ethernet packets'). Discovers corner cases.\n\n**UVM (Universal Verification Methodology)**: SystemVerilog framework for constrained-random verification. Industry standard. Components: agents, drivers, monitors, scoreboards, sequences.\n\n**Functional coverage**: track which scenarios have been hit. 'Did we test packet sizes 1, 64, 1500, 9000?' 'Did we test all FSM transitions?' Coverage drives test development.\n\n**Code coverage**: which RTL lines / branches were executed. Useful but doesn't catch missed cases.\n\n**Formal verification**: prove properties mathematically (no random inputs needed). Used for safety-critical logic (cache coherence, security units). Tools: Jasper, OneSpin.\n\n**Emulation**: run RTL on a custom emulator (Veloce Strato, Palladium Z2) at ~1-10 MHz. Run OS boot, full software stacks. Hours-to-days per scenario vs years on simulation.\n\n**Prototyping**: synthesize RTL to large FPGAs (Cadence Protium, S2C Prodigy). Even faster than emulation; closer to silicon behavior.\n\n**Silicon validation**: post-fab, real chip tested. Last chance to catch issues.\n\n**Bug examples**:\n- **FDIV bug (Pentium 1994)**: floating-point divider gave wrong results. Recall cost Intel \\$475M.\n- **Spectre/Meltdown (2018)**: speculation-leak bugs across architectures.\n- **AMD Zen 4 BIOS bug (2023)**: certain Asus boards killed CPUs. Hardware + microcode interaction.\n\nVerification quality determines whether silicon works. 'It's working in simulation' doesn't mean working post-fab. Decades of methodology have been built to bridge the gap."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_asic_node",
+        "kind": "guided_derivation",
+        "question": "Compute area + cost for a die at different nodes",
+        "goal": "A design needs 100 million transistors. Compare implementation at 28nm vs 7nm. Transistor density: 28nm ~3 MT/mm², 7nm ~96 MT/mm². Wafer cost: 28nm ~\\$2K/wafer, 7nm ~\\$17K/wafer.",
+        "steps": [
+          {
+            "prompt": "Die area at 28nm: 100 MT / 3 MT/mm² = ?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "33",
+                "33 mm^2",
+                "~33 mm²"
+              ]
+            },
+            "hints": [
+              "100/3."
+            ],
+            "reveal": "~33 mm² at 28nm."
+          },
+          {
+            "prompt": "Die area at 7nm: 100 MT / 96 MT/mm² = ?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1.04",
+                "~1 mm^2"
+              ]
+            },
+            "hints": [
+              "100/96."
+            ],
+            "reveal": "~1 mm² at 7nm. 30× smaller!"
+          },
+          {
+            "prompt": "Cost per die: wafer cost / dies-per-wafer. 300mm wafer ≈ 70,000 mm². At 28nm: ~70000/33 ≈ 2100 dies, so cost/die = \\$2000/2100 ≈ \\$1. At 7nm: ~70000 dies/wafer, cost/die ≈ \\$0.24. Lower per-die cost at smaller node!",
+            "motivation": "Per-die cost.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "7nm more expensive per die.",
+                "7nm CHEAPER per die — denser packing offsets higher wafer cost. Plus performance + power advantages.",
+                "Equal.",
+                "Depends on volume."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "More dies per wafer at 7nm."
+            ],
+            "reveal": "7nm is cheaper per die DESPITE higher wafer cost — because density gain (32×) exceeds wafer-cost gain (8.5×). The catch: NRE is much higher at 7nm (\\$10-50M vs \\$5M at 28nm). 7nm pays off only at volume."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Cost = NRE + (wafer cost / dies per wafer) × volume}}$$ Modern node decisions: at high volume (smartphones, data center), advanced nodes pay off via per-die cost + performance. At low volume, mature nodes (28nm, 16nm) are cheaper total. Foundries (TSMC, Samsung, Intel Foundry Services) charge by wafer; designers shop nodes based on volume + performance needs. Apple, NVIDIA, Qualcomm always at leading edge; automotive + medical often at 28nm/40nm (mature, well-characterized)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_asic_respin",
+        "kind": "multiple_choice",
+        "question": "An ASIC tape-out at 7nm costs ~\\$15M in NRE + masks. A bug is discovered post-fab. Why is a 're-spin' so expensive?",
+        "options": [
+          "Engineers are paid by the bug.",
+          "Requires re-doing one or more mask layers (~\\$2-5M for advanced nodes), several months delay, lost market window, possibly customer penalties + product-recall costs.",
+          "Always cheap to fix.",
+          "Doesn't happen often."
+        ],
+        "correctIndex": 1,
+        "explanation": "Re-spin: new mask set (1-20+ layers, depending on bug scope), fabrication delay (3-6 months at 7nm), opportunity cost (competitors ship while you're stuck). Total: \\$5-15M direct + huge indirect costs. Hence the verification investment. Companies have shipped projects with known bugs + worked around them in software/microcode rather than re-spin."
+      },
+      "hints": [
+        "Mask cost at advanced node?",
+        "What else does a re-spin cost?"
+      ],
+      "workedSolution": "7nm mask set: ~\\$15M+. A re-spin = redo affected masks (often \\$5M+ even for partial fix) + 3-6 months delay + lost market window. Plus customer dissatisfaction. Hence verification is 50-70% of effort. When bugs are found post-fab, common workarounds: microcode patches (Intel), driver software fixes, marketing the feature as 'experimental'. Re-spin is the last resort.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_asic_density",
+        "kind": "math_expression",
+        "question": "Apple A17 Pro: 19 billion transistors in 103 mm² at 3nm. Density (MT/mm²)?",
+        "acceptedAnswers": [
+          "~184",
+          "184",
+          "approximately 184 MT/mm^2"
+        ],
+        "hint": "19000 / 103 ≈ 184."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_asic_pp",
+        "kind": "scenario",
+        "question": "Pipeline-rebalancing for timing closure",
+        "prompt": "A chip targets 3 GHz but synthesis reports max 2.5 GHz. The synthesis tool flags a critical path through a 32-bit divider. Walk through how you would close timing."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_asic",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why ASIC design verification consumes 50-70% of the project effort.",
+        "rubric": "Mentions that post-fab bugs cost \\$5-50M (re-spin), with months of delay; testing every input combination is impossible; verification methodology (UVM, formal, emulation, coverage) systematically explores the design space; even with all this, advanced chips ship with errata documents listing known bugs. Compared to software (cheap to patch), hardware bugs are existential — hence the investment."
+      }
+    }
+  ]
+}

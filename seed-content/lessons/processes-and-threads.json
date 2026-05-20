@@ -1,0 +1,123 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Distinguish process from thread.",
+      "Reason about fork() + copy-on-write.",
+      "Recognize when threads vs processes is the right choice."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Process vs thread, precisely",
+      "body": "**Process**: an instance of a running program. Has its own address space (virtual memory), file descriptors, signal handlers, working directory. Created by `fork()` (Unix) or `CreateProcess()` (Windows). Isolated from other processes — a buggy process can't (directly) corrupt another.\n\n**Thread**: a unit of execution within a process. Shares the process's address space, file descriptors, etc. with other threads. Created by `pthread_create()` / `std::thread` / language-level abstractions. Lighter than processes (no address-space setup); communication via shared memory.\n\nThe trade-off:\n- **Processes**: heavyweight (~1ms to fork), strong isolation, IPC via pipes/sockets.\n- **Threads**: cheap (~10µs to create), shared memory, no isolation (one thread's bug can corrupt others).\n\nProduction patterns:\n- **Multi-process**: Chrome (process-per-tab for isolation), Postgres (process-per-connection historically), Apache pre-fork.\n- **Multi-thread**: most modern application servers, JVMs, the kernel itself.\n\nThe Python GIL + Ruby GVL famously limit thread parallelism in those languages, pushing CPU-bound work back to multi-process (multiprocessing module)."
+    },
+    {
+      "kind": "text",
+      "title": "fork() + copy-on-write",
+      "body": "Unix `fork()` creates a child process that's an exact copy of the parent — same code, same memory, same file descriptors. Implementing this naively (copy all the parent's memory) would be slow.\n\n**Copy-on-write (COW)**: at fork time, parent + child share the same physical pages, marked read-only. When either tries to write, the kernel takes a page fault, copies that page, and lets the write proceed on the private copy.\n\nResult: fork() is cheap if the child immediately calls `exec()` (loads a new program → discards all parent's pages). The classic `fork() + exec()` pattern (your shell launching a command) leverages this — the parent's memory is never actually copied.\n\n**Subtle trap**: COW interacts with multi-threading. `fork()` in a multi-threaded process only carries the calling thread to the child; locks held by other threads remain locked in the child but their holders don't exist there. POSIX says: `fork()` after threads = only call async-signal-safe functions in the child until `exec()`. Most languages avoid this entirely by spawning processes via posix_spawn or vfork instead."
+    },
+    {
+      "kind": "text",
+      "title": "The C10K problem + modern alternatives",
+      "body": "**C10K**: the early-2000s challenge of handling 10,000 concurrent connections per server. Thread-per-connection didn't scale: 10K threads ≈ 8GB of stack memory alone (default 8MB stack × 10K threads). Plus kernel scheduling overhead.\n\n**Solutions** that emerged:\n- **Event-driven I/O** (epoll on Linux, kqueue on BSD): one thread handles thousands of connections via non-blocking I/O + an event loop. Nginx, Node.js, Redis.\n- **Coroutines / green threads**: lightweight user-space threads. Go's goroutines (~2KB stack, multiplexed onto OS threads), Rust async, Python asyncio.\n- **io_uring** (Linux 5.1+): submission/completion queues for batched async I/O. Lower per-syscall overhead than epoll for very high-IOPS workloads.\n\nProduction reality: modern servers handle millions of concurrent connections via coroutines + event loops. The thread-per-connection model is dead for high-concurrency networking."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_pt_fork",
+        "kind": "guided_derivation",
+        "question": "Derive fork() time complexity with COW",
+        "goal": "Process has $N$ pages of memory. Without COW, fork copies all $N$. With COW, what's the immediate cost + the eventual cost?",
+        "steps": [
+          {
+            "prompt": "Immediate cost: mark all $N$ pages COW (no actual copying). Page table walk only. What's the complexity?",
+            "motivation": "Mark + walk page tables.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "O(N)"
+              ]
+            },
+            "hints": [
+              "Page table modification is $O(N)$ in pages."
+            ],
+            "reveal": "$O(N)$ immediate — touching every page-table entry to mark COW."
+          },
+          {
+            "prompt": "If child writes to $W$ pages before calling exec(), what's the additional cost?",
+            "motivation": "Each write to COW page triggers a fault + copy.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "O(W)"
+              ]
+            },
+            "hints": [
+              "One fault per page touched."
+            ],
+            "reveal": "$O(W)$ additional. If child immediately execs, $W = 0$ — fork is essentially free for the fork+exec pattern."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{fork: } O(N + W) \\text{ where } W \\text{ = pages written before exec}}$$ For `fork() + exec()`, $W \\approx 0$, so cost is dominated by the page-table walk. Modern Linux: ~1ms for fork on a 100MB process; ~10µs for the eventual write copies if any."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_pt_choice",
+        "kind": "multiple_choice",
+        "question": "Building a web server with ~10,000 concurrent connections. Each connection mostly waits on I/O. Best architecture:",
+        "options": [
+          "Thread per connection.",
+          "Event-driven I/O with a small thread pool (e.g., Node.js, Go goroutines, async Python/Rust).",
+          "One process per connection (fork-per-request).",
+          "Sequential request handling."
+        ],
+        "correctIndex": 1,
+        "explanation": "10K threads = 80GB of stack memory + kernel scheduling overhead. Event-driven I/O multiplexes all 10K connections onto a small thread pool (often 1 thread per CPU core); each connection is just a small state-machine struct. Node.js, Go (goroutines + epoll), Nginx, modern Python asyncio all use this model."
+      },
+      "hints": [
+        "How much memory would 10K threads consume just in stacks?",
+        "Mostly-idle connections don't benefit from dedicated threads."
+      ],
+      "workedSolution": "10K threads × 8MB default stack = 80GB just for stacks. Each thread is also tracked by the kernel scheduler — switching among 10K threads has overhead even when most are idle. Event-driven I/O keeps just one or a few threads (= CPU cores) and a small per-connection state struct (~few KB). Modern servers (Cloudflare, Nginx, Node) handle millions of concurrent connections per node this way.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_pt_threads",
+        "kind": "math_expression",
+        "question": "Default Linux stack 8MB. Maximum threads in 64GB RAM (just stacks)?",
+        "acceptedAnswers": [
+          "8000",
+          "64000/8",
+          "8 thousand"
+        ],
+        "hint": "64 GB / 8 MB = 8000."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_pt_python",
+        "kind": "scenario",
+        "question": "Python parallelism choice",
+        "prompt": "You have a Python program that needs to crunch numbers across 16 CPU cores. A teammate proposes using the `threading` module. Walk through why that's the wrong call + which Python concurrency primitive is right."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_pt",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why most modern high-concurrency servers (Nginx, Node.js, Go) use event-driven I/O instead of thread-per-connection.",
+        "rubric": "Mentions that 10K+ threads exhaust memory + kernel scheduling capacity; event-driven I/O multiplexes connections onto few threads via epoll/kqueue/io_uring; per-connection state is a small struct, not a heavyweight thread."
+      }
+    }
+  ]
+}

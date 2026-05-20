@@ -1,0 +1,158 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "core",
+    "objectives": [
+      "Outline hydrologic cycle + water budget.",
+      "Apply pipe flow + open-channel hydraulics.",
+      "Reason about water treatment + distribution."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Hydrologic cycle + water budget",
+      "body": "**Hydrologic cycle**: continuous movement of water on, above, and below Earth's surface.\n\n**Major components**:\n- **Precipitation**: rain, snow, hail. Returns water to surface.\n- **Evaporation**: liquid → vapor. From oceans, lakes, soil.\n- **Transpiration**: plant water release. Combined: evapotranspiration (ET).\n- **Infiltration**: water entering soil.\n- **Runoff**: water flowing on surface to streams/rivers.\n- **Groundwater flow**: subsurface flow through aquifers.\n- **Storage**: surface water, groundwater, snowpack, glaciers.\n\n**Water budget** for a watershed:\n$$P = Q + ET + \\Delta S$$\n\nWhere $P$ = precipitation, $Q$ = streamflow leaving, $ET$ = evapotranspiration, $\\Delta S$ = change in storage.\n\n**Typical USA values** (vary widely by region):\n- Precipitation: 750 mm/year.\n- ET: ~70% of precipitation.\n- Runoff: ~25%.\n- Groundwater recharge: ~5%.\n\n**Watershed (drainage basin)**: area that drains to a common outlet. Defined by topography. Foundational unit of water resources.\n\n**Storm hydrograph**: streamflow response to a rainfall event.\n- Base flow (groundwater contribution).\n- Direct runoff.\n- Peak flow.\n- Time of concentration: time for runoff from farthest point to reach outlet.\n\n**Design storms**:\n- **Frequency**: 2-year, 10-year, 100-year, 500-year storms. Return periods.\n- **Intensity-Duration-Frequency (IDF) curves**: location-specific.\n- **Climate change**: historical IDF curves underestimate future extremes. Updating standard practice (e.g., NOAA Atlas 14, IPCC).\n\n**Flooding**:\n- River flooding: from upstream rainfall accumulating.\n- Flash flooding: rapid runoff in small basins.\n- Coastal flooding: storm surge + sea level rise.\n- Urban flooding: paved surfaces + inadequate drainage.\n\n**Floodplains**: low-lying areas adjacent to rivers, periodically flooded. Federal Emergency Management Agency (FEMA) maps 100-year floodplains in USA. Insurance + zoning regulated by these maps."
+    },
+    {
+      "kind": "text",
+      "title": "Pipe flow + open channels",
+      "body": "**Closed-conduit flow** (pipes): pressurized.\n- Continuity: $Q = vA$ (constant for incompressible).\n- Bernoulli + friction: extended Bernoulli with head loss.\n- Friction: Darcy-Weisbach ($h_f = f L v^2 / (2gD)$) or Hazen-Williams (simpler, water-specific).\n- Minor losses: fittings, valves, expansions.\n\n**Pumps + water-distribution networks**:\n- Pump curves (head vs flow).\n- Network analysis: solve flows + pressures at each node. Hardy Cross method (manual); modern Newton-Raphson in software (EPANET, WaterCAD).\n- Service-level requirements: pressure, fire flow, residual.\n\n**Open-channel flow**: free water surface (rivers, canals, gutters, partially-full pipes).\n- Driven by gravity + slope.\n- Different physics: water surface can change shape (waves, hydraulic jumps).\n\n**Uniform open-channel flow** (Manning's equation):\n$$Q = \\frac{1}{n} A R^{2/3} S^{1/2}$$\n\n(SI units; multiply by 1.49 for US customary)\n\nWhere $n$ = Manning's roughness, $R$ = hydraulic radius (area/wetted perimeter), $S$ = slope.\n\n**Manning's $n$**:\n- Smooth concrete: 0.013.\n- Brick: 0.015.\n- Earth channel: 0.025.\n- Natural stream: 0.030-0.080.\n- Vegetated channels: higher.\n\n**Critical flow + Froude number**:\n$$Fr = v / \\sqrt{g D}$$\n\nWhere $D$ = hydraulic depth.\n- $Fr < 1$: subcritical (tranquil flow).\n- $Fr = 1$: critical.\n- $Fr > 1$: supercritical (rapid flow, surface waves stationary).\n\n**Hydraulic jump**: transition from supercritical to subcritical. Energy dissipation. Used in spillways + stilling basins.\n\n**Stormwater drainage**:\n- Inlets + catch basins capture runoff.\n- Pipes convey to outfall.\n- Detention/retention basins reduce peak.\n- Green infrastructure (bioswales, rain gardens) increasingly used.\n\n**Stormwater regulation**:\n- USA: Clean Water Act, NPDES permits.\n- Most jurisdictions: limit post-development runoff to pre-development rate.\n- Best Management Practices (BMPs) reduce pollutant loads.\n\n**Modeling tools**:\n- **HEC-RAS**: 1D + 2D river hydraulics. USACE.\n- **HEC-HMS**: rainfall-runoff.\n- **EPA SWMM**: urban drainage + low-impact development.\n- **MIKE FLOOD, ICM**: commercial urban + river.\n- **PCSWMM, WMS, XPSWMM**: practical tools."
+    },
+    {
+      "kind": "text",
+      "title": "Water treatment + distribution + the modern infrastructure",
+      "body": "**Water treatment** for drinking water:\n\n**Conventional treatment process**:\n1. **Screening**: remove large debris.\n2. **Coagulation + flocculation**: add alum (or PACl) → small particles clump → larger flocs.\n3. **Sedimentation**: flocs settle out.\n4. **Filtration**: sand/anthracite filters trap remaining particles.\n5. **Disinfection**: chlorine (most common), chloramine, UV, ozone. Kills pathogens.\n6. **Distribution**: to consumers via pressurized network.\n\n**Advanced treatments**:\n- **Membranes**: microfiltration, ultrafiltration, nanofiltration, reverse osmosis. Used for desalination + reuse + advanced contaminant removal.\n- **Activated carbon**: removes organics + odor.\n- **GAC (Granular Activated Carbon)**: in filter beds.\n- **PAC (Powdered AC)**: dosed in process.\n- **UV + advanced oxidation**: organics + pharmaceuticals.\n- **PFAS treatment**: ion exchange, GAC, RO. Rapidly developing area.\n\n**Quality standards** (USA EPA):\n- **Primary Maximum Contaminant Levels (MCLs)**: enforceable.\n- Coliform bacteria (0 in 5% of samples), turbidity < 1 NTU, lead < 15 ppb, arsenic < 10 ppb, nitrate < 10 ppm, etc.\n- **Secondary**: aesthetic. Iron, manganese, sulfate, hardness.\n- **Emerging contaminants**: PFAS (proposed 4 ppt), pharmaceuticals, microplastics. Regulations evolving.\n\n**Wastewater treatment**:\n- **Primary**: solids removal (sedimentation).\n- **Secondary**: biological (activated sludge, trickling filters). BOD + suspended solids removal.\n- **Tertiary**: nutrient removal (N + P), disinfection.\n- **Advanced**: micropollutants, advanced oxidation.\n- **Solids handling**: anaerobic digestion + biogas (energy positive treatment possible).\n- **Reuse**: tertiary or potable. Singapore NEWater + Orange County are leaders.\n\n**Distribution networks**:\n- **Pressure zones**: maintain 40-80 psi service pressure.\n- **Storage tanks** + elevated reservoirs: peak demand + fire reserve.\n- **Pumping stations**: lift water.\n- **Mains** (large pipes): 4-72\" diameter.\n- **Laterals + service connections** to buildings.\n- **Materials**: ductile iron, PVC, HDPE, steel, concrete cylinder.\n- **Age**: USA average ~50 years; some systems > 100 years. Major reinvestment need.\n\n**Modern challenges**:\n- **Aging infrastructure**: USA water infrastructure earned D+ on ASCE report card.\n- **Lead service lines**: ~6-10 million in USA. Removal in progress (Bipartisan Infrastructure Law).\n- **Water scarcity**: arid regions (Western USA, MENA, parts of India, Africa).\n- **Drought + climate change**: rivers + aquifers stressed.\n- **PFAS contamination**: pervasive; expensive to remove.\n- **Cybersecurity**: water systems are critical infrastructure; attacks attempted.\n- **Aging workforce**: utility operators retiring; replacement training needed.\n\n**Sustainability**: rainwater harvesting, gray-water reuse, conservation, watershed management, integrated water-resource management (IWRM). Growing."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_water_manning",
+        "kind": "guided_derivation",
+        "question": "Apply Manning's equation",
+        "goal": "Trapezoidal channel: bottom width 3 m, side slope 2H:1V, depth 1.5 m, longitudinal slope 0.002, concrete-lined ($n = 0.014$). Compute flow.",
+        "steps": [
+          {
+            "prompt": "Cross-section area: $A = (b + zy) y = (3 + 2 \\times 1.5) \\times 1.5 = ?$",
+            "motivation": "Trapezoidal geometry.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "9 m²",
+                "9"
+              ]
+            },
+            "hints": [
+              "6 × 1.5."
+            ],
+            "reveal": "$A = 9$ m²."
+          },
+          {
+            "prompt": "Wetted perimeter: $P = b + 2y\\sqrt{1+z^2} = 3 + 2 \\times 1.5 \\times \\sqrt{1 + 4}$.",
+            "motivation": "Geometry.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~9.71 m",
+                "9.71",
+                "~9.7"
+              ]
+            },
+            "hints": [
+              "3 + 3√5 = 3 + 6.71 = 9.71."
+            ],
+            "reveal": "$P \\approx 9.71$ m."
+          },
+          {
+            "prompt": "Hydraulic radius: $R = A/P = 9/9.71 = ?$",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~0.927 m",
+                "0.927",
+                "~0.93"
+              ]
+            },
+            "hints": [
+              "9/9.71."
+            ],
+            "reveal": "$R \\approx 0.927$ m."
+          },
+          {
+            "prompt": "Manning's: $Q = (1/n) A R^{2/3} S^{1/2}$ (SI). Compute.",
+            "motivation": "Apply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~27.4 m³/s",
+                "27",
+                "~27 cms"
+              ]
+            },
+            "hints": [
+              "(1/0.014) × 9 × 0.927^{2/3} × 0.002^{1/2}; 71.4 × 9 × 0.952 × 0.0447 ≈ 27.4."
+            ],
+            "reveal": "$Q \\approx 27.4$ m³/s. Significant capacity. Typical for medium urban storm-drain channel."
+          }
+        ],
+        "finalResult": "$$\\boxed{Q = (1/n) A R^{2/3} S^{1/2}}$$ Manning's equation (1889) is the workhorse of open-channel hydraulics. Used for: stormwater channels, culverts, rivers, irrigation canals, gutters, partially-full pipes. Limitations: assumes uniform steady flow, can't model rapidly-varied flow (jumps, transitions, weirs). For complex situations: HEC-RAS or full 2D hydraulic models. But Manning remains in every textbook + every design."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_water_aging",
+        "kind": "multiple_choice",
+        "question": "USA water infrastructure receives consistently low grades from ASCE (D/D+). What does this mean + cost to fix?",
+        "options": [
+          "Random.",
+          "Aging pipes (many > 50 years), lead service lines (~10M), insufficient capacity, drought + climate adaptation needs. ASCE estimates \\$2.59 trillion needed over next 10 years for water + wastewater alone. Bipartisan Infrastructure Law (2021) provides ~\\$55B for water — start, not solution.",
+          "Decoration.",
+          "Always good."
+        ],
+        "correctIndex": 1,
+        "explanation": "USA water infrastructure D/D+ grade reflects: ~6M lead service lines, ~240,000 main breaks per year, average age 45+ years, aging treatment plants, insufficient stormwater systems. ASCE estimates \\$2.59T needed over 10 years (water + wastewater). Bipartisan Infrastructure Law (2021) provides ~\\$55B for water, \\$15B for lead-pipe replacement — partial down-payment. Many local utilities face hard choices: raise rates or defer maintenance.\n\nWater is the most-overlooked infrastructure crisis — invisible underground until something breaks. Climate adaptation adds new requirements (higher storms, sea-level rise, prolonged drought)."
+      },
+      "hints": [
+        "What's the issue?",
+        "What's the cost?"
+      ],
+      "workedSolution": "Aging pipes (60-100 years old in places), lead service lines, insufficient capacity, climate-driven needs. ASCE D/D+ grades reflect chronic underinvestment. \\$2.59T 10-year need. BIL 2021: \\$55B + \\$15B lead pipes — partial. Local utilities face rate increases or service degradation. The most-overlooked critical infrastructure. Climate adaptation (extreme storms, drought) adds to needs.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_water_q",
+        "kind": "math_expression",
+        "question": "Pipe flow: Q = vA. v = 2 m/s through 0.5 m diameter. Q?",
+        "acceptedAnswers": [
+          "~0.393 m³/s",
+          "0.39 m³/s",
+          "π × 0.25^2 × 2"
+        ],
+        "hint": "A = π × 0.0625, Q = π × 0.0625 × 2 = 0.39."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_water_lid",
+        "kind": "scenario",
+        "question": "Designing a sustainable drainage system",
+        "prompt": "A new development must meet stormwater regulations: peak flow not to exceed pre-development. Walk through low-impact-development (LID) options + sizing."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_water",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why water resources engineering combines hydrology + hydraulics + treatment + distribution.",
+        "rubric": "Mentions that water resources engineering must address the full cycle: where water comes from (hydrology), how it moves (hydraulics), how it's treated for use (treatment), + how delivered to users (distribution + collection of wastewater); each component depends on the others; modern integrated water-resource management (IWRM) considers the whole system + community + environmental needs. Climate change + aging infrastructure make this discipline newly urgent."
+      }
+    }
+  ]
+}

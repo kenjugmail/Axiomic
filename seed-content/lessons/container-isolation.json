@@ -1,0 +1,135 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish containers from VMs by isolation mechanism.",
+      "Recognize cgroups + namespaces.",
+      "Reason about container security guarantees."
+    ],
+    "prereqs": [
+      "processes-and-threads",
+      "virtual-memory",
+      "file-systems"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Containers vs VMs",
+      "body": "**VM** (virtual machine): a full OS running on virtualized hardware. Hypervisor (KVM, Xen, VMware ESXi, Hyper-V) creates virtual CPUs + RAM + disks. Each VM has its own kernel. Strong isolation (separate kernels), heavy weight (~100MB+ overhead per VM, slow boot ~30s).\n\n**Container**: a process group sharing the host kernel but isolated via namespaces + cgroups. ALL containers on a host share ONE kernel. Lightweight (~10MB overhead, ~1s startup). Weaker isolation than VMs — a kernel exploit affects all containers on the host.\n\nIn 2025, Linux containers dominate cloud deployment (Docker, Kubernetes). VMs persist for strong isolation (multi-tenant infrastructure where tenants don't trust each other — AWS EC2 underneath is VMs).\n\nMicroVMs (Firecracker, gVisor, kata-containers) compromise: VM-grade isolation + container-grade startup. Used by AWS Lambda + Fargate."
+    },
+    {
+      "kind": "text",
+      "title": "The Linux primitives: namespaces + cgroups",
+      "body": "Containers are built from two Linux kernel features:\n\n**Namespaces**: isolate the view a process has of system resources. The seven types:\n- **PID**: process IDs. Container PID 1 is something else from the host's perspective.\n- **MOUNT**: filesystem mounts. Container has its own mount table.\n- **NET**: network interfaces + routing. Container has its own loopback, etc.\n- **UTS**: hostname + domain.\n- **IPC**: shared memory + semaphores.\n- **USER**: UIDs + GIDs. Container can have its own root mapped to a non-root host UID.\n- **CGROUP** (newer): the cgroup hierarchy view.\n\nWhen Docker creates a container: it calls `unshare(CLONE_NEWPID | CLONE_NEWNS | ...)` to create a process in fresh namespaces.\n\n**Cgroups (control groups)**: limit + account resource use. Each cgroup has limits on CPU, memory, I/O bandwidth, network bandwidth, PIDs. A container is typically one cgroup; the kernel enforces 'this cgroup can use at most 2 CPU cores + 4 GB RAM'.\n\nDocker + containerd + Podman are user-space tools that compose namespaces + cgroups + image management + networking into the 'container' abstraction. The kernel doesn't have a 'container' concept — just namespaces + cgroups."
+    },
+    {
+      "kind": "text",
+      "title": "Container security guarantees, honestly",
+      "body": "Containers are NOT a strong security boundary, even with good config. Multiple ways to escape:\n- **Kernel exploits**: any kernel CVE potentially lets a container escape. (Container runtime exploits regularly published.)\n- **Privileged containers** (`--privileged`): drop most isolation; container has near-root access. Common in CI runners; very risky.\n- **Mounted host paths**: a container with `/var/run/docker.sock` mounted can control Docker; can launch privileged sibling containers.\n- **Same kernel surface**: any container-visible kernel API (syscalls, /proc, /sys) is attack surface. Seccomp profiles narrow this; default Docker profile blocks ~50 dangerous syscalls.\n\n**Hardening**:\n- **rootless containers**: container processes run as non-root UID on the host. Even if the container is compromised, attacker doesn't have host root.\n- **gVisor**: re-implements Linux syscall semantics in user-space. Container's syscalls go through gVisor, not the host kernel. Dramatically reduces kernel attack surface.\n- **Kata containers / Firecracker**: full microVM under each container.\n\nMulti-tenant production: don't trust container isolation alone. Use microVMs + rootless + seccomp + AppArmor/SELinux + image scanning + runtime monitoring. The defense-in-depth stack."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ct_namespace",
+        "kind": "guided_derivation",
+        "question": "Derive what container PID 1 sees",
+        "goal": "Process `A` in container; from host's view PID 12345. Container does `ps` (sees host PIDs?). Walk through.",
+        "steps": [
+          {
+            "prompt": "PID namespace gives each container its own PID numbering starting at 1. From inside the container, process A is PID 1; from the host, the same process is PID 12345. What does `ps` (run inside container) show?",
+            "motivation": "Namespace-relative view.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Inside container: PID 1 (A) and any child processes A has spawned, with container-local PIDs.",
+                "Inside container: all host processes.",
+                "Inside container: PID 12345.",
+                "ps fails."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Each process sees only its own namespace's PIDs."
+            ],
+            "reveal": "Inside container: only processes in this PID namespace (= A + its children). Container PID 1 (A) has the special 'cannot be killed by SIGKILL from inside namespace' protection."
+          },
+          {
+            "prompt": "Container's PID 1 dies. What happens to the container?",
+            "motivation": "PID 1 has special role.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "All processes in the container's PID namespace are killed; the namespace is destroyed; the container exits.",
+                "Container continues with another process taking PID 1.",
+                "Nothing happens.",
+                "Host crashes."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "PID 1 dying ends the namespace."
+            ],
+            "reveal": "Linux: when the PID-namespace init (PID 1) dies, the kernel sends SIGKILL to all other processes in that namespace. The namespace gets destroyed. From the container-management perspective: the container has exited."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Container = process in fresh namespaces + cgroup constraints}}$$ Docker/containerd/podman compose these primitives; the container 'object' is a user-space concept. The kernel sees namespaces + cgroups; everything else is convention."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ct_security",
+        "kind": "multiple_choice",
+        "question": "Your team runs untrusted user code in containers (e.g., CI for arbitrary users). Strongest practical isolation:",
+        "options": [
+          "Default Docker containers.",
+          "Docker with --privileged for convenience.",
+          "Firecracker / Kata Containers (microVM per workload) + rootless + seccomp + network policies.",
+          "Run code directly on bare metal."
+        ],
+        "correctIndex": 2,
+        "explanation": "For genuinely-untrusted code, default containers are too weak (kernel attack surface). Microvm-based runtimes (Firecracker for AWS Lambda, Kata Containers) give VM-grade isolation. AWS Fargate uses Firecracker under the hood. Plus defense-in-depth: rootless containers, seccomp filtering, network policies (no outbound internet by default), egress filtering, image vetting."
+      },
+      "hints": [
+        "Containers share kernel; what doesn't?",
+        "Multi-tenant production runs microvms underneath."
+      ],
+      "workedSolution": "Microvms (Firecracker, Kata) provide each workload its own kernel — full VM-grade isolation but with container-grade startup time (sub-second). AWS Lambda + Fargate use Firecracker. Add seccomp + rootless + network policies for defense-in-depth. This is the production answer for untrusted code.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ct_overhead",
+        "kind": "math_expression",
+        "question": "VM overhead 200MB. Container overhead 10MB. On 64GB RAM, max densities?",
+        "acceptedAnswers": [
+          "VM:320 C:6400",
+          "320 vs 6400",
+          "320 and 6400"
+        ],
+        "hint": "64GB / each."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ct_choice",
+        "kind": "scenario",
+        "question": "Choosing the isolation level",
+        "prompt": "Your team is building a multi-tenant SaaS where each customer's code runs your server. Customer code is untrusted JavaScript that calls your APIs. Walk through whether you'd use containers, microvms, or in-process sandboxing — and the trade-offs."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ct",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why containers won the cloud-native deployment battle despite weaker isolation than VMs.",
+        "rubric": "Mentions that containers are ~10× lighter than VMs (faster startup, less overhead per workload); Kubernetes + the broader ecosystem (image registries, observability, networking) is built on containers; for SAME-tenant workloads where the kernel-attack-surface concern is less severe, the operational + density wins dominate."
+      }
+    }
+  ]
+}

@@ -1,0 +1,131 @@
+{
+  "meta": {
+    "timeMinutes": 28,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish top-down (LL) from bottom-up (LR) parsing.",
+      "Hand-write a recursive descent parser with operator precedence (Pratt).",
+      "Reason about ambiguity + error recovery."
+    ],
+    "prereqs": [
+      "lexical-analysis"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "LL vs LR: top-down vs bottom-up",
+      "body": "**LL parsers** (Left-to-right, Leftmost derivation) build the parse tree top-down. They decide which production to use by looking $k$ tokens ahead (LL($k$)). Recursive-descent is the canonical hand-coded LL parser: one function per nonterminal, function body picks based on lookahead.\n\n**LR parsers** (Left-to-right, Rightmost derivation reversed) build the parse tree bottom-up via shift-reduce on a stack. LR($k$) is strictly more powerful than LL($k$) for the same $k$. LALR(1) is the canonical generated parser (`yacc`, `bison`).\n\n**The grammar restriction trade-off**:\n- LL grammars must be left-factored + have no left recursion. `expr → expr '+' term | term` doesn't work (infinite recursion); must rewrite as `expr → term expr'; expr' → '+' term expr' | ε`.\n- LR grammars handle left recursion naturally + permit more freedom in expressing the grammar.\n\n**Industry practice**: hand-written recursive-descent (with Pratt for expressions) has won. clang, rustc, the TypeScript compiler, V8, Go's parser are all hand-written. `yacc`-generated parsers are now mostly in legacy systems + small DSLs.\n\nReason: hand-written parsers give vastly better error recovery + IDE features (incremental parsing, error tolerance, precise spans)."
+    },
+    {
+      "kind": "text",
+      "title": "Pratt parsing for expression precedence",
+      "body": "**The expression precedence problem**: parse `1 + 2 * 3 - 4`. Naively writing the grammar as `expr → expr op expr | num` is ambiguous + left-recursive.\n\nClassical solution: stratify the grammar by precedence level:\n```\nexpr      → addExpr\naddExpr   → mulExpr (('+' | '-') mulExpr)*\nmulExpr   → primary (('*' | '/') primary)*\nprimary   → NUMBER | '(' expr ')'\n```\nOne grammar level per precedence tier. Works, but extending to 15+ levels (real C++) is painful + the function nesting matches the grammar nesting.\n\n**Pratt parsing** (Vaughan Pratt, 1973): single function `parseExpr(minBP)` where each operator has a left + right **binding power**. Higher binding power = tighter binding (higher precedence).\n```\nparseExpr(minBP):\n  left = primary()\n  while (op = peek()).leftBP > minBP:\n    consume(op)\n    right = parseExpr(op.rightBP)\n    left = BinOp(op, left, right)\n  return left\n```\nAssociativity falls out from left vs right BP being equal-or-+1. Adding a precedence level = adding two integers, not rewriting the grammar. Used by V8, Crystal, Go (post-spec change), every modern hand-written parser.\n\nThe Rob Norris + Matklad write-ups are the canonical tutorials."
+    },
+    {
+      "kind": "text",
+      "title": "Error recovery: don't bail, recover",
+      "body": "A production parser must report MANY errors per file, not bail at the first. IDE auto-complete needs a parse tree even when the source is broken (half-written code is the common case).\n\n**Strategies**:\n- **Panic-mode**: at error, skip ahead to a synchronization token (typically `;`, `}`, or a top-level keyword like `func`). Resume parsing from there.\n- **Inserted/missing token guesses**: 'expected `;` here, treating as if it were present' — emit error + continue as if it had been written.\n- **Error productions**: explicit grammar rules for common mistakes. e.g., Rust's parser recognizes `if cond { ... }` AND `if (cond) { ... }` (C-style parens), reporting an error but continuing.\n\n**Tree-sitter** (used by GitHub for syntax highlighting): incremental + error-tolerant by design. Produces a parse tree that can ALWAYS be drawn, even on totally broken input. Each ERROR node represents an unrecognized region. This is what makes 'green-tree' editor UX possible.\n\nKey insight: a parser that bails on first error is fine for a batch compiler but useless inside a language server. The error-recovery quality is often the determining factor in compiler UX."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_parse_pratt",
+        "kind": "guided_derivation",
+        "question": "Derive Pratt precedence from binding powers",
+        "goal": "Given binding powers: `+` = (1, 2) (left BP 1, right BP 2 → left-associative), `*` = (3, 4) (left BP 3, right BP 4), trace `1 + 2 * 3` through `parseExpr(0)`.",
+        "steps": [
+          {
+            "prompt": "`parseExpr(0)` parses `1` then sees `+` with leftBP=1 > 0. Recursively calls `parseExpr(?)` with what minBP?",
+            "motivation": "rightBP of `+`.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "minBP = 1 (leftBP).",
+                "minBP = 2 (rightBP).",
+                "minBP = 0.",
+                "minBP = 4."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Right operand of `+` has minBP = rightBP of `+`."
+            ],
+            "reveal": "Recursive call: `parseExpr(2)` for the right operand."
+          },
+          {
+            "prompt": "`parseExpr(2)` parses `2` then sees `*` with leftBP=3 > 2. Continues. After the recursion returns, we have `2 * 3`. Then back in the outer `parseExpr(0)`, we have `1 + (2 * 3)`. Why is this correctly LEFT-associative for `+`?",
+            "motivation": "If we'd seen another `+` after, what would happen?",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Because `*` has higher BP than `+`.",
+                "Because after `1 + (2*3)`, if we'd seen `+ 4`, the inner `parseExpr(2)` would refuse (leftBP=1 not > 2), so outer loop handles it left-to-right.",
+                "Because of operator precedence.",
+                "Because we use a left-leaning parse."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Trace `1 + 2 + 3`: when does the inner call return?"
+            ],
+            "reveal": "After parsing `2`, the inner `parseExpr(2)` sees `+` with leftBP=1 NOT > minBP=2, so it returns `2`. Outer loop builds `1+2`, then sees the next `+`, loops again. Left-associative."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Pratt: leftBP / rightBP integers encode precedence + associativity}}$$ Left-associative: leftBP < rightBP by 1 (e.g., `+` = (1,2)). Right-associative: leftBP > rightBP by 1 (e.g., `=` = (4,3) for `a = b = c` → `a = (b = c)`). Higher tier just means higher absolute BP. Adding a precedence level = adding two integers. Used by every modern hand-written parser."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_parse_recursive",
+        "kind": "multiple_choice",
+        "question": "A team writes a parser for `expr → expr '+' term | term`. The recursive-descent code recurses on itself before consuming any token. What happens?",
+        "options": [
+          "It correctly parses left-associative addition.",
+          "Stack overflow (left-recursive grammar incompatible with naive recursive-descent).",
+          "It parses but produces a right-leaning tree.",
+          "It works in C but not Rust."
+        ],
+        "correctIndex": 1,
+        "explanation": "Left recursion in the grammar means the parser function calls itself immediately, before consuming any input. The recursion never bottoms out → stack overflow. Fix: rewrite to right-recursion or iterate via Pratt. This is the #1 gotcha when porting EBNF specs to recursive descent."
+      },
+      "hints": [
+        "What input would the recursion consume between calls?",
+        "What's the base case?"
+      ],
+      "workedSolution": "`expr` calls itself before consuming any token. Stack overflow. Three fixes: (1) Rewrite as `expr → term ('+' term)*` (iteration); (2) Use Pratt parsing (handles left-associativity natively); (3) Use an LR-style table-driven parser. (1) and (2) are what hand-written parsers do.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_parse_ambig",
+        "kind": "math_expression",
+        "question": "How many parses does the ambiguous grammar `expr → expr op expr | id` admit for `a + b * c`?",
+        "acceptedAnswers": [
+          "2"
+        ],
+        "hint": "Reading the operators in either order."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_parse_recover",
+        "kind": "scenario",
+        "question": "Error recovery design",
+        "prompt": "Your compiler emits 'unexpected token' on the first error + bails. Users complain they don't see all their syntax errors. Walk through a recovery strategy with concrete examples."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_parse",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why every modern compiler (clang, rustc, TypeScript, V8) hand-writes its parser rather than using a generator like `yacc`.",
+        "rubric": "Mentions that hand-written parsers give vastly better error messages with precise spans, support error recovery that emits many errors per file (not just the first), integrate with IDE features like incremental parsing + completion-mid-edit, and provide control over the AST shape. The boilerplate cost is small compared to years of UX improvements."
+      }
+    }
+  ]
+}

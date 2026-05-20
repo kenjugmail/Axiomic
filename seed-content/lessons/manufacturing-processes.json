@@ -1,0 +1,148 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish primary manufacturing processes.",
+      "Outline machining + additive.",
+      "Reason about design for manufacturing (DFM)."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Manufacturing process families",
+      "body": "Manufacturing converts raw materials → finished parts. Major families:\n\n**Forming/deforming**: shape WITHOUT removing material.\n- **Casting**: pour molten metal into mold. Sand, investment, die-casting. High-volume parts (engine blocks, fittings).\n- **Forging**: hammer or press solid metal. Crankshafts, connecting rods, military airframes.\n- **Rolling**: between rollers. Sheet, plate, bar, structural shapes.\n- **Extrusion**: force through die. Aluminum profiles, plastic pipes.\n- **Stamping/forming**: sheet metal into shapes. Car body panels.\n- **Deep drawing**: cans, sinks, kitchen pots.\n- **Bending, rolling, spinning**: incremental shape changes.\n\n**Machining/subtractive**: remove material.\n- **Turning (lathe)**: cylindrical parts. Shafts, screws, bushings.\n- **Milling**: rectangular + complex parts. CNC mills are flexible workhorse.\n- **Drilling**: holes.\n- **Grinding**: high-precision surface finish (Ra < 0.4 μm).\n- **EDM (Electrical Discharge Machining)**: erode with sparks. Hard materials, complex shapes.\n- **Waterjet**: high-pressure water + abrasive. Any material, no heat.\n- **Laser cutting**: thermal cut. Sheet metal, complex 2D shapes.\n\n**Additive (3D printing)**: layer by layer.\n- **FDM (Fused Deposition)**: extruded plastic. Cheap, prototyping.\n- **SLA (Stereolithography)**: UV-cured resin. High detail.\n- **SLS (Selective Laser Sintering)**: laser-fused powder (plastic or metal).\n- **DMLS / SLM**: metal powder, fused with high-power laser. Aerospace, medical implants, dental.\n- **Binder jetting**: like SLS but binder + later sintering. Higher throughput.\n- **WAAM (Wire Arc Additive Manufacturing)**: large metal parts via welding. Aerospace, marine, defense.\n\n**Joining**: combine parts.\n- Welding (covered earlier).\n- Brazing + soldering: lower-melting filler.\n- Adhesive bonding.\n- Mechanical (bolts, rivets).\n\n**Finishing**: surface treatment.\n- Plating (zinc, chrome, nickel).\n- Anodizing (aluminum).\n- Powder coating.\n- Heat treatment (hardening, tempering).\n- Surface texturing (knurling, polishing)."
+    },
+    {
+      "kind": "text",
+      "title": "CNC machining + the modern factory",
+      "body": "**CNC (Computer Numerical Control)**: machines following digital instructions from CAD/CAM.\n\nWorkflow:\n1. CAD model (SolidWorks, Fusion 360, NX).\n2. CAM software generates toolpath (Mastercam, HSMWorks, Fusion 360 CAM).\n3. G-code (numerical instructions).\n4. CNC machine executes.\n\n**Axes**:\n- **3-axis** (X, Y, Z): most common. Limited geometry.\n- **4-axis**: add rotary table. Can machine around a part.\n- **5-axis**: full 3D + 2 rotations. Aerospace, medical, complex parts. Premium.\n- **Mill-turn / multi-axis**: combine milling + turning.\n\n**Cutting speeds + feeds**: critical for productivity + tool life.\n- Spindle speed (RPM): function of material, tool, diameter.\n- Feed rate (mm/min): material removal.\n- Depth of cut.\n- Trade-off: faster = shorter tool life. Software (Mastercam Adaptive, Autodesk HSM) optimizes.\n\n**Cutting tools**:\n- **HSS (High-Speed Steel)**: general purpose, can be sharpened.\n- **Carbide**: most modern cutting. Inserts replaced when dull.\n- **Coatings**: TiN, TiCN, AlTiN, diamond. Increase tool life.\n- **Ceramic, CBN, diamond**: specialty for hardened steels + non-ferrous.\n\n**Automation + Industry 4.0**:\n- **Robotic machine tending**: robot loads/unloads parts. 24/7 operation.\n- **Pallet systems**: multiple parts queued.\n- **Predictive maintenance**: sensors monitor spindle vibration, current, temperature → predict failures.\n- **Digital twins**: virtual replica of machine for simulation + optimization.\n- **Machine vision**: in-process inspection, tool wear detection.\n- **AI/ML**: optimize cutting parameters, anomaly detection.\n\n**Modern machine shops**:\n- Mix of capabilities (mill, turn, EDM, grinder, 3D printer).\n- Quality control: CMM (Coordinate Measuring Machine), optical scanners.\n- ERP (Enterprise Resource Planning) + MES (Manufacturing Execution Systems) coordinate operations.\n\n**Cost structure**:\n- Machine: \\$50K (manual) - \\$2M+ (5-axis CNC).\n- Tooling per job: \\$50-\\$5000.\n- Labor: \\$30-\\$80/hr USA.\n- Per-part cost: highly geometry-dependent."
+    },
+    {
+      "kind": "text",
+      "title": "Design for Manufacturing (DFM) + additive era",
+      "body": "**DFM**: design rules to make parts easier (cheaper, faster, more reliable) to manufacture.\n\n**DFM principles** (by process):\n\n**Machining**:\n- Use standard tool sizes (drill bits in standard increments).\n- Avoid deep + narrow pockets (tool deflection, breakage).\n- Generous fillets in corners (sharper = special tools).\n- Through-holes preferred (no flat-bottom drilling).\n- Single-axis features when possible (avoid 5-axis if 3-axis can do).\n- Tolerance loosely except where critical.\n- Standard threads + surface finishes.\n\n**Casting**:\n- Uniform wall thickness (avoid hot spots + shrinkage).\n- Generous draft angles (1-3°) for mold release.\n- Avoid abrupt thickness changes.\n- Allow for shrinkage (~1-2% for aluminum, more for steel).\n\n**Stamping/forming**:\n- Generous bend radii (≥ material thickness).\n- Avoid acute corners.\n- Plan for grain direction.\n- Allow for spring-back.\n\n**Injection molding** (plastics):\n- Uniform wall thickness.\n- Generous drafts (0.5-3°).\n- Avoid undercuts (need side actions = expensive tooling).\n- Plan parting line + gate locations.\n- Designed-in ribs + bosses for stiffness without thick walls.\n\n**Additive (3D printing)**:\n- Self-supporting overhangs (45°+ from horizontal).\n- Hollow with internal support lattices.\n- Allow for shrinkage + warping.\n- Surface finish typically rougher than machined (post-process if needed).\n- Different geometry trade-offs than subtractive.\n\n**DFM benefits**: lower cost, faster production, higher quality, fewer iterations.\n\n**Additive manufacturing's expanding role**:\n- **Prototypes**: rapid iteration. Reduced cost vs machining.\n- **Tooling**: complex jigs + fixtures + molds. Often quick-turn 3D-printed.\n- **Production parts**: increasingly. Aerospace (GE LEAP fuel nozzle, SpaceX rocket parts), medical implants (titanium hip), dental (Invisalign), automotive (BMW), industrial (HP Multi Jet Fusion at scale).\n- **Topology-optimized parts**: organic shapes only manufacturable additively. Lightweight aerospace + automotive.\n\n**Hybrid manufacturing**: combine additive (rough shape) + machining (precision surfaces) on same machine. DMG Mori, Mazak.\n\n**Mass customization**: small batches of customized parts economically. AM enables. Used in dental + orthopedic implants, footwear (Adidas 4D printed), aerospace.\n\n**Manufacturing economics shifting**:\n- Lower-cost machining + additive enable smaller production runs.\n- Mass production still dominant for high-volume (automotive, consumer goods).\n- Decoupling location + scale: more distributed manufacturing possible.\n- Software-defined manufacturing: parts as code, manufactured on demand."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mfg_choice",
+        "kind": "guided_derivation",
+        "question": "Choose manufacturing process",
+        "goal": "Need: 1000 units of a complex aluminum bracket, ~100 g each, weight-critical for aircraft. Multiple internal cavities. Tolerances ±0.05 mm on critical features.",
+        "steps": [
+          {
+            "prompt": "Annual volume + complexity. Casting vs machining vs additive?",
+            "motivation": "Tradeoffs.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Always casting.",
+                "Multiple considerations: 1000 is too low for typical aluminum die-casting tooling investment (~\\$50-200K). Machining 1000 complex parts is feasible but expensive. Additive (DMLS or SLM) is well-suited: low tooling cost, complex geometries (internal cavities) feasible, weight-optimized topology possible.",
+                "Always machining.",
+                "Always additive."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Volume + complexity + weight."
+            ],
+            "reveal": "Additive aluminum (DMLS / SLM) likely best fit: low tooling investment, complex internal geometries possible (impossible to machine), weight-optimized topology, aerospace-grade certification possible. Per-part cost ~\\$100-500. Total ~\\$100K-500K for 1000 units."
+          },
+          {
+            "prompt": "If volume were 100,000 instead of 1000?",
+            "motivation": "Higher volume.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Same.",
+                "Higher volume justifies tooling investment. Aluminum die-casting becomes economical: \\$200K tooling + \\$5/part. Internal cavities require complex cores. Hybrid: cast near-net + machine critical surfaces. ~\\$700K total + much faster production.",
+                "Always additive.",
+                "Always machining."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Volume."
+            ],
+            "reveal": "100K volume justifies die-casting tooling. Hybrid (cast + machine critical surfaces) cheaper than 100K additive parts. The crossover from additive to casting depends on volume + geometry. Tooling cost ÷ volume = effective per-part tooling cost; compare to per-part savings."
+          },
+          {
+            "prompt": "Critical insight: manufacturing process choice depends on...",
+            "motivation": "Synthesize.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Always cheapest.",
+                "Volume × complexity × tolerance × materials × time-to-market × supply chain. Each process has a sweet spot. DFM means designing FOR the chosen process; choosing process for the design is also part of the workflow.",
+                "Random.",
+                "Tradition."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Multi-variable trade-off."
+            ],
+            "reveal": "Multi-dimensional optimization: volume + complexity + tolerance + material + cost. Modern engineers iterate: choose process, design for it; or design feature, find process. Software (Plethora, Fictiv, Xometry quoting) automates real-time cost estimation across processes."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Process choice = volume × complexity × tolerance × cost}}$$ Modern manufacturing offers a spectrum: low-volume (3D printing) → mid-volume (CNC) → high-volume (casting + injection molding). Each process has its sweet spot. DFM means designing FOR the chosen process. Cloud quoting services (Xometry, Fictiv, Plethora) bring real-time visibility to costs across processes. The decoupling of design from manufacturing location is reshaping the industry."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mfg_am",
+        "kind": "multiple_choice",
+        "question": "GE LEAP jet-engine fuel nozzle is famously 3D-printed in metal, replacing a 20-piece assembly. Why?",
+        "options": [
+          "Marketing.",
+          "Complex internal geometry (cooling channels) impossible to machine + assemble traditionally. Single 3D-printed part = no joints = no leaks = lighter + more reliable. Cost per part higher than per-piece machining, but lower TOTAL cost (no assembly, no inventory of 20 parts). Aerospace tolerates higher per-part cost for weight + reliability.",
+          "Random.",
+          "Cheaper raw materials."
+        ],
+        "correctIndex": 1,
+        "explanation": "GE LEAP fuel nozzle (2015 launch): single 3D-printed cobalt-chrome part replaces 20-piece welded assembly. Internal cooling channels impossible to machine in single piece. Single part: 25% lighter, 5× more durable, no assembly + leak issues. Per-part cost ~\\$3000 (high); total system cost LOWER (no assembly labor, no inventory, no warranty failures). Aerospace tolerates per-part cost for weight + reliability gains. Cumulative LEAP engine deliveries: 30,000+ as of 2024. One of the largest commercial AM success stories.\n\nGeneralizes: AM wins where (1) geometry complexity matters, (2) part consolidation saves assembly, (3) weight matters more than cost."
+      },
+      "hints": [
+        "What's special about the nozzle?",
+        "Why AM here?"
+      ],
+      "workedSolution": "GE LEAP nozzle: 20-part welded assembly → 1 3D-printed part. Internal cooling channels (impossible to machine in one piece). 25% lighter, 5× more durable, no assembly. Per-part cost higher but lower TOTAL cost (no assembly labor, no inventory, fewer failures). Aerospace's high tolerance for per-part cost in exchange for weight + reliability makes AM economical. Now 30K+ in service.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mfg_iter",
+        "kind": "math_expression",
+        "question": "DFM saves 20% on a part costing \\$50. New cost?",
+        "acceptedAnswers": [
+          "$40",
+          "40"
+        ],
+        "hint": "50 × 0.8."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mfg_scale",
+        "kind": "scenario",
+        "question": "Scaling a startup's product",
+        "prompt": "An EV battery-pack startup is going from prototype (1000 units/year) to production (100,000/year). Walk through manufacturing process + supply chain changes needed."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mfg",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why additive manufacturing has been called a 'revolution' even though most parts are still made traditionally.",
+        "rubric": "Mentions that AM removes constraints traditional manufacturing imposed (uniform thickness, draft angles, accessible features) + enables geometry optimization + part consolidation; for HIGH-VALUE low-volume applications (aerospace, medical, specialty), AM is genuinely transformative; for MASS-PRODUCED parts, traditional processes remain cheaper at scale. AM's role is growing rapidly + reshaping subsets of manufacturing, not replacing all of it."
+      }
+    }
+  ]
+}

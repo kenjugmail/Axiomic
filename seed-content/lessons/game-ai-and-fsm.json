@@ -1,0 +1,147 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "specialist",
+    "objectives": [
+      "State the FSM + Behavior Tree paradigms.",
+      "Outline A* + navigation meshes.",
+      "Reason about steering behaviors + GOAP planning."
+    ],
+    "prereqs": [
+      "game-loop-and-architecture"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "FSM + Behavior Trees",
+      "body": "**Finite State Machine (FSM)** — classic game AI. Enemy has states (Idle, Patrol, Investigate, Attack, Flee), transitions between them based on events.\n```\nState Patrol:\n  if (saw player) → Investigate\n  if (heard sound) → Investigate\n  else: walk along patrol points\n\nState Attack:\n  if (player out of range) → Investigate\n  if (low health) → Flee\n  else: attack player\n```\n\nSimple, explicit, debuggable. Works for ~10 states. Beyond that, state explosion + transition tangle.\n\n**Hierarchical State Machine (HSM)**: states contain sub-states. Combat state has sub-states (Ranged, Melee, Reload). Helps organize.\n\n**Behavior Tree (BT)**: tree of nodes representing decisions + actions.\n- **Selector (OR)**: try children left-to-right; succeed if any succeeds.\n- **Sequence (AND)**: run children in order; fail if any fails.\n- **Conditions** (leaves): check world state.\n- **Actions** (leaves): perform task.\n- **Decorators**: modify child (inverter, repeater, timer).\n\nExample:\n```\nRoot:\n  Selector:\n    Sequence: [HealthLow?, FleeAction]\n    Sequence: [PlayerVisible?, AttackAction]\n    Sequence: [HeardSound?, InvestigateAction]\n    PatrolAction\n```\n\nReevaluated each tick (or on event). More composable + readable than FSM at scale.\n\n**BTs vs FSMs**:\n- ✅ BTs scale better (5-200+ leaves).\n- ✅ Re-evaluatable (priorities respected each tick).\n- ✅ Composable subtrees.\n- ❌ FSMs more efficient for tightly-coupled state.\n- ❌ BT debugging requires tooling (visual graph editors).\n\n**Modern use**:\n- **Halo 2-5**: BT-based AI. Pioneered behavior trees in games (Damien Isla's GDC talks).\n- **Far Cry, Bioshock, GTA V**: BT-based.\n- **Unreal Engine**: built-in BT editor + system.\n- **Unity**: third-party plugins (Behavior Designer, NodeCanvas)."
+    },
+    {
+      "kind": "text",
+      "title": "Pathfinding: A* + navigation meshes",
+      "body": "**The pathfinding problem**: given current position + goal, find a path through the navigable world.\n\n**A* algorithm** (Hart-Nilsson-Raphael 1968): graph search with heuristic.\n```\nopen_set = {start}; closed_set = {}\ng_score[start] = 0\nf_score[start] = heuristic(start, goal)\nwhile open_set:\n  current = min(open_set, key=f_score)\n  if current == goal: reconstruct + return path\n  open_set -= current; closed_set += current\n  for neighbor in neighbors(current):\n    tentative_g = g_score[current] + dist(current, neighbor)\n    if tentative_g < g_score[neighbor]:\n      came_from[neighbor] = current\n      g_score[neighbor] = tentative_g\n      f_score[neighbor] = tentative_g + heuristic(neighbor, goal)\n      open_set += neighbor\n```\n\n**Heuristic** (h): must be ADMISSIBLE (never overestimate distance). For Euclidean grids: Manhattan or Euclidean distance. Tighter heuristic → faster search.\n\n**Where to do A* on**:\n- **Grid**: each cell = node. Simple but wasteful. Used in tile-based games.\n- **Waypoint graph**: hand-placed nodes connected by edges. Compact but limited.\n- **Navigation mesh (navmesh)**: polygonal mesh covering walkable area. Connected via shared edges. THE modern standard.\n\n**Navmesh generation**: tools (Recast, Unreal NavMesh, Unity NavMesh) analyze the static geometry + carve out walkable areas. Dynamic obstacles (closing doors, destroyed walls) handled via runtime updates or tile-based regeneration.\n\n**Hierarchical pathfinding**: for huge worlds, two-level approach. High-level: find sequence of zones. Low-level: find detailed path within current zone. Used in MMOs + open-world games.\n\n**Other algorithms**:\n- **Dijkstra**: A* without heuristic. Explores in all directions; suboptimal for goal-directed search.\n- **Jump Point Search (JPS)**: optimized A* for uniform-cost grids. 10-100× faster than vanilla A*.\n- **D* / D* Lite**: incremental replanning when world changes.\n- **HPA*** (Hierarchical Path-A*): zoned navmesh search.\n- **Flow fields**: pre-compute optimal-direction field over entire grid. Best for many units heading to same goal (RTS)."
+    },
+    {
+      "kind": "text",
+      "title": "Steering, GOAP, + utility AI",
+      "body": "**Steering behaviors** (Reynolds 1999): smooth motion behaviors composable into complex patterns.\n- **Seek**: head toward target.\n- **Flee**: head away.\n- **Pursue**: predict target's future position.\n- **Wander**: meander randomly.\n- **Arrive**: seek with decelerating ramp-down.\n- **Avoidance**: steer around obstacles.\n- **Flocking** (boids, Reynolds 1986): separation + alignment + cohesion with neighbors. Birds, fish, crowds.\n\nSteering produces a desired velocity per behavior; combined (weighted sum or priority blend) to drive movement. Used widely for crowds + animals.\n\n**Goal-Oriented Action Planning (GOAP)** (Orkin 2004, F.E.A.R.): AI plans sequences of actions to achieve goals.\n- World state: facts (hasGun, playerVisible, atCover).\n- Actions: preconditions + effects (Reload requires gunEmpty, achieves gunLoaded).\n- Goal: target world state (playerDead).\n- Planner: A* over action space. Returns sequence of actions to achieve goal.\n\nGOAP gives EMERGENT behaviors: F.E.A.R. soldiers find cover, flank, suppress, all from a small set of actions composed by planner. The 'AI that surprised players' game-AI legend.\n\n**Hierarchical Task Network (HTN)**: similar to GOAP. Decompose high-level tasks into primitive ones via templates. Used in Killzone 2, Horizon Zero Dawn.\n\n**Utility AI**: each possible action scored by utility function (reflecting desirability under current state). Pick highest-utility action.\n- Compose utility functions from multiple curves (response curves over inputs).\n- Used in The Sims (Dave Mark + Kevin Dill GDC talks).\n\n**LLMs + AI agents in games**: a 2023+ frontier. NPCs powered by GPT-4 / Claude for dialogue + decision-making. Inworld AI, Convai, Replica Studios are middleware providers. Games like AI-generated questing (Mount + Blade fanmod), ChatGPT-driven NPCs (Skyrim mods) emerging. Bandwidth + latency + cost barriers; on-device small models (Phi, Llama-cpp) showing promise.\n\n**Decision: which AI for which scenario?**\n- Small enemy pool, predictable: FSM.\n- Larger NPCs with priorities: BT.\n- Complex planning + emergent behavior: GOAP / HTN.\n- Crowd / many units: steering / flocking.\n- Strategy AI: minimax + alpha-beta or MCTS for board games.\n- Procedural / generative: LLM + RAG."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ai_astar",
+        "kind": "guided_derivation",
+        "question": "Apply A* to a small grid",
+        "goal": "5×5 grid. Start (0,0), goal (4,4). All cells walkable except (2,2) which is wall. Use Manhattan distance heuristic.",
+        "steps": [
+          {
+            "prompt": "From start (0,0), neighbors are (0,1) + (1,0). Each has g=1. Heuristic h to goal (4,4) using Manhattan: |4-0|+|4-1| = 7 for (0,1); |4-1|+|4-0| = 7 for (1,0). f-scores?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "f=7 for both.",
+                "f = g + h = 1 + 7 = 8 for both.",
+                "f = 14.",
+                "f = 0."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "f = g + h."
+            ],
+            "reveal": "f = 8 for both (0,1) + (1,0). Equal — A* breaks ties arbitrarily."
+          },
+          {
+            "prompt": "Algorithm continues, expanding minimum-f node. Eventually reaches (1,2), neighbor (2,2) is wall — skip. Path detours around. Final path length without diagonals?",
+            "motivation": "Manhattan distance.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "8",
+                "8 steps"
+              ]
+            },
+            "hints": [
+              "Manhattan distance + 1 detour."
+            ],
+            "reveal": "Manhattan distance from (0,0) to (4,4) is 8. Wall at (2,2) doesn't lengthen Manhattan path because there's still an 8-step detour. Without the wall: same 8. With diagonals: 4."
+          },
+          {
+            "prompt": "How many cells does A* expand to find the path? (Sanity-check: with perfect heuristic, A* expands only the path itself.)",
+            "motivation": "Heuristic quality.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Just 9 (the path cells).",
+                "More than 9 — heuristic is admissible but not perfect. Manhattan = exact Manhattan, but A* still expands lateral cells. ~15-20 in this small grid.",
+                "100.",
+                "5."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Manhattan equals minimum cost ONLY without obstacles."
+            ],
+            "reveal": "More than 9 in practice. A* expands cells whose f-score equals optimal. With wall at (2,2), Manhattan slightly underestimates → A* expands extra cells. Tight heuristic = less expansion."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{A* finds shortest path with admissible heuristic}}$$ The heuristic's tightness determines runtime — perfect heuristic = expand only the path; weak heuristic (or no heuristic = Dijkstra) = expand many cells. For navmeshes, Euclidean distance heuristic is standard. For grids with obstacles, Manhattan works. Jump Point Search optimizes for uniform-cost grids. Modern engines have all this built-in."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ai_choice",
+        "kind": "multiple_choice",
+        "question": "Your team builds an open-world game with thousands of NPCs (citizens, enemies, animals). Which AI architecture for the citizens vs the boss enemies?",
+        "options": [
+          "Same for both.",
+          "Citizens: lightweight scripted/steering behavior (cheap per NPC, scales to thousands). Boss: BT or GOAP for rich + reactive behavior. Mix-and-match: low-level NPCs cheap, high-stakes NPCs sophisticated.",
+          "Always FSM.",
+          "Always LLM."
+        ],
+        "correctIndex": 1,
+        "explanation": "Architecture should match cost vs sophistication. Citizens need 'looks plausible' behavior at low CPU cost — script + steering + simple FSM. Bosses need varied + surprising behavior worth the player's attention — BT or GOAP, possibly LLM for dialogue. Mixed architectures common: GTA V uses lightweight pedestrian AI + sophisticated combatant AI; Cyberpunk 2077 similar. The CPU budget per NPC differs by 100-1000×."
+      },
+      "hints": [
+        "What's the cost difference?",
+        "What does each NPC need?"
+      ],
+      "workedSolution": "Background NPCs (crowds, animals) need: walk path, basic reactions, dialogue snippets. CPU per NPC: ~0.01 ms. Use scripts + steering. Boss/key NPCs need: surprising behavior, tactical decisions, varied combat. CPU per NPC: ~1-5 ms. Use BT/GOAP. Mixed architecture is standard. Hard part: ensuring background NPCs don't 'pop' visibly into smarter behavior when noticed.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ai_grid",
+        "kind": "math_expression",
+        "question": "A* in 100×100 grid. Maximum number of cells in open set (worst case)?",
+        "acceptedAnswers": [
+          "10000",
+          "100×100"
+        ],
+        "hint": "Full grid."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ai_fear",
+        "kind": "scenario",
+        "question": "F.E.A.R.'s legendary AI",
+        "prompt": "F.E.A.R. (2005) was famous for AI that surprised players (flanking, suppression, retreating). Walk through how GOAP enabled this emergent behavior from a small action set."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ai",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why Behavior Trees became the dominant game-AI architecture, replacing FSMs in most modern games.",
+        "rubric": "Mentions that BTs scale to many behaviors without state explosion; priorities + re-evaluation handle dynamic situations gracefully; visual editors make designer collaboration easier; composable subtrees support reuse across NPCs. FSMs persist for simple cases + tightly coupled state; BTs for almost everything else."
+      }
+    }
+  ]
+}

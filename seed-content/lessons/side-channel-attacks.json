@@ -1,0 +1,119 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish timing / power / cache / Spectre side-channel categories.",
+      "Recognize when constant-time code is required.",
+      "Reason about microarchitectural attacks."
+    ],
+    "prereqs": [
+      "block-cipher-design"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The four side-channel categories",
+      "body": "Side channels leak information about a secret-using computation via measurable side effects:\n\n1. **Timing**: how long the computation takes. Variable-time arithmetic (`if (secret_byte) { fast_path; } else { slow_path; }`) leaks. Cache-timing attacks fall here.\n2. **Power**: how much electricity the device draws. Distinguishable for different secret values. Smart-card attacks; ASIC + IoT vulnerable; servers somewhat-protected by noise.\n3. **EM / RF**: electromagnetic emanations from the device. Can be picked up at a distance.\n4. **Microarchitectural**: shared CPU resources (caches, branch predictors, ports) leak across hardware boundaries. Spectre + Meltdown (2018) + descendants.\n\n**Constant-time code**: the discipline of writing code whose execution time + memory-access patterns are independent of secret values.\n\nProduction crypto libraries (OpenSSL, BoringSSL, libsodium) are constant-time. They use bit-level techniques: `result = (mask & a) | (~mask & b)` instead of `if (cond) result = a; else result = b;`. The compiler may still convert some patterns to non-CT code; explicit assembly is often used for the inner loops."
+    },
+    {
+      "kind": "text",
+      "title": "Spectre + Meltdown: microarchitectural side channels",
+      "body": "**Meltdown** (2018): exploited Intel's out-of-order execution to read kernel memory from userspace. Speculative execution accesses memory that an authorization check would have prevented; the side effects (cache state) persist even after the speculative result is discarded. Attacker measures cache timing → recovers byte values.\n\n**Spectre** (2018): exploited branch prediction to read victim's memory via gadgets. Attacker primes the branch predictor, then sends an input that triggers a mispredicted branch in the victim. Speculative memory access leaks data via cache; attacker measures.\n\n**Mitigations** (heavy CPU + OS cost):\n- **KPTI** (Kernel Page Table Isolation): separate user + kernel page tables; flush TLB on syscall. ~5-30% syscall overhead.\n- **Retpolines, IBRS, IBPB**: prevent malicious branch-prediction speculation. Variable cost.\n- **Microcode updates**: hardware-level mitigations for some variants.\n\nFollow-up vulnerabilities (Foreshadow, Zombieload, MDS, Downfall, Reptar) have continued through 2024. Microarchitectural side channels are now a permanent reality; sandboxes + multi-tenant systems must assume some level of side-channel exposure."
+    },
+    {
+      "kind": "text",
+      "title": "When to worry, when not to",
+      "body": "**Worry**:\n- Multi-tenant infrastructure (cloud, browser sandboxes): cross-tenant side channels are realistic. Browsers added Spectre mitigations (`COOP`, `COEP`, cross-origin isolation) in 2018-2020.\n- Smart cards, hardware wallets, secure enclaves: dedicated attackers with physical access.\n- Crypto libraries: side-channel-resistant implementations are non-negotiable.\n- Trusted-Execution-Environments (TEEs) like SGX, TrustZone: have been broken by side channels repeatedly.\n\n**Don't worry** (much):\n- Single-tenant servers running your own code, no shared CPU with adversaries: most timing attacks require co-location or specific positioning.\n- App-level business logic (login, payment): use constant-time hash comparison + constant-time crypto libraries; that's usually sufficient.\n- Mobile apps: physical-access side channels exist but require specialized equipment.\n\nThe practical rule: **use battle-tested constant-time libraries for crypto operations + compare-with-`subtle.timingSafeEqual()` for secret comparisons**. The rest of the stack inherits the protection. Don't roll your own crypto. Don't try to defend against side channels in non-crypto code (you'll fail).\n"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sc_timing",
+        "kind": "guided_derivation",
+        "question": "Show how `strcmp` leaks secret length",
+        "goal": "`strcmp(user_input, secret)` returns at first mismatch. Attack via timing.",
+        "steps": [
+          {
+            "prompt": "Attacker sends candidate strings + measures response time. If candidate matches first byte of secret, comparison continues to next byte before failing — slightly longer. What's the attack?",
+            "motivation": "Iteratively learn one byte at a time.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Attacker iterates through possible first bytes, finds the slowest one (= matches secret's first byte), then iterates the second byte with the now-known first byte, etc. Recover the entire secret in $O(L \\cdot 256)$ probes where $L$ is length.",
+                "Random.",
+                "Cannot recover.",
+                "Need quantum."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "The matching prefix takes longer to compare; that's the signal."
+            ],
+            "reveal": "Iterative attack: each byte takes $\\sim 256$ probes to determine. Total: $O(L \\cdot 256)$ probes for an $L$-byte secret. Even with noise, statistical averaging extracts the secret."
+          },
+          {
+            "prompt": "Mitigation: compare in constant time. Sketch.",
+            "motivation": "XOR-and-OR pattern.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "`result = 0; for i in 0..N: result |= a[i] ^ b[i]; return result == 0;` — all bytes always compared; running time independent of where the first mismatch is.",
+                "Sleep random amount.",
+                "Cannot mitigate.",
+                "Hash first."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "XOR + OR accumulates differences without branching."
+            ],
+            "reveal": "Constant-time: XOR all corresponding bytes, OR results into accumulator, check if accumulator == 0. Always touches all bytes; no early exit; time independent of mismatch position."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{strcmp leaks via early-exit timing; constant-time XOR-then-OR is the fix}}$$ Languages provide constant-time comparison: Node's `crypto.timingSafeEqual`, Python's `hmac.compare_digest`, Go's `crypto/subtle.ConstantTimeCompare`. Always use them for security-sensitive comparisons."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sc_when",
+        "kind": "multiple_choice",
+        "question": "Your team uses Python's `secrets.compare_digest()` for password-hash comparison. The team asks if more side-channel hardening is needed for this specific operation.",
+        "options": [
+          "Yes, also encrypt the comparison.",
+          "No — `compare_digest()` is constant-time + Python's password hashing (Argon2id) is implemented with constant-time inner loops in C. App-layer comparison is no longer the weakest link.",
+          "Yes, run it in a TEE.",
+          "Yes, run it with random sleeps."
+        ],
+        "correctIndex": 1,
+        "explanation": "`compare_digest()` is constant-time. Argon2id-cffi runs constant-time C. The hash comparison's side-channel surface is closed. Other attack vectors (network timing, password complexity, breach detection) matter more. Don't over-engineer at this layer."
+      },
+      "hints": [
+        "What is `compare_digest` doing?",
+        "Are there other parts of the system more likely to leak?"
+      ],
+      "workedSolution": "`compare_digest()` is exactly the constant-time comparison primitive. With Argon2id under it (also constant-time inner loops), the comparison's side-channel surface is closed for app-layer threats. Random sleeps don't help (they add noise but the leaked signal averages out). TEEs are overkill. Focus elsewhere: rate-limit login attempts, monitor for credential stuffing, etc.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sc_spectre",
+        "kind": "scenario",
+        "question": "Spectre in a JavaScript sandbox",
+        "prompt": "Your team builds a web service that runs untrusted user JavaScript in a sandboxed iframe. A security-engineer points out Spectre risks. Walk through the actual threat + the standard mitigations browsers deploy."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sc",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why microarchitectural side channels (Spectre + descendants) fundamentally complicate multi-tenant security.",
+        "rubric": "Mentions that CPU resources (caches, predictors, ports) are inherently shared; software boundaries don't fully prevent leakage; multi-tenant cloud + browser sandboxes must add expensive mitigations OR avoid co-location of mutually-distrusting code; the engineering cost is real + ongoing."
+      }
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish inode-based from object-based file systems.",
+      "Explain journaling vs copy-on-write.",
+      "Reason about fsync + write-ordering."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Inodes, the Unix filesystem foundation",
+      "body": "Unix filesystems (ext2/3/4, XFS, BSD UFS) are inode-based. An **inode** is a fixed-size record storing a file's metadata (permissions, owner, size, timestamps, pointers to data blocks). The inode does NOT store the filename.\n\nA **directory** is a special file whose data is a list of `(filename, inode_number)` pairs. Resolving `/etc/passwd`:\n1. Look up `etc` in the root directory's data → inode 1234.\n2. Read inode 1234 → it's a directory → load its data.\n3. Look up `passwd` in that data → inode 5678.\n4. Read inode 5678 → it's a regular file → access data blocks.\n\nConsequences:\n- **Hard links**: multiple directory entries point to the same inode. `ln a b` creates a new entry; both reference the same inode. The file is deleted only when its inode's link count hits 0.\n- **`mv` within the same filesystem**: just updates directory entries; the file's data + inode don't move.\n- **`mv` across filesystems**: must copy the data (inodes are per-fs).\n\nThis design is everywhere in Unix. Modern variants (ext4, XFS) add extents, allocation groups, larger inodes — but the inode concept is unchanged."
+    },
+    {
+      "kind": "text",
+      "title": "Journaling vs copy-on-write",
+      "body": "Without crash protection: writing a file modifies inode + data blocks. If we crash midway, the file is corrupt.\n\n**Journaling** (ext4, NTFS, XFS): before modifying the main filesystem, write changes to a separate journal area. On crash, replay the journal to bring the FS to a consistent state. ext4 has multiple modes:\n- `data=ordered` (default): journal metadata, write data first. Survives metadata crash but not data crash.\n- `data=journal`: journal everything. Slower writes; full crash recovery.\n- `data=writeback`: minimal journaling. Fast but data corruption on crash.\n\n**Copy-on-write** (ZFS, btrfs, APFS): never overwrite. Every modification writes new blocks; the old version stays put until the new version is committed. On crash, the previous consistent state is still there. Combined with checksums → silent corruption detection.\n\nBuilding-block trade-off: journaling FS has lower write amplification but limited corruption detection. CoW FS has stronger guarantees + features (snapshots, send/receive) at the cost of fragmentation + GC. ZFS dominates serious data integrity; ext4 dominates Linux defaults; APFS is macOS default."
+    },
+    {
+      "kind": "text",
+      "title": "fsync + the durability tax",
+      "body": "When you `write()`, the OS buffers it in the page cache; it's NOT yet on disk. If the system crashes, that write is lost.\n\n`fsync(fd)` blocks until all dirty pages for `fd` are durably on disk. Returns success → durable.\n\nProblem: fsync is slow (~5-10ms on a good SSD; ~50ms on a server with battery-backed write cache; ~seconds on cheap hardware). And until it returns, your application is blocked.\n\n**The database trick** — group commit:\n- Many transactions queue up writes to the WAL.\n- Periodically (every few ms) call `fsync()` ONCE for all queued writes.\n- All those transactions' fsyncs complete in a single fsync's worth of latency.\n\nPostgres + MySQL + every serious DB does this. SQLite has `PRAGMA synchronous = NORMAL` to relax fsync requirements (faster + slightly less durable). The fsync tax is fundamental; the workarounds (battery-backed write cache, NVMe with PLP, AWS EBS gp3) make it cheaper but never free."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fs_inode",
+        "kind": "guided_derivation",
+        "question": "Derive inode-pointer scaling",
+        "goal": "An ext4 inode has 12 direct block pointers + 1 indirect + 1 double-indirect + 1 triple-indirect. Each block holds 1024 4-byte pointers. Max file size with 4KB blocks?",
+        "steps": [
+          {
+            "prompt": "Direct: 12 × 4KB = 48KB. Indirect: 1024 × 4KB. Double-indirect: 1024 × 1024 × 4KB. Triple-indirect: 1024³ × 4KB. Sum?",
+            "motivation": "Multiply through.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~4 TB",
+                "4 TB",
+                "approximately 4 terabytes"
+              ]
+            },
+            "hints": [
+              "Triple-indirect dominates: $1024^3 \\cdot 4$KB = $4 \\cdot 2^{40}$ B."
+            ],
+            "reveal": "Triple-indirect alone is $\\sim 4$ TB. ext4 actually uses extents (variable-size ranges) instead of triple-indirect pointers in modern usage; the math illustrates the principle."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{ext4 max file size} \\sim 4 \\text{ TB with classic pointers}}$$ Modern ext4 uses **extents** (variable-length runs of contiguous blocks) — far more efficient than the classical indirect-pointer scheme. XFS and Btrfs use extent-based layouts natively. The classical scheme remains pedagogically useful for understanding filesystem scaling."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fs_fsync",
+        "kind": "multiple_choice",
+        "question": "A database writes 1000 transactions/sec. Each transaction writes 1 WAL entry. Without group commit, each fsync takes 5ms. Effective throughput limit:",
+        "options": [
+          "1000 tx/sec — fsync is non-blocking.",
+          "200 tx/sec — every tx waits 5ms for fsync, serialized.",
+          "Unlimited.",
+          "100,000 tx/sec."
+        ],
+        "correctIndex": 1,
+        "explanation": "Without group commit: each transaction serially fsyncs. 5ms per fsync = max 200/sec on a single thread. Group commit batches many transactions into one fsync → throughput becomes (batch size × 200/sec). With batch ~50, that's 10K/sec on the same hardware."
+      },
+      "hints": [
+        "fsync's latency, not throughput, is the constraint when transactions wait individually.",
+        "Group commit amortizes one fsync's latency across many transactions."
+      ],
+      "workedSolution": "Single-thread fsync chain: tx → fsync (5ms) → tx → fsync (5ms) → ... = 200 tx/sec. Group commit: many txs queue their writes; a single fsync flushes them all. Per-fsync latency unchanged (5ms) but per-tx latency = batch's fsync latency only. Throughput scales with batch size.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fs_inode_size",
+        "kind": "math_expression",
+        "question": "Inode is 256B. Filesystem has 1B inodes. Total inode-table size (GB)?",
+        "acceptedAnswers": [
+          "256",
+          "256 GB",
+          "256000000000 bytes"
+        ],
+        "hint": "256B × 10⁹."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fs_crash",
+        "kind": "scenario",
+        "question": "A corrupted log file post-crash",
+        "prompt": "Your application uses `write(); fsync()` for each log entry. After a power loss, you find some log entries appear partially written. Walk through what likely happened + whether `fsync` is sufficient."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fs",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why copy-on-write filesystems (ZFS, btrfs) are preferred for high-integrity storage (NAS, backup servers) but not for general-purpose Linux desktops.",
+        "rubric": "Mentions that CoW provides snapshots + atomic writes + checksums (great for integrity); but creates fragmentation; needs garbage collection; has higher write amplification; the trade-off favors data integrity at the cost of write performance, which matters more for NAS than for laptop responsiveness."
+      }
+    }
+  ]
+}

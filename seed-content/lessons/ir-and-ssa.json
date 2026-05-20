@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 28,
+    "difficulty": "specialist",
+    "objectives": [
+      "State the SSA invariant + φ-functions.",
+      "Compute dominators + dominance frontiers.",
+      "Reason about dataflow analyses on SSA form."
+    ],
+    "prereqs": [
+      "abstract-syntax-trees"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why an intermediate representation (IR)",
+      "body": "Direct AST → machine code conversion works but loses optimizations. **Every modern compiler** introduces an intermediate representation between front-end + back-end:\n\n- **LLVM IR**: SSA-form, target-independent, used by clang, rustc, Swift, Crystal, Pony, Julia, ZIG.\n- **Cranelift IR**: alternative to LLVM, used by wasmtime, rustc (debug mode), Bytecode Alliance.\n- **MLIR**: extensible IR family on top of LLVM, used by TensorFlow + many ML compilers.\n- **GCC's GIMPLE + RTL**: GCC's two-level IR system.\n- **V8's TurboFan IR**: graph-based SSA for JS.\n\nThe IR is the unit of optimization. It must be:\n- **Simple**: few node kinds (LLVM has ~60 instructions). Easy to write passes.\n- **Lossless w.r.t. semantics**: but lossy w.r.t. syntax. A `for` loop and a `while` loop look identical in IR.\n- **Analyzable**: explicit control flow, no surprises.\n\nThe canonical form for analysis is **SSA — Static Single Assignment form**. Modern IRs (LLVM IR, Cranelift, V8) are SSA from day one. Older ones (GCC's RTL, JVM bytecode) were not, and are awkwardly retrofitted."
+    },
+    {
+      "kind": "text",
+      "title": "SSA: each variable assigned exactly once",
+      "body": "**SSA invariant**: every variable in the program is assigned exactly once. Reassignments are renamed.\n\nBefore SSA:\n```\nx = 1\nx = x + 2\ny = x\n```\nAfter SSA:\n```\nx_1 = 1\nx_2 = x_1 + 2\ny_1 = x_2\n```\n\n**Why this is powerful**: each variable's definition is unique. Use-def chains are trivial — just look at the (only) definition. Dead-code, constant-folding, copy-propagation become simple syntactic transforms.\n\n**The φ-function problem**: control flow merges break SSA. At\n```\nif cond: x = 1\nelse:    x = 2\nuse(x)\n```\nthere are two definitions of `x` reaching the use. SSA introduces **φ (phi) functions** at merge points:\n```\nif cond: x_1 = 1\nelse:    x_2 = 2\nx_3 = φ(x_1, x_2)\nuse(x_3)\n```\nThe φ-function selects $x_1$ or $x_2$ based on which predecessor we came from. Not a real instruction — it disappears during register allocation (the two definitions are coalesced into the same register).\n\nConstructing SSA correctly requires **dominance analysis** + placing φ at **dominance frontiers**."
+    },
+    {
+      "kind": "text",
+      "title": "Dominators + dominance frontiers",
+      "body": "**Dominator**: node $A$ dominates node $B$ iff every path from entry to $B$ goes through $A$. The set of dominators forms a tree (the dominator tree) rooted at entry.\n\nComputing dominators: Lengauer-Tarjan's algorithm in $O(n \\alpha(n))$. The classical iterative dataflow algorithm is $O(n^2)$ but simpler.\n\n**Dominance frontier** of $A$: the set of nodes $B$ where $A$ dominates a predecessor of $B$ but does NOT (strictly) dominate $B$ itself. These are the 'first nodes where $A$'s influence stops being unique'.\n\n**Why this matters for SSA**: a definition of variable $x$ at node $A$ produces a use-conflict only at nodes where another definition could also be reaching. These nodes are exactly the dominance frontier of $A$. So:\n\n**φ-placement rule**: place a `φ(x)` at every node in the (iterated) dominance frontier of every definition of $x$.\n\nThis is the **Cytron et al. 1991** algorithm. Powers LLVM, GCC, V8, every modern SSA-converter.\n\nOnce SSA is built, optimizations are dramatic:\n- **Sparse conditional constant propagation (SCCP)**: O(n) instead of $O(n^2)$.\n- **Dead-code elimination**: trivial — a definition is dead iff it has no uses.\n- **Loop-invariant code motion**: easy — definitions whose operands all dominate the loop header are hoistable."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ssa_phi",
+        "kind": "guided_derivation",
+        "question": "Derive φ-placement for a diamond CFG",
+        "goal": "Consider blocks A (entry), B, C (both reachable from A), D (merge, reachable from both B and C). Variable x is assigned in B and C but not D. Where does φ go?",
+        "steps": [
+          {
+            "prompt": "D has two predecessors (B and C), each defining x. Which block needs a φ for x?",
+            "motivation": "Definitions reach a merge.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "A.",
+                "B.",
+                "C.",
+                "D."
+              ],
+              "correctIndex": 3
+            },
+            "hints": [
+              "The merge point."
+            ],
+            "reveal": "φ placed in D: `x_3 = φ(x_1, x_2)`."
+          },
+          {
+            "prompt": "Why doesn't A need a φ?",
+            "motivation": "A is before any reassignment.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "A only has one definition of x reaching it (or none — A is entry).",
+                "A is irrelevant.",
+                "Because A is a leaf.",
+                "Because of dominance."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Was x defined before A?"
+            ],
+            "reveal": "A is entry; only one def of x reaches A (or x is undefined). No conflict, no φ."
+          },
+          {
+            "prompt": "Suppose D has a successor E. Does E also need a φ?",
+            "motivation": "E inherits D's unique definition.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Yes, always.",
+                "Only if E has multiple predecessors with conflicting defs of x.",
+                "Yes, if E uses x.",
+                "Never."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "φ goes ONLY where definitions meet."
+            ],
+            "reveal": "Only if E has multiple predecessors with different defs. If D is E's sole predecessor, no φ — D's def is unique."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{φ-functions placed at dominance frontiers of each definition}}$$ Cytron-Ferrante-Rosen-Wegman-Zadeck 1991 — the foundational SSA-construction algorithm. After this, every variable has a single definition; use-def chains are explicit; classical optimizations become local syntactic transforms. The investment in SSA pays off in every subsequent optimization pass."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ssa_optim",
+        "kind": "multiple_choice",
+        "question": "Why does SSA form make dead-code elimination O(n) instead of O(n²)?",
+        "options": [
+          "Because SSA uses better data structures.",
+          "Because in SSA every variable has exactly one definition — finding all uses is direct, and a definition is dead iff its use-set is empty.",
+          "Because SSA programs have fewer instructions.",
+          "It doesn't."
+        ],
+        "correctIndex": 1,
+        "explanation": "In non-SSA, finding 'all uses' of a definition requires data-flow analysis ('does this assignment reach that use'). In SSA, the unique-definition invariant means every variable's use-set is the use-set. Use chains are constructed once at SSA-conversion + maintained on updates. DCE is then: 'mark live: any def with a side effect or whose uses transitively reach a side effect'. Linear in the size of use chains."
+      },
+      "hints": [
+        "What's the SSA invariant?",
+        "How does that simplify finding uses?"
+      ],
+      "workedSolution": "SSA invariant: each variable has one definition. So 'the uses of x_5' is the entire use set; no analysis needed. DCE becomes: mark all defs with side effects as live, then walk use chains, marking transitively. Sweep removes everything unmarked. Linear time. Without SSA, you'd need iterative reaching-definitions analysis — $O(n^2)$ in the worst case.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ssa_dom",
+        "kind": "math_expression",
+        "question": "In a straight-line CFG A → B → C → D, what is the immediate dominator of D?",
+        "acceptedAnswers": [
+          "C"
+        ],
+        "hint": "Just the previous block."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ssa_jit",
+        "kind": "scenario",
+        "question": "SSA for a tracing JIT",
+        "prompt": "Your team builds a JIT for a dynamic language. The trace recorder produces straight-line code (no joins). Walk through whether SSA helps, and where the φ-placement complications go."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ssa",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why every modern compiler IR (LLVM, Cranelift, V8 TurboFan) is in SSA form.",
+        "rubric": "Mentions that SSA's unique-definition invariant makes optimizations dramatically simpler (DCE, constant propagation, CSE become near-trivial; use-def chains are explicit) and enables fast algorithms (sparse conditional constant propagation, value numbering). The φ-placement cost at SSA construction is paid once + amortized across every subsequent pass."
+      }
+    }
+  ]
+}

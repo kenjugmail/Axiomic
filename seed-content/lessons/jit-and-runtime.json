@@ -1,0 +1,150 @@
+{
+  "meta": {
+    "timeMinutes": 28,
+    "difficulty": "expert",
+    "objectives": [
+      "State the tiers of a modern JIT (interpreter → baseline JIT → optimizing JIT).",
+      "Explain deoptimization + speculative type assumptions.",
+      "Distinguish JIT from AOT trade-offs."
+    ],
+    "prereqs": [
+      "codegen-and-registers",
+      "optimization-passes"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Tiered JITs: V8, HotSpot, .NET RyuJIT",
+      "body": "A **Just-In-Time compiler** generates machine code at runtime — typically for dynamic languages (JS, Python, Ruby), partially-typed languages (Java, C#), or AOT-then-PGO pipelines (Hotspot).\n\n**Modern JITs are tiered**: rather than one compiler, multiple tiers with escalating compile cost + runtime quality.\n\n**V8 (JavaScript)**:\n1. **Ignition**: register-based bytecode interpreter. Starts immediately, no compile time.\n2. **Sparkplug**: 'non-optimizing baseline compiler'. Translates Ignition bytecode to machine code 1:1, no fancy optimizations. ~10× faster than interpretation. Fast to compile.\n3. **Maglev**: mid-tier optimizing compiler (newer, 2023+).\n4. **TurboFan**: full SSA-form optimizing compiler. Speculative inlining, full type-feedback-driven optimization. Slow to compile but excellent code.\n\nFunctions are profiled in the interpreter. Hot functions tier up. Cold functions stay in the interpreter (saving JIT memory + time).\n\n**HotSpot (Java)**: similar — Interpreter (template-based) → C1 (client) → C2 (server). C2 produces the most optimized code; running C2 on every method would explode startup time.\n\n**Why tiers**: amortizes compile cost. Most functions are run once (or not at all); they shouldn't pay full-JIT cost. The hot 1% of code is where compile time pays off.\n\n**Profile-guided inlining** is the killer feature: the JIT knows which functions ARE actually hot + which call edges fire often. AOT compilers have to guess."
+    },
+    {
+      "kind": "text",
+      "title": "Speculative optimization + deoptimization",
+      "body": "Dynamic-language JITs make **speculative type assumptions**. In JS:\n```\nfunction add(a, b) { return a + b }\n```\nIf the JIT observes 1000 calls with `(int, int)`, it generates code optimized for that case — direct integer add, no boxing. But what if the 1001st call is `add('hello', 'world')`?\n\nThe JIT inserts a **type guard** at function entry. If the assumption fails, the JIT **deoptimizes**: discard the specialized code, fall back to the interpreter (or a less-specialized tier), restore the interpreter's state from the JITed-code's register/stack values, and resume.\n\n**Deopt machinery**:\n- Each JIT instruction tracks the **OSR (on-stack replacement) state**: enough metadata to reconstruct the equivalent interpreter state.\n- At deopt, restore that state + jump back to the interpreter.\n- The function is recompiled if/when it becomes hot again, with the new type info in the profile.\n\n**The performance model**: 'as long as your code's runtime types stay stable, you get specialized code; if types change, you pay a deopt + re-spec'. Monomorphic call sites (always same type) optimize fully. Polymorphic (few types) get inline caches. Megamorphic (many types) fall back to slower paths.\n\nThis is why writing 'monomorphic' code (consistent types per call site) is performance-critical in V8. The JIT's specialization is undone by type instability.\n\n**Famous example**: changing the hidden class of an object (adding/removing properties) invalidates every JITed access path on it. Twitter's iOS team famously rewrote their JS for hidden-class stability + got ~10× speedups."
+    },
+    {
+      "kind": "text",
+      "title": "JIT vs AOT trade-offs",
+      "body": "**AOT (ahead-of-time) compilers**: rustc, GCC, clang. Source → machine code at build time.\n- ✅ No warmup. Code runs at peak speed immediately.\n- ✅ Smaller deployments (no compiler shipped).\n- ✅ Better protection against runtime crashes (full static type checking).\n- ✅ Allows whole-program + profile-guided optimization with full compile budget.\n- ❌ Can't use runtime profile (without PGO + a profiling run).\n- ❌ Doesn't specialize to actual workload.\n\n**JIT compilers**: HotSpot, V8, RyuJIT, LuaJIT.\n- ✅ Specializes to observed runtime types + branch directions.\n- ✅ Easier to compile dynamic languages (types known only at runtime).\n- ✅ Inlining can be more aggressive (real call frequencies known).\n- ❌ Warmup penalty: first few invocations are slow.\n- ❌ Ship a compiler — more memory, larger binaries.\n- ❌ Security surface (W^X memory, JIT-spray attacks).\n\n**Mid-paths**:\n- **AOT-with-PGO**: rustc, GCC, Clang's PGO pipelines. Run an instrumented build on representative workload, recompile with the profile.\n- **AOT + JIT fallback**: .NET ReadyToRun (R2R) — most code AOT'd, hot paths re-JITted at runtime.\n- **Tiered AOT**: Graal's Native Image AOT-compiles JVM bytecode. Loses JIT specialization but gains AOT predictability.\n- **WebAssembly**: distributed as a portable IR, JITed by the host (Chrome's V8, Wasmtime's Cranelift).\n\nThe right answer depends on workload. Long-running servers benefit from JIT specialization. Short-lived CLIs need AOT for fast startup. The industry trend in 2024-2025 is to give developers the choice (Native Image for Java, AOT for .NET, WASM for portability)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_jit_deopt",
+        "kind": "guided_derivation",
+        "question": "Derive a type guard for `function add(a,b) { return a+b }`",
+        "goal": "JIT has observed 1000 calls with (number, number). What guard does it insert + what's the deopt path?",
+        "steps": [
+          {
+            "prompt": "At function entry, what condition does the JIT check?",
+            "motivation": "Speculative assumption: both args are numbers.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "`typeof a === 'number' && typeof b === 'number'`.",
+                "`a === b`.",
+                "Always true.",
+                "Nothing — JS is untyped."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "What was the observed type pattern?"
+            ],
+            "reveal": "Type guard: both args are tagged as number (in V8, SMI or HeapNumber)."
+          },
+          {
+            "prompt": "If the guard passes, the specialized code path runs: direct integer/float add, no boxing. If the guard fails, what happens?",
+            "motivation": "Deopt.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Crash.",
+                "Trigger deoptimization: reconstruct interpreter state, jump to the bytecode interpreter to handle the slow path.",
+                "Return undefined.",
+                "Throw a JS error."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "JIT doesn't crash — it falls back."
+            ],
+            "reveal": "Deopt: reconstruct interpreter state from the JIT'd frame (using OSR metadata), resume in Ignition."
+          },
+          {
+            "prompt": "If the SAME function later gets called many times with (string, string), what does the JIT do?",
+            "motivation": "Re-specialize.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Nothing — stays in interpreter forever.",
+                "Re-specialize at the next tier-up: now optimize for string-string add (concat). Probably keep both specializations via inline caches.",
+                "Crash.",
+                "Disable JIT for this function."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Modern JITs handle polymorphism via inline caches."
+            ],
+            "reveal": "Function becomes 'polymorphic' at the call site. JIT may emit a small inline cache (test type, dispatch to one of N paths). At many types, falls back to megamorphic slow path."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{JIT = specialize to observed types + deopt when assumptions fail}}$$ This single mechanism (speculation + guard + deopt) is what makes modern JS engines fast for monomorphic code. Type stability per call site is the optimization the programmer can choose. Polymorphic sites pay a small inline-cache cost; megamorphic sites take the slow path."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_jit_warmup",
+        "kind": "multiple_choice",
+        "question": "A team migrates a Java service from HotSpot JIT to GraalVM Native Image (AOT). Latency at start-of-day improves dramatically but average latency at steady state gets ~15% worse. Why?",
+        "options": [
+          "Native Image always faster than JIT.",
+          "AOT can't observe runtime profile, so it can't perform speculative inlining + specialization that HotSpot's C2 would do at peak.",
+          "Native Image has bugs.",
+          "AOT-compiled Java doesn't support generics."
+        ],
+        "correctIndex": 1,
+        "explanation": "HotSpot's C2 specializes hot methods to observed types, call frequencies, branch directions. Native Image's AOT can't observe runtime profile (without separate PGO instrumented run). Trade-off: fast startup + predictable latency vs peak steady-state performance. Common for serverless/CLI workloads to prefer Native Image."
+      },
+      "hints": [
+        "What information does JIT have that AOT doesn't?",
+        "Does AOT have a workaround?"
+      ],
+      "workedSolution": "JIT observes call frequencies + types at runtime → specializes hot methods aggressively. AOT compiles ONCE without that info; uses worst-case assumptions. PGO (profile-guided optimization) is the AOT workaround: an instrumented run collects profile, then a second compilation uses it. With PGO the gap narrows but JIT still wins on dynamic / polymorphic workloads.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_jit_tiers",
+        "kind": "math_expression",
+        "question": "V8 has interpreter (Ignition) + 3 compiler tiers. Total tiers V8 uses?",
+        "acceptedAnswers": [
+          "4"
+        ],
+        "hint": "1 interpreter + 3 compilers."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_jit_wasm",
+        "kind": "scenario",
+        "question": "WebAssembly + JIT",
+        "prompt": "Your team ships a WebAssembly module that runs in a browser. Walk through the JIT compilation pipeline (Liftoff baseline + TurboFan optimization) + how speculative optimizations apply (or don't) to WASM's static-typed model."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_jit",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why modern JS engines (V8, JavaScriptCore, SpiderMonkey) are tiered — interpreter → baseline JIT → optimizing JIT — rather than a single optimizing compiler.",
+        "rubric": "Mentions that most functions are called rarely (cold) + don't deserve expensive JIT; tiers let the warm/hot path get expensive treatment while cold code stays cheap. Also lets the JIT collect type profile in the interpreter before specializing. Trade-offs: warmup latency vs peak throughput, memory for compiled code vs interpreter."
+      }
+    }
+  ]
+}

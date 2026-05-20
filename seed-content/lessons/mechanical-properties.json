@@ -1,0 +1,145 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Outline the stress-strain curve + key parameters.",
+      "Distinguish ductile from brittle fracture.",
+      "Reason about fatigue + fracture toughness."
+    ],
+    "prereqs": [
+      "defects-and-microstructure"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Stress-strain curve + elasticity",
+      "body": "Subjecting a material to tension reveals its mechanical behavior.\n\n**Stress** $\\sigma = F/A$: force per area (Pa, MPa, GPa).\n**Strain** $\\epsilon = \\Delta L / L$: fractional length change (dimensionless).\n\n**Elastic regime**: stress + strain proportional via **Hooke's law**:\n$$\\sigma = E \\epsilon$$\nWhere $E$ = Young's modulus (or elastic modulus). Stiffness.\n\n**Young's modulus** of common materials:\n- Steel: ~200 GPa.\n- Aluminum: ~70 GPa.\n- Titanium: ~110 GPa.\n- Copper: ~120 GPa.\n- Tungsten: ~410 GPa.\n- Concrete: ~30 GPa.\n- Polymers: ~1-5 GPa.\n- Rubber: ~0.01-0.1 GPa.\n- Diamond: ~1200 GPa.\n\n**Poisson's ratio** $\\nu$: lateral contraction / axial strain when stretched.\n- Most metals: 0.25-0.35.\n- Rubber: ~0.5 (incompressible).\n- Cork: ~0 (doesn't expand laterally).\n- Auxetics (engineered): negative.\n\n**Shear modulus** $G = E / [2(1+\\nu)]$. Resistance to shear deformation.\n\n**Bulk modulus** $K = E / [3(1-2\\nu)]$. Resistance to uniform compression.\n\n**Yield**: stress at which permanent (plastic) deformation begins. **Yield strength** $\\sigma_y$. Typically defined at 0.2% offset (intersect a line offset 0.002 strain from the elastic line with the stress-strain curve).\n\n**Plastic regime**: beyond yield, deformation is permanent. Material doesn't recover when stress removed. Caused by dislocation motion.\n\n**Strain hardening (work hardening)**: as deformation increases, material strengthens. Dislocations multiply + tangle.\n\n**Necking + ultimate tensile strength**: at high strain, local instability — sample narrows ('neck') + stress concentrates there. Beyond UTS, engineering stress (F/A_0) decreases as area drops.\n\n**Fracture strain (elongation)**: total strain before sample breaks. Indicator of ductility. >5% typical for ductile metals; <1% for brittle.\n\n**Reduction in area**: ratio of cross-section at fracture to original. Alternative ductility measure."
+    },
+    {
+      "kind": "text",
+      "title": "Ductile vs brittle + fracture",
+      "body": "**Ductile failure**: extensive plastic deformation before fracture.\n- Cup-and-cone fracture surface.\n- Visible necking.\n- Energy absorbed during deformation = TOUGHNESS.\n- Typical of FCC metals (Cu, Al, austenitic steels).\n\n**Brittle failure**: sudden, with no warning.\n- Flat fracture surface.\n- No necking.\n- Low energy absorbed.\n- Typical of glass, ceramics, cast iron, BCC metals at low T.\n\n**Ductile-to-Brittle Transition Temperature (DBTT)**: BCC metals are ductile above + brittle below a critical T. Famously:\n- **Liberty Ships (WWII)**: welded steel hulls cracked apart in cold North Atlantic water. ~1500 vessels affected, ~200 lost. Caused by BCC steel's DBTT being above winter water temperature. Modern ship steel is microalloyed to lower DBTT.\n- **Challenger Space Shuttle (1986)**: O-rings (rubber) embrittled below their DBTT in cold launch conditions. Failure mode predicted by Feynman + others. Lost crew.\n\n**Fracture mechanics**: extending beyond simple yield/UTS. A small crack can dramatically reduce strength.\n\n**Griffith criterion**: brittle materials fail when energy released by crack growth exceeds surface energy created.\n$$\\sigma_c = \\sqrt{\\frac{2 E \\gamma}{\\pi a}}$$\nwhere $a$ = crack half-length, $\\gamma$ = surface energy. STRESS DEPENDS ON CRACK SIZE.\n\n**Stress intensity factor** $K$: $K = \\sigma \\sqrt{\\pi a}$ for a crack of length $2a$ in infinite plate. (Geometry corrections for finite specimens.)\n\n**Fracture toughness** $K_{Ic}$: critical $K$ for crack propagation. Material property.\n- Ceramics: ~1-5 MPa·m^{1/2}.\n- Glass: ~0.7 MPa·m^{1/2}.\n- Aluminum: ~25-35 MPa·m^{1/2}.\n- Steel: ~50-100 MPa·m^{1/2}.\n- Tough steel (4340): ~80 MPa·m^{1/2}.\n- Best engineering materials: ~150 MPa·m^{1/2}.\n\n**Damage tolerance**: design assuming cracks EXIST + grow predictably. Standard for aerospace + nuclear + pipelines.\n\n**NDT (Non-Destructive Testing)**: detect cracks before they cause failure. Ultrasonic, eddy current, dye penetrant, X-ray, MRI. Critical for safety-critical structures."
+    },
+    {
+      "kind": "text",
+      "title": "Fatigue: silent crack growth + the S-N curve",
+      "body": "**Fatigue**: failure under cyclic loading at stress levels well below static yield. Discovered by Wöhler (1860s) studying railroad axles.\n\n**S-N curve**: stress amplitude vs cycles to failure. Log-log plot. Higher stress = fewer cycles.\n\n**Endurance limit**: some materials (steel, titanium) have a stress level below which fatigue won't occur even at infinite cycles. Aluminum + most polymers DON'T have endurance limit → finite life at any stress.\n\n**Fatigue mechanism**:\n1. Cyclic stress causes localized plastic deformation at stress concentrations (notches, scratches, inclusions).\n2. Dislocations slip back-and-forth, forming micro-cracks.\n3. Cracks grow under continued cycling (each cycle extends by tiny amount).\n4. When crack reaches critical size, sudden brittle failure.\n\n**Paris's law**: crack-growth rate during fatigue.\n$$\\frac{da}{dN} = C (\\Delta K)^m$$\nWhere $a$ = crack length, $N$ = cycles, $\\Delta K$ = stress-intensity range, $m \\approx 2-4$ for most metals.\n\n**Fatigue design**:\n- **Safe-life**: design so cracks don't initiate during lifetime. Used for landing-gear, helicopter rotors.\n- **Fail-safe**: assume cracks initiate; design redundancy so single failure doesn't lose vehicle.\n- **Damage tolerance**: combined approach. Assume cracks exist; design + inspect.\n\n**Modern aircraft + nuclear + pipeline**: damage tolerance throughout. Each component has crack-growth analysis + inspection intervals to detect cracks before they grow critical.\n\n**Surface treatments**:\n- **Shot peening**: bombarding surface with shot → compressive residual stress → cracks can't open. Major fatigue improvement.\n- **Burnishing**: surface rolling → similar effect.\n- **Cold working**: of fastener holes (cold expansion). Used in aerospace.\n- **Nitriding / carburizing**: hardens surface, reduces crack initiation.\n\n**Famous fatigue disasters** (already mentioned in P19 aerospace path): De Havilland Comet (1954), Aloha Airlines 243 (1988). These led to modern fatigue + damage-tolerance design philosophy."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mech_griffith",
+        "kind": "guided_derivation",
+        "question": "Apply Griffith fracture criterion",
+        "goal": "Glass: $E = 70$ GPa, surface energy $\\gamma = 0.5$ J/m². Crack half-length $a = 1$ μm = $10^{-6}$ m. Compute critical fracture stress.",
+        "steps": [
+          {
+            "prompt": "Griffith: $\\sigma_c = \\sqrt{2 E \\gamma / (\\pi a)}$. Plug in.",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~211 MPa",
+                "~210 MPa",
+                "211"
+              ]
+            },
+            "hints": [
+              "$\\sqrt{2 \\times 70e9 \\times 0.5 / (\\pi \\times 10^{-6})}$."
+            ],
+            "reveal": "$\\sigma_c \\approx 211$ MPa. Without any crack ($a \\to 0$): theoretical strength ~$E/10 = 7$ GPa. The 1 μm crack reduces strength ~33×."
+          },
+          {
+            "prompt": "Now crack is 100 μm ($a = 10^{-4}$ m). New critical stress?",
+            "motivation": "Recompute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~21 MPa",
+                "21"
+              ]
+            },
+            "hints": [
+              "$\\sqrt{1/100} = 0.1$, factor of 10 reduction. 211/10 ≈ 21 MPa."
+            ],
+            "reveal": "$\\sigma_c \\approx 21$ MPa. 10× weaker due to 100× crack growth. The $\\sqrt{a}$ scaling is unforgiving."
+          },
+          {
+            "prompt": "Why is glass so brittle in practice?",
+            "motivation": "Surface flaws.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Material is just weak.",
+                "All real glass has surface flaws (machine + handling damage); typical flaw size 1-100 μm; this dramatically reduces from theoretical strength. Tempered glass + flame-polished glass have compressive surface stress (closes flaws) + higher strength.",
+                "Pure quartz.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Surface flaws are key."
+            ],
+            "reveal": "All real glass has flaws. Theoretical strength of perfect glass ~10 GPa; actual ~50-200 MPa. The HUGE gap is from flaws. Tempering (rapid cooling) creates compressive surface stress + closes incipient cracks → 4-5× stronger glass. Used in car windows, building facades, smartphone screens."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\sigma_c = \\sqrt{2 E \\gamma / (\\pi a)}}$$ Griffith (1920) explained why glass is brittle: tiny flaws control fracture stress. Subsequently extended to metals (Orowan, Irwin) with the addition of plastic work at the crack tip. Modern fracture mechanics uses stress-intensity factor $K = \\sigma\\sqrt{\\pi a}$ + material's fracture toughness $K_{Ic}$ as the criterion. Damage-tolerant design pervades aerospace, nuclear, pipeline engineering."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mech_dbtt",
+        "kind": "multiple_choice",
+        "question": "Why do BCC steels become brittle at low temperatures (causing Liberty Ship failures)?",
+        "options": [
+          "Magic.",
+          "BCC iron has many slip systems but high lattice friction (Peierls stress) at low T. Below ductile-brittle transition temperature, dislocations can't move easily → no plastic accommodation → brittle fracture. Modern ship steels are micro-alloyed (Mn, Ni) to lower DBTT below operating temperature.",
+          "Cold welds.",
+          "Magnetic effects."
+        ],
+        "correctIndex": 1,
+        "explanation": "BCC metals have multiple slip systems but those systems' Peierls (lattice-friction) stress increases sharply as T drops. Below DBTT, dislocations can't easily move → no plastic accommodation → brittle. FCC metals (Cu, Al, austenitic steel) don't show DBTT — dislocations remain mobile at low T. Engineering response: alloying to lower DBTT (Mn, Ni in steel); use FCC steels in cryo applications (LN2 tanks); use Al alloys for cryogenic structures."
+      },
+      "hints": [
+        "What changes for BCC at low T?",
+        "What's the fix?"
+      ],
+      "workedSolution": "Below DBTT, BCC metals can't deform plastically; brittle fracture replaces ductile yielding. Liberty Ships (welded BCC steel) cracked in cold N Atlantic; modern ship steel adds Mn, Ni to lower DBTT. Cryogenic applications (LNG tanks, space cryo): use austenitic stainless (FCC) which has no DBTT, or Al alloys (FCC). All BCC engineering structures must operate above their DBTT.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mech_stress",
+        "kind": "math_expression",
+        "question": "Aluminum sample, cross-section 100 mm², F = 5 kN applied. Engineering stress?",
+        "acceptedAnswers": [
+          "50 MPa",
+          "50"
+        ],
+        "hint": "5000 N / 100e-6 m²."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mech_brittle",
+        "kind": "scenario",
+        "question": "Selecting steel for an oil pipeline",
+        "prompt": "An oil pipeline runs through cold arctic regions. Walk through the steel selection considerations: DBTT, fracture toughness, residual stress, fatigue."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mech",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why understanding material mechanical properties (yield, fracture toughness, fatigue) is foundational to engineering.",
+        "rubric": "Mentions that all load-bearing structures need predictable mechanical response; brittle failure is catastrophic + must be avoided; fatigue produces ALL deferred failure (silent crack growth then sudden break); selection of material + processing route is per-application. The vocabulary (yield, tensile, fracture toughness, elongation, S-N) is universal across mechanical engineering disciplines."
+      }
+    }
+  ]
+}

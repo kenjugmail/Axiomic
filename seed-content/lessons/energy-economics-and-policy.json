@@ -1,0 +1,163 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "expert",
+    "objectives": [
+      "Compute Levelized Cost of Energy (LCOE).",
+      "Outline carbon pricing + cap-and-trade.",
+      "Reason about energy markets + transition pathways."
+    ],
+    "prereqs": [
+      "solar-pv-fundamentals",
+      "wind-energy",
+      "battery-storage"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "LCOE: levelized cost of energy",
+      "body": "**LCOE** = total lifetime cost / total lifetime energy generated. The standard metric for comparing generation technologies.\n$$\\text{LCOE} = \\frac{\\sum_t \\frac{C_t + O_t + F_t}{(1+r)^t}}{\\sum_t \\frac{E_t}{(1+r)^t}}$$\nWhere $C_t$ = capex, $O_t$ = opex, $F_t$ = fuel cost, $E_t$ = energy, $r$ = discount rate.\n\n**Discount rate $r$** captures cost of capital + opportunity cost. Higher $r$ = penalizes long-lived high-capex projects. Major sensitivity for nuclear, hydro (long life); less for gas peakers (short payback).\n\n**LCOE 2024 estimates (USA, no subsidies)**:\n- Utility solar: \\$25-50/MWh.\n- Onshore wind: \\$30-60/MWh.\n- Offshore wind: \\$60-90/MWh.\n- Battery storage (4 hr): \\$80-150/MWh ($/MWh of services delivered).\n- Natural gas (CCGT): \\$45-75/MWh + carbon costs.\n- Coal: \\$60-100/MWh + carbon costs.\n- Nuclear (existing): \\$30-60/MWh.\n- Nuclear (new): \\$80-130/MWh.\n- Geothermal: \\$50-80/MWh.\n- Hydro: \\$25-50/MWh.\n\n**Important caveats**:\n- LCOE compares LIKE TO LIKE — variable wind + solar are NOT directly comparable to dispatchable gas/nuclear at high renewable penetration.\n- LCOE excludes integration costs (transmission, storage, balancing). 'System LCOE' accounts for these.\n- Subsidies + tax credits make sticker prices misleading. IRA's solar PTC + battery ITC effectively halve solar+storage costs in USA 2024+.\n\n**Capacity factor** assumed in LCOE: solar ~25%, wind 35%, gas 50-80%, nuclear 92%.\n\n**Modern variable-renewable LCOE includes 'firming' costs**: storage, transmission, balancing. Adds typically \\$20-40/MWh.\n\n**Trends**:\n- Solar PV: ~10%/year cost decline since 2010.\n- Wind onshore: ~3-5%/year.\n- Battery storage: ~10-15%/year decline.\n- Gas: stable; carbon pricing + supply variability dominate.\n- Nuclear new builds: cost escalations (Vogtle USA, Hinkley UK).\n\n**Why solar + wind have won on cost**:\n- Manufacturing scale + learning curves (Wright's law: each doubling of cumulative production → ~20% cost decline).\n- Modular: can build small or large; iterative improvements.\n- No fuel cost variability.\n- Fast permitting + construction (vs nuclear's 5-10 years)."
+    },
+    {
+      "kind": "text",
+      "title": "Carbon pricing + market mechanisms",
+      "body": "**Carbon price**: monetary value of CO₂ emissions. Internalizes the externality.\n\n**Why it matters**: without pricing carbon, emitters get an effective subsidy (society bears cost). With pricing, market reflects true cost.\n\n**Implementation mechanisms**:\n\n**Carbon tax**: fixed price per ton of CO₂. Simple. UK, Sweden (\\$120/t — highest), Singapore, Canada (\\$65/t rising to \\$170 by 2030).\n\n**Cap-and-trade (Emissions Trading System, ETS)**: government issues finite emission allowances; companies trade them. Price emerges from market.\n- **EU ETS**: largest. ~\\$60-90/t (2023-2024). Covers ~40% of EU emissions.\n- **California Cap-and-Trade**: ~\\$30-40/t.\n- **RGGI** (Regional Greenhouse Gas Initiative, NE USA): ~\\$15/t.\n- **China ETS**: launched 2021, currently \\$10-15/t.\n- **UK ETS**: similar to EU after Brexit.\n\n**Carbon Border Adjustment Mechanism (CBAM)**: tariff on imports based on embedded carbon. EU implementing 2026+. Prevents 'leakage' (factories moving to avoid carbon costs).\n\n**Free permits + revenues**: allowance allocation matters. EU: ~50% auctioned, rest free (declining). Revenue funds climate programs.\n\n**Effective carbon prices required for Paris Agreement**:\n- High Ambition: \\$50-100/t by 2030, \\$100-200/t by 2050.\n- Current global average: ~\\$5-10/t.\n- Major gap.\n\n**Subsidies for renewables**:\n- **Investment Tax Credit (ITC)**: percent of capex. USA: 30% for solar + storage.\n- **Production Tax Credit (PTC)**: per-MWh of energy. USA: \\$26/MWh for wind.\n- **Feed-in tariffs**: guaranteed price for renewable generation (Germany, Spain pioneered, declining as renewables become cost-competitive).\n- **CfD (Contracts for Difference)**: UK + EU. Guarantee strike price; market difference paid by/to consumers. Used for offshore wind, nuclear.\n\n**IRA (Inflation Reduction Act, USA 2022)**: \\$370B for clean energy + electric vehicles. Largest USA climate investment. ITC, PTC, hydrogen credits, manufacturing incentives. Has unleashed unprecedented US clean-energy investment.\n\n**Subsidies in other regions**: EU Green Deal, Japan GX, China subsidies (now phasing out as costs fall), India PM-KUSUM, Brazil REIDI."
+    },
+    {
+      "kind": "text",
+      "title": "Energy markets + the transition challenge",
+      "body": "**Wholesale electricity markets**:\n- **Energy market**: buy/sell power for delivery in specific hours. Day-ahead + real-time. Marginal pricing — last unit dispatched sets price for all.\n- **Capacity market**: pays generators just for being available (regardless of energy delivery). Some markets (PJM, ISO-NE).\n- **Ancillary services**: frequency response, voltage support, reserves.\n- **Renewable shifting**: solar-heavy regions see negative prices during day (oversupply); high prices at sunset.\n\n**LCOE vs LACE**: LCOE is supply cost; LACE (Levelized Avoided Cost of Energy) reflects market value. Solar's market value DROPS at high penetration as midday glut depresses prices.\n\n**Capacity factor + value factor**: high renewable penetration → declining value factor (each new MWh worth less). Drives need for storage + transmission.\n\n**Transition costs**:\n- IEA 2050 Net-Zero: \\$200T cumulative investment (2020s-2050s) globally. Most in clean generation + transmission + buildings + transport.\n- Trillions per year. Roughly comparable to today's global energy investment but redirected.\n- Returns: avoided climate damages, reduced air pollution, energy security.\n\n**Stranded assets**: existing fossil-fuel infrastructure becoming uneconomic as transition accelerates. Estimated \\$1-4 trillion of fossil assets globally. Asset owners + creditors at risk. Drives political resistance.\n\n**Just transition**: ensure workers + communities affected by fossil-fuel decline have alternatives. Coal-region rebuilding (Appalachia, Ruhr Valley). Worker retraining. Pension protections. Climate justice considerations.\n\n**The transition timeline**:\n- IPCC 1.5°C: peak emissions by 2025, 43% reduction by 2030, net-zero by 2050.\n- Current Nationally Determined Contributions (NDCs): ~2.5-2.8°C trajectory.\n- Gap: ~50% additional reduction needed beyond NDC.\n- Investment in clean energy growing rapidly (~\\$2T/year in 2024) but needs to ~triple.\n\n**Politics + the energy transition**:\n- Strong renewable cost economics now make many policies easier.\n- Political fights over: subsidy levels, transmission siting, nuclear's role, gas as 'bridge fuel', timing of fossil-fuel phase-out.\n- Climate movement + voter pressure increasingly important.\n- Geopolitics: renewables shift power dynamics (less dependence on oil-exporting nations; new dependence on minerals, manufacturing).\n\n**Outlook**: energy transition is real, accelerating, + roughly on cost-trajectory. The pace + politics + equity dimensions remain the questions, not the underlying physics or economics."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_econ_lcoe",
+        "kind": "guided_derivation",
+        "question": "Compute LCOE for solar + battery",
+        "goal": "Solar PV: \\$1/W capex, 25% CF, 25-yr life, 7% discount, \\$15/kW-yr fixed O&M. Battery: \\$1500/kW (4-hr), 90% RTE, 15-yr life. Compute LCOE for solar alone.",
+        "steps": [
+          {
+            "prompt": "Annual energy from 1 kW solar at 25% CF: $1 \\times 8760 \\times 0.25 = ?$",
+            "motivation": "Plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2190 kWh",
+                "~2190"
+              ]
+            },
+            "hints": [
+              "8760 × 0.25."
+            ],
+            "reveal": "2190 kWh/year per kW."
+          },
+          {
+            "prompt": "CRF (Capital Recovery Factor) for 7%, 25 yr: $CRF = r/(1-(1+r)^{-n}) \\approx 0.086$. Annualized capex: \\$1000 × 0.086 = ?",
+            "motivation": "Amortize.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~$86/kW-yr",
+                "86"
+              ]
+            },
+            "hints": [
+              "CRF × capex."
+            ],
+            "reveal": "\\$86/kW-year capex equivalent."
+          },
+          {
+            "prompt": "Total annual cost per kW: \\$86 + \\$15 = \\$101/kW-yr. LCOE = \\$101 / 2190 = ?",
+            "motivation": "Divide.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~$0.046/kWh",
+                "$46/MWh",
+                "~46"
+              ]
+            },
+            "hints": [
+              "101 / 2190."
+            ],
+            "reveal": "LCOE ≈ \\$0.046/kWh = \\$46/MWh."
+          },
+          {
+            "prompt": "Add 4-hr battery storage: \\$1500/kW capex. Brings firmness but adds cost. Without going through full math, expect LCOE increase to ~\\$70-100/MWh for solar+storage 'firm'. The key is: solar+storage is now cheaper than gas + carbon. What does this trajectory mean?",
+            "motivation": "Big picture.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Solar + storage approaching firm-gas cost without carbon adder; with carbon pricing or IRA subsidies, solar+storage ALREADY cheaper than gas in many markets. This is THE economic foundation of the energy transition.",
+                "Bad news.",
+                "Same as gas."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Solar+storage vs gas+carbon."
+            ],
+            "reveal": "Solar+storage at firm equivalent cost is now competitive (often cheaper) than gas-with-carbon. With subsidies, MUCH cheaper. This is why solar+storage deployment is accelerating exponentially. The economic transition is real + accelerating."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{LCOE} = \\frac{\\text{Annualized capex + O\\&M + fuel}}{\\text{Annual energy}}}$$ LCOE is the workhorse comparison metric. For variable resources (solar + wind), 'firm LCOE' or 'value-adjusted LCOE' is more meaningful when grid penetration is high. The continued cost decline of solar + wind + storage + grid integration is the engine of the energy transition. Models + scenarios + investments all hinge on these numbers."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_econ_carbon",
+        "kind": "multiple_choice",
+        "question": "Why is carbon pricing widely considered the most economically efficient climate policy?",
+        "options": [
+          "Random.",
+          "Carbon price internalizes externality — emitters face true cost of CO₂. Market allocates reductions to cheapest options. Single price gives every actor (producers, consumers, investors) the same signal. Other policies (mandates, subsidies) are more distortionary or expensive.",
+          "Cheapest.",
+          "Decoration."
+        ],
+        "correctIndex": 1,
+        "explanation": "Economist consensus: carbon pricing is the most efficient tool because it (1) internalizes externality at lowest deadweight loss; (2) lets market find cheapest abatement; (3) gives long-term price signal for investment; (4) is technology-neutral. EU ETS, UK ETS, California carbon market all work in practice. Political reality: carbon pricing politically harder than subsidies (visible cost). Most countries use a MIX: some carbon price + subsidies + standards. The IEA + IMF + IPCC all recommend higher carbon prices. Current global average ~\\$5-10/t; need ~\\$100/t by 2050 for Paris."
+      },
+      "hints": [
+        "Why carbon pricing efficient?",
+        "Why not used everywhere?"
+      ],
+      "workedSolution": "Efficiency: single price signal, market finds cheapest cuts, technology-neutral, gives investment signal. Why not everywhere: political resistance (visible cost), distributional concerns (regressive without rebates), lobbying. Best practice: combine with rebates (Canada returns most revenue to households) + targeted subsidies. The economist consensus is firm; the political execution varies.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_econ_crf",
+        "kind": "math_expression",
+        "question": "CRF for r=7%, n=20 years?",
+        "acceptedAnswers": [
+          "~0.0944",
+          "0.094",
+          "0.0944"
+        ],
+        "hint": "$CRF = 0.07/(1 - 1.07^{-20}) = 0.07/0.7418 \\approx 0.094$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_econ_invest",
+        "kind": "scenario",
+        "question": "Renewable investment thesis",
+        "prompt": "An investor evaluates a 500 MW solar project with battery storage. Walk through the LCOE + IRR + risk analysis."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_econ",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why the energy transition is increasingly DRIVEN BY ECONOMICS rather than just policy.",
+        "rubric": "Mentions that solar + wind + storage have become cheapest new generation in most markets without subsidies (LCOE crossing fossil thresholds); private investment is flooding in (~\\$2T/year + growing); policy + subsidies amplify but underlying economic competitiveness is real. The transition is now self-sustaining + accelerating; the remaining questions are pace + equity + grid integration rather than 'can we afford it'."
+      }
+    }
+  ]
+}

@@ -1,0 +1,144 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Outline structural-loading types.",
+      "Reason about fatigue + safety margins.",
+      "Distinguish composite from metal aerostructures."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Structural loading + the load path",
+      "body": "**Aircraft structures must carry**:\n- **Aerodynamic loads** (lift, drag, pitching moment).\n- **Inertial loads** (acceleration of mass during maneuver / turbulence).\n- **Pressure loads** (pressurized fuselage at altitude: ~10 psi differential).\n- **Thermal loads** (engine heat, supersonic skin heating).\n- **Crash + landing loads** (high g during landing, fail-safe in crash).\n- **Cyclic fatigue** (each flight is a load cycle; an airliner does ~30,000 flights over lifetime).\n\n**Load factor** $n$ = lift / weight. Steady level flight: n=1. 60° banked turn: n=2. Hard pull-up: n=5-9 (fighter limit). Civilian aircraft certified to n=+2.5 / -1.\n\n**Load path**: how forces flow from where they're applied to where they're reacted. Major structural members:\n- **Wing spar**: bending + torsion from lift. Continuous from root to tip.\n- **Wing ribs**: maintain airfoil shape, transfer aero loads to spar.\n- **Fuselage frames + stringers**: pressure vessel + bending.\n- **Engine pylons + mounts**: transfer engine thrust + weight to wing.\n- **Landing gear**: vertical + side loads on touchdown.\n\n**Failure modes**:\n- **Yielding**: material exceeds elastic limit + deforms permanently.\n- **Ultimate failure**: material breaks.\n- **Buckling**: thin structures collapse laterally under compression. Often the dominant failure mode for aerostructures.\n- **Fatigue**: cyclic loading eventually cracks even at low stress (next slide).\n- **Creep**: high-temperature parts deform over time (engines, supersonic skin).\n\n**Safety factor**: aerostructures designed to:\n- **Limit load**: max expected in service. No yield.\n- **Ultimate load**: 1.5 × limit. No failure.\n- Margin of safety on ultimate ~0%. Very tight by mass-budget reasons. Cars + ships have 2-3× margins; aerospace is the toughest engineering envelope."
+    },
+    {
+      "kind": "text",
+      "title": "Fatigue + the silent killer",
+      "body": "**Fatigue**: failure under cyclic loading at stress levels well below ultimate strength.\n\n**S-N curve** (Wöhler curve): stress level vs cycles to failure. Log-log relationship. Higher stress = fewer cycles. Below 'endurance limit' (some materials only), infinite cycles theoretically possible. Aluminum has NO endurance limit; will eventually fatigue at any stress. Steel does.\n\n**Famous fatigue disasters**:\n- **De Havilland Comet (1954)**: world's first jet airliner. Square windows had stress concentrations at corners. Fatigue cracks → catastrophic fuselage rupture in flight. Lost multiple aircraft. Modern airliners have OVAL windows.\n- **Aloha Airlines Flight 243 (1988)**: roof of a 19-year-old 737 ripped off mid-flight. Multiple-site fatigue from 90,000 pressurization cycles. Survived; led to airworthiness directives + more inspection.\n- **El Al Cargo 1862 (1992)**: engine pylon fatigue → engine separation → control loss.\n\n**Modern fatigue prevention**:\n- **Damage tolerance**: assume cracks exist; design so cracks grow predictably + are detected before failure.\n- **Inspection intervals**: NDT (Non-Destructive Testing — ultrasound, eddy current, dye penetrant) at specified flight hours. AD (Airworthiness Directives) mandate.\n- **Fatigue-resistant design**: avoid sharp internal corners + stress concentrations; use proper fillets + radii; cold-work fastener holes.\n- **Material choice**: titanium alloys for fatigue-critical (high-cycle areas). Aluminum is dominant by mass but fatigue-managed.\n- **Probabilistic design**: certification using statistical fatigue distributions.\n\n**Composite fatigue**: different from metals. Carbon-fiber composites don't have classic S-N behavior; failure is more matrix-cracking + delamination accumulation. Inspection methods + design data different from metals."
+    },
+    {
+      "kind": "text",
+      "title": "Composite aerostructures + modern materials",
+      "body": "**Composite materials**: typically carbon-fiber-reinforced plastic (CFRP) or fiberglass-reinforced (GFRP).\n\n**Composition**:\n- **Fibers** (carbon, glass, aramid/Kevlar): carry tensile loads. High strength along fiber direction.\n- **Matrix** (epoxy, thermoplastic): transfers loads between fibers, protects from environment.\n- **Layup**: many plies of pre-impregnated tape ('prepreg') at different orientations. Quasi-isotropic = 0°/+45°/90°/-45° in equal ratios. Tailorable to load direction.\n\n**Advantages over aluminum**:\n- **Higher specific strength** (strength per unit mass): 5-10× steel, 2-3× aluminum.\n- **Higher specific stiffness**.\n- **Fatigue-resistant** (with caveats).\n- **Corrosion-resistant**.\n- **Net-shape molding**: complex shapes possible.\n\n**Disadvantages**:\n- **Anisotropic**: strong in fiber direction, weak transverse. Need careful design.\n- **Damage tolerance**: barely-visible impact damage (e.g., dropped tool) can reduce strength 30-50%. Hard to inspect.\n- **Lightning + EMI**: not conductive; need mesh / strips for protection.\n- **Manufacturing cost**: autoclave, hand layup, slow cycle times. Modern out-of-autoclave + automated fiber placement helping.\n- **Repair**: harder than aluminum. Specialized.\n\n**Iconic composite aircraft**:\n- **Boeing 787 Dreamliner (2011)**: ~50% composite by mass. First all-composite primary structure on a wide-body airliner.\n- **Airbus A350 (2015)**: similar.\n- **F-22, F-35**: significant composite content.\n- **SpaceX Dragon**: composite pressure vessel.\n\n**Modern alloys**:\n- **Aluminum-lithium** (Al-Li, 2050, 2099): lighter than standard aluminum, similar strength. Used in 787, A350, Airbus A380, F-16.\n- **Titanium alloys** (Ti-6Al-4V dominant): high-temperature, fatigue-resistant. Used in engines, landing gear, attachment fittings.\n- **Inconel + Haynes superalloys**: high-temperature engine parts (combustors, turbine blades).\n- **Single-crystal turbine blades**: cast as single crystal to eliminate grain boundaries (fatigue-fail sites).\n\n**3D-printing / additive manufacturing**: increasingly used. SpaceX SuperDraco, Rocket Lab's Rutherford engines are largely 3D-printed Inconel. Reduces parts count + complexity. Aerojet Rocketdyne, Boeing, Airbus all investing."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_struct_safety",
+        "kind": "guided_derivation",
+        "question": "Apply safety margin to a wing spar",
+        "goal": "Wing spar must carry 800 kN at limit load. Ultimate load is 1.5× limit. Spar material: aluminum 7075-T6, $\\sigma_{\\text{ult}} = 570$ MPa.",
+        "steps": [
+          {
+            "prompt": "Ultimate load: $1.5 \\times 800$ kN = ?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1200 kN",
+                "1.2 MN",
+                "1200000 N"
+              ]
+            },
+            "hints": [
+              "1.5 × 800."
+            ],
+            "reveal": "1200 kN."
+          },
+          {
+            "prompt": "Required cross-sectional area: $A = F / \\sigma_{\\text{ult}} = 1.2e6 N / 570e6 Pa = ?$",
+            "motivation": "Stress = F/A.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.0021 m^2",
+                "21 cm^2",
+                "~21 cm^2"
+              ]
+            },
+            "hints": [
+              "1.2e6/570e6 ≈ 2.1e-3 m²."
+            ],
+            "reveal": "~21 cm² (21,000 mm² = 32.5 sq inches). Minimum cross-section."
+          },
+          {
+            "prompt": "Actual aircraft adds margin beyond ultimate for: knockdown factors (composite ~85%), manufacturing variability, environmental degradation. Final cross-section likely:",
+            "motivation": "Realistic.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Smaller than computed.",
+                "10-30% larger than the minimum ultimate requirement. Plus considerations: buckling, fatigue, attachment, weight optimization.",
+                "10×.",
+                "Same."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Real margin needed."
+            ],
+            "reveal": "Final design adds margin beyond pure stress: buckling stability (compression), fatigue (cycle-limited), attachment integrity, inspection access. Typically 10-30% more area than pure ultimate strength allows. Optimization (less weight) drives down; safety drives up."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Structure sized for ultimate load} = 1.5 \\times \\text{limit, with margins for fatigue + buckling}}$$ Aerospace structural design is the discipline of doing this RIGHT across thousands of structural members under hundreds of load cases (each maneuver, each flight phase, each emergency). FAA + EASA certification requires extensive testing + analysis. The end product: an airliner that flies safely for ~30 years + 30,000+ cycles."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_struct_comet",
+        "kind": "multiple_choice",
+        "question": "The de Havilland Comet (1954) suffered fatal in-flight breakups. Cause?",
+        "options": [
+          "Engine failure.",
+          "Fatigue cracks at stress concentrations near square windows. Repeated pressurization-depressurization cycles grew cracks until catastrophic fuselage rupture. Modern airliners use OVAL windows to reduce stress concentrations.",
+          "Pilot error.",
+          "Lightning."
+        ],
+        "correctIndex": 1,
+        "explanation": "Comet 4 disasters (1953-54) demonstrated fatigue as a critical aircraft-design issue. Square windows had high stress concentrations at corners; pressurization cycles grew fatigue cracks. After Comet, ALL pressurized aircraft use rounded (oval) windows. The investigation pioneered modern fatigue analysis + the principle of damage tolerance. Aloha 243 (1988) showed cracks can form even with rounded windows over enough cycles — leading to today's aging-aircraft inspection programs."
+      },
+      "hints": [
+        "What's wrong with square windows?",
+        "What's the lesson?"
+      ],
+      "workedSolution": "Square windows = sharp internal corners = stress concentrations. Each pressurization cycle (~8 psi up + back down) puts the corner in cyclic stress. Fatigue cracks initiate + grow until catastrophic. Modern aircraft: oval windows minimize stress concentration. Comet investigation in 1954 transformed aerospace structural design + fatigue understanding.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_struct_ult",
+        "kind": "math_expression",
+        "question": "Limit load = 600 kN. Ultimate load (per typical aerospace 1.5× factor)?",
+        "acceptedAnswers": [
+          "900 kN",
+          "900"
+        ],
+        "hint": "1.5 × 600."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_struct_787",
+        "kind": "scenario",
+        "question": "Boeing 787 fully-composite design",
+        "prompt": "Why did Boeing decide to use ~50% composites by mass on the 787, despite the manufacturing challenges? Walk through the trade-offs."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_struct",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why aerospace structural design uses ~1.5× safety factor between limit + ultimate load, much lower than buildings or cars.",
+        "rubric": "Mentions that aerospace mass budget is extremely tight; higher safety factors directly cost fuel + payload; aerospace compensates with extensive testing, fatigue analysis, inspection regimens, damage tolerance + retirement-for-cause; the 'lower margin + tighter control' tradeoff is feasible because aircraft are continuously maintained + retired before failure."
+      }
+    }
+  ]
+}

@@ -48,6 +48,31 @@ const LazyLorenzAttractor = lazy(() =>
     (m) => ({ default: m.LorenzAttractor }),
   ),
 );
+const LazySolarPVCurve = lazy(() =>
+  import("../../../../../packages/viz/src/components/SolarPVCurve").then(
+    (m) => ({ default: m.SolarPVCurve }),
+  ),
+);
+const LazyCarnotCycle = lazy(() =>
+  import("../../../../../packages/viz/src/components/CarnotCycle").then(
+    (m) => ({ default: m.CarnotCycle }),
+  ),
+);
+const LazyBeamDeflection = lazy(() =>
+  import("../../../../../packages/viz/src/components/BeamDeflection").then(
+    (m) => ({ default: m.BeamDeflection }),
+  ),
+);
+const LazyPKCurve = lazy(() =>
+  import("../../../../../packages/viz/src/components/PKCurve").then(
+    (m) => ({ default: m.PKCurve }),
+  ),
+);
+const LazyROCCurve = lazy(() =>
+  import("../../../../../packages/viz/src/components/ROCCurve").then(
+    (m) => ({ default: m.ROCCurve }),
+  ),
+);
 const LazyDoublePendulum = lazy(() =>
   import("../../../../../packages/viz/src/components/DoublePendulum").then(
     (m) => ({ default: m.DoublePendulum }),
@@ -138,6 +163,16 @@ function VizByName({
       return <LazyDoublePendulum {...(props as object)} />;
     case "phase-portrait-1d":
       return <LazyPhasePortrait1D {...(props as object)} />;
+    case "solar-pv-curve":
+      return <LazySolarPVCurve {...(props as object)} />;
+    case "carnot-cycle":
+      return <LazyCarnotCycle {...(props as object)} />;
+    case "beam-deflection":
+      return <LazyBeamDeflection {...(props as object)} />;
+    case "pk-curve":
+      return <LazyPKCurve {...(props as object)} />;
+    case "roc-curve":
+      return <LazyROCCurve {...(props as object)} />;
     default:
       return null;
   }

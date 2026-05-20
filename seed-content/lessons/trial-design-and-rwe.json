@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "specialist",
+    "objectives": [
+      "Outline randomized trial design.",
+      "Distinguish efficacy from effectiveness from real-world evidence.",
+      "Reason about adaptive + platform + Bayesian trials."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Randomized controlled trials: the gold standard",
+      "body": "**Randomized Controlled Trial (RCT)**: gold standard for establishing causality.\n\n**Why randomization works**: balances measured AND unmeasured confounders between groups. Eliminates selection bias.\n\n**Core elements**:\n- **Randomization**: chance assigns to treatment vs control.\n- **Blinding**: participants + clinicians + outcome assessors don't know assignment (double-blind ideal).\n- **Control group**: placebo, active comparator, or standard care.\n- **Pre-specified endpoints**: primary + secondary.\n- **Sample size + power**: pre-determined.\n- **Statistical analysis plan**: pre-specified.\n\n**Phase I/II/III** (covered in pharmacology pipeline):\n- Phase I: safety + PK in healthy.\n- Phase II: efficacy in patients.\n- Phase III: confirm in large + diverse population.\n\n**Endpoints**:\n- **Primary**: pre-specified hypothesis test.\n- **Secondary**: hypothesis-generating, mostly supportive.\n- **Exploratory**: data-mining; not for primary claims.\n- **Composite**: combine related outcomes for statistical power (e.g., MACE = MI + stroke + CV death).\n- **Patient-reported outcomes (PROs)**: pain, function, quality of life.\n- **Surrogate**: biomarker as proxy for clinical outcome. Used when clinical outcomes take too long. Risk: not all surrogates predict clinical outcomes.\n\n**Statistical analysis**:\n- **Intention-to-treat (ITT)**: analyze by assigned group. Preserves randomization, conservative.\n- **Per-protocol**: only analyze those who completed protocol. Biased toward treatment.\n- **As-treated**: by actual treatment received.\n- **Sensitivity analyses**: alternative methods for robustness.\n\n**Common biases**:\n- **Selection bias**: who enters the trial (eligibility, recruitment patterns).\n- **Attrition bias**: who drops out (different rates per arm).\n- **Performance bias**: differences in care between arms (mitigated by blinding).\n- **Detection bias**: in outcome assessment (mitigated by blinding).\n- **Reporting bias**: publication + selective outcome reporting.\n\n**Quality frameworks**:\n- **CONSORT**: reporting standard for RCTs.\n- **GRADE**: evidence quality assessment.\n- **Cochrane Risk of Bias Tool**.\n\n**Pragmatic vs explanatory trials**:\n- **Explanatory**: tightly-controlled; tests if intervention CAN work.\n- **Pragmatic**: real-world conditions; tests if intervention DOES work in practice. Eligibility broader, outcomes everyday-relevant, follow-up routine."
+    },
+    {
+      "kind": "text",
+      "title": "Adaptive + platform + Bayesian trials",
+      "body": "**Adaptive trials**: pre-specified modifications based on interim data.\n\n**Adaptive features**:\n- **Sample size re-estimation**: based on observed variability.\n- **Dropping arms**: stop ineffective treatments early.\n- **Adding arms**: introduce new treatments.\n- **Dose-finding**: continuous reassessment of optimal dose.\n- **Population enrichment**: focus on responders.\n- **Stopping for efficacy/futility**: early termination.\n\n**Group sequential designs**: pre-planned interim analyses with adjusted alpha levels (O'Brien-Fleming, Pocock).\n\n**Platform trials**: ONE infrastructure, MULTIPLE treatments evaluated continuously. Treatments enter + exit as evidence accumulates.\n\n**Famous platforms**:\n- **STAMPEDE** (UK): prostate cancer. Multi-arm.\n- **RECOVERY** (UK, COVID): rapidly identified dexamethasone reduces COVID mortality. Hundreds of thousands enrolled.\n- **REMAP-CAP**: community-acquired pneumonia + COVID. Adaptive + Bayesian.\n- **BATTLE + BATTLE-2**: lung cancer; biomarker-guided.\n- **GLIMMER** (Alzheimer's), **HEALEY** (ALS), others.\n\n**Bayesian trials**:\n- Continuously update posterior probability of treatment effect.\n- Stop when sufficient evidence (high probability of benefit or harm).\n- More natural decision framework.\n- Pre-specified priors important.\n- Examples: I-SPY 2 (breast cancer), I-SPY COVID.\n\n**Pros of adaptive/platform/Bayesian**:\n- More efficient (smaller sample size, faster results).\n- Ethical (terminate failed arms quickly).\n- Better dose-finding.\n- Combined questions in one infrastructure.\n\n**Challenges**:\n- Statistical complexity (overcoming multiple testing).\n- Regulatory acceptance evolving.\n- Real-time data infrastructure required.\n- Operational complexity.\n\n**Master protocols**:\n- **Basket trial**: one treatment, multiple cancers (with shared biomarker).\n- **Umbrella trial**: one cancer, multiple treatments (stratified by biomarker).\n- **Platform trial**: multiple treatments evaluated over time on same disease.\n\n**Patient-centric trial elements**:\n- **Remote/decentralized trials**: virtual visits, home monitoring, e-consent. Accelerated by COVID. Better access + retention.\n- **Patient-reported outcomes (PROs)** as primary endpoints.\n- **Patient advisory boards** designing trials.\n- **Plain-language consent forms**.\n- **Diversity initiatives**: race + ethnicity + age + sex inclusion."
+    },
+    {
+      "kind": "text",
+      "title": "Real-world evidence + the data landscape",
+      "body": "**RWE (Real-World Evidence)**: clinical evidence from real-world data (RWD), not RCTs.\n\n**Sources**:\n- **EHRs**: clinical care data.\n- **Claims**: billing data.\n- **Disease registries**: condition-specific cohorts.\n- **Patient-reported (PROs, ePROs)**: questionnaires, wearables.\n- **Pragmatic trials**: hybrid of RCT + RWE.\n- **Public health surveillance**: communicable disease + adverse event reporting.\n\n**Uses of RWE**:\n- Post-market safety surveillance.\n- Effectiveness in routine practice.\n- Rare disease (insufficient sample for RCT).\n- Comparative effectiveness.\n- Health economics.\n- Label expansions (FDA increasingly accepts RWE).\n- Decision support model development.\n\n**FDA 21st Century Cures Act (2016)**: increased RWE use in regulatory decisions.\n\n**RWE successes**:\n- **Palbociclib (Ibrance)**: FDA approval expansion based on RWE.\n- **Avelumab (Bavencio)**: Merkel cell carcinoma based on RWE.\n- **Several biosimilars**: switching evidence.\n- **Many post-market safety signals**: vioxx, COX-2 inhibitors.\n\n**RWE methodology**:\n- **Target trial emulation** (Hernán + Robins): explicitly design observational study to emulate hypothetical RCT. Reduces bias.\n- **Propensity score methods**: matching, weighting, stratification.\n- **Instrumental variables**: external sources of randomization-like variation.\n- **Difference-in-differences**: pre/post + treated/untreated comparisons.\n- **Regression discontinuity**: threshold-based exposure.\n- **Bayesian causal inference**: explicit priors + uncertainty.\n\n**Limitations**:\n- **Unmeasured confounding**: critical concern.\n- **Missing data**: not at random typically.\n- **Mis-classification**: of exposure or outcome.\n- **Time-varying confounding**: harder to address.\n\n**Active areas**:\n- **External controls**: use RWE for comparator arm of single-arm trials. Used in rare diseases, oncology.\n- **Data marketplaces**: Optum, TriNetX, Aetion, Atropos, Truveta.\n- **Multi-site networks**: PCORnet, OHDSI, Sentinel.\n- **AI for RWE**: causal inference, target trial emulation, automated phenotyping.\n\n**Comparative effectiveness research (CER)**: head-to-head comparisons in real-world settings. Often RWE-driven. PCORI (USA, post-ACA) funds CER widely.\n\n**Health economics**:\n- **Cost-effectiveness analysis (CEA)**: cost per quality-adjusted life year (QALY).\n- **Incremental Cost-Effectiveness Ratio (ICER)**: ΔCost / ΔEffectiveness.\n- **Threshold**: \\$50K-150K/QALY typical in USA; \\$30K-50K in UK (NICE).\n- **Real-world cost-effectiveness**: increasingly RWE-driven.\n\n**Modern trends**:\n- **Decentralized trials**: more inclusive + efficient.\n- **Digital twins**: simulated patients to augment trials.\n- **Synthetic control arms**: build external comparator from RWE.\n- **AI-driven recruitment**: identify trial-eligible patients.\n- **Equity emphasis**: trial populations must reflect those who will use the treatment."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_trial_recovery",
+        "kind": "guided_derivation",
+        "question": "RECOVERY trial design",
+        "goal": "RECOVERY (UK, 2020) tested multiple COVID treatments in a single rapidly-deployed platform trial. Walk through its design.",
+        "steps": [
+          {
+            "prompt": "Platform design with what treatments?",
+            "motivation": "Adaptive arms.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Multiple arms: dexamethasone, hydroxychloroquine, lopinavir-ritonavir, azithromycin, tocilizumab, convalescent plasma, REGEN-COV (casirivimab+imdevimab), aspirin, etc. Started with several; arms added/dropped over time as evidence accumulated.",
+                "Just one drug.",
+                "Decoration."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Multiple arms over time."
+            ],
+            "reveal": "Multiple treatment arms: dexamethasone, HCQ, LPV/r, azithromycin, tocilizumab, plasma, REGEN-COV, aspirin, and others. Adaptive entry + exit. Largest COVID trial in the world."
+          },
+          {
+            "prompt": "Key efficiency mechanism vs traditional separate RCTs?",
+            "motivation": "Why platform.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Shared infrastructure + control arm + recruitment + data systems. Once infrastructure built, adding new arms incremental. Concurrent comparison reduces noise (same era, same population). One mega-trial replaced what would have been 10 separate trials.",
+                "Decoration.",
+                "Cheaper drugs."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Shared infrastructure."
+            ],
+            "reveal": "Shared infrastructure: one protocol, one site network, one data system, one DSMB, one randomization platform. Concurrent comparison reduces between-trial noise. Faster + cheaper + more rigorous than separate RCTs. ~50,000+ patients enrolled within months."
+          },
+          {
+            "prompt": "Key result?",
+            "motivation": "Impact.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Dexamethasone reduced mortality in oxygen-requiring COVID by ~20-35% (published June 2020). Adopted globally within weeks. Estimated to have saved ~1 million lives in pandemic's first year. Demonstrated platform trial power.",
+                "No effect.",
+                "All worked."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Dexamethasone."
+            ],
+            "reveal": "Dexamethasone reduced COVID mortality in ventilated patients by ~36%, in oxygen patients by ~20%. Published June 2020. Adopted globally in weeks. Estimated lives saved: ~1 million in first year. RECOVERY also showed HCQ + lopinavir-ritonavir + plasma did NOT help — saved widespread futile treatment."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Platform trial: shared infrastructure, multiple arms, rapidly adaptive}}$$ RECOVERY became the model for rapid evidence generation during a pandemic. Other modern platform trials (REMAP-CAP, ACTIV, STAMPEDE, I-SPY) demonstrate that adaptive + platform designs are not just theoretical — they deliver real evidence at speed. Future pandemics + chronic-disease research increasingly platform-based."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_trial_rwe",
+        "kind": "multiple_choice",
+        "question": "FDA increasingly uses real-world evidence (RWE) for label expansions. Why CAREFUL acceptance vs RCT-only?",
+        "options": [
+          "Random.",
+          "RWE limitations: unmeasured confounding, missing data, mis-classification. But RCTs limited too: artificial populations, narrow exclusions, short follow-up, ethical issues for rare diseases or pediatrics. Optimal: RWE + RCT complement. FDA accepts RWE when methodological rigor strong + context appropriate (rare disease, post-market, comparative effectiveness).",
+          "Decoration.",
+          "Marketing."
+        ],
+        "correctIndex": 1,
+        "explanation": "RCTs: gold standard for causality but limited by artificial populations, narrow eligibility, short follow-up, high cost. Many real questions (rare disease, special populations, post-approval) can't be answered by RCT.\n\nRWE strengths: large diverse populations, long follow-up, low cost, addresses real practice. Weaknesses: unmeasured confounding, mis-classification, missing data.\n\nFDA's increased RWE use is judicious: requires methodological rigor (target trial emulation, propensity scores), appropriate context (rare disease, comparative effectiveness), and transparent assumptions. Combined RCT + RWE often optimal.\n\nExamples: pediatric label expansions, rare disease approvals, long-term safety, comparative effectiveness. Not for primary effectiveness claims in well-studied common diseases."
+      },
+      "hints": [
+        "Limitations of RWE?",
+        "When to use it?"
+      ],
+      "workedSolution": "Unmeasured confounding + missing data + mis-classification limit RWE causal inference. But RCTs also limited (narrow population, short follow-up). FDA uses RWE judiciously: rare disease (where RCTs infeasible), post-market safety, comparative effectiveness, label expansions. Methodological rigor (target trial emulation, propensity scores) + appropriate context required. RWE + RCT complement, not substitute.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_trial_power",
+        "kind": "math_expression",
+        "question": "Detect a 20% relative risk reduction at 80% power, alpha 0.05, baseline event rate 10%. Approximate sample size per arm?",
+        "acceptedAnswers": [
+          "~2300",
+          "~2000-2500",
+          "~2330"
+        ],
+        "hint": "Sample size calculation: per-arm $n \\approx 16/(p_1-p_2)^2 \\times \\bar{p}\\bar{q}$ ≈ 2330 per arm."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_trial_rare",
+        "kind": "scenario",
+        "question": "Designing a rare disease trial",
+        "prompt": "Develop a trial for a rare genetic disease affecting 500 USA patients. Walk through challenges + adaptive + external control approaches."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_trial",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why adaptive + platform + Bayesian trials are increasingly common despite traditional RCTs being the gold standard.",
+        "rubric": "Mentions that traditional RCTs are inefficient (large sample sizes, long timelines, only test one or two hypotheses); adaptive designs allow early stopping, sample-size re-estimation, dose adjustments; platform trials share infrastructure across multiple treatments; Bayesian frameworks naturally update evidence. Combined, they speed evidence generation + reduce cost + improve ethics by terminating failed treatments early. Regulatory acceptance has grown substantially since COVID-19 demonstrated their power."
+      }
+    }
+  ]
+}

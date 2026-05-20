@@ -1,0 +1,141 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "core",
+    "objectives": [
+      "State Li-ion chemistry + energy density.",
+      "Reason about C-rate, depth of discharge, cycle life.",
+      "Distinguish grid + EV + flow batteries."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Li-ion battery: chemistry + structure",
+      "body": "**Lithium-ion battery**: dominant energy-storage chemistry. Each cell has:\n- **Cathode**: lithium-bearing oxide. Sources Li⁺.\n- **Anode**: typically graphite. Accepts Li⁺ during charge.\n- **Electrolyte**: Li salt in organic solvent. Conducts Li⁺ between electrodes.\n- **Separator**: porous polymer membrane.\n\n**Discharge**: Li⁺ moves from anode to cathode (carries charge), electrons flow through external circuit (current).\n**Charge**: reverse. External voltage forces Li⁺ back into anode.\n\n**Common cathode chemistries**:\n- **LFP (LiFePO₄)**: low cost, safe, durable, ~150 Wh/kg. Tesla M3 SR+, BYD, grid storage. Dominant in 2024 globally.\n- **NMC (LiNi_xMn_yCo_zO₂)**: higher energy density (~250 Wh/kg). EVs + premium.\n- **NCA (LiNi_xCo_yAl_zO₂)**: similar to NMC. Tesla older M3/MY.\n- **LCO (LiCoO₂)**: high density. Consumer electronics. Cobalt-heavy (cost + ethics issues).\n- **LMO (LiMn₂O₄)**: cheap, lower cycle life.\n\n**Anode**: graphite typical. **Silicon anodes** (10-15× capacity per gram vs graphite) actively scaling — Sila Nanotechnologies, Group14 producing commercial. Adds ~20-30% energy density to cell. **Lithium metal anodes** (next-gen): ~10× capacity but dendrite + safety issues; still research.\n\n**Cell formats**: cylindrical (18650, 21700, 4680), prismatic, pouch. Each has trade-offs (cost, density, packaging, cooling).\n\n**Beyond Li-ion**:\n- **Sodium-ion**: cheaper, abundant. ~120-140 Wh/kg. Grid storage. CATL, BYD launching 2024.\n- **Solid-state Li**: solid electrolyte instead of liquid. Safer, higher density. Toyota, QuantumScape, Solid Power pre-commercial.\n- **Lithium-sulfur, lithium-air**: research; potential for 2-5× density."
+    },
+    {
+      "kind": "text",
+      "title": "C-rate + cycle life + degradation",
+      "body": "**C-rate**: how fast battery charges/discharges relative to capacity.\n- 1C = full discharge in 1 hour.\n- 0.5C = 2 hours.\n- 2C = 30 minutes.\n- 10C = 6 minutes.\n\n**Higher C-rates** stress the battery: more heat, faster degradation, lower efficiency. Cell design + cooling determine acceptable C-rate.\n- EVs: typical discharge 1-4C, charge 0.5-3C (fast charge brief).\n- Grid storage: usually 0.25-1C (longer discharge times, lower stress).\n- Power tools: high C-rates (10-30C peak).\n\n**Depth of discharge (DoD)**: how much you discharge vs full capacity.\n- 100% DoD: full discharge. More energy per cycle but shorter cycle life.\n- 80% DoD: typical EV usage limit.\n- 50% DoD: grid storage often optimized at this.\n- Lead-acid: never below 50% DoD or fast degradation.\n\n**Cycle life**: number of full charge-discharge cycles to 80% original capacity.\n- LFP at 80% DoD, 0.5C: ~3000-5000 cycles → ~10-15 year life.\n- NMC: ~1000-3000 cycles → 5-10 years.\n- Tesla data: EV packs typically lose 10-15% capacity over 200,000 miles.\n\n**Calendar life**: degradation over time even without cycling. Driven by side reactions in electrolyte, temperature, voltage. Important for EVs (driven part-time) + reserves.\n\n**Temperature effects**:\n- **Optimal range**: 15-35°C.\n- **Cold**: slower kinetics, reduced capacity (10-30% loss at 0°C). Risk of lithium plating during charge.\n- **Hot**: accelerated degradation. >45°C accelerates side reactions 2-3× per 10°C.\n- Active thermal management critical for EVs + grid storage (cooling fans, liquid loops).\n\n**State of Charge (SOC)** vs **State of Health (SOH)**:\n- SOC: current charge level (0-100%).\n- SOH: capacity relative to original (100% new, declining over life).\n- Battery management system (BMS) tracks both.\n\n**Safe operating limits**:\n- Overvoltage: causes electrolyte decomposition, gas, fire.\n- Undervoltage: copper anode dissolution.\n- Overcurrent: lithium plating + dendrites.\n- Thermal runaway: cascade failure, fire. BMS prevents."
+    },
+    {
+      "kind": "text",
+      "title": "Grid-scale storage + emerging chemistries",
+      "body": "**Grid storage applications**:\n- **Frequency regulation**: respond to grid frequency in seconds. Battery shines vs slow thermal plants.\n- **Renewable integration**: smooth solar + wind variability.\n- **Peak shaving**: discharge at high-demand times, charge at low.\n- **Backup power**: emergency reserves.\n- **Transmission deferral**: install battery instead of new wires.\n\n**Grid battery economics (2024)**:\n- Cost: \\$200-400/kWh installed (4-hour duration).\n- LCOE: 8-15 cents/kWh.\n- Falling ~10% annually.\n\n**Largest grid batteries**:\n- Moss Landing (California): 750 MW / 3 GWh. Multiple companies (Vistra, LG, Tesla).\n- Edwards Sanborn (California): 875 MW / 3.3 GWh. Largest in world.\n- China + Australia building larger.\n\n**Flow batteries**:\n- **Vanadium redox**: electrolyte tanks + separate cell stack. Power + energy scaled independently. 25+ year life. Lower energy density. Used for long-duration grid storage.\n- **Iron-air**: Form Energy. 100+ hour duration. Iron rusts (discharge) + un-rusts (charge). Promising for multi-day backup.\n- **Zinc-bromine**: Redflow. Modular containerized systems.\n\n**Long-duration storage** (>10 hours):\n- Flow batteries.\n- Pumped hydro (mature, very cheap per Wh stored, geographic constraints).\n- Compressed air (CAES). Limited; works only with salt caverns.\n- Liquid air (LAES). New, scaling.\n- Iron-air (Form Energy).\n- Thermal storage (Antora Energy uses heated carbon; Rondo Energy stores in firebricks).\n\n**Second-life batteries**: EV batteries retire at ~70-80% capacity. Used cells repurposed for grid storage (lower performance demands). Emerging market.\n\n**Recycling**:\n- Hydrometallurgical (acid leaching): mainstream.\n- Pyrometallurgical (smelting): older.\n- Direct recycling (preserve cathode structure): research.\n- Redwood Materials, Li-Cycle, Ascend Elements: scaling.\n\n**EV battery prices**: ~\\$140/kWh pack level (2024), down from \\$1000/kWh (2010). On track for ~\\$100/kWh price-parity-with-ICE level by ~2026."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_batt_capacity",
+        "kind": "guided_derivation",
+        "question": "Compute battery sizing",
+        "goal": "Tesla Model 3 long-range: 82 kWh battery, EPA range 358 miles, average consumption ~230 Wh/mile. Discharge at 0.5C average for highway use. Compute power + discharge time.",
+        "steps": [
+          {
+            "prompt": "Discharge rate 0.5C: power = ?",
+            "motivation": "Plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "41 kW",
+                "41 kilowatts"
+              ]
+            },
+            "hints": [
+              "0.5 × 82 = 41 kW."
+            ],
+            "reveal": "41 kW average discharge → ~55 hp average. (Peaks under acceleration much higher; uses regen for some.)"
+          },
+          {
+            "prompt": "Time to discharge from full at 0.5C?",
+            "motivation": "Definition.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2 hours",
+                "2 hr"
+              ]
+            },
+            "hints": [
+              "1/0.5 = 2."
+            ],
+            "reveal": "2 hours. At 70 mph that's 140 miles. EPA range 358 miles at varying speeds + with regen + with conservative discharge profile."
+          },
+          {
+            "prompt": "Range varies with conditions. Cold temp (10°C battery): efficiency drops + heat-loss. EPA range drops ~30%. Cold-weather range?",
+            "motivation": "Apply derate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~250 miles",
+                "~250",
+                "358 × 0.7"
+              ]
+            },
+            "hints": [
+              "358 × 0.7."
+            ],
+            "reveal": "~250 miles. Cold-weather range is the #1 EV concern in northern climates. Heat pumps + battery preconditioning reduce but don't eliminate."
+          }
+        ],
+        "finalResult": "$$\\boxed{P = C_{rate} \\cdot Capacity, t_{discharge} = 1/C_{rate}}$$ Battery sizing for EVs balances energy (kWh = range) vs power (kW = acceleration). Highway driving averages 0.3-0.5C; track driving spikes to 5-10C briefly. Battery management system limits power to protect cells. Charging similarly: fast charging at 3-5C for ~15 minutes, then taper. The CCS + NACS (Tesla) standards both enable up to ~350 kW (~4C for an 80 kWh pack)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_batt_lfp",
+        "kind": "multiple_choice",
+        "question": "Why is LFP (LiFePO₄) increasingly chosen for grid storage + standard-range EVs over NMC?",
+        "options": [
+          "Random.",
+          "LFP: lower cost (no cobalt or nickel), safer (thermal stability), longer cycle life (3000-5000 vs 1000-3000). Lower energy density is fine for stationary + standard-range EVs. NMC reserved for long-range EVs needing maximum density.",
+          "Higher density.",
+          "Decoration."
+        ],
+        "correctIndex": 1,
+        "explanation": "LFP has dominated grid storage + standard-range EVs since ~2021. Cobalt + nickel-free → cheaper raw materials + supply-chain risk. Thermal stability prevents runaway → safer in fires + crashes. Cycle life 2-3× NMC → longer-lasting investments. Trade-off: ~30% lower energy density than NMC, so heavier for the same range. Acceptable for grid storage + standard EVs; not for max-range performance EVs.\n\nTesla switched standard-range Model 3 + Y to LFP in 2021. BYD all LFP. CATL pushing LFP market share over NMC. The 'cobalt-free' trend is significant for ethics + supply-chain."
+      },
+      "hints": [
+        "LFP vs NMC trade-offs?",
+        "Why now?"
+      ],
+      "workedSolution": "LFP: cheap, safe, long-lived, no cobalt — but lower density. NMC: high density, higher cost, cobalt risk, lower cycle life. Grid storage + standard EV: LFP wins (cost + safety + life). Long-range EV: NMC for max range. The 2021+ shift to LFP across major manufacturers reflects cost + supply-chain dynamics. New solid-state designs may displace both; for now LFP + NMC dominate.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_batt_energy",
+        "kind": "math_expression",
+        "question": "82 kWh × 230 Wh/mile = approximately how many miles range (ideal)?",
+        "acceptedAnswers": [
+          "~357 miles",
+          "357",
+          "~360 miles"
+        ],
+        "hint": "82000/230."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_batt_grid",
+        "kind": "scenario",
+        "question": "Sizing grid storage",
+        "prompt": "A utility wants storage to integrate a 500 MW solar plant + smooth its output for 4 hours nightly. Walk through the battery sizing + economics."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_batt",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why lithium-ion batteries have transformed energy storage in the 2010s-2020s.",
+        "rubric": "Mentions that Li-ion combines high energy density (~250 Wh/kg) with excellent cycle life + falling cost (\\$1000/kWh → \\$140/kWh pack from 2010-2024); this cost trajectory + manufacturing scale-up enabled EVs, smartphones, laptops, drones, + now grid storage at gigawatt scale. The same technology basis serves both portable + stationary. Falling costs drive new applications continuously."
+      }
+    }
+  ]
+}

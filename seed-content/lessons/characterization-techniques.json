@@ -1,0 +1,146 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "specialist",
+    "objectives": [
+      "Outline X-ray diffraction (XRD) + Bragg's law.",
+      "Distinguish SEM, TEM, AFM imaging.",
+      "Reason about spectroscopic techniques."
+    ],
+    "prereqs": [
+      "crystal-structure-and-symmetry"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "X-ray diffraction (XRD): the crystallographer's workhorse",
+      "body": "**Bragg's law**: X-ray diffraction from atomic planes.\n$$n \\lambda = 2 d \\sin\\theta$$\nWhere $\\lambda$ = X-ray wavelength (~0.15 nm for Cu Kα), $d$ = plane spacing, $\\theta$ = angle, $n$ = order.\n\nWhen Bragg condition satisfied → constructive interference → diffraction peak.\n\n**XRD pattern**: plot of intensity vs $2\\theta$ angle. Each peak corresponds to a $(hkl)$ plane family with spacing $d_{hkl}$.\n\n**Information from XRD**:\n- **Phase identification**: peaks compared to database (ICDD). Each phase has unique 'fingerprint'.\n- **Lattice parameter**: from peak positions.\n- **Crystallite size**: from peak broadening (Scherrer equation). $D = K\\lambda/(\\beta \\cos\\theta)$ where $\\beta$ = peak FWHM.\n- **Strain**: from peak position shifts + asymmetric broadening.\n- **Crystallographic texture**: from peak intensities + orientation.\n- **Quantitative phase analysis**: Rietveld refinement fits whole pattern.\n\n**XRD instruments**:\n- **Lab XRD** (Cu, Mo Kα): bench-top to mid-size, used for routine analysis. ~\\$100K-\\$500K.\n- **Synchrotron XRD**: high-flux tunable X-rays. Used for advanced studies (in-situ, time-resolved, micron-focused). National facilities (APS, ESRF, SPring-8, Diamond).\n- **Powder XRD**: random orientation; gives statistical info on phases + structure.\n- **Single-crystal XRD**: orient crystal precisely; determines complete atomic structure. Pioneered by Bragg (1913) + extensively used to determine protein structure (Watson + Crick, Perutz, etc.).\n\n**Modern uses**:\n- Pharmaceutical: identify polymorphs of drugs (different crystal forms have different bioavailability!).\n- Metallurgy: phase identification + texture.\n- Battery research: in-operando XRD watches lithium intercalation in real time.\n- Geology + mineralogy.\n- Semiconductor + thin-film analysis (HRXRD for epitaxial layers).\n\n**Neutron diffraction**: complementary to X-ray. Neutrons scatter from NUCLEI (not electrons) → sensitive to light atoms (H, Li, C, N) + magnetic structure. Requires reactor or spallation source (ILL, ORNL, ISIS). Critical for battery materials + magnetic materials."
+    },
+    {
+      "kind": "text",
+      "title": "Electron microscopy: SEM + TEM",
+      "body": "**SEM (Scanning Electron Microscope)**: scans electron beam over sample; detects emitted electrons.\n\n- **Resolution**: ~1-10 nm.\n- **Contrast modes**:\n  - **Secondary electrons (SE)**: surface topography.\n  - **Backscattered (BSE)**: composition contrast (heavier atoms scatter more).\n  - **X-rays (EDS / WDS)**: elemental analysis. Each element emits characteristic X-rays.\n  - **EBSD (Electron Backscatter Diffraction)**: crystal orientation map. Used for grain mapping.\n- **Operation**: in vacuum; sample must conduct (or be coated). Sample size: up to ~10 cm.\n- **Applications**: microstructure imaging, fractography, particle analysis, contamination detection, semiconductor failure analysis.\n\n**TEM (Transmission Electron Microscope)**: beam passes THROUGH thin sample (<100 nm).\n\n- **Resolution**: ~0.05-0.2 nm. Atomic resolution achievable.\n- **Imaging**:\n  - **Bright field**: contrast from electron scattering + absorption.\n  - **Dark field**: selects specific diffracted beams. Highlights defects.\n  - **HRTEM (High Resolution)**: lattice imaging; see atomic columns.\n  - **STEM (Scanning TEM)**: scans probe across sample; combine with EELS, EDS.\n- **Diffraction**: electron diffraction patterns inside TEM. Crystallographic info from small regions.\n- **Sample prep**: very thin (mechanical thinning, ion milling, FIB). Hard for some materials.\n- **Applications**: dislocations + defects, atomic structure at interfaces, nanoparticles, semiconductor devices.\n\n**Cryo-EM (Cryogenic Electron Microscopy)**: revolutionary for biology. Image biomolecules at near-atomic resolution. 2017 Nobel (Dubochet, Frank, Henderson). Enabled COVID-19 vaccine + drug design.\n\n**FIB (Focused Ion Beam)**: gallium ion beam for site-specific milling + TEM sample prep. Often combined with SEM (FIB-SEM).\n\n**Modern: 4D-STEM, ptychography, electron tomography**: 3D atomic-resolution imaging. Emerging at top labs.\n\n**AFM (Atomic Force Microscope)**: scanning probe.\n- Tip on cantilever scans surface; deflection measures topography (or force).\n- Resolution: ~1 nm lateral, sub-Å vertical.\n- Modes: contact, tapping, frequency-modulation. Different trade-offs.\n- Applications: surface topography, mechanical properties (nanoindentation), magnetic + electric domain imaging."
+    },
+    {
+      "kind": "text",
+      "title": "Spectroscopy + bulk + surface analysis",
+      "body": "**Spectroscopy**: measure interaction of radiation with matter to identify composition + structure.\n\n**Vibrational spectroscopy**:\n- **FTIR (Fourier-Transform Infrared)**: probe molecular vibrations. Identify functional groups (C=O, O-H, C-H, N-H, etc.). Used for polymers, organics, food, pharmaceuticals.\n- **Raman**: complementary to FTIR. Inelastic scattering of laser light. Sensitive to different vibrations. Used for nanomaterials, polymorphs, biological samples. Non-destructive.\n\n**X-ray spectroscopy**:\n- **XPS (X-ray Photoelectron Spectroscopy)**: surface elemental composition + chemical bonding state. Surface-sensitive (~10 nm). Used for thin films, catalysts, semiconductors.\n- **EDS (Energy-Dispersive X-ray Spectroscopy)**: bulk elemental analysis. Used in SEM. Quantitative for heavier elements.\n- **WDS**: higher resolution variant for trace elements.\n- **XRF (X-ray Fluorescence)**: bulk elemental analysis. Used for mineral assays, art conservation (without sampling).\n\n**Optical spectroscopy**:\n- **UV-Vis**: electron transitions. Used for absorption + reflection of solids + liquids; band gap of semiconductors.\n- **Photoluminescence (PL)**: emission spectra; reveals defects + dopants + recombination in semiconductors.\n- **Ellipsometry**: thin-film thickness + optical constants.\n\n**Mass spectrometry**:\n- **ICP-MS**: very sensitive elemental analysis (sub-ppb). Used for trace contamination, environmental, biological.\n- **SIMS (Secondary Ion Mass Spectrometry)**: surface + depth profile of elements + isotopes. Used in semiconductor manufacturing (dopant profiles).\n- **TOF-SIMS**: molecular surface chemistry.\n\n**NMR (Nuclear Magnetic Resonance)**:\n- Probe local atomic environment via nuclear magnetic moments.\n- Solid-state NMR: complementary to XRD for amorphous + complex materials.\n- Polymers, glasses, batteries.\n\n**Mechanical + thermal characterization**:\n- **Nanoindentation**: local mechanical properties (hardness, modulus) at micron scale.\n- **DSC (Differential Scanning Calorimetry)**: thermal transitions ($T_g$, $T_m$, reactions).\n- **TGA (Thermogravimetric Analysis)**: mass change with temperature.\n- **DMA (Dynamic Mechanical Analysis)**: storage + loss moduli vs temperature/frequency.\n\n**Combined characterization**: real materials studies use multiple techniques together. The 'characterization triangle': structure + composition + properties. Each technique answers different questions; coherent picture requires several."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_char_bragg",
+        "kind": "guided_derivation",
+        "question": "Apply Bragg's law to identify a crystal",
+        "goal": "X-ray diffraction with Cu Kα (λ = 0.154 nm) on an unknown FCC metal. Peak observed at 2θ = 38.5°. Compute lattice parameter.",
+        "steps": [
+          {
+            "prompt": "$d = \\lambda / (2 \\sin\\theta)$. $\\theta = 38.5°/2 = 19.25°$. $\\sin(19.25°) \\approx 0.330$.",
+            "motivation": "Compute d.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.234 nm",
+                "~0.23",
+                "0.234"
+              ]
+            },
+            "hints": [
+              "0.154 / (2 × 0.330)."
+            ],
+            "reveal": "$d = 0.234$ nm."
+          },
+          {
+            "prompt": "For FCC, the first peak corresponds to (111) plane. Lattice parameter: $a = d \\sqrt{h^2 + k^2 + l^2} = d \\sqrt{3}$.",
+            "motivation": "Convert.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.405 nm",
+                "~0.40 nm"
+              ]
+            },
+            "hints": [
+              "0.234 × sqrt(3) = 0.234 × 1.732 = 0.405."
+            ],
+            "reveal": "$a = 0.405$ nm."
+          },
+          {
+            "prompt": "Compare to known FCC metals: Al = 0.405 nm, Cu = 0.361 nm, Au = 0.408 nm, Ni = 0.352 nm, Ag = 0.409 nm. Most likely identity?",
+            "motivation": "Lookup.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Cu.",
+                "Aluminum: $a = 0.405$ nm matches.",
+                "Au.",
+                "Ni."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Match a."
+            ],
+            "reveal": "Aluminum. Lattice parameter 0.405 nm uniquely identifies Al among common FCC metals. Same procedure for any unknown — measure peaks, match to database. Modern XRD software automates this (Match!, HighScore, Pearson's)."
+          }
+        ],
+        "finalResult": "$$\\boxed{n\\lambda = 2d \\sin\\theta; \\text{ identification by lattice parameter}}$$ Bragg's law (1913) is the foundation of crystallography. XRD identifies phases by matching peak positions + intensities to database fingerprints. Modern characterization labs run thousands of XRD scans per year for QC, R&D, forensics, geology. The technique has been improved continuously (microcalorimetry, in-situ heating, time-resolved synchrotron) but the underlying physics remains Bragg's elegant formula."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_char_choose",
+        "kind": "multiple_choice",
+        "question": "A researcher needs to know the elemental composition + thickness of a 50 nm thin film on a silicon wafer. Which characterization technique is best?",
+        "options": [
+          "XRD.",
+          "XPS + ellipsometry combo: XPS gives surface elemental + chemical bonding state (top ~10 nm); ellipsometry gives thickness + optical constants. SIMS depth profile + ellipsometry also works. Multiple techniques typically needed.",
+          "Just SEM.",
+          "AFM only."
+        ],
+        "correctIndex": 1,
+        "explanation": "Thin-film characterization requires multi-technique: XPS or SIMS for composition + depth profile; ellipsometry for thickness + optical properties; XRD for crystallinity (if applicable); AFM for surface roughness. Each technique answers different questions. The 'characterization triangle' (structure + composition + properties) typically requires 3-4 complementary techniques. Modern semiconductor + nanomaterials labs have all of these."
+      },
+      "hints": [
+        "What information is needed?",
+        "What techniques provide each?"
+      ],
+      "workedSolution": "Composition + depth profile: XPS, SIMS, AES. Thickness + optical constants: ellipsometry, X-ray reflectometry. Crystal structure: XRD, electron diffraction. Surface topography: AFM, SEM. Each thin-film characterization combines multiple techniques. Modern characterization is high-throughput + ML-augmented (automated feature extraction, materials informatics).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_char_2theta",
+        "kind": "math_expression",
+        "question": "First FCC peak (111) at d = 0.234 nm, λ = 0.154 nm. 2θ angle?",
+        "acceptedAnswers": [
+          "~38.5°",
+          "38.5",
+          "~38"
+        ],
+        "hint": "$\\sin\\theta = \\lambda/(2d) = 0.154/(2 \\times 0.234) = 0.329$; $\\theta = 19.2°$; $2\\theta = 38.5°$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_char_failure",
+        "kind": "scenario",
+        "question": "Failure analysis",
+        "prompt": "A bridge cable failed in service. Walk through the characterization workflow to diagnose the failure cause."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_char",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why modern materials characterization typically combines multiple techniques rather than relying on one.",
+        "rubric": "Mentions that each technique answers specific questions (XRD: crystal structure; SEM/EM: microstructure; spectroscopy: composition + bonding); single technique gives one slice of the picture; combining gives coherent view of structure + composition + properties; modern materials labs maintain 10+ instruments + cross-correlate results."
+      }
+    }
+  ]
+}

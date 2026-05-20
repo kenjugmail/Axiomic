@@ -1,0 +1,152 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "specialist",
+    "objectives": [
+      "State the role of a bootloader.",
+      "Outline an OTA update protocol.",
+      "Distinguish A/B partitions from single-image updates."
+    ],
+    "prereqs": [
+      "memory-and-bare-metal"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Bootloader basics",
+      "body": "A **bootloader** is a small program that runs at startup, decides what to do, and (typically) hands off to the application.\n\n**Why a bootloader instead of running the app directly**:\n1. **Firmware updates**: bootloader receives new firmware via UART / USB / BLE / Ethernet, writes it to flash, jumps to it. Without a bootloader, updating the app requires a physical programmer.\n2. **Fallback / recovery**: if the app crashes, bootloader can detect + load a known-good backup.\n3. **Multi-app boot**: choose between firmware variants based on hardware version, customer-specific image, etc.\n4. **Security**: verify the application's signature before booting (secure boot).\n\n**Memory layout**:\n```\n0x0800_0000 - 0x0800_3FFF (16 KB): Bootloader\n0x0800_4000 - 0x0807_FFFF (496 KB): Application\n```\nThe vector table is normally at 0x0800_0000 (= the bootloader). Bootloader sets VTOR (vector table offset register) to 0x0800_4000 + jumps to the app — app's own vector table takes over.\n\n**Bootloader behavior**:\n```\nReset_Handler:\n  if (button pressed at boot) → enter update mode (talk to PC over USB)\n  else if (app signature invalid) → enter recovery mode\n  else → jump to app\n```\n\n**Stm32 default bootloader**: ST chips ship with a factory ROM bootloader that supports DFU (Device Firmware Update) over USB / UART / I2C. Useful for development; production usually replaces it with a custom one supporting OTA over a custom channel."
+    },
+    {
+      "kind": "text",
+      "title": "OTA update protocols",
+      "body": "**OTA (Over-The-Air)** = firmware update delivered without physical access. Critical for deployed IoT devices.\n\n**Protocol overview**:\n1. Device polls server (or server pushes notification): 'is there a new firmware?'\n2. If yes: download metadata (version, size, signature).\n3. Download firmware in chunks (HTTP range requests, MQTT chunks, BLE GATT writes).\n4. Verify integrity (SHA-256 over the full image).\n5. Verify signature (ECDSA-P256 or RSA against device's trusted root).\n6. Write to a non-active flash region.\n7. Reboot into the new image.\n\n**Risks + mitigations**:\n- **Power loss mid-update**: app half-written. Mitigation = A/B partitions: write into the inactive partition; only swap when complete + verified.\n- **Corrupted download**: integrity check.\n- **Malicious image**: cryptographic signature.\n- **Rollback attack** (signed but old version): version-monotonic check; secure boot rejects images with version < current.\n- **Network failure**: resumable download (chunked); idempotent retry.\n\n**Standards / frameworks**:\n- **MCUboot**: open-source secure bootloader by the Linaro / Nordic / Zephyr / Mbed alliance. Supports A/B, signature verification, rollback. The de-facto open standard.\n- **TI's OTA framework**: vendor-specific.\n- **AWS IoT Device Updates**: cloud-side; integrates with FreeRTOS OTA agent.\n- **Mender, balenaOS, Azure Device Update**: device-management platforms with OTA built in.\n\n**Industrial reality**: cars, drones, satellites, medical devices ALL do OTA in 2024. Tesla famously pushes nightly OTA. The 2015 Jeep Cherokee hack publicly demonstrated the consequences of insecure OTA (researchers gained remote engine control). Modern secure OTA is non-negotiable for connected products."
+    },
+    {
+      "kind": "text",
+      "title": "A/B partitions + the swap protocol",
+      "body": "**A/B partitioning**: flash divided into TWO equal app slots.\n- Slot A: currently-running firmware.\n- Slot B: empty or stale.\n\n**Update**:\n1. Download new firmware to Slot B.\n2. Verify Slot B (CRC + signature).\n3. Mark Slot B as 'try this on next boot' (single non-volatile flag).\n4. Reboot.\n5. Bootloader sees the flag → boots Slot B.\n6. After successful boot + health check, Slot B is permanently active. Slot A is now the inactive 'previous'.\n\n**Failure recovery**:\n- If Slot B fails to boot or fails health check within N minutes → bootloader reverts to Slot A on next reset.\n- The 'health check' mechanism: app increments a counter at boot + decrements after stable operation. If counter > threshold without decrement → rollback.\n\n**Costs**:\n- 2× flash usage. A 256 KB app needs 512 KB of flash for A/B.\n- More complex bootloader.\n\n**Benefits**:\n- Power-failure-safe.\n- Atomic update — either the new image runs or the old does.\n- Rollback for free.\n\n**Single-image alternative**:\n- Download to a scratch region in RAM.\n- When complete + verified, copy to the application flash region.\n- This window is unsafe — power failure during the copy bricks the device.\n- Used when flash is too small for A/B.\n\n**Differential updates / delta encoding**: download only the DIFF between old + new versions. Reduces bandwidth 10-100×. Used when bandwidth is expensive (cellular, satellite). VCDIFF (RFC 3284) + bsdiff are common diff formats. Adds complexity (patch must be applied correctly) — many devices ship full images instead."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_boot_chain",
+        "kind": "guided_derivation",
+        "question": "Trace a secure-boot chain",
+        "goal": "Bootloader at 0x0800_0000 (read-only after fuse-blow). App at 0x0800_4000. App image embeds: image data + version + ECDSA signature.",
+        "steps": [
+          {
+            "prompt": "On reset, MCU executes from address 0 (= bootloader). Bootloader computes SHA-256 over the app image (at 0x0800_4000 + length L). Then what?",
+            "motivation": "Signature verification.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Skip verification.",
+                "Verify ECDSA signature over the SHA-256 using the trusted public key burned into the chip's read-only region.",
+                "Encrypt the image.",
+                "Print the hash."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Signature = signed hash. Verify with public key."
+            ],
+            "reveal": "ECDSA-verify(signature, sha256(image), trusted_pubkey). If valid + version OK, proceed."
+          },
+          {
+            "prompt": "Where is the trusted public key stored on chip + why does that matter?",
+            "motivation": "Root of trust.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "In the application — anyone can change it.",
+                "In the application's flash — anyone with flash-write access can change it.",
+                "In a read-only OTP (One-Time Programmable) memory region, often along with the bootloader, with chip's secure boot fuse blown so it cannot be overwritten.",
+                "On the server."
+              ],
+              "correctIndex": 2
+            },
+            "hints": [
+              "The whole point of root-of-trust is immutability."
+            ],
+            "reveal": "Public key in OTP / fuse / hardware-protected region. Once burned + secure-boot enabled, cannot be changed. This is the ROOT OF TRUST."
+          },
+          {
+            "prompt": "Why must the bootloader itself be in a non-writable region?",
+            "motivation": "Chain of trust.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Performance.",
+                "If the bootloader can be replaced by a malicious one, the chain of trust is broken — attacker just installs a malicious bootloader that accepts any image.",
+                "It doesn't need to be.",
+                "Bootloader can be writable, just slow."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Each step must be verifiable from the previous."
+            ],
+            "reveal": "Bootloader is the root of trust; if writable, an attacker installs a malicious one + the verification chain breaks. Either lock the bootloader region permanently or have a smaller ROM bootloader that verifies the writable bootloader (multi-stage)."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Secure boot: immutable root of trust → signed firmware → app}}$$ The chain: hardware fuses → ROM/locked bootloader → signed app image → optional userland. Each step verifies the next. Tampering anywhere fails verification. Used by Apple Secure Enclave, Android Verified Boot, Tesla vehicle ECUs, military + medical devices. MCUboot implements this for resource-constrained MCUs. Standard practice for any connected device with security requirements."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_boot_dual",
+        "kind": "multiple_choice",
+        "question": "Why does virtually every modern automotive ECU implement A/B firmware partitioning?",
+        "options": [
+          "Marketing requirement.",
+          "Functional safety + reliability: a botched OTA must NEVER brick a car (catastrophic recall). A/B with automatic rollback to known-good image guarantees the vehicle is always operable.",
+          "Easier to develop.",
+          "Smaller flash usage."
+        ],
+        "correctIndex": 1,
+        "explanation": "Cars + safety-critical industrial systems can't afford a 'bricked' state. A/B with health-check rollback ensures the device always boots SOMETHING that works. Even at the cost of 2× flash. The same logic applies to medical devices, aerospace, nuclear control. Bootloader's job is to guarantee fallback to a known-good image. Anything less violates functional-safety standards (ISO 26262 ASIL-D for automotive)."
+      },
+      "hints": [
+        "What's the worst case after a failed update?",
+        "Can the user fix it?"
+      ],
+      "workedSolution": "Worst case: car can't boot. User can't drive it. Massive recall + reputational damage. A/B partitioning means even if new firmware has a fatal bug, the bootloader's health-check rolls back to the previous version. The user doesn't notice. The OTA system retries later. This is non-negotiable for safety-critical OTA-capable products.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_boot_flash",
+        "kind": "math_expression",
+        "question": "MCU has 512 KB flash. Bootloader is 16 KB. A/B partitions for the app. Each app slot is...",
+        "acceptedAnswers": [
+          "248 KB",
+          "248",
+          "248KB",
+          "approximately 248 KB"
+        ],
+        "hint": "(512 - 16) / 2 = 248 KB each."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_boot_rec",
+        "kind": "scenario",
+        "question": "Recovering bricked devices",
+        "prompt": "Your team deployed 10,000 IoT devices. An OTA update bricked 1% due to a power-failure-during-write bug. Walk through what should have prevented this + how to recover."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_boot",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why secure boot + signed firmware updates are essential for any connected embedded device shipped in 2025+.",
+        "rubric": "Mentions that connected devices have huge attack surface; unsigned updates let attackers install malicious firmware (Jeep Cherokee hack, Mirai botnet); signed boot establishes a cryptographic chain of trust from hardware fuses through bootloader to app; verified rollback prevents downgrade attacks. Increasingly mandated by regulation (EU Cyber Resilience Act, etc.) for shipped products."
+      }
+    }
+  ]
+}

@@ -1,0 +1,148 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intro",
+    "objectives": [
+      "Convert a regex to an NFA, then to a DFA.",
+      "Understand maximal-munch + longest-match.",
+      "Distinguish hand-written lexers from generated ones."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Lexing = regex matching in disguise",
+      "body": "A **lexer** (a.k.a. scanner, tokenizer) splits source text into a sequence of tokens: keywords, identifiers, operators, literals. Each token type is described by a regular expression — `IDENT = [a-zA-Z_][a-zA-Z0-9_]*`, `INT = [0-9]+`, etc.\n\nThe theoretical foundation: regular languages = regular expressions = NFAs = DFAs (Kleene's theorem, 1956). Production lexers convert all token regexes into one big DFA that consumes input one character at a time, in $O(n)$ where $n$ is input length.\n\nThe canonical pipeline:\n1. Each token's regex → its own NFA (Thompson's construction).\n2. Union the NFAs into one (`|` over all tokens).\n3. NFA → DFA via subset construction.\n4. Minimize the DFA (Hopcroft's algorithm, $O(n \\log n)$).\n\nThe resulting DFA's transition table is just a 2D array `[state][char] → state`. Single L1-cache line per state. Runs at memory bandwidth on modern CPUs."
+    },
+    {
+      "kind": "text",
+      "title": "Maximal munch + the longest-match rule",
+      "body": "Ambiguity: `int x;` — is `int` two tokens (`in`, `t`) or one (`int`)? The **maximal munch** rule: at each position, consume the longest possible token. Standard for almost every language.\n\nThis interacts subtly with keywords. `intx` — is it the keyword `int` followed by `x`, or the identifier `intx`? Maximal-munch says: the IDENT regex `[a-zA-Z_]+` can swallow all 4 chars → one identifier `intx`. Keywords are matched against the resulting IDENT (as a post-pass) — `int` is a keyword only if it's its own complete token.\n\nC++'s `>>` ambiguity is famous: in `vector<vector<int>>`, the `>>` is two `>` tokens (template close), not the right-shift operator. C++11 fixed this with a context-sensitive lexer hack. In general, lexers can't be context-free; some languages punt to the parser via lexer modes (Python's indent/dedent; JavaScript's regex vs divide)."
+    },
+    {
+      "kind": "text",
+      "title": "Hand-written vs generated lexers",
+      "body": "**Generated**: tools like `flex`, `re2c`, `ragel` consume token regexes + emit C/C++ code. Pros: small declarative source, easy to add tokens. Cons: hard to debug, large generated tables, weird error messages.\n\n**Hand-written**: a `match`/`switch` per character, explicit state. Pros: clear control flow, custom error messages with line/column, easy lookahead. Cons: more code, easy to bugs.\n\n**Modern practice**: real compilers (gcc, clang, rustc, the V8 parser, the Go compiler) all use **hand-written** lexers. The advantages — precise error recovery, IDE-friendly partial parsing, fast iteration — outweigh the boilerplate. `flex`-style tools are now mostly used for small DSLs.\n\nGo's lexer is a beautiful canonical example: a single `lex` function returns a state-function that returns the next state-function (Rob Pike's pattern). 600 lines of Go, handles all of Go, ~1 GB/sec throughput.\n\nKey takeaway: lexing is theoretically simple but the engineering choices (error messages, position tracking, modes) matter."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_lex_nfa_dfa",
+        "kind": "guided_derivation",
+        "question": "Derive subset construction (NFA → DFA)",
+        "goal": "Given an NFA, build an equivalent DFA where each DFA state is a SET of NFA states.",
+        "steps": [
+          {
+            "prompt": "The DFA's start state is which set of NFA states?",
+            "motivation": "Account for all states reachable by ε-transitions before reading any input.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Just the NFA's start state.",
+                "The ε-closure of the NFA's start state (the start + everything reachable via ε-transitions).",
+                "All NFA states.",
+                "All NFA accept states."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "NFA can take ε-transitions before any input."
+            ],
+            "reveal": "Start = ε-closure({NFA start})."
+          },
+          {
+            "prompt": "For a DFA state $S$ (a set of NFA states) reading symbol $c$, the next DFA state is which set?",
+            "motivation": "From every $q \\in S$, follow $c$, then close under ε.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Just the union of $c$-transitions from every $q \\in S$.",
+                "The ε-closure of the union of $c$-transitions from every $q \\in S$.",
+                "Only NFA states reachable from $S$ via $c$ alone.",
+                "The intersection."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "After transitioning on $c$, more ε-moves become available."
+            ],
+            "reveal": "$\\delta_{\\text{DFA}}(S, c) = \\text{ε-closure}(\\bigcup_{q \\in S} \\delta_{\\text{NFA}}(q, c))$."
+          },
+          {
+            "prompt": "DFA state $S$ is accepting iff what?",
+            "motivation": "An accept in the NFA was reachable from $S$.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$S$ contains AT LEAST ONE accepting NFA state.",
+                "$S$ contains ALL accepting NFA states.",
+                "$S$ is the start state.",
+                "$S$ contains no NFA accept states."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "NFA accepts as long as SOME path ends in an accept state."
+            ],
+            "reveal": "$S$ accepts iff $S \\cap F_{\\text{NFA}} \\neq \\emptyset$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{DFA states = reachable subsets of NFA states under ε-closure}}$$ Worst case the DFA has $2^n$ states where $n$ is the NFA size, but in practice it's usually small. After construction, minimize via Hopcroft's algorithm. The whole process is automatic — give it the token regexes, get back a lookup table."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_lex_python",
+        "kind": "multiple_choice",
+        "question": "Python's lexer is unusual because:",
+        "options": [
+          "It must track INDENT and DEDENT tokens based on leading whitespace.",
+          "It uses regular expressions internally.",
+          "It is generated by `flex`.",
+          "It cannot be implemented as a DFA."
+        ],
+        "correctIndex": 0,
+        "explanation": "Python uses significant whitespace. The lexer maintains an indentation stack + emits INDENT/DEDENT tokens at scope changes. Outside this stateful layer, the rest is standard regex-based lexing. This is why Python's grammar is technically not context-free at the lexer level."
+      },
+      "hints": [
+        "What is unique about Python's syntax?",
+        "What does it do with whitespace?"
+      ],
+      "workedSolution": "Python uses indentation-based scoping. The lexer tracks an indentation stack: when leading whitespace increases, emit INDENT; when it decreases, emit DEDENT (potentially multiple). This makes the lexer stateful. It's still implementable as a DFA + a side stack — the regular core of the lexer doesn't change, but the dispatch adds a non-regular layer for whitespace tracking.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_lex_dfa_size",
+        "kind": "math_expression",
+        "question": "An NFA has $n$ states. Worst-case DFA size after subset construction?",
+        "acceptedAnswers": [
+          "2^n",
+          "2 to the n"
+        ],
+        "hint": "Subset = power set."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_lex_error",
+        "kind": "scenario",
+        "question": "Lexer error recovery",
+        "prompt": "A team is building a compiler for a teaching language. When the user writes `let x = 12.3.4;` (a malformed number), the lexer currently halts with 'unexpected character'. Describe a better error-recovery strategy."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_lex",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why nearly every production lexer (gcc, rustc, V8, Go) is hand-written rather than generated by `flex`.",
+        "rubric": "Mentions that hand-written lexers give better error messages with precise position info, support IDE-friendly partial/incremental parsing, are easier to debug, and have less performance overhead. The `flex` boilerplate saving is small compared to the maintainability cost across years of compiler development."
+      }
+    }
+  ]
+}

@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "State the role of an HDL (Verilog, VHDL).",
+      "Distinguish behavioral from structural RTL.",
+      "Reason about always blocks, blocking vs non-blocking assignments."
+    ],
+    "prereqs": [
+      "digital-logic"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Hardware Description Languages",
+      "body": "**HDL (Hardware Description Language)**: a programming language for describing digital circuits at the **Register-Transfer Level (RTL)** — what registers hold + how data moves between them per clock cycle.\n\n**The two major HDLs**:\n\n**Verilog** (1984, IEEE 1364): C-like syntax. Dominant in industry, especially US. Used by Intel, AMD, NVIDIA, most ASIC designers.\n\n**VHDL** (VHSIC HDL, 1987): Ada-like syntax. More verbose + strongly typed. Common in defense, aerospace, Europe.\n\n**SystemVerilog** (IEEE 1800, 2005): extends Verilog with OOP-like features for testbenches + verification. Standard for modern designs.\n\n**Other HDLs**:\n- **Chisel** (Berkeley): Scala embedded DSL. Used at SiFive (RISC-V cores).\n- **SpinalHDL**: similar idea, Scala-based.\n- **MyHDL**: Python-based.\n- **High-Level Synthesis (HLS)**: write C/C++ + tool synthesizes RTL. Xilinx Vivado HLS, Intel HLS, Catapult.\n\n**Why HDLs exist**: gate-level netlists are impractical to write by hand for designs >1000 gates. HDLs let you describe circuits behaviorally; tools (synthesizers) convert to gates.\n\n**Example Verilog module — 4-bit register**:\n```verilog\nmodule reg4 (\n  input clk, rst, en,\n  input [3:0] d,\n  output reg [3:0] q\n);\n  always @(posedge clk or posedge rst) begin\n    if (rst) q <= 4'b0000;\n    else if (en) q <= d;\n  end\nendmodule\n```\n\nReads as: 'on the rising edge of clk (or rst), if rst is high reset to zero; else if enable is high, capture d into q'. Synthesizes to 4 D-flip-flops with an enable + asynchronous reset."
+    },
+    {
+      "kind": "text",
+      "title": "Behavioral vs structural RTL",
+      "body": "**Structural RTL**: explicit gate-level netlist or instantiation.\n```verilog\nmodule and_gate (input a, b, output y);\n  assign y = a & b;\nendmodule\n\nmodule mux2 (input s, d0, d1, output y);\n  wire a, b, ns;\n  assign ns = ~s;\n  assign a = ns & d0;\n  assign b = s & d1;\n  assign y = a | b;\nendmodule\n```\nExplicit gates wired together. Tedious for large designs.\n\n**Behavioral RTL**: describe BEHAVIOR; tool figures out gates.\n```verilog\nmodule mux2 (input s, d0, d1, output y);\n  assign y = s ? d1 : d0;\nendmodule\n```\nor with if/case:\n```verilog\nalways @* begin\n  case (sel)\n    2'b00: y = a;\n    2'b01: y = b;\n    2'b10: y = c;\n    default: y = d;\n  endcase\nend\n```\n\nLogic synthesis (Synopsys DC, Cadence Genus) converts behavioral RTL to gate-level netlists. The challenge: 'synthesizable' RTL = the subset of Verilog/SystemVerilog the synthesizer recognizes. Non-synthesizable constructs (initial blocks, delays, file I/O) are for testbenches only.\n\n**Sub-styles**:\n- **Dataflow** (continuous assignment): `assign y = a & b;`. Combinational.\n- **Procedural** (always blocks): more general; can describe sequential.\n\n**Module hierarchy**: large designs are decomposed into modules. A CPU might have ALU, register-file, branch-predictor, cache-controller modules, each itself decomposed.\n\n**Parameters**: HDL modules accept parameters (e.g., bit-width). A 'parameterized 8/16/32-bit adder' is one design that generates different gate netlists for different widths. Verilog: `parameter WIDTH = 8;`. Powerful for reuse."
+    },
+    {
+      "kind": "text",
+      "title": "Always blocks + assignment semantics",
+      "body": "**`always` blocks** describe sequential behavior. Three styles:\n\n**Sequential** (clocked): trigger on clock edge.\n```verilog\nalways @(posedge clk) begin\n  q <= d;  // register: latch d into q on clock edge\nend\n```\nSynthesizes to FLIP-FLOPS.\n\n**Combinational** (sensitivity to all inputs): `always @*` or `always_comb`.\n```verilog\nalways @* begin\n  y = a & b;  // combinational\nend\n```\nSynthesizes to GATES (no storage).\n\n**Latched**: combinational but missed a case → tool infers a latch. USUALLY A BUG.\n```verilog\nalways @* begin\n  if (en) y = d;  // when en=0, y holds previous value → LATCH inferred\nend\n```\nFix: assign in all branches or set a default.\n\n**Blocking (`=`) vs Non-blocking (`<=`) assignments**: the #1 trap for Verilog beginners.\n- **Blocking** (`a = b`): executes immediately, sequentially within block. Use for COMBINATIONAL logic.\n- **Non-blocking** (`a <= b`): all RHS evaluated first, then all LHS updated. Use for SEQUENTIAL (register) logic.\n\nWhy: in a flip-flop chain `a → b → c`, non-blocking gives:\n```verilog\nalways @(posedge clk) begin\n  a <= in;\n  b <= a;\n  c <= b;\n  // After clock edge: a=in, b=old_a, c=old_b. Shift register.\nend\n```\nWith BLOCKING, all three would become 'in' (sequential evaluation within the block):\n```verilog\nalways @(posedge clk) begin\n  a = in;\n  b = a;  // b = in (just-updated)\n  c = b;  // c = in\nend\n```\nWrong for a shift register.\n\n**Coding-style rules**:\n- Sequential always: use `<=`.\n- Combinational always: use `=`.\n- Mix → race conditions, hard-to-debug simulator/synth mismatches.\n\nSystemVerilog's `always_ff` (sequential) + `always_comb` (combinational) + `always_latch` (latch) explicitly typed — recommended over plain `always`."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_rtl_counter",
+        "kind": "guided_derivation",
+        "question": "Design a 4-bit up/down counter in Verilog",
+        "goal": "Outputs `count[3:0]`. Inputs: `clk`, `rst` (async), `dir` (1=up, 0=down). Saturates at 0/15.",
+        "steps": [
+          {
+            "prompt": "Sequential always block? Trigger?",
+            "motivation": "Clocked + reset.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "`always @(posedge clk)`.",
+                "`always @(posedge clk or posedge rst)` — sensitive to clock + async reset.",
+                "`always @*`.",
+                "`always @(rst)`."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Async reset needs explicit sensitivity."
+            ],
+            "reveal": "`always @(posedge clk or posedge rst)`."
+          },
+          {
+            "prompt": "Body logic. Pseudo:\n```\nif (rst) count <= 0;\nelse begin\n  if (dir && count != 4'b1111) count <= count + 1;\n  else if (!dir && count != 4'b0000) count <= count - 1;\nend\n```\nWhich assignment operator?",
+            "motivation": "Sequential.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "`=` (blocking).",
+                "`<=` (non-blocking) — sequential always block; flip-flop semantics.",
+                "Both.",
+                "Neither."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Sequential = non-blocking."
+            ],
+            "reveal": "`<=`. Non-blocking. The register's value updates after the clock edge based on the values read in this cycle."
+          },
+          {
+            "prompt": "Synthesizing this Verilog produces what hardware?",
+            "motivation": "Physical mapping.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "1 flip-flop.",
+                "4 D flip-flops + combinational logic (incrementer + decrementer + saturation logic + MUX selected by dir).",
+                "100 flip-flops.",
+                "An LSTM."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "4-bit register + arithmetic logic."
+            ],
+            "reveal": "4 D-flip-flops storing count + combinational logic computing next count. The compiler/synthesizer maps the behavioral RTL to a gate netlist. Verilog is just the description; gates are the actual circuit."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Verilog RTL → synthesis → gate netlist}}$$ The HDL description is independent of the underlying technology. The SAME Verilog code can be synthesized to a 7nm ASIC, a 28nm FPGA, or a discrete TTL board. Tools (Synopsys DC, Cadence Genus, Yosys for open-source) optimize for delay/area/power per technology. The decoupling is what makes modern chip design tractable."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_rtl_assign",
+        "kind": "multiple_choice",
+        "question": "A Verilog beginner writes:\n```verilog\nalways @(posedge clk) begin\n  a = in;\n  b = a;\nend\n```\nWhat's the bug?",
+        "options": [
+          "Nothing wrong.",
+          "Used blocking `=` in sequential always; intended a shift register but get b = in (not b = old_a). Should use `<=`.",
+          "Missing reset.",
+          "Wrong sensitivity list."
+        ],
+        "correctIndex": 1,
+        "explanation": "Sequential always blocks should use non-blocking assignments (`<=`). With blocking (`=`), the statements execute sequentially in the simulator + b updates to the JUST-ASSIGNED a (= in), not old_a. The synthesizer may or may not agree with the simulator — undefined behavior. Always use `<=` in clocked blocks; `=` in combinational. SystemVerilog's `always_ff` / `always_comb` make this explicit."
+      },
+      "hints": [
+        "What's the assignment operator for sequential vs combinational?",
+        "What does blocking do in a sequential block?"
+      ],
+      "workedSolution": "Rule: `<=` in sequential (`always @(posedge clk)`); `=` in combinational (`always @*`). Mixing causes sim/synth mismatch + race conditions. The bug here: intended shift register, got duplicate. SystemVerilog enforces this with `always_ff` (only `<=` allowed) + `always_comb` (only `=` allowed).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_rtl_width",
+        "kind": "math_expression",
+        "question": "A 'parameterized counter' is instantiated with WIDTH=12. How many flip-flops does it have?",
+        "acceptedAnswers": [
+          "12"
+        ],
+        "hint": "WIDTH bits = WIDTH FFs."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_rtl_synth",
+        "kind": "scenario",
+        "question": "RTL-to-gate flow",
+        "prompt": "A teammate writes Verilog that simulates correctly but fails synthesis with 'inferred latch' warnings. Walk through what's happening + how to fix."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_rtl",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why behavioral RTL (vs structural / gate-level) is the standard practice for designing modern ASICs + FPGAs.",
+        "rubric": "Mentions that behavioral RTL is dramatically more concise; modern synthesizers produce gate-level netlists that are nearly as good as hand-tuned for most designs; behavioral RTL is portable across technology nodes (28nm, 7nm) + targets (ASIC, FPGA); the abstraction lets designers focus on architecture rather than gates."
+      }
+    }
+  ]
+}

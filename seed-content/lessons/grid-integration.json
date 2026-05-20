@@ -1,0 +1,146 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "specialist",
+    "objectives": [
+      "State frequency + voltage stability constraints.",
+      "Outline inertia + grid-forming inverters.",
+      "Reason about transmission + distribution."
+    ],
+    "prereqs": [
+      "solar-pv-fundamentals",
+      "wind-energy"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The grid: frequency + voltage",
+      "body": "An AC grid is a HUGE machine running at a precise frequency (60 Hz in Americas + parts of Asia + Korea, 50 Hz elsewhere). All generators are SYNCHRONIZED. The grid frequency is the canonical signal: too LOW = demand exceeds supply; too HIGH = supply exceeds demand.\n\n**Active power balance**: generation - load = stored kinetic energy in spinning machines.\n- Imbalance → frequency drift.\n- 60.0 Hz nominal. ±0.1 Hz normal. ±0.5 Hz alarm. ±1.0 Hz disconnects.\n\n**Frequency control**:\n- **Inertia**: spinning mass of generators + motors stores kinetic energy. As frequency drops, slows them → releases kinetic energy → SLOWS the drop. Buys time (~seconds).\n- **Primary control (governor)**: each generator senses frequency + adjusts output. Responds in seconds.\n- **Secondary control (AGC, Automatic Generation Control)**: ~30-second timescale. Restores frequency to 60 Hz.\n- **Tertiary control (dispatch)**: minutes-hours. Operator decides what plants to commit.\n\n**Voltage control**: maintained locally via reactive power (VARs).\n- Transformers, capacitors, FACTS devices, generator excitation, inverter reactive support.\n- Voltage drops along transmission lines (losses + reactance).\n\n**N-1 contingency planning**: grid must survive loss of any single component (a generator, a transmission line, a substation). Multiple-contingency planning for higher-risk regions. Sets operating margins.\n\n**Why this matters for renewables**:\n- **Solar + wind have NO inherent inertia**: just power electronics + no spinning mass. Adding more inverter-based generation reduces total grid inertia.\n- **Variability**: solar + wind vary on minute-hour timescales. Requires balancing reserves.\n- **Geographic concentration**: solar farms cluster in sunny + open areas. Often far from load.\n\n**Grid services from renewables (modern inverters)**:\n- **Frequency response**: power electronic response in milliseconds. FASTER than spinning-mass inertia.\n- **Voltage support**: reactive power.\n- **Black-start capability**: emerging via grid-forming inverters.\n- **Primary frequency response**: many inverters now configurable for this."
+    },
+    {
+      "kind": "text",
+      "title": "Transmission + distribution + losses",
+      "body": "**Transmission**: high-voltage lines (115-1000+ kV AC, or HVDC) carrying bulk power over long distances.\n- Higher voltage = lower current = lower I²R losses for same power.\n- Modern lines: 765 kV AC + 800 kV HVDC + 1100 kV HVDC (Ultra-HVDC).\n- Underground transmission: 5-10× more expensive than overhead. Used in cities + crossing water.\n\n**Distribution**: lower-voltage local lines (4-25 kV typically) delivering to homes + businesses.\n- Step-down transformers at neighborhood substations.\n- Residential at 120/240 V (USA) or 230/400 V (Europe).\n\n**Losses**:\n- Generation → consumption: ~6-10% total losses.\n- Transmission: 2-4%.\n- Distribution: 4-6%.\n- Higher in older grids (India ~20%+) due to infrastructure + theft.\n\n**HVDC (High-Voltage Direct Current)**: alternative to AC for long-distance.\n- Lower losses (no reactive component, no skin effect).\n- Long submarine cables (AC can't go > ~80 km due to capacitive losses).\n- Asynchronous interconnects (link grids of different frequencies).\n- Cost: expensive end-station converters; cheap line.\n- Crossover ~600 km overhead, ~50-80 km submarine.\n- Largest: 1100 kV Zhundong-Wannan in China (12 GW).\n\n**Smart grid**:\n- **AMI (Advanced Metering Infrastructure)**: smart meters with two-way comms. ~50% USA deployment.\n- **SCADA**: real-time monitoring of grid state.\n- **PMU (Phasor Measurement Units)**: GPS-time-synced voltage + current measurements. Wide-area situational awareness.\n- **Distributed Energy Resources (DERs)**: rooftop solar, EV chargers, batteries. Aggregated via VPPs (Virtual Power Plants).\n- **Demand response**: customers reduce consumption on signals. EV charging schedulers, smart thermostats, industrial loads.\n\n**Grid-forming inverters**: emerging technology. Traditional 'grid-following' inverters need an external voltage reference. Grid-forming inverters CREATE the reference themselves — can operate islanded + start a grid from black-out. Critical for high-renewable grids.\n\n**The 'duck curve'** (CAISO, California): net-load curve in high-solar grids. Solar peaks midday + drops at sunset; load is steady-to-rising. Net load drops sharply during day, then RAMPS UP at sunset. Requires storage + flexible generation to manage. Battery storage is the dominant solution being deployed."
+    },
+    {
+      "kind": "text",
+      "title": "Renewable integration challenges + solutions",
+      "body": "**Capacity vs energy**: high renewable PENETRATION vs high renewable SHARE are different.\n- 100% capacity = renewable nameplate equals peak demand. Doesn't matter when it's calm + dark.\n- 100% energy = ALL energy on annual basis from renewables. Needs storage + flexibility.\n\n**The duck curve + storage**: solar-heavy grids need 2-6 hours of storage daily for peak shifting. Battery storage cost-effective at scale.\n\n**Seasonal mismatch**: wind blows more in winter; solar more in summer. Annual storage (multi-month) currently economically infeasible at scale — would need ~petajoules of capacity. Hydrogen + ammonia + long-duration storage emerging.\n\n**Curtailment + negative prices**: when too much renewable on grid, prices go negative + plants paid to stop. ~5% of California solar curtailed in 2023 peaks. Encourages over-building storage + flexible loads.\n\n**Capacity firming**: pair variable renewables with storage + flexible generation (gas peakers, demand response) for reliable supply.\n\n**Transmission needs**: renewable resources often FAR from load. USA: Great Plains has best wind + sun but lowest population. Needs new transmission. Slow due to permitting + NIMBY.\n\n**Examples of high-renewable grids**:\n- **South Australia**: ~70% wind + solar share. Has had whole days at 100% renewables. Storage + interconnects to other states critical.\n- **Denmark**: ~50% wind. Imports/exports + Norway hydro for backup.\n- **Iberia (Spain + Portugal)**: high solar + wind. Limited inertia issues seen.\n- **California**: ~30% renewable energy. Battery storage scaling rapidly.\n- **Iowa, Texas**: ~30-40% wind. Coal + gas backup.\n\n**Inertia + system-strength concerns**:\n- Texas Feb 2021: extreme cold + grid stress. Multiple gas + nuclear plants tripped. ERCOT came close to total blackout. Drove discussion of grid hardening.\n- South Australia 2016 'system black': storm + cascading trips. Recovered with grid-forming inverter expansion + storage.\n\n**Future: 100% renewable grid?**\n- Technically possible with current technology.\n- Requires: massive overbuild of solar + wind, ~10× current storage, transmission expansion, smart loads + sectoral coupling (EVs, heat pumps, electrolyzers as flexible loads).\n- Cost trajectory favorable: continued cost declines in solar + storage. \n- Political + permitting challenges + infrastructure speed are the bottlenecks."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_grid_duck",
+        "kind": "guided_derivation",
+        "question": "Compute duck-curve storage need",
+        "goal": "Sunny midday: 5 GW solar surplus over load. From sunset to 9 PM peak: load rises 8 GW above solar output (sun is gone). Storage needed to bridge this?",
+        "steps": [
+          {
+            "prompt": "Surplus during sunny midday: 5 GW for 6 hours = ?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "30 GWh",
+                "30"
+              ]
+            },
+            "hints": [
+              "5 × 6 = 30 GWh."
+            ],
+            "reveal": "30 GWh excess midday energy."
+          },
+          {
+            "prompt": "Evening deficit: 8 GW for ~3 hours = ?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "24 GWh",
+                "24"
+              ]
+            },
+            "hints": [
+              "8 × 3 = 24 GWh."
+            ],
+            "reveal": "24 GWh evening deficit."
+          },
+          {
+            "prompt": "Storage to shift midday surplus to evening: need ~24 GWh at appropriate capacity. With 8 GW power capacity, ~3 hours. With 4 GW power, ~6 hours. Cost?",
+            "motivation": "Estimate.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Free.",
+                "At ~\\$300/kWh installed, 24 GWh = \\$7.2 billion. Power capacity (4-8 GW) + energy capacity (24 GWh) drive cost. California's deployed 8-10 GW of 4-hour batteries (~30-40 GWh) addresses much of the duck-curve need.",
+                "Trivial.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "GWh × $/kWh."
+            ],
+            "reveal": "Multi-billion-dollar investment. California has deployed massive 4-hour battery fleets specifically to address duck curve. The investment is paid back via avoided generation + transmission + serves capacity + ancillary services."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Storage GWh} = \\text{average shifting need}}$$ The duck curve gets STEEPER as more solar is added; storage requirements grow. California targeting 50% renewable by 2025 has driven explicit storage mandates (SB 700, AB 327). Tesla's Megapack + EnerC + similar systems are deployed at 100s of MW per project. The economic case is clear: cheaper to buy storage than to over-build solar OR keep gas peakers operating on standby."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_grid_inertia",
+        "kind": "multiple_choice",
+        "question": "High-renewable grids face 'low inertia' challenges. What does this mean + what's the solution?",
+        "options": [
+          "Random.",
+          "Traditional grids: spinning machines store kinetic energy. As frequency drifts, that mass slows/speeds + provides damping (~seconds of margin). Solar + wind have NO spinning mass. Solution: grid-forming inverters that synthesize inertia electronically + provide faster response than real inertia.",
+          "Add weight.",
+          "Doesn't matter."
+        ],
+        "correctIndex": 1,
+        "explanation": "Grid inertia comes from spinning generators. When frequency drops, generators slow → release kinetic energy → slow the drop, buy time for control systems. Solar + wind have NO inherent inertia. As renewable share grows, total inertia drops. Faster frequency events (under-frequency cascades) become possible. Solutions: (1) grid-forming inverters synthesize 'virtual inertia' in software; (2) battery storage provides millisecond response; (3) synchronous condensers (spinning machines, no generation) provide real inertia. Modern grid codes are updating to require these capabilities from new inverter-based generation."
+      },
+      "hints": [
+        "What's inertia?",
+        "Why important?"
+      ],
+      "workedSolution": "Inertia = spinning mass × frequency². Stores kinetic energy. When frequency drops, mass releases energy → frequency drop SLOWED. Buys time (~seconds) for governors to respond. Solar + wind = inverter-based = no spinning mass. Solutions: grid-forming inverters synthesize inertia digitally; battery storage provides ms response; synchronous condensers add real inertia. Modern grid codes require some of these. South Australia's 2016 black + lessons learned drive this engineering.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_grid_kva",
+        "kind": "math_expression",
+        "question": "5 kW residential load. At 240 V, current draw?",
+        "acceptedAnswers": [
+          "~21 A",
+          "20.8 A",
+          "5000/240"
+        ],
+        "hint": "P=VI."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_grid_renewable",
+        "kind": "scenario",
+        "question": "Pathway to 80% renewable grid",
+        "prompt": "A state aims for 80% renewable energy by 2035. Walk through the engineering challenges + investments needed."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_grid",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why grid-forming inverters are increasingly required for high-renewable grids.",
+        "rubric": "Mentions that traditional inverters are grid-following (need external voltage/frequency reference); high-renewable grids have less spinning mass to provide stability; grid-forming inverters can synthesize a reference internally, providing inertia + voltage + black-start capability electronically; this enables grids approaching 100% inverter-based generation. Standards (IEEE 1547, IEC 61850) are evolving rapidly to mandate these capabilities."
+      }
+    }
+  ]
+}

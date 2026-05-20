@@ -1,0 +1,101 @@
+{
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "advanced",
+    "objectives": [
+      "State the DH problem + EC version.",
+      "Reason about RSA signing vs encrypting.",
+      "Recognize the ECDSA nonce-reuse vulnerability."
+    ],
+    "prereqs": [
+      "hash-functions"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Diffie-Hellman, the key-agreement primitive",
+      "body": "**Setup**: a cyclic group $G$ of prime order $q$ with generator $g$. Hardness assumption: given $g^a$ and $g^b$, finding $g^{ab}$ is hard (the **Computational Diffie-Hellman problem**).\n\n**Protocol**:\n1. Alice picks random $a$, sends $g^a$.\n2. Bob picks random $b$, sends $g^b$.\n3. Both compute shared secret $g^{ab}$ (Alice via $(g^b)^a$; Bob via $(g^a)^b$).\n\nAn eavesdropper sees $g^a$ and $g^b$ but cannot compute $g^{ab}$ without solving CDH.\n\n**Modern instantiations**:\n- **Classical DH**: $G = \\mathbb{F}_p^*$ for large prime $p$ (~2048-3072 bits for security).\n- **ECDH** (Elliptic Curve DH): $G$ = points on an elliptic curve over $\\mathbb{F}_p$. Same security at much smaller key sizes (256 bits ≈ 3072-bit RSA security).\n- **X25519**: ECDH on Curve25519. Modern default. Used by TLS 1.3, WireGuard, Signal.\n\nThe whole TLS handshake's confidentiality rests on DH being hard."
+    },
+    {
+      "kind": "text",
+      "title": "RSA: encryption ≠ signing",
+      "body": "RSA-OAEP encryption + RSA-PSS signing are DIFFERENT operations using the same key pair. Many subtle attacks come from confusing them.\n\n**RSA-OAEP encryption**:\n- Encrypt with public key: $c = m^e \\bmod N$ (after padding).\n- Decrypt with private key: $m = c^d \\bmod N$.\n- Padding (OAEP) prevents chosen-ciphertext attacks.\n\n**RSA-PSS signing**:\n- Sign with private key: $\\sigma = H(m)^d \\bmod N$ (after randomized padding).\n- Verify with public key: $H(m) \\stackrel{?}{=} \\sigma^e \\bmod N$.\n- Probabilistic padding gives strong security proofs.\n\nBoth use the modular-exponentiation core. Mathematically related (encryption = signing the message). Operationally distinct:\n- ENCRYPTION key: anyone can encrypt to you; only you decrypt.\n- SIGNING key: only you sign; anyone verifies.\n\n**Don't use the same key for both.** Best practice: separate key pairs for separate purposes. Subtle attacks (Bleichenbacher's, Manger's) exploit the unified key surface."
+    },
+    {
+      "kind": "text",
+      "title": "ECDSA's nonce-reuse vulnerability",
+      "body": "**ECDSA signature**: $(r, s)$ where $k$ is a random nonce, $r = (k \\cdot G).x \\bmod n$, $s = k^{-1}(H(m) + r \\cdot d) \\bmod n$. Here $d$ is the private key.\n\n**Reusing $k$ across two signatures of different messages**:\n- $s_1 = k^{-1}(H(m_1) + r \\cdot d)$\n- $s_2 = k^{-1}(H(m_2) + r \\cdot d)$ (same $r$ because same $k$)\n- $s_1 - s_2 = k^{-1}(H(m_1) - H(m_2)) \\bmod n$\n- Solve for $k$: $k = (H(m_1) - H(m_2))(s_1 - s_2)^{-1} \\bmod n$.\n- Once $k$ is known: $d = r^{-1}(s_1 k - H(m_1)) \\bmod n$. Private key recovered.\n\n**Famous breaks**:\n- **PS3 (2010)**: Sony used a fixed nonce in their ECDSA-based signing. fail0verflow extracted the master private key via this exact derivation.\n- **Bitcoin (2013)**: Android's bad RNG caused nonce reuse → multiple wallets drained.\n\n**Fix**: deterministic ECDSA (RFC 6979): derive $k$ from $H(d, m)$. Same message + same key → same signature (no randomness needed). Used by modern Bitcoin clients + most well-engineered systems. Ed25519 (EdDSA on Curve25519) is deterministic by design — no nonce to mismanage."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_pk_dh",
+        "kind": "guided_derivation",
+        "question": "Derive Diffie-Hellman's shared secret",
+        "goal": "Alice has private $a$ + public $A = g^a$. Bob has $b$ + $B = g^b$. Compute shared secret.",
+        "steps": [
+          {
+            "prompt": "Alice computes $B^a = (g^b)^a = g^{ab}$. Bob computes $A^b = (g^a)^b = g^{ab}$. Same value. Why is this secure against eavesdroppers?",
+            "motivation": "Eavesdropper has $g^a, g^b$ but not $g^{ab}$.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Computing $g^{ab}$ from $g^a, g^b$ requires solving the CDH problem — hard in well-chosen groups.",
+                "DH is broken.",
+                "Random.",
+                "By inspection."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "What does the eavesdropper need to compute?"
+            ],
+            "reveal": "Eavesdropper has $g^a, g^b$. Computing $g^{ab}$ from these = the Computational Diffie-Hellman problem. Hard for $g \\in \\mathbb{F}_p^*$ ($p$ prime, large) or $G$ = elliptic-curve group."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{DH shared secret} = g^{ab}, \\text{ derived independently by both parties}}$$ Foundation of every modern key-exchange (TLS, Signal, WireGuard). EC variants give smaller keys at equivalent security."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_pk_size",
+        "kind": "multiple_choice",
+        "question": "X25519 (ECDH on Curve25519) uses 256-bit keys. Equivalent classical RSA key size?",
+        "options": [
+          "~256 bits",
+          "~512 bits",
+          "~2048 bits",
+          "~3072 bits"
+        ],
+        "correctIndex": 3,
+        "explanation": "Classical RSA scaling vs ECC: 256-bit ECC ≈ 3072-bit RSA in security level. Bigger gap at higher security levels: 384-bit ECC ≈ 7680-bit RSA. ECC's smaller keys = faster operations + less bandwidth. Standard table in NIST guidance."
+      },
+      "hints": [
+        "ECC vs RSA security-equivalence table.",
+        "256 ECC ≈ ? RSA."
+      ],
+      "workedSolution": "Security-equivalence table (NIST SP 800-57): 256-bit ECC = 3072-bit RSA. 384-bit ECC = 7680-bit RSA. ECC's smaller keys + faster operations come from the elliptic-curve discrete-log problem being harder per bit than integer factoring.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_pk_sign",
+        "kind": "scenario",
+        "question": "Sign vs encrypt the same data",
+        "prompt": "A teammate proposes using the SAME RSA key pair for both API authentication (signing tokens) AND encrypting customer secrets at rest. Walk through why this is risky + what they should do instead."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_pk",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why post-quantum cryptography focuses on REPLACING DH + RSA + ECDSA, but not symmetric ciphers (AES) or hashes (SHA-256).",
+        "rubric": "Mentions that Shor's algorithm breaks DH/RSA/ECDSA (all reduce to factoring or discrete-log); Grover's algorithm only halves symmetric security (just double the key size); AES-256 + SHA-384 remain quantum-secure; the asymmetric primitives are the ones requiring redesign."
+      }
+    }
+  ]
+}

@@ -1,0 +1,142 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intro",
+    "objectives": [
+      "State the wave properties of sound.",
+      "Explain the equal-loudness contours.",
+      "Reason about auditory masking + critical bands."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Sound: pressure waves through air",
+      "body": "**Sound** is a longitudinal pressure wave propagating through a medium (air, water, solid). Particles vibrate parallel to the wave's direction.\n\n**Key properties**:\n- **Frequency** $f$: cycles per second (Hz). Determines perceived **pitch**. Human range: ~20 Hz to ~20 kHz (declines with age).\n- **Amplitude**: peak pressure deviation. Determines perceived **loudness**.\n- **Wavelength** $\\lambda$: spatial period. $\\lambda = c/f$ where $c$ ≈ 343 m/s in air at 20°C.\n- **Phase**: position within cycle (radians or degrees).\n- **Waveform**: shape (sine, square, sawtooth, complex). Determines **timbre**.\n\n**Speed of sound**: depends on medium + temperature.\n- Air at 20°C: 343 m/s.\n- Water: ~1480 m/s (4× faster).\n- Steel: ~5000 m/s.\n- Slightly faster in warm air, slower in cold (~0.6 m/s per °C).\n\n**Decibels (dB)**: logarithmic intensity scale. $\\text{dB} = 20 \\log_{10}(p/p_{\\text{ref}})$ for SPL (sound pressure level). $p_{\\text{ref}} = 20 \\,\\mu\\text{Pa}$ (threshold of hearing).\n\nReference SPL levels:\n- 0 dB: threshold of hearing.\n- 30 dB: quiet library.\n- 60 dB: normal conversation.\n- 85 dB: city traffic (long exposure causes hearing damage).\n- 100 dB: subway train, nightclub.\n- 120 dB: rock concert front row, jackhammer (pain threshold).\n- 140 dB: jet takeoff at 30m. Immediate damage.\n\n**3 dB doubles intensity but does NOT double loudness** (subjective). ~10 dB increase = perceived doubling of loudness.\n\n**Inverse-square law**: sound intensity decreases as $1/r^2$ from a point source. Doubling distance = -6 dB SPL. (In real environments, reverberation modifies this.)"
+    },
+    {
+      "kind": "text",
+      "title": "Equal-loudness contours + frequency response",
+      "body": "**Equal-loudness contours** (Fletcher-Munson 1933, ISO 226): curves of equal perceived loudness across frequencies. SHOW THAT HUMANS HEAR DIFFERENT FREQUENCIES UNEQUALLY at the same SPL.\n\nKey features:\n- **Most sensitive around 2-5 kHz** (corresponds to ear canal resonance + speech-intelligibility range).\n- **Less sensitive at low frequencies** (need higher SPL to perceive same loudness as 1 kHz).\n- **Less sensitive at very high frequencies**.\n- **Contour shape varies with overall level**: louder sounds have flatter contours (low + high frequencies catch up).\n\n**Phon** unit: perceived loudness referenced to 1 kHz SPL. A 50-phon sound is equally loud as a 50 dB SPL sound at 1 kHz.\n\n**Sone** unit: linear perceptual loudness. 1 sone = 40 phon. Doubling sones = doubling subjective loudness.\n\n**Implications for music + mixing**:\n- Mixing at LOW volume: low-frequencies + high-frequencies sound quieter than they will at high volume. Easy to over-EQ them.\n- Mastering studios reference at consistent levels (~85 dB SPL standard) for stable judgments.\n- 'Loudness war': louder music sounds 'better' to casual listeners (closer to flat contour). Drove ever-higher mixing levels through 2000s-2010s. LUFS standards (next lesson on mastering) push back.\n\n**Frequency hearing limits**:\n- 20 Hz - 20 kHz typical young adult. Reality more like 30 Hz - 15 kHz for most adults.\n- Presbycusis: age-related decline. By 60, top often drops to 10-12 kHz.\n- Noise-induced hearing loss: 4 kHz notch first ('cochlear notch'), expands.\n\n**Listening level + hearing loss**: 85 dB for 8 hours is OSHA-considered hazardous. Above 100 dB, minutes can cause permanent damage. Modern personal audio (earbuds at high volume) is a major contributor to hearing loss in young people."
+    },
+    {
+      "kind": "text",
+      "title": "Auditory masking + critical bands",
+      "body": "**Auditory masking**: one sound makes another inaudible. Two flavors:\n\n**Simultaneous masking**: loud sound at frequency $f$ masks quieter sounds at nearby frequencies. Bigger effect on higher frequencies than lower (upward spread of masking).\n\n**Temporal masking**:\n- **Forward masking**: loud sound masks a quiet sound that follows (up to ~200 ms).\n- **Backward masking**: loud sound masks a quiet sound that PRECEDES (up to ~20 ms — short).\n\n**Critical bands** (Fletcher 1940, Zwicker 1961): the ear analyzes sound in frequency 'bands' of fixed perceptual width. ~24 critical bands span the hearing range.\n\nIn each critical band, the ear sums energy. A signal at frequency $f$ is most strongly masked by another signal in the same critical band.\n\n**Equivalent Rectangular Bandwidth (ERB)**: modern refinement. $\\text{ERB}(f) = 24.7(1 + 4.37 f/1000)$. Bands wider at high frequencies.\n\n**Use in audio compression** (MP3, AAC, Ogg Vorbis):\n- Analyze masking curve from spectrum.\n- Quantize/encode each frequency band only to a precision masked by neighboring bands.\n- Inaudible quantization noise is acceptable. Audible isn't.\n- Reduces bits per second 10-15× over uncompressed PCM with little perceived loss.\n\n**Use in mixing**:\n- If two instruments compete in the same critical band, listener can hear ONE clearly + the other becomes mush. Solution: EQ (carve frequencies from one to make room for the other), pan to different stereo positions, time-shift slightly.\n- The 'mud zone' 200-500 Hz holds many instruments (vocals, guitars, kicks, snares). High-pass everything not absolutely needed there.\n- The 2-5 kHz 'presence' zone: where ear is most sensitive. Don't crowd.\n\n**Use in noise reduction**:\n- Subtract a 'noise profile' selectively in bands where noise dominates.\n- Modern AI denoisers (RNNoise, Nvidia Broadcast, Adobe Speech Enhance) exploit psychoacoustic models + deep learning."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_acoust_db",
+        "kind": "guided_derivation",
+        "question": "Compute SPL of a distant sound",
+        "goal": "Speaker at 100 dB SPL at 1 meter. Listener moves to 10 meters away. New SPL (in dB)? Use the inverse-square law: doubling distance loses 6 dB.",
+        "steps": [
+          {
+            "prompt": "Distance changed from 1 m to 10 m, a factor of 10. How many doublings is that?",
+            "motivation": "Logarithmic.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~3.32",
+                "log2(10)",
+                "3.32"
+              ]
+            },
+            "hints": [
+              "$\\log_2(10) \\approx 3.32$."
+            ],
+            "reveal": "~3.32 doublings."
+          },
+          {
+            "prompt": "Each doubling = -6 dB. Total dB loss?",
+            "motivation": "Multiply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "20",
+                "20 dB"
+              ]
+            },
+            "hints": [
+              "6 × 3.32 ≈ 20 (also: 20 log10(10) = 20)."
+            ],
+            "reveal": "20 dB (or equivalently: $20 \\log_{10}(r_2/r_1) = 20 \\log_{10}(10) = 20$ dB)."
+          },
+          {
+            "prompt": "Final SPL?",
+            "motivation": "Subtract.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "80",
+                "80 dB"
+              ]
+            },
+            "hints": [
+              "100 - 20."
+            ],
+            "reveal": "80 dB SPL at 10 meters. Still loud — but no longer hazardous over hours."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Inverse-square: } \\Delta \\text{SPL} = -20 \\log_{10}(r_2/r_1)}$$ Doubling distance = -6 dB (free-field). 10× distance = -20 dB. 100× = -40 dB. Real environments (rooms, outdoor reflective surfaces) deviate due to reverberation. The formula is exact for free-field point sources; useful approximation for most situations. Determines speaker placement, microphone distance, listening positions in studios + concerts."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_acoust_mask",
+        "kind": "multiple_choice",
+        "question": "An MP3 encoder discards information in frequency bands where it predicts the listener can't hear it. What's the underlying principle?",
+        "options": [
+          "Random discarding.",
+          "Auditory masking: loud signals in nearby frequencies mask quieter ones. The encoder allocates more bits to perceptually-important regions + fewer to masked ones. Quantization noise hidden under the masking threshold = inaudible.",
+          "Just bandwidth reduction.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Perceptual audio coding (MP3, AAC, Ogg Vorbis, Opus) exploit auditory masking + critical bands. Strong signals in a band mask weaker ones; encoder doesn't need to perfectly preserve weak components in masked regions. Bits saved → smaller files. MP3 (1991) was revolutionary precisely because of this insight. Modern Opus (2012) uses similar principles + can encode speech at <10 kbps with intelligibility."
+      },
+      "hints": [
+        "What does masking predict?",
+        "How does encoder exploit?"
+      ],
+      "workedSolution": "Auditory masking: loud signals mask quieter neighbors. Encoder analyzes input, computes masking curve, allocates bits where they matter (unmasked regions). Quantization noise placed under masking threshold → inaudible. MP3 reduces uncompressed CD-audio (1411 kbps) to ~128 kbps with most people unable to distinguish. Modern codecs (Opus, AAC) even more efficient.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_acoust_wavelen",
+        "kind": "math_expression",
+        "question": "Wavelength of 440 Hz (A4) tone in air at 343 m/s?",
+        "acceptedAnswers": [
+          "0.78 m",
+          "0.78",
+          "~78 cm",
+          "approximately 0.78"
+        ],
+        "hint": "λ = c/f = 343/440 ≈ 0.78 m."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_acoust_concert",
+        "kind": "scenario",
+        "question": "Designing a concert venue",
+        "prompt": "An architect designs a 5000-seat outdoor venue. The sound engineer worries about inverse-square dropoff + reverberation. Walk through the acoustic considerations."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_acoust",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why understanding psychoacoustics (masking, critical bands, equal-loudness contours) is more useful for audio engineering than just understanding physics.",
+        "rubric": "Mentions that humans don't hear all frequencies + amplitudes equally; the ear has nonlinearities (logarithmic loudness, frequency-dependent sensitivity, masking) that determine what 'matters'; mixing decisions, compression algorithms, hearing-aid design all rest on psychoacoustics. The physics tells what sound IS; psychoacoustics tells what's HEARD."
+      }
+    }
+  ]
+}

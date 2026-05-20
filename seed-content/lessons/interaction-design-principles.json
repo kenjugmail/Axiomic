@@ -1,0 +1,147 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "State Norman's design principles.",
+      "Apply affordance + feedback to UI choices.",
+      "Reason about Fitts's Law + control sizing."
+    ],
+    "prereqs": [
+      "user-research-and-interviews"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Don Norman's design principles",
+      "body": "Don Norman ('The Design of Everyday Things', 1988): foundational design principles applying to physical + digital products.\n\n**Affordances**: a property that suggests how the object should be used. A handle affords pulling; a button affords pressing.\n- **Real affordance**: physical/perceptual property (door handle).\n- **Perceived affordance**: visual cue suggesting usability (drop shadow on a button suggests pressability).\n- **Signifiers**: explicit signals of usability (a 'Push' label on a door, an arrow on a slider).\n\n**Mappings**: relationship between controls + effects. Natural mappings reduce cognitive load.\n- E.g., stove burner controls SHOULD spatially match burners (top-left knob = top-left burner).\n- Volume slider goes UP = volume goes UP.\n- Bad mapping: separate buttons for window blind 'up' + 'down' on opposite sides of a panel.\n\n**Feedback**: response to user actions. Did the action work?\n- Visual: button press visualization, loading spinner, checkmark on save.\n- Audio: click sound, success/error tones.\n- Haptic: device vibration on phones.\n- Without feedback, users feel uncertain + may repeat action (double-click rage, duplicate submissions).\n\n**Constraints**: limit possible actions to prevent errors.\n- USB connector originally fit only one way (constraint).\n- A form field accepting only digits prevents typos.\n- Disabled buttons (with rationale tooltip) prevent invalid actions.\n\n**Discoverability + Understandability**: can users figure out HOW + WHY? Make important controls visible; make their state + purpose clear.\n\n**Conceptual model**: user's mental picture of how the system works. Designers should reveal a clear conceptual model. Mismatch → confusion + errors. The trash-can icon on desktops reveals that you can drag files to delete (matching physical trash)."
+    },
+    {
+      "kind": "text",
+      "title": "Feedback patterns + the rules of UI responsiveness",
+      "body": "**Feedback latency**: how fast UI responds.\n\nClassic latency thresholds (Card, Robertson, Mackinlay 1991):\n- **<100 ms**: feels instant.\n- **0.1-1 second**: feels responsive but noticeable.\n- **1-10 seconds**: feels slow; user attention wanders.\n- **>10 seconds**: user switches tasks.\n\nDesign implications:\n- Sub-100ms response for direct interactions (button press, hover) — critical.\n- 0.1-1s for typical operations (navigate, save) — okay.\n- 1-10s: show loading indicator (spinner, progress bar). User knows it's working.\n- >10s: indeterminate progress can be misleading. Use indeterminate ONLY if you really don't know remaining time. Otherwise, show estimated time + percentage.\n\n**Optimistic UI**: assume operation will succeed; show result immediately while the actual request runs in background. If it fails, show error + revert. Feels instant. Used in Twitter (like button), Asana (task changes), most modern web apps.\n\n**Skeleton screens**: show layout placeholders during loading instead of spinners. Less anxiety; appears faster. Used in Facebook, LinkedIn, YouTube.\n\n**Visible state changes**: when something changes, ANIMATE the change subtly so user perceives it.\n- New email arriving: brief slide-in animation.\n- Item added to cart: fly to cart icon.\n- Notification dot appearing: subtle pulse.\n\n**Error feedback**: when something goes wrong:\n- Be specific (not 'an error occurred').\n- Explain in user's terms (not 'HTTP 500').\n- Provide path to recovery (retry, contact support).\n- Inline (next to the field) for form validation; not banner-only.\n\n**Success feedback**: subtle (don't over-celebrate). Saved? Tiny checkmark. Order placed? Confirmation page with order details. Avoid modal popups for routine actions."
+    },
+    {
+      "kind": "text",
+      "title": "Fitts's Law + control sizing",
+      "body": "**Fitts's Law** (Paul Fitts 1954): time to acquire a target is a function of distance + size.\n$$T = a + b \\log_2(1 + D/W)$$\nwhere $D$ = distance, $W$ = width.\n\nImplications:\n- **Bigger targets = faster + fewer mis-clicks**. Don't make tiny click targets.\n- **Closer targets = faster**. Important actions near current focus.\n- **Edge / corner targets are 'infinitely large'** (mouse can't go past screen edge → infinite W in that direction). Why menus on macOS were at top of screen (Mac OS classic; vs Windows menus that scroll past the screen edge).\n\n**Mobile sizing**: thumbs are bigger than mouse pointers.\n- Apple HIG: minimum 44×44 points for tappable elements.\n- Material Design: minimum 48dp.\n- WCAG 2.5.5: minimum 24×24 CSS pixels for AAA, 44×44 for AAA (newer requirements).\n\n**Adjacent targets**: spacing matters. If two buttons too close, users mistap. Minimum 8px gap is safe for mobile.\n\n**Hand reach** on phones: top of screen hard to reach with one hand. Modern designs push important controls to bottom (tab bar, primary action button).\n\n**Cursor velocity** matters: when fast-moving, cursor overshoots small targets. Design for fast hover too: large hit areas on hover.\n\n**Designing for accessibility + motor impairment**: even larger targets, generous spacing, dwell-time options (hover for X ms to trigger). Eye-tracking + assistive switches require different design.\n\n**Anti-patterns**:\n- Close buttons (X) tiny in corner.\n- Submit/cancel buttons adjacent + same color (easy to misclick Cancel).\n- Hover-only menus on touch devices (no hover state on touch).\n- Right-edge nav on RTL languages (cultural mismatch)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_id_fitts",
+        "kind": "guided_derivation",
+        "question": "Apply Fitts's Law to button placement",
+        "goal": "User's mouse is at point A. Two equally-important buttons: Button X (close to A, small: 20×20 px) vs Button Y (far from A, large: 80×80 px). Fitts T = 200 + 100 log_2(1 + D/W) ms.",
+        "steps": [
+          {
+            "prompt": "Button X at D=100 px, W=20 px. T = ?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "458",
+                "~458 ms",
+                "458 ms"
+              ]
+            },
+            "hints": [
+              "200 + 100 × log2(1 + 100/20) = 200 + 100 × log2(6) = 200 + 258 ≈ 458."
+            ],
+            "reveal": "~458 ms."
+          },
+          {
+            "prompt": "Button Y at D=400 px, W=80 px. T = ?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "458",
+                "~458 ms",
+                "458 ms"
+              ]
+            },
+            "hints": [
+              "200 + 100 × log2(1 + 400/80) = 200 + 100 × log2(6) = 458."
+            ],
+            "reveal": "~458 ms. SAME. The bigger target compensates for the longer distance."
+          },
+          {
+            "prompt": "Insight: Fitts is INVARIANT under proportional scaling of distance + size. What does this say for primary actions?",
+            "motivation": "Implication.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Doesn't matter.",
+                "Make primary actions LARGE. Even if they're far away, the size compensates. Conversely, small targets hurt regardless of placement.",
+                "Make small.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Bigger is faster."
+            ],
+            "reveal": "PRIMARY actions should be LARGE — size compensates for distance. Mobile: large primary button at bottom (thumb-reachable). Desktop: large 'Save', 'Submit', 'Buy' buttons. Tiny targets are always slow + error-prone."
+          }
+        ],
+        "finalResult": "$$\\boxed{T = a + b \\log_2(1 + D/W)}$$ Fitts's Law is the single most-tested HCI law. Empirically robust across decades + interaction modalities (mouse, touch, eye-tracking). The headline: target SIZE matters more than you'd think. Apple's HIG, Material Design, accessibility guidelines all derive minimum sizes from Fitts + ergonomic studies. Tiny click targets = bad design."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_id_affordance",
+        "kind": "multiple_choice",
+        "question": "A junior designer makes a button that looks like flat text: 'Continue'. Users miss it 30% of the time. Cause?",
+        "options": [
+          "Slow eyes.",
+          "Lack of affordance/signifier. A 'button' that looks like text doesn't signify clickability. Add visual button styling (background fill, border, shadow, hover state) so it AFFORDS clicking.",
+          "Wrong font.",
+          "Browser bug."
+        ],
+        "correctIndex": 1,
+        "explanation": "Flat 'buttons' became fashionable in 2010s with iOS 7 + 'flat design'. But research consistently shows that obvious affordances (background fill, slight shadow, contrast) help discoverability. Pure-text 'links' work for inline; primary actions need button styling. The trade-off: aesthetic minimalism vs discoverability. Most modern design systems use FILLED primary buttons + outlined secondary buttons; pure-text is for tertiary actions."
+      },
+      "hints": [
+        "What does 'affordance' mean for buttons?",
+        "Why does flat-text fail?"
+      ],
+      "workedSolution": "Affordance = visual cue suggesting usability. Buttons need: background fill, border, shadow OR clearly-different color from surrounding text. Pure text looks like body copy; users don't perceive it as clickable. Flat design movement (iOS 7) pushed away from skeumorphism but went too far in some cases. Modern systems re-add subtle 3D cues (Material 3, Google's 'M3 sentiment').",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_id_target",
+        "kind": "math_expression",
+        "question": "iOS HIG minimum tappable size?",
+        "acceptedAnswers": [
+          "44 pts",
+          "44 × 44 pt",
+          "44x44 points"
+        ],
+        "hint": "Apple's standard."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_id_undo",
+        "kind": "scenario",
+        "question": "Designing 'undo'",
+        "prompt": "Your product's users frequently complain about accidental deletions. Walk through the design options (confirmation dialog vs undo toast vs trash) + their UX trade-offs."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_id",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why affordances + feedback are foundational to interaction design.",
+        "rubric": "Mentions that users without clear affordances don't know what to interact with; without feedback they don't know if their actions worked; both lead to confusion + error. Good design makes BOTH explicit through visual + behavioral cues. Norman's principles remain the foundation of teaching interaction design 35 years after they were articulated."
+      }
+    }
+  ]
+}

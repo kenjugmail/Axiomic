@@ -1,0 +1,143 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intro",
+    "objectives": [
+      "State the game loop's frame structure.",
+      "Distinguish fixed-timestep from variable-timestep updates.",
+      "Outline the Entity-Component-System (ECS) pattern."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The game loop",
+      "body": "Every game runs the same skeleton:\n```\nwhile (running) {\n  input = poll_input();\n  update_state(input, dt);\n  render(state);\n  sleep_until_next_frame();\n}\n```\n\nAt 60 frames per second (FPS) = 16.67 ms per frame. The CPU + GPU must finish all work in that window. At 30 FPS = 33 ms. At VR-friendly 90 FPS = 11 ms. At 120 FPS = 8.33 ms.\n\n**Frame breakdown** (typical):\n- Input poll: ~0.1 ms.\n- Game-state update: 1-5 ms (game logic, AI, physics).\n- Render setup (CPU): 1-3 ms (culling, draw call submission).\n- GPU render: 5-12 ms.\n- VSync wait: rest.\n\n**Frame timing modes**:\n- **VSync ON**: frame buffer flips on monitor refresh; locks to 60/120/144 Hz. Eliminates tearing but caps frame rate.\n- **VSync OFF**: render as fast as possible. Visible tearing on screen.\n- **FreeSync / G-Sync**: monitor refreshes when GPU is ready. Best of both.\n\n**The frame-time budget is the central engineering constraint of a game**. Late frames cause stutter, perceptible as jitter or input lag. Indie devs target 60 FPS at 1080p; AAA devs target 60 FPS at 4K. VR demands ≥90 FPS with low motion-to-photon latency (<20 ms) to avoid nausea.\n\n**Profile-driven optimization**: tools like RenderDoc, NVIDIA Nsight, Intel GPA, Unity Profiler, Unreal Insights show where time goes per frame. The 80/20 rule applies: a few systems dominate cost; optimize those."
+    },
+    {
+      "kind": "text",
+      "title": "Fixed vs variable timestep",
+      "body": "How does game state advance? Two main models:\n\n**Variable timestep**: use real $\\Delta t$ between frames.\n```\nlast = now();\nwhile (running) {\n  now = current_time();\n  dt = now - last; last = now;\n  update(dt);\n  render();\n}\n```\nPros: smooth, simple. Cons: physics + AI behave differently at different framerates. Float precision degrades at small dt. Determinism impossible (replays + multiplayer suffer).\n\n**Fixed timestep**: update game in fixed steps (e.g., 60 Hz physics).\n```\nfixed_dt = 1.0/60.0;\naccumulator = 0;\nwhile (running) {\n  frame_time = elapsed_since_last_render();\n  accumulator += frame_time;\n  while (accumulator >= fixed_dt) {\n    update(fixed_dt);\n    accumulator -= fixed_dt;\n  }\n  render(state, accumulator/fixed_dt);  // interpolate for smooth render\n}\n```\nPros: deterministic, stable physics, replayable. Cons: more complex; rendering must interpolate state between fixed steps.\n\n**Standard pattern** (Gaffer's 'Fix Your Timestep!' classic article): fixed physics + AI updates; variable rendering interpolated between them. Used by every major engine.\n\n**Hidden bugs**:\n- Spiral of death: if frame is too slow, accumulator never empties → game falls further behind. Clamp accumulator to a max value (1-2 frames).\n- Timestep mismatch: too-small a timestep + physics calculations get expensive; too-large + physics misses collisions. Standard: 60 Hz physics, 30-120 Hz rendering.\n\n**Multiplayer + determinism**: lockstep + rollback netcode REQUIRE fixed timestep. Variable timestep makes deterministic networked simulation infeasible. Why fighting games (Street Fighter 6, Tekken) all use fixed 60 Hz."
+    },
+    {
+      "kind": "text",
+      "title": "Entity-Component-System (ECS) architecture",
+      "body": "Traditional OOP game architecture: deep inheritance hierarchies (`Entity → MovingEntity → AICharacter → Enemy → Boss`). Brittle, hard to extend, poor cache locality.\n\n**Entity-Component-System** (Bilas 2002+, Unity DOTS 2018+):\n- **Entity**: an ID. Just a number.\n- **Component**: pure data, no behavior. `Position`, `Velocity`, `Health`, `Sprite`.\n- **System**: pure logic operating on components. `PhysicsSystem` queries entities with `Position + Velocity` + advances them.\n\nAn entity 'has' a set of components. Composition over inheritance: a Player is `Position + Velocity + Health + Sprite + PlayerInput`. An Enemy is `Position + Velocity + Health + Sprite + AI`. Adding a new behavior = adding a component + a system that uses it.\n\n**Data-Oriented Design (DOD)**: store components in tight arrays (one array per component type). `PhysicsSystem` iterates Position-array + Velocity-array contiguously → cache-friendly → 10-100× faster than scattered pointer chasing.\n\n```cpp\n// ECS pseudo-code (Unity DOTS-style)\nfor (int i = 0; i < positions.length; i++) {\n  positions[i] += velocities[i] * dt;\n}\n// CPU prefetches both arrays; SIMD-friendly; vectorizes.\n```\n\nCompare to OOP:\n```cpp\nfor (auto& obj : entities) {\n  obj.position += obj.velocity * dt;  // pointer indirection per entity, cache misses\n}\n```\n\n**Major ECS implementations**:\n- **Unity DOTS** (Burst + ECS + Jobs): high-performance multithreaded game systems.\n- **Bevy** (Rust): pure-ECS engine, increasingly popular.\n- **EnTT** (C++): popular header-only library.\n- **flecs**: another C++ ECS.\n\n**When ECS overshoots**: simple games / GUI / non-perf-critical → OOP is fine. ECS shines when you have many similar entities (particles, units in RTS, bullet hell). Modern engines support both — use ECS for performance-critical components, classes for high-level game flow."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_loop_budget",
+        "kind": "guided_derivation",
+        "question": "Compute frame-time budget allocation",
+        "goal": "Target 60 FPS = 16.67 ms / frame. Game with: input (1 ms), physics (4 ms), AI (3 ms), animation (2 ms), CPU render submission (2 ms), GPU draw (?), VSync wait (?).",
+        "steps": [
+          {
+            "prompt": "Sum of CPU-bound work: 1 + 4 + 3 + 2 + 2 = ?",
+            "motivation": "Add.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "12",
+                "12 ms"
+              ]
+            },
+            "hints": [
+              "Just sum CPU."
+            ],
+            "reveal": "12 ms CPU."
+          },
+          {
+            "prompt": "Remaining for GPU + sync: 16.67 - 12 = ?",
+            "motivation": "Subtract.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "4.67",
+                "4.67 ms"
+              ]
+            },
+            "hints": [
+              "Frame budget - CPU."
+            ],
+            "reveal": "~4.67 ms for GPU + sync. Tight."
+          },
+          {
+            "prompt": "If GPU takes 5 ms, the frame misses 60 FPS. Solutions?",
+            "motivation": "Reduce work.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Disable game.",
+                "Move CPU work off the critical path: multithread (Job system); reduce AI tick rate (e.g., 30 Hz instead of 60); reduce physics frequency or precision; reduce draw calls via batching.",
+                "Add more art assets.",
+                "Always renders late."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Multiple options."
+            ],
+            "reveal": "Multithread CPU work (jobs running in parallel); reduce non-essential tick rates (AI 30 Hz, fine for most game AI); GPU optimization (LOD, occlusion culling, fewer draw calls). 60 FPS budget is unforgiving — modern engines push CPU to multiple cores aggressively."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{60 FPS = 16.67 ms — every system fights for a slice}}$$ The frame budget drives every architectural decision. Multi-threaded job systems (Unity's C# Jobs + Burst, Unreal's Task Graph, Doom Eternal's job system) let CPU work overlap. GPU pipelining (3+ frames in flight) decouples GPU from CPU. Frame pacing tooling (e.g., RenderDoc Frame Capture, NVIDIA Reflex) optimizes end-to-end latency for competitive games."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_loop_dt",
+        "kind": "multiple_choice",
+        "question": "A new gameplay programmer uses variable timestep + finds the physics behaves differently when the player is on a 30 FPS laptop vs 144 FPS gaming PC. Bug?",
+        "options": [
+          "It's expected.",
+          "Yes — variable timestep physics is frame-rate-dependent. Switch to FIXED-timestep physics (e.g., 60 Hz) + interpolated rendering for stable cross-platform behavior.",
+          "Use higher framerate.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Variable timestep makes physics integration unstable + non-deterministic. Different framerates produce different game states. Fix: fixed physics timestep (decouple from render rate); interpolate visual representation between fixed updates for smooth rendering. Standard practice (Gaffer 'Fix Your Timestep!'). Every major engine + every competitive multiplayer game does this."
+      },
+      "hints": [
+        "What's framerate-dependent here?",
+        "What's the fix?"
+      ],
+      "workedSolution": "Variable timestep means physics integration step size differs by framerate. Numerical integrators (Euler, Verlet, RK4) have step-size-dependent error. At 30 FPS + 144 FPS, same scene diverges. Fix: fixed-timestep physics + interpolate render. Engine setting in Unity, Unreal, Godot. Critical for replays + multiplayer determinism.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_loop_ms",
+        "kind": "math_expression",
+        "question": "VR target: 90 FPS. Milliseconds per frame?",
+        "acceptedAnswers": [
+          "~11.1",
+          "11.1 ms",
+          "1000/90"
+        ],
+        "hint": "1000/90."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_loop_ecs",
+        "kind": "scenario",
+        "question": "Migrating to ECS",
+        "prompt": "Your game has 10,000 enemies + frame time spikes when many are on screen. Walk through whether ECS architecture would help + the migration approach."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_loop",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why the game loop's fixed-timestep + variable-render pattern dominates modern game engines.",
+        "rubric": "Mentions that fixed timestep makes physics + AI deterministic + frame-rate-independent (essential for replays + multiplayer); variable rendering with interpolation keeps the visual smooth at any framerate; the pattern decouples simulation from presentation. Every major engine (Unity, Unreal, Godot) defaults to this; deviating from it leads to physics bugs + multiplayer desyncs."
+      }
+    }
+  ]
+}

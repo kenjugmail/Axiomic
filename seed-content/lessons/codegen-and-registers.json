@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 28,
+    "difficulty": "expert",
+    "objectives": [
+      "Outline the codegen pipeline from IR to assembly.",
+      "Explain register allocation as graph coloring.",
+      "Distinguish graph-coloring from linear-scan allocation."
+    ],
+    "prereqs": [
+      "ir-and-ssa"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Codegen: IR → assembly",
+      "body": "Once optimizations are done, the back-end lowers SSA IR to machine code. The pipeline:\n\n1. **Instruction selection**: choose target-specific instructions for each IR op. `x = a + b` on x86 → `add eax, ebx`. On ARM → `add r0, r1, r2`. Complex: many ways to express the same op (`mov` vs `lea`, `xor reg, reg` vs `mov reg, 0` for zeroing).\n2. **Register allocation**: assign physical registers to IR values. The hard part — we have ∞ virtual registers in SSA + a fixed set of physical ones (16 on x86-64, 31 on ARM64).\n3. **Instruction scheduling**: reorder instructions for better pipeline use (avoid stalls, fill delay slots, exploit ILP).\n4. **Emit**: produce ELF/Mach-O/COFF object code; the linker assembles into an executable.\n\n**Instruction-selection approaches**:\n- **Tree-tiling** (BURG/iburg): pattern-match IR sub-trees, each match emits one instruction.\n- **DAG-based**: LLVM's SelectionDAG. IR → SelectionDAG → target DAG → MachineInstr.\n- **GlobalISel** (newer LLVM): selector machine targets directly + integrates with type legalization.\n\n**Calling conventions**: how args/returns flow through registers + stack. System-V x86-64: first 6 int args in rdi/rsi/rdx/rcx/r8/r9. AArch64: first 8 args in x0-x7. Code violating the convention crashes at the boundary."
+    },
+    {
+      "kind": "text",
+      "title": "Register allocation as graph coloring",
+      "body": "**The problem**: we have $k$ physical registers + many virtual registers (variables). Assign each variable to a register such that no two simultaneously-live variables share a register.\n\n**Live range**: the set of program points where a variable is live (might be read later before being redefined).\n\n**Interference graph**: each variable is a node; an edge connects two variables iff their live ranges overlap.\n\n**Reformulation**: assign each node a color (register) from $k$ colors, no two adjacent nodes share a color. THIS IS GRAPH COLORING — NP-complete in general.\n\n**Chaitin's algorithm (1981)**: heuristic graph coloring for register allocation.\n```\nrepeat:\n  simplify: pick a node with degree < k, push to stack, remove from graph\n  if no such node: spill: pick a node, push to stack (will spill to memory), remove\nuntil graph empty\nrebuild: pop from stack, assign a color that no neighbor has\n```\n\n**Spilling**: when a variable can't be colored, store/reload from memory at each use. Adds load/store instructions. The 'spill cost' (estimated impact of spilling vs keeping in reg) guides which to spill.\n\n**Coalescing**: if two non-interfering virtuals are connected by a `mov`, merge them — they can share a register, and the `mov` becomes nop.\n\nLLVM uses a Chaitin-Briggs variant. GCC uses an integrated allocator (IRA). Real implementations are 20K+ lines each — the abstraction is simple, the engineering isn't."
+    },
+    {
+      "kind": "text",
+      "title": "Linear-scan: faster but less optimal",
+      "body": "**Linear-scan** (Poletto + Sarkar 1999): a faster alternative to graph coloring. Used by JITs where compile time matters more than peak optimality.\n\nIdea: walk live ranges left-to-right; maintain a set of active ranges; assign a register from the free pool; when a range ends, free its register; spill if no register is available.\n\n**Complexity**: $O(n \\log n)$ vs graph coloring's $O(n^3)$ worst case. Orders of magnitude faster.\n\n**Quality**: ~10-20% worse than graph coloring in benchmark scores, but it scales to large inputs + compiles fast.\n\n**Usage**:\n- **HotSpot's client JIT**: linear-scan.\n- **V8's TurboFan**: linear-scan (called 'Greedy Linear-Scan').\n- **LLVM**: defaults to a greedy variant (LLVM's `RegAllocGreedy` is graph-coloring-inspired but is not 100% graph coloring).\n- **Cranelift**: regalloc2, a linear-scan-derived allocator with backtracking.\n\n**SSA-form register allocation**: a more recent line (Hack-Goos 2006) does coloring directly on SSA before destruction. The interference graph of SSA is **chordal**, which is linear-time colorable. Used by libfirm + some research compilers.\n\nThe trade-off is **always compile-time vs runtime quality**. AOT compilers (rustc, GCC) pay for graph coloring; JITs use linear-scan + recover via tier-up to better-allocator code if hot."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_reg_color",
+        "kind": "guided_derivation",
+        "question": "Color a small interference graph",
+        "goal": "Nodes: a, b, c, d. Edges (interference): a-b, a-c, b-c, c-d. We have 2 colors (R, G).",
+        "steps": [
+          {
+            "prompt": "The triangle a-b-c is a clique of size 3, all interfering. Can we color it with 2 colors?",
+            "motivation": "Clique number gives a lower bound on chromatic number.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Yes.",
+                "No — a 3-clique needs 3 colors (chromatic number ≥ 3).",
+                "Only if d is removed.",
+                "It depends on the order."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "A k-clique requires k colors."
+            ],
+            "reveal": "Triangle = K_3 → needs 3 colors. Two colors insufficient."
+          },
+          {
+            "prompt": "With 3 colors, color the graph. Try R/G/B. Pick one valid coloring (assign one to each of a, b, c, d).",
+            "motivation": "After 3-coloring the triangle, what's left for d?",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "a=R, b=G, c=B, d=R.",
+                "a=R, b=G, c=B, d=B.",
+                "All R.",
+                "a=R, b=R, c=R, d=G."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "d only interferes with c, so d can use any color ≠ c."
+            ],
+            "reveal": "Valid: a=R, b=G, c=B, d ∈ {R, G} — d only interferes with c, so anything ≠ B works."
+          },
+          {
+            "prompt": "If only 2 physical registers were available, what would the allocator do?",
+            "motivation": "Spill.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Spill one of a, b, c to memory (introduce load/store).",
+                "Fail to compile.",
+                "Reuse the same register for all.",
+                "Skip the allocation."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Spill = store to memory + reload at each use."
+            ],
+            "reveal": "Spill one variable to memory. Choose by spill cost (estimated loads/stores added)."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Reg alloc = graph coloring (NP-hard but tractable heuristics)}}$$ Chaitin (1981) reformulated register allocation as graph coloring, the foundational insight. Modern allocators add coalescing (merge moves), spill heuristics, live-range splitting (a single variable can occupy different registers at different program points), and SSA-aware decisions. The end product translates effectively unbounded virtual registers into a fixed physical set."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_codegen_callconv",
+        "kind": "multiple_choice",
+        "question": "Why does the calling convention specify which registers hold the first N arguments?",
+        "options": [
+          "To reduce the number of stack-spills at every function call.",
+          "Because of CPU architecture limits.",
+          "For backward compatibility.",
+          "It doesn't matter; the compiler picks per call site."
+        ],
+        "correctIndex": 0,
+        "explanation": "Modern calling conventions (System V x86-64, AAPCS for ARM, Windows x64) pass the first several arguments in registers, only spilling to stack when registers are exhausted. This is much faster than always stack-passing — eliminates store + load at every call. Register selection is fixed (RDI/RSI/RDX/RCX/R8/R9 on Sys V) so the callee knows where to look without per-call info."
+      },
+      "hints": [
+        "What's the cost of passing all args on the stack?",
+        "What's the alternative?"
+      ],
+      "workedSolution": "Pre-fixed register slots for arguments mean the call site stores args directly into specific registers; the callee reads them directly. No stack spill/reload at the boundary. This wins ~50% of typical call cost. Stack args still needed when register slots overflow (System V: arg 7+) — that's the slow path.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_codegen_k",
+        "kind": "math_expression",
+        "question": "x86-64 has 16 general-purpose integer registers. After reserving RSP/RBP, how many are available for allocation?",
+        "acceptedAnswers": [
+          "14"
+        ],
+        "hint": "16 - 2."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_codegen_jit",
+        "kind": "scenario",
+        "question": "Choosing an allocator for a JIT",
+        "prompt": "Your team builds a JIT for a dynamic language. Compile time matters: each function must be compiled in milliseconds for warmup. Walk through whether you choose graph-coloring, linear-scan, or a specialized JIT allocator."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_codegen",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why register allocation is THE hardest part of code generation.",
+        "rubric": "Mentions that it's an NP-complete graph coloring problem with cost models for spilling, has to handle calling conventions + per-instruction register constraints, must trade compile time against runtime, and tiny mistakes cascade into significant slowdowns. Modern allocators are tens of thousands of lines of heavily-tuned code."
+      }
+    }
+  ]
+}

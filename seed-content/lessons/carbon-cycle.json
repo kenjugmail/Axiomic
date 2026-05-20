@@ -1,0 +1,147 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Outline the major carbon reservoirs + fluxes.",
+      "Compute CO₂ doubling timescales from emission rates.",
+      "Distinguish ocean acidification from temperature feedbacks."
+    ],
+    "prereqs": [
+      "atmospheric-physics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Carbon reservoirs + fluxes",
+      "body": "Carbon cycles through several major reservoirs:\n\n- **Atmosphere**: 870 GtC (gigatons carbon) in 2024. At 420 ppm CO₂ ≈ 2.13 GtC per ppm, so each ppm of atmospheric CO₂ = 2.13 GtC.\n- **Surface ocean**: ~900 GtC. In rapid equilibrium with atmosphere.\n- **Deep ocean**: ~37,000 GtC. Slow exchange (1000-year timescale).\n- **Terrestrial biosphere**: ~600 GtC in vegetation + soil. Includes 1500-2400 GtC in permafrost.\n- **Fossil fuels (untapped)**: ~5000 GtC remaining in proven reserves; many times more in resources.\n- **Sediments + sedimentary rocks**: ~80,000,000 GtC. The largest reservoir but very slow exchange.\n\n**Annual fluxes**:\n- **Atmosphere ↔ ocean**: ~90 GtC/year each direction. Net uptake: ~2.5 GtC/year (recent decades).\n- **Atmosphere ↔ land vegetation**: ~120 GtC/year photosynthesis; same in respiration. Net uptake: ~3 GtC/year.\n- **Anthropogenic emissions**: ~10-11 GtC/year (2020s). Fossil fuels (~9 GtC/year) + land-use change (~1-2 GtC/year).\n\n**The carbon budget**: of ~10 GtC/year human emissions, ~5 GtC/year stays in atmosphere (raising CO₂ by ~2.5 ppm/year); ~2.5 GtC ocean uptake; ~3 GtC land uptake. The land + ocean sinks have grown roughly proportionally to emissions for decades — but their share is expected to decline as warming + acidification reduce uptake efficiency.\n\n**Isotopic fingerprint**: fossil carbon is depleted in ¹³C (because plants discriminated against ¹³C during photosynthesis hundreds of millions of years ago). Atmospheric ¹³C/¹²C ratio is declining — direct evidence that the CO₂ rise is from fossil fuels, not natural sources. (¹⁴C: fossil fuels have ZERO ¹⁴C, having decayed; bomb-test ¹⁴C peaked 1963, declining since — also tracks fossil dilution.)"
+    },
+    {
+      "kind": "text",
+      "title": "CO₂ atmospheric lifetime + the long tail",
+      "body": "**Common misconception**: 'CO₂ has a lifetime of ~100 years'. Actually, CO₂ has a SPECTRUM of lifetimes due to different removal processes.\n\n**Removal timescales**:\n- **Air-ocean equilibration** (~5-10 years): a CO₂ molecule injected to atmosphere quickly exchanges with surface ocean, but the surface ocean approaches saturation. Doesn't actually REMOVE the carbon, just spreads it across atmosphere + surface ocean.\n- **Land sink saturation** (~20-50 years): forests + soils absorb CO₂ but eventually approach a new steady state.\n- **Deep ocean mixing** (~200-1000 years): cold sinking water carries CO₂ to the deep ocean. Slow.\n- **Carbonate weathering + sedimentation** (~10,000+ years): silicate-rock weathering removes CO₂ permanently as carbonate minerals. The 'ultimate' sink.\n\n**Bern model** (used by IPCC): CO₂ pulse decays as multi-exponential:\n- 22% remains effectively FOREVER (>50,000 years).\n- 33% decays over ~400 years.\n- 26% decays over ~37 years.\n- 19% decays over ~3 years.\n\n**Implication**: even if humanity stops emitting today, atmospheric CO₂ stays elevated for centuries. ~20% of today's emissions will still be in the atmosphere in 10,000 years. Glacial-interglacial cycles operate on 100,000-year timescales — we're significantly perturbing Earth's CO₂ for entire glacial cycles.\n\n**Comparison to methane**: CH₄ has ~12-year lifetime (oxidized to CO₂). Faster relaxation. Reducing CH₄ emissions yields fast climate benefit; CO₂ reductions yield slow benefits but more durable."
+    },
+    {
+      "kind": "text",
+      "title": "Ocean acidification + biological feedbacks",
+      "body": "**Ocean acidification**: as the ocean absorbs CO₂, it forms carbonic acid:\n$$\\text{CO}_2 + \\text{H}_2\\text{O} \\rightleftharpoons \\text{H}_2\\text{CO}_3 \\rightleftharpoons \\text{HCO}_3^- + \\text{H}^+$$\nMore H⁺ = lower pH.\n\nOcean pH has decreased from ~8.2 (pre-industrial) to ~8.05 today — a 30% increase in [H⁺]. Projected to drop to 7.7-7.9 by 2100 depending on emissions.\n\n**Impacts**:\n- **Marine calcifiers** (coral, shellfish, plankton like coccolithophores + foraminifera): rely on supersaturated calcium carbonate for shells. Lower pH → harder to precipitate CaCO₃. Coral bleaching + reduced calcification observed.\n- **Pteropods (sea butterflies)**: shells already dissolving in some Antarctic waters.\n- **Fisheries**: knock-on effects on food webs. Cod larvae sensitivity in lab studies; not yet large-scale effects in field.\n\n**Feedbacks** (positive vs negative):\n- **Warming → reduced ocean uptake** (positive feedback). Warm water holds less CO₂ (Henry's law). Modeled effect: 5-10% reduction in ocean sink per °C warming.\n- **Permafrost thaw** (positive feedback). Frozen carbon (~1500-2400 GtC in Arctic permafrost) released as CO₂ + CH₄ as it thaws. Magnitude uncertain (~10-100 GtC by 2100; modeled).\n- **CO₂ fertilization** (negative feedback). Higher CO₂ may stimulate plant growth. Observed in satellite greening trends but limited by nitrogen + water.\n- **Wildfire + tropical-forest die-back** (positive feedback). Amazon may transition from net sink to net source under continued warming + drought.\n\n**Overall**: feedbacks add ~20-40% to baseline warming projections. Climate sensitivity (3°C/doubling best estimate) includes these feedbacks. Net feedback is positive, hence elevated risk in scenarios beyond ~3°C warming."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_carbon_doubling",
+        "kind": "guided_derivation",
+        "question": "Compute CO₂ doubling timescale at current emissions",
+        "goal": "Current atmospheric CO₂: 420 ppm. Pre-industrial: 280 ppm. Annual rise: 2.5 ppm/year. Annual emissions: 10 GtC. Conversion: 2.13 GtC per ppm.",
+        "steps": [
+          {
+            "prompt": "Doubling pre-industrial 280 ppm gives 560 ppm. Current is 420 ppm. Gap: 140 ppm. At 2.5 ppm/yr, how many years to double?",
+            "motivation": "Linear extrapolation (ignoring feedbacks).",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "56",
+                "56 years"
+              ]
+            },
+            "hints": [
+              "140 / 2.5."
+            ],
+            "reveal": "~56 years at current rate."
+          },
+          {
+            "prompt": "But the rise is accelerating. From 1959-1980, ~1.0 ppm/yr. 1990-2010, ~1.8 ppm/yr. Now ~2.5 ppm/yr. If the trend continues to ~3 ppm/yr by 2050, how does the doubling estimate change?",
+            "motivation": "Accelerating rate.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Doubling happens FASTER (well before 2080).",
+                "Doubling slows (later than 2080).",
+                "No change.",
+                "Doubling becomes impossible."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Higher rate, shorter time."
+            ],
+            "reveal": "Doubling before 2080 in business-as-usual; closer to 2070 with continued acceleration. With net-zero emissions, doubling avoided."
+          },
+          {
+            "prompt": "Of the 10 GtC emitted/year, ~5 GtC stays in atmosphere (raising 2.5 ppm). What happens to the other 5 GtC?",
+            "motivation": "Sinks.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Stays in atmosphere.",
+                "Absorbed by ocean (~2.5) + land biosphere (~2.5). The 'airborne fraction' is ~50%.",
+                "Disappears.",
+                "Becomes nitrogen."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Where can carbon go besides atmosphere?"
+            ],
+            "reveal": "Land + ocean sinks absorb ~50%. Airborne fraction has stayed ~constant for decades despite emissions doubling — the sinks have scaled. But the sinks may saturate in the future, making the airborne fraction GROW + accelerating warming."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Atmospheric CO}_2 \\text{ doubling timeline: 56-80 years at current trajectory}}$$ This single number drives IPCC scenarios: net-zero by 2050 (Paris Agreement target) avoids doubling. Business-as-usual hits 560 ppm by 2080. Each 0.1 °C of additional warming corresponds to ~50 GtC of emissions. The math is simple; the implementation (policy, technology, finance, equity) is the hard part. Climate science quantifies what physics requires; achieving it is everyone's problem."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_carbon_isotope",
+        "kind": "multiple_choice",
+        "question": "Why does the ¹³C/¹²C ratio of atmospheric CO₂ provide direct evidence that the modern CO₂ rise is from fossil fuels?",
+        "options": [
+          "It doesn't.",
+          "Plants discriminate against ¹³C during photosynthesis; fossil fuels (formed from ancient plants) are ¹³C-depleted relative to atmosphere. As fossil-derived CO₂ accumulates in the atmosphere, atmospheric ¹³C/¹²C ratio DECLINES. Observed.",
+          "Random.",
+          "Volcanoes have different isotope ratios."
+        ],
+        "correctIndex": 1,
+        "explanation": "Photosynthesis kinetically prefers ¹²CO₂. Plants are ¹³C-depleted by ~20 per mil. Coal + oil retain this signature. Anthropogenic CO₂ is therefore ¹³C-depleted. Atmospheric ¹³C/¹²C has been declining since ~1850 in tree-ring + ice-core records, with the steepest decline post-1950 matching emissions ramp. This is a direct, unambiguous attribution — natural sources (volcanoes, ocean) don't have this signature."
+      },
+      "hints": [
+        "What's the ¹³C/¹²C of fossil fuels vs ocean/volcanic CO₂?",
+        "What's observed in atmospheric ratio?"
+      ],
+      "workedSolution": "Fossil carbon: ¹³C-depleted (-25 per mil vs atmospheric). Volcanic CO₂: roughly atmospheric. Ocean CO₂: roughly atmospheric. As fossil CO₂ flows in, atmospheric ¹³C/¹²C DROPS. Observed: declining since 1850, sharpest post-1950 (matching fossil-fuel ramp). Direct fingerprint. The ¹⁴C signature is also diagnostic (fossil fuels have ZERO ¹⁴C from decay).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_carbon_gt",
+        "kind": "math_expression",
+        "question": "1 ppm atmospheric CO₂ corresponds to how many GtC?",
+        "acceptedAnswers": [
+          "2.13",
+          "approximately 2.13 GtC"
+        ],
+        "hint": "Conversion factor."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_carbon_neg",
+        "kind": "scenario",
+        "question": "Negative emissions technology",
+        "prompt": "A startup pitches direct-air-capture (DAC) of CO₂ at \\$200/ton CO₂. Walk through whether this can be a meaningful climate solution + the scale required."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_carbon",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why CO₂ removal from the atmosphere is essential alongside emission reductions in nearly all 1.5°C-target scenarios.",
+        "rubric": "Mentions that emissions don't reverse warming on human timescales due to CO₂'s long atmospheric lifetime; even net-zero stabilizes but doesn't reduce warming; reaching 1.5°C below current levels requires NEGATIVE emissions; portfolio includes afforestation, BECCS (biomass with CCS), direct air capture, enhanced weathering — each with cost + scale challenges. The mitigation toolkit must include removal."
+      }
+    }
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "meta": {
+    "timeMinutes": 28,
+    "difficulty": "specialist",
+    "objectives": [
+      "List the classical optimization passes + their order.",
+      "Reason about which passes enable which others.",
+      "Distinguish whole-program from local optimizations."
+    ],
+    "prereqs": [
+      "ir-and-ssa"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The classical optimization pass list",
+      "body": "Modern compilers run dozens of optimization passes over SSA IR. The classical ones:\n\n- **Constant folding / propagation**: `3 + 4` → `7`; `x = 7; y = x + 1` → `y = 8`.\n- **Dead-code elimination (DCE)**: remove instructions whose result is never used (and which have no side effects).\n- **Common-subexpression elimination (CSE)**: `a*b + a*b` → compute `t = a*b` once.\n- **Strength reduction**: replace expensive ops with cheap. `x*8` → `x << 3`. `x*9` → `(x<<3) + x`.\n- **Loop-invariant code motion (LICM)**: hoist loop-invariant computations out of the loop.\n- **Inlining**: replace a function call with the function's body.\n- **Tail-call optimization**: convert recursive tail calls to loops.\n- **Devirtualization**: when a virtual call's target is known statically, devirtualize it (often through inlining).\n- **Loop unrolling**: replace `for i in 0..4: a[i] = ...` with 4 unrolled statements.\n- **Vectorization**: turn scalar loops into SIMD (auto-vectorize at -O3).\n\n**Pass ordering matters enormously**. Inlining unlocks downstream optimizations on the inlined body. Constant propagation enables DCE. Loop-invariant motion enables register pressure analysis. The order is engineered + tuned.\n\nLLVM has 100+ passes, organized into pipelines (`-O0` through `-O3` + `-Os`/`-Oz`). The order is in `llvm/lib/Passes/PassBuilderPipelines.cpp`."
+    },
+    {
+      "kind": "text",
+      "title": "Inlining: the most important optimization",
+      "body": "**Inlining**: replace a call site `f(args)` with the body of `f`, substituting parameters for arguments.\n\nWhy it's so important:\n1. **Direct cost saved**: no call/return overhead, no register-save/restore.\n2. **Downstream unlock**: after inlining, constants flow into the function body → constant folding → DCE → smaller code. Type info flows in → devirtualization. The inlined body specializes to its caller.\n3. **Cross-procedure optimization 'for free'**: instead of needing whole-program analysis, locally inlining gives optimization scope.\n\n**The trade-off**: code size. Inlining everything inflates the binary. The compiler uses heuristics:\n- Inline always: tiny functions, single-use functions, functions marked `inline`/`#[inline]`.\n- Inline if profitable: when downstream wins (estimated via cost model) exceed the size cost.\n- Don't inline: large or recursive functions (unless via clone).\n\n**Modern languages**:\n- **Rust + C++**: inlining is the foundation of zero-cost abstractions. Iterators, closures, generic monomorphization — all rely on aggressive inlining producing efficient code from high-level abstractions.\n- **Go**: deliberately less aggressive inlining; emphasizes fast compile times. Recent versions have grown more.\n- **Java + .NET**: JIT-time inlining based on runtime profiles. Devirtualization based on observed types.\n\nInlining failure (function too large, too many uses) leaves abstractions with overhead. This is why `#[inline(always)]` exists + why Rust's `Vec::iter().map().collect()` compiles to the same loop as a hand-written for-loop."
+    },
+    {
+      "kind": "text",
+      "title": "Whole-program optimization + LTO",
+      "body": "**LTO (Link-Time Optimization)**: instead of compiling each translation unit independently, defer optimization until link time when the entire program's IR is visible.\n\nWithout LTO:\n```\nfile A:   void f(int x) { ... } (compiled in isolation)\nfile B:   f(7) call site (linker can only emit a call)\n```\nWith LTO:\n```\nLink-time: see all of A's + B's IR; inline f(7) → constant-propagate 7 into f's body → specialize → DCE.\n```\n\n**Performance impact**: typically 5-20% speedup on real programs. Larger if there are many cross-file calls of small functions (common in modern C++/Rust).\n\n**Costs**: link-time massively slower (must run optimization passes over the entire program). Binary debugging harder. CI/CD pipelines see longer build times.\n\n**Variants**:\n- **Full LTO**: all IR in one big module at link time. Slow but maximum optimization.\n- **Thin LTO** (clang/LLVM): cross-module summaries + on-demand importing. Slightly worse optimization, vastly faster compile times.\n- **GCC's LTO**: similar architecture, slightly different naming.\n\n**Profile-guided optimization (PGO)**: run the program on representative input, collect a profile (hot blocks, common branch directions), recompile with the profile guiding inlining + layout decisions. Used by Chrome, Firefox, Postgres, V8 to extract another 10-20%.\n\n**BOLT (Binary Optimization and Layout Tool)** + Propeller: post-link binary optimization based on profiles. Used at Meta, Google."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_opt_strength",
+        "kind": "guided_derivation",
+        "question": "Derive strength reduction for `x * 7`",
+        "goal": "Express `x * 7` using shifts + subtractions.",
+        "steps": [
+          {
+            "prompt": "`7 = 8 - 1`. So `x * 7 = ?`",
+            "motivation": "Distribute multiplication.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "x * 8 - x",
+                "(x*8) - x"
+              ]
+            },
+            "hints": [
+              "Distributive law."
+            ],
+            "reveal": "`x * 7 = x * 8 - x`."
+          },
+          {
+            "prompt": "`x * 8 = ?` (with one shift).",
+            "motivation": "Multiply-by-power-of-2 = shift.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "x << 3",
+                "x shl 3"
+              ]
+            },
+            "hints": [
+              "8 = 2^3."
+            ],
+            "reveal": "`x * 8 = x << 3`."
+          }
+        ],
+        "finalResult": "$$\\boxed{x * 7 = (x << 3) - x}$$ Replaces a multiply (often 3-5 cycles on x86) with a shift + sub (1-2 cycles). Modern CPUs have fast multipliers — strength reduction is mostly a wash on x86. But on smaller ARM cores, low-power MCUs, or in tight inner loops, it's still a meaningful win. The classic textbook case is multiplication by a small constant."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_opt_inline",
+        "kind": "multiple_choice",
+        "question": "Why is inlining the #1 most-important optimization in compilers like LLVM and rustc?",
+        "options": [
+          "It removes function-call overhead.",
+          "It UNLOCKS downstream optimizations (constants flow in, types specialize, DCE removes unreachable branches) — the function-call overhead is a small part of the win.",
+          "It reduces binary size.",
+          "It improves cache locality."
+        ],
+        "correctIndex": 1,
+        "explanation": "The direct call-overhead win is small (a few cycles). The big win is that inlining brings caller context (constant arguments, known types, branch directions) into the callee's body, where downstream passes can exploit it. A function inlined with a constant argument often collapses to nothing. This is the foundation of 'zero-cost abstractions' in Rust + C++."
+      },
+      "hints": [
+        "What information becomes available after inlining?",
+        "What can downstream passes do with it?"
+      ],
+      "workedSolution": "Inlining brings the caller's context (constant arguments, known types, observed branch directions) into the callee. Constant propagation then folds constants through the inlined body. Type info enables devirtualization. Branch info enables block layout. DCE removes now-unreachable code. The function's body specializes to each caller. The cumulative effect is far larger than the saved call instruction.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_opt_loop",
+        "kind": "math_expression",
+        "question": "A loop iterates N times. After 4× unrolling, how many iterations are there in the unrolled body?",
+        "acceptedAnswers": [
+          "N/4",
+          "N / 4"
+        ],
+        "hint": "Just N/4."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_opt_pgo",
+        "kind": "scenario",
+        "question": "Profile-guided optimization",
+        "prompt": "Your binary runs slow in production but the same workload runs fast in benchmarks. A senior engineer suggests PGO. Walk through the PGO workflow + what it actually does."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_opt",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why LLVM's `-O3` runs 50+ passes in a specific order, and why pass ORDERING is part of compiler engineering.",
+        "rubric": "Mentions that passes ENABLE each other (inlining unlocks constant propagation, which unlocks DCE, which unlocks register pressure improvements). Wrong order leaves unrealized optimization potential. The order is engineered + tuned empirically against benchmarks. Adding a new pass requires choosing where in the pipeline + sometimes re-running prior passes."
+      }
+    }
+  ]
+}

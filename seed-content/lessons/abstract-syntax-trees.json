@@ -1,0 +1,141 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "core",
+    "objectives": [
+      "Design an AST with discriminated-union node types.",
+      "Apply the visitor pattern for tree traversal.",
+      "Track source positions for accurate diagnostics."
+    ],
+    "prereqs": [
+      "parsing-strategies"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "AST vs CST: shape the tree you'll actually use",
+      "body": "The parser can build two related trees:\n\n- **CST (Concrete Syntax Tree, aka parse tree)**: lossless 1:1 with the source. Every parenthesis, every comma, every whitespace span. Used by formatters (prettier, rustfmt) + refactoring tools that need to preserve trivia.\n- **AST (Abstract Syntax Tree)**: drops syntactic noise. `(1 + 2)` and `1 + 2` produce the SAME AST node `BinOp(+, 1, 2)`. Easier to traverse, smaller, the right shape for semantic analysis.\n\nMost compilers build an AST directly (skipping the explicit CST). Tools like Roslyn (.NET), rust-analyzer, swift-syntax build CSTs because they need to preserve formatting.\n\nAST design pattern in Rust/Swift/OCaml/Haskell/TS: discriminated union per category:\n```\ntype Expr =\n  | Num(value: number)\n  | Ident(name: string)\n  | BinOp(op: string, left: Expr, right: Expr)\n  | Call(callee: Expr, args: Expr[])\n  | If(cond: Expr, then: Expr, else: Expr)\n  | ...\n```\nIn languages without sum types, use a base class + subclasses. The TS/JS world uses tagged unions: `{ type: 'BinOp', op: '+', left, right }`."
+    },
+    {
+      "kind": "text",
+      "title": "Visitor pattern: separating traversal from operation",
+      "body": "Traversing an AST is a problem you do many times: type checking, code generation, optimization passes, syntax highlighting. The **visitor pattern** factors traversal logic out:\n\n```\ninterface Visitor<R> {\n  visitNum(n: Num): R\n  visitBinOp(b: BinOp): R\n  visitIf(i: If): R\n  // ...\n}\n\nfunction visit<R>(e: Expr, v: Visitor<R>): R {\n  switch (e.type) {\n    case 'Num': return v.visitNum(e)\n    case 'BinOp': return v.visitBinOp(e)\n    case 'If': return v.visitIf(e)\n  }\n}\n```\n\nIn Rust/OCaml/Haskell: pattern matching subsumes the visitor pattern. `match e { Num(n) => ..., BinOp(op, l, r) => ..., ... }` is the same thing with compiler-checked exhaustiveness.\n\n**Variants**:\n- **Walk + transform** (fold): visitor returns a new AST. Used by optimization passes (constant folding, DCE).\n- **Walk + accumulate**: visitor returns nothing; mutates external state. Used by type checking (records errors).\n- **Open recursion**: traversal is itself a method, allowing subclasses to override pre/post visit hooks. Used by clang's RecursiveASTVisitor."
+    },
+    {
+      "kind": "text",
+      "title": "Source positions = good diagnostics",
+      "body": "Every AST node should carry a **span**: `{ start: Position, end: Position }` where `Position = { line, column, offset }`. This lets the compiler emit:\n```\nerror: cannot find name `flux`\n   --> src/main.rs:42:13\n    |\n42  |     let y = flux + 1;\n    |             ^^^^ help: did you mean `flex`?\n```\nrather than 'syntax error on line 42'.\n\nDesign decisions:\n- **Position stored on every node** (clang, rust-analyzer): more memory but every diagnostic is precise.\n- **Position stored only at key nodes** (compact ASTs): each node carries an offset, end-computed lazily.\n- **Interned source strings**: identifiers like `x` and `y` recur thousands of times — intern to single index. rustc's `Symbol` is a `u32` index into a string table.\n\nModern compilers prioritize diagnostic quality. clang's error messages set the bar in 2010; rustc pushed it further with fix-it suggestions, related-info spans, multi-line error annotations. The infrastructure cost is real but pays for itself in user experience.\n\nIDE tools (rust-analyzer, gopls, Language Server Protocol) need character-precise positions to highlight, jump-to-definition, etc. — accurate spans aren't optional for modern dev tooling."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ast_eval",
+        "kind": "guided_derivation",
+        "question": "Derive a tree-walking interpreter",
+        "goal": "Define `eval(e: Expr, env: Map<string,number>): number` for our toy AST.",
+        "steps": [
+          {
+            "prompt": "`eval(Num(n), env)` returns?",
+            "motivation": "Base case.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "n"
+              ]
+            },
+            "hints": [
+              "Just the numeric value."
+            ],
+            "reveal": "Returns `n`."
+          },
+          {
+            "prompt": "`eval(Ident(name), env)` returns?",
+            "motivation": "Lookup.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "The string `name`.",
+                "The value `env.get(name)` (throwing if not bound).",
+                "Always 0.",
+                "The parse tree."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Variable lookup in environment."
+            ],
+            "reveal": "`env.get(name)`, with error if unbound."
+          },
+          {
+            "prompt": "`eval(BinOp('+', left, right), env)` returns?",
+            "motivation": "Recurse on subtrees, combine.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "eval(left, env) + eval(right, env)"
+              ]
+            },
+            "hints": [
+              "Recurse, recurse, add."
+            ],
+            "reveal": "`eval(left, env) + eval(right, env)`."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Tree-walking interpreter: one case per node type, recurse on subtrees}}$$ The simplest possible execution strategy. Slow (~100× slower than native code on tight loops, lots of pointer chasing) but easy to extend + debug. Real interpreters: TypeScript's `tsc` (well, just for evaluation of const expressions), MRI Ruby pre-2007, the AST tier of every JIT before tier-up."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ast_cst",
+        "kind": "multiple_choice",
+        "question": "Why do `prettier` and `rustfmt` build a CST (concrete syntax tree) instead of just an AST?",
+        "options": [
+          "ASTs are too slow.",
+          "CSTs preserve whitespace, comments, and parenthesization — formatters need to reproduce these.",
+          "Parsing to an AST is impossible for these languages.",
+          "ASTs don't support unicode."
+        ],
+        "correctIndex": 1,
+        "explanation": "Formatters must round-trip the source — preserve comments, decide where to wrap, respect blank lines. The AST drops all of this. Formatters either build a CST OR attach trivia (comments + whitespace) to AST nodes. rustfmt's approach is the latter. prettier builds a CST-like structure with comment attachment."
+      },
+      "hints": [
+        "What does a formatter need to preserve?",
+        "What does an AST drop?"
+      ],
+      "workedSolution": "ASTs drop syntactic 'noise' (parens, whitespace, comments). Formatters need EVERY one of these to round-trip the source correctly + idiomatically. Either keep a CST (rust-analyzer style) or attach trivia to AST nodes (rustfmt style). prettier's printing algorithm needs comment + whitespace info to decide line breaks.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ast_size",
+        "kind": "math_expression",
+        "question": "An expression `((((a)))) + ((((b))))` produces an AST with how many nodes (after dropping parens)?",
+        "acceptedAnswers": [
+          "3"
+        ],
+        "hint": "Just BinOp + a + b."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ast_diag",
+        "kind": "scenario",
+        "question": "Designing rust-quality diagnostics",
+        "prompt": "Your team adds a beautiful-error-messages feature. What AST/CST design decisions enable diagnostics like 'expected `;`, found `}`' with the relevant spans highlighted?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ast",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why every AST node carries a source-position span.",
+        "rubric": "Mentions that good diagnostics (error messages pointing at exact source location), IDE features (jump-to-definition, hover-info, completion), and tooling (linters, refactors) all require character-precise position info per node. The memory overhead is small + the user-experience win is large."
+      }
+    }
+  ]
+}

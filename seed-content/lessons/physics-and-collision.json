@@ -1,0 +1,146 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Outline rigid-body dynamics integration.",
+      "Describe broad-phase + narrow-phase collision detection.",
+      "Reason about constraint solvers."
+    ],
+    "prereqs": [
+      "game-loop-and-architecture"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Rigid-body integration",
+      "body": "**Rigid body**: object with mass + inertia, treated as undeformable. Position + velocity (linear + angular).\n\n**Newton's equations** integrated over time:\n$$\\frac{d\\mathbf{v}}{dt} = \\mathbf{F}/m, \\quad \\frac{d\\mathbf{x}}{dt} = \\mathbf{v}$$\nplus rotational analogs.\n\n**Integration methods**:\n- **Forward Euler**: $\\mathbf{v}_{t+1} = \\mathbf{v}_t + (\\mathbf{F}/m) \\Delta t$; $\\mathbf{x}_{t+1} = \\mathbf{x}_t + \\mathbf{v}_t \\Delta t$. Simplest. Energy increases over time (unstable for oscillators).\n- **Symplectic Euler**: update velocity FIRST then position. $\\mathbf{v}_{t+1} = \\mathbf{v}_t + a \\Delta t$; $\\mathbf{x}_{t+1} = \\mathbf{x}_t + \\mathbf{v}_{t+1} \\Delta t$. Stable for oscillators (e.g., springs). Industry standard.\n- **Verlet**: $\\mathbf{x}_{t+1} = 2\\mathbf{x}_t - \\mathbf{x}_{t-1} + a \\Delta t^2$. Position-based; velocity implicit. Excellent for constraint-based simulation.\n- **Runge-Kutta (RK4)**: high-order accuracy. Slower. Used for cinematics or simulations where accuracy matters more than speed.\n\n**Fixed timestep is essential**: variable timestep causes integration to diverge between frame rates. Standard: 60 Hz physics (16.67 ms steps), interpolated for rendering.\n\n**Continuous collision detection (CCD)**: at high speed, an object can pass THROUGH another in one step ('tunneling'). CCD detects + corrects. Expensive; used selectively for fast objects (bullets, rockets).\n\n**Position-Based Dynamics (PBD)**: alternative paradigm. Solve constraints directly on positions, derive velocities from position changes. More stable for cloth + rope. Used in Bullet, PhysX, Havok soft-body. NVIDIA's FleX is PBD."
+    },
+    {
+      "kind": "text",
+      "title": "Collision detection: broad + narrow phase",
+      "body": "Naive: test every pair for collision. $O(N^2)$. Infeasible for thousands of objects.\n\n**Broad phase**: cull non-colliding pairs cheaply.\n- **Spatial hashing**: divide world into grid cells; objects in same cell are candidates.\n- **AABB tree (Axis-Aligned Bounding Box hierarchy)**: e.g., bounding-volume hierarchy (BVH). Top-down or bottom-up tree of AABBs. Query: traverse, prune if AABB doesn't overlap.\n- **Sweep + prune (SAP)**: sort AABBs by X (then Y, Z); only adjacent ones can overlap. Update incrementally.\n\nReduces from $O(N^2)$ to $O(N \\log N)$ or near-linear.\n\n**Narrow phase**: for each candidate pair, do the precise test.\n\n**Algorithms**:\n- **SAT (Separating Axis Theorem)**: for convex polyhedra, two objects collide iff no separating axis exists. Standard test for boxes + polygons.\n- **GJK (Gilbert-Johnson-Keerthi)**: iterative algorithm for convex shapes. Computes closest points + distance.\n- **EPA (Expanding Polytope Algorithm)**: after GJK finds penetration, EPA computes contact normal + depth.\n- **Sphere-sphere**: $|c_1 - c_2| < r_1 + r_2$. Trivial.\n- **Triangle mesh collision**: BVH + per-triangle tests. For static environments.\n\n**Concave shapes**: decompose into convex pieces (convex decomposition). Each piece tested individually. Not all engines support arbitrary concave; some require pre-baked convex decompositions.\n\n**Bullet, PhysX, Box2D, Havok**: major physics engines.\n- **Bullet** (open-source, BSD): used in Blender + many games.\n- **PhysX** (NVIDIA, free): GPU acceleration; widely used.\n- **Havok** (Microsoft): premium; used in AAA games.\n- **Box2D** (open-source): 2D only; Angry Birds + many indie."
+    },
+    {
+      "kind": "text",
+      "title": "Constraint solving + the iterative impulse method",
+      "body": "Once contacts are found, constraints (no interpenetration, friction, joints) must be ENFORCED.\n\n**Constraint**: equation/inequality limiting motion. E.g., $\\mathbf{p}_A = \\mathbf{p}_B$ (pin joint).\n\n**Lagrangian methods** (analytical): formulate constraints as a system, solve with Lagrange multipliers. Mathematically clean. Slow for many constraints.\n\n**Penalty methods**: add spring forces pushing objects apart. Simple but causes oscillation; stiffness needs tuning.\n\n**Iterative impulse (Sequential Impulse, Catto 2005)**: industry standard. For each contact, compute + apply an impulse that prevents interpenetration + respects friction. Iterate.\n\nProcedure:\n```\nfor i in 0..N_iterations:\n  for each contact:\n    compute impulse magnitude (limited by friction etc.)\n    apply impulse to velocities\n```\nN_iterations = ~10. Convergence acceptable for games (not physically exact at low iteration counts).\n\n**Stacking**: high stacks (towers of boxes) need MORE iterations or specialized solvers (split-impulse, warm starting). Often the test case for physics engine quality.\n\n**Friction**: Coulomb model. Tangential impulse ≤ μ × normal impulse. The Coulomb cone (or pyramid approximation).\n\n**Joints**: hinges, ball-and-socket, distance constraints. Same impulse machinery handles them as constraints.\n\n**GPU physics**: PhysX, FleX, NVIDIA Apex. Massively parallel collision + constraint solving. Used for crowd simulation, cloth, particles. Less common for hero-rigid-body (CPU is fast enough + GPU ROI lower)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_phys_collision",
+        "kind": "guided_derivation",
+        "question": "Test sphere-sphere collision + compute response",
+        "goal": "Sphere A: center (0, 0, 0), radius 1, mass 1, velocity (1, 0, 0). Sphere B: center (2, 0, 0), radius 1, mass 1, velocity (-1, 0, 0). Are they colliding now?",
+        "steps": [
+          {
+            "prompt": "Distance between centers: $|c_B - c_A| = ?$",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2"
+              ]
+            },
+            "hints": [
+              "sqrt(2^2 + 0 + 0)."
+            ],
+            "reveal": "Distance = 2."
+          },
+          {
+            "prompt": "Sum of radii: $r_A + r_B = 2$. Compare to distance.",
+            "motivation": "Compare.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Colliding (distance < sum).",
+                "TOUCHING (distance equals sum) — at the verge. Real engines treat this as colliding (penetration ≥ 0).",
+                "Not colliding (distance > sum).",
+                "Undefined."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "distance == sum of radii."
+            ],
+            "reveal": "Touching exactly. Penetration depth = 0; contact normal = (1, 0, 0)."
+          },
+          {
+            "prompt": "Apply elastic collision (equal masses → swap velocities). Post-collision velocities of A + B?",
+            "motivation": "Conservation.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "A: (1,0,0), B: (-1,0,0). No change.",
+                "A: (-1,0,0), B: (1,0,0). They reverse direction (1D elastic, equal mass: velocity swap).",
+                "A: (0,0,0), B: (0,0,0). Both stop.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "1D elastic, equal mass: velocities swap."
+            ],
+            "reveal": "Velocities swap (1D elastic, equal mass). A now moves at (-1,0,0), B at (1,0,0). Conservation of momentum + KE both satisfied. (For non-equal masses or angled collision, use full impulse formula.)"
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Collision: distance check + impulse-based response}}$$ Real game physics: broad-phase (BVH) cull most pairs; narrow-phase (SAT/GJK) precise check on candidates; impulse solver applies forces preserving conservation laws + constraints. Bullet, PhysX, Box2D all use this pipeline. The math gets complex for arbitrary shapes + angular motion, but the structure is consistent."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_phys_bounce",
+        "kind": "multiple_choice",
+        "question": "A game ball repeatedly bounces but eventually 'jitters' on the ground forever, instead of coming to rest. Cause?",
+        "options": [
+          "Hardware issue.",
+          "Numerical integration error: at each step, the ball accumulates small velocity errors (Euler integration energy gain, contact impulses overshoot). Real engines use damping + 'sleeping' (objects below a velocity threshold are flagged as resting + skipped from simulation).",
+          "Bouncy floor.",
+          "Bug in graphics."
+        ],
+        "correctIndex": 1,
+        "explanation": "Floating-point + integration error means perfectly resting objects acquire tiny residual velocities each frame. Without intervention, they jitter forever. Standard fixes: 1) Damping (subtract small amount of velocity each step); 2) Sleep states (mark objects with velocity below threshold as 'resting', skip from simulation until disturbed); 3) Contact stabilization (Baumgarte stabilization, split impulse). Every major physics engine implements these. Tuning the sleep threshold + damping is a per-game decision."
+      },
+      "hints": [
+        "Why doesn't a numerically-simulated ball rest perfectly?",
+        "What do engines do about it?"
+      ],
+      "workedSolution": "Numerical integration accumulates floating-point error. Even nominally-resting objects gain micro-velocity. Sleeping: detect when velocity is below threshold consistently for N frames, mark as resting, skip from update. Disturbance (collision from another object) wakes it. Damping: subtract small velocity each step (linear + angular). Both standard. Tune for game feel.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_phys_gravity",
+        "kind": "math_expression",
+        "question": "Object in free fall under gravity g = 9.8 m/s². After 2 seconds, velocity in m/s?",
+        "acceptedAnswers": [
+          "19.6",
+          "19.6 m/s"
+        ],
+        "hint": "g × t."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_phys_cloth",
+        "kind": "scenario",
+        "question": "Cloth simulation for a cape",
+        "prompt": "A character wears a cape that should swing naturally. Walk through the simulation approach (PBD, mass-spring, etc.) + the game-physics trade-offs."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_phys",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why iterative impulse solvers (Sequential Impulse) became the standard physics solver in games.",
+        "rubric": "Mentions that iterative impulses handle many contacts + constraints in $O(N \\cdot \\text{iters})$; they're stable, fast, + good enough quality for game physics (not perfect but not noticeable); they integrate with broad-phase + narrow-phase pipelines naturally. PhysX, Bullet, Box2D all use this approach with various refinements."
+      }
+    }
+  ]
+}

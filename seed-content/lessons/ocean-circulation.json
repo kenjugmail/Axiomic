@@ -1,0 +1,151 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish wind-driven from thermohaline circulation.",
+      "Outline the meridional overturning circulation.",
+      "Reason about ENSO + ocean-atmosphere coupling."
+    ],
+    "prereqs": [
+      "atmospheric-physics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Wind-driven + thermohaline circulation",
+      "body": "Ocean circulation has two main drivers:\n\n**Wind-driven**: surface winds blow on the ocean, dragging water. Coriolis force deflects (right in NH, left in SH). Net effect: surface currents form large basin-scale gyres.\n- North Atlantic: Gulf Stream → North Atlantic Drift → Canary Current → North Equatorial Current → loop.\n- North Pacific: Kuroshio → North Pacific Current → California Current → loop.\n- Similar gyres in southern hemispheres + Indian Ocean.\n\n**Ekman transport**: surface water moves 90° from wind direction (Coriolis). Combined with continental boundaries → upwelling + downwelling zones.\n\n**Thermohaline circulation (THC)**: density-driven. Cold + salty water sinks; warm + fresh water rises. Drives the deep ocean.\n\n- **North Atlantic Deep Water (NADW)**: in winter, cold dry winds over Norwegian/Greenland Seas chill surface water + concentrate salt (sea-ice formation rejects salt). Dense water sinks to abyss.\n- **Antarctic Bottom Water (AABW)**: similar process in Weddell + Ross Seas around Antarctica.\n- Deep water flows along ocean basins for ~1000 years before resurfacing.\n\n**The 'great ocean conveyor belt'** (Broecker 1991): connects surface + deep flows into a planetary loop. Sinks in N Atlantic + Antarctic; upwells in tropical Pacific + Indian Ocean.\n\n**Heat transport**: ocean carries ~20% of total poleward heat transport (atmosphere does ~80%). The Gulf Stream alone delivers 1.3 PW (petawatts) of heat to NW Europe, keeping it 5-10°C warmer than equivalent latitudes would otherwise be."
+    },
+    {
+      "kind": "text",
+      "title": "Atlantic Meridional Overturning Circulation (AMOC)",
+      "body": "**AMOC**: the Atlantic branch of the thermohaline circulation. Drives the Gulf Stream-NW Europe warming.\n\nMechanism (simplified):\n1. Warm salty water flows north on the surface.\n2. Loses heat to atmosphere → cools.\n3. Becomes denser; sinks in Norwegian + Greenland Seas.\n4. Returns south as deep current.\n5. Slowly rises in Southern Ocean + Indian/Pacific basins.\n6. Surface flow returns north → loop.\n\n**Why AMOC matters**:\n- Heat transport: keeps NW Europe ~5°C warmer than equivalent latitudes.\n- CO₂ uptake: cold sinking water absorbs CO₂, then sequesters it for 1000+ years in the deep ocean. ~25-30% of anthropogenic CO₂ has gone into the ocean.\n- Climate signals: paleoclimate records show abrupt warming/cooling tied to AMOC shifts.\n\n**Climate-change vulnerability**:\n- Greenland ice melt adds FRESH water → reduces salinity → reduces density → weakens sinking.\n- Models project AMOC weakening 10-50% by 2100 under high emissions.\n- A FULL collapse (Heinrich-event scale) is considered unlikely this century but possible if warming exceeds ~3°C — Northern Europe could cool by 5-10°C even as the rest of the world warms.\n- This is one of the major **climate tipping points**.\n\n**Recent observations** (RAPID array, 2004+): AMOC has shown trend toward weakening, though attribution is contested. Caesar et al 2018 reconstructed AMOC from paleoclimate proxies: 15% weakening since 1950, consistent with model predictions."
+    },
+    {
+      "kind": "text",
+      "title": "El Niño - Southern Oscillation (ENSO)",
+      "body": "**ENSO**: the dominant interannual climate signal. Tropical Pacific ocean-atmosphere coupled oscillation.\n\n**Normal state (La Niña-ish)**:\n- Easterly trade winds push warm surface water westward.\n- Warm pool builds in western Pacific (Indonesia/Philippines): SST ~30°C.\n- Cold upwelling in eastern Pacific (Peru): SST ~22°C.\n- Walker circulation: rising air in west, descending in east.\n\n**El Niño**:\n- Trade winds weaken or reverse.\n- Warm pool shifts east; cold upwelling in east shuts down.\n- Eastern Pacific SST anomaly +1 to +3°C.\n- Disrupts Walker circulation: descending air in Indonesia (drought) + rising in central/east Pacific (heavy rain over Galapagos).\n\n**Teleconnections**: El Niño affects weather globally.\n- N America: warmer + wetter winters in southern US; drier in NW.\n- S America: floods in Peru/Ecuador; drought in Brazil/Argentina.\n- Africa: drought in southern + east Africa; floods in Horn.\n- Australia: drought.\n- India: weaker monsoon.\n\nGlobal mean temperature is 0.1-0.2°C warmer during El Niño years.\n\n**La Niña**: opposite phase. Strengthened trade winds; cool tropical Pacific; mostly opposite teleconnections.\n\n**Timescales**: ENSO cycles every 2-7 years irregularly. Each event lasts ~9-18 months. Forecasting horizon: ~6 months with current models (Pacific-only) to ~12 months with full coupled GCMs.\n\n**Climate-change interaction**: warmer mean state may amplify El Niño + La Niña extremes, though models disagree. The 1997-98 + 2015-16 El Niños were the strongest on record + coincided with record warm years. Whether climate change makes ENSO 'more extreme' or just 'more variable' is an active research question."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ocean_ekman",
+        "kind": "guided_derivation",
+        "question": "Derive Ekman transport direction",
+        "goal": "Wind blows north (toward equator from southern hemisphere; or north in NH). What direction does the surface ocean move on net?",
+        "steps": [
+          {
+            "prompt": "In the northern hemisphere, Coriolis force deflects moving objects to the RIGHT (relative to motion). A wind blowing northward pushes water northward — but Coriolis deflects this northward-moving water to which compass direction?",
+            "motivation": "Coriolis right in NH.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "West.",
+                "East.",
+                "North.",
+                "South."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Right of north = east."
+            ],
+            "reveal": "Surface water (top layer) moves to the east of wind direction."
+          },
+          {
+            "prompt": "Now consider the next layer down. It's dragged by the surface layer (to the east) but also experiences Coriolis. Net: deflects further to the right. Each layer rotates more. The integrated NET transport in the FULL Ekman layer is what direction relative to wind?",
+            "motivation": "Ekman spiral integral.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Same direction as wind.",
+                "Opposite to wind.",
+                "90° to RIGHT of wind in NH (e.g., wind north → transport east).",
+                "90° to LEFT of wind in NH."
+              ],
+              "correctIndex": 2
+            },
+            "hints": [
+              "The Ekman spiral integrates to 90° rotation."
+            ],
+            "reveal": "Net Ekman transport: 90° to RIGHT of wind in NH (90° to LEFT in SH)."
+          },
+          {
+            "prompt": "Application: south-blowing trade winds north of equator → Ekman transport is which direction?",
+            "motivation": "Apply.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "South.",
+                "North.",
+                "WEST (right of south).",
+                "East."
+              ],
+              "correctIndex": 2
+            },
+            "hints": [
+              "Right of south = west."
+            ],
+            "reveal": "West. The trade winds drive surface water WESTWARD across the tropical Pacific — building the western Pacific warm pool."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Ekman transport: 90° to right of wind in NH, 90° to left in SH}}$$ Drives the warm pool, equatorial upwelling, coastal upwelling (California, Peru, Benguela, Canary). Northward wind along California coast → westward Ekman transport → surface water moves offshore → cold deep water upwells → nutrient-rich → fishery. Climate change weakens these wind systems + we see ecosystem cascades. The classical Ekman 1905 work is foundational for physical oceanography."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ocean_amoc",
+        "kind": "multiple_choice",
+        "question": "Several recent studies report a slowdown of the AMOC since ~1950. What is the proposed mechanism?",
+        "options": [
+          "Ocean currents are random.",
+          "Greenland + Arctic ice melt is adding fresh water to the North Atlantic, REDUCING surface-water density + slowing the sinking that drives AMOC.",
+          "Solar warming.",
+          "Pacific El Niño."
+        ],
+        "correctIndex": 1,
+        "explanation": "Greenland ice sheet losing ~280 Gt/year. Arctic sea ice declining. Both inject fresh water. Sinking depends on density; density depends on temperature + salinity. Warming + freshening both reduce density → less sinking → weaker AMOC. Models predict 10-50% weakening by 2100 under high emissions; observations support 10-20% already. A full collapse (rare paleoclimate event) considered low-probability but high-impact climate tipping risk."
+      },
+      "hints": [
+        "What drives AMOC sinking?",
+        "What melts add to the system?"
+      ],
+      "workedSolution": "AMOC sinking requires dense (cold + salty) surface water. Greenland + Arctic melt freshens the North Atlantic; warming also reduces density. Both push the system toward less sinking. Models confirm; paleoproxies (sediment cores, salinity records, coral data) corroborate. Direct measurements from RAPID array since 2004 show declining trend but data record is short. A major active research area + a high-impact risk in IPCC scenarios.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ocean_gulf",
+        "kind": "math_expression",
+        "question": "Gulf Stream transports about 30 Sv (Sverdrups, 1 Sv = 10^6 m³/s). Convert to m³/s.",
+        "acceptedAnswers": [
+          "30000000",
+          "30 million m^3/s",
+          "3e7"
+        ],
+        "hint": "30 × 10^6."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ocean_enso",
+        "kind": "scenario",
+        "question": "Forecasting an El Niño impact",
+        "prompt": "Climate forecasts suggest a strong El Niño this winter. An agricultural ministry asks you to predict impacts on the country's wheat harvest. Walk through what data + reasoning you'd use."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ocean",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why ocean circulation matters for climate beyond just transporting heat.",
+        "rubric": "Mentions that the ocean stores ~93% of the additional heat from anthropogenic warming (vs ~1% atmosphere); the deep ocean's millennial timescale means heat absorbed today emerges decades to centuries later; CO₂ absorbed (~25-30% of emissions) is sequestered in deep water but acidifies the surface ocean; ENSO + AMOC are the dominant short-term + multi-decadal modes of climate variability."
+      }
+    }
+  ]
+}

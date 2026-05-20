@@ -1,0 +1,155 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "intro",
+    "objectives": [
+      "Compute reactions + internal forces in a simply supported beam.",
+      "Construct shear + bending moment diagrams.",
+      "Distinguish determinate from indeterminate structures."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Beams: the workhorse structural element",
+      "body": "**Beam**: a slender member loaded primarily transversely. The most-analyzed element in civil engineering.\n\n**Support types** (rolling back from mechanical-engineer path):\n- **Pin**: 2 reactions, no moment.\n- **Roller**: 1 reaction.\n- **Fixed (cantilever)**: 3 reactions.\n\n**Determinate vs indeterminate**:\n- **Statically determinate**: 3 equilibrium equations = number of reactions. Solvable from statics alone. Simply-supported beam (pin + roller = 3 reactions) qualifies.\n- **Statically indeterminate**: more reactions than equilibrium equations. Need compatibility (deflection) conditions. Continuous beams over 3+ supports, fixed-fixed beams, frames.\n\n**Internal forces in a beam**:\n- **Axial force N**: along the beam axis.\n- **Shear force V**: perpendicular to the axis.\n- **Bending moment M**: rotation about the axis.\n\nFor each cross-section, equilibrium of one part of the beam gives N, V, M.\n\n**Sign conventions** (right-hand rule):\n- Shear: positive = downward on right face.\n- Moment: positive = sagging (compression on top, tension on bottom).\n- Standard for beam-design codes (AISC, ACI, Eurocode).\n\n**Shear + bending-moment diagrams**: plot V(x), M(x) along beam length.\n- Reveal max shear + max moment locations.\n- Design beam cross-section to resist the max.\n- Standard output of structural analysis.\n\n**Method**:\n1. Solve for reactions (statics).\n2. Cut beam at section. Sum forces + moments for one side.\n3. Repeat for several sections.\n4. Draw V(x), M(x) curves.\n\n**Relationships**:\n- $dV/dx = -w(x)$ (w = distributed load).\n- $dM/dx = V(x)$. So M is integral of V.\n- Max M occurs where V = 0 (point load + symmetric load cases) or where M' = 0."
+    },
+    {
+      "kind": "text",
+      "title": "Beam reactions + shear-moment diagrams + the viz",
+      "body": "**Simply supported beam, point load**:\n- Length $L$.\n- Point load $P$ at distance $a$ from left support.\n- $b = L - a$ from right.\n\n**Reactions** (from moment equilibrium):\n- $R_A = Pb/L$ (left).\n- $R_B = Pa/L$ (right).\n\n**Internal forces**:\n- For $0 \\le x \\le a$: $V = R_A = Pb/L$ (constant); $M = R_A x = Pbx/L$.\n- For $a \\le x \\le L$: $V = R_A - P = -Pa/L$; $M = R_A x - P(x - a)$.\n\n**Max moment**: at $x = a$ (load location), $M_{max} = Pab/L$.\n\n**Max deflection** (using EI = bending stiffness):\n- General: $y(x)$ from double integration of $EI y'' = M(x)$.\n- For point load at center ($a = b = L/2$): $\\delta_{max} = PL^3 / (48 EI)$.\n- For point load at offset: more complex; viz handles it.\n\n**The viz below** is a fully interactive simply-supported beam. Drag the load magnitude + position + span. Watch:\n- **Beam deflection curve** (dashed) deforms as you change parameters.\n- **Shear diagram** (sky blue) — STEP CHANGES at the point load. Sign flip across load.\n- **Bending moment diagram** (emerald) — TRIANGULAR shape, peak at the load location.\n- **Reactions** + max-moment + max-deflection update in real time.\n\nTry: move load near support — see reactions become unequal + moment peak shift toward load. Move load to center — reactions equal, moment maximally symmetric.\n\n**Distributed loads**: uniformly distributed load (UDL) $w$ over span:\n- $R_A = R_B = wL/2$.\n- $V(x) = wL/2 - wx$.\n- $M(x) = wLx/2 - wx^2/2$ (parabola).\n- $M_{max} = wL^2/8$ at center.\n- $\\delta_{max} = 5wL^4/(384 EI)$.\n\nFor any combination of point + distributed loads: SUPERPOSITION. Sum the V + M contributions.",
+      "viz": "beam-deflection"
+    },
+    {
+      "kind": "text",
+      "title": "Structural systems beyond beams",
+      "body": "**Truss**: pin-connected members in pure tension/compression. Bridges, roof structures, transmission towers.\n- Members carry ONLY axial force.\n- Method of joints (equilibrium at each joint) or method of sections (equilibrium of part of truss).\n- Stable trusses: $m + r = 2j$ (m = members, r = reactions, j = joints) for 2D determinate; $m + r = 3j$ for 3D.\n\n**Frame**: rigid-connected members. Can carry axial + shear + moment.\n- Most buildings + most bridges in modern construction.\n- Indeterminate analysis common.\n- Methods: slope-deflection, moment distribution (Hardy Cross), stiffness method (matrix).\n\n**Plate + shell structures**: 2D + 3D continuum. Need PDE solution (Kirchhoff plate theory, shell theory).\n- Examples: floor slabs, water tanks, ship hulls, pressure vessels.\n- FEA dominates for complex geometries.\n\n**Indeterminate beam analysis**:\n- **Force method (compatibility)**: remove redundant supports, compute deflections, restore via compatibility.\n- **Displacement method (stiffness)**: degrees of freedom = joint displacements + rotations. Matrix equation.\n- **Moment distribution (Hardy Cross)**: iterative. Pre-computer era. Still taught for intuition.\n- **Finite element**: numerical. Handles arbitrary geometry + boundary conditions.\n\n**Software**:\n- **SAP2000** (Computers and Structures): general structural analysis.\n- **ETABS**: building-focused.\n- **STAAD.Pro**: also general.\n- **RAM Structural Suite**: integrated design.\n- **RISA-3D**: practical for buildings.\n- **Tekla Structural Designer**: BIM-integrated.\n- **OpenSees**: research + advanced.\n- All implement matrix stiffness + finite element + design code checks.\n\n**Code-based design**:\n- ASCE 7 (loads), AISC 360 (steel), ACI 318 (concrete), TMS 402 (masonry), NDS (wood). US.\n- Eurocodes (EN 1990-1999): Europe.\n- IS codes (India), GB codes (China), AS/NZS (Australia/NZ), etc.\n- Codes prescribe LOAD COMBINATIONS (dead, live, wind, earthquake, snow), LOAD FACTORS, RESISTANCE FACTORS, + deflection + serviceability limits.\n\n**Load combinations** (USA LRFD):\n- $1.4 D$.\n- $1.2 D + 1.6 L + 0.5(L_r$ or $S)$.\n- $1.2 D + 1.0 W + L + 0.5 L_r$.\n- $1.2 D + 1.0 E + L + 0.2 S$.\n- $0.9 D + 1.0 W$ (uplift).\n- $0.9 D + 1.0 E$.\n\nDesign for the most-critical combination. Modern codes have hundreds of pages of provisions; software automates."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_struct_beam",
+        "kind": "guided_derivation",
+        "question": "Compute reactions + moment for a simply supported beam",
+        "goal": "Beam: $L = 12$ m. Point load $P = 30$ kN at $a = 4$ m from left support. Compute reactions + max moment.",
+        "steps": [
+          {
+            "prompt": "Sum moments about left support (A): $-P \\cdot a + R_B \\cdot L = 0$. Solve for $R_B$.",
+            "motivation": "Moment equilibrium.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "10 kN",
+                "10"
+              ]
+            },
+            "hints": [
+              "$R_B = Pa/L = 30 \\times 4 / 12$."
+            ],
+            "reveal": "$R_B = 10$ kN."
+          },
+          {
+            "prompt": "Sum vertical forces: $R_A + R_B - P = 0$. Compute $R_A$.",
+            "motivation": "Force equilibrium.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "20 kN",
+                "20"
+              ]
+            },
+            "hints": [
+              "$R_A = P - R_B = 30 - 10$."
+            ],
+            "reveal": "$R_A = 20$ kN. Or directly: $R_A = Pb/L = 30 \\times 8/12 = 20$."
+          },
+          {
+            "prompt": "Max bending moment occurs at the load location. $M_{max} = R_A \\cdot a$. Compute.",
+            "motivation": "Just use lever arm.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "80 kN·m",
+                "80"
+              ]
+            },
+            "hints": [
+              "20 × 4."
+            ],
+            "reveal": "$M_{max} = 80$ kN·m at $x = a = 4$ m."
+          },
+          {
+            "prompt": "Alternative formula: $M_{max} = Pab/L = 30 \\times 4 \\times 8 / 12$. Verify.",
+            "motivation": "Cross-check.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "80 kN·m",
+                "80"
+              ]
+            },
+            "hints": [
+              "960/12 = 80."
+            ],
+            "reveal": "$M_{max} = 80$ kN·m. Two methods agree. Now design beam cross-section to resist 80 kN·m moment with appropriate safety factor + material strength."
+          }
+        ],
+        "finalResult": "$$\\boxed{R_A = Pb/L, R_B = Pa/L, M_{max} = Pab/L}$$ The simply-supported beam with point load is THE foundational structural analysis problem. All civil + mechanical engineers solve it on day one. The shear + moment diagrams reveal max stresses for design. Move the load to center: $M_{max} = PL/4$. Distributed load $w$: $M_{max} = wL^2/8$. These three formulas cover ~80% of intro structural analysis."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_struct_indet",
+        "kind": "multiple_choice",
+        "question": "Why are many real building structures DESIGNED as indeterminate (continuous beams, fixed frames) even though analysis is harder?",
+        "options": [
+          "Random.",
+          "Indeterminate structures have multiple LOAD PATHS — if one element fails or yields, load redistributes. More redundancy + safety. Also: lower mid-span moments (continuous beam smaller than simply-supported), better serviceability + less deflection. The analysis complexity is handled by software.",
+          "Cheaper.",
+          "Decoration."
+        ],
+        "correctIndex": 1,
+        "explanation": "Indeterminate = redundant = safer. If a single beam fails, statically-determinate structures lose stability. Indeterminate ones redistribute load via remaining members. Continuous beams (multiple spans, common in office buildings + bridges) have negative moments over supports + smaller positive moments mid-span vs simply-supported. Lower max moment → smaller cross-section → cheaper. Modern structural software handles indeterminate analysis trivially. Almost all reinforced concrete buildings + steel frame buildings are indeterminate."
+      },
+      "hints": [
+        "Why indeterminate?",
+        "What's the trade-off?"
+      ],
+      "workedSolution": "Redundancy: more load paths, safer. Smaller mid-span moments. Better serviceability + deflection. Analysis was hard pre-computers; now trivial. Modern buildings + bridges almost exclusively indeterminate. Code-based design + checks handle the complexity. Engineering judgment + experience guide which redundancies are valuable.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_struct_mid",
+        "kind": "math_expression",
+        "question": "Simply supported beam, load P at center. Max moment?",
+        "acceptedAnswers": [
+          "PL/4",
+          "P*L/4"
+        ],
+        "hint": "$M_{max} = P \\cdot (L/2) \\cdot (L/2) / L = PL/4$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_struct_floor",
+        "kind": "scenario",
+        "question": "Designing a residential floor",
+        "prompt": "A new house has a 5-meter living-room span. Walk through the structural analysis: determine loads, choose joist size + spacing, check deflection."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_struct",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why shear-and-moment diagrams are foundational to structural engineering.",
+        "rubric": "Mentions that V + M diagrams reveal max internal forces along the beam; the design cross-section must resist these max values with adequate safety; locating where max moment occurs determines where to place reinforcement (in concrete) or stiffeners (in steel); this same analysis underlies all structural design from houses to skyscrapers to bridges."
+      }
+    }
+  ]
+}

@@ -1,0 +1,165 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "State Newton's laws of motion.",
+      "Apply rotational dynamics + moment of inertia.",
+      "Reason about Lagrangian + energy methods."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Kinematics: describing motion",
+      "body": "**Kinematics**: motion without considering causes. Position, velocity, acceleration.\n\n**1D motion**:\n- Position $x(t)$.\n- Velocity $v = dx/dt$.\n- Acceleration $a = dv/dt$.\n- For constant $a$: $v = v_0 + at$, $x = x_0 + v_0 t + \\frac{1}{2}at^2$, $v^2 = v_0^2 + 2a(x - x_0)$.\n\n**2D / 3D motion**: vectors. Position $\\mathbf{r}(t)$, velocity $\\mathbf{v} = d\\mathbf{r}/dt$, acceleration $\\mathbf{a} = d\\mathbf{v}/dt$.\n\n**Projectile motion**: gravity-only acceleration $\\mathbf{a} = -g \\hat{j}$. Parabolic trajectory.\n- Range: $R = v_0^2 \\sin(2\\theta) / g$. Max at 45°.\n- Time of flight: $T = 2 v_0 \\sin\\theta / g$.\n\n**Circular motion**:\n- Radial (centripetal) acceleration: $a_c = v^2/r = \\omega^2 r$.\n- Tangential acceleration: $a_t = dv/dt = r \\alpha$.\n- Angular velocity: $\\omega = d\\theta/dt$.\n- Angular acceleration: $\\alpha = d\\omega/dt$.\n\n**Reference frames + relative motion**:\n- Inertial: no acceleration.\n- Non-inertial: rotating, accelerating. Need fictitious forces (centrifugal, Coriolis) when using Newton's laws.\n- Earth surface: APPROXIMATELY inertial; Coriolis matters for hurricanes, projectiles over hundreds of km.\n\n**Constraint motion**: pendulums, rolling, sliding on surfaces. Equation of motion derived from constraints.\n\n**Engineering examples**:\n- Robot arm kinematics: forward (joint angles → end-effector) + inverse (target → joint angles).\n- Vehicle handling: cornering, weight transfer, drift dynamics.\n- Cam-follower systems: convert rotational to linear motion.\n- Animation + simulation: physics engines (Bullet, PhysX, MuJoCo) numerically integrate kinematics."
+    },
+    {
+      "kind": "text",
+      "title": "Newton's laws + force analysis",
+      "body": "**Newton's three laws**:\n\n**1st (inertia)**: object at rest stays at rest; object in motion stays in motion with constant velocity — unless acted on by net force.\n\n**2nd**: $\\mathbf{F} = m\\mathbf{a}$. Net force = mass × acceleration. The workhorse of dynamics.\n\n**3rd**: for every action there's an equal + opposite reaction.\n\n**Solving dynamics problems**:\n1. Draw free-body diagram.\n2. Choose coordinate system.\n3. Sum forces in each direction = $m a$ in that direction.\n4. Solve for accelerations + unknowns.\n5. Integrate for velocity + position if needed.\n\n**Common forces**:\n- **Gravity**: $W = mg$ (Earth surface) or $G m_1 m_2 / r^2$ (inverse-square).\n- **Normal**: perpendicular to surface.\n- **Friction**: $f = \\mu N$ (kinetic) or $\\le \\mu_s N$ (static).\n- **Tension**: along cable, both ends same magnitude.\n- **Spring**: $F = -k x$ (Hooke's law).\n- **Damping**: $F = -c v$ (viscous).\n- **Drag**: $F = \\frac{1}{2} \\rho C_d A v^2$ at high Reynolds.\n\n**Friction is the source of MUCH engineering**:\n- Static coefficient $\\mu_s$ > kinetic $\\mu_k$.\n- Wheel design: traction depends on $\\mu$.\n- Brake systems: convert kinetic energy to heat via friction.\n- Lubrication: reduces friction in bearings + gears.\n\n**Work + energy**:\n- Work: $W = \\int \\mathbf{F} \\cdot d\\mathbf{r}$.\n- Kinetic energy: $KE = \\frac{1}{2}mv^2$.\n- Work-energy theorem: $W_{net} = \\Delta KE$.\n- Potential energy: gravity $U = mgh$, spring $U = \\frac{1}{2}kx^2$.\n- Energy conservation: $KE + PE = $ const (no non-conservative forces).\n- Power: $P = dW/dt = \\mathbf{F} \\cdot \\mathbf{v}$.\n\n**Impulse + momentum**:\n- Momentum: $\\mathbf{p} = m\\mathbf{v}$.\n- Impulse: $\\mathbf{J} = \\int \\mathbf{F} dt = \\Delta \\mathbf{p}$.\n- Conservation of momentum (no external force): $\\sum \\mathbf{p}_i = $ const. Critical for collisions + rockets."
+    },
+    {
+      "kind": "text",
+      "title": "Rotational dynamics + Lagrangian methods",
+      "body": "**Rotational analogs of linear quantities**:\n- Position $x$ → angle $\\theta$.\n- Velocity $v$ → angular velocity $\\omega$.\n- Acceleration $a$ → angular acceleration $\\alpha$.\n- Force $F$ → torque $\\tau = r \\times F$.\n- Mass $m$ → moment of inertia $I$.\n- Momentum $p = mv$ → angular momentum $L = I\\omega$.\n- Kinetic energy $\\frac{1}{2}mv^2$ → $\\frac{1}{2}I\\omega^2$.\n\n**Newton's 2nd for rotation**: $\\sum \\tau = I \\alpha$.\n\n**Moment of inertia**:\n- Point mass at distance $r$: $I = mr^2$.\n- Rod about end: $I = \\frac{1}{3}ML^2$.\n- Rod about center: $I = \\frac{1}{12}ML^2$.\n- Solid disk about center: $I = \\frac{1}{2}MR^2$.\n- Solid sphere about center: $I = \\frac{2}{5}MR^2$.\n- Parallel axis theorem: $I = I_{cm} + Md^2$ (offset from center of mass by $d$).\n\n**Conservation of angular momentum**: critical for satellites, spinning skaters, gyroscopes.\n\n**Rigid body dynamics**: 6 DOF (3 translation + 3 rotation). Equation $\\mathbf{F} = m \\mathbf{a}_{cm}$ + $\\boldsymbol{\\tau} = d\\mathbf{L}/dt$.\n\n**Gyroscopic effects**:\n- Spinning body resists changes in axis orientation.\n- Precession: $\\Omega_{prec} = \\tau / (I\\omega)$ for external torque perpendicular to spin axis.\n- Used in: gyroscopes, control moment gyros, bicycles + motorcycles (steering at speed), drone stabilization.\n\n**Lagrangian mechanics** (alternative to Newton):\n- $L = T - V$ (kinetic minus potential energy).\n- Euler-Lagrange equation: $\\frac{d}{dt}\\frac{\\partial L}{\\partial \\dot{q}} - \\frac{\\partial L}{\\partial q} = 0$ for each generalized coordinate.\n- Easier than Newton when constraints are complex (pendulums, robot arms, gyroscopes).\n- Equivalent to Newton's laws but coordinate-free.\n\n**Hamiltonian mechanics** (further reformulation): canonical coordinates $(q, p)$ instead of $(q, \\dot{q})$. Foundational for quantum mechanics + symplectic numerical integration.\n\n**Modern usage**:\n- Robot kinematics + dynamics: software (ROS, Drake, MuJoCo) uses these formulations.\n- Vehicle dynamics: complex multi-body. CarSim, IPG CarMaker for automotive simulation.\n- Animation: physics engines blend Newtonian + constraint-based + reduced-coordinate approaches.\n- Spacecraft attitude control: uses rotational dynamics + gyroscopic effects.\n- Computer-aided engineering (CAE): full multibody dynamics for design + validation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dyn_pendulum",
+        "kind": "guided_derivation",
+        "question": "Derive the pendulum equation",
+        "goal": "Simple pendulum: mass $m$ on a massless string of length $L$ in gravity $g$. Use Lagrangian approach.",
+        "steps": [
+          {
+            "prompt": "Coordinate: angle $\\theta$ from vertical. Kinetic energy: $T = \\frac{1}{2}m v^2 = \\frac{1}{2}m (L\\dot\\theta)^2$.",
+            "motivation": "Express T.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$T = \\frac{1}{2}m L^2 \\dot\\theta^2$.",
+                "$T = \\frac{1}{2}m\\dot\\theta^2$.",
+                "$T = mgh$.",
+                "$T = mgL$."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "$v = L\\dot\\theta$ for pendulum on circular arc."
+            ],
+            "reveal": "$T = \\frac{1}{2}m L^2 \\dot\\theta^2$."
+          },
+          {
+            "prompt": "Potential energy: $V = -mg L \\cos\\theta$ (taking pivot as origin).",
+            "motivation": "Geometry.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$V = mgL\\sin\\theta$.",
+                "$V = -mgL\\cos\\theta$.",
+                "$V = mgL$.",
+                "$V = 0$."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Height below pivot: $L\\cos\\theta$. Potential = $-mgh$."
+            ],
+            "reveal": "$V = -mg L \\cos\\theta$ (or $V = mgL(1 - \\cos\\theta)$ taking equilibrium as reference)."
+          },
+          {
+            "prompt": "Lagrangian: $L = T - V = \\frac{1}{2}m L^2 \\dot\\theta^2 + mg L \\cos\\theta$. Euler-Lagrange: $\\frac{d}{dt}\\frac{\\partial L}{\\partial \\dot\\theta} = \\frac{\\partial L}{\\partial \\theta}$. Compute.",
+            "motivation": "Apply EL.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$m L^2 \\ddot\\theta = -mg L \\sin\\theta$.",
+                "$mL\\ddot\\theta = g\\theta$.",
+                "$\\ddot\\theta = 0$.",
+                "$mL^2\\dot\\theta = mgL\\cos\\theta$."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "$\\partial L/\\partial \\dot\\theta = mL^2\\dot\\theta$, $\\partial L/\\partial \\theta = -mgL\\sin\\theta$."
+            ],
+            "reveal": "$m L^2 \\ddot\\theta = -mg L \\sin\\theta$, simplifies to $\\ddot\\theta = -(g/L)\\sin\\theta$."
+          },
+          {
+            "prompt": "For small angles: $\\sin\\theta \\approx \\theta$. Equation becomes $\\ddot\\theta = -(g/L)\\theta$. Period?",
+            "motivation": "SHM.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "T = 2π√(L/g)",
+                "2π√(L/g)",
+                "2 pi sqrt(L/g)"
+              ]
+            },
+            "hints": [
+              "Simple harmonic oscillator: $\\omega^2 = g/L$, $T = 2\\pi/\\omega$."
+            ],
+            "reveal": "$T = 2\\pi\\sqrt{L/g}$ for small oscillations. Independent of mass + amplitude (the famous result Galileo discovered)."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\ddot\\theta = -(g/L)\\sin\\theta; T_{small} = 2\\pi\\sqrt{L/g}}$$ The pendulum is the canonical Lagrangian example. The same approach handles complex multi-body systems (robot arms, helicopters, double pendulums). Lagrangian methods are universal in advanced mechanical engineering education + research. Modern multibody dynamics software (MSC Adams, Simulink) uses these underneath."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dyn_skater",
+        "kind": "multiple_choice",
+        "question": "An ice skater pulls in her arms while spinning. Why does she spin faster?",
+        "options": [
+          "Random.",
+          "Conservation of angular momentum: $L = I\\omega$ = const. Pulling arms in reduces $I$ → $\\omega$ must increase. Same total angular momentum, less moment of inertia, more rotation rate.",
+          "Magic.",
+          "Friction."
+        ],
+        "correctIndex": 1,
+        "explanation": "Conservation of angular momentum (no external torque): $L = I\\omega = $ const. Initially: arms out → high $I$ → low $\\omega$. Pull in: lower $I$ → higher $\\omega$ to conserve $L$. Same principle: figure skaters, ballerinas, neutron stars (a spinning star collapsing into neutron star spins up to hundreds of Hz). The conservation law is exact (no friction with ice neglected; in reality slight slowdown over time)."
+      },
+      "hints": [
+        "Conservation principle?",
+        "What's the result?"
+      ],
+      "workedSolution": "Angular momentum $L = I\\omega$. No external torque → $L$ constant. Pull arms in → $I$ drops → $\\omega$ rises. Same total L, more rotation rate. Foundational example of conservation. Used: spacecraft attitude, gymnastics, planetary motion, hard-drive read heads. Powerful + universal.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_dyn_v",
+        "kind": "math_expression",
+        "question": "Object falling from rest under $g = 9.81$ m/s² for 3 seconds. Final velocity?",
+        "acceptedAnswers": [
+          "29.43 m/s",
+          "~29.4 m/s",
+          "29.43"
+        ],
+        "hint": "$v = gt$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_dyn_robot",
+        "kind": "scenario",
+        "question": "Robot arm trajectory planning",
+        "prompt": "A 6-DOF robotic arm needs to move a payload along a smooth trajectory. Walk through the kinematics + dynamics involved (forward kinematics, inverse kinematics, joint torque control)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dyn",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why Lagrangian + Hamiltonian methods are preferred over Newton's laws for complex mechanical systems.",
+        "rubric": "Mentions that Newton's laws require setting up coordinate-dependent FBDs for each body + including constraint forces; Lagrangian methods use generalized coordinates that automatically satisfy constraints + give scalar energy expressions to differentiate; for systems with many bodies + constraints (robot arms, spacecraft), Lagrangian is much more tractable. Both approaches give the same physics; choice is about engineering convenience."
+      }
+    }
+  ]
+}

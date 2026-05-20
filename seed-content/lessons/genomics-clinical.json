@@ -1,0 +1,147 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "specialist",
+    "objectives": [
+      "Outline clinical genomic testing.",
+      "Reason about pharmacogenomics + precision oncology.",
+      "Distinguish actionable findings from VUS."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Clinical genomics: from research to bedside",
+      "body": "**Clinical genomics** uses genomic information to guide medical care.\n\n**Major use cases**:\n- **Diagnostics**: rare genetic disease, undiagnosed disease network.\n- **Pharmacogenomics**: drug selection + dosing based on metabolism genes.\n- **Oncology**: tumor mutations guide targeted therapy.\n- **Reproductive**: carrier screening, preimplantation, prenatal.\n- **Risk prediction**: hereditary cancer panels (BRCA, Lynch syndrome).\n- **Polygenic risk scores**: common-disease risk from many variants.\n- **Disease screening**: newborn screening, expanded carrier.\n\n**Testing modalities**:\n- **Targeted panels**: few-to-hundreds of genes. Cheap (~\\$200-1000). Used for specific indications (BRCA1/2 for breast cancer risk).\n- **Whole exome sequencing (WES)**: all coding regions (~2% of genome). \\$500-1500. Used for rare-disease diagnosis.\n- **Whole genome sequencing (WGS)**: everything. \\$300-1500 (rapidly falling). Used for complex/rare cases + research.\n- **mRNA sequencing**: gene expression. Cancer subtyping + research.\n- **Methylation arrays**: epigenetic. Increasing clinical use.\n- **Liquid biopsy**: cell-free DNA from blood. Cancer detection, monitoring.\n- **Cytogenetics (karyotype, FISH)**: structural changes. Cheaper, mature.\n- **Microarray**: copy-number variants. Standard for developmental delay.\n\n**Genomic data scale**:\n- WGS per person: ~100 GB raw, ~10 GB processed.\n- Major resources: gnomAD (>800,000 individuals genomic data), UK Biobank (500K WGS), All of Us (1M target), GenomeMed (variants).\n- Costs continue dropping: \\$1B HGP → ~\\$1000 WGS now → \\$100 within years.\n\n**ACMG variant classification** (American College of Medical Genetics):\n1. **Pathogenic**: confirmed disease-causing.\n2. **Likely pathogenic**: 90%+ certainty.\n3. **VUS (Variant of Uncertain Significance)**: insufficient evidence. THE MAJORITY of findings.\n4. **Likely benign**: 90%+ probably benign.\n5. **Benign**: confirmed not disease-causing.\n\n**ClinVar**: NCBI database of clinical variants. ~3M+ submissions; ~1M unique variants classified. Open + collaborative.\n\n**Variant interpretation**:\n- Population frequency (rare → more likely pathogenic).\n- Functional studies (does it disrupt protein?).\n- Familial co-segregation.\n- In silico predictions (CADD, REVEL, SIFT, PolyPhen).\n- Prior published reports.\n- Computational + literature integration."
+    },
+    {
+      "kind": "text",
+      "title": "Pharmacogenomics + precision oncology",
+      "body": "**Pharmacogenomics (PGx)**: genetic variation affects drug response.\n\n**Major PGx genes** (covered in pharmacokinetics lesson):\n- **CYP2D6**: codeine, tramadol, tamoxifen, SSRIs. Poor metabolizers (PMs) → ineffective; ultra-rapid metabolizers (UMs) → toxicity.\n- **CYP2C19**: clopidogrel, PPIs.\n- **CYP2C9 + VKORC1**: warfarin.\n- **TPMT**: thiopurines (6-MP, azathioprine).\n- **DPYD**: 5-fluorouracil, capecitabine.\n- **UGT1A1**: irinotecan.\n- **HLA-B*57:01**: abacavir.\n- **HLA-B*15:02**: carbamazepine.\n- **NUDT15**: thiopurines (added recently).\n\n**Implementation**:\n- **Preemptive panels**: test once, results in EHR. CYP2D6, CYP2C9, CYP2C19, CYP3A4/5, TPMT, DPYD, SLCO1B1, HLA-B*57:01 standard.\n- **Reactive testing**: when starting specific drug.\n- **CPIC (Clinical Pharmacogenetics Implementation Consortium)**: evidence-based guidelines linking genotype → drug dosing.\n- **FDA labels**: ~150+ drugs have PGx info; recommended in some, required in few.\n\n**Implementation programs**:\n- Vanderbilt's PREDICT, Mayo's RIGHT, IGNITE, eMERGE.\n- Hospital systems increasingly adopting.\n- Cost: ~\\$300-500 for preemptive panel.\n- Evidence: PGx-guided dosing reduces adverse events for some drugs (e.g., abacavir's HLA-B*57:01 — pre-screen prevents Stevens-Johnson syndrome).\n\n**Precision oncology**: matching cancer treatment to tumor genomic profile.\n\n**Tumor sequencing**:\n- Targeted panels (e.g., FoundationOne CDx — 324 genes, FDA-approved).\n- Whole-exome + RNAseq.\n- Liquid biopsy for monitoring + late-stage.\n- Hot mutations: EGFR (lung), BRCA1/2 (breast, ovarian, prostate, pancreatic), HER2 (breast, gastric), MSI/MMR (multiple, immunotherapy), TMB (tumor mutational burden, immunotherapy), KRAS G12C (lung, colorectal), BRAF V600E (melanoma, colorectal), ALK + ROS1 fusions (lung), NTRK fusions (rare but actionable across tumors).\n\n**Companion diagnostics**: paired test required for treatment decision.\n- HER2 IHC/FISH for trastuzumab.\n- KRAS G12C testing for sotorasib.\n- EGFR mutation for erlotinib/osimertinib.\n- ALK FISH/IHC for crizotinib/alectinib.\n- BRAF V600E for vemurafenib + dabrafenib.\n- MSI-H/dMMR for pembrolizumab.\n- TMB high for pembrolizumab (tissue-agnostic).\n\n**Tumor-agnostic approvals**: drug approved for any cancer with specific mutation. NTRK inhibitors (larotrectinib, entrectinib), pembrolizumab for MSI-H. Revolutionary.\n\n**Molecular tumor boards**: multi-disciplinary teams review complex genomic results + recommend treatment. Standard at NCI-designated centers."
+    },
+    {
+      "kind": "text",
+      "title": "Genome-wide associations + polygenic risk + the ML angle",
+      "body": "**GWAS (Genome-Wide Association Studies)**: identify SNPs (single-nucleotide polymorphisms) associated with traits.\n\n**Method**: genotype many individuals, test each SNP for association with trait. Genome-wide significance threshold $p < 5 \\times 10^{-8}$ (Bonferroni correction for ~1M independent tests).\n\n**Findings**:\n- Most common-disease SNPs have small effects (odds ratio 1.05-1.5).\n- Many SNPs per trait (10s to 100s).\n- Most variance UNEXPLAINED ('missing heritability').\n\n**Polygenic Risk Score (PRS)**: aggregate effect of many SNPs into single risk score.\n$$PRS = \\sum_i \\beta_i \\cdot \\text{dosage}_i$$\n\nWhere $\\beta_i$ = effect size of SNP $i$, dosage = 0/1/2 copies.\n\n**Examples**:\n- **Coronary artery disease**: PRS identifies top 5-10% with ~3-4× risk.\n- **Breast cancer**: PRS + family history + lifestyle improves risk prediction.\n- **Type 2 diabetes**: ~30-40% heritability captured.\n- **Schizophrenia**: PRS explains ~7-10% of variance.\n\n**Clinical use of PRS**:\n- Risk stratification for screening (mammography, colonoscopy intervals).\n- Combined with traditional risk factors (Framingham + PRS for CAD).\n- Patient counseling.\n- Research: pharmacogenomic prediction, drug target discovery.\n\n**PRS limitations**:\n- **Population specificity**: PRS trained on European-ancestry individuals performs poorly in African + Asian ancestry. Major equity issue. Diverse training cohorts needed (All of Us, etc.).\n- **Modest predictive value**: usually adds 1-5% to AUC over standard risk factors.\n- **Reproducibility**: PRS scores vary by training population + methods.\n- **Clinical utility**: still being established. Most insurance doesn't cover.\n\n**ML in genomics**:\n- **Variant pathogenicity prediction**: CADD, REVEL, PrimateAI, AlphaMissense (Google DeepMind 2023 — predicts effect of 71 million possible amino-acid substitutions). Major impact on variant interpretation.\n- **Structural variant calling**: from short-read sequencing.\n- **Tumor mutation calling**: detect somatic mutations against noisy germline background.\n- **Drug-target prediction**: from genomic variants.\n- **GWAS deep learning**: better statistical power.\n- **Cancer subtyping** from expression: clustering, classification.\n- **Drug-gene-disease network embeddings**: link prediction for repurposing.\n\n**Genomic data infrastructure**:\n- **GA4GH (Global Alliance for Genomics and Health)**: standards body.\n- **VCF, BAM, CRAM**: data formats.\n- **Cloud genomics**: Google + AWS + DNAnexus + Terra. Scale + reproducibility.\n- **Federated genomics**: cross-institution analysis without raw data sharing.\n\n**Ethics + governance**:\n- **Direct-to-consumer**: 23andMe, AncestryDNA. Health information vs entertainment.\n- **Incidental findings**: ACMG list of medically-actionable secondary findings.\n- **Genetic discrimination**: GINA (USA 2008) protects against employer + health-insurance discrimination. Not life insurance or LTC.\n- **Consent + recontact**: as knowledge grows, can interpretations be updated?\n- **Equity**: most genomic data is European-ancestry. Major gap.\n- **Family implications**: a genetic finding affects relatives. Cascade testing programs."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_genomic_brca",
+        "kind": "guided_derivation",
+        "question": "Interpret a BRCA1 finding",
+        "goal": "Patient has breast cancer at age 38, family history. BRCA1 panel finds variant: c.181T>G (p.Cys61Gly). Classified as Pathogenic in ClinVar with 25+ submissions. What does this mean clinically?",
+        "steps": [
+          {
+            "prompt": "Implications for the patient's cancer + treatment?",
+            "motivation": "Clinical decisions.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "BRCA1 pathogenic variant → consider PARP inhibitor therapy (olaparib, talazoparib) — particularly effective for BRCA-mutated cancers (HRD pathway). Also consider bilateral mastectomy + risk-reducing salpingo-oophorectomy for risk of second primary or ovarian cancer.",
+                "Decoration.",
+                "No change."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "PARP inhibitors + risk reduction."
+            ],
+            "reveal": "PARP inhibitors as targeted therapy (BRCA1/2 cancers are 'HRD' — homologous recombination deficient — sensitive to synthetic lethality with PARP). Plus bilateral mastectomy + salpingo-oophorectomy for risk reduction. Standard NCCN guidelines."
+          },
+          {
+            "prompt": "Implications for the patient's FAMILY?",
+            "motivation": "Cascade testing.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Autosomal dominant: 50% chance each first-degree relative inherited. Recommend genetic counseling + cascade testing for siblings, parents, children. Identified carriers can pursue: enhanced screening (MRI + mammography), risk-reducing surgery, or chemoprevention.",
+                "No implications.",
+                "Just the patient."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Family at risk."
+            ],
+            "reveal": "Cascade testing: first-degree relatives have 50% chance of carrying same variant. Identified carriers benefit from enhanced screening (annual MRI + mammography for breast; consider RRSO for ovarian) + risk-reducing options. Genetic counseling + family communication critical. Cascade testing one of the highest-yield clinical genomic interventions."
+          },
+          {
+            "prompt": "What if instead of pathogenic, the variant was classified as a VUS?",
+            "motivation": "VUS handling.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Treat same.",
+                "DO NOT use VUS for management decisions. Treat patient based on clinical phenotype (cancer history) + family history, NOT VUS status. Recommend re-evaluation as evidence accumulates. Population-specific data important.",
+                "Bilateral mastectomy.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "VUS not actionable."
+            ],
+            "reveal": "VUS not used for management. Treat patient based on clinical/family-history risk. Don't perform risk-reducing surgery based on VUS alone. Family members not informed of carrier status based on VUS. Re-evaluate as new evidence emerges. Many VUS get reclassified over time."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Pathogenic BRCA1 → PARP inhibitors + risk-reducing surgery + cascade testing; VUS = not actionable}}$$ BRCA1/2 is the textbook example of clinical genomics: clear actionability for both treatment + risk reduction + family cascade. Most other variants in most other genes are still in research/uncertain territory. Variant classification continues to evolve as ClinVar grows + functional studies + AI tools (AlphaMissense) improve. The principle 'VUS is not actionable' is foundational + sometimes hard for families to hear."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_genomic_alphamissense",
+        "kind": "multiple_choice",
+        "question": "AlphaMissense (DeepMind 2023) predicts pathogenicity for 71 million possible amino-acid substitutions. What's the clinical impact?",
+        "options": [
+          "Random.",
+          "Most VUS may now have AI-predicted classifications. ClinGen + ClinVar evaluating how to integrate AI predictions into clinical interpretation. Could dramatically reduce VUS rate but requires careful validation + maintaining clinical-grade rigor (false predictions could lead to harm).",
+          "Marketing.",
+          "Decoration."
+        ],
+        "correctIndex": 1,
+        "explanation": "AlphaMissense: AlphaFold-derived model predicts pathogenicity for ~71 million possible amino-acid changes (vs ~4 million currently in databases). For ~90% of variants, gives high-confidence predictions. Most current VUS could potentially be re-classified using AI.\n\nClinical impact (potential):\n- Reduce VUS rate dramatically.\n- Speed variant interpretation.\n- Help unsolved diagnostic cases.\n\nChallenges:\n- AlphaMissense not yet validated for clinical decisions at variant-by-variant level.\n- ClinGen + ClinVar working on AI integration frameworks.\n- False predictions could cause harm (wrong management decisions).\n- Some classes of variants (loss of function) different from missense.\n\nFDA + ACMG evolving guidance on AI in variant interpretation. Genomic AI is rapidly maturing; integration into clinical practice will take years but is starting."
+      },
+      "hints": [
+        "What does AlphaMissense do?",
+        "Clinical impact?"
+      ],
+      "workedSolution": "Predicts pathogenicity for 71M possible amino-acid changes (vs 4M in databases). Could reduce VUS dramatically. ClinGen + ClinVar evaluating integration. Challenges: not validated for clinical use yet, false predictions cause harm, classification standards (ACMG) evolving. AI-augmented variant interpretation is the trajectory.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_genomic_pgx",
+        "kind": "math_expression",
+        "question": "5% of patients are CYP2C19 poor metabolizers. In a 10,000-patient cardiology practice, expected PMs?",
+        "acceptedAnswers": [
+          "500"
+        ],
+        "hint": "0.05 × 10000."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_genomic_oncology",
+        "kind": "scenario",
+        "question": "Precision oncology workflow",
+        "prompt": "A 45-year-old with newly-diagnosed colorectal cancer. Walk through the genomic workup + treatment decision process."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_genomic",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why polygenic risk scores have limited clinical adoption despite strong research interest.",
+        "rubric": "Mentions that PRS adds modest predictive value (1-5% AUC over standard risk factors) over traditional clinical risk factors; population specificity issues — most PRS trained on European ancestry don't translate well to other populations; clinical actionability often unclear (does knowing higher risk change management?); reimbursement + integration with EHRs still nascent. Active research area + likely to grow as diverse cohorts + better methods improve PRS performance + equity."
+      }
+    }
+  ]
+}

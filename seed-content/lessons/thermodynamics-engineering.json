@@ -1,0 +1,161 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "core",
+    "objectives": [
+      "State the laws of thermodynamics.",
+      "Outline the Carnot cycle + heat engines.",
+      "Reason about refrigeration + heat pumps."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The laws of thermodynamics",
+      "body": "**1st law (energy conservation)**: $\\Delta U = Q - W$. Internal energy change = heat in minus work done by system.\n\nForms of energy: kinetic, potential, thermal, chemical, nuclear, electromagnetic. Convert but never destroy.\n\n**2nd law (entropy)**: total entropy of an isolated system NEVER DECREASES.\n$$\\Delta S \\geq 0$$\n\n**Entropy** $S$: measure of disorder. Heat flows from hot to cold spontaneously (entropy increases). Reverse requires WORK INPUT.\n\nMacroscopic statement (Clausius): heat cannot SPONTANEOUSLY flow from cold to hot.\n\nAlternative (Kelvin-Planck): no engine can convert ALL heat into work in a cycle. Some heat must be rejected.\n\n**3rd law**: entropy approaches a constant as $T \\to 0$. Can't reach absolute zero in finite steps.\n\n**Engineering implications**:\n- Heat engines (steam, gasoline, jet, diesel): take heat from a hot source, do work, dump heat to cold sink. Efficiency limited by 2nd law.\n- Refrigerators + heat pumps: REVERSE heat engines. Use work to pump heat from cold to hot.\n- All real processes have entropy increase + waste heat.\n\n**Carnot cycle**: theoretical maximum-efficiency heat engine. Uses two reservoirs at $T_H$ + $T_C$.\n\nEfficiency: $\\eta_{Carnot} = 1 - T_C/T_H$ (in Kelvin).\n\n**No engine** operating between same two reservoirs can exceed Carnot efficiency. Real engines are LESS efficient due to irreversibilities (friction, finite heat transfer, etc.)."
+    },
+    {
+      "kind": "text",
+      "title": "The Carnot cycle in detail",
+      "body": "**The Carnot cycle** consists of 4 reversible processes:\n\n1. **Isothermal expansion** at $T_H$: gas absorbs $Q_H$ from hot reservoir + does work. PV = nRT_H along this curve.\n2. **Adiabatic expansion**: gas continues expanding, cools from $T_H$ to $T_C$. No heat exchange. $PV^\\gamma$ = const.\n3. **Isothermal compression** at $T_C$: gas compressed, rejects $Q_C$ to cold reservoir. PV = nRT_C.\n4. **Adiabatic compression**: back to initial state. Heats from $T_C$ to $T_H$. $PV^\\gamma$ = const.\n\nNet work: $W = Q_H - Q_C = Q_H (1 - T_C/T_H)$.\n\nEfficiency: $\\eta = W/Q_H = 1 - T_C/T_H$.\n\n**The viz below shows the Carnot cycle on a P-V diagram**. Drag the temperatures + expansion ratio to see how the cycle shape changes + efficiency tracks $1 - T_C/T_H$. Higher hot-reservoir temperature → higher efficiency.\n\n**Real engines** approximate Carnot but never reach it. Why?\n- **Finite heat transfer**: real heat exchangers need temperature difference to drive heat flow → irreversibility.\n- **Friction**: in pistons, bearings, valves.\n- **Finite expansion/compression rates**: not strictly isothermal/adiabatic.\n- **Combustion irreversibility**: chemical energy → heat via uncontrolled reactions.\n- **Working-fluid heat capacity**: ideal-gas assumption breaks for real fluids.\n\n**Real engine efficiencies**:\n- Steam-electric power plant (Rankine cycle): 30-46%.\n- Combined-cycle gas turbine (Brayton + Rankine): 60-64% (state of the art).\n- Automotive gasoline (Otto cycle): 25-35%.\n- Diesel: 30-43%.\n- Jet (Brayton): 35-45%.\n- Carnot at typical temps (1500 K hot / 300 K cold): 80% theoretical. Big gap to practice.",
+      "viz": "carnot-cycle"
+    },
+    {
+      "kind": "text",
+      "title": "Other cycles + refrigeration + heat pumps",
+      "body": "**Real engine cycles**:\n\n**Rankine cycle** (steam power plants):\n- Water + steam working fluid. Phase change makes high heat capacity.\n- Pump (compress liquid) → boiler (heat → steam) → turbine (work out) → condenser (back to liquid).\n- Used in: ~50% of world electricity (coal, gas, nuclear, biomass, solar thermal).\n- Improvements: supercritical, ultra-supercritical, regeneration, reheating.\n\n**Brayton cycle** (gas turbines):\n- Compressor → combustor → turbine → exhaust.\n- Used in: jet engines, gas-fired power plants, helicopters.\n- Combined cycle: Brayton exhaust drives Rankine. Best efficiency.\n\n**Otto cycle** (gasoline engines):\n- Spark-ignition. Compression + ignition + expansion + exhaust.\n- Idealization of 4-stroke engine.\n\n**Diesel cycle**: compression-ignition. Higher compression ratio → higher efficiency.\n\n**Stirling cycle**: external heat addition + closed regenerator. Theoretically efficient. Applications: niche (cryocoolers, niche solar).\n\n**Refrigeration + heat pumps**: reverse heat engine.\n- **Coefficient of Performance (COP)**:\n  - Refrigerator: $COP_r = Q_C / W$. Heat removed per work input.\n  - Heat pump: $COP_{hp} = Q_H / W$ = $1 + COP_r$.\n- **Carnot COP_r** = $T_C / (T_H - T_C)$. Reverses Carnot equation.\n- Real refrigerators: COP 2-5. Heat pumps for heating: COP 2-4.\n\n**Vapor-compression refrigeration** (standard):\n- Compressor → condenser (rejects heat) → expansion valve (cools) → evaporator (absorbs heat from cold space) → compressor.\n- Refrigerants: historically CFCs (banned, ozone), HFCs (high GWP), HFOs (newer, low GWP), CO₂, propane.\n\n**Heat pumps for heating**: pump heat from outside air (or ground) into the home. 3-4× more efficient than direct electric heating. The future of low-carbon heating (Europe, increasingly USA).\n\n**Industrial heat pumps**: high-temperature heat pumps (~150°C+) for industrial process heat. Replacing gas boilers. Emerging technology.\n\n**Absorption refrigeration**: uses heat (not work) as input. Used in some industrial + RV applications. Lower COP but uses waste heat."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_thermo_carnot",
+        "kind": "guided_derivation",
+        "question": "Apply Carnot to a power plant",
+        "goal": "Coal-fired plant: hot reservoir 600°C, cold reservoir (river) 30°C. Compute Carnot efficiency. Compare to typical real efficiency 38%.",
+        "steps": [
+          {
+            "prompt": "Convert to Kelvin: $T_H = 600 + 273 = 873$ K, $T_C = 30 + 273 = 303$ K.",
+            "motivation": "Conversion.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "873 K, 303 K.",
+                "600 K, 30 K.",
+                "Random.",
+                "Same as Celsius."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "°C + 273."
+            ],
+            "reveal": "$T_H = 873$ K, $T_C = 303$ K."
+          },
+          {
+            "prompt": "Carnot efficiency: $\\eta = 1 - T_C/T_H = 1 - 303/873 = ?$",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~0.653",
+                "65.3%",
+                "0.65"
+              ]
+            },
+            "hints": [
+              "1 - 0.347."
+            ],
+            "reveal": "$\\eta_{Carnot} \\approx 65.3\\%$."
+          },
+          {
+            "prompt": "Real efficiency 38%. Ratio to Carnot?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~0.58",
+                "58%",
+                "38/65.3"
+              ]
+            },
+            "hints": [
+              "38/65.3 ≈ 0.58."
+            ],
+            "reveal": "Real plant achieves ~58% of Carnot. Realistic for modern coal. Combined-cycle gas turbines achieve ~70-75% of their Carnot. Engineering effort focuses on closing this gap."
+          },
+          {
+            "prompt": "If $T_H$ raised to 700°C (973 K), Carnot efficiency?",
+            "motivation": "Recompute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~68.9%",
+                "0.689",
+                "~0.69"
+              ]
+            },
+            "hints": [
+              "1 - 303/973."
+            ],
+            "reveal": "$\\eta_{Carnot} \\approx 68.9\\%$. Higher $T_H$ raises Carnot ceiling. Materials limit how high $T_H$ can go: turbine blades made of nickel superalloys with ceramic coatings melt around 1300-1400°C."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\eta_{Carnot} = 1 - T_C/T_H}$$ The fundamental thermodynamic limit. Real engines pursue higher $T_H$ within materials limits, lower $T_C$ via better heat rejection, + reduce irreversibilities. Modern combined-cycle gas turbines achieve ~64% — among the highest efficiency heat engines ever built. The cycle viz lets you explore how temperatures shape the cycle + efficiency."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_thermo_hp",
+        "kind": "multiple_choice",
+        "question": "Why are heat pumps becoming standard for low-carbon heating in Europe + increasingly USA?",
+        "options": [
+          "Marketing.",
+          "Heat pumps move heat (don't generate it), so COP 3-4× input electricity. Combined with renewable electricity = 4-12× efficient vs gas furnaces (gas ~90% efficient direct combustion, but combustion is at high $T$ + heating is at low $T$ — entropy waste). Heat pumps work even in cold climates with cold-climate models.",
+          "Random.",
+          "Decoration."
+        ],
+        "correctIndex": 1,
+        "explanation": "Heat pumps' COP 3-4 means 1 kWh electricity moves 3-4 kWh of heat. With renewable electricity, this is massively more efficient than gas combustion. Even with grid electricity (mostly fossil): comparable emissions to gas at COP 2.5+. Modern cold-climate heat pumps (Mitsubishi, Daikin, Fujitsu, etc.) work at -25°C ambient with COP 2-3. EU heat-pump market growing 30%+ per year. USA: IRA tax credits + state mandates accelerating. The shift is real + economically driven."
+      },
+      "hints": [
+        "Why are heat pumps efficient?",
+        "What changed recently?"
+      ],
+      "workedSolution": "Heat pumps MOVE heat (COP 3-4); gas BURNS fuel (~90% direct combustion but at high T → entropy waste). With renewable electricity: 4-12× more efficient than gas heating. Cold-climate models work at -25°C. EU + USA policy + economics now favor heat pumps. Sales growing 30%+/year. Replacing gas as default home heating in many markets.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_thermo_cop",
+        "kind": "math_expression",
+        "question": "Heat pump moves 12 kJ heat per 3 kJ electric input. COP?",
+        "acceptedAnswers": [
+          "4",
+          "4.0"
+        ],
+        "hint": "Q_H / W."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_thermo_district",
+        "kind": "scenario",
+        "question": "District heating with heat pumps",
+        "prompt": "A city plans to replace gas-fired district heating with a system using sewer-water heat pumps. Walk through the thermodynamics + economics."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_thermo",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why the Carnot cycle remains foundational despite being unachievable in practice.",
+        "rubric": "Mentions that Carnot sets the UPPER BOUND on heat-engine efficiency given two reservoir temperatures; every real engine measures against it; engineering focuses on closing the gap (higher T_H, lower T_C, fewer irreversibilities); without Carnot, we'd have no way to know how good we can be. The same logic applies in reverse to refrigeration + heat pumps."
+      }
+    }
+  ]
+}

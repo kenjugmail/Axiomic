@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "expert",
+    "objectives": [
+      "State LUFS + the loudness war.",
+      "Outline a mastering chain.",
+      "Reason about delivery formats + platforms."
+    ],
+    "prereqs": [
+      "mixing-and-dynamics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Mastering: the final polish + the loudness war",
+      "body": "**Mastering** = the final step before distribution. Takes a finished mix + prepares it for various delivery formats. Conceptually: tonal balance + loudness + format-specific tweaks.\n\n**Goals**:\n- **Sonic enhancement**: subtle EQ + dynamics for polish.\n- **Loudness**: bring level to competitive commercial standards.\n- **Consistency**: tracks of an album feel cohesive (same loudness, similar tone).\n- **Format compliance**: meet platform spec (CD, streaming, vinyl).\n- **Sequencing**: track order, gaps, fades.\n\n**The loudness war** (1990s-2010s): commercial music kept getting louder via aggressive limiting + clipping. Reasoning: 'loud sounds better on radio + casual listening' (equal-loudness contour). Result: dynamics squashed, transients gone, fatigue.\n\nMetallica's *Death Magnetic* (2008) was famously over-clipped. The 'Loudness War' Wikipedia article documents it.\n\n**LUFS (Loudness Units Full Scale)**: ITU-R BS.1770 perceptual loudness measurement. Models human hearing (K-weighted filter mimicking equal-loudness contour + integration).\n- **Integrated LUFS**: average loudness over track.\n- **Short-term LUFS**: 3-second moving average.\n- **Momentary LUFS**: 400 ms moving average.\n- **LRA (Loudness Range)**: dynamics across the track (LUFS).\n- **True peak (dBTP)**: peak after inter-sample reconstruction. Should stay below 0 dBTP to avoid distortion in DACs.\n\n**Platform loudness normalization** ended the loudness war:\n- **Spotify**: -14 LUFS (loud) or -19 LUFS (loud setting off).\n- **Apple Music**: -16 LUFS.\n- **YouTube**: -14 LUFS.\n- **Tidal**: -14 LUFS.\n- **CD**: no normalization; varies.\n\nLouder masters get TURNED DOWN by the platform. The 'loudness arms race' is now neutralized — masters above -10 LUFS get -4 dB attenuation, sacrificing dynamics with no payoff.\n\n**Modern mastering targets**: -14 LUFS integrated, -1 dBTP peak. Some genres louder (-10 to -12 LUFS for EDM/trap), some quieter (-16 for classical / jazz). Always check the platform spec."
+    },
+    {
+      "kind": "text",
+      "title": "Mastering chain + processing",
+      "body": "Typical mastering chain (over decades, standardized):\n\n1. **EQ**: subtle corrective + creative EQ. Balance the spectrum.\n2. **Multi-band compression**: control different frequency bands separately. Tame harsh upper mids without dulling lows.\n3. **Stereo widening**: widen sides while keeping center solid (M/S mid-side processing).\n4. **Saturation / harmonics**: subtle distortion adds warmth + perceived loudness.\n5. **Limiter**: brick-wall limit for final loudness. Aim for -14 LUFS integrated, -1 dBTP.\n6. **Dither**: when going from high-bit-depth processing to 16-bit delivery, dither.\n\n**Tools (industry standard)**:\n- **Channel strips** with EQ + compressor: SSL G-Series, Manley Massive Passive (hardware emulation).\n- **Mastering EQs**: Fabfilter Pro-Q3 (linear-phase), Maag EQ4, Pultec EQP-1A.\n- **Multiband compressors**: Fabfilter Pro-MB, iZotope Ozone Dynamics.\n- **Stereo wideners + M/S tools**: Brainworx bx_digital, Nugen Stereoizer.\n- **Saturators**: Soundtoys Decapitator, FabFilter Saturn, Nuga SigMod.\n- **Limiters**: Fabfilter Pro-L 2, iZotope Ozone Maximizer, Voxengo Elephant.\n- **Loudness meters**: Youlean Loudness Meter (free!), Nugen VisLM.\n- **All-in-one suites**: iZotope Ozone, Waves Vocalrider+masterX.\n\n**M/S (Mid-Side) processing**:\n- M = (L + R) / sqrt(2). The 'centered' content (vocals, bass, kick).\n- S = (L - R) / sqrt(2). The 'sides' (guitars panned, reverb, stereo width).\n- Process independently: e.g., tighten the mid bass; widen the side highs.\n- Powerful for stereo enhancement + clarity.\n\n**Saturation in mastering**: gentle harmonic distortion can:\n- Add perceived warmth + body.\n- Increase perceived loudness without raising peak.\n- Soften harsh transients via gentle nonlinearity.\n\nOver-saturation = aggressive, fatiguing. Subtle = polished. Tasteful saturation is the mark of a pro mastering engineer.\n\n**Stem mastering**: instead of one 2-track mix, work with stems (drums + bass + vocals + other instruments + master bus). More flexibility; closer to mixing. Increasingly common with home producers wanting more control."
+    },
+    {
+      "kind": "text",
+      "title": "Delivery formats + the modern landscape",
+      "body": "**Format requirements**:\n\n**CD**: 16-bit / 44.1 kHz, dithered. Linear PCM. Track gaps + ISRC codes. CD-Text optional. Master to DDP (Disc Description Protocol) for replication plants.\n\n**Streaming (Spotify, Apple Music, etc.)**: typically 16-bit / 44.1 kHz minimum; high-quality tiers 24-bit / 48-96 kHz. WAV or FLAC. LUFS normalization (next slide).\n\n**Hi-res streaming** (Apple Music Lossless, Tidal MQA, Amazon HD): 24-bit / 96+ kHz. Audiophile-tier.\n\n**Vinyl**: separate master for vinyl. Considerations:\n- High frequencies above 15 kHz fold to noise on cheap cartridges.\n- Heavy bass on outer grooves; light on inner (groove gets shorter).\n- Limit stereo width in low frequencies (mono-summed bass to avoid skipping).\n- Total program <22 min per side at 33 RPM. Longer = quieter (less groove space).\n- RIAA equalization applied at pressing + un-applied at playback (built-in to phono preamp).\n\n**Cassette**: making a comeback for nostalgia. Format requires: pre-emphasis EQ, noise reduction (Dolby B/C), avoid extreme HF + low bass.\n\n**Atmos (Dolby Atmos)**: object-based spatial audio. Stems placed in 3D space. Apple Music + Tidal feature Atmos. New mixing + mastering paradigm.\n\n**Loudness normalization** ended the loudness war on streaming. But:\n- Spotify default: -14 LUFS. Some users disable normalization → original loudness.\n- Apple Music: -16 LUFS by default.\n- YouTube: -14 LUFS, applied to videos.\n\n**Practical**: master to platform target (-14 LUFS for streaming-targeted releases). Save a louder version (-10 LUFS) for radio if needed.\n\n**True peak vs sample peak**: digital sample peaks can mask higher INTER-sample peaks (between samples, after reconstruction). True-peak limiting accounts for this. Target -1 dBTP (true peak), allowing for codecs (Spotify reconstructs to lossy AAC; small overshoots common).\n\n**MFiT / Mastered for iTunes**: Apple's spec — 24-bit master, optimized for AAC encoding. Don't push too close to 0 dBFS; leave -1 dB headroom for codec.\n\n**Modern mastering workflow**:\n1. Receive mix at high bit depth (24/32-bit float).\n2. Process in 64-bit floating-point (DAW internal).\n3. Output 24-bit master for archive.\n4. Generate platform-specific dithered versions (16/44.1 for CD/streaming, 24/96 for hi-res, vinyl pre-master for cutting)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_master_lufs",
+        "kind": "guided_derivation",
+        "question": "Compute LUFS for a mix",
+        "goal": "Track has integrated -8 LUFS. Spotify default normalizes to -14 LUFS.",
+        "steps": [
+          {
+            "prompt": "Spotify will apply how much gain reduction?",
+            "motivation": "Difference.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-6 dB",
+                "6 dB cut",
+                "-6"
+              ]
+            },
+            "hints": [
+              "-14 minus -8 = -6 dB."
+            ],
+            "reveal": "-6 dB reduction. Spotify turns it DOWN to match its target."
+          },
+          {
+            "prompt": "Effect on perceived loudness vs a track mastered AT -14 LUFS?",
+            "motivation": "Comparison.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Louder.",
+                "Same loudness, but the -8 LUFS master will sound MORE COMPRESSED (less dynamic range) after Spotify's attenuation, while the -14 LUFS master retains its full dynamic range.",
+                "Quieter.",
+                "More transient."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Loudness same, dynamics different."
+            ],
+            "reveal": "Same perceived loudness (Spotify equalized them). But the -8 LUFS track sacrificed transients for nothing — it gets turned down. Pro masters target -14 LUFS to preserve dynamics + sound full at the same loudness."
+          },
+          {
+            "prompt": "Implication for the loudness war?",
+            "motivation": "End of an era.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Doesn't matter.",
+                "Platform normalization ENDED the loudness war for streaming. Loud masters get turned down. Best practice: master to -14 LUFS, preserve dynamics + transients, sound clean + full when normalized.",
+                "Master louder still.",
+                "Doesn't change anything."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "No more arms race."
+            ],
+            "reveal": "Streaming normalization (~2014+) ended the war. Loud masters don't gain advantage. Pros now optimize for transparency + dynamics at the platform target rather than maximum SPL. Some genres (EDM, trap) still master loud; mastering engineer balances per-genre expectations."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Master to platform LUFS target; loud masters get turned down}}$$ The loudness-war calculus has reversed: making masters too loud now hurts (compression + clipping artifacts get more audible after gain reduction). Modern target: -14 LUFS integrated, -1 dBTP peak. Some genres run hotter or quieter; ear + reference matter more than chasing a number. Tools (Youlean Loudness Meter, MasteringtheMix LEVELS) make this measurable."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_master_loudness",
+        "kind": "multiple_choice",
+        "question": "Why do some EDM/trap tracks still master to -8 LUFS even though Spotify turns them down?",
+        "options": [
+          "Bug.",
+          "Genre expectations: certain styles + audiences expect aggressive 'loud' character even when normalized; the SHAPE of the loudness curve (saturation, brick-wall limiting style) is part of the genre's aesthetic, separate from raw level. Mastering engineer balances per-genre.",
+          "Random.",
+          "Always wrong."
+        ],
+        "correctIndex": 1,
+        "explanation": "Genre + audience expectations matter. EDM, trap, hyperpop have a 'loud' aesthetic that's about transient compression + harmonic density, not just SPL. Even after normalization, the SHAPE of the dynamics remains. Listeners + DJs expect a certain compressed feel. Mastering engineers balance the loudness target with genre conventions. Classical, jazz, acoustic don't follow this — they preserve dynamics. Pop/rock: middle ground (~-10 to -12 LUFS)."
+      },
+      "hints": [
+        "What does loudness mean beyond LUFS?",
+        "Why genre-specific?"
+      ],
+      "workedSolution": "LUFS = perceived loudness. But 'sound' includes dynamic compression, saturation, brick-wall limiting style — character beyond level. EDM/trap audience expects this 'loud' feel even after normalization. Genre convention drives mastering choices. Pop/rock: ~-10 to -12 LUFS, balanced dynamics + density. Classical/jazz: -16 to -20 LUFS, preserved dynamics. EDM/trap: -8 to -12 LUFS, aggressive compression. Mastering engineer's judgement + genre experience guides choices.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_master_atten",
+        "kind": "math_expression",
+        "question": "Track at -10 LUFS streaming-normalized to -14 LUFS. Gain reduction applied?",
+        "acceptedAnswers": [
+          "-4 dB",
+          "-4",
+          "4 dB cut"
+        ],
+        "hint": "Difference."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_master_chain",
+        "kind": "scenario",
+        "question": "Mastering a pop song",
+        "prompt": "A pop song mix is -10 LUFS, with peaks at -1 dBTP, slight muddiness at 250 Hz. Walk through the mastering chain decisions."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_master",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why platform loudness normalization (Spotify, Apple Music) effectively ended the loudness war that dominated commercial music from the 1990s through the 2010s.",
+        "rubric": "Mentions that platforms normalize all tracks to the same perceived loudness (-14 LUFS typical); louder masters get turned down without gaining any advantage; engineers can preserve dynamic range + transient quality without losing competitive loudness. Pre-normalization era: 'louder = better' on radio/casual listening. Post-normalization: dynamics + clarity recover their value. The aesthetic shift has been gradual + ongoing."
+      }
+    }
+  ]
+}

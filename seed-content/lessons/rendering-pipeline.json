@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "core",
+    "objectives": [
+      "Outline the GPU rendering pipeline stages.",
+      "Distinguish forward from deferred rendering.",
+      "Reason about culling + draw call batching."
+    ],
+    "prereqs": [
+      "game-loop-and-architecture"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The graphics pipeline (GPU stages)",
+      "body": "Modern GPUs process 3D scenes via a pipeline of stages:\n\n1. **Vertex shader**: per-vertex computation. Transform 3D positions from object → world → camera → clip space.\n2. **Tessellation (optional)**: subdivide primitives for more detail.\n3. **Geometry shader (optional)**: emit additional primitives.\n4. **Rasterizer**: convert triangles → pixels (fragments). Interpolate vertex attributes (color, UV, normal) across the triangle.\n5. **Fragment shader (pixel shader)**: per-fragment computation. Compute final pixel color, depth, etc.\n6. **Output merger**: depth test, stencil test, blend with framebuffer.\n\n**Transformations**: the workhorse of the vertex shader. Sequence of 4×4 matrices applied:\n$$p_{\\text{clip}} = M_{\\text{proj}} M_{\\text{view}} M_{\\text{model}} p_{\\text{local}}$$\n- Model: object → world space.\n- View: world → camera space.\n- Projection: camera → clip space (perspective or orthographic).\n\nAfter clip space, hardware does perspective divide (divide by w) + viewport transform → screen-space pixels.\n\n**Clip space coordinates** in OpenGL: $[-1, 1]^3$. Anything outside is culled.\n\n**Z-buffer**: each pixel stores its depth. Fragment writes pixel only if its depth is closer. Solves visibility (what's in front of what) automatically. Standard since 1990s.\n\n**Rasterization**: scan-line conversion (older) or tile-based (modern mobile + Apple Silicon). Tile-based renderers process screen in small tiles for cache efficiency."
+    },
+    {
+      "kind": "text",
+      "title": "Forward vs deferred rendering",
+      "body": "**Forward rendering**: for each visible triangle, shade with lighting calculations directly.\n```\nfor each object:\n  for each light affecting object:\n    shade object's pixels with light's contribution\n```\nCost: $O(\\text{objects} \\times \\text{lights})$. Bad with many dynamic lights.\n\n**Deferred rendering**: two-pass approach.\n1. **G-buffer pass**: for each visible triangle, write surface attributes (position, normal, albedo, material) to multiple framebuffers (G-buffer). No lighting yet.\n2. **Lighting pass**: for each light, render its volume (sphere, cone), read G-buffer to compute lighting contribution per pixel.\n\nCost: $O(\\text{objects}) + O(\\text{pixels} \\times \\text{lights})$. Decoupled. Great with many lights.\n\n**Trade-offs**:\n- ✅ Deferred handles 100+ dynamic lights efficiently.\n- ❌ Deferred has high bandwidth cost (G-buffer = 32-128 bytes per pixel).\n- ❌ Deferred struggles with MSAA + transparency.\n- ✅ Forward simpler + better with transparency.\n- ✅ Forward+ (tiled / clustered forward) is a modern hybrid: split screen into tiles, list lights per tile.\n\n**Modern engines**:\n- Unreal Engine 4/5: deferred renderer by default; recent move toward Forward+ on Lumen + mobile.\n- Unity: forward by default (URP); deferred available (HDRP).\n- Doom Eternal: clustered forward (custom by id Software).\n- AAA console games: usually deferred or clustered forward.\n\n**Visibility-buffer rendering**: emerging technique. Render triangle IDs to a buffer; resolve material + shading in a compute pass. Used in Unreal Nanite. Scales to billions of polygons."
+    },
+    {
+      "kind": "text",
+      "title": "Culling + batching + draw calls",
+      "body": "**Draw call**: a request to the GPU to draw N triangles. Each draw call has overhead (state changes, command-buffer recording). Hundreds-thousands of draw calls per frame is typical; tens of thousands is expensive.\n\n**Culling**: don't draw what isn't visible.\n- **Frustum culling**: discard objects outside the camera's view frustum. Cheap; standard.\n- **Occlusion culling**: discard objects hidden BEHIND others. More expensive; uses techniques like hierarchical z-buffer or hardware occlusion queries.\n- **Distance culling**: don't draw far-away objects.\n- **Level-of-detail (LOD)**: low-poly meshes for distant objects.\n\n**Batching**: combine many draw calls into one.\n- **Static batching**: merge static objects with the same material into one mesh ahead of time. Saves CPU.\n- **Dynamic batching**: combine moving objects with same material into one buffer per frame. Has CPU cost.\n- **Instancing**: draw N copies of the same mesh with one draw call. Per-instance data (position, color, etc.) passed via a separate buffer. Standard for trees, grass, crowds.\n\n**GPU-driven rendering** (modern AAA):\n- CPU submits a SINGLE 'indirect draw' command with a buffer of per-object draws.\n- GPU itself culls + builds the draw list (compute shader).\n- One indirect draw call → millions of triangles rendered.\n- Used in Nanite (Unreal), id Tech 7 (Doom Eternal).\n\n**Bindless rendering**: instead of binding textures one-by-one, use a single big array of textures indexed by ID. Eliminates per-draw state changes. Standard on Vulkan + DX12.\n\n**Modern target**: <2000 draw calls per frame on PC; <300 on mobile. Console AAA games: ~5000-15000 via GPU-driven techniques.\n\n**Profiling**: RenderDoc, NVIDIA Nsight Graphics, Apple Metal System Trace let you see every draw call + its cost. Standard tools."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_render_transform",
+        "kind": "guided_derivation",
+        "question": "Compute MVP matrix for a 3D point",
+        "goal": "Cube at world position (5, 0, 0). Camera at origin looking down -Z. Convert object-space point (1, 0, 0) to clip space.",
+        "steps": [
+          {
+            "prompt": "Model matrix: translate cube to (5, 0, 0). Apply to local (1,0,0) → world?",
+            "motivation": "Translation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(6, 0, 0)",
+                "6,0,0",
+                "(6,0,0)"
+              ]
+            },
+            "hints": [
+              "Add (5,0,0)."
+            ],
+            "reveal": "World position: (6, 0, 0)."
+          },
+          {
+            "prompt": "Camera at origin looking down -Z. View matrix: identity (camera at origin) or with -Z forward → world to view transforms... let's simplify: view space = world space (camera at origin, looking down -Z). World (6, 0, 0) → view (6, 0, 0). What's the z-distance from camera?",
+            "motivation": "Behind?",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "+6 (in front).",
+                "-6 (behind).",
+                "Camera looking DOWN -Z, so +X object at (6,0,0) is to the right of camera, not in front of it. Depending on convention, this point is at z=0 in view (same plane as camera). Off to the side.",
+                "Doesn't matter."
+              ],
+              "correctIndex": 2
+            },
+            "hints": [
+              "Camera at origin, point at (6,0,0) = to the right at same depth."
+            ],
+            "reveal": "Point is to the right at depth 0. Outside frustum (no depth in front of camera) → likely clipped."
+          },
+          {
+            "prompt": "If we move the camera to (0, 0, 10) looking down -Z + the cube stays at (5, 0, 0), the cube is now at view (5, 0, -10). Projection matrix (perspective with fov=60°, aspect=16/9, near=0.1, far=100) maps depth into clip space. The point at view-z = -10 maps to clip-z within [-1, 1] (after w-division). Need full matrix to compute, but the structure is...",
+            "motivation": "Pipeline.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Identity.",
+                "$p_{\\text{clip}} = M_{\\text{proj}} \\cdot p_{\\text{view}}$. After perspective divide, [-1,1]^3 = visible region. Render pipeline does the rest.",
+                "Negative.",
+                "Add 10."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "MVP pipeline."
+            ],
+            "reveal": "$M_{\\text{proj}} \\cdot (5, 0, -10, 1)^T$ → clip-space coordinates. Divide by w for NDC. Hardware does the rest."
+          }
+        ],
+        "finalResult": "$$\\boxed{p_{\\text{clip}} = M_{\\text{proj}} M_{\\text{view}} M_{\\text{model}} p_{\\text{local}}}$$ The MVP transform is THE foundation of 3D graphics. Every vertex of every triangle goes through it on the GPU. Modern shaders compute it on the fly in the vertex shader. Once at clip space, the GPU clips, perspective-divides, transforms to viewport pixel coordinates, then rasterizes. Understanding this pipeline lets you debug rendering issues + write custom shaders."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_render_drawcall",
+        "kind": "multiple_choice",
+        "question": "A mobile game has 10,000 small objects on screen at 30 FPS target. Each rendered with its own draw call. Performance is terrible. What helps most?",
+        "options": [
+          "Better graphics card.",
+          "Instancing: render all objects (if same mesh) in ONE draw call with per-instance data. Or static batching (merge static into one big mesh). 1 draw call vs 10000 = ~1000× CPU savings.",
+          "Lower resolution.",
+          "More frames."
+        ],
+        "correctIndex": 1,
+        "explanation": "Mobile GPUs are draw-call-limited (worse than desktop). 10000 draw calls = 10K state changes + 10K command buffer entries. Solution: instancing (same mesh, different positions) → 1 call. Or batching. Or GPU-driven rendering (advanced). The CPU overhead per draw call is what's killing you, not the GPU rasterization."
+      },
+      "hints": [
+        "What's the bottleneck?",
+        "What batches well?"
+      ],
+      "workedSolution": "10K draw calls = 10K × (state change + draw command record). CPU-bound, not GPU. Solution: instancing batches identical-mesh objects into ONE call with N instance positions. Or static batching merges meshes ahead of time. Or dynamic batching at runtime. Modern engines do these automatically with hints from the developer. Particle systems use instancing universally.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_render_pix",
+        "kind": "math_expression",
+        "question": "1920×1080 frame at 60 FPS, 4 samples per pixel (MSAA). Total pixel-shader invocations per second?",
+        "acceptedAnswers": [
+          "~497M",
+          "~498e6",
+          "~500 million"
+        ],
+        "hint": "1920×1080×4×60 ≈ 498M."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_render_drawcall",
+        "kind": "scenario",
+        "question": "A draw-call-bound mobile game",
+        "prompt": "A mobile RPG has frame drops in cities with many NPCs (~500 visible at once). Walk through diagnosing + fixing the bottleneck."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_render",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why deferred rendering became dominant in AAA games + why some modern engines move back toward Forward+ rendering.",
+        "rubric": "Mentions that deferred decouples lighting from object count → handles many dynamic lights well (key for AAA scenes); but bandwidth costs (G-buffer reads/writes) + MSAA/transparency issues are real downsides; Forward+ (clustered forward) keeps forward's simplicity + handles many lights via per-tile light lists; modern hardware bandwidth + temporal AA techniques have made Forward+ competitive again."
+      }
+    }
+  ]
+}

@@ -1,0 +1,152 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "specialist",
+    "objectives": [
+      "Outline drug-drug interactions.",
+      "Reason about polypharmacy + the elderly.",
+      "Apply therapeutic drug monitoring concepts."
+    ],
+    "prereqs": [
+      "pharmacokinetics",
+      "pharmacodynamics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Drug-drug interactions (DDIs)",
+      "body": "**DDI**: pharmacological effects of one drug altered by presence of another. Often clinically significant.\n\n**Pharmacokinetic DDIs**: one drug changes ADME of another.\n\n**Absorption**:\n- **pH-dependent**: PPIs raise gastric pH → reduces absorption of ketoconazole (needs acid).\n- **Chelation**: tetracyclines + metals (Ca, Mg, Fe, Al). Take separated.\n- **P-glycoprotein**: efflux pump in gut. Substrates: digoxin, dabigatran. Inhibitors: verapamil, amiodarone. Substrate + inhibitor → toxicity.\n- **CYP3A4 in gut wall**: contributes to first-pass. Inhibitors (grapefruit, ketoconazole) increase F.\n\n**Distribution**:\n- **Plasma protein binding displacement**: rarely clinically important (free concentrations re-equilibrate). Once-overemphasized.\n- **P-glycoprotein at BBB**: substrates excluded from CNS; inhibitors increase CNS exposure.\n\n**Metabolism (most common + significant)**:\n- **CYP450 inhibition**: usually competitive. Increases concentrations of substrate. Examples:\n  - Ketoconazole + macrolides (clarithromycin, erythromycin): potent CYP3A4 inhibitors. Many drug interactions.\n  - Fluoxetine + paroxetine: CYP2D6 inhibitors.\n  - Cimetidine: pan-CYP inhibitor.\n  - Ritonavir: pan-CYP3A4 inhibitor (used in HIV cocktails to boost protease inhibitors).\n- **CYP450 induction**: takes 1-2 weeks. Increases drug clearance.\n  - Rifampin: strong inducer of CYP3A4, 2C9, 2C19. Reduces many drugs.\n  - Carbamazepine, phenytoin, phenobarbital.\n  - St John's wort: clinically relevant CYP3A4 inducer.\n  - Smoking (tobacco): CYP1A2 inducer.\n\n**Excretion**:\n- **Probenecid**: blocks renal tubular secretion of penicillin (used historically to extend its half-life).\n- **Tubular pH**: aspirin overdose treatment alkalinizes urine to enhance excretion.\n\n**Pharmacodynamic DDIs**:\n- **Additive**: same direction. SSRIs + MAOIs → serotonin syndrome.\n- **Synergistic**: more than additive. Benzodiazepines + alcohol on respiratory depression.\n- **Antagonistic**: opposing. NSAIDs reduce antihypertensive effect of ACE inhibitors.\n\n**Computer-aided detection**: most EHRs check for DDIs. Drug-information databases (Lexicomp, Micromedex, UpToDate, AHFS).\n\n**Severity classification**:\n- **Major (contraindicated)**: don't combine. e.g., MAOI + SSRI within 14 days.\n- **Moderate**: clinical judgment; monitor; possibly adjust dose.\n- **Minor**: probably no clinical concern but document."
+    },
+    {
+      "kind": "text",
+      "title": "Polypharmacy + the elderly + Beers Criteria",
+      "body": "**Polypharmacy**: typically defined as 5+ regular medications. Common in elderly.\n\n**Statistics**:\n- USA elderly (>65): ~40% on 5+ drugs.\n- Many >75: 10+ drugs.\n- Drives DDIs, side effects, falls, hospitalizations, costs.\n\n**Prescribing cascade**: side effect of drug A treated with drug B (without recognizing as side effect of A). Common pattern: amlodipine causes edema → diuretic added → causes hypokalemia → potassium added. The cascade compounds.\n\n**Beers Criteria** (AGS 2023): list of potentially inappropriate medications for older adults.\n- **Anticholinergic** drugs: cognitive impairment, falls, urinary retention. Diphenhydramine, oxybutynin, amitriptyline.\n- **Long-acting benzodiazepines**: prolonged sedation, falls. Diazepam, chlordiazepoxide.\n- **NSAIDs (chronic)**: bleeding, kidney damage.\n- **Sliding-scale insulin** alone.\n- **First-generation antipsychotics**: extrapyramidal symptoms.\n- **Skeletal muscle relaxants** (e.g., cyclobenzaprine): poorly tolerated, anticholinergic.\n- **Many others**.\n\n**STOPP/START criteria** (similar; European): Screening Tool of Older Persons' Potentially Inappropriate Prescriptions / Screening Tool to Alert to Right Treatment.\n\n**Deprescribing**: intentional reduction of medications. Active research area. Many drugs continue past their indication's resolution. Deprescribing improves outcomes for selected populations.\n\n**Falls in elderly**: drug-related causes:\n- Sedatives, hypnotics.\n- Antihypertensives → orthostatic.\n- Anticholinergics → cognitive impairment.\n- Diuretics → dehydration, urgency.\n- Antidiabetics → hypoglycemia.\n- Polypharmacy itself.\n\n**Cognitive impairment**: drugs with anticholinergic load (ACB scale) correlate with dementia risk.\n\n**Adherence**: more drugs = lower adherence. Combination pills + once-daily dosing help. Pillboxes, blister packs, reminders.\n\n**Special populations**:\n- **Pregnancy + lactation**: continuous evolution of safety data. LactMed for nursing.\n- **Pediatrics**: many drugs not formally tested in children. Off-label common. Pharmacokinetic differences significant.\n- **Renal/hepatic impairment**: dose adjustments via clearance formulas + nomograms.\n- **Obesity**: difficult — weight-based vs lean-mass dosing. Some drugs (vanco, aminoglycosides) need TBW; others (digoxin) need IBW.\n- **Frailty**: emerging concept beyond age. Increased sensitivity to adverse drug events."
+    },
+    {
+      "kind": "text",
+      "title": "Modern clinical pharmacology + the future",
+      "body": "**Pharmacogenomic testing**: covered in pharmacokinetics lesson. Increasingly integrated into prescribing.\n- Pre-emptive: panel testing before drugs needed. Mayo + Vanderbilt + others.\n- Reactive: testing when starting specific drugs (clopidogrel + 2C19, abacavir + HLA-B*57:01).\n- Implementation: EHR-integrated decision support; pharmacist consultation.\n\n**Therapeutic Drug Monitoring (TDM)**:\n- **Trough-based**: vancomycin (legacy), digoxin, aminoglycosides.\n- **Peak-based**: aminoglycosides.\n- **AUC-based**: vancomycin (modern), tacrolimus.\n- **Algorithm + Bayesian**: combines sparse measurements with population models for individual dose optimization. Software: PrecisePK, InsightRX, DoseMeRx.\n\n**Adverse drug event (ADE) detection**:\n- **Spontaneous reporting**: FDA FAERS, EU EudraVigilance, WHO VigiBase.\n- **Active surveillance**: Sentinel (FDA), CNODES (Canada), EU OMOP.\n- **AI/ML in pharmacovigilance**: signal detection from EHRs, social media, claims data.\n\n**Real-World Evidence (RWE)**:\n- EHR data + claims + registries.\n- Supports approvals (21st Century Cures Act).\n- Complements RCTs especially for rare diseases + post-market questions.\n- Causal inference methods (propensity scores, instrumental variables, target trial emulation).\n\n**Computational pharmacology**:\n- **QSPR (Quantitative Structure-Property)**: predict ADME from structure.\n- **PBPK (Physiologically-Based PK)**: mechanistic models with tissue compartments + flows. Used for drug-drug interaction prediction, special populations, first-in-human dose. SimCYP + GastroPlus + others.\n- **PopPK (Population PK)**: nonlinear mixed-effects modeling. Identifies covariates of variability. NONMEM standard.\n- **PD modeling**: drug-effect time courses. Target inhibition, biomarker, clinical outcome.\n\n**AI / ML in clinical pharmacology**:\n- Predicting individual responses.\n- Patient stratification for trials.\n- Dose individualization.\n- ADE detection in EHR.\n- Drug repurposing.\n\n**Personalized medicine**: matching drugs to individuals based on genetics, biomarkers, clinical features.\n- **Targeted oncology**: most matured. Companion diagnostics (HER2, EGFR, KRAS, BRAF, ALK, PD-L1) match drugs to tumor mutations.\n- **Cardiovascular**: warfarin pharmacogenomics, ApoE4 + lipid response.\n- **Psychiatry**: pharmacogenomics-guided antidepressant selection (slow uptake).\n- **Pain**: opioid metabolism + alternatives.\n\n**The future**:\n- Multi-omics integration (genomics + proteomics + metabolomics + microbiome).\n- Continuous biosensing for adaptive dosing.\n- AI-augmented decision support in real-time.\n- Cell + gene therapy challenges in dosing + monitoring."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cp_ddi",
+        "kind": "guided_derivation",
+        "question": "Predict a clinically-significant DDI",
+        "goal": "Patient on warfarin for atrial fibrillation (INR target 2-3). Starts ciprofloxacin (CYP1A2 + CYP3A4 inhibitor) for UTI. Predict effect + management.",
+        "steps": [
+          {
+            "prompt": "Warfarin's S-enantiomer is the more active anticoagulant + metabolized by CYP2C9; R-enantiomer by CYP1A2 + CYP3A4. Cipro inhibits CYP1A2 + CYP3A4. Expected INR effect?",
+            "motivation": "Mechanism.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "No change.",
+                "INR INCREASES because cipro inhibits R-warfarin clearance + the R contributes ~30% of anticoagulation. Patient at risk of bleeding.",
+                "INR decreases.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Warfarin clearance reduced."
+            ],
+            "reveal": "INR increases. Cipro inhibits R-warfarin metabolism. Reduced clearance → higher warfarin levels → enhanced anticoagulation → bleeding risk."
+          },
+          {
+            "prompt": "Clinical management?",
+            "motivation": "What to do.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Stop both.",
+                "Check INR more frequently (every 2-3 days during cipro therapy). Consider warfarin dose reduction 25-50%. Return to baseline after cipro discontinued. Counsel patient on bleeding signs.",
+                "No change.",
+                "Stop warfarin."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Monitor + adjust."
+            ],
+            "reveal": "Increase INR monitoring + likely reduce warfarin 25-50% during cipro. Resume baseline after cipro stops. Patient education on bleeding signs (epistaxis, hematuria, bruising, GI). Alternative: switch to non-interacting antibiotic if possible (nitrofurantoin, fosfomycin)."
+          },
+          {
+            "prompt": "Modern: many patients now on DOACs (apixaban, rivaroxaban) instead of warfarin. Do DOACs have similar interactions?",
+            "motivation": "DOAC handling.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "No DDIs.",
+                "DOACs DO interact with CYP3A4 + P-gp inhibitors/inducers, though fewer + less severe than warfarin. Strong inhibitors (azole antifungals, HIV PIs) raise DOAC levels; strong inducers (rifampin) reduce. Modest interactions (cipro, fluconazole, amiodarone) often acceptable but consider. Major advantage: NO INR monitoring needed.",
+                "Same as warfarin.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "CYP3A4 + P-gp."
+            ],
+            "reveal": "DOACs have DDIs (CYP3A4 + P-gp) but fewer + smaller than warfarin's. Many drugs that interact with warfarin are SAFE with DOACs. No routine monitoring. Why DOACs are now first-line for most anticoagulation (except mechanical valves, severe renal disease). Cipro + DOACs typically OK clinically."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{CYP DDIs: predict from substrate + inhibitor/inducer profile}}$$ DDI prediction requires knowing each drug's metabolizing enzymes + which inhibit/induce. Resources: Lexicomp, Micromedex, FDA drug-interactions guide, drug labels' DDI sections. Computer-aided checking is standard in EHRs + pharmacy systems. Important: not all flagged DDIs are clinically significant; pharmacist judgment + risk-benefit assessment."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cp_beers",
+        "kind": "multiple_choice",
+        "question": "Why are anticholinergic drugs (diphenhydramine, oxybutynin) high on the Beers Criteria for elderly?",
+        "options": [
+          "Random.",
+          "Anticholinergic load → cognitive impairment (esp. in those with mild cognitive impairment or dementia), urinary retention, constipation, dry mouth, blurred vision, falls. Cumulative across multiple drugs ('anticholinergic burden'). Studies link to dementia incidence. Often unrecognized in OTC (diphenhydramine in PM-formulas).",
+          "Decoration.",
+          "Marketing."
+        ],
+        "correctIndex": 1,
+        "explanation": "Anticholinergic burden is a major + under-recognized risk in elderly. Effects: cognitive impairment, falls, urinary retention, constipation, dry mouth, blurred vision, tachycardia. Even individually-modest anticholinergic drugs (diphenhydramine in PM-formulas, oxybutynin for bladder, amitriptyline for sleep/pain, paroxetine, many antihistamines, some antipsychotics, scopolamine, hyoscyamine) sum up. Anticholinergic Cognitive Burden (ACB) scale quantifies. Several studies link cumulative anticholinergic burden to dementia incidence.\n\nMany are OTC (diphenhydramine, dimenhydrinate, doxylamine) so elderly self-medicate without realizing. Deprescribing efforts focus on this category. Alternatives: melatonin or trazodone for sleep; physical therapy for incontinence; etc. AGS Beers Criteria + STOPP both flag."
+      },
+      "hints": [
+        "What's the issue?",
+        "Why elderly?"
+      ],
+      "workedSolution": "Anticholinergic burden: cognitive impairment, falls, urinary retention. Cumulative across multiple drugs (ACB scale). Linked to dementia incidence. Many OTC products contain (diphenhydramine in PM formulas) so under-recognized. Elderly particularly vulnerable due to baseline cognitive reserve + falls risk. Deprescribing campaigns target this category. Alternatives substituted where possible.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_cp_pcs",
+        "kind": "math_expression",
+        "question": "Patient creatinine 2.0 mg/dL, age 70, weight 80 kg, male. Estimate CrCl by Cockcroft-Gault.",
+        "acceptedAnswers": [
+          "~40 mL/min",
+          "40",
+          "~40-45"
+        ],
+        "hint": "$CrCl = (140-70) \\times 80 / (72 \\times 2.0) = 5600/144 \\approx 39$ mL/min."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_cp_poly",
+        "kind": "scenario",
+        "question": "Deprescribing in an elderly patient",
+        "prompt": "An 85-year-old on 14 medications. Walk through a systematic deprescribing approach."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cp",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why drug-drug interactions are clinically important even when each individual drug is well-tolerated.",
+        "rubric": "Mentions that DDIs can dramatically change drug exposure (metabolism inhibitors increase substrate levels 2-10×); additive PD effects (sedation, serotonin, QT prolongation) can be dangerous; polypharmacy compounds the risk; clinical pharmacology = managing patient + drug interactions, not just individual drug responses. EHR DDI alerts + pharmacist review + structured medication reviews are standard practice."
+      }
+    }
+  ]
+}

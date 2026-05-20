@@ -1,0 +1,147 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "core",
+    "objectives": [
+      "State the DFT + FFT relationship.",
+      "Distinguish time domain from frequency domain.",
+      "Reason about windowing + spectrogram analysis."
+    ],
+    "prereqs": [
+      "digital-audio-fundamentals"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "DFT + FFT: frequency from samples",
+      "body": "**DFT (Discrete Fourier Transform)**: decompose a signal of $N$ samples into $N$ frequency components.\n$$X[k] = \\sum_{n=0}^{N-1} x[n] e^{-i 2\\pi k n / N}$$\n\n$X[k]$ is COMPLEX: magnitude = strength of frequency $k$; phase = relative timing.\n\nFrequency resolution: $\\Delta f = f_s / N$. Frequencies available: $0, \\Delta f, 2\\Delta f, \\dots, (N/2)\\Delta f$ (then mirrored / aliased above Nyquist).\n\nE.g., $f_s = 44100$ Hz, $N = 4096$: resolution $\\Delta f \\approx 10.77$ Hz.\n\n**FFT (Fast Fourier Transform)**: efficient algorithm to compute DFT. Cooley-Tukey 1965 (rediscovered Gauss 1805!). $O(N \\log N)$ vs DFT's $O(N^2)$.\n\nFor $N = 4096$:\n- DFT: ~16M operations.\n- FFT: ~50K operations.\n- 320× speedup. Enables real-time spectral processing.\n\n**Inverse FFT**: reconstructs signal from frequency representation. Used in spectral processing: transform → modify → inverse-transform.\n\n**Two-sided spectrum**: DFT outputs $N$ frequencies. First $N/2 + 1$ are positive frequencies; rest are aliases (complex conjugates of the positives). Most plots show only the positive half.\n\n**Common applications**:\n- **Spectrum analyzers**: real-time FFT on incoming audio, plot magnitude vs frequency.\n- **EQ matching**: target spectrum + compare to source.\n- **Pitch detection**: find peaks in spectrum.\n- **Tuning + auto-tune**: detect pitch, shift to nearest semitone.\n- **Audio compression**: encode frequency-domain representation (MP3, AAC use modified DCT, related to FFT).\n- **Noise reduction**: identify noise spectrum + subtract.\n- **Convolution reverb**: apply FFT-based convolution to add space (real concert halls).\n\n**Time-frequency trade-off**:\n- Larger N: better frequency resolution but more time blur.\n- Smaller N: better time resolution but coarser frequency.\n- Heisenberg-like: can't precisely localize in both.\n- Music analysis: ~2048-8192 samples typical (50-200 ms at 44.1 kHz)."
+    },
+    {
+      "kind": "text",
+      "title": "Spectrogram + STFT",
+      "body": "**STFT (Short-Time Fourier Transform)**: apply FFT to overlapping windows of audio. Plot magnitude over time → **spectrogram**.\n\nThe most informative visualization of audio. Reveals:\n- **Pitched content** (vocal, melody): horizontal lines (harmonic stacks).\n- **Noisy content** (cymbals, breath): broadband energy.\n- **Transients** (drum hits): vertical lines.\n- **Pitch trajectories** (vibrato, vocal expression): wavy horizontal lines.\n- **Time-frequency masking**: see what is masking what in a mix.\n\n**Window functions**: prevent 'spectral leakage' from the rectangular boundary of the FFT window. Common: Hann, Hamming, Blackman-Harris.\n\nWithout windowing: a tone of frequency $f$ analyzed by N-sample FFT shows energy spread across nearby frequencies (a sinc-shaped peak). With Hann window: cleaner peak.\n\n**Overlap**: STFTs overlap windows (typically 50% or 75%) so you don't lose information between frames. Sum of windows must = constant for perfect reconstruction.\n\n**Mel spectrogram**: rescale frequency axis to MEL scale (perceptual frequency scale; equal-pitch intervals). Used in ML (audio classifiers, source separation, ASR). The mel scale spaces frequencies the way the cochlea does.\n\n**MFCC (Mel-Frequency Cepstral Coefficients)**: log-mel-spectrogram + DCT. Compact representation of timbre (~13-40 coefficients per frame). Foundational for speech recognition pre-deep-learning. Now superseded by raw waveform / mel-spec inputs to neural nets.\n\n**Modern audio ML**: input is often log-mel-spectrogram (≤80 bands) or raw audio. Models include WaveNet (raw audio, slow), Conformer / Whisper (mel-spec, fast), HuBERT / wav2vec (self-supervised audio embeddings)."
+    },
+    {
+      "kind": "text",
+      "title": "DSP filters: IIR + FIR",
+      "body": "**Filter**: modifies the spectrum of a signal. Low-pass, high-pass, band-pass, notch, EQ.\n\n**Two main classes**:\n\n**FIR (Finite Impulse Response)**:\n- Output is weighted sum of past $N$ samples: $y[n] = \\sum_k b_k x[n-k]$.\n- LINEAR PHASE possible (preserves transient shape).\n- Always stable.\n- Longer (need many coefficients for sharp cutoff).\n- Used: linear-phase EQs, sharp anti-alias filters, convolution.\n\n**IIR (Infinite Impulse Response)**:\n- Output uses past inputs AND past outputs (feedback): $y[n] = \\sum_k b_k x[n-k] - \\sum_k a_k y[n-k]$.\n- Cheaper for similar steepness (few coefficients).\n- Can have non-linear phase (smears transients).\n- Stability requires careful design (poles inside unit circle in z-plane).\n- Used: parametric EQs, analog-modeled filters, real-time low-latency processing.\n\n**Biquad** (Robert Bristow-Johnson): the workhorse IIR filter. Second-order section implementing peak, shelf, notch, low/high-pass, band-pass. EQ plugins are cascades of biquads.\n\n**Z-transform**: complex-plane representation of digital filters. Poles + zeros in z-plane determine response. Outside the scope of basic mixing but central to filter design.\n\n**Filter response**:\n- **Magnitude**: how much each frequency is amplified/attenuated.\n- **Phase**: time delay per frequency.\n- **Group delay**: derivative of phase. Constant group delay (linear phase) = pure delay; varying = transient smearing.\n\n**Latency vs phase trade-off**:\n- Linear-phase FIR EQs: clean transients but introduce LATENCY (~10s of ms). Used in mastering.\n- Minimum-phase IIR EQs: no extra latency but smear transients (mostly inaudible). Used for mixing.\n\n**Modern DSP** uses both. Plugin developers (Fabfilter, Waves, iZotope) tune the trade-off for each plugin's purpose."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dsp_fft",
+        "kind": "guided_derivation",
+        "question": "Compute FFT resolution",
+        "goal": "Audio at 48 kHz sample rate. FFT window of N = 2048 samples. Compute frequency resolution + time window.",
+        "steps": [
+          {
+            "prompt": "Time window length: $N / f_s = ?$",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "42.67 ms",
+                "~43 ms",
+                "0.0427 sec"
+              ]
+            },
+            "hints": [
+              "2048 / 48000."
+            ],
+            "reveal": "~42.67 ms per FFT frame."
+          },
+          {
+            "prompt": "Frequency resolution: $\\Delta f = f_s / N = ?$",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "23.4 Hz",
+                "~23 Hz",
+                "23.44"
+              ]
+            },
+            "hints": [
+              "48000 / 2048."
+            ],
+            "reveal": "~23.4 Hz between adjacent FFT bins."
+          },
+          {
+            "prompt": "Use case: you want to identify a 50 Hz hum in a recording. With 23 Hz resolution, can you isolate it cleanly?",
+            "motivation": "Resolution sufficient?",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Yes, fine.",
+                "Marginally — 50 Hz falls in bin ~2 ($50/23.4 \\approx 2.1$). With Hann windowing, energy leaks into adjacent bins (44 + 47 Hz). For tighter localization, use larger N (more time blur).",
+                "No.",
+                "Depends on monitor."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Trade-off."
+            ],
+            "reveal": "23 Hz resolution is fine for hum detection (50 Hz is easy). For tighter frequency identification, larger N. For better TIME localization (find transient at exact time), smaller N. Spectrograms typically use multiple resolutions or constant-Q analysis."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\Delta f = f_s/N; T = N/f_s}$$ The fundamental DSP trade-off: time vs frequency resolution. Cannot get both simultaneously (Heisenberg-like uncertainty). For music: typical 1024-8192 samples (~20-180 ms). Pitch tracking: longer N for low frequencies. Transient analysis: shorter N. Multi-resolution analysis (wavelets, constant-Q) combines."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dsp_linear",
+        "kind": "multiple_choice",
+        "question": "Why are linear-phase EQs preferred for mastering but rarely used during mixing?",
+        "options": [
+          "Sound better.",
+          "Linear-phase EQs preserve transient SHAPE (no smearing) but introduce LATENCY (10-50 ms typical). In mastering, transient quality matters + latency is irrelevant. In mixing, latency between tracks + producer expectations of near-realtime feedback discourage their use.",
+          "Cheaper.",
+          "Faster."
+        ],
+        "correctIndex": 1,
+        "explanation": "Linear-phase filters: zero phase distortion, preserve transient envelopes. But require lookahead → latency (filter must see future samples). 10-50 ms latency acceptable for mastering (one-time process); painful for mixing (sluggish UI, latency drift across multiple instances). Minimum-phase IIR EQs are zero-latency but smear transients (usually inaudible). Trade-off: mastering = quality (linear); mixing = workflow (IIR)."
+      },
+      "hints": [
+        "What's the difference?",
+        "Why latency in linear-phase?"
+      ],
+      "workedSolution": "Linear phase: zero phase distortion → preserves transient shape. Requires lookahead (sees future samples) → adds latency. Acceptable in mastering (file-based, one-time). Latency in mixing slows down workflow + causes drift if many instances. Minimum-phase IIR EQs: no extra latency but distort phase, slightly smear transients. Usually inaudible. Both have their place; pros pick based on workflow + use case.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_dsp_log",
+        "kind": "math_expression",
+        "question": "FFT speedup over DFT for N = 1024?",
+        "acceptedAnswers": [
+          "~102x",
+          "~100x",
+          "100"
+        ],
+        "hint": "N/log2(N) = 1024/10 ≈ 102."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_dsp_pitch",
+        "kind": "scenario",
+        "question": "Pitch detection in a noisy recording",
+        "prompt": "A music app needs to detect the pitch of a sung note in real-time. Walk through whether to use FFT-based detection vs autocorrelation vs cross-correlation."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dsp",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why the FFT is one of the most important algorithms in audio engineering.",
+        "rubric": "Mentions that the FFT enables real-time spectrum analysis, EQ matching, convolution-based effects (reverb), audio compression (MP3/AAC), noise reduction, source separation; it makes all of these practical computationally (O(N log N) vs O(N²)); the entire frequency-domain audio processing world is built on the FFT."
+      }
+    }
+  ]
+}

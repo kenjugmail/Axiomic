@@ -1,0 +1,133 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "specialist",
+    "objectives": [
+      "State the skip-gram + CBOW objectives.",
+      "Derive the Word2Vec gradient.",
+      "Distinguish static from contextual embeddings."
+    ],
+    "prereqs": [
+      "statistical-language-models"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Word2Vec: word vectors from prediction",
+      "body": "**Mikolov 2013**: word embeddings as a byproduct of predicting context.\n\nTwo variants:\n- **Skip-gram**: given target word $w_t$, predict context words $w_{t-k}, \\dots, w_{t+k}$.\n$$\\mathcal{L} = -\\sum_{t=1}^T \\sum_{-k \\le j \\le k, j \\ne 0} \\log P(w_{t+j} \\mid w_t)$$\n- **CBOW (Continuous Bag-of-Words)**: given context $w_{t-k}, \\dots, w_{t+k}$, predict target $w_t$.\n\nEach word has TWO vectors: input embedding $\\mathbf{v}_w$ + output embedding $\\mathbf{u}_w$.\n$$P(w_o \\mid w_i) = \\frac{\\exp(\\mathbf{u}_{w_o}^T \\mathbf{v}_{w_i})}{\\sum_{w \\in V} \\exp(\\mathbf{u}_w^T \\mathbf{v}_{w_i})}$$\n\nIn practice, only $\\mathbf{v}$ (input embedding) is used downstream.\n\n**The bottleneck**: the softmax over $V$ (often 100K+) is expensive per update. Two practical fixes:\n- **Hierarchical softmax**: tree-structured softmax over vocabulary, $O(\\log V)$.\n- **Negative sampling**: turn the softmax into a binary classification (positive context vs $k$ random negatives). Trains much faster.\n\nNegative sampling won — it's THE standard implementation. With $k = 5$ negatives, training is ~100× faster than full softmax for vocab $V = 100K$.\n\n**The geometry**:\n- Words appearing in similar contexts get similar embeddings (high cosine similarity).\n- Linear-analogy: famously, $\\mathbf{v}_{king} - \\mathbf{v}_{man} + \\mathbf{v}_{woman} \\approx \\mathbf{v}_{queen}$.\n- Captured semantics: dog/cat/fish cluster (animals); Monday/Tuesday/Wednesday cluster (days)."
+    },
+    {
+      "kind": "text",
+      "title": "GloVe: factoring the co-occurrence matrix",
+      "body": "**GloVe** (Pennington 2014): word embeddings from log-co-occurrence factorization.\n\nLet $X_{ij}$ = count of word $j$ in word $i$'s context. Define:\n$$\\mathcal{L} = \\sum_{i, j} f(X_{ij}) (\\mathbf{w}_i^T \\tilde{\\mathbf{w}}_j + b_i + \\tilde{b}_j - \\log X_{ij})^2$$\nwhere $f$ is a weighting function (down-weights both very rare + very frequent pairs).\n\nTrain to MAKE $\\mathbf{w}_i^T \\tilde{\\mathbf{w}}_j$ approximate $\\log X_{ij}$. The dot product captures log-co-occurrence.\n\n**Closed-form-ish flavor**: matrix factorization framing makes GloVe feel more analytical than Word2Vec's stochastic objective. Empirically they give similar-quality vectors.\n\n**Differences**:\n- Word2Vec is online (SGD, one example at a time).\n- GloVe needs the full co-occurrence matrix in memory (or chunked).\n- Quality: roughly equivalent on most benchmarks.\n\n**fastText** (Bojanowski 2017): extend Word2Vec with subword n-grams. Each word's embedding = sum of its character-n-gram embeddings. Handles OOV: a new word's embedding = sum of its known character-n-grams. Critical for morphologically-rich languages.\n\n**These three** (Word2Vec, GloVe, fastText) defined the 'static embedding' era 2013-2018. Every NLP pipeline used pretrained word vectors as initialization. Replaced by contextual embeddings (next slide)."
+    },
+    {
+      "kind": "text",
+      "title": "Contextual embeddings: ELMo → BERT → GPT",
+      "body": "**The problem with static embeddings**: 'bank' has ONE vector — whether the context is finance or rivers. Polysemy hurts.\n\n**ELMo** (Peters 2018): contextual word embeddings from a deep bidirectional LSTM trained as a language model. Each word's embedding is a function of the full sentence.\n\nELMo's training:\n- Forward LM: predict $w_t$ given $w_1, \\dots, w_{t-1}$.\n- Backward LM: predict $w_t$ given $w_{t+1}, \\dots, w_T$.\n- Concatenate forward + backward representations at each layer.\n- Downstream: weighted sum of the layers' representations.\n\n**BERT** (Devlin 2018): the seminal transformer-based contextual model.\n- **Masked LM (MLM)**: randomly mask 15% of tokens; predict them from context. The model sees BOTH sides bidirectionally in one pass (vs ELMo's separate forward + backward LSTMs).\n- **Next-sentence prediction (NSP)**: predict if sentence B follows sentence A. (Later shown to be optional.)\n- Pretrained on BooksCorpus + Wikipedia. Fine-tune on downstream tasks.\n\n**Results**: BERT shattered every NLP benchmark in late 2018. GLUE went from ~70% (pre-BERT SOTAs) to ~83% (BERT-base) to ~89% (RoBERTa, BERT-large with more data). The pretraining + fine-tuning paradigm was unlocked.\n\n**GPT** (2018-19): same idea, but causal/decoder-only. Predict each token from the left context. Scales to massive sizes (GPT-3: 175B parameters). Few-shot in-context learning emerges at scale.\n\n**Modern**: encoder-only (BERT family) for classification / extraction / similarity. Decoder-only (GPT family) for generation + the dominant LLM line. Encoder-decoder (T5, BART) for translation + summarization.\n\n**Embedding-only use cases**: even today, sentence-BERT / E5 / BGE etc. produce a single embedding vector per document for retrieval (RAG). These are contextual (the whole document is embedded as one vector based on its content)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_w2v_grad",
+        "kind": "guided_derivation",
+        "question": "Derive the Word2Vec skip-gram gradient",
+        "goal": "Skip-gram with negative sampling. Loss for a single (target=$w_i$, context=$w_o$) positive pair + $k$ negatives $w_{n_1}, \\dots, w_{n_k}$: $\\mathcal{L} = -\\log\\sigma(\\mathbf{u}_{w_o}^T \\mathbf{v}_{w_i}) - \\sum_{j=1}^k \\log\\sigma(-\\mathbf{u}_{w_{n_j}}^T \\mathbf{v}_{w_i})$.",
+        "steps": [
+          {
+            "prompt": "Compute $\\partial \\mathcal{L}/\\partial \\mathbf{u}_{w_o}$. Use $\\partial \\log\\sigma(x)/\\partial x = 1 - \\sigma(x) = \\sigma(-x)$.",
+            "motivation": "Chain rule + sigmoid derivative.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$(\\sigma(\\mathbf{u}_{w_o}^T \\mathbf{v}_{w_i}) - 1) \\mathbf{v}_{w_i}$.",
+                "$\\sigma(\\mathbf{u}_{w_o}^T \\mathbf{v}_{w_i}) \\mathbf{v}_{w_i}$.",
+                "$\\mathbf{v}_{w_i}$.",
+                "0."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "$\\sigma(x) - 1 = -\\sigma(-x)$. And the negative outside flips sign."
+            ],
+            "reveal": "Gradient: $(\\sigma(\\mathbf{u}_{w_o}^T \\mathbf{v}_{w_i}) - 1) \\mathbf{v}_{w_i}$. Move $\\mathbf{u}_{w_o}$ in the direction of $\\mathbf{v}_{w_i}$ (positive scale: pull together)."
+          },
+          {
+            "prompt": "Update rule (SGD with lr $\\eta$): $\\mathbf{u}_{w_o} \\leftarrow \\mathbf{u}_{w_o} - \\eta \\cdot \\partial \\mathcal{L}/\\partial \\mathbf{u}_{w_o}$. Interpret in plain English what happens to $\\mathbf{u}_{w_o}$ during one positive-pair update.",
+            "motivation": "Gradient direction.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$\\mathbf{u}_{w_o}$ moves AWAY from $\\mathbf{v}_{w_i}$.",
+                "$\\mathbf{u}_{w_o}$ moves TOWARD $\\mathbf{v}_{w_i}$ (since $\\sigma < 1$, the coefficient is negative + the SGD step subtracts a negative).",
+                "Doesn't move.",
+                "Doubles in magnitude."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Coefficient $\\sigma - 1 < 0$. SGD subtracts gradient → $u$ moves towards $v$."
+            ],
+            "reveal": "Positive pair pulls $\\mathbf{u}_{w_o}$ and $\\mathbf{v}_{w_i}$ together. Negative pairs push apart. Word vectors organize by co-occurrence."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{SGD pulls together co-occurring word vectors, pushes apart sampled negatives}}$$ The simple gradient updates produce the famous semantic geometry. Words appearing in similar contexts have their input + output vectors pulled together (transitively, through shared contexts). The negative-sampling efficiency made Word2Vec practical at billion-token scale. The same gradient pattern underlies every contrastive learning algorithm in modern ML (SimCLR, CLIP, etc.)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_w2v_analogy",
+        "kind": "multiple_choice",
+        "question": "The famous Word2Vec analogy 'king − man + woman ≈ queen' works because:",
+        "options": [
+          "The model was trained on royalty-specific data.",
+          "The training objective (predicting context) makes semantic-similarity dimensions ALIGN linearly in the embedding space — co-occurrence patterns of 'king/queen' share regions, with the 'man/woman' direction crossing them.",
+          "Random chance.",
+          "Manual engineering."
+        ],
+        "correctIndex": 1,
+        "explanation": "Distributional patterns of 'king' + 'queen' overlap heavily (both monarchs, royal contexts). Their difference (along the 'gender' direction) is approximately parallel to 'man - woman'. So king + (woman - man) lands near queen. This is an EMERGENT geometric property — not designed. It's also LIMITED: analogies work cleanly on a few dimensions (gender, capital-of-country) but fail on most."
+      },
+      "hints": [
+        "What makes vectors linear-analogous?",
+        "Is this engineered or emergent?"
+      ],
+      "workedSolution": "Word2Vec / GloVe produce embeddings where semantic dimensions (gender, country-capital, plural-of, verb-tense) correspond to ROUGHLY linear directions. Pulled out by SVD on the embedding matrix. The analogy `a - b + c` walks in the analogous direction. It's emergent from contextual statistics — words sharing the relation also share co-occurrence patterns. Works imperfectly: ~70% accuracy on the standard analogy benchmarks for gender + nationality; much lower for harder relations.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_w2v_dim",
+        "kind": "math_expression",
+        "question": "Common Word2Vec config: 300-dimensional vectors, 100K vocab. Total parameters in input + output embedding tables?",
+        "acceptedAnswers": [
+          "60000000",
+          "60M",
+          "60 million"
+        ],
+        "hint": "2 × 300 × 100K = 60M."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_w2v_search",
+        "kind": "scenario",
+        "question": "Embeddings for semantic search",
+        "prompt": "Your team builds a Q&A retrieval system. Word2Vec embeddings give poor results compared to BERT-based sentence embeddings. Walk through why."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_emb",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why contextual embeddings (BERT, ELMo) replaced static embeddings (Word2Vec, GloVe) for most NLP tasks.",
+        "rubric": "Mentions that static embeddings give one vector per word regardless of context (failing for polysemous words like 'bank'); contextual embeddings produce a different vector each time based on surrounding sentence; this resolves polysemy + captures fine-grained meaning. Pretrained transformer encoders also serve as transfer-learning bases, making them the foundation of modern NLP pipelines."
+      }
+    }
+  ]
+}

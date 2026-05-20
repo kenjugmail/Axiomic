@@ -1,0 +1,164 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "specialist",
+    "objectives": [
+      "Distinguish Cortex-M power modes.",
+      "Reason about wake-up sources + latency.",
+      "Optimize a battery-life budget."
+    ],
+    "prereqs": [
+      "peripheral-drivers"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Cortex-M power modes",
+      "body": "Modern MCUs offer many low-power modes, each trading retention + wake-latency for current consumption.\n\n**Cortex-M typical modes** (names + specifics vary by vendor):\n\n1. **Run**: CPU executing at full clock. Current ~5-50 mA depending on chip + clock.\n2. **Sleep / WFI** (Wait For Interrupt): CPU halted, peripherals + RAM running. Wakes on any IRQ. Current ~1-5 mA. Wake latency: 0 cycles (interrupt is immediate).\n3. **Stop / Sleep-Deep**: CPU + most peripherals stopped; SRAM retained; specific peripherals (RTC, GPIO, certain analog) can wake. Current ~10-100 μA. Wake latency: ~10-100 μs.\n4. **Standby**: full SRAM lost (except a small backup region); RTC + ext wake-up pins only. Current ~1 μA. Wake = full reset (or RTC alarm).\n5. **VBAT / Power-off**: only the RTC + backup register domain powered. Current ~10-100 nA.\n\nThe deeper the mode, the lower the current + the slower the wake.\n\n**Battery math**: a 1000 mAh AA battery powering a sensor at 1 mA continuous = 1000 hours = ~42 days. At 10 μA continuous (deep sleep + occasional wake) = 100,000 hours = ~11 years.\n\n**The sleep-most-of-the-time pattern**:\n```c\nwhile (1) {\n  read_sensor();           // 5 ms active\n  transmit_data();         // 50 ms active (radio is expensive)\n  enter_stop_mode();       // sleep until next wake\n}\n```\nWake every 60 seconds + active 55 ms. Duty cycle ~0.1%. Average current ≈ 10 μA. Years of battery life."
+    },
+    {
+      "kind": "text",
+      "title": "Wake sources + latency budgets",
+      "body": "**Wake sources** vary by mode. In stop/standby:\n- **RTC alarm**: 'wake at midnight'. Most common for periodic sensors.\n- **External pin interrupt**: button press, motion sensor signal, RFID tag.\n- **LPUART / LPTIM (low-power)**: special peripheral that runs in low-power modes.\n- **USB resume** (if applicable).\n- **Comparator threshold**: 'wake when voltage crosses N'.\n\nIn shallow sleep:\n- Any IRQ.\n- WFI / WFE instructions; some chips have 'sleep-on-exit' that re-sleeps automatically when ISR completes.\n\n**Wake latency**: time from wake event to first user code execution.\n- Sleep: ~0 cycles.\n- Stop: ~10-100 μs (re-stabilize clocks, restore PLL).\n- Standby: ~ms (full re-init of state).\n\n**Latency vs current trade-off**: deeper sleep = lower current + longer wake. If an event needs sub-microsecond response, you can't sleep deeply. If event is periodic + you have an RTC, deep sleep is fine.\n\n**Wakeup cost / inefficiency**: waking takes energy (clocks restart, voltage regulators stabilize). If wake-up energy > sleep energy saved during the period, sleeping is NET-NEGATIVE. Frequent wake-ups for short tasks may be net-better in shallow sleep than deep sleep.\n\n**Tickless RTOS**: traditional RTOSes have a periodic 'tick' (e.g., 1 kHz) that always wakes the CPU. In a tickless RTOS, the scheduler computes 'next deadline' + sleeps until then. FreeRTOS-tickless + Zephyr's tickless mode are standard. Required to reach the deepest sleep modes."
+    },
+    {
+      "kind": "text",
+      "title": "Peripheral-clock gating + DVFS",
+      "body": "Beyond CPU power modes, individual peripherals can be powered up / down:\n\n**Clock gating**: most MCU peripherals only consume power when their CLOCK is running. The CPU controls clock-enable bits per peripheral.\n```c\nRCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;   // enable GPIOA clock\nRCC->APB2ENR &= ~RCC_APB2ENR_TIM1EN;    // disable TIM1 clock (save power)\n```\nA disabled peripheral consumes leakage current only (~nA). Active peripherals consume mA-scale current.\n\n**DVFS (Dynamic Voltage + Frequency Scaling)**: change CPU clock + supply voltage at runtime based on workload. Power scales as $P \\propto V^2 f$, so reducing both gives quadratic savings.\n\nE.g., STM32L4 has 4 voltage scales (Range 1 = 1.2V@80MHz max, Range 2 = 1.0V@26MHz, etc.). At Range 2 with the same code running, power is ~30% of Range 1. If the workload tolerates 26 MHz, use Range 2.\n\n**Practical**:\n1. Profile peripheral power: which ones dominate? Often UART, ADC, USB.\n2. Disable unused ones at compile time + runtime.\n3. Set unused GPIO pins to analog mode (lowest leakage).\n4. Power down sensors between measurements (use a GPIO as a power switch for the sensor IC).\n5. Use the lowest clock speed that meets your deadlines.\n6. Avoid running the CPU when nothing needs to happen — sleep instead.\n\n**Battery-life budget**:\n- Tape out each phase (idle / sensing / radio / processing).\n- Multiply (time in phase × current in phase) → mA-seconds per cycle.\n- Sum + divide by cycle duration → average current.\n- Divide battery capacity by average current → expected runtime.\n\nProfessional embedded engineers track this spreadsheet meticulously. Battery-life claims live + die on it."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_pwr_budget",
+        "kind": "guided_derivation",
+        "question": "Estimate battery life for a sensor",
+        "goal": "BLE sensor: wakes every 60s, samples temperature (active 100 ms @ 5 mA), transmits via BLE (active 50 ms @ 15 mA), then sleeps (10 μA). Battery = 200 mAh.",
+        "steps": [
+          {
+            "prompt": "Active phase energy per cycle: $(100 \\text{ms} \\times 5 \\text{mA}) + (50 \\text{ms} \\times 15 \\text{mA}) = ?$ (in mC, millicoulombs)",
+            "motivation": "Charge per cycle.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1.25",
+                "1.25 mC"
+              ]
+            },
+            "hints": [
+              "100×5/1000 + 50×15/1000 = 0.5 + 0.75."
+            ],
+            "reveal": "1.25 mC per cycle in active phases."
+          },
+          {
+            "prompt": "Sleep phase: $60 \\text{s} - 150 \\text{ms} \\approx 59.85 \\text{s}$ at $10 \\text{μA} = ?$ mC",
+            "motivation": "Charge in sleep.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "~0.6 mC.",
+                "~1.25 mC.",
+                "~60 mC.",
+                "0."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "10 μA × 59.85 s ≈ 600 μC = 0.6 mC."
+            ],
+            "reveal": "~0.6 mC per cycle in sleep."
+          },
+          {
+            "prompt": "Total per cycle: $1.25 + 0.6 = 1.85$ mC. Cycles per battery: $200 \\text{mAh} = 200 \\times 3600 \\text{mC} = 720,000$ mC / 1.85 mC = ~?",
+            "motivation": "Total cycles.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "390000",
+                "approximately 390000",
+                "~390k"
+              ]
+            },
+            "hints": [
+              "720000/1.85."
+            ],
+            "reveal": "~389,000 cycles."
+          },
+          {
+            "prompt": "60 sec/cycle × 389,000 cycles = ?",
+            "motivation": "Total seconds → days/years.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "~7 days.",
+                "~270 days.",
+                "~1.5 years (8 months).",
+                "~50 years."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "389,000 × 60 sec = 23.4M sec / 86,400 sec/day = 270 days."
+            ],
+            "reveal": "~270 days. Adequate for a year-long deployment with 30 days margin."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Battery life = capacity / average current}}$$ The budget breakdown reveals where to optimize: in this case sleep current matches active current in total — both worth attacking. Halving sleep current (10 μA → 5 μA) extends battery to 1 year. Halving radio time (BLE 50 ms → 25 ms by using BLE 5 advertising vs connection) gains another 40%. Real engineering involves measuring + iterating. Tools like Power Profiler Kit, μCurrent, Keysight CX3300 source-meters sample µA-scale currents at MHz rates."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_pwr_radio",
+        "kind": "multiple_choice",
+        "question": "A sensor's dominant power consumer is its radio (BLE / LoRa / cellular). What's the single biggest battery-life lever?",
+        "options": [
+          "Faster CPU.",
+          "Reduce transmit duty cycle: send less often, send compressed payloads, batch multiple sensor readings into one transmission, use the most efficient radio mode (BLE long-range vs short-range trade-offs).",
+          "Bigger battery.",
+          "Slower memory."
+        ],
+        "correctIndex": 1,
+        "explanation": "Radio power is typically 10-100× CPU power during transmission. Optimizing CPU is irrelevant compared to optimizing the radio. Strategies: send less data (compression, batching, delta-encoding), send less often (event-triggered vs periodic), use the most efficient radio standard for your range (BLE for short, LoRa for long, NB-IoT for cellular long-range), tune the radio's transmit power (lower = less range but huge power savings)."
+      },
+      "hints": [
+        "What dominates the power budget?",
+        "Where should optimization focus?"
+      ],
+      "workedSolution": "Radio TX is ~10-100 mA for milliseconds, vs CPU ~5-50 mA. Per cycle, radio energy dominates. Fix: reduce time-on-air. Batch readings; compress; lower data rate; use efficient PHY. Bumping the CPU's clock 2× is a small relative effect. Knowing what dominates the budget is the first step of every battery-life optimization.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_pwr_avg",
+        "kind": "math_expression",
+        "question": "Sensor: 10 mA for 100 ms, 1 μA for 1 minute. Average current?",
+        "acceptedAnswers": [
+          "17 uA",
+          "17e-6",
+          "17 microamps"
+        ],
+        "hint": "(10×0.1 + 0.001×60)/60.1 ≈ 0.0166 mA = 16.6 μA"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_pwr_iot",
+        "kind": "scenario",
+        "question": "Designing for 5-year battery life",
+        "prompt": "Your team must design an outdoor environmental sensor with 5-year battery life on a CR2032 (~225 mAh). Walk through the architectural choices."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_pwr",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why 'sleep most of the time' is the universal battery-powered embedded design pattern.",
+        "rubric": "Mentions that active current is orders of magnitude higher than sleep current; minimizing duty cycle (% of time active) dominates battery life; the design pushes work into short bursts followed by deep sleep. RTOSes + libraries (FreeRTOS-tickless, Zephyr) provide the scheduler support; the application designer must structure work to maximize sleep time."
+      }
+    }
+  ]
+}

@@ -1,0 +1,160 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "core",
+    "objectives": [
+      "State the role of rebar in reinforced concrete.",
+      "Apply working-stress + ultimate strength design.",
+      "Reason about pre-stressed concrete + durability."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Concrete: ancient material, modern engineering",
+      "body": "**Concrete**: mix of cement + water + fine aggregate (sand) + coarse aggregate (gravel/crushed stone). The most-used building material by volume on Earth.\n\n**Cement chemistry**: Portland cement (1824 patent) is calcium silicates + aluminates. With water, they HYDRATE → strong C-S-H gel.\n\nProperties of cured concrete:\n- **Strong in compression**: 20-100 MPa typical. Up to 200+ MPa in ultra-high-performance.\n- **Weak in tension**: ~10% of compressive strength. Cracks easily.\n- **Brittle**: failure is sudden.\n- **Durable**: in proper conditions, lasts centuries (Roman concrete still standing).\n- **Mass-producible**: poured into formwork; sets in hours, full strength in 28 days.\n- **Embodied carbon**: ~6-8% of global CO₂ emissions (cement production releases CO₂ from limestone calcination + fuel burning).\n\n**Sustainability**: huge effort to reduce concrete's carbon. Strategies:\n- **SCMs (Supplementary Cementitious Materials)**: replace cement with fly ash (coal byproduct), slag (steel byproduct), silica fume, calcined clay. Up to 50%+ replacement common.\n- **Low-carbon cements**: CO₂-cured (Solidia), magnesium-based, geopolymer.\n- **CCS-equipped plants**: capture CO₂ from cement kilns.\n- **Performance optimization**: use less concrete via better design + higher strength + topology optimization.\n\n**Concrete mix design**: water/cement ratio (w/c) is the most important parameter. Lower w/c = higher strength. Typical 0.4-0.6.\n- High w/c → workable + low strength + porous.\n- Low w/c → strong + dense + harder to place.\n- Admixtures: plasticizers, retarders, accelerators, air-entrainers (for freeze-thaw).\n\n**Curing**: keep moist + warm for first days. Hydration continues for weeks-months. Premature drying → weak + cracked concrete."
+    },
+    {
+      "kind": "text",
+      "title": "Reinforced concrete: rebar's role",
+      "body": "Plain concrete cracks under tension. To use concrete in tensile loads (beams, slabs, walls), embed STEEL REINFORCING BARS (rebar).\n\n**Composite action**: concrete carries compression + rebar carries tension. Working together they form a strong + ductile structural element.\n\n**Why this works**:\n- Steel-concrete BOND: cement paste sticks to rebar surface. Force transfers between them.\n- Similar THERMAL EXPANSION: both ~12e-6/°C. Don't separate under temperature changes.\n- Concrete PROTECTS rebar from corrosion + fire (until concrete cover spalls).\n\n**Rebar specifications**:\n- **Grade 60** (USA): yield 60 ksi (~414 MPa). Most common.\n- **Grade 75, 80, 100**: higher strength for special applications.\n- **Rebar sizes**: #3 (3/8\") to #18 (2.25\") in USA. Metric: 10 mm to 50 mm.\n- **Deformed** (ribbed surface for bond) — standard.\n- **Stainless rebar**: corrosive environments (marine, deicing salt).\n- **Epoxy-coated**: bridges (resist deicing salt corrosion).\n- **Galvanized rebar**: less common.\n- **GFRP** (glass-fiber reinforced polymer): non-corroding alternative. Lower stiffness but no rust risk. Used in MRI rooms, marine, geotech.\n\n**Reinforced beam design**:\n- Place rebar in TENSION zone (bottom of simply-supported beam; top of cantilever; both for continuous beams).\n- **Tension steel** ($A_s$): primary reinforcement.\n- **Compression steel** ($A_s'$): in highly-loaded members.\n- **Shear stirrups**: closed loops perpendicular to span. Resist diagonal tension from shear.\n- **Concrete cover**: 25-75 mm typical. Protects rebar + ensures bond.\n\n**Strength design (ACI 318 / Eurocode 2)**:\n- Ultimate moment capacity: $\\phi M_n = \\phi A_s f_y (d - a/2)$\n- $\\phi = 0.9$ for tension-controlled flexure (resistance factor).\n- $a = A_s f_y / (0.85 f_c' b)$ (depth of compressive block).\n- $d$ = effective depth (centroid of tension steel from top).\n- Design check: $M_u \\le \\phi M_n$ (factored applied vs factored capacity).\n\n**Modes of failure**:\n- **Tension-controlled**: steel yields first, concrete crushes after. DUCTILE + safe. Preferred.\n- **Compression-controlled**: concrete crushes first. BRITTLE. Code prevents via min steel ratio.\n- **Shear**: diagonal cracks. Prevented by stirrups.\n\n**Cracking**: under service loads, concrete tension cracks open BUT rebar carries the tension. Crack widths controlled by code (≤ 0.4 mm typical) for serviceability + durability."
+    },
+    {
+      "kind": "text",
+      "title": "Pre-stressed concrete + durability",
+      "body": "**Pre-stressed concrete**: pre-tension the rebar (cables/tendons) BEFORE concrete hardens. Result: concrete is in COMPRESSION at service. Cracks don't open. Stiffer beams, longer spans.\n\nTwo methods:\n- **Pre-tensioning**: tension steel cables in form before concrete pour. Release after concrete cures. Cables grip concrete via bond. Used in factory-precast (beams, slabs, columns).\n- **Post-tensioning**: cast concrete with empty ducts. After cure, thread cables, tension, anchor. Used in cast-in-place slabs + bridges + parking structures.\n\nAdvantages:\n- Longer spans (50+ m feasible).\n- Less cracking → better durability.\n- Smaller cross-sections (less concrete + steel).\n- Cleaner finished surfaces (no rebar imprints).\n\n**Common applications**:\n- Parking garages (long spans, thin slabs).\n- Bridges (especially segmental construction).\n- Long-span building floors.\n- Pressure vessels (water tanks).\n\n**Durability problems**:\n- **Carbonation**: CO₂ + cement → carbonates. Lowers pH around rebar → loss of passive layer → corrosion. Slow but inevitable in atmospheric exposure.\n- **Chloride attack**: deicing salt, seawater. Chlorides penetrate cover, depassivate rebar. Rebar rusts, expansion cracks concrete (spalling). Major issue for bridges + coastal structures.\n- **Sulfate attack**: groundwater sulfates attack cement paste. Use sulfate-resistant cement.\n- **Alkali-silica reaction (ASR)**: certain aggregates react with cement alkalis → gel formation → expansion + cracking. Use non-reactive aggregates.\n- **Freeze-thaw**: water in pores expands when frozen. Use air-entrained concrete.\n- **Fire**: concrete spalls at high temp (~300-500°C). Rebar yields. Important for fire ratings.\n\n**Durability design**: 50-100 year design life. Achieved via:\n- Low w/c ratio (dense concrete).\n- Adequate cover (40-75 mm in aggressive environments).\n- SCMs for reduced permeability.\n- Coated rebar / non-corroding (FRP, stainless) in critical exposures.\n- Cathodic protection (for existing structures).\n- Membranes + sealers (bridge decks).\n\n**Modern concrete**:\n- **High-performance concrete**: 70-100+ MPa strength. Used in tall buildings, bridges.\n- **Self-consolidating concrete (SCC)**: flows without vibration. Used in congested rebar, architectural finishes.\n- **Fiber-reinforced concrete**: steel or synthetic fibers replace some rebar. Used in slabs, tunnel linings.\n- **Ultra-high-performance concrete (UHPC)**: 200+ MPa. Specialty applications.\n- **3D-printed concrete**: emerging. Custom geometries; reduce formwork. Commercial buildings being printed.\n- **CO₂-cured + low-carbon**: described above. Active commercialization."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_conc_moment",
+        "kind": "guided_derivation",
+        "question": "Compute moment capacity of an RC beam",
+        "goal": "Beam: width $b = 300$ mm, effective depth $d = 500$ mm. Concrete $f'_c = 30$ MPa. Tension steel: 3 × #25 ($A_s = 3 \\times 491 = 1473$ mm²). Grade 60 ($f_y = 414$ MPa).",
+        "steps": [
+          {
+            "prompt": "Compression block depth: $a = A_s f_y / (0.85 f'_c b)$.",
+            "motivation": "Equilibrium.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~80 mm",
+                "80",
+                "79.7"
+              ]
+            },
+            "hints": [
+              "1473 × 414 / (0.85 × 30 × 300) = 79.7 mm."
+            ],
+            "reveal": "$a \\approx 80$ mm."
+          },
+          {
+            "prompt": "Nominal moment: $M_n = A_s f_y (d - a/2)$.",
+            "motivation": "Lever arm.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~281 kN·m",
+                "281",
+                "~280"
+              ]
+            },
+            "hints": [
+              "1473 × 414 × (500 - 40) = 1473 × 414 × 460 = 281e6 N·mm."
+            ],
+            "reveal": "$M_n \\approx 281$ kN·m."
+          },
+          {
+            "prompt": "Design (factored) capacity: $\\phi M_n = 0.9 \\times 281 = ?$",
+            "motivation": "Apply phi.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~253 kN·m",
+                "253"
+              ]
+            },
+            "hints": [
+              "281 × 0.9."
+            ],
+            "reveal": "$\\phi M_n \\approx 253$ kN·m."
+          },
+          {
+            "prompt": "Compare to factored applied moment. If applied factored $M_u = 220$ kN·m, beam adequate?",
+            "motivation": "Check.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Inadequate.",
+                "Adequate: $\\phi M_n = 253 > M_u = 220$. ~15% extra capacity (safety factor in addition to factored loads).",
+                "Equal.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Compare."
+            ],
+            "reveal": "Adequate. 220 < 253. The beam can resist the design moment with ~15% additional margin. Final check: code-mandated minimum + maximum steel ratios + shear capacity + deflection + durability."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\phi M_n = \\phi A_s f_y (d - a/2); \\text{ where } a = A_s f_y / (0.85 f'_c b)}$$ Reinforced concrete moment capacity is the fundamental calculation in structural design. Every beam, slab, column requires this analysis. Modern: code calculations are automated in software (Bentley, Tekla, RAM, RISA, SAFE). Hand calc still valuable for sanity check + initial sizing. The formula assumes tension-controlled (ductile) failure; code ensures this via steel-ratio limits."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_conc_carbon",
+        "kind": "multiple_choice",
+        "question": "Why is reducing concrete's carbon footprint important + how?",
+        "options": [
+          "Marketing.",
+          "Cement production releases CO₂ from limestone calcination + fuel; concrete is ~7% of global CO₂. Reduction strategies: SCMs (fly ash, slag, calcined clay), low-carbon cements (CO₂-cured, geopolymer), CCS at plants, design optimization. Each strategy delivers 10-50% CO₂ reduction.",
+          "Random.",
+          "Decoration."
+        ],
+        "correctIndex": 1,
+        "explanation": "Concrete = ~7% of global CO₂. Cement (the binder) is the issue: limestone calcination releases CO₂ inherently (CaCO₃ → CaO + CO₂); fuel burning adds more. Strategies: 1) SCMs replace cement (fly ash from coal plants, slag from steel mills, calcined clay) — up to 50% replacement. 2) Low-carbon cements (CO₂-cured, magnesium-based, geopolymer) — emerging tech. 3) CCS on cement plants. 4) Design optimization (use less concrete via stronger mixes, topology optimization, performance-based design). Industry roadmap to net-zero ~2050.\n\nBig deal: cement is the SINGLE LARGEST industrial CO₂ source after fossil fuels. Decarbonizing concrete is one of the biggest climate challenges + opportunities. Major companies (Holcim, CEMEX, Heidelberg) all have net-zero commitments."
+      },
+      "hints": [
+        "What's the carbon source?",
+        "What's done about it?"
+      ],
+      "workedSolution": "Cement = ~7% global CO₂. Limestone calcination releases CO₂ inherently. Kiln fuel adds more. Solutions: SCMs (replace cement with fly ash, slag, calcined clay) — up to 50% replacement; low-carbon cements (CO₂-cured, geopolymer); CCS at plants; design optimization (less concrete via stronger mixes). Industry committed to net-zero by 2050. Critical decarbonization sector.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_conc_water",
+        "kind": "math_expression",
+        "question": "Concrete with w/c = 0.45. For 350 kg/m³ cement, water content?",
+        "acceptedAnswers": [
+          "157.5 kg/m³",
+          "157.5",
+          "~158"
+        ],
+        "hint": "0.45 × 350 = 157.5 kg water."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_conc_bridge",
+        "kind": "scenario",
+        "question": "Designing a bridge deck",
+        "prompt": "Concrete bridge deck in cold climate with deicing salt. Walk through the design considerations for durability."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_conc",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why reinforced concrete combines two materials that are individually limited.",
+        "rubric": "Mentions that concrete is strong in compression but weak + brittle in tension; steel is strong + ductile in tension but expensive + corrodes; combining them: concrete carries compression + steel carries tension + steel is protected from corrosion by alkaline concrete; the composite is strong, ductile, affordable, durable. The 19th-century invention of reinforced concrete revolutionized construction; modern engineering refines mix designs + steel grades + analysis methods."
+      }
+    }
+  ]
+}

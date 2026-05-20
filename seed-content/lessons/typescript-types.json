@@ -1,0 +1,115 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish structural typing from nominal typing.",
+      "Apply generics + type narrowing.",
+      "Recognize unsoundness + when it's intentional."
+    ],
+    "prereqs": [
+      "javascript-runtime"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "TypeScript's structural type system",
+      "body": "TypeScript is **structurally typed**: two types are compatible if their structure matches. Names don't matter; shapes do.\n\n```ts\ninterface Named { name: string }\nconst dog = { name: 'Rex', barks: true };\nconst named: Named = dog;  // OK — has 'name'\n```\n\nContrast with **nominal typing** (Java, C#): a class must explicitly implement an interface to be compatible. JS objects come + go without declared inheritance, so TypeScript's structural model fits the language.\n\nConsequence: any object with the right shape can be passed. The escape hatches when this is undesirable:\n- **Branded types**: `type UserId = string & { __brand: 'UserId' };` — adds a phantom field that's unique, requires explicit cast to construct. Used to prevent mixing up two string types (UserId vs SessionId)."
+    },
+    {
+      "kind": "text",
+      "title": "Generics + type inference",
+      "body": "Generics let functions/classes work with multiple types while preserving type safety:\n\n```ts\nfunction first<T>(arr: T[]): T | undefined {\n  return arr[0];\n}\n\nconst x: number | undefined = first([1, 2, 3]);  // T inferred as number\nconst y: string | undefined = first(['a', 'b']);  // T inferred as string\n```\n\nThe `<T>` declares a type parameter. TypeScript infers `T` from the argument; the return type uses the same `T`.\n\nAdvanced patterns:\n- **Generic constraints**: `function pluck<T, K extends keyof T>(obj: T, key: K)` — `K` must be a key of `T`.\n- **Conditional types**: `type IsString<T> = T extends string ? true : false`.\n- **Mapped types**: `type Partial<T> = { [K in keyof T]?: T[K] }` — make all props optional.\n- **Template literal types**: `type EmailField = `${string}@${string}.${string}`;` — limited regex-like constraints.\n\nThe TypeScript type system is Turing-complete; complex types push compile time + IDE responsiveness."
+    },
+    {
+      "kind": "text",
+      "title": "Type narrowing + control-flow analysis",
+      "body": "TypeScript narrows types based on control flow:\n\n```ts\nfunction format(input: string | number): string {\n  if (typeof input === 'string') {\n    return input.toUpperCase();  // input narrowed to string\n  }\n  return input.toFixed(2);  // input narrowed to number\n}\n```\n\nNarrowing operators:\n- `typeof x === 'string'` (for primitives).\n- `x instanceof MyClass` (for classes).\n- `'key' in obj` (for property presence).\n- `Array.isArray(x)` (for arrays).\n- Custom **type predicates**: `function isCat(x: Animal): x is Cat { return x.species === 'cat'; }`.\n- Discriminated unions: `type Shape = { kind: 'circle', r: number } | { kind: 'square', s: number };` — narrow on `kind`.\n\nProduction TS: heavy use of discriminated unions for state machines, message buses, command patterns. The compiler enforces exhaustiveness checking via `never` default cases — catching missed cases at compile time."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ts_keyof",
+        "kind": "guided_derivation",
+        "question": "Derive Pick<T, K>",
+        "goal": "Implement the standard `Pick` utility type: `Pick<T, K>` selects keys $K$ from $T$.",
+        "steps": [
+          {
+            "prompt": "Goal: `Pick<T, K> = { [P in K]: T[P] }`. The mapped-type syntax. What constraint does $K$ need?",
+            "motivation": "$K$ must be keys of $T$.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$K \\text{ extends keyof } T$",
+                "$K \\text{ extends } T$",
+                "No constraint.",
+                "$K \\text{ extends number}$"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "You can only pick keys that exist on $T$."
+            ],
+            "reveal": "$K \\text{ extends keyof } T$."
+          },
+          {
+            "prompt": "Full definition?",
+            "motivation": "Combine.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "type Pick<T, K extends keyof T> = { [P in K]: T[P] };"
+              ]
+            },
+            "hints": [
+              "Mapped type over $K$ projecting $T[P]$."
+            ],
+            "reveal": "`type Pick<T, K extends keyof T> = { [P in K]: T[P] };`"
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{type Pick<T, K extends keyof T> = \\{ [P in K]: T[P] \\}}}$$ The built-in `Pick` utility. Constructive type-level programming: build new types from existing ones via mapped + conditional types. Mastery here is the gateway to writing genuinely-typesafe abstractions in TypeScript."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ts_unsound",
+        "kind": "multiple_choice",
+        "question": "TypeScript's type system is intentionally *unsound* — some runtime errors aren't caught at compile time. The canonical example:",
+        "options": [
+          "Object destructuring.",
+          "Function-parameter bivariance (callbacks accept narrower parameter types than declared, which can lead to runtime type mismatches).",
+          "Generics.",
+          "Discriminated unions."
+        ],
+        "correctIndex": 1,
+        "explanation": "TypeScript intentionally accepts function-parameter bivariance for usability — strict contravariance would reject many JS patterns. Other intentional unsoundness: `any` (escape hatch), unsafe casts, runtime checks (`typeof` outputs don't reflect TS types). The trade-off: usability + practical adoption vs perfect soundness."
+      },
+      "hints": [
+        "Why would a type system be unsound on purpose?",
+        "Strict soundness can reject useful patterns."
+      ],
+      "workedSolution": "TypeScript chose pragmatic unsoundness to accept common JavaScript patterns. Function-parameter bivariance, `any`, type assertions (`as`), and untracked operations on JSON parsing all leak runtime type mismatches. Strict mode (`strict: true`) tightens many of these but doesn't eliminate them. Flow tried strict contravariance and rejected too many real-world patterns; TS chose adoption + practical safety.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ts_branded",
+        "kind": "scenario",
+        "question": "Avoiding ID-type confusion",
+        "prompt": "Your codebase has `UserId`, `SessionId`, `OrgId` — all typed as `string`. A bug surfaces where a SessionId got passed where a UserId was expected. Walk through how branded types fix this + their downside."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ts",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why TypeScript's structural typing fits JavaScript better than nominal typing.",
+        "rubric": "Mentions that JS objects are duck-typed by nature; nominal would require explicit class inheritance to share interfaces; many idioms (object literals, function composition, library types) don't fit nominal; structural typing matches how JS code is actually written."
+      }
+    }
+  ]
+}

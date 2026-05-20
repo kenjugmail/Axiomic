@@ -1,0 +1,145 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "specialist",
+    "objectives": [
+      "Outline SerDes architecture + electrical considerations.",
+      "Distinguish parallel DDR from serial PCIe interfaces.",
+      "Reason about Network-on-Chip (NoC) topologies."
+    ],
+    "prereqs": [
+      "digital-logic"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "From parallel buses to serial links",
+      "body": "Historical interfaces: parallel (PCI 64-bit parallel, IDE 40-pin). Many wires, same clock. Slow per pin but wide.\n\nProblem: at higher speeds, parallel buses suffer from **skew** (wires not arriving simultaneously) + **crosstalk** (signal interference between wires). Skew accumulates over distance.\n\nModern solution: **serial differential links** at very high frequency per pair. SerDes (Serializer-Deserializer).\n\n**SerDes**: takes parallel data + serializes onto one or a few differential pairs at multi-Gbps. Receiver de-serializes back.\n\nAdvantages:\n- Each pair gets clean signal integrity (differential rejects common-mode noise).\n- Embedded clock (recovered from data, no separate clock distribution).\n- Fewer pins (PCIe Gen5 x4 = 8 wires; PCIe Gen3 x32 = 64 wires for similar bandwidth).\n\n**Modern speeds**:\n- PCIe 4.0: 16 Gbps/lane.\n- PCIe 5.0: 32 Gbps/lane.\n- PCIe 6.0: 64 Gbps/lane (PAM-4 encoding).\n- 100GbE: 25 Gbps × 4 lanes (NRZ) or 50 Gbps × 2 lanes (PAM-4).\n- 400GbE: 50 Gbps × 8 lanes (PAM-4).\n- Ethernet 1.6T (2024+): 200 Gbps × 8 lanes (PAM-4).\n\n**SerDes building blocks**:\n- **Transmitter**: parallel-to-serial conversion + line driver + pre-emphasis (boost high frequencies to compensate for channel loss).\n- **Receiver**: CDR (Clock + Data Recovery — extract clock from data transitions), equalizer (compensate channel rolloff), serial-to-parallel.\n- **Encoding**: 8b/10b (older, 20% overhead), 64b/66b (newer, 3% overhead), PAM-4 (4 voltage levels = 2 bits/symbol).\n\n**Power**: SerDes dominate die power at high data rates. A single 112 Gbps SerDes consumes ~1 W. A switch chip with 256 SerDes burns 256 W on links alone."
+    },
+    {
+      "kind": "text",
+      "title": "DDR + PCIe interfaces",
+      "body": "**DDR (Double Data Rate) DRAM interfaces**: parallel but high-speed.\n- DDR3: 800-2133 MT/s (mega transfers per second).\n- DDR4: 2133-3200 MT/s.\n- DDR5: 4800-8400 MT/s.\n- LPDDR5X (mobile): up to 9600 MT/s.\n\nKey features:\n- 64-bit data bus + ECC bits.\n- Source-synchronous clock (DQS strobes alongside data).\n- Training: at power-up, controller + DRAM negotiate per-pin delays for optimal timing.\n- Bank groups, prefetch buffers, on-die ECC.\n\nDDR5 added on-die ECC (1-bit-per-byte correction) because cells are too small to be reliable without it.\n\n**HBM (High Bandwidth Memory)**: TSV-stacked DRAM. 1024-bit bus per stack. 3.2 Gbps/pin → 3.2 TB/s per stack. Used in GPUs (HBM3 in NVIDIA H100 + AMD MI300).\n\n**PCIe (Peripheral Component Interconnect Express)**: serial differential. 1-16 lanes per slot.\n- Gen 3: 8 GT/s (gigatransfers/sec). x16 = 16 GB/s.\n- Gen 4: 16 GT/s. x16 = 32 GB/s.\n- Gen 5: 32 GT/s. x16 = 64 GB/s.\n- Gen 6: 64 GT/s (PAM-4). x16 = 128 GB/s.\n\nLayered architecture:\n- Physical: SerDes, encoding.\n- Data link: flow control, error correction.\n- Transaction: packets to/from devices.\n\n**CXL (Compute Express Link)**: built on PCIe physical layer. Adds cache coherence + memory pooling. CXL 1.1, 2.0, 3.0 progressively added features. Used in disaggregated memory + accelerator-CPU communication.\n\n**Other interconnects**:\n- **UCIe** (Universal Chiplet Interconnect): die-to-die in chiplet designs. Intel/AMD/TSMC backed.\n- **InfiniBand**: HPC clusters. ~400 Gbps NDR latest.\n- **NVLink**: NVIDIA proprietary, GPU-to-GPU. 900 GB/s per link in H100.\n- **AMD Infinity Fabric**: similar for AMD."
+    },
+    {
+      "kind": "text",
+      "title": "Network-on-Chip (NoC)",
+      "body": "Modern SoCs have ~10-100+ cores + accelerators + memory controllers. Connecting them all via wires becomes infeasible at scale. **NoC**: packetized network INSIDE the chip.\n\n**Architecture**:\n- **Routers**: at each node. Switch packets between input + output ports.\n- **Links**: wires connecting adjacent routers.\n- **Network interfaces**: convert between core-protocol (cache requests) + NoC packets.\n\n**Topologies**:\n- **Bus**: single shared wire (legacy AMBA AHB / APB). Limited bandwidth.\n- **Crossbar**: full crossbar between all sources + destinations. Wide bandwidth but doesn't scale.\n- **Ring**: nodes in a circle. Used in Intel server chips (CCX ring).\n- **Mesh / 2D-mesh**: grid of routers. Used in many many-core systems (Intel Xeon Sapphire Rapids, IBM Power).\n- **Torus**: ring in both X + Y. Used in some HPC chips.\n- **Hierarchical / tree**: clusters connected hierarchically. Used in some modern SoCs.\n\n**Routing**:\n- **Dimension-ordered (XY routing)**: first move in X, then Y. Deadlock-free.\n- **Adaptive routing**: pick path based on congestion. More efficient but harder.\n\n**Flow control**:\n- **Store-and-forward**: receive entire packet, then forward.\n- **Cut-through / wormhole**: start forwarding as head arrives. Lower latency.\n- **Virtual channels**: multiple independent FIFOs per link. Prevents head-of-line blocking + helps deadlock avoidance.\n\n**Cache-coherence over NoC**: a CPU read might need to invalidate other cores' caches. Hundreds of coherence messages per cycle in busy systems. The coherence protocol (MESI, MOESI) runs on top of the NoC.\n\n**Examples**:\n- **AMD Infinity Fabric**: scalable mesh + ring connecting CPU dies, GPU dies, I/O dies.\n- **Apple UltraFusion**: connects two M-series chips into one via silicon interposer.\n- **Tilera (Mellanox)**: 64-core mesh chips.\n- **NVIDIA + Intel HBI / EMIB**: connects accelerator dies in package.\n\n**Modern frontier**: chiplets. Multiple smaller dies in one package, connected by high-bandwidth NoC-like interfaces (UCIe, CXL). Improves yield + lets companies mix nodes (advanced 3nm compute + mature 7nm I/O)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_inter_pcie",
+        "kind": "guided_derivation",
+        "question": "Compute PCIe bandwidth for an SSD",
+        "goal": "PCIe Gen 4 x4 NVMe SSD: 4 lanes × 16 GT/s. 128b/130b encoding overhead.",
+        "steps": [
+          {
+            "prompt": "Raw bit rate: 4 lanes × 16 Gb/s = ?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "64 Gb/s",
+                "64 Gbps",
+                "64"
+              ]
+            },
+            "hints": [
+              "4 × 16."
+            ],
+            "reveal": "64 Gb/s raw."
+          },
+          {
+            "prompt": "128b/130b encoding: 128 bits of data per 130 transmitted. Efficiency = 128/130 ≈ 0.985. Effective data rate?",
+            "motivation": "Apply overhead.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "63 Gb/s",
+                "63 Gbps",
+                "63",
+                "~62.9"
+              ]
+            },
+            "hints": [
+              "64 × 0.985 ≈ 63."
+            ],
+            "reveal": "~63 Gb/s effective."
+          },
+          {
+            "prompt": "Convert to GB/s.",
+            "motivation": "Divide by 8.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "7.875 GB/s",
+                "7.875",
+                "approximately 7.9 GB/s"
+              ]
+            },
+            "hints": [
+              "Gb/8 = GB."
+            ],
+            "reveal": "~7.9 GB/s. Roughly matches the ~7 GB/s sustained throughput of high-end Gen4 NVMe SSDs (some overhead for protocol, sustained writes lower due to controller)."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{PCIe Gen N x M bandwidth} = N \\times M \\times \\text{enc-eff}}$$ Modern systems: high-end GPUs use PCIe Gen5 x16 (64 GB/s). NVMe SSDs use Gen4 or Gen5 x4 (~8-15 GB/s). NICs use Gen5 x16 for 800 GbE. The bandwidth scaling has driven storage, networking, accelerator deployment. PCIe Gen6 (PAM-4 encoded) doubles again, deployed 2025+."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_inter_serdes",
+        "kind": "multiple_choice",
+        "question": "Why have parallel buses (DDR aside) largely been replaced by serial SerDes links in modern chips?",
+        "options": [
+          "Just fashion.",
+          "At high frequencies (>1 GHz), parallel buses suffer from skew + crosstalk + signal-integrity issues. Single high-speed differential pairs scale better, embed clock, use fewer pins.",
+          "Cost.",
+          "Less power."
+        ],
+        "correctIndex": 1,
+        "explanation": "Parallel bus problems at GHz speeds: (1) skew between wires (different delays); (2) crosstalk (capacitive + inductive coupling between adjacent wires); (3) clock distribution (a separate clock pin doesn't arrive in sync with data); (4) pin count. Serial differential links solve all: clock embedded in data (CDR recovers), differential rejects common-mode noise, fewer pins. Modern chip-to-chip interfaces (PCIe, CXL, USB, SATA, HDMI, DisplayPort) are all serial SerDes."
+      },
+      "hints": [
+        "What goes wrong with parallel at high frequency?",
+        "Why differential pairs?"
+      ],
+      "workedSolution": "Parallel: skew + crosstalk + clock-data sync all degrade above ~1 GHz. Serial differential pairs: clean signal (differential rejects noise), embedded clock (CDR), pin-efficient. Modern interconnects: PCIe, SATA, Ethernet, USB — all serial differential. Exception: DRAM (DDR) keeps parallel for legacy + cost; HBM uses high-pin-count parallel within package.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_inter_nv",
+        "kind": "math_expression",
+        "question": "NVLink 4 (H100): 18 links × 25 GB/s. Total bandwidth per GPU?",
+        "acceptedAnswers": [
+          "450 GB/s",
+          "450"
+        ],
+        "hint": "18 × 25."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_inter_noc",
+        "kind": "scenario",
+        "question": "Bottleneck in a many-core SoC",
+        "prompt": "A 64-core SoC has a 2D-mesh NoC. Profiling reveals cache-coherence traffic causes hotspot congestion at the home-node directories. Walk through architectural options."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_inter",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why interconnect design has become as important as core microarchitecture in modern processors.",
+        "rubric": "Mentions that single cores have stopped scaling (frequency, IPC), so performance comes from MORE cores + accelerators; the interconnect determines effective bandwidth + latency between them; on-die NoC + chip-to-chip (PCIe / CXL / NVLink / UCIe) are the bottleneck for many workloads. The 'memory wall' + 'communication wall' increasingly dominate over compute."
+      }
+    }
+  ]
+}

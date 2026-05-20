@@ -1,0 +1,150 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "expert",
+    "objectives": [
+      "State the multilingual transfer hypothesis.",
+      "Describe mBERT + XLM-R + their failure modes.",
+      "Reason about NLP for the long tail of low-resource languages."
+    ],
+    "prereqs": [
+      "neural-embeddings",
+      "translation-and-alignment"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The multilingual transfer hypothesis",
+      "body": "Train a model on multiple languages jointly + the model's representations align languages, transferring competence to low-resource ones for FREE.\n\nThe theoretical basis: languages share semantic + syntactic structure. Subject-verb-object roles, tense, plurality, negation — universal-ish (or universal up to typology). A model trained on English NER picks up on the abstract concept of 'named entity' that transfers.\n\n**mBERT** (multilingual BERT, 2019): trained MLM on 104 languages' Wikipedia simultaneously. Single tokenizer (subword on combined corpus). Astonishingly: zero-shot transfer works. Fine-tune on English NER → apply to French NER → ~70% F1 with no French training data.\n\n**XLM** (Lample-Conneau 2019): adds Translation Language Modeling — concatenate parallel sentences, mask + predict tokens from either side. Boost cross-lingual alignment.\n\n**XLM-R** (Conneau 2020): bigger + better. 100 languages, 2.5TB of Common Crawl data. The de-facto multilingual baseline.\n\n**mT5** (Xue 2021): T5's encoder-decoder version on multilingual data.\n\n**The mechanism of transfer**: multilingual models converge to representations where corresponding words in different languages have similar embeddings (the **interlingua hypothesis**, Cao 2020). 'Cat' in English + 'chien' in French live close in space + the syntactic relations between them mirror each other. Downstream classifiers don't NEED to relearn — the same hidden-state-to-tag mapping works across languages.\n\n**The 'curse of multilinguality'** (Conneau 2020): adding more languages improves performance on low-resource languages but HURTS performance on high-resource ones (capacity dilution). To get the best of both: bigger models or per-language adapters."
+    },
+    {
+      "kind": "text",
+      "title": "Adapters, LoRA, and parameter-efficient transfer",
+      "body": "**Adapter modules** (Houlsby 2019, Pfeiffer 2020): add small (~1-5% of total params) trainable layers per task or per language, freeze the rest of the model. Train per-language adapters in parallel without interference.\n\nFor 100 languages: one shared multilingual model + 100 small adapter sets. Total params << 100× full fine-tunes.\n\n**LoRA** (Low-Rank Adaptation, Hu 2021): adapt the weight matrix as $W + AB$ where $A$, $B$ are low-rank. Rank-8 LoRA on a 7B-parameter model = ~16M trainable params. Used everywhere in LLM fine-tuning today.\n\n**Why low-resource languages benefit specifically**:\n- Full fine-tuning of a 100M+ param model on a 10K-sentence corpus catastrophically overfits.\n- LoRA / adapters preserve the pre-trained knowledge + only add a small adjustment.\n- The shared backbone captures language-universal patterns; the adapter adds language-specific tuning.\n\n**Combining strategies**:\n- **Cross-lingual adapter chaining**: pretrain English adapters, transfer to target language with a smaller secondary adapter (Pfeiffer 2021).\n- **Mixture-of-Experts (MoE)**: route different inputs to different expert subnetworks; learned language-or-domain routing.\n\n**The QLoRA / efficient-finetuning toolchain** (Dettmers 2023): 4-bit quantized base model + LoRA adapters. Fine-tunes 65B LLaMA on a single GPU. Made multilingual + domain LLM fine-tuning accessible outside hyperscaler labs.\n\nWith QLoRA + a 10K-sentence corpus in a low-resource language, individuals + small labs can adapt a strong multilingual base to their language — a dramatic shift from the pre-2023 status quo."
+    },
+    {
+      "kind": "text",
+      "title": "The long tail: 7000 languages, ~250 with NLP",
+      "body": "**Reality check**: ~7000 languages exist. The big multilingual models (mBERT, XLM-R, NLLB) cover 100-200 languages. The 'middle tail' (200-1000 languages) has limited resources. The 'long tail' (1000+) has next to nothing.\n\n**The dimensions of disparity**:\n- **Speakers**: from 1.3B (Mandarin) to a handful (endangered languages).\n- **Digital presence**: from billions of pages of text (English) to a few hundred (many indigenous languages).\n- **Annotated data**: rich for English (treebanks, NER, QA, sentiment) — sparse to none for most others.\n- **Standardization**: orthography, encodings — sometimes contested.\n\n**Community-driven efforts**:\n- **Masakhane** (African languages): community of African researchers + native speakers building open datasets + models for 30+ African languages.\n- **AmericasNLP**: shared tasks on indigenous American languages (Quechua, Aymara, Nahuatl, ...).\n- **IndicNLP**: 22 official languages of India + many regional ones.\n- **CommonVoice** (Mozilla): crowdsourced speech for 100+ languages.\n\n**Approaches for the long tail**:\n- **Cross-lingual transfer from typologically-similar high-resource language** (e.g., Catalan ← Spanish).\n- **Few-shot prompting of large LLMs**: GPT-4 / Claude / Gemini can do basic NLP in many languages without explicit training, but quality drops sharply outside the top ~30 languages.\n- **Active data collection**: structured eliciting from native speakers, partnered with linguists.\n- **Field-linguistics + NLP collaborations**: documenting endangered languages WHILE building NLP for them.\n\n**Ethical considerations**: who benefits from + controls the NLP for these languages? Many indigenous-language community groups insist on community ownership of datasets + models. The 'Bias + Bottleneck' paper (Bender 2009) framed many of these issues; current best-practice involves co-design with native-speaker communities.\n\nThe field is improving but slowly. Multilingual MoE models (Switch Transformer, GLaM) hint at architectures that can grow capacity without dilution. Foundation-model providers (Cohere, Meta, Google) are committing to broader-coverage models. The 'long tail' is a moving + multifaceted problem."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_lr_xlm",
+        "kind": "guided_derivation",
+        "question": "Compute the multilingual softmax overhead",
+        "goal": "XLM-R has 250K vocab + 12 layers + 768 hidden dim. Compare to monolingual BERT (30K vocab, same backbone). What proportion of parameters is in the embedding table?",
+        "steps": [
+          {
+            "prompt": "Embedding table size = vocab × hidden_dim. For XLM-R: 250K × 768 = ?",
+            "motivation": "Plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "192000000",
+                "192M",
+                "1.92e8"
+              ]
+            },
+            "hints": [
+              "250,000 × 768."
+            ],
+            "reveal": "~192M parameters in the embedding table."
+          },
+          {
+            "prompt": "XLM-R-base total params ~270M. Embedding fraction?",
+            "motivation": "Compare.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "~10%.",
+                "~70% — most of the model's parameters are in the embedding table!",
+                "~50%.",
+                "~25%."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "192/270 ≈ 0.71."
+            ],
+            "reveal": "~70%. For multilingual models, the embedding table dominates."
+          },
+          {
+            "prompt": "Why does this matter for the 'curse of multilinguality'?",
+            "motivation": "Capacity allocation.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Doesn't matter.",
+                "Most parameters go to LANGUAGE-SPECIFIC token embeddings. The remaining ~80M params (transformer layers) must encode 100 languages' grammar + meaning — diluted capacity per language.",
+                "Means the model is too big.",
+                "Means BERT is better."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Transformer layers do the heavy lifting across all languages."
+            ],
+            "reveal": "Most params are in language-specific token embeddings (each language has its own subword inventory). The shared transformer layers do all the cross-lingual work with much less capacity. Hence the curse of multilinguality: adding languages bloats the embedding table without proportionally growing the transformer capacity."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Multilingual capacity is bottlenecked by the shared transformer}}$$ Embedding tables grow linearly with the union of all languages' vocabs (250K for XLM-R), but the transformer doing the heavy lifting stays the same size. So adding more languages dilutes per-language capacity. Solutions: (1) bigger transformers (XLM-R-XXL); (2) per-language adapters (preserves capacity); (3) MoE routing (different experts for different languages). The 100-language ceiling pushes the field toward these architectural responses."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_lr_zero_shot",
+        "kind": "multiple_choice",
+        "question": "A team fine-tunes mBERT on English NER + applies it zero-shot to Yoruba (low-resource, agglutinative West African language). The result is poor. Most likely cause?",
+        "options": [
+          "mBERT doesn't know Yoruba.",
+          "mBERT's Yoruba Wikipedia portion was tiny (~hundreds of MB); the model's Yoruba subword vocab is sparse + cross-lingual alignment is weak; agglutinative morphology compounds the issue.",
+          "Yoruba doesn't have NEs.",
+          "Random initialization."
+        ],
+        "correctIndex": 1,
+        "explanation": "mBERT is pretrained on Wikipedia in 104 languages. Yoruba's portion is much smaller than English's. Its subword vocab + cross-lingual alignment with English is poor compared to e.g., French or German. Add agglutinative morphology (multiple suffixes per word) + low-resource NER falls behind. Fixes: train Yoruba-specific BERT (YorubaBERT), use NLLB-style models trained on translated data, or apply few-shot LLMs with explicit Yoruba demonstrations."
+      },
+      "hints": [
+        "What's mBERT's pretraining data?",
+        "What makes Yoruba harder?"
+      ],
+      "workedSolution": "mBERT pretrained on 104 Wikipedias. Yoruba Wikipedia is ~30K articles vs English's ~6M. Sparse Yoruba data → weak Yoruba subword vocab + weak cross-lingual alignment. Yoruba's tonal + agglutinative morphology adds difficulty. Stronger alternatives: AfroXLMR (African-language XLM-R variant trained on more African data), YorubaBERT (monolingual model), or instruction-following LLMs which have better multilingual coverage in 2024.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_lr_speakers",
+        "kind": "math_expression",
+        "question": "Approximately how many languages are spoken in the world? (Order of magnitude.)",
+        "acceptedAnswers": [
+          "7000",
+          "~7000",
+          "around 7000"
+        ],
+        "hint": "Ethnologue lists ~7000-7300."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_lr_health",
+        "kind": "scenario",
+        "question": "Health-info chatbot in Swahili",
+        "prompt": "An NGO needs a health-information chatbot in Swahili to serve East African communities. They have ~20K translated example dialogues. Walk through model choices + risks."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_lr",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why cross-lingual transfer works at all — why a model trained on English data can predict in French or Swahili.",
+        "rubric": "Mentions that multilingual pretraining creates shared representations across languages (interlingua-like hidden states); when fine-tuned on a task in one language, the classification head learns to map abstract concepts (NE, sentiment, sentence relation) that are language-agnostic; downstream task structure transfers naturally. Performance degrades with typological distance from the source + amount of pretraining data in the target."
+      }
+    }
+  ]
+}

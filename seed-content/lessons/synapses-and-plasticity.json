@@ -1,0 +1,148 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish chemical from electrical synapses.",
+      "Outline LTP, LTD, + spike-timing-dependent plasticity (STDP).",
+      "State Hebb's rule + its relation to learning."
+    ],
+    "prereqs": [
+      "neurons-and-action-potentials"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Chemical + electrical synapses",
+      "body": "Neurons communicate at **synapses**. Two main types:\n\n**Chemical synapses** (~99% of brain synapses):\n1. Presynaptic action potential arrives at terminal.\n2. Voltage-gated Ca²⁺ channels open; Ca²⁺ flows in.\n3. Ca²⁺ triggers fusion of neurotransmitter-filled vesicles with presynaptic membrane.\n4. Neurotransmitter (NT) released into synaptic cleft (~20 nm).\n5. NT diffuses across + binds postsynaptic receptors.\n6. Receptors open ion channels (ionotropic) or trigger second-messenger cascades (metabotropic).\n7. Postsynaptic potential (depolarizing or hyperpolarizing) results.\n\nDelay: ~0.5-1 ms (mostly the vesicle fusion step). Unidirectional.\n\n**Electrical synapses (gap junctions)**: direct cytoplasmic connection between cells. Bidirectional, near-instantaneous. Common in invertebrates + in specific mammalian circuits (cardiac muscle, inferior olive, some inhibitory networks). Important for synchronization.\n\n**Major neurotransmitters**:\n- **Glutamate**: dominant EXCITATORY NT in CNS. Receptors: AMPA (fast), NMDA (slow + voltage-dependent + Ca²⁺-permeable, key for plasticity), kainate, mGluR (metabotropic).\n- **GABA**: dominant INHIBITORY NT in CNS. Receptors: GABA_A (ionotropic Cl⁻), GABA_B (metabotropic K⁺).\n- **Acetylcholine**: NM junction + autonomic + brain (attention).\n- **Dopamine**: reward, motor control. Targets D1/D2/D3/D4/D5 receptors.\n- **Serotonin**: mood, sleep, appetite. SSRIs target serotonin reuptake.\n- **Norepinephrine**: arousal, attention.\n- **Glycine**: spinal-cord inhibition.\n- **Neuropeptides**: opioids (endorphins), oxytocin, vasopressin.\n\n**Excitatory/inhibitory balance**: cortex is ~80% excitatory (glutamatergic) + ~20% inhibitory (GABAergic). Tightly balanced (E/I ratio ~4); imbalance → seizures (too much E) or coma (too much I). Schizophrenia, autism implicated in E/I imbalance."
+    },
+    {
+      "kind": "text",
+      "title": "Long-term potentiation + the NMDA receptor",
+      "body": "**LTP (Long-term potentiation)**: durable strengthening of a synapse after high-frequency activation. Discovered 1973 (Bliss + Lømo) in hippocampus. Now considered a cellular mechanism for memory.\n\n**Classic LTP induction**: tetanic stimulation (100 Hz for 1 sec) of pre-synapse → 2-3× increase in postsynaptic response (EPSP). Lasts hours to weeks in slice; possibly lifetime in intact animals.\n\n**Mechanism centers on NMDA receptors**:\n- NMDA receptors are 'coincidence detectors': require BOTH glutamate binding (presynaptic activity) AND postsynaptic depolarization (relieves Mg²⁺ block from the channel).\n- When both occur: NMDA receptor opens, allowing Ca²⁺ influx.\n- Ca²⁺ activates intracellular cascade (CaMKII kinase) that:\n  1. **Phosphorylates AMPA receptors** → increased conductance.\n  2. **Inserts new AMPA receptors** into the postsynaptic membrane.\n- Effect: same presynaptic input now generates LARGER postsynaptic response.\n\n**Late-LTP** (>1 hour): requires protein synthesis. New synaptic proteins consolidate the strengthened state.\n\n**Long-term depression (LTD)**: opposite of LTP. Low-frequency stimulation (1-5 Hz) → modest Ca²⁺ → activates phosphatases → AMPA receptors removed. Synapse weakened.\n\n**The 'BCM rule'** (Bienenstock-Cooper-Munro 1982): a model that predicts both LTP + LTD depending on activity level. Adapt-able threshold separates LTP-inducing from LTD-inducing activity."
+    },
+    {
+      "kind": "text",
+      "title": "STDP + Hebb's rule",
+      "body": "**STDP (Spike-Timing Dependent Plasticity)**: synapse strength changes based on TIMING of pre- vs postsynaptic spikes.\n\n**Rule (Markram, Bi + Poo 1990s)**:\n- Pre-spike fires BEFORE post-spike (within ~20 ms): LTP. The pre may have caused the post → strengthen the connection.\n- Pre-spike fires AFTER post-spike (within ~20 ms): LTD. The pre didn't cause the post → weaken.\n- Outside the window: no change.\n\nThis IS Hebb's rule operationalized at the spike level: 'fire together, wire together' — but with a causal direction.\n\n**Hebb's rule** (Donald Hebb 1949): 'when an axon of cell A is near enough to excite a cell B and repeatedly takes part in firing it, some growth process takes place such that A's efficiency in firing B is increased.'\n\nLearning rule of the brain. Foundational for biological + computational models of memory + learning.\n\n**Connections to ML**:\n- Hebb's rule predates artificial neural networks.\n- Gradient descent in ANN training is in some senses an anti-Hebbian rule (adjusts weights to MINIMIZE error, not maximize co-activation).\n- Modern theoretical work (Whittington-Bogacz 2017, Lillicrap 2020) tries to BRIDGE: is biological LTP/STDP implementing approximate backpropagation? Active research area.\n- **Predictive coding** (Friston, Rao + Ballard): brain learns by minimizing prediction error; STDP is a local rule consistent with this.\n\n**Diseases of plasticity**:\n- **Alzheimer's disease**: amyloid-β + tau pathology disrupts hippocampal LTP. Memory loss correlates.\n- **Fragile X syndrome**: protein-synthesis dysregulation; LTP abnormalities; autism + intellectual disability.\n- **Drug addiction**: chronic exposure to addictive substances induces LTP-like changes in nucleus accumbens + VTA. 'Reward circuit hijacking'.\n- **Depression**: chronic stress impairs hippocampal LTP + reduces dendritic spine density. SSRIs + ketamine restore plasticity."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_syn_stdp",
+        "kind": "guided_derivation",
+        "question": "Apply STDP to a small spike sequence",
+        "goal": "Two neurons A → B. Sequence: A spikes at t=10 ms, B spikes at t=15 ms. STDP window: LTP if Δt = t_post - t_pre ∈ (0, 20] ms; LTD if Δt ∈ [-20, 0) ms.",
+        "steps": [
+          {
+            "prompt": "Compute Δt = t_post - t_pre = ?",
+            "motivation": "Substitute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "5",
+                "5 ms"
+              ]
+            },
+            "hints": [
+              "15 - 10."
+            ],
+            "reveal": "Δt = +5 ms. Pre fires 5 ms BEFORE post."
+          },
+          {
+            "prompt": "Falls in LTP window. So synapse A→B is...",
+            "motivation": "Apply rule.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Weakened (LTD).",
+                "Strengthened (LTP) — pre likely contributed to post's firing.",
+                "Unchanged.",
+                "Removed."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Pre before post = causal credit."
+            ],
+            "reveal": "Strengthened. Pre's spike contributed to post's firing → synapse gets credit."
+          },
+          {
+            "prompt": "What if a second event: B spikes at t=20 ms, A spikes at t=25 ms (post BEFORE pre). Δt = t_post - t_pre = 20 - 25 = -5 ms. Effect?",
+            "motivation": "Apply STDP.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Strengthened.",
+                "Weakened (LTD) — post fired without pre causing it; A's spike came too late.",
+                "No change.",
+                "Both LTP + LTD cancel."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Post before pre = no causal credit."
+            ],
+            "reveal": "Weakened. A's spike couldn't have contributed to B's firing (came after). Synapse weakened."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{STDP: pre-before-post → LTP; post-before-pre → LTD}}$$ This is Hebb's rule made causal: synapses are strengthened when the presynaptic neuron predicts the postsynaptic firing; weakened when it doesn't. STDP is one of the most studied biological learning rules + serves as an inspiration for spiking-neural-network training algorithms in computational neuroscience + neuromorphic hardware (Intel Loihi, IBM TrueNorth)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_syn_ssri",
+        "kind": "multiple_choice",
+        "question": "Selective Serotonin Reuptake Inhibitors (SSRIs) like fluoxetine treat depression. Mechanism?",
+        "options": [
+          "Block synthesis of serotonin.",
+          "Block the reuptake transporter that normally clears serotonin from the synaptic cleft → more serotonin available + longer signaling. Downstream effects (over weeks) include increased neuroplasticity + BDNF expression.",
+          "Block serotonin receptors.",
+          "Replace serotonin."
+        ],
+        "correctIndex": 1,
+        "explanation": "SSRIs block the serotonin transporter (SERT). Serotonin lingers in the synapse. The IMMEDIATE effect is more serotonin signaling, but clinical antidepressant effects take 2-6 weeks — suggesting downstream adaptive changes (receptor downregulation, neuroplasticity, increased BDNF + neurogenesis in hippocampus). Mechanism still partially debated. Ketamine + psychedelics (psilocybin) work faster + may directly target glutamate / NMDA / 5HT2A pathways."
+      },
+      "hints": [
+        "What does fluoxetine block?",
+        "What's the time course?"
+      ],
+      "workedSolution": "Blocks serotonin reuptake → more serotonin in synapse → enhanced 5-HT signaling. Quick onset of effect on serotonin levels (minutes) but clinical antidepressant effect: 2-6 weeks. The delay suggests downstream adaptation matters — possibly increased synaptic plasticity, BDNF, hippocampal neurogenesis. Newer fast-acting antidepressants (ketamine, psilocybin) bypass the slow adaptation by directly modulating glutamate / 5HT2A.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_syn_delay",
+        "kind": "math_expression",
+        "question": "Chemical synapse adds ~0.5 ms delay. In a chain of 100 such synapses, total delay?",
+        "acceptedAnswers": [
+          "50 ms",
+          "50",
+          "50 milliseconds"
+        ],
+        "hint": "100 × 0.5 ms."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_syn_mem",
+        "kind": "scenario",
+        "question": "Cellular basis of a new memory",
+        "prompt": "You learn a new face today + remember it next week. Walk through the cellular events at the level of hippocampal synapses that store this memory."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_syn",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why the NMDA receptor is called a 'coincidence detector' + why this property is essential for memory.",
+        "rubric": "Mentions that NMDA receptor requires BOTH glutamate (presynaptic activity) AND depolarization (postsynaptic activity) to open + admit Ca²⁺ — coincidence requirement; this Ca²⁺ signal triggers LTP; biologically implements Hebb's rule ('cells that fire together, wire together'); the temporal coincidence requirement makes NMDA-dependent LTP a substrate for associative memory."
+      }
+    }
+  ]
+}

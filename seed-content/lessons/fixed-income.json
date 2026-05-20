@@ -1,0 +1,131 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "specialist",
+    "objectives": [
+      "Compute bond price from yield + vice versa.",
+      "Define duration + convexity + use them for risk.",
+      "Outline the yield curve + forward rates."
+    ],
+    "prereqs": [
+      "time-value-of-money"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Bond pricing + yield to maturity",
+      "body": "A **bond** pays coupons $C$ at intervals + principal $F$ (face value) at maturity $T$.\n\n$$P = \\sum_{t=1}^{T} \\frac{C}{(1+y)^t} + \\frac{F}{(1+y)^T}$$\n\nwhere $y$ is the **yield to maturity (YTM)** — the single discount rate that makes the formula hold.\n\nYTM is the IRR of the bond's cash flows. It's the price's information content distilled into one number.\n\n**Examples**:\n- 5-year bond, 4% coupon, face \\$100: 5 annual coupons of \\$4 + \\$100 face at year 5.\n- If priced at par (\\$100), then $y = 4\\%$ (coupon rate = yield).\n- If priced at \\$95: $y > 4\\%$ (must yield more than coupon since we paid less).\n- If priced at \\$105: $y < 4\\%$.\n\n**Inverse price-yield relationship**: prices + yields move opposite. When rates rise, bond prices fall. The size of the move depends on duration (next slide).\n\n**Conventions**:\n- US Treasuries: semi-annual coupons; YTM quoted as bond-equivalent yield (semi-annual × 2).\n- Corporate bonds: similar but with credit-spread on top of Treasury yield.\n- Zero-coupon: no coupons. $P = F/(1+y)^T$. Yield = $(F/P)^{1/T} - 1$.\n\nReal markets: yields are quoted, prices are derived. \"10-year Treasury at 4.20%\" — convert to price for trade settlement."
+    },
+    {
+      "kind": "text",
+      "title": "Duration + convexity",
+      "body": "**Duration** measures price sensitivity to yield:\n$$D_{\\text{mod}} = -\\frac{1}{P}\\frac{\\partial P}{\\partial y}$$\n\nUnits: years. A bond with $D_{\\text{mod}} = 7$ loses ~7% if yields rise 1%. (Approximation; better as $\\Delta P / P \\approx -D_{\\text{mod}} \\Delta y$.)\n\n**Macaulay duration**: weighted average time to receive cash flows, weights = PV-of-cash-flow shares. Modified duration = Macaulay / $(1+y)$.\n\n**Why duration matters**:\n- Quick risk measure: portfolio's $D$ × portfolio value × $\\Delta y$ = approximate P&L.\n- Hedging: match $D$ of asset + liability portfolios → first-order rate-immunization.\n- Pension funds, insurance companies have multi-billion-dollar duration positions.\n\n**Convexity** captures the second-order:\n$$C = \\frac{1}{P}\\frac{\\partial^2 P}{\\partial y^2}$$\n\n$$\\frac{\\Delta P}{P} \\approx -D_{\\text{mod}} \\Delta y + \\frac{1}{2} C (\\Delta y)^2$$\n\nConvexity is always POSITIVE for a vanilla bond (price-yield curve is convex). Long bonds + zero-coupons have higher convexity. Convexity is good — at the same duration, more-convex bonds gain more when rates fall + lose less when rates rise.\n\n**The 1994 lesson**: many institutional portfolios were duration-hedged but ignored convexity. When rates rose sharply, the second-order term hurt; portfolios that THOUGHT they were hedged suffered. Modern risk reports include both."
+    },
+    {
+      "kind": "text",
+      "title": "Yield curve + forward rates",
+      "body": "**The yield curve**: yield vs maturity. Normally upward-sloping (longer = higher yield, compensation for duration risk + uncertainty). Sometimes flat or inverted (long-term yields LOWER than short-term) — historically a recession indicator.\n\nThe curve has multiple representations:\n- **Spot rates** $r(T)$: yield on a zero-coupon bond maturing at $T$.\n- **Par rates**: yield on a coupon bond priced at par.\n- **Forward rates** $f(t, T)$: rate locked in today, applying from $t$ to $T$.\n\n**No-arbitrage relation**:\n$$e^{r(T) \\cdot T} = e^{r(t) \\cdot t} \\cdot e^{f(t, T)(T - t)}$$\n$$f(t, T) = \\frac{r(T) T - r(t) t}{T - t}$$\n\nInstantaneous forward: $f(t) = \\partial(r(T) T)/\\partial T$ at $T=t$. The market's implied projection of short rates at each future date.\n\n**Curve construction (bootstrap)**: starting from short maturities (where rates are observable from money markets), iteratively solve for spot rates that price coupon bonds at observed market prices. Used by every fixed-income desk.\n\n**Yield curve models**:\n- Nelson-Siegel parametric form: 4 parameters (level, slope, curvature, decay). Fits the curve smoothly.\n- Multi-factor stochastic models (Vasicek, CIR, HJM, LMM): describe how the curve EVOLVES through time. Used to price interest-rate derivatives (caps, floors, swaptions).\n\nThe US Treasury yield curve is THE single most important data series in global finance. Sovereign yields anchor pricing of mortgages, corporate bonds, equity discount rates, FX forwards, etc."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fi_duration",
+        "kind": "guided_derivation",
+        "question": "Derive duration for a zero-coupon bond",
+        "goal": "Zero-coupon bond: $P = F / (1+y)^T$. Compute $D_{\\text{mod}} = -\\frac{1}{P}\\frac{\\partial P}{\\partial y}$.",
+        "steps": [
+          {
+            "prompt": "Compute $\\partial P/\\partial y$. (Quotient rule or treat as $F(1+y)^{-T}$.)",
+            "motivation": "Calculus.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$F \\cdot T \\cdot (1+y)^{T-1}$.",
+                "$-T F (1+y)^{-T-1}$.",
+                "$F (1+y)^{-T}$.",
+                "$F/(1+y)^T$."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Power rule on $(1+y)^{-T}$."
+            ],
+            "reveal": "$\\partial P/\\partial y = -T F (1+y)^{-T-1}$."
+          },
+          {
+            "prompt": "Divide by $P = F(1+y)^{-T}$ + negate: $D_{\\text{mod}} = T F (1+y)^{-T-1} / F(1+y)^{-T} = ?$",
+            "motivation": "Simplify.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "T / (1+y)",
+                "T/(1+y)"
+              ]
+            },
+            "hints": [
+              "The $F (1+y)^{-T}$ cancels."
+            ],
+            "reveal": "$D_{\\text{mod}} = T/(1+y)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{D_{\\text{mod, zero-coupon}} = T / (1+y)}$$ For zero-coupon, Macaulay duration $= T$ exactly (single cash flow at $T$). Modified $= T/(1+y) \\approx T$ for small $y$. A 30-year zero-coupon has $D \\approx 30$ — extremely rate-sensitive (1% rate move = 30% price move). Coupon bonds have lower duration than their maturity because intermediate coupons shorten the effective time. Long zero-coupon bonds are the most rate-sensitive assets in the universe."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fi_invert",
+        "kind": "multiple_choice",
+        "question": "Why do bond prices FALL when yields RISE?",
+        "options": [
+          "Because of inflation.",
+          "Because the existing bond's coupons stay fixed; if new bonds offer higher rates, the old bond must trade lower to give the same total return.",
+          "Because of currency effects.",
+          "Random correlation."
+        ],
+        "correctIndex": 1,
+        "explanation": "A bond paying \\$4/year was issued at par when rates were 4%. If new bonds now offer 6%, why buy the old one at par? The price must fall until total return (coupon + capital gain at maturity) matches the new 6% benchmark. The math is exact: price = sum of discounted future cash flows. Higher discount rate → lower PV."
+      },
+      "hints": [
+        "The bond's cash flows are fixed in dollars.",
+        "What does a higher discount rate do to PV?"
+      ],
+      "workedSolution": "Bond cash flows are CONTRACTUALLY FIXED (coupons + principal in nominal dollars). The yield is the IRR that makes their PV equal the market price. Higher discount rate → lower PV → lower price. This is just discounted cash flow with the discount rate changing. Investors holding the bond face capital loss; new investors get the higher yield.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fi_zero",
+        "kind": "math_expression",
+        "question": "A 5-year zero-coupon Treasury at 4% yield, face \\$1000. Approximate price?",
+        "acceptedAnswers": [
+          "821.93",
+          "$821.93",
+          "approximately 822",
+          "~822"
+        ],
+        "hint": "$P = 1000 / 1.04^5 \\approx 821.93$"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fi_inverted",
+        "kind": "scenario",
+        "question": "An inverted yield curve",
+        "prompt": "The 10-year Treasury yield falls below the 2-year. Multiple commentators call this a recession signal. Walk through what this means + why it's historically predictive."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fi",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why duration is the dominant first-order risk measure for fixed-income portfolios.",
+        "rubric": "Mentions that duration captures price sensitivity to yields in one number; pension funds + insurers manage multi-trillion books on duration; matching asset + liability duration provides first-order immunization. Convexity is the second-order correction that becomes important for large rate moves + long bonds."
+      }
+    }
+  ]
+}

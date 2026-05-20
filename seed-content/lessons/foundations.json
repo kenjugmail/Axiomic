@@ -1,0 +1,159 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "specialist",
+    "objectives": [
+      "Distinguish shallow + deep foundations.",
+      "Apply bearing capacity equations.",
+      "Reason about pile types + group effects."
+    ],
+    "prereqs": [
+      "soil-mechanics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Foundations: transferring load to ground",
+      "body": "**Foundation**: structural element that transfers load from building/bridge to soil or rock.\n\n**Selection criteria**:\n- Loads (axial, moment, lateral).\n- Soil profile.\n- Settlement tolerance.\n- Water table.\n- Adjacent structures.\n- Construction cost + schedule.\n\n**Two main families**:\n\n**Shallow foundations**: bear on soil near surface (< ~3 m typical).\n- **Spread footing (isolated, square or rectangular)**: under each column. Most common for low-rise.\n- **Combined footing**: two or more columns on one footing.\n- **Strip (continuous) footing**: under wall.\n- **Mat (raft) foundation**: large slab under entire building. Used when individual footings would overlap or settle differently.\n\nUsed when: shallow soil is competent (sand, dense gravel, stiff clay, rock).\n\n**Deep foundations**: bypass weak layer, reach competent layer below.\n- **Driven piles**: precast concrete, steel H-pile, timber, hammer-driven. Used in soft soils, fast install.\n- **Drilled shafts (caissons, bored piles)**: drill hole, lower rebar cage, fill with concrete. Larger diameter possible.\n- **Auger-cast piles**: continuous flight auger, concrete grout pumped through. Faster than drilled shafts.\n- **Micropiles**: small diameter (< 300 mm), drilled. Used in tight access, retrofit.\n- **Soil-mixing columns, deep soil mixing**: improved soil rather than discrete piles.\n\nUsed when: shallow soils inadequate, settlement intolerable, scour issues, high lateral loads.\n\n**Foundation types vs building**:\n- **Residential, light commercial**: spread footings.\n- **Mid-rise**: spread footings or mat depending on soil.\n- **High-rise**: usually deep foundations (piles, drilled shafts) + mat.\n- **Bridges**: piers on piles or shafts.\n- **Towers, tall structures**: deep foundations resist overturning."
+    },
+    {
+      "kind": "text",
+      "title": "Bearing capacity + footing design",
+      "body": "**Ultimate bearing capacity** (max pressure soil can support before failure):\n\n**Terzaghi (1943) for strip footing**:\n$$q_u = c N_c + q N_q + 0.5 \\gamma B N_\\gamma$$\n\nWhere:\n- $c$ = cohesion.\n- $q$ = surcharge (overburden) at footing level.\n- $\\gamma$ = soil unit weight.\n- $B$ = footing width.\n- $N_c, N_q, N_\\gamma$ = bearing-capacity factors (functions of $\\phi$).\n\n**Bearing-capacity factors** (for $\\phi$ in degrees):\n- $\\phi = 0°$ (clay): $N_c = 5.7, N_q = 1, N_\\gamma = 0$.\n- $\\phi = 30°$: $N_c = 30, N_q = 18, N_\\gamma = 19$.\n- $\\phi = 40°$: $N_c = 75, N_q = 64, N_\\gamma = 109$.\n\nVery non-linear in $\\phi$ — dense sand can hold 10× more than loose.\n\n**Allowable bearing capacity**: $q_{allow} = q_u / FS$ where FS = factor of safety (typically 2.5-3 for bearing). Conservative because soil parameters uncertain + bearing failure brittle.\n\n**Settlement check** (often controls over bearing in clay):\n- Estimate elastic + consolidation settlement.\n- Total settlement < 25-50 mm typically.\n- Differential settlement < 1/500 typically.\n\n**Footing design**:\n1. Estimate column load.\n2. Allowable bearing $q_a$.\n3. Footing area: $A = P / q_a$.\n4. Choose dimensions (B × L for rectangular, B for square).\n5. Detail reinforcing for the footing slab itself (bending, shear, punching shear).\n6. Confirm settlement acceptable.\n\n**Footing shape factor**, depth factor, inclination factor: corrections to bearing capacity for non-strip footings + buried + inclined loads. AISC, ACI, AASHTO references.\n\n**Eccentric loading**: column load offset from footing center. Reduces effective bearing area.\n- $e \\le B/6$: triangular bearing pressure. Designer accounts.\n- $e > B/6$: footing TIPS. Disqualified.\n\n**Combined footings**: when two columns are close, designer combines into one footing. Sized so combined centroid coincides with combined load.\n\n**Mat foundations**: cover entire building footprint. Used in tall buildings + when individual spread footings would overlap. Mat acts as inverted slab loaded with column reactions; analyzed via beam-on-elastic-foundation theory or FEM."
+    },
+    {
+      "kind": "text",
+      "title": "Deep foundations + pile design",
+      "body": "**Pile load transfer**:\n- **End bearing (point bearing)**: tip of pile bears on competent layer. Predominantly axial load.\n- **Skin friction (shaft friction)**: friction between pile shaft + soil. Distributed along length.\n- **Combination**: most piles share both.\n\n**Driven piles**:\n- **Materials**: timber (short, cheap), precast concrete (mid-range, common), steel H-pile or pipe (heavy load, deep).\n- **Driving hammers**: drop, diesel, hydraulic. Modern hammers + on-line analysis (PDA, pile-driving analyzer) measure resistance during driving.\n- **Static capacity from driving**: dynamic formulas (Engineering News Record, modern). PDA more accurate.\n- **Group effects**: piles in groups don't act independently. Center piles less efficient. Group efficiency 0.6-0.8 typical.\n- **Negative skin friction**: settling soil ABOVE pile drags pile DOWN. Increases load on pile. Important in soft compressible deposits.\n\n**Drilled shafts (bored piles, caissons)**:\n- Drill hole with auger or bucket-rig.\n- Place rebar cage.\n- Pour concrete (typically tremie underwater).\n- Diameters 0.6-3 m typical. Length 10-50 m typical, more for special.\n- **Belled bottom**: enlarged base for higher end bearing in clay.\n- **Slurry construction**: bentonite slurry stabilizes hole walls during drilling.\n- Modern: hi-tech instrumentation (Osterberg cell, bidirectional load tests) measures full-scale capacity.\n\n**Pile groups**:\n- **Spacing**: typically 2.5-4 pile diameters. Closer = group efficiency lower.\n- **Cap**: reinforced concrete slab transfers column load to multiple piles.\n- **Lateral load**: piles resist via bending + soil reaction. p-y curves model.\n- **Battered piles**: angled piles for lateral resistance.\n\n**Load testing**:\n- **Static load test**: most accurate. Load pile to failure or design × 2. Expensive (\\$50K-\\$500K per test).\n- **Dynamic (PDA)**: during driving. Real-time capacity estimate.\n- **Statnamic, rapid load**: between static + dynamic.\n- **Osterberg / bidirectional**: load applied internally; no surface reaction needed. Used in deep + capacity-critical piles (mega-bridges, tall buildings).\n\n**Modern foundations**:\n- **Helical piles**: screwed in, no vibration. Used in retrofit + restricted access.\n- **Continuous flight auger (CFA) piles**: fast, quiet. Common in Europe.\n- **Jet grouting**: high-velocity grout creates cylindrical soil-cement columns.\n- **Aggregate piers (stone columns)**: granular material rammed into hole. Used for moderate-load + settlement-sensitive structures.\n- **Excavation support**: sheet piles, slurry walls, soldier-pile + lagging, soil nails, tiebacks. For deep basements + cuts."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_foundation_bearing",
+        "kind": "guided_derivation",
+        "question": "Compute bearing capacity",
+        "goal": "Square footing 2 m × 2 m, depth 1.5 m below grade. Soil: medium dense sand, $\\gamma = 18$ kN/m³, $\\phi = 35°$, $c = 0$. Bearing factors at $\\phi = 35°$: $N_q = 33, N_\\gamma = 48$.",
+        "steps": [
+          {
+            "prompt": "Surcharge: $q = \\gamma \\times D_f = 18 \\times 1.5 = ?$",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "27 kPa",
+                "27"
+              ]
+            },
+            "hints": [
+              "18 × 1.5."
+            ],
+            "reveal": "$q = 27$ kPa."
+          },
+          {
+            "prompt": "Bearing capacity (square footing, neglecting cohesion): $q_u = q N_q s_q + 0.5 \\gamma B N_\\gamma s_\\gamma$ with shape factors $s_q = s_\\gamma \\approx 1$ for square. Compute simplified:",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~1755 kPa",
+                "~1750",
+                "27×33 + 18×1×48"
+              ]
+            },
+            "hints": [
+              "27 × 33 + 0.5 × 18 × 2 × 48 = 891 + 864 = 1755."
+            ],
+            "reveal": "$q_u \\approx 1755$ kPa ultimate."
+          },
+          {
+            "prompt": "Allowable with FS = 3: $q_{allow} = ?$",
+            "motivation": "Divide.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~585 kPa",
+                "585",
+                "~580"
+              ]
+            },
+            "hints": [
+              "1755/3."
+            ],
+            "reveal": "$q_{allow} \\approx 585$ kPa."
+          },
+          {
+            "prompt": "Footing area = 4 m². Max column load?",
+            "motivation": "Multiply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~2340 kN",
+                "~2300 kN",
+                "2340"
+              ]
+            },
+            "hints": [
+              "585 × 4."
+            ],
+            "reveal": "~2340 kN. Adequate for typical 5-15-story building column. Sand provides high capacity. (Settlement check separately — should be OK at this stress.) Real design: also check eccentricity, footing reinforcement, punching shear."
+          }
+        ],
+        "finalResult": "$$\\boxed{q_u = c N_c + q N_q + 0.5\\gamma B N_\\gamma; q_{allow} = q_u/FS}$$ Bearing capacity is the basic foundation calculation. Modern: Meyerhof + Vesic + Hansen extensions add shape, depth, inclination, base, water-table factors. Settlement check often governs in clay. Software (LPILE, FLAC, PLAXIS) for complex problems. The 1943 Terzaghi formula remains in every code + textbook a century later."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_foundation_pile",
+        "kind": "multiple_choice",
+        "question": "Why are pile groups (e.g., 9 piles in 3×3 pattern) used instead of one big pile of equivalent capacity?",
+        "options": [
+          "Random.",
+          "Multiple smaller piles: (1) Distribute load over more soil; less peak stress. (2) Group provides redundancy + lateral resistance. (3) Easier construction (smaller equipment). (4) Smaller risk per pile. Trade-off: group efficiency < 100% so total capacity slightly less than sum.",
+          "Cheaper.",
+          "Always."
+        ],
+        "correctIndex": 1,
+        "explanation": "Pile groups dominate over single large piles for several reasons. Redundancy: if one pile damaged or fails, others share load. Lateral resistance: spread group resists lateral better than single. Soil utilization: spread load over larger area; less stress concentration. Construction: smaller piles cheaper + faster to install. Plus: building columns/walls connect to pile cap (slab) over group, which transfers loads to all piles.\n\nGroup efficiency 0.6-0.85: total capacity less than sum (piles interact through soil). Designer accounts. Spacing 2.5-4 diameters typical to balance density + efficiency."
+      },
+      "hints": [
+        "Why group vs single big pile?",
+        "What's the trade-off?"
+      ],
+      "workedSolution": "Groups: redundancy, lateral resistance, easier construction, distributed soil stress, lower individual pile risk. Single big pile: requires special equipment, single point of failure. Almost all major foundations use groups under each column. Trade-off: group efficiency < 1.0 (piles interact); designer reduces capacity 15-40%. Standard in pile-design codes (AASHTO, FHWA, Eurocode 7).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_foundation_q",
+        "kind": "math_expression",
+        "question": "Footing 3m × 3m at allowable bearing 200 kPa. Max load?",
+        "acceptedAnswers": [
+          "1800 kN",
+          "1800"
+        ],
+        "hint": "Pressure × area = 200 × 9."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_foundation_tall",
+        "kind": "scenario",
+        "question": "Foundations for a 60-story tower",
+        "prompt": "Site is glacial till over bedrock at 30 m depth. Walk through foundation choices for a 60-story tower."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_foundation",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why foundation design is one of the most consequential parts of any major project.",
+        "rubric": "Mentions that foundation failures (settlement, bearing failure, liquefaction) are catastrophic + hard/impossible to fix later; site investigation + appropriate foundation type are critical early decisions; mistakes here cause leaning, tilting, cracking, or collapse (Tower of Pisa, Millennium Tower in San Francisco). Investment in geotechnical investigation + design conservatism is well-spent."
+      }
+    }
+  ]
+}

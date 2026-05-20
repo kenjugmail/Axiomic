@@ -1,0 +1,142 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "core",
+    "objectives": [
+      "Outline cache hierarchies + their levels.",
+      "Distinguish DRAM from SRAM + their characteristics.",
+      "Reason about NAND flash + storage trade-offs."
+    ],
+    "prereqs": [
+      "digital-logic"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Cache hierarchy + locality",
+      "body": "Memory hierarchy: cheap+big+slow at the bottom, expensive+small+fast at the top.\n\n**Modern CPU hierarchy** (approximate, e.g., Apple M3 / AMD Zen 4):\n- **Registers**: ~16-256 per core, 64-bit each. ~0 cycle access.\n- **L1 cache**: ~32-64 KB per core. ~4 cycles. Split into I-cache + D-cache.\n- **L2 cache**: ~512 KB - 2 MB per core. ~10-15 cycles.\n- **L3 cache**: ~8-128 MB shared. ~30-40 cycles.\n- **DRAM**: ~16-512 GB. ~150-300 cycles.\n- **SSD / NVMe**: TBs. ~30,000+ cycles (100 μs).\n- **HDD**: TBs. millions of cycles (10 ms).\n\n**Locality of reference**:\n- **Temporal**: recently accessed data likely to be re-accessed soon. Caches exploit by KEEPING recently-used data.\n- **Spatial**: nearby addresses likely to be accessed. Caches exploit by FETCHING in cache-line granularity (~64 bytes typically).\n\n**Cache architecture**:\n- **Cache line / block**: unit of data movement, typically 64 bytes.\n- **Set-associative**: each address can map to one of K 'ways' in a 'set'. Common: 4-way, 8-way, 16-way.\n- **Replacement policy**: which way to evict on miss. LRU (Least Recently Used) is common.\n- **Inclusive vs exclusive**: inclusive = lower levels contain all of higher (simpler invalidation, more redundancy). Exclusive = mutually exclusive (more capacity, more complex).\n\n**Cache miss types** (Hill's '3 Cs'):\n- **Compulsory** (cold): first access to a block. Unavoidable.\n- **Capacity**: cache too small to hold working set. Bigger cache helps.\n- **Conflict**: cache-mapping collisions. Higher associativity helps.\n\n**Programmer impact**:\n- Sequential access > random (spatial locality).\n- Loop tiling / blocking improves locality (BLAS).\n- Avoid pointer-chasing on huge data structures.\n- 'Cache-conscious' algorithms (B-trees vs binary trees) match cache line sizes."
+    },
+    {
+      "kind": "text",
+      "title": "DRAM + SRAM + emerging memories",
+      "body": "**SRAM (Static RAM)** — what caches are made of:\n- 6 transistors per bit (6T cell).\n- Holds value as long as powered.\n- Fast (~ns) + low power per access.\n- Expensive: ~6× area of DRAM per bit.\n\n**DRAM (Dynamic RAM)** — main memory:\n- 1 transistor + 1 capacitor per bit (1T1C). Tiny cell.\n- Capacitor leaks → must be REFRESHED every ~64 ms.\n- Cheaper + denser than SRAM.\n- Slower access (~50-100 ns).\n- DDR4 / DDR5 / LPDDR (low-power for mobile).\n\n**DRAM hierarchy** (within a chip):\n- **Bank**: independent sub-array. 8-32 banks per DRAM chip.\n- **Row / column**: 2D array. Access row first (activate) → then read columns.\n- **Bank conflicts** + **row-buffer hits/misses**: another level of locality. Sequential access within a row is fast; switching rows = expensive precharge + activate.\n\n**HBM (High Bandwidth Memory)** — used in modern GPUs + accelerators:\n- 3D-stacked DRAM dies, with TSVs (Through-Silicon Vias).\n- High bandwidth (TBps).\n- Used in NVIDIA H100/H200, AMD MI300, Apple M2 Ultra UltraFusion.\n\n**NVDIMM / Optane** (deprecated 2022):\n- Phase-change-memory hybrid. Persistent + DRAM-like.\n- Killed by economics (Intel discontinued).\n\n**Emerging**:\n- **MRAM (Magnetic RAM)**: non-volatile, fast write. Embedded in some SoCs.\n- **ReRAM (Resistive RAM)**: similar profile; used in ML inference + analog computing.\n- **Compute-in-memory**: do matrix-multiply directly in DRAM/SRAM cells. Eliminates fetch energy. Active research (Mythic, Crossbar, Samsung experimental).\n\n**Memory bandwidth wall**: as cores + accelerators get faster, memory bandwidth doesn't keep up. Modern AI workloads are memory-bandwidth-bound (large weight transfers per matrix multiply). HBM + on-package DRAM (Apple's unified memory, NVIDIA Grace+Hopper) try to address."
+    },
+    {
+      "kind": "text",
+      "title": "NAND flash + storage trade-offs",
+      "body": "**NAND flash**: non-volatile storage. Cells trap charge in floating gates.\n\n**Cell types**:\n- **SLC (Single-Level Cell)**: 1 bit/cell. Fast, durable (~100K writes). Expensive.\n- **MLC (Multi-Level)**: 2 bits/cell. Slower, less durable (~3K writes).\n- **TLC**: 3 bits/cell. ~1K writes.\n- **QLC**: 4 bits/cell. ~100-500 writes. Cheapest.\n\nDensity vs durability trade-off. Consumer SSDs: TLC mostly, QLC for cheap models.\n\n**3D NAND**: stack ~100-200+ layers. Modern SSDs use 3D-TLC or 3D-QLC. Yields TB-per-die capacity.\n\n**SSD-specific issues**:\n- **Write amplification**: a 4 KB write may require erasing + rewriting an entire BLOCK (~MB). Garbage collection + wear leveling crucial.\n- **TRIM**: OS tells SSD which blocks are unused; SSD can erase pre-emptively.\n- **Lifespan**: in TB-Written. Consumer SSDs: 600-1200 TBW for 1 TB. Enterprise: 5-10× more.\n\n**Interfaces**:\n- **SATA**: ~600 MB/s. Legacy.\n- **NVMe (over PCIe)**: ~3-12 GB/s (PCIe 3.0 / 4.0 / 5.0). The modern standard.\n- **U.2 / M.2 / E1.S**: form factors.\n\n**Storage classes today** (price + performance, 2024):\n- HDD: \\$15/TB. ~150 MB/s. Cold storage.\n- TLC SSD: \\$50-80/TB. ~3-7 GB/s.\n- QLC SSD: \\$40-60/TB. ~1-3 GB/s sustained writes; bursts faster.\n- DRAM: \\$3-5/GB (~10× more expensive than SSD per GB).\n\n**Tape**: \\$5/TB. Still in use for archive (LTO-9 = 18 TB native).\n\n**Trade-offs for system design**:\n- Bandwidth bound? DRAM > NVMe > HDD by orders of magnitude.\n- Latency bound? DRAM ~100 ns, NVMe ~50 μs (500×), HDD ~10 ms (100,000×).\n- Capacity? HDD > QLC SSD > TLC SSD > DRAM > caches.\n- Durability? SLC > MLC > TLC > QLC. SLC for cache; QLC for read-mostly bulk."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mem_amat",
+        "kind": "guided_derivation",
+        "question": "Compute Average Memory Access Time (AMAT)",
+        "goal": "L1 cache: 4 cycle hit, 5% miss rate. L2 cache: 12 cycle hit, 25% miss rate. DRAM: 200 cycles.",
+        "steps": [
+          {
+            "prompt": "AMAT = HitTime_L1 + MissRate_L1 × MissPenalty_L1. MissPenalty_L1 = HitTime_L2 + MissRate_L2 × MissPenalty_L2. MissPenalty_L2 = DRAM time = 200. So MissPenalty_L1 = ?",
+            "motivation": "Recurse.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "62",
+                "62 cycles"
+              ]
+            },
+            "hints": [
+              "12 + 0.25 × 200 = 12 + 50 = 62."
+            ],
+            "reveal": "MissPenalty_L1 = 62 cycles."
+          },
+          {
+            "prompt": "AMAT_L1 = ?",
+            "motivation": "Apply formula.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "7.1",
+                "7.1 cycles"
+              ]
+            },
+            "hints": [
+              "4 + 0.05 × 62."
+            ],
+            "reveal": "AMAT = 4 + 0.05 × 62 = 4 + 3.1 = 7.1 cycles."
+          },
+          {
+            "prompt": "If L1 miss rate doubled to 10%, AMAT becomes?",
+            "motivation": "Recompute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "10.2",
+                "10.2 cycles"
+              ]
+            },
+            "hints": [
+              "4 + 0.1 × 62 = 10.2."
+            ],
+            "reveal": "AMAT = 10.2 cycles. Doubling L1 miss rate increased AMAT by 43%. L1 hit rate is THE most important cache metric."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{AMAT} = \\text{HitTime} + \\text{MissRate} \\times \\text{MissPenalty}}$$ The recursive formula extends to N cache levels. Modern systems with 4-5 levels (registers, L1, L2, L3, DRAM, optionally NVMe) compute AMAT layer by layer. The huge gap between cache hits (~ns) + DRAM/SSD (~100ns/100μs) makes cache hierarchy fundamental to performance. Every additional level halves typical access cost — pivotal for ML / database / GPU workloads."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mem_bw",
+        "kind": "multiple_choice",
+        "question": "ML training is increasingly 'memory-bandwidth-bound'. Why?",
+        "options": [
+          "Random.",
+          "Modern compute (FLOPs) grows faster than memory bandwidth (FLOPS/byte ratio increases). Each matrix-multiply requires fetching massive weight + activation tensors. Bandwidth bottleneck dominates. Mitigations: HBM, on-package memory, sparse models, mixed precision.",
+          "Memory is unreliable.",
+          "ML doesn't use memory."
+        ],
+        "correctIndex": 1,
+        "explanation": "FLOPs/sec growth: ~50%/year (Moore's-law-ish). Memory bandwidth growth: ~30%/year. The gap widens. Modern ML workloads pull GBs of weights per second. NVIDIA H100 has 80 GB HBM3 at 3.35 TB/s; even this bottlenecks large training runs. Solutions: 1) HBM (3D-stacked DRAM next to compute); 2) lower-precision (fp8, int8) halves data movement; 3) sparse + quantized models; 4) compute-in-memory. The 'memory wall' has been a major architectural focus for the last decade."
+      },
+      "hints": [
+        "What's the FLOPs vs bandwidth gap?",
+        "What helps?"
+      ],
+      "workedSolution": "FLOPs grow faster than bandwidth historically. Modern ML: each FLOP needs roughly 1 byte of data (matrix-multiply data reuse is limited). Result: model size grows → bandwidth becomes binding. Architectural responses: 1) HBM next-to-die, 2) on-package DRAM (Apple M-series), 3) low-precision data formats (fp8/int8), 4) sparsity (Mixture-of-Experts activates only some weights per token), 5) compute-in-memory experimental. All are responses to the bandwidth wall.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mem_bw",
+        "kind": "math_expression",
+        "question": "HBM3 chip provides 819 GB/s. 8 chips on package. Total bandwidth?",
+        "acceptedAnswers": [
+          "6.55 TB/s",
+          "6552 GB/s",
+          "~6.5 TB/s"
+        ],
+        "hint": "8 × 819 GB/s."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mem_qlc",
+        "kind": "scenario",
+        "question": "Choosing storage for a data center",
+        "prompt": "Your data center needs 10 PB of storage for a workload that's 80% reads + 20% writes. Walk through whether to use QLC SSD, TLC SSD, or HDD-tier."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mem",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why a CPU spends ~50% of its die area on caches.",
+        "rubric": "Mentions that DRAM access takes 100-300 cycles while cache hits take ~4-30; without caches the CPU spends ~95% of time waiting for memory; large + well-designed caches turn most accesses into hits + keep the CPU pipeline full. The 50% die-area allocation reflects how much performance comes from memory hierarchy."
+      }
+    }
+  ]
+}

@@ -1,0 +1,146 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "specialist",
+    "objectives": [
+      "State the 6 degrees of freedom + flight axes.",
+      "Outline static + dynamic stability.",
+      "Reason about fly-by-wire."
+    ],
+    "prereqs": [
+      "aerodynamics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Six degrees of freedom + control surfaces",
+      "body": "An aircraft has **6 degrees of freedom (6 DOF)**:\n\n**Translations**:\n- **X** (forward / aft): controlled by thrust + drag.\n- **Y** (lateral): controlled by yaw + bank angle (turn coordination).\n- **Z** (vertical): controlled by lift (pitch + speed).\n\n**Rotations** about each axis:\n- **Roll** (around X / fuselage): controlled by **ailerons** on wings.\n- **Pitch** (around Y / wingspan): controlled by **elevators** on horizontal tail.\n- **Yaw** (around Z / vertical): controlled by **rudder** on vertical tail.\n\n**Control surfaces**:\n- **Ailerons** (outer trailing edge of wings): differential up/down → roll moment.\n- **Elevators** (horizontal tail trailing edge): both up or both down → pitch.\n- **Rudder** (vertical tail trailing edge): left or right → yaw.\n- **Flaps** (inner trailing edge): increase $C_L$ + $C_D$ for landing + takeoff. Symmetric.\n- **Slats** (leading edge devices): high-lift at high angle of attack. Used in landing.\n- **Spoilers** (top of wings): destroy lift on landing + drag on descent.\n\n**Multi-axis maneuver**:\n- **Coordinated turn**: bank + slight rudder + back-pressure (elevator). Smooth turn.\n- **Climb**: pull back on stick (pitch up) + add thrust.\n- **Cruise**: trim controls so no force on stick (autopilot-equivalent stable).\n\n**Air-data system**: pitot tubes measure dynamic pressure → airspeed; static ports → altitude; AoA vane → angle of attack. Critical inputs to flight control. Aircraft accidents (Air France 447, AOA-sensor failures on 737 MAX) have been traced to faulty air-data.\n\n**Inertial Measurement Unit (IMU)**: 3-axis gyros + accelerometers. Measure aircraft attitude + acceleration. Required for autopilot + advanced control systems. Modern: MEMS IMUs (~\\$10s), aviation-grade fiber-optic (\\$10K+), strapdown ring-laser (\\$100K+)."
+    },
+    {
+      "kind": "text",
+      "title": "Static + dynamic stability",
+      "body": "**Static stability**: tendency to RETURN to equilibrium after disturbance.\n- **Positive (stable)**: airplane corrects itself. Conventional design.\n- **Neutral**: stays disturbed.\n- **Negative (unstable)**: diverges. Modern fighters intentionally unstable (more maneuverable; computer keeps stable).\n\n**Stability comes from feedback**:\n- **Pitch**: tail force balances wing pitching moment + CG. Disturbance → tail responds.\n- **Roll**: dihedral (wings angled UP from fuselage) → sideslip increases lift on lower wing → corrective roll.\n- **Yaw**: vertical tail provides weathercock stability — flies into the wind direction.\n\n**CG (Center of Gravity)** position critical:\n- Forward CG: stable but heavier elevator forces.\n- Aft CG: more maneuverable, but if too far aft, NEUTRAL or UNSTABLE.\n- Each aircraft has CG limits in pilot's documentation.\n\n**Dynamic stability**: behavior over time after disturbance.\n- **Convergent oscillation**: returns to equilibrium with decreasing amplitude. Desirable.\n- **Persistent oscillation**: amplitude stays constant. Not great.\n- **Divergent oscillation**: amplitude grows. Pilot may not be able to recover.\n\n**Common dynamic modes**:\n- **Phugoid**: long-period (30-60 sec) oscillation of pitch + altitude + airspeed. Slow + usually pilot-controllable.\n- **Short-period pitch**: faster pitch oscillation (~5 sec).\n- **Dutch roll**: coupled yaw + roll oscillation. Common in swept-wing aircraft. Yaw damper (autopilot feature) typically required.\n- **Spiral mode**: slow divergent bank tendency. Pilot or autopilot corrects.\n\n**Modern unstable aircraft**:\n- **F-16, F-22, F-35, B-2, Eurofighter**: aerodynamically unstable. Computer-controlled (FBW) keeps stable. Without computer, would diverge.\n- Allows highly responsive maneuver + reduced trim drag.\n- Requires triple-or-quadruple-redundant flight computers."
+    },
+    {
+      "kind": "text",
+      "title": "Fly-by-wire + the rise of computer flight control",
+      "body": "**Fly-by-wire (FBW)**: pilot inputs go to computers, which calculate control surface positions + drive actuators. NO direct mechanical link.\n\n**Benefits**:\n- **Envelope protection**: prevents pilot from exceeding aircraft limits (Gs, AoA, bank angle, airspeed). Reduces accidents.\n- **Optimized handling**: same plane can feel like a fighter or transport via gain scheduling.\n- **Stability augmentation**: unstable aircraft become flyable.\n- **Reduced weight**: no mechanical linkages, no cables.\n- **Improved redundancy**: parallel digital channels easier than parallel mechanical.\n\n**History**:\n- **Concorde** (1969): some FBW.\n- **F-16** (1974): first production fighter with FBW.\n- **Airbus A320** (1987): first commercial transport with FBW. Still flying.\n- **Boeing 777** (1994): Boeing's first FBW airliner.\n\n**Architecture (typical commercial FBW)**:\n- 3-4 redundant flight computers (PRIM, SEC channels on Airbus).\n- Different software per channel to avoid common-mode failures.\n- Real-time operating system (often verified to DO-178C DAL-A — highest safety level).\n- Inertial Reference Systems (IRS) + ADIRU (Air Data Inertial Reference Units) provide state.\n- Hydraulic / electric actuators drive control surfaces.\n- Backup mechanical reversion in some designs (A320 has direct-link backup).\n\n**Boeing vs Airbus philosophy**:\n- **Airbus**: 'hard limits' — flight envelope can't be exceeded (computer overrides pilot).\n- **Boeing**: 'soft limits' — pilot can override, but warned. \n\nDebate ongoing about which approach is safer. Different training implications.\n\n**Notable FBW incidents**:\n- **Air France 447 (2009)**: pitot tubes iced; airspeed lost; alpha-prot mode reverted to 'alternate law' (fewer protections); pilots inputs misinterpreted situation; crash. Highlighted importance of pilot training in degraded modes.\n- **737 MAX MCAS (2018-19)**: not pure FBW, but partial-automatic stabilizer trim. Single AoA sensor failure caused two crashes. Boeing issue with safety-system design + sensor redundancy.\n\n**Future**: increased automation. Single-pilot operations (SPO) being studied for cargo + later for passenger. Optionally-piloted vehicles + UAVs increasingly common."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_flight_lateral",
+        "kind": "guided_derivation",
+        "question": "Coordinated turn calculation",
+        "goal": "Aircraft banks at 30° at 150 m/s airspeed. Required pitch + yaw control for coordinated (no side-slip) turn?",
+        "steps": [
+          {
+            "prompt": "Load factor in banked turn: $n = 1/\\cos(\\theta)$. At 30°?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1.155",
+                "~1.15"
+              ]
+            },
+            "hints": [
+              "$1/\\cos 30° = 1/0.866$."
+            ],
+            "reveal": "$n = 1.155$. Need 15% more lift than level."
+          },
+          {
+            "prompt": "Aircraft must increase $C_L$ (pitch up) by ~15% — pull back on stick. Yaw: tail force balances sideforce on fuselage. Coordination via rudder?",
+            "motivation": "Coordinated turn.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "No rudder needed.",
+                "Small amount of rudder INTO the turn to coordinate (prevent side-slip). The amount depends on adverse yaw from aileron drag. Modern jets have yaw damper + turn coordinator that handle this automatically.",
+                "Opposite rudder.",
+                "Massive rudder."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Adverse yaw + coordination."
+            ],
+            "reveal": "Small rudder into the turn (left turn = left rudder). Amount calibrated to aircraft. Light singles: pilot inputs rudder. Jets: yaw damper + autopilot coordinate."
+          },
+          {
+            "prompt": "Turn radius: $r = v^2 / (g \\tan \\theta)$. At 150 m/s, 30°: $r = ?$",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~3974 m",
+                "~4000 m",
+                "3974"
+              ]
+            },
+            "hints": [
+              "$150^2 / (9.81 \\times \\tan 30°) = 22500/(9.81 \\times 0.577) \\approx 3974$ m."
+            ],
+            "reveal": "~4 km radius. Smaller bank = larger radius. Steeper bank = tighter turn but higher G. Fighters bank 60-90° for tight maneuvers."
+          }
+        ],
+        "finalResult": "$$\\boxed{n = 1/\\cos(\\theta), r = v^2 / (g \\tan \\theta)}$$ Basic turn geometry. The trade-off: bank angle vs G-load + altitude loss. 30° bank: 1.15g. 60° bank: 2g. 75° bank: 4g. Commercial aircraft typically limit to 25-30° bank in normal flight; 60° bank max in emergencies. Modern FBW envelope protections enforce limits + smooth pilot inputs."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_flight_fbw",
+        "kind": "multiple_choice",
+        "question": "Why are modern fighters intentionally aerodynamically UNSTABLE?",
+        "options": [
+          "Saves money.",
+          "Statically unstable aircraft are MORE MANEUVERABLE (less restoring moment to fight when changing direction); computer-controlled FBW keeps them stable in steady flight while letting the pilot exploit the maneuverability. Without computer = uncontrollable.",
+          "Modern problem.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Statically unstable design: no restoring moment, all force-generation goes into maneuvering. F-16 (1974) pioneered. Pros: faster pitch response, less trim drag. Cons: requires continuous computer correction; computer failure = lost aircraft. Multiple redundant flight computers (4× in F-22) keep this safe. Modern designs (B-2 stealth bomber, F-35, Eurofighter) all intentionally unstable."
+      },
+      "hints": [
+        "Why want instability?",
+        "How is it controlled?"
+      ],
+      "workedSolution": "Unstable aircraft: no restoring force, all forces go into maneuver. Faster + more agile. Requires constant computer correction. F-16 first to demonstrate; modern fighters all FBW + unstable. Reliability requires redundant computers (3-4 channels). Failure modes: redundancy + fallback modes; pure mechanical control impossible. Trade-off: maneuverability for control-complexity. Has paid off.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_flight_gn",
+        "kind": "math_expression",
+        "question": "Aircraft pulls 5g in a level turn. Lift needed (relative to weight)?",
+        "acceptedAnswers": [
+          "5x weight",
+          "5 W",
+          "5W"
+        ],
+        "hint": "n = L/W = 5."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_flight_320",
+        "kind": "scenario",
+        "question": "Airbus A320 'protection' philosophy",
+        "prompt": "The A320's flight control will not allow the pilot to stall the aircraft. Walk through the engineering choices + the trade-offs vs Boeing's more pilot-permissive philosophy."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_flight",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why fly-by-wire is now standard on commercial + military aircraft.",
+        "rubric": "Mentions that FBW provides envelope protection (preventing exceeding limits), enables aerodynamic instability (greater maneuverability), reduces weight (no mechanical linkages), eases redundancy + reconfiguration; trade-off is software complexity + dependence on continuous computer operation; modern verified-software techniques (DO-178C) have made FBW reliable enough that it's a net safety improvement."
+      }
+    }
+  ]
+}

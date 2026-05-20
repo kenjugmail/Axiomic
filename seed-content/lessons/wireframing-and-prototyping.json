@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish low-fidelity from high-fidelity prototypes.",
+      "Outline a Figma workflow.",
+      "Reason about when to use static vs interactive prototypes."
+    ],
+    "prereqs": [
+      "interaction-design-principles"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Fidelity spectrum + when to use each",
+      "body": "**Wireframe / low-fidelity prototype**: rough sketch focusing on layout + structure. No detailed visual design.\n- **Hand sketches** (pencil + paper): fastest, cheapest, throwaway.\n- **Whiteboard**: collaborative.\n- **Low-fi digital** (Balsamiq, Figma sketch-mode): looks intentionally crude. Conveys 'this is rough'.\n\n**Mid-fidelity**: more detailed wireframes with grid + spacing + real labels. No visual design polish.\n\n**High-fidelity / mockup**: full visual design — colors, type, imagery, spacing as it will appear in product.\n\n**Interactive prototype**: clickable; users can navigate through flows. Built in Figma (with prototyping mode), Framer, Protopie, or actual code.\n\n**When to use what**:\n- **Idea exploration**: low-fi sketch. Throw 10 directions at the wall.\n- **Stakeholder review**: mid-fi (avoid pixel-perfect that gets debates on colors before structure is right).\n- **User testing**: ideally hi-fi interactive. Looks like the real product. Behavior matches what user will encounter.\n- **Handoff to dev**: hi-fi mockups with annotations, design specs, design tokens.\n\n**Anti-pattern**: prematurely polishing visuals. Spending hours picking colors for a button when the underlying flow doesn't work yet.\n\n**Iterate at the right fidelity**: low-fi is cheap to discard. Hi-fi is expensive — you're attached to it.\n\n**Sketch-Crit-Iterate loop** (popularized by IDEO, Google Design Sprint): 5-day cycle of sketching variations, critiquing, narrowing, prototyping, testing. Aimed at avoiding sunk-cost-on-bad-direction."
+    },
+    {
+      "kind": "text",
+      "title": "Figma workflow",
+      "body": "**Figma** has become the dominant UI design tool (2020s). Web-based, multi-player real-time editing, plugin ecosystem.\n\n**Files + organization**:\n- Files contain pages.\n- Pages contain frames (artboards) + components.\n- Teams organize files into projects.\n\n**Components**: reusable UI elements. Master component + instances. Update master → all instances update.\n\n**Component properties** (variants): instances vary by properties (size, state, theme). E.g., Button component has variants: Primary/Secondary/Tertiary × Default/Hover/Disabled.\n\n**Auto-layout**: dynamic resizing + stacking. Like CSS flexbox. Resize content + the container adjusts.\n\n**Constraints**: how elements respond to parent resizing. Pin-to-edge, center, stretch.\n\n**Styles**: shared text styles, color styles, effect styles. Update style → all uses update.\n\n**Plugins**: extend Figma. Stark (accessibility), Iconify (icons), Image8 (image generation), Tokens Studio (design tokens). Hundreds available.\n\n**FigJam**: companion whiteboard tool. Used for ideation + workshops.\n\n**Dev mode**: feature for handoff to developers. Inspect spacings, colors, code snippets (HTML, iOS, Android). Generates CSS from design.\n\n**Best practices**:\n- Use **components** religiously. Avoid one-off styling.\n- Use **auto-layout** for dynamic content (lists, forms).\n- Define **design tokens** in styles (colors, type, spacing). Used by code.\n- Use **frames + pages** to organize large projects.\n- Use **PROTOTYPING MODE** for interactive flows (link frame-to-frame on click).\n- **Comments + handoff annotations** for stakeholder + dev review.\n\n**Alternatives**: Sketch (Mac-only, pre-Figma), Adobe XD (struggling), Framer (newer, code-friendly), Penpot (open-source)."
+    },
+    {
+      "kind": "text",
+      "title": "Interactive prototyping + handoff",
+      "body": "Interactive prototype DEMONSTRATES the flow without writing code.\n\n**Figma prototype mode**:\n- Connect frames via 'On click' triggers.\n- Animation transitions (push, slide, dissolve).\n- Conditional logic (limited).\n- Smart Animate: auto-tween between similar elements (great for sliders, expanding panels).\n- Hover interactions, drag interactions.\n\n**Limits of Figma prototypes**:\n- No actual data (text is static).\n- No real input (forms can't validate).\n- Limited conditional logic.\n- Doesn't reflect real performance.\n\nFor more complex prototypes:\n- **Framer**: closer to actual web. Code components. Real input. Animations.\n- **ProtoPie**: complex interactions (sensors on mobile, multi-device).\n- **Build in real code** (React, Swift, Vue): for very specific interactions or feedback that matters. Throwaway code; not for production.\n\n**Handoff to dev**:\n- **Design tokens** define colors, type, spacing as named variables. Code references the same tokens.\n- **Component specs**: which states a component has, props, behavior.\n- **Annotations**: 'on click, show modal X with these fields' — written instructions for non-obvious behavior.\n- **Asset export**: icons + images in SVG / PNG / WebP. Multiple resolutions for mobile (1x, 2x, 3x).\n- **Dev mode tools**: Figma Dev Mode, Zeplin, Avocode generate CSS / iOS / Android snippets directly from designs.\n\n**Design-dev collaboration**:\n- **Design reviews**: walkthrough with dev to find feasibility issues early.\n- **Design QA**: dev implements, designer checks pixel-by-pixel. Catches gaps.\n- **Storybook**: live component library in code. Both designer + dev see the same source of truth.\n- **Design systems**: organize tokens + components into a shared library used across products."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_proto_fidelity",
+        "kind": "guided_derivation",
+        "question": "Choose fidelity for a usability test",
+        "goal": "You want to validate a new onboarding flow. Concept: 4 screens. Decide fidelity for user testing.",
+        "steps": [
+          {
+            "prompt": "Low-fi (paper sketches): users may not take it seriously; can't test visual hierarchy or affordances. Useful for very early concept testing. Pros + cons?",
+            "motivation": "Trade-off.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Best for everything.",
+                "Pros: fast iteration; users free to imagine; focuses on structure. Cons: hard to test visual details (button looks like text? color contrast?); users may invent functionality that doesn't exist in real product.",
+                "No use.",
+                "Always better."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Trade-off."
+            ],
+            "reveal": "Low-fi: great for early concept testing; bad for usability validation that depends on visual signal."
+          },
+          {
+            "prompt": "Hi-fi static (Figma mockups, non-interactive): users CAN read screens but can't click through. Pros + cons?",
+            "motivation": "Trade-off.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Same as low-fi.",
+                "Pros: looks real, tests visual hierarchy + readability. Cons: users can't actually interact, so behavior + delight + transitions can't be evaluated.",
+                "Always best.",
+                "Same as paper."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Visual works; behavior doesn't."
+            ],
+            "reveal": "Hi-fi static: tests visual but not interactive behavior. Useful for design reviews; insufficient for usability tests."
+          },
+          {
+            "prompt": "Hi-fi interactive (Figma prototyping, clickable): users can navigate. Pros + cons?",
+            "motivation": "Trade-off.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Worst.",
+                "Pros: tests both visual + interaction; behavior; flow; closest to real product. Cons: takes more time to build; some interactions (real input, error states) still can't be fully tested.",
+                "Same.",
+                "Cheaper than static."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Best for usability test."
+            ],
+            "reveal": "Hi-fi interactive: standard for usability tests. Closest to real product without writing code. Build the 'happy path' first; add error states + variations as needed."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Fidelity match the question being asked}}$$ Early-concept exploration → low-fi. Visual review → hi-fi static. Usability test → hi-fi interactive. Production-quality testing (performance, real data) → built in code. Choosing the wrong fidelity wastes time (too much polish on a bad idea) or makes results unreliable (paper prototype doesn't reveal visual problems). Match the fidelity to the question."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_proto_figma",
+        "kind": "multiple_choice",
+        "question": "Figma's component variants feature lets you:",
+        "options": [
+          "Convert files.",
+          "Define one master component with VARIANT PROPERTIES (e.g., Button: size=small/medium/large × state=default/hover/disabled). Instances swap variants without re-creating elements. Updates to master propagate.",
+          "Animate.",
+          "Print."
+        ],
+        "correctIndex": 1,
+        "explanation": "Component variants = component states + sizes as a matrix. Define once, instances pick a variant. Updates to master (e.g., redesigned button) update all variants + all instances automatically. Foundational to design systems. Without variants: dozens of separate components for each state, painful to maintain. With variants: clean component library that scales."
+      },
+      "hints": [
+        "What problem do variants solve?",
+        "What's the alternative?"
+      ],
+      "workedSolution": "Variants: encode state + size as PROPERTIES rather than separate components. Without variants: dozens of buttons (PrimaryDefault, PrimaryHover, PrimaryDisabled, SecondaryDefault, ...). Updates require N edits. With variants: one Button component, instances pick state. Updates propagate. Design system rolls out faster + stays consistent.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_proto_n",
+        "kind": "math_expression",
+        "question": "A button component with 3 sizes × 4 states × 2 themes (light/dark). How many distinct variants?",
+        "acceptedAnswers": [
+          "24"
+        ],
+        "hint": "3 × 4 × 2."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_proto_handoff",
+        "kind": "scenario",
+        "question": "Smooth design-to-dev handoff",
+        "prompt": "Your dev team complains designs change after they start building. Walk through process improvements (design system, tokens, design reviews) that reduce churn."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_proto",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why interactive prototypes are essential for usability testing but static mockups suffice for stakeholder review.",
+        "rubric": "Mentions that stakeholders evaluate visual quality + content; users (in usability tests) need to actually navigate + interact to reveal flow issues; static mockups can't test 'where do I click?' or 'how does this transition?' questions. Different tools for different research questions; building hi-fi interactive when only static is needed wastes effort."
+      }
+    }
+  ]
+}

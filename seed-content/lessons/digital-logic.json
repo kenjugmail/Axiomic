@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intro",
+    "objectives": [
+      "State the basic gates + Boolean algebra.",
+      "Distinguish combinational from sequential logic.",
+      "Reason about flip-flops + setup/hold timing."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Boolean algebra + the basic gates",
+      "body": "Digital circuits are built from **gates** that compute Boolean functions:\n- **NOT**: $\\bar{A}$, inverts.\n- **AND**: $A \\cdot B$ or $A \\wedge B$. 1 iff both 1.\n- **OR**: $A + B$ or $A \\vee B$. 1 iff at least one 1.\n- **XOR**: $A \\oplus B$. 1 iff exactly one 1.\n- **NAND**: $\\overline{A \\cdot B}$. Functionally universal — every other gate can be built from NAND alone.\n- **NOR**: $\\overline{A + B}$. Also functionally universal.\n\n**Boolean algebra rules**:\n- Commutativity: $A + B = B + A$.\n- Associativity: $(A + B) + C = A + (B + C)$.\n- Distributivity: $A(B + C) = AB + AC$.\n- DeMorgan's: $\\overline{A + B} = \\bar{A} \\cdot \\bar{B}$, $\\overline{A \\cdot B} = \\bar{A} + \\bar{B}$.\n- Absorption: $A + AB = A$.\n- Idempotent: $A + A = A$, $A \\cdot A = A$.\n\n**Transistor implementation** (CMOS — Complementary Metal-Oxide-Semiconductor): NMOS pulls-down (output to ground), PMOS pulls-up (output to VDD). NAND: 2 PMOS in parallel pulling up; 2 NMOS in series pulling down.\n\nWhy NAND is preferred: smallest, fastest CMOS implementation. Most ASIC standard-cell libraries provide NAND2, NAND3, NOR2, INV as primitives + more complex cells (AOI, OAI, MUX) built from them.\n\n**Combinational logic**: output is purely a function of current inputs. No memory. Examples: adder, multiplexer, decoder, ALU.\n\n**Why this matters**: every chip — CPU, GPU, MCU, FPGA, accelerator — is built from these gates. The 'magic' of computing reduces to ~10⁹-10¹¹ gates wired together appropriately."
+    },
+    {
+      "kind": "text",
+      "title": "Combinational building blocks",
+      "body": "Common combinational circuits:\n\n**Half adder**: adds two 1-bit numbers $A$, $B$. Outputs sum $S$ + carry $C$.\n$$S = A \\oplus B \\quad C = A \\cdot B$$\n\n**Full adder**: adds $A$, $B$, $C_{\\text{in}}$. Outputs $S$ + $C_{\\text{out}}$.\n$$S = A \\oplus B \\oplus C_{\\text{in}} \\quad C_{\\text{out}} = AB + (A \\oplus B) C_{\\text{in}}$$\n\n**Ripple-carry adder** (N-bit): N full adders, each's carry feeds the next. Simple but slow — $O(N)$ delay through the carry chain. 32-bit ripple adder = 32 gate delays.\n\n**Carry-lookahead adder**: compute carries in parallel. Generate $G_i = A_i B_i$ + propagate $P_i = A_i \\oplus B_i$. Compute $C_{i+1} = G_i + P_i C_i$ in log-depth tree. Total delay $O(\\log N)$. Used in real CPUs.\n\n**Multiplexer** (MUX): N-to-1 selector. Inputs $d_0, d_1, \\dots, d_{N-1}$ + select $s$. Outputs $d_s$. A 2-to-1 MUX: $\\text{out} = s \\cdot d_1 + \\bar{s} \\cdot d_0$.\n\n**Decoder**: N→2^N. Inputs N bits; outputs $2^N$ wires, exactly one HIGH (the one indexed by inputs).\n\n**ALU (Arithmetic-Logic Unit)**: combinational circuit performing many operations (add, subtract, AND, OR, XOR, shift, compare). Operation selected by an op-code input.\n\n**Karnaugh maps (K-maps)**: graphical Boolean-simplification method. 2D grid where adjacent cells differ by 1 bit. Group 1s into rectangles of $2^k$ cells → minimal sum-of-products. Useful by hand up to 4-5 variables; computer algorithms (Quine-McCluskey, Espresso) for larger.\n\n**Hazards + glitches**: when inputs change, propagation delays through different paths can cause transient false outputs ('glitches'). Important for low-power design + clocked-circuit safety. Combinational outputs are sampled by registers (next slide) on clock edges, masking transient glitches."
+    },
+    {
+      "kind": "text",
+      "title": "Flip-flops, latches, + clocked sequential logic",
+      "body": "**Memory** in digital circuits is built from feedback loops. The basic element:\n\n**SR latch** (set-reset): 2 cross-coupled NOR gates. Two stable states. S=1 sets Q=1; R=1 resets Q=0. S=R=1 is invalid.\n\n**D latch** (data): improves on SR. Inputs D + enable E. When E=1, Q follows D ('transparent'). When E=0, Q holds.\n\n**D flip-flop** (DFF): the workhorse. Edge-triggered. On rising edge of CLK, sample D + store in Q. Built from two latches (master-slave configuration).\n\nDFFs hold state across clock cycles. A **register** is N DFFs in parallel (storing an N-bit value).\n\n**Sequential logic**: combinational logic + flip-flops. Output depends on current inputs AND past inputs (state). State transitions on each clock edge.\n\n**Timing**:\n- **Setup time** $t_{\\text{setup}}$: data must be stable BEFORE the clock edge for correct capture. Typically ~50-200 ps.\n- **Hold time** $t_{\\text{hold}}$: data must remain stable AFTER the clock edge. Typically ~30-100 ps.\n- **Clock-to-Q** delay $t_{\\text{cq}}$: how long after the clock edge until Q updates. Typically ~100-300 ps.\n- **Combinational delay** $t_{\\text{comb}}$: delay through combinational logic between two registers.\n\n**Setup constraint** (max-delay):\n$$t_{\\text{cq}} + t_{\\text{comb}} + t_{\\text{setup}} \\le T_{\\text{clk}}$$\nClock period must be at least as long as the longest combinational path between registers, PLUS clock-to-Q + setup.\n\n**Hold constraint** (min-delay):\n$$t_{\\text{cq}} + t_{\\text{comb,min}} \\ge t_{\\text{hold}}$$\nShortest path must outlive hold. Violated = race condition.\n\n**Why this matters**: timing closure is THE central challenge of chip design. Failing the setup constraint means slower clock; failing hold means broken circuit. Modern tools (synthesis, place + route, static timing analysis) automate timing closure, but designers still need to understand it."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_logic_kmap",
+        "kind": "guided_derivation",
+        "question": "Simplify a 4-input Boolean function via K-map",
+        "goal": "$F(A, B, C, D)$ outputs 1 for minterms 0, 1, 2, 3, 8, 9 + 0 elsewhere.",
+        "steps": [
+          {
+            "prompt": "Draw a 4×4 K-map. Group the 1s into rectangles of size 2^k. Minterms 0,1,2,3 are the top-left 2×2 = $\\bar{A}\\bar{B}$ region. Minterms 8,9 = ?",
+            "motivation": "Identify in K-map.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "A B (top right).",
+                "A $\\bar{B}$, C=0 (a 1×2 block).",
+                "$\\bar{A} B$.",
+                "All over."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Minterm 8 = 1000, 9 = 1001 → A=1, B=0, C=0, D variable."
+            ],
+            "reveal": "Minterms 8,9 form a 1×2 block at A=1, B=0, C=0: $A\\bar{B}\\bar{C}$."
+          },
+          {
+            "prompt": "Combine: $F = \\bar{A}\\bar{B} + A\\bar{B}\\bar{C}$. Simplify further by factoring out $\\bar{B}$. Result?",
+            "motivation": "Boolean algebra.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$\\bar{B}(\\bar{A} + A\\bar{C})$.",
+                "$\\bar{B}$.",
+                "$A + \\bar{B}$.",
+                "$\\bar{A}\\bar{B} + \\bar{B}\\bar{C}$ — no, doesn't equal original."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Factor $\\bar{B}$."
+            ],
+            "reveal": "$F = \\bar{B}(\\bar{A} + A\\bar{C})$. Use absorption: $\\bar{A} + A\\bar{C} = \\bar{A} + \\bar{C}$. So $F = \\bar{B}(\\bar{A} + \\bar{C})$."
+          },
+          {
+            "prompt": "Apply DeMorgan to confirm: $\\bar{B}(\\bar{A} + \\bar{C}) = \\bar{B} \\cdot \\overline{AC} = \\overline{B + AC}$.",
+            "motivation": "DeMorgan check.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Doesn't simplify further.",
+                "$F = \\overline{B + AC}$ — single NOR-of-stuff. 1 NOR gate + 1 AND.",
+                "$F = A + B$.",
+                "$F = \\bar{A}\\bar{B}\\bar{C}$."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "DeMorgan converts AND to NOR."
+            ],
+            "reveal": "$F = \\overline{B + AC}$. Implementable with 1 AND + 1 NOR. From 6 minterms to 2 gates. K-map simplification + algebra yield compact circuits."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{K-map + Boolean algebra → minimal gate count}}$$ Hand-simplification with K-maps is the foundation, taught universally. Real designs use computer minimization (Espresso, ABC) that handle thousands of variables. Logic synthesis tools (Synopsys Design Compiler, Cadence Genus, OpenLane) ingest RTL + emit gate netlists. Power, area, + delay are jointly optimized."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_logic_timing",
+        "kind": "multiple_choice",
+        "question": "A chip targets 1 GHz clock (1 ns period). Setup time is 100 ps, clock-to-Q is 200 ps. What's the maximum allowed combinational delay between flip-flops?",
+        "options": [
+          "100 ps.",
+          "200 ps.",
+          "700 ps.",
+          "1000 ps."
+        ],
+        "correctIndex": 2,
+        "explanation": "$T_{\\text{clk}} \\ge t_{\\text{cq}} + t_{\\text{comb}} + t_{\\text{setup}}$. Solve: $t_{\\text{comb}} \\le T_{\\text{clk}} - t_{\\text{cq}} - t_{\\text{setup}} = 1000 - 200 - 100 = 700$ ps. This is the timing budget per pipeline stage. The fundamental design constraint: deeper logic per stage = slower clock; shallower = faster + more pipeline stages needed for the same throughput."
+      },
+      "hints": [
+        "Setup constraint formula.",
+        "Subtract overhead."
+      ],
+      "workedSolution": "$T_{\\text{clk}} \\ge t_{\\text{cq}} + t_{\\text{comb}} + t_{\\text{setup}}$. So $t_{\\text{comb}} \\le T_{\\text{clk}} - t_{\\text{cq}} - t_{\\text{setup}} = 700$ ps. This is the timing budget. Pipelining (split combinational into stages) lets you trade depth for cycle time. Modern CPUs use 10-20 pipeline stages to achieve high clock rates.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_logic_freq",
+        "kind": "math_expression",
+        "question": "Critical-path combinational delay is 2 ns. Add 200 ps overhead (Cq + setup). Maximum clock frequency?",
+        "acceptedAnswers": [
+          "~455 MHz",
+          "455 MHz",
+          "approximately 455e6"
+        ],
+        "hint": "1/(2.2 ns)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_logic_glitch",
+        "kind": "scenario",
+        "question": "Mysterious glitches",
+        "prompt": "An ASIC design simulates correctly but fails on silicon. Walk through how setup/hold violations + glitches could be the cause + how static timing analysis would catch them."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_logic",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why CMOS NAND is the canonical 'universal' gate in practice.",
+        "rubric": "Mentions that any Boolean function can be built from NANDs alone (functional completeness); CMOS NAND uses few transistors (4) + has fast switching (PMOS pull-up dominates); standard-cell libraries provide NAND in many drive strengths. Other primitives (NOR, AOI, MUX) are also offered but circuits decompose well into NAND-based logic."
+      }
+    }
+  ]
+}

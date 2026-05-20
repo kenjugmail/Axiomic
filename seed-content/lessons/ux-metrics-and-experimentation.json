@@ -1,0 +1,148 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "expert",
+    "objectives": [
+      "Apply the HEART framework + UX metrics.",
+      "Outline A/B test design + analysis.",
+      "Reason about Goodhart's Law in metrics."
+    ],
+    "prereqs": [
+      "usability-testing",
+      "user-research-and-interviews"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "HEART + the UX-metrics framework",
+      "body": "**Google HEART framework** (Rodden, Hutchinson, Fu 2010): organize UX metrics into 5 categories.\n\n- **Happiness**: subjective satisfaction. NPS, SUS, CSAT, in-product micro-surveys.\n- **Engagement**: depth of interaction. Sessions per week, time spent, key actions per session.\n- **Adoption**: new users / new feature uptake. Activations, % users who tried feature X.\n- **Retention**: keeping users. Day-N retention (D1/D7/D30), churn rate.\n- **Task success**: completion rates, time on task, errors.\n\nFor each category, define:\n- **Goal**: what success means for this category.\n- **Signal**: behavior or response that indicates progress toward goal.\n- **Metric**: quantitative measure.\n\nExample (search feature):\n- Goal: users find what they're looking for.\n- Signal: search → click result → no further searches.\n- Metric: % of searches with a successful click within 30 seconds.\n\n**Key principles**:\n- Pick the RIGHT metrics for the question.\n- Use a MIX (HEART covers different aspects).\n- Avoid VANITY metrics ('total signups' without consideration of how many became active users).\n- Beware Goodhart's Law: optimizing a metric destroys its meaning.\n\n**Vanity vs actionable**:\n- Vanity: total page views, total signups, downloads.\n- Actionable: daily active users (DAU), DAU/MAU ratio (engagement), conversion rate, retention by cohort.\n\n**North-Star Metric**: single most-important metric for the product. e.g., Airbnb: nights booked. Slack: messages sent. Facebook (early): MAU. Used to align team focus."
+    },
+    {
+      "kind": "text",
+      "title": "A/B testing fundamentals",
+      "body": "**A/B test (split test)**: randomly show different versions to different users; measure metric difference. Causal inference at scale.\n\n**Setup**:\n1. Pick a metric (conversion rate, time spent, etc.).\n2. Randomize users into treatment (new version) + control (current).\n3. Track behavior over time.\n4. After enough data, compare metrics.\n5. If treatment significantly outperforms control, ship it.\n\n**Statistical significance**:\n- **p-value < 0.05**: probability the observed difference is due to chance, under the null hypothesis.\n- **Confidence interval**: range likely containing the true effect.\n- **Effect size**: how much treatment improved (or hurt). Statistical sig != practical sig.\n\n**Sample size**: depends on baseline rate + minimum detectable effect.\n- Rule of thumb: detecting a 1% improvement on a 10% baseline metric needs ~30,000 users per arm.\n- Detecting 10% improvement on same baseline: ~3000 users per arm.\n- Smaller effects = more users.\n\n**Multiple comparisons**: testing many variants or metrics inflates false-positive risk. Bonferroni correction or sequential testing methodologies (group sequential, alpha-spending).\n\n**Pitfalls**:\n- **Novelty effect**: users react to NEW UI, masking real preference. Run for 1-2 weeks.\n- **Survivorship**: power users dominate metrics; new users underrepresented.\n- **Seasonality**: holiday traffic, time-of-day. Account or randomize across periods.\n- **Network effects**: in social platforms, treatment + control aren't truly independent. Solutions: cluster-randomization, ego-network testing.\n- **Peeking**: looking at results early + stopping when significant inflates false-positive rate. Use sequential methods or pre-register stopping rules.\n\n**Platform tools**: Optimizely, LaunchDarkly, GrowthBook, Statsig, Google Optimize (retired). In-house at major platforms.\n\n**Causal inference beyond A/B**:\n- **Switchback tests**: alternate treatment over time (used in marketplaces where unit-randomization is impossible).\n- **Diff-in-diff**: compare before/after with control group.\n- **Synthetic control**: model treatment-free outcome from control.\n- **Quasi-experimental designs** (regression discontinuity, instrumental variables) when randomization is impossible."
+    },
+    {
+      "kind": "text",
+      "title": "Goodhart's Law + the ethics of metrics",
+      "body": "**Goodhart's Law** (Charles Goodhart 1975): 'When a measure becomes a target, it ceases to be a good measure.'\n\nAs soon as people are evaluated on a metric, they OPTIMIZE for it — sometimes at the expense of the underlying goal.\n\n**Examples in UX**:\n- Goal: user satisfaction. Metric: 'time on site'. Outcome: addictive feeds + autoplaying videos.\n- Goal: helpful customer service. Metric: 'short call times'. Outcome: reps rush calls, customers re-call.\n- Goal: user growth. Metric: signups. Outcome: aggressive sign-up nags + dark patterns.\n- Goal: engagement. Metric: notifications opened. Outcome: notification spam.\n\n**Dark patterns**: UX designs that manipulate users against their interests.\n- **Roach motel**: easy to sign up, hard to cancel.\n- **Confirmshaming**: 'No thanks, I don't want to save money' on opt-out.\n- **Forced continuity**: free trial → paid; auto-renew without warning.\n- **Privacy zuckering**: hard-to-find privacy controls.\n- **Friend spam**: 'Find friends!' that emails entire contacts list.\n\nThe EU Digital Services Act (2024) + FTC are increasingly enforcing against dark patterns. Reputational + legal cost is now significant.\n\n**Counter-balance metrics**: avoid Goodhart by tracking multiple complementary metrics.\n- Engagement + satisfaction (not engagement alone).\n- Conversion + long-term retention.\n- Click-through + downstream success.\n\n**Customer-experience metrics aligned with values**:\n- Time-to-value: how quickly does new user reach first 'aha' moment?\n- Net Promoter Score (NPS): would they recommend?\n- Long-term retention cohorts.\n- Voluntary engagement (chose to come back, vs nudged).\n\n**Modern frontier**: well-being metrics for social media (Twitter / Meta have published research on these). Apple's Screen Time. Aim: design that helps users, not exploits them. The 'humane tech' movement.\n\n**Accountability**: who decides what to optimize? Design ethics is increasingly part of UX education + practice. The Center for Humane Technology + advocacy groups push for industry change."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_metrics_ab",
+        "kind": "guided_derivation",
+        "question": "Design an A/B test",
+        "goal": "New checkout flow. Conversion rate baseline 5%. Want to detect a 0.5 percentage-point improvement.",
+        "steps": [
+          {
+            "prompt": "Sample size depends on: baseline (5%), effect size (0.5pp = 10% relative), significance (α=0.05), power (β=0.8). Rule: $N \\approx 16 \\sigma^2 / \\delta^2$ where σ² is variance, δ is detectable difference. For binary: $\\sigma^2 \\approx p(1-p) = 0.05 \\times 0.95 = 0.0475$. $\\delta = 0.005$. N per arm?",
+            "motivation": "Plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "30400",
+                "~30000",
+                "approximately 30000"
+              ]
+            },
+            "hints": [
+              "16 × 0.0475 / 0.005^2 = 30400."
+            ],
+            "reveal": "~30,400 users per arm. Total 60,800 for full test."
+          },
+          {
+            "prompt": "At 10,000 daily visitors split 50/50, how long to reach this sample size?",
+            "motivation": "Time.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~6 days",
+                "6 days",
+                "6"
+              ]
+            },
+            "hints": [
+              "60800 / 10000."
+            ],
+            "reveal": "~6 days. Plus 1-2 weeks more for novelty wear-off + statistical safety margin → ~2 weeks total."
+          },
+          {
+            "prompt": "If results show 5.3% (control) vs 5.5% (treatment), is this significant?",
+            "motivation": "Effect size vs sample.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Yes, statistically significant.",
+                "Borderline — the 0.2pp difference is LESS than the 0.5pp we powered for. Even if marginally significant by p-value, the effect may be smaller than the 'practical significance' threshold the team set. Run longer or accept that the effect is too small to ship.",
+                "No.",
+                "Always significant."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Compare to MDE."
+            ],
+            "reveal": "0.2pp is below our MDE. Marginal p-value, smaller-than-expected effect. Run longer to get tighter estimate or accept the test is inconclusive. Don't ship based on borderline result."
+          }
+        ],
+        "finalResult": "$$\\boxed{N \\approx 16 \\sigma^2 / \\delta^2}$$ A/B test sample-size estimation is a recurring exercise. Small effects (1% rel improvements) require huge samples (100,000s); product teams often try to detect too-small effects with too-small samples → underpowered tests + false negatives. Real platforms (Google, Meta, Booking) run thousands of A/B tests; statistical infrastructure (sample-size calculators, sequential testing, automated detection) is part of the product-engineering stack."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_metrics_goodhart",
+        "kind": "multiple_choice",
+        "question": "A team's incentive is 'increase time-on-app'. After a year, time goes up 30% but NPS drops 20 points + users complain of addictive design. What happened?",
+        "options": [
+          "Successful product.",
+          "Goodhart's Law in action: optimizing the proxy metric ('time-on-app') destroyed its meaning (a healthy product engaging users). The team built addictive patterns (notifications, infinite scroll, autoplay). Need: counter-balance metrics (satisfaction, voluntary engagement, long-term retention). And ethical-design constraints.",
+          "Bad luck.",
+          "Should optimize harder."
+        ],
+        "correctIndex": 1,
+        "explanation": "Classic Goodhart pattern. 'Time-on-app' is a proxy for 'engagement + value'. Optimizing it directly creates addictive patterns. Mature product orgs use COUNTER-BALANCED metrics: time + satisfaction + retention + churn + voluntary-return. They publish goals like 'we want users to find time well-spent' rather than 'time spent'. The shift from 'maximize engagement' to 'maximize well-being' is happening at Apple Screen Time, Meta Family Center, etc."
+      },
+      "hints": [
+        "What is Goodhart's Law?",
+        "Why did time-on-app go wrong?"
+      ],
+      "workedSolution": "Optimizing a proxy destroys its meaning. Time-on-app was a proxy for 'app provides value'. Once it became a target, team optimized for time at any cost — addictive patterns, notification spam, infinite scroll. Need counter-balance metrics (NPS, churn, satisfaction, voluntary returns). Modern orgs explicitly track 'time well-spent' vs 'time wasted'. Reputational + regulatory pressure (DSA, child-safety laws) increasingly enforce against pure engagement optimization.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_metrics_n",
+        "kind": "math_expression",
+        "question": "A/B test: baseline 10%, target improvement 1pp (10% relative). N per arm at p=0.05, β=0.8?",
+        "acceptedAnswers": [
+          "~15000",
+          "approximately 15000",
+          "~15K"
+        ],
+        "hint": "Rule of thumb."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_metrics_dark",
+        "kind": "scenario",
+        "question": "Avoiding dark patterns under growth pressure",
+        "prompt": "Your CEO demands 'increase signups by 50% this quarter'. Some growth tactics (e.g., confirmshame, friend spam) would work. Walk through how to grow ethically + push back."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_metrics",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why Goodhart's Law is fundamental to UX-metrics design + how teams should respond.",
+        "rubric": "Mentions that any single metric can be gamed at the expense of underlying value; counter-balance metrics + multi-dimensional measurement help; tracking long-term outcomes (retention, satisfaction) reduces overfitting to short-term proxies; ethical guardrails (no dark patterns) + organizational accountability (Trust + Safety teams) further protect against value erosion. The shift is from 'optimize one metric' to 'sustain a portfolio of outcomes'."
+      }
+    }
+  ]
+}

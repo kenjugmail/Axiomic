@@ -96,6 +96,41 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "📊",
     tags: ["dynamics", "ode", "physics"],
   },
+  {
+    name: "solar-pv-curve",
+    label: "Solar PV curve",
+    description: "Drag irradiance + temperature; see I-V + P-V curves + MPP track.",
+    thumb: "☀️",
+    tags: ["solar", "energy", "physics", "renewable"],
+  },
+  {
+    name: "carnot-cycle",
+    label: "Carnot cycle (P-V)",
+    description: "P-V diagram with isotherms + adiabats. Drag temperatures; see efficiency.",
+    thumb: "🔥",
+    tags: ["thermodynamics", "carnot", "physics", "engineering"],
+  },
+  {
+    name: "beam-deflection",
+    label: "Beam deflection",
+    description: "Simply supported beam with movable load; shear + moment diagrams.",
+    thumb: "🏗️",
+    tags: ["structural", "civil", "mechanics", "engineering"],
+  },
+  {
+    name: "pk-curve",
+    label: "Pharmacokinetics curve",
+    description: "Plasma concentration over time for repeated oral dosing; steady-state ribbon.",
+    thumb: "💊",
+    tags: ["pharmacology", "pk", "biology", "medicine"],
+  },
+  {
+    name: "roc-curve",
+    label: "ROC curve + confusion matrix",
+    description: "Interactive class separation, prevalence, threshold; sensitivity/specificity tracking.",
+    thumb: "📈",
+    tags: ["statistics", "ml", "medicine", "evaluation", "classification"],
+  },
 ];
 
 interface Props {

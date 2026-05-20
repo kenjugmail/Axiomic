@@ -1,0 +1,112 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Walk through a page-table address translation.",
+      "Explain TLB + when it misses.",
+      "Recognize when mmap is the right tool."
+    ],
+    "prereqs": [
+      "processes-and-threads"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Virtual memory, the substrate",
+      "body": "Every process sees its own contiguous virtual address space (typically 64-bit, so 2^64 addresses available — vastly more than physical RAM). The kernel + MMU translate virtual → physical via per-process page tables.\n\nLinux x86-64 uses 4-level page tables (5-level on modern CPUs):\n- 48 bits of virtual address split into 4 × 9-bit indices + 12-bit page offset.\n- Each level is a 4KB table of 512 entries (8 bytes each).\n- Walking the table = 4 memory reads per translation.\n\nThis is too slow to do per memory access. The **TLB** (Translation Lookaside Buffer) caches recent translations on-CPU. Modern x86: L1 TLB ~64-128 entries (instruction + data separately), L2 ~1500 entries. Hit = single-cycle. Miss = page walk (~50-100 cycles).\n\nLarge working sets that don't fit in TLB → TLB thrashing → 50× slowdown on memory-heavy workloads. Database engines + JITs tune for this; the trick is **huge pages** (2MB or 1GB instead of 4KB)."
+    },
+    {
+      "kind": "text",
+      "title": "Page faults: minor, major, COW",
+      "body": "When a virtual page has no current mapping, accessing it triggers a **page fault** trap to the kernel. Three flavors:\n\n- **Minor fault**: page is in RAM but not yet mapped to this process. Kernel adds the mapping. Cost: a few microseconds (kernel transition + page-table update). Common after `mmap()` or `fork()`.\n- **Major fault**: page is on disk (swapped out) or in a file mmap'd from disk. Kernel reads from disk. Cost: milliseconds (disk I/O).\n- **COW fault**: write to a copy-on-write page. Kernel allocates new page, copies, updates mapping. A few microseconds + page-zeroing time.\n\nProduction diagnosis: `vmstat`, `/proc/<pid>/status` (VmRSS, VmSize), perf counters (`perf stat -e minor-faults,major-faults`). Major faults are usually the surprise; minor faults are normal in steady state."
+    },
+    {
+      "kind": "text",
+      "title": "mmap, the unified abstraction",
+      "body": "`mmap()` maps a file (or anonymous region) into the process's address space. Reads + writes to memory translate to reads + writes to the underlying file (lazily, via page faults).\n\n**Uses**:\n- **Memory-mapped files**: read large files without loading them into RAM. `mmap` the file; access bytes via pointer arithmetic; OS pages them in/out as needed. Used by SQLite, LMDB, Postgres internal files.\n- **Shared memory**: `mmap(MAP_SHARED)` between processes. Postgres uses this for shared buffers; HFT systems for cross-process queues.\n- **Anonymous large allocations**: `mmap(NULL, size, ANONYMOUS)` for allocations bigger than malloc's threshold (typically 128KB). Bypasses glibc's heap.\n\n**Subtle traps**:\n- `mmap`'d files use the file system's page cache. Same data accessed via `read()` and `mmap` can give different views if both are used.\n- Page faults can happen anywhere in your code, including inside a critical section. Worst case: minor fault triggers swap, holding lock for milliseconds.\n- On NUMA systems, the kernel decides which NUMA node the pages land on. Wrong node = remote memory access latency."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_vm_pagewalk",
+        "kind": "guided_derivation",
+        "question": "Derive page-walk cost",
+        "goal": "4-level page table. TLB miss. Cost in memory accesses (worst case)?",
+        "steps": [
+          {
+            "prompt": "Each level: 1 memory access to load the page-table entry. 4 levels. Final translation gives the physical address; then load actual data: 1 more memory access. Total memory accesses?",
+            "motivation": "Add up.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "5"
+              ]
+            },
+            "hints": [
+              "4 levels + 1 final data access."
+            ],
+            "reveal": "5 memory accesses per TLB miss. ~50ns per memory access on uncached DRAM = ~250ns per TLB miss."
+          },
+          {
+            "prompt": "On TLB hit: cost?",
+            "motivation": "TLB hits return translation in a single cycle.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1",
+                "1 memory access"
+              ]
+            },
+            "hints": [
+              "TLB hit = single cycle for translation, then 1 access for data."
+            ],
+            "reveal": "1 memory access total. TLB hits are ~250× cheaper than misses."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{TLB hit: 1 access. TLB miss: 5 accesses (4-level)}}$$ This is why TLB capacity matters. Random access to a working set > TLB size = ~5× slowdown. Huge pages reduce TLB pressure: a 2MB page covers what 512 × 4KB pages would, so a 64-entry TLB covers 128MB instead of 256KB."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_vm_mmap",
+        "kind": "multiple_choice",
+        "question": "You need to read random 4KB chunks from a 100GB file repeatedly. The file fits on disk but not in RAM. Best approach:",
+        "options": [
+          "Load the entire file into RAM with `read()`.",
+          "Use `mmap()` — OS pages in only the parts you access; same data shared across reads.",
+          "Read via `pread()` every time (re-reading the same bytes if accessed twice).",
+          "Spawn a thread per read."
+        ],
+        "correctIndex": 1,
+        "explanation": "`mmap()` is purpose-built for this pattern. The OS treats the file's pages as part of the page cache; repeated accesses to the same chunk are page-cache hits (no disk I/O). Loading 100GB into RAM is impossible (you have less than 100GB) + wasteful. `pread()` doesn't have the OS-level caching that `mmap` does automatically."
+      },
+      "hints": [
+        "What gives you OS-managed caching across multiple accesses?",
+        "mmap exposes file contents as memory; reads hit the page cache."
+      ],
+      "workedSolution": "`mmap`'d file pages live in the OS page cache. Repeated reads to the same byte → page-cache hit, no disk I/O. Pages not touched recently can be evicted, freeing memory. The kernel handles all of this transparently. SQLite, LMDB, and modern databases use mmap precisely for this reason.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_vm_thrash",
+        "kind": "scenario",
+        "question": "Diagnosing TLB thrashing",
+        "prompt": "A teammate's matrix-multiplication benchmark mysteriously runs 4× slower when matrices grow beyond 256MB. CPU + memory bandwidth are not saturated. Walk through the most likely cause + how to verify."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_vm",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why huge pages (2MB or 1GB) help database + JIT workloads.",
+        "rubric": "Mentions that large working sets blow the TLB; huge pages give each TLB entry much more coverage; same TLB capacity covers much more memory; reduces TLB-miss rate from ~50% to ~1% in some workloads."
+      }
+    }
+  ]
+}

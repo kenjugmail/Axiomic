@@ -1,0 +1,160 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "core",
+    "objectives": [
+      "Compute sensitivity / specificity / PPV / NPV.",
+      "Interpret ROC + AUC + calibration.",
+      "Reason about NNT + threshold selection."
+    ],
+    "prereqs": [
+      "ehr-and-medical-coding"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Binary classification in medicine: the confusion matrix",
+      "body": "Most clinical decisions are binary: disease vs not, treat vs not, admit vs discharge.\n\n**Confusion matrix**:\n```\n              Predicted +    Predicted -\nActual +         TP             FN       (FNR = miss rate)\nActual -         FP             TN       (FPR = false alarm)\n```\n\n**Sensitivity (recall, TPR)**: $TP / (TP + FN)$. Probability test correctly identifies disease. Asks: 'if disease present, will test detect it?'\n\n**Specificity (TNR)**: $TN / (TN + FP)$. Probability test correctly excludes. Asks: 'if no disease, will test be negative?'\n\n**Positive Predictive Value (PPV, precision)**: $TP / (TP + FP)$. Asks: 'if test positive, is disease present?'\n\n**Negative Predictive Value (NPV)**: $TN / (TN + FN)$. Asks: 'if test negative, is disease absent?'\n\n**Critical**: PPV + NPV depend on PREVALENCE (base rate). Sensitivity + specificity don't.\n\n**Bayes' theorem in clinical terms**:\n$$\\text{Posterior probability of disease} = \\text{prior} \\times \\text{Likelihood Ratio}$$\n\n**Likelihood Ratios (LRs)**:\n- $LR^+ = \\text{sens} / (1 - \\text{spec})$. How much positive test raises probability.\n- $LR^- = (1 - \\text{sens}) / \\text{spec}$. How much negative test lowers probability.\n- LR+ > 10 strongly raises probability. LR− < 0.1 strongly lowers.\n\n**Diagnostic odds = pre-test odds × LR**.\n\n**Prevalence affects PPV dramatically**:\n- Test: sens 99%, spec 99%. Prevalence 0.1% (rare disease).\n  - PPV ≈ sens × prev / (sens × prev + (1-spec) × (1-prev)) = 0.99 × 0.001 / (0.99 × 0.001 + 0.01 × 0.999) ≈ 9%.\n  - 91% of positives are FALSE positives despite excellent test!\n- Same test, prevalence 20% (common): PPV ≈ 96%.\n- This is why mass screening for rare conditions is hard. Most positives are false.\n\nThe **interactive ROC viz below** lets you explore these dynamics. Drag class separation, prevalence, threshold. Watch the confusion matrix, sensitivity, specificity, PPV, NPV update. Notice: at low prevalence, even a great-AUC test has low PPV.",
+      "viz": "roc-curve"
+    },
+    {
+      "kind": "text",
+      "title": "ROC + AUC + calibration",
+      "body": "**ROC curve (Receiver Operating Characteristic)**: plot of TPR (sensitivity) vs FPR (1 − specificity) at all possible thresholds.\n\n**Reading the ROC**:\n- (0,0): always negative. No false alarms, no detections.\n- (1,1): always positive. Catches all but maximum false alarms.\n- (0,1): perfect classifier. All positives detected, no false alarms.\n- Diagonal: random guessing.\n- Curve in upper-left = good.\n\n**AUC (Area Under ROC)**:\n- 0.5 = random.\n- 1.0 = perfect.\n- 0.7-0.8 = decent.\n- 0.8-0.9 = good.\n- 0.9+ = excellent.\n- AUC = probability that a randomly chosen positive ranks higher than a randomly chosen negative.\n\n**AUC limitations**:\n- Insensitive to threshold choice; can mask bad calibration.\n- Single number obscures performance at clinically-relevant thresholds.\n- Doesn't account for prevalence in clinical context.\n\n**PR (Precision-Recall) curve**: alternative for highly imbalanced data (rare disease). Plots precision (PPV) vs recall (sensitivity). AUPRC is the metric.\n\n**Calibration**: predicted probability matches observed frequency.\n- Well-calibrated: when model says 30% risk, ~30% of those patients have outcome.\n- Mis-calibrated: model says 30% but actual is 60% (under-confident) or 10% (over-confident).\n- **Reliability diagram**: plot predicted vs observed in bins.\n- **Brier score**: mean squared error of probabilities. Lower better.\n- **Hosmer-Lemeshow test**: traditional calibration test. Now often deprecated for poor power.\n- **Calibration slope + intercept**: from logistic regression of outcome on logit(prediction). Slope = 1, intercept = 0 = perfect.\n\n**Recalibration**:\n- **Platt scaling**: fit logistic regression on validation set.\n- **Isotonic regression**: monotonic + non-parametric.\n- **Temperature scaling**: simple one-parameter for deep learning models.\n\n**Why calibration matters more than AUC in clinical contexts**:\n- Decisions made at specific risk thresholds (e.g., 'treat if >10% risk').\n- Mis-calibration leads to wrong action.\n- Risk communication: '10% chance of stroke' should be ~10% to be useful.\n- AUC can be high while calibration is poor (especially in deep learning).\n\n**Net Reclassification Improvement (NRI)**: when comparing two models, how many patients are correctly re-categorized? Risk-based clinical metric.\n\n**Decision-curve analysis** (Vickers): plot net benefit vs threshold probability. Considers FN cost vs FP cost across thresholds. More clinically useful than ROC alone."
+    },
+    {
+      "kind": "text",
+      "title": "Threshold selection + NNT + clinical utility",
+      "body": "**Threshold selection**: where on the ROC curve do you operate?\n\nDepends on:\n- **Relative cost of FN vs FP**.\n- **Prevalence**.\n- **Downstream actions**.\n\n**Examples**:\n- **Sepsis screening**: high sensitivity (don't miss sepsis); FPs lead to alerts that can be silenced. Threshold low.\n- **Cancer screening**: balance sensitivity (don't miss cancer) + specificity (don't over-biopsy). Often biopsy threshold ~5-15% predicted risk.\n- **MRI in suspected MS**: very specific (treatment is long-term + serious). Threshold high.\n- **Trauma triage**: high sensitivity (don't miss life threats); accept many FPs.\n\n**Operating point**: specific (sens, spec) chosen for deployment.\n\n**Net Reclassification + decision-analytic frameworks** help formalize.\n\n**Number Needed to Treat (NNT)**:\n$$NNT = 1 / ARR$$\nWhere $ARR$ = absolute risk reduction. NNT = patients needed to treat to prevent one bad outcome.\n\n- Low NNT (~5-10): very effective.\n- Moderate (10-50): typical.\n- High (100+): marginal at population scale; can still be valuable.\n\n**Examples**:\n- Statins primary prevention: NNT ~50-100 (prevent one CV event over 5 years).\n- ACE inhibitors in heart failure: NNT ~20.\n- Vaccine: NNT to prevent severe COVID ~20-50 in elderly.\n- Aspirin for MI prevention (low-risk patient): NNT ~1000+ → outweighed by bleed risk.\n\n**Number Needed to Harm (NNH)**: patients needed to cause one adverse event.\n\n**NNT vs NNH ratio** drives clinical decisions.\n\n**Clinical utility validation**:\n- **Discrimination** (AUC).\n- **Calibration**.\n- **Clinical impact**: does using the model improve outcomes vs standard of care?\n- Last point often unmeasured. AI tools that improve AUC may not improve patient outcomes (workflow disruption, alert fatigue, false reassurance).\n\n**Prospective trial vs retrospective**:\n- Retrospective: develop + test on historical data. Cheap, fast, biased.\n- Prospective: deploy + measure outcomes. Expensive, slow, true validation.\n- Most FDA-approved AI: retrospective validation. Few have RCTs showing clinical benefit.\n- Active discussion: should clinical AI require RCT-level evidence? FDA evolving frameworks.\n\n**The 'shift to action'**: clinical AI that helps action is more valuable than pure prediction. Real-time, actionable, integrated with workflow. EXAMPLES:\n- Viz.ai stroke triage: directly alerts neurointerventionalist for LVO; demonstrated reduced time-to-thrombectomy.\n- Sepsis early-warning: shown reduced mortality in some implementations + caused alert fatigue in others.\n\n**Real-world impact**: most clinical AI does NOT have rigorous outcome evidence. Field maturing rapidly toward outcomes-based evaluation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cds_ppv",
+        "kind": "guided_derivation",
+        "question": "Compute PPV given prevalence",
+        "goal": "Diagnostic test: sensitivity 95%, specificity 90%. Apply to a population with disease prevalence 1%.",
+        "steps": [
+          {
+            "prompt": "Set up: 10,000 patients × 1% prevalence = 100 with disease, 9,900 without. Apply test. True positives = ?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "95",
+                "0.95 × 100"
+              ]
+            },
+            "hints": [
+              "sens × disease pop."
+            ],
+            "reveal": "TP = 95. FN = 5."
+          },
+          {
+            "prompt": "False positives among the 9,900 without disease?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "990",
+                "0.10 × 9900"
+              ]
+            },
+            "hints": [
+              "(1-spec) × no-disease pop."
+            ],
+            "reveal": "FP = 990. TN = 8,910."
+          },
+          {
+            "prompt": "PPV = TP / (TP + FP)?",
+            "motivation": "Definition.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~8.8%",
+                "0.088",
+                "95/1085"
+              ]
+            },
+            "hints": [
+              "95/(95+990) = 95/1085."
+            ],
+            "reveal": "PPV ≈ 8.8%. Despite 95% sensitivity + 90% specificity, only 8.8% of positives are true positives! 91.2% are false positives. Mass screening for rare conditions is treacherous."
+          },
+          {
+            "prompt": "Compare at prevalence 20% (common): same test, what's PPV?",
+            "motivation": "Recompute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~70.4%",
+                "70.4%",
+                "0.704"
+              ]
+            },
+            "hints": [
+              "TP = 0.95 × 2000 = 1900, FP = 0.10 × 8000 = 800. PPV = 1900/2700 ≈ 70.4%."
+            ],
+            "reveal": "PPV ≈ 70.4%. SAME TEST, PPV 8.8% → 70.4% as prevalence rises from 1% to 20%. Bayesian logic. Prevalence dominates PPV."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{PPV depends on prevalence: high-sens/spec test still has low PPV at low prevalence}}$$ The 'paradox of mass screening for rare disease': even excellent tests can yield mostly false positives. Why HIV screening in low-prevalence groups requires confirmatory testing; why cancer-screening recommendations focus on high-prevalence populations; why Bayes' theorem is everywhere in clinical reasoning. Modern ML doesn't change this — calibration is essential to communicate appropriate uncertainty."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cds_auc",
+        "kind": "multiple_choice",
+        "question": "Two cancer-screening models have identical AUC = 0.85. Which would you prefer?",
+        "options": [
+          "Coin flip.",
+          "Need more info: prefer one with better CALIBRATION + better performance AT THE CLINICALLY-RELEVANT THRESHOLD (e.g., 5% risk for screening decision). AUC is single-number summary; clinical decisions made at specific thresholds. Better calibration + better sens/spec at deployment threshold matter more than aggregate AUC.",
+          "Always pick first.",
+          "Pick neither."
+        ],
+        "correctIndex": 1,
+        "explanation": "AUC = aggregate metric across ALL thresholds. Two models with same AUC can have very different performance at the clinically-relevant threshold. Plus: deep-learning models often have HIGH AUC + POOR CALIBRATION (over- or under-confident).\n\nFor clinical use: check (1) sens + spec at deployment threshold; (2) calibration (reliability diagram, Brier score); (3) decision-curve analysis (net benefit). Better single-number summary: AUC + calibration + threshold-specific metrics.\n\nReal-world: many published clinical AI papers report only AUC. Re-evaluation often reveals poor calibration or threshold-specific issues. The field is maturing toward better evaluation standards (TRIPOD-AI, CONSORT-AI)."
+      },
+      "hints": [
+        "What does AUC miss?",
+        "What to look at additionally?"
+      ],
+      "workedSolution": "AUC = aggregate; clinical decisions at specific thresholds. AUC same → very different threshold-specific performance possible. Calibration: critical for risk communication + decisions. Decision-curve analysis: net benefit across thresholds. TRIPOD-AI + CONSORT-AI = newer reporting standards emphasizing this. Prefer model with better calibration + better performance at clinically relevant threshold.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_cds_nnt",
+        "kind": "math_expression",
+        "question": "Drug reduces 5-year MI risk from 10% to 7%. NNT?",
+        "acceptedAnswers": [
+          "~33",
+          "33.3",
+          "1/0.03"
+        ],
+        "hint": "ARR = 3%; NNT = 1/0.03 ≈ 33."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_cds_sepsis",
+        "kind": "scenario",
+        "question": "Sepsis early-warning AI",
+        "prompt": "Your hospital deploys an AI that predicts sepsis 6 hours before clinical onset. Sensitivity 75%, specificity 85%. Walk through the impact on workflow + outcomes + alert fatigue."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cds",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why CALIBRATION matters more than AUC for clinical decision-support.",
+        "rubric": "Mentions that clinical decisions are made at specific risk thresholds + require accurate risk communication; well-calibrated 10% prediction should mean 10% actual; high-AUC models can be poorly calibrated (especially deep learning); recalibration (Platt, isotonic, temperature scaling) often necessary. AUC ranks; calibration enables risk-based action."
+      }
+    }
+  ]
+}

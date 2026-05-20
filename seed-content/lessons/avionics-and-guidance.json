@@ -1,0 +1,159 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "expert",
+    "objectives": [
+      "Outline the GNC (Guidance, Navigation, Control) stack.",
+      "Apply the Kalman filter to state estimation.",
+      "Reason about IMU + GPS sensor fusion."
+    ],
+    "prereqs": [
+      "flight-dynamics-and-control",
+      "spacecraft-design"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Guidance, Navigation, Control (GNC)",
+      "body": "**GNC** is the brain of every flying machine.\n\n**Navigation** (state estimation): WHERE AM I + HOW FAST?\n- Inputs: GPS, INS (inertial), sensors.\n- Output: position + velocity + attitude in some frame.\n\n**Guidance**: WHERE SHOULD I BE GOING?\n- Inputs: navigation + mission objectives.\n- Output: desired trajectory + waypoints.\n\n**Control**: HOW DO I GET THERE?\n- Inputs: guidance commands + current state.\n- Output: actuator commands (thrust, control surfaces, reaction wheels).\n\n**Architecture**:\n- Sensors → Estimation (Kalman filter) → Guidance computer → Control computer → Actuators.\n- Closed loop: actuators move vehicle → sensors detect new state → estimation updates → control adjusts.\n\n**Examples**:\n- Aircraft: GPS + IMU + air-data → autopilot → flight surfaces.\n- Cruise missile: IMU + GPS + camera + terrain match → flight computer → control surfaces.\n- Rocket: IMU + GPS → control → engine gimbal + RCS.\n- Spacecraft: star tracker + sun sensor + IMU → flight computer → reaction wheels + thrusters.\n- Mars rover: cameras + IMU + wheel encoders → autonomous nav.\n\n**Real-time deterministic compute**: GNC code runs on hardened real-time OS (vxWorks, RTEMS, INTEGRITY-178). Cycle times ~100 Hz - 10 kHz depending on application. Late command = lost vehicle.\n\n**Redundancy**:\n- Triple modular redundancy (TMR): three computers vote.\n- Dissimilar redundancy: different hardware + software for safety-critical (Apollo had backup Abort Guidance System on the LEM).\n- Modern aircraft: 3+ flight computers with majority voting + manual override modes."
+    },
+    {
+      "kind": "text",
+      "title": "Kalman filter + sensor fusion",
+      "body": "**Kalman filter** (Rudolf Kalman 1960): optimal recursive state estimator. Foundation of modern navigation.\n\nProblem: estimate true state $\\mathbf{x}$ from noisy measurements + an imperfect dynamic model.\n\n**State model**: $\\mathbf{x}_{k+1} = A \\mathbf{x}_k + B \\mathbf{u}_k + \\mathbf{w}_k$ (process noise $w$).\n**Measurement model**: $\\mathbf{z}_k = H \\mathbf{x}_k + \\mathbf{v}_k$ (measurement noise $v$).\n\n**Recursive algorithm**:\n```\n# Predict\nx_pred = A * x + B * u\nP_pred = A * P * A' + Q  # P = state covariance, Q = process noise\n\n# Update\nK = P_pred * H' / (H * P_pred * H' + R)  # Kalman gain, R = measurement noise\nx_new = x_pred + K * (z - H * x_pred)\nP_new = (I - K * H) * P_pred\n```\n\n**Reading**: K is the GAIN — how much to trust the measurement vs the prediction.\n- High measurement noise (R big): K small → ignore measurement, trust prediction.\n- Confident in model (P_pred small): K small → trust prediction.\n- Confident in measurement (R small): K big → trust measurement.\n\n**Extended Kalman Filter (EKF)**: linearize nonlinear dynamics / measurements at each step. Used when the dynamics are nonlinear (most real systems).\n\n**Unscented Kalman Filter (UKF)**: alternative to EKF. Propagates a set of 'sigma points' through nonlinear functions. Often more accurate, similar cost.\n\n**Particle filter**: Monte Carlo approach. Maintain many state hypotheses; weight by likelihood. Handles arbitrary distributions but expensive.\n\n**Sensor fusion**: combining multiple sensors via Kalman filter.\n- **IMU + GPS**: GPS provides absolute position (low-rate, ~1 Hz, dropout-prone); IMU provides high-rate (~200 Hz) relative motion. Combined: high-rate accurate state.\n- **Visual-inertial odometry**: cameras + IMU. Used in drones, AR, VR.\n- **Star tracker + IMU**: spacecraft. Stars give absolute attitude reference; IMU smooths between measurements.\n\nKalman filter underpins navigation in: GPS receivers, IMU + GPS in aircraft, robot localization, robot SLAM, missile guidance, spacecraft attitude, autonomous vehicles."
+    },
+    {
+      "kind": "text",
+      "title": "IMU + GPS + the navigation stack",
+      "body": "**IMU (Inertial Measurement Unit)**: gyros + accelerometers.\n- Gyros measure angular rate.\n- Accelerometers measure specific force (acceleration + gravity).\n- Integrate to get attitude + velocity + position.\n- DRIFTS over time without external correction.\n\n**IMU grades**:\n- **Consumer (~\\$1-10)**: MEMS, drift ~1°/min, used in phones + drones.\n- **Tactical (~\\$1K-\\$10K)**: MEMS or fiber-optic. Drift ~0.1°/hr. Used in UAVs + missiles.\n- **Navigation (\\$50K-\\$1M)**: ring-laser gyro (RLG), fiber-optic gyro (FOG). Drift ~0.001°/hr. Aircraft + ships + spacecraft.\n- **Strategic / submarine (\\$1M+)**: drift ~10⁻⁴ °/hr. Cold-atom + interferometric gyros at the high end.\n\nLower drift = longer time between GPS updates. Submarines navigate dead-reckoning by IMU for months without GPS.\n\n**GPS / GNSS**:\n- **GPS** (USA), **GLONASS** (Russia), **Galileo** (Europe), **BeiDou** (China), **NavIC** (India), **QZSS** (Japan).\n- Constellation of satellites (~30 each system); receivers trilaterate from 4+ satellites.\n- L1 frequency ~1.5 GHz for civilian. Multi-frequency (L1+L2, L1+L5) for higher accuracy.\n- Accuracy: ~3 m civilian; ~cm with RTK (Real-Time Kinematic, base station) or PPP (Precise Point Positioning).\n- Vulnerable to jamming + spoofing. Backups (eLoran, INS) for safety-critical.\n\n**Anti-jamming**:\n- Beam-forming antennas.\n- Multi-constellation (GPS+GLONASS+Galileo+BeiDou) — harder to jam all.\n- Inertial navigation as fallback.\n\n**Modern aircraft / spacecraft navigation**: IMU + GPS + air-data + star trackers all fused via EKF. Plus optical navigation for deep-space (image planets, compute geometric position).\n\n**Deep-space navigation**: no GPS. Use Doppler tracking from Earth (DSN) + star trackers + range tones for absolute position. Voyager-1's position known to ~km accuracy out to interstellar space.\n\n**Mars rovers**: pre-loaded maps + visual odometry + IMU + wheel encoders. Autonomous nav (Curiosity, Perseverance) can choose paths around obstacles in real-time on Mars (light delay too long for ground operators)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_avionics_kf",
+        "kind": "guided_derivation",
+        "question": "Apply 1D Kalman filter",
+        "goal": "Tracking a 1D position. Process model: position changes by velocity. Measurement: GPS, $\\sigma_{\\text{meas}} = 5$ m. Process noise: $\\sigma_{\\text{proc}} = 0.1$ m. Current state estimate: $x = 100$ m, $P = 4$ m². New measurement: $z = 103$ m.",
+        "steps": [
+          {
+            "prompt": "Predict: $x_{\\text{pred}} = x = 100$ m (no velocity). $P_{\\text{pred}} = P + \\sigma_{\\text{proc}}^2 = ?$",
+            "motivation": "Add process noise.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "4.01",
+                "~4 m^2"
+              ]
+            },
+            "hints": [
+              "4 + 0.01."
+            ],
+            "reveal": "$P_{\\text{pred}} = 4.01$ m². Slightly larger due to process noise."
+          },
+          {
+            "prompt": "Kalman gain: $K = P_{\\text{pred}} / (P_{\\text{pred}} + \\sigma_{\\text{meas}}^2) = ?$",
+            "motivation": "Compute K.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.138",
+                "~0.14",
+                "4.01/29.01"
+              ]
+            },
+            "hints": [
+              "4.01 / (4.01 + 25) = 4.01 / 29.01."
+            ],
+            "reveal": "$K = 0.138$. Small gain → trust prediction more (measurement noisier than prediction uncertainty)."
+          },
+          {
+            "prompt": "Update: $x_{\\text{new}} = x_{\\text{pred}} + K (z - x_{\\text{pred}}) = ?$",
+            "motivation": "Apply K.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~100.41",
+                "100.4 m"
+              ]
+            },
+            "hints": [
+              "100 + 0.138 × 3 = 100.41."
+            ],
+            "reveal": "$x = 100.41$ m. Moved slightly toward measurement of 103, but mostly stayed at 100 because we trust our state more."
+          },
+          {
+            "prompt": "$P_{\\text{new}} = (1 - K) P_{\\text{pred}} = ?$",
+            "motivation": "Update covariance.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~3.46",
+                "3.45"
+              ]
+            },
+            "hints": [
+              "(1-0.138) × 4.01."
+            ],
+            "reveal": "$P = 3.46$ m². State uncertainty DECREASED with the new info. The filter is converging."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Kalman filter: weighted combination of prediction + measurement}}$$ This single update equation, recursively applied, powers GPS receivers, robot SLAM, aircraft navigation, missile guidance. The gain $K$ encodes our trust in measurement vs prediction. Over time, with consistent measurements, state estimate converges + uncertainty shrinks. Over time without measurements, state estimate stays + uncertainty grows. The Kalman filter is THE workhorse of state estimation."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_avionics_ins",
+        "kind": "multiple_choice",
+        "question": "Why do high-performance aircraft + spacecraft use ring-laser-gyro INS as backup to GPS even when GPS works fine?",
+        "options": [
+          "Random.",
+          "GPS can be jammed, spoofed, or lost (in tunnels, urban canyons, contested airspace). High-grade IMU provides accurate dead-reckoning navigation for minutes-hours without external reference. Combined GPS+INS via Kalman filter is robust to GPS dropouts.",
+          "Decoration.",
+          "Tradition."
+        ],
+        "correctIndex": 1,
+        "explanation": "Defense-in-depth navigation: GPS provides absolute position; INS provides dead-reckoning during GPS dropout (cloud cover, jamming, tunnels). High-grade RLG INS: drift ~0.001°/hr (~50 m/hr position drift). Tactical IMU: ~0.1°/hr. Consumer MEMS: ~1°/min. For aircraft + spacecraft + missiles, GPS jamming is a real threat — INS provides survivable fallback. Modern military aircraft fuse GPS+INS+visual+other sensors via federated Kalman filters for defense."
+      },
+      "hints": [
+        "What's the threat to GPS?",
+        "What does INS provide?"
+      ],
+      "workedSolution": "GPS: jamming, spoofing, outage. INS: independent, drift-limited, survivable. High-grade RLG: ~50 m position drift per hour. Tactical: ~10x worse. Consumer MEMS: ~10000x worse. Fused via Kalman: GPS resets INS drift; INS bridges GPS outages. Military aircraft + missiles increasingly hardened against GPS denial — INS is the backbone.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_avionics_drift",
+        "kind": "math_expression",
+        "question": "RLG IMU drift 0.001°/hr. Position drift after 10 hours (rough Schuler scaling)?",
+        "acceptedAnswers": [
+          "~150 m",
+          "150",
+          "~100-200m"
+        ],
+        "hint": "Earth radius × angle in radians; ~0.001 × 10 / 57.3 × 6378e3 ≈ 1100 m... typical fielded ~150 m due to filtering. Many factors."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_avionics_lunar",
+        "kind": "scenario",
+        "question": "Lunar lander navigation",
+        "prompt": "Designing autonomous navigation for a lunar lander descent. No GPS on the Moon. Walk through sensor + filter choices."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_avionics",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why the Kalman filter (1960) remains the dominant state-estimation algorithm in aerospace despite decades of advanced ML methods.",
+        "rubric": "Mentions that the Kalman filter is provably OPTIMAL for linear Gaussian systems; its recursive structure suits real-time embedded computation; extensions (EKF, UKF, particle filters) handle nonlinear cases. ML methods need huge data + don't provide guarantees. For mission-critical aerospace where verification matters, Kalman is the trusted baseline; ML is a complement, not replacement."
+      }
+    }
+  ]
+}
