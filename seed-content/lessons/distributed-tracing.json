@@ -19,6 +19,37 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: tail-based sampling at scale",
+      "body": "Refinery (Honeycomb's open-source sampler) implements tail-based sampling: buffer traces in a cache, decide whether to keep them based on trace properties (slow > 1s, error, specific endpoint). The full trace must reach the sampler before sampling — limits scalability to single-region collectors. Refinery scales horizontally via consistent hashing on trace_id, keeping all spans of a trace at one sampler. The result: keep 100% of interesting traces, sample 1% of the rest, dramatically reducing storage costs while preserving debugging power."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dt_sampling",
+        "kind": "guided_derivation",
+        "question": "Derive sampling rate vs storage cost",
+        "goal": "$T$ traces/sec, average $S$ spans/trace, storage cost $C$ per span. Total storage rate?",
+        "steps": [
+          {
+            "prompt": "Storage rate without sampling: $T \\cdot S \\cdot C$. With sampling rate $r$: $r T S C$. To stay under budget $B$: solve for $r$.",
+            "motivation": "Linear scaling.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "r <= B/(T S C)"
+              ]
+            },
+            "hints": [
+              "Divide."
+            ],
+            "reveal": "$r \\leq B / (T S C)$."
+          }
+        ],
+        "finalResult": "Sampling rate set by budget. Tail-based sampling allows higher effective fidelity: keep all 'interesting' traces (errors, slow) at $r = 1$; sample uninteresting at low $r$. Modern production: 100% sampling at the edge + tail-based filtering at the central collector."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The three pillars + the modern push to consolidate",
       "body": "**Logs**: human-readable text/JSON records of events. Best for narrative; expensive to query at scale.\n\n**Metrics**: numerical time series (counters, histograms). Best for aggregates + alerting; loses per-request detail.\n\n**Traces**: per-request distributed events with timing + parent-child relationships. Best for understanding causality + cross-service flows.\n\nThe 'three pillars of observability' frame (logs / metrics / traces) is being refined into a unified picture. Modern thinking: every operation should emit a *trace* (the canonical record), and metrics + logs are derived from it. Sampling: capture every trace at low cardinality, full detail for a sampled subset. Tail-based sampling: keep all traces for slow / errored requests, sample the rest.\n\nReal-world hygiene:\n- **Propagation**: every service must propagate trace headers (W3C `traceparent`). Easy to forget on the boundary of a third-party library.\n- **Sampling**: 100% sampling is unaffordable; the standard is head-based (decide at the start of the trace) or tail-based (decide after seeing the whole trace).\n- **Semantic conventions**: use standard span / attribute names (OpenTelemetry's semantic conventions). Without them, every team builds custom dashboards.\n\nFor 2024-2025, OpenTelemetry has become the dominant standard. The 'observability stack' (OTel SDK + OTel collector + viewer) is the modern default for new systems."
     },

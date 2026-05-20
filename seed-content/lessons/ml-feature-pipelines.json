@@ -20,6 +20,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Tecton + Feast in production",
+      "body": "Tecton (commercial) and Feast (open source) implement the feature-store pattern. Feature definitions in Python → materialized to online store (Redis/DynamoDB) for inference + offline store (warehouse) for training. Same definition: no train/serve skew. Industry adoption growing in 2024-2025; complement to feature engineering in dbt + ad-hoc Python."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fp_skew",
+        "kind": "guided_derivation",
+        "question": "Quantify train/serve skew",
+        "goal": "Offline AUC: $A_{\\text{off}}$. Online AUC: $A_{\\text{on}}$. Their difference $\\Delta = A_{\\text{off}} - A_{\\text{on}}$. What does $\\Delta$ encode?",
+        "steps": [
+          {
+            "prompt": "$\\Delta = A_{\\text{off}} - A_{\\text{on}}$. Sources: (a) train/serve skew (different feature computation), (b) distribution shift between train + deployment, (c) concept drift (label relationship changed). Which dominates depends on the system.",
+            "motivation": "Decomposition.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$\\Delta$ is the sum of (skew + dist-shift + concept-drift); diagnose by separating the three sources.",
+                "Always train/serve skew.",
+                "Never significant.",
+                "Equivalent to overfitting."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Need controlled experiments to separate the sources."
+            ],
+            "reveal": "$\\Delta = $ skew + dist-shift + concept-drift. Diagnose by: (a) compare offline + online features for the same example (skew); (b) compare distribution of features train vs deploy (dist-shift); (c) re-evaluate on recent labels (concept-drift)."
+          }
+        ],
+        "finalResult": "Train/serve skew is the single biggest source of 'great-offline-bad-online' for production ML. Feature stores eliminate it structurally; without one, capture-online-features-and-diff is the diagnostic playbook."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Feature stores: same code, both worlds",
       "body": "A **feature store** is a system that:\n\n1. **Defines features** in one place (a feature definition file). Same definition serves both training and inference.\n2. **Offline store**: historical feature values, joined to labels for training data. Built from warehouse data.\n3. **Online store**: low-latency key-value store (Redis, DynamoDB, Cassandra). Holds latest feature values, refreshed by the same logic.\n4. **Materialization**: scheduled jobs that compute features and write them to both online + offline stores.\n5. **Serving API**: at inference time, query the online store with a user_id or session_id and get back the feature vector.\n\nProduction feature stores: Tecton (commercial), Feast (open source), built-in ones at Uber (Michelangelo), Airbnb (Zipline), Lyft (Dryft).\n\nThe big win is eliminating train/serve skew structurally: features come from a single source of truth. Cost: feature stores add operational complexity. Teams without an ML platform team often try one and abandon it; the threshold to justify a feature store is usually ~10 production models or ~3 ML teams.\n\nMinimum-viable alternative: rigorously share Python feature-computation code between training and serving paths; capture serving features and compare against training features in offline reconciliation jobs. Less elegant, much cheaper."
     },

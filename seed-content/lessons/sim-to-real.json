@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: OpenAI's Rubik's cube",
+      "body": "OpenAI's robot hand solving a Rubik's cube (2019) used massive domain randomization: physical parameters (friction, mass), visual properties (lighting, textures), and even cube physics randomized per episode. Trained entirely in sim. Deployed on real hardware → worked, after years of effort. Demonstrated that sufficient domain randomization can close large sim-to-real gaps; cost: enormous compute (1000s of GPUs) for the policy to learn robustness."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_s2r_dr",
+        "kind": "guided_derivation",
+        "question": "Derive when domain randomization works",
+        "goal": "Sim envs sampled with parameters $\\theta \\sim P_{\\text{sim}}$. Policy $\\pi^*$ minimizes expected loss $\\mathbb{E}_{\\theta \\sim P_{\\text{sim}}}[L(\\pi, \\theta)]$. Why does $\\pi^*$ transfer to real?",
+        "steps": [
+          {
+            "prompt": "If real-world parameters $\\theta_{\\text{real}}$ are within the support of $P_{\\text{sim}}$ AND $\\pi^*$ is robust across that support, then $\\pi^*$ performs well at $\\theta_{\\text{real}}$. What's the failure mode?",
+            "motivation": "Coverage requirement.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "If $\\theta_{\\text{real}}$ falls outside the randomization range, transfer fails.",
+                "Always works.",
+                "Never works.",
+                "Requires identical sim and real."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Need real to be in-distribution under the randomization."
+            ],
+            "reveal": "Need $\\theta_{\\text{real}} \\in \\text{supp}(P_{\\text{sim}})$ AND policy robust across the support."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{DR works iff real parameters} \\in \\text{sim randomization range}}$$ Tradeoffs: too-wide range → conservative policy. Too-narrow → fragile. Tuning the range is the art of sim-to-real; tools (Automatic Domain Randomization, ADR) automate it by widening when policy succeeds + narrowing when it fails."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Sources of the reality gap",
       "body": "**Dynamics mismatch**:\n\n- Friction coefficients (especially for contact-rich tasks).\n- Mass + inertia parameters.\n- Actuator delays + nonlinearities.\n- Compliance + flexibility (real arms aren't rigid).\n\n**Sensor mismatch**:\n\n- Camera intrinsics + extrinsics.\n- Image noise, lighting, motion blur.\n- IMU bias drift.\n- LIDAR specular returns + atmospheric effects.\n\n**Environment mismatch**:\n\n- Object shapes (real-world clutter vs simulator's synthetic objects).\n- Surface materials (texture, gloss).\n- Lighting conditions.\n- Other agents (humans, other robots).\n\n**System integration mismatch**:\n\n- Network latency.\n- Frame-rate variations.\n- Hardware-software timing.\n\nClosing the gap requires addressing all of these. Different problems have different dominant sources."
     },

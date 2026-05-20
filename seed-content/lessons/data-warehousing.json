@@ -19,6 +19,38 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Snowflake compression ratios",
+      "body": "Real workloads on Snowflake routinely see 5-10× compression vs raw CSV: dictionary encoding for low-cardinality columns, run-length encoding for sorted columns, delta encoding for monotonic columns, then general LZ-style compression on top. A 1TB CSV import becomes ~100-200GB stored. Combined with columnar access patterns, query I/O is often ~10x smaller than naively expected. The bandwidth advantage is what makes columnar warehouses cheap to query."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dw_compress",
+        "kind": "guided_derivation",
+        "question": "Estimate columnar compression",
+        "goal": "10M-row table. Column 'country' has 200 unique values. Naive storage: 10M strings × 16 bytes = 160 MB. Dictionary-encoded?",
+        "steps": [
+          {
+            "prompt": "Dictionary: 200 unique strings + per-row dictionary index. Index size: $\\lceil \\log_2 200 \\rceil = 8$ bits = 1 byte per row. Total storage?",
+            "motivation": "Dictionary indices.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "10 MB + small dictionary",
+                "~10 MB"
+              ]
+            },
+            "hints": [
+              "10M rows × 1 byte + 200 × ~16 bytes dictionary."
+            ],
+            "reveal": "10 MB (indices) + 3 KB (dictionary) = ~10 MB. 16× compression vs naive."
+          }
+        ],
+        "finalResult": "Dictionary encoding: huge win on low-cardinality columns. Most categorical columns in real data have few uniques relative to row count. Snowflake / BigQuery / Redshift apply this automatically; you don't tune it per column."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Warehouse vs lake vs lakehouse",
       "body": "**Data warehouse** (Snowflake, BigQuery, Redshift): managed SQL engine + storage. Optimized for analytics. Strong SQL, decent ML support, expensive per-query compute.\n\n**Data lake** (S3 + Parquet + Spark + Hive): raw files in object storage, queried by ad-hoc tools. Cheap storage, flexible (multiple engines can read the same files), but no built-in catalog, governance, or transactional updates.\n\n**Lakehouse** (Delta Lake, Iceberg, Hudi): lake's storage flexibility + warehouse's transactional guarantees. Open-source table formats sitting on top of Parquet files in object storage. Provides ACID transactions, time travel, schema evolution. Databricks pushes Delta Lake; Snowflake / Iceberg / open standards are the alternative.\n\nThe industry is converging on the lakehouse pattern. Storage is open (Parquet + Iceberg/Delta); engines are interchangeable (Spark, Trino, Snowflake-on-Iceberg, DuckDB). The walled-garden warehouse (Snowflake's proprietary storage) gives ground each year to open lakehouse architectures."
     },

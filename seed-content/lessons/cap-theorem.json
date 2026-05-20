@@ -17,6 +17,59 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Spanner's PACELC",
+      "body": "Google Spanner is PC/EC: chooses Consistency in both partition + normal operation. The cost is latency (uses TrueTime + waits for replication quorum). Cassandra is PA/EL: chooses Availability in partition + Latency in normal operation. Tradeoff: Spanner's queries are slower but always linearizable; Cassandra's are fast but may show stale reads. Picking the right posture per data type — bank balance: Spanner-like; comment counts: Cassandra-like."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cap_pacelc",
+        "kind": "guided_derivation",
+        "question": "Trace a real PACELC decision",
+        "goal": "Banking transaction system. Choose CP or AP during partition + EC or EL in normal mode.",
+        "steps": [
+          {
+            "prompt": "Banking requires linearizable balance updates. CAP choice during partition: CP (refuse some writes) or AP (accept on both sides + reconcile)?",
+            "motivation": "Bank cannot tolerate double-spend.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "CP — must prefer consistency; refusing transactions is better than accepting conflicting ones.",
+                "AP — must stay available.",
+                "Either.",
+                "Doesn't matter."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "What's the cost of double-spend?"
+            ],
+            "reveal": "CP. Reconciliation after-the-fact for money is operationally unacceptable."
+          },
+          {
+            "prompt": "Normal-mode (no partition): EC (more latency) or EL (eventual consistency, lower latency)?",
+            "motivation": "For balance updates: EC.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "EC — accept higher latency for linearizability during normal operation.",
+                "EL.",
+                "Either.",
+                "Skip the choice."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Same logic as during partition."
+            ],
+            "reveal": "EC. Banking is full PACELC = PC/EC: like Spanner."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Banking: PC/EC (Spanner-like)}}$$ Different subsystems get different postures. Reads of stale account history? Maybe AP/EL. Writes touching money? CP/EC. The skill is matching posture to the cost of inconsistency."
+      }
+    },
+    {
+      "kind": "text",
       "title": "PACELC, the practical refinement",
       "body": "**PACELC** (Daniel Abadi 2010): refines CAP to cover the *normal* (non-partition) case.\n\nIn the presence of partition (P): trade Availability for Consistency or vice versa (CAP's classic story).\n\nElse (E, no partition): trade Latency for Consistency.\n\nMost real systems have a partition story AND a normal-operation latency-vs-consistency story. A 'CP/EC' system (e.g., classic Postgres with synchronous replication) prefers consistency in both regimes; a 'CP/EL' system (e.g., Spanner) prefers latency outside partition + consistency inside.\n\nCAP alone is too coarse for the choices you'll actually make. PACELC + understanding your specific consistency model (linearizable / sequential / causal / eventual) is the practical vocabulary."
     },

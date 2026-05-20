@@ -19,6 +19,38 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: physical-world adversarial stop signs",
+      "body": "Eykholt et al. 2018: printed stickers placed on a real stop sign caused a deep image classifier to predict 'speed limit 45'. Stickers were imperceptible-ish to humans, robust to viewpoint + lighting variation. Demonstrated that adversarial examples generalize from digital to physical world. Implications for self-driving cars massive; defended models still vulnerable to robust attacks. The arms race continues."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_aml_fgsm",
+        "kind": "guided_derivation",
+        "question": "Derive the FGSM perturbation",
+        "goal": "Given input $x$ + loss $L(x, y; \\theta)$, FGSM perturbation: $\\delta = \\epsilon \\text{sign}(\\nabla_x L)$.",
+        "steps": [
+          {
+            "prompt": "We want a small perturbation $\\delta$ with $\\|\\delta\\|_\\infty \\leq \\epsilon$ that maximally increases the loss. Linearize $L$ around $x$: $L(x + \\delta) \\approx L(x) + \\nabla_x L \\cdot \\delta$. Maximize $\\nabla_x L \\cdot \\delta$ subject to $\\|\\delta\\|_\\infty \\leq \\epsilon$.",
+            "motivation": "Linear maximization under L∞ constraint.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "epsilon sign(grad L)",
+                "ε sign(∇_x L)"
+              ]
+            },
+            "hints": [
+              "Max of $g \\cdot \\delta$ with $|\\delta_i| \\leq \\epsilon$: $\\delta_i = \\epsilon \\text{sign}(g_i)$."
+            ],
+            "reveal": "$\\delta = \\epsilon \\text{sign}(\\nabla_x L)$ — sign of the gradient, scaled by $\\epsilon$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\delta_{\\text{FGSM}} = \\epsilon \\text{sign}(\\nabla_x L)}$$ Fast Gradient Sign Method (Goodfellow 2014). One-step attack. PGD (Projected Gradient Descent) iterates FGSM with small steps + projection back to the $\\epsilon$-ball — stronger attack, modern benchmark."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Adversarial examples + transferability",
       "body": "An adversarial example for image classifier $M_1$ often *also* fools classifier $M_2$ even if $M_2$ was trained on different data with a different architecture. This is **transferability** — adversarial perturbations exploit shared structure of decision boundaries across models.\n\nConsequence: an attacker without API access to your deployed model can craft adversarial examples on a *surrogate* model and they will likely transfer. 'Security through API obscurity' doesn't work.\n\n**Adversarial training** (Madry et al.): include adversarial examples in the training set. Robust models trained this way have a known tradeoff — accuracy on clean data drops by a few percentage points; robustness against PGD-style attacks goes up substantially. Production deployments rarely use full PGD-style adversarial training (compute cost is 10-100×); instead they use lightweight augmentation, ensembling, and runtime detection.\n\nFor LLMs the landscape is different: prompt-injection attacks (vs adversarial examples for vision) and jailbreaking (vs classifier-flipping). The general principles transfer — defense in depth, monitoring, rate limiting — but the threat surface is different and more rapidly evolving."
     },

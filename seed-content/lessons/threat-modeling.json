@@ -17,6 +17,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: cloud-IAM threat-modeling",
+      "body": "AWS IAM threat model: principals (users / services / roles), resources, permissions, policies. Standard exercises: 'an attacker compromises an EC2 instance' (what can they do with the instance role?); 'an attacker steals a developer's access key' (what's in their permissions?); 'an attacker compromises a CI/CD pipeline' (what does the build role have access to?). Each scenario walks STRIDE through every privilege boundary. Modern best practice: minimize blast radius via least-privilege roles + short-lived credentials + per-environment isolation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_tm_did",
+        "kind": "guided_derivation",
+        "question": "Derive defense-in-depth probability",
+        "goal": "Single defense with breach probability $p$. With $n$ independent defenses each with the same $p$, breach probability of all is $p^n$.",
+        "steps": [
+          {
+            "prompt": "Independent defenses: breach occurs only if ALL fail. $n$ defenses, each fails independently with probability $p$. P(breach)?",
+            "motivation": "Independent events.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "p^n"
+              ]
+            },
+            "hints": [
+              "Product of independent failure probabilities."
+            ],
+            "reveal": "$P(\\text{breach}) = p^n$."
+          },
+          {
+            "prompt": "Concrete: $p = 0.1$, $n = 3$. Compute.",
+            "motivation": "Realistic numbers.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.001",
+                "1/1000"
+              ]
+            },
+            "hints": [
+              "$0.1^3 = 0.001$."
+            ],
+            "reveal": "$0.001 = 0.1\\%$. Three independent defenses each 90% effective drop the breach rate by 1000×."
+          }
+        ],
+        "finalResult": "$$\\boxed{P(\\text{breach}) = p^n \\text{ (independent defenses)}}$$ Defense-in-depth's appeal: layered defenses compound exponentially. Reality check: real defenses are often *correlated* (shared OS, shared credentials, etc.), reducing the effective $n$. Genuine independence (different vendors, different protocols) is harder to achieve."
+      }
+    },
+    {
+      "kind": "text",
       "title": "STRIDE, the everyday framework",
       "body": "Microsoft's STRIDE acronym names the six classes of threats to look for at each component:\n\n- **S**poofing — pretending to be someone you're not. Mitigation: authentication.\n- **T**ampering — modifying data in flight or at rest. Mitigation: integrity (signing, MACs).\n- **R**epudiation — denying an action you took. Mitigation: non-repudiation logs.\n- **I**nformation disclosure — leaking confidential data. Mitigation: encryption, access control.\n- **D**enial of service — making the system unavailable. Mitigation: rate limiting, redundancy.\n- **E**levation of privilege — gaining more access than authorized. Mitigation: least privilege, sandboxing.\n\nWalk through your data flow diagram one component at a time, asking 'which of S/T/R/I/D/E could happen here?'. The answer is usually 'most of them; here's which we mitigate and how'."
     },

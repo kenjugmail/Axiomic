@@ -7,6 +7,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: redundancy resolution on 7-DOF arms",
+      "body": "A 7-DOF arm has a 1-DOF *nullspace* — the set of joint velocities that produce no end-effector motion. Use this for secondary objectives: avoid joint limits, dodge obstacles, minimize kinetic energy. Standard pattern: primary task via pseudo-inverse, secondary task projected into the nullspace. Production arms (Franka, KUKA LBR, Kinova Gen3) use this in their default IK. Lets the arm 'reach around' obstacles while still placing the gripper exactly."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_man_jpinv",
+        "kind": "guided_derivation",
+        "question": "Derive Jacobian-pseudoinverse IK",
+        "goal": "Given Jacobian $J$, end-effector velocity $\\dot p$, find joint velocity $\\dot\\theta$.",
+        "steps": [
+          {
+            "prompt": "$\\dot p = J\\dot\\theta$. For square $J$: invert. For non-square (typical robotic arm): use pseudoinverse $J^+$. Definition?",
+            "motivation": "Moore-Penrose pseudoinverse.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "J^T (J J^T)^{-1}"
+              ]
+            },
+            "hints": [
+              "For wide $J$: $J^+ = J^T(JJ^T)^{-1}$.",
+              "Solves the underdetermined least-squares problem."
+            ],
+            "reveal": "$J^+ = J^T(JJ^T)^{-1}$ for full-row-rank $J$."
+          },
+          {
+            "prompt": "Joint velocity: $\\dot\\theta = ?$",
+            "motivation": "Apply pseudoinverse.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "J^+ dot p"
+              ]
+            },
+            "hints": [
+              "Multiply both sides by $J^+$."
+            ],
+            "reveal": "$\\dot\\theta = J^+ \\dot p$ — the minimum-norm joint velocity producing $\\dot p$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\dot\\theta = J^+ \\dot p}$$ Minimum-norm IK. Damped least-squares variant: $J^+ = J^T(JJ^T + \\lambda I)^{-1}$ for numerical stability near singularities. Production IK stacks: pseudoinverse + nullspace secondary tasks + damping = the standard recipe."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Forward kinematics (FK)",
       "body": "**Forward kinematics**: given joint angles `q = [q_1, q_2, ..., q_n]`, compute the end-effector pose `T(q)`.\n\nUse a kinematic chain: each joint contributes a transformation; chain them via matrix multiplication.\n\n`T(q) = T_1(q_1) · T_2(q_2) · ... · T_n(q_n)`\n\nEach `T_i` is a 4×4 homogeneous transformation matrix.\n\n**Denavit-Hartenberg parameters**: a standardized way to assign coordinate frames to each link, simplifying the math. Every kinematics textbook has the conventions.\n\n**FK is fast + unique**: given `q`, the end-effector pose is uniquely determined.\n\n**Tooling**: `pinocchio` (C++/Python), KDL, MoveIt all implement FK. URDF (Unified Robot Description Format) is the standard way to specify the robot's geometry."
     },

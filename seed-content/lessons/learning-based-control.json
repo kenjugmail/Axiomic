@@ -7,6 +7,55 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: end-to-end self-driving",
+      "body": "Wayve (2023) trained a self-driving system end-to-end via behavior cloning + RL fine-tuning. The challenge: BC on expert demos leaves the policy 'unfamiliar' with off-distribution states (e.g., when the car drifts slightly off the centerline). DAgger fixes this by querying the expert on states the policy actually visits — building a dataset of recoveries. Wayve's stack: pretrained perception + DAgger-style data collection + RL for closed-loop refinement. Demonstrates that imitation learning + DAgger is competitive with classical SLAM + planning stacks for some autonomous-driving scenarios."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_lbc_dagger",
+        "kind": "guided_derivation",
+        "question": "Show BC has $O(T^2)$ state distribution shift",
+        "goal": "Behavior cloning trained on expert states; deployed: errors compound.",
+        "steps": [
+          {
+            "prompt": "Expert state distribution $d^*$; BC policy $\\hat\\pi$ trained on $d^*$ but visits $d^{\\hat\\pi}$. If per-step error $\\epsilon$, what's the cumulative regret over $T$ steps?",
+            "motivation": "Compounding error theorem (Ross-Bagnell).",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "O(epsilon T^2)"
+              ]
+            },
+            "hints": [
+              "Each error increases drift; future actions are out-of-distribution and produce more errors."
+            ],
+            "reveal": "Cumulative regret $O(\\epsilon T^2)$. Quadratic in horizon."
+          },
+          {
+            "prompt": "DAgger queries the expert at policy-visited states + retrains, reducing regret to $O(\\epsilon T)$. Why?",
+            "motivation": "Training distribution matches deployment.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "DAgger trains $\\hat\\pi$ on $d^{\\hat\\pi}$ itself — eliminating distribution shift, so per-step errors no longer compound.",
+                "DAgger is faster than BC.",
+                "DAgger uses less data.",
+                "DAgger is equivalent."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Iterative: train, deploy, query expert on visited states, retrain."
+            ],
+            "reveal": "DAgger aligns the training distribution with the deployment distribution. Per-step errors stay $O(\\epsilon)$ over $T$ steps → linear regret."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{BC: } O(\\epsilon T^2)\\quad\\text{DAgger: } O(\\epsilon T)}$$ Quadratic-vs-linear blowup in horizon. DAgger pays for it with extra expert queries; cheaper than RL exploration but requires expert availability."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Imitation learning + behavior cloning",
       "body": "**Behavior cloning (BC)**: collect expert demonstrations `{(state_t, action_t)}`. Train a model to predict `action_t` from `state_t`. Supervised learning.\n\n**Strengths**:\n\n- Sample-efficient: hundreds-to-thousands of demos suffice for many tasks.\n- No reward function needed.\n- Stable training (just supervised learning).\n\n**Limits**:\n\n- **Distribution shift**: at deployment, the policy makes errors → encounters states not seen during training → errors compound.\n- **Compounding errors**: each step's error puts the next step further out-of-distribution.\n\n**Fixes**:\n\n- **DAgger** (Ross-Gordon-Bagnell 2011): iteratively collect demos in states the current policy reaches; retrain. Reduces distribution shift.\n- **Action chunking** (ACT): predict a sequence of actions instead of one; less compounding.\n- **Diffusion policies** (next slide): generate full trajectories; smoother + more robust.\n\n**Modern BC**: most production policies (pre-foundation-model era) used BC + DAgger. Tesla Autopilot's earlier versions, Boston Dynamics' Stretch, Amazon Sparrow.\n\n**Data scale**: BC scales with demo data. RT-1 (2022) used 130k demos; RT-2 (2023) used the same + internet data. π-0 (2024) used 10k+ hours of teleoperation."
     },

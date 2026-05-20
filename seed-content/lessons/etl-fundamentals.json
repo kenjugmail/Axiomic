@@ -19,6 +19,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Airbyte + dbt as the modern stack",
+      "body": "Airbyte (or Fivetran) extracts raw data → loads into warehouse → dbt transforms via SQL. Airbyte's CDC connectors use database-level change capture (Postgres WAL, MySQL binlog) for incremental + idempotent loads. dbt models are pure SQL with build-in tests (uniqueness, foreign keys, not-null). The whole ELT pipeline runs in CI on PRs; failures gate merges. The 'modern data stack' pattern of 2020-2025."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_etl_idem",
+        "kind": "guided_derivation",
+        "question": "Derive that MERGE-on-primary-key is idempotent",
+        "goal": "Show that running MERGE INTO ... USING ... ON pkey = pkey produces the same result on $k$-th re-run as on first.",
+        "steps": [
+          {
+            "prompt": "MERGE behavior: for each source row, if pkey exists in target → UPDATE; else → INSERT. After first run: source row with pkey $p$ has corresponding row in target. On second run: same pkey $p$, MERGE finds it → UPDATE with same data → no change.",
+            "motivation": "Idempotent by construction.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "After first run, target has source row at pkey $p$. Second run: MERGE finds it, UPDATEs with identical values. State unchanged.",
+                "Each run doubles rows.",
+                "Target grows linearly.",
+                "Random behavior."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "MERGE never duplicates."
+            ],
+            "reveal": "State after $k$ runs = state after 1 run. Idempotent."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{MERGE on deterministic pkey} \\Rightarrow \\text{idempotent}}$$ The cornerstone of reliable pipelines. Replace INSERT-only with MERGE; replace ad-hoc 'is this duplicate?' logic with a deterministic primary key. Re-runs become safe; partial failures become recoverable."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Idempotency, the load-bearing property",
       "body": "An ETL job is **idempotent** if running it twice produces the same result as running it once. This is the foundational requirement for production pipelines because:\n\n- **Retries**: jobs fail (transient errors, network blips, OOMs). Idempotent jobs are safe to retry; non-idempotent jobs need careful per-step recovery.\n- **Backfills**: 'rerun last week's pipeline' should produce the same warehouse state regardless of whether it was run last week or now.\n- **Multi-region replicas**: same job executes in multiple regions; outputs must converge.\n\n**The patterns**:\n1. *MERGE / UPSERT* on a deterministic primary key, NOT INSERT-only. INSERT-only pipelines double-insert on retry.\n2. *Idempotent file naming*: `s3://bucket/raw/event_date=2024-05-01/*` — partition by event date, overwrite the partition on rerun.\n3. *Transactional load*: the load step is atomic — either all rows for the batch land, or none. Avoids partial-load races on retry.\n\nNon-idempotent pipelines turn every retry into a manual recovery. Idempotent pipelines turn every retry into 'just rerun it'. Worth the architectural cost."
     },

@@ -19,6 +19,37 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: the US Census 2020 + DP",
+      "body": "US Census Bureau adopted differential privacy for the 2020 census. Added Laplace noise to all published statistics, calibrated to $\\epsilon = 19.61$ (a controversial choice — some say too lax for true privacy, others say too strict for data utility). Trade-off: at the chosen $\\epsilon$, small-county statistics are noisy enough to be unhelpful; aggregated statistics still accurate. The case study for deploying formal DP at national scale; the lessons (mostly hard) are still being learned by other agencies."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_pml_laplace",
+        "kind": "guided_derivation",
+        "question": "Derive Laplace mechanism's privacy guarantee",
+        "goal": "Function $f$ with sensitivity $\\Delta f = \\max |f(D) - f(D')|$ over adjacent datasets. Add noise $\\text{Lap}(\\Delta f / \\epsilon)$.",
+        "steps": [
+          {
+            "prompt": "Laplace PDF: $p(x) = (1/(2b)) e^{-|x|/b}$. Ratio of densities at $x$ when input differs by at most $\\Delta f$: $p(x) / p(x + \\Delta f) = e^{|x + \\Delta f|/b - |x|/b} \\leq e^{\\Delta f / b}$ (triangle inequality). Set this to $e^\\epsilon$.",
+            "motivation": "Privacy ratio.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "b = Delta f / epsilon"
+              ]
+            },
+            "hints": [
+              "$e^{\\Delta f / b} = e^\\epsilon \\Rightarrow b = \\Delta f / \\epsilon$."
+            ],
+            "reveal": "$b = \\Delta f / \\epsilon$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Lap}(\\Delta f / \\epsilon) \\text{ noise yields } \\epsilon\\text{-DP}}$$ Larger sensitivity → more noise needed. Lower $\\epsilon$ (stricter privacy) → more noise. The privacy-utility tradeoff is exponential."
+      }
+    },
+    {
+      "kind": "text",
       "title": "DP-SGD + federated learning",
       "body": "**DP-SGD** (Abadi et al. 2016): the standard recipe for DP training of neural networks.\n1. Compute per-example gradients.\n2. Clip each per-example gradient to a fixed $\\ell_2$ norm.\n3. Add Gaussian noise with calibrated variance.\n4. Average and step.\n\nClipping bounds each example's contribution; noise injects calibrated privacy. The resulting model is $(\\epsilon, \\delta)$-DP with respect to inclusion of any single training example.\n\n**Cost**: 2-10× compute (per-example gradients aren't naturally batched), and a meaningful accuracy hit (a few percentage points on benchmarks like CIFAR-10). The accuracy gap narrows as datasets grow.\n\n**Federated learning**: train across distributed devices that never send raw data to the server. Each client computes a model update locally; the server aggregates updates. Privacy threat model: a malicious server, or a malicious participant. Mitigations:\n- **Secure aggregation**: the server only sees the sum of updates, never individual updates.\n- **DP at the client**: each update is DP, so the aggregate is too.\n- **DP at the server**: noise added by the server.\n\nFL is deployed at scale in Google's Gboard typing predictions, Apple's QuickType, and several medical imaging consortia. It's the standard architecture for 'privacy-preserving' ML training, though it doesn't automatically give formal privacy without DP."
     },

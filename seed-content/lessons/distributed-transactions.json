@@ -19,6 +19,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Stripe's idempotency-key API",
+      "body": "Stripe's payment API: every request carries an `Idempotency-Key` header (client-generated UUID). Stripe records the key + the response. Retry the same request: get the cached response, no duplicate charge. Eliminates the 'did my last request succeed?' uncertainty. Industry-standard pattern; every payment provider implements it. The combination of idempotency-keys + retry-with-exponential-backoff replaces 2PC for ~all distributed-transaction use cases in modern microservices."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dt_2pcwindow",
+        "kind": "guided_derivation",
+        "question": "Identify the 2PC blocking window",
+        "goal": "Coordinator fails between Phase 1 (collect votes) + Phase 2 (commit/abort). What happens?",
+        "steps": [
+          {
+            "prompt": "Phase 1: all participants vote YES. Phase 2 should send 'commit'. Coordinator crashes. Participants are now holding locks + cannot independently commit (they don't know if all voted YES) or abort (they promised they could commit). What's the operational outcome?",
+            "motivation": "Blocking failure.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Participants hold locks indefinitely; manual intervention required to recover.",
+                "Auto-recovery.",
+                "Abort automatically.",
+                "Commit automatically."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "No safe unilateral action; must wait for coordinator + replay log."
+            ],
+            "reveal": "Participants hold locks; operator must restart coordinator + replay protocol log. Locks released only after recovery. Operationally fragile."
+          }
+        ],
+        "finalResult": "2PC's blocking problem is why modern microservices avoid it. Saga pattern + idempotency-keys decompose distributed atomicity into local atomicity + retry — at the cost of intermediate visible states."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Idempotency keys, the lifeblood of distributed reliability",
       "body": "Every cross-service write should be idempotent on retry. The standard pattern:\n\n```\nclient: POST /charge { ..., idempotency_key: 'a3f2...' }\nserver: have I seen this key? \n  yes -> return cached result\n  no  -> process + store result under this key\n```\n\nStripe, every payment provider, every modern API requires (or strongly recommends) idempotency keys. The reason: the client doesn't know whether its previous request succeeded but the response was lost, or failed entirely. Retry without idempotency = double-charge.\n\nKey choice:\n- **Client-generated**: client generates a UUID per logical operation. The right pattern; lets the client safely retry.\n- **Server-generated**: rare; only useful for replay-on-server-restart scenarios.\n- **Natural keys** (request hash + timestamp): brittle if request contains anything mutable.\n\nIdempotency turns 'distributed transaction' into 'idempotent operation + retry'. Combined with sagas, it's the dominant pattern in modern microservice architectures."
     },

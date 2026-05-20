@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: RRT-Connect's bidirectional speedup",
+      "body": "Vanilla RRT grows a tree from start toward goal. Often slow because the random samples drift uniformly through space. RRT-Connect grows TWO trees: one from start, one from goal. Each iteration, alternate which tree extends; aim each extension toward the most recent sample of the other tree. Convergence: when the two trees connect, you have a complete path. Practical speedup: 10-100× over basic RRT on typical motion-planning problems. The default in most production motion planners (MoveIt, OMPL)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mp_rrtcomplete",
+        "kind": "guided_derivation",
+        "question": "Sketch RRT probabilistic completeness",
+        "goal": "If a valid path exists, RRT finds one with probability → 1 as samples → ∞.",
+        "steps": [
+          {
+            "prompt": "Probabilistic completeness needs: every region of free CSpace has positive probability of being sampled (uniform sampling), the path between any two nearby points is collision-free (smoothness), and tree extension lengths are bounded but nontrivial. Why is this enough?",
+            "motivation": "Coverage + local connectivity.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Uniform sampling visits a δ-ball around every point on the solution path infinitely often → eventually the tree contains a path-cover.",
+                "Random samples are guaranteed to find the solution in finite time.",
+                "RRT always finds the optimal solution.",
+                "Trees grow exponentially."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Probabilistic completeness ≠ optimality."
+            ],
+            "reveal": "Uniform sampling eventually places a sample in a δ-tube around the solution path. Bounded-extension steps connect nearby tree nodes. Together: the tree's reach covers the path. Hence probability → 1."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{RRT: probabilistic completeness, not optimality}}$$ Vanilla RRT finds *some* path almost surely; the path may be ugly. RRT* (asymptotic optimality) iteratively rewires the tree to converge on optimal paths. Trade-off: RRT* requires more samples but gives optimality."
+      }
+    },
+    {
+      "kind": "text",
       "title": "A* search",
       "body": "Discretize the space into a grid. Each cell is a node. Edges connect adjacent cells.\n\nA* searches for the shortest path from start to goal:\n\n- `g(n)`: actual cost from start to node `n`.\n- `h(n)`: heuristic estimate of cost from `n` to goal.\n- `f(n) = g(n) + h(n)`: total estimated cost via `n`.\n\nExpand nodes in order of `f(n)`. Optimal if `h` is admissible (never overestimates).\n\n**For navigation**: 2D grid; `h` = Euclidean distance. Works well.\n\n**For high-dimensional configuration spaces**: A* is intractable (curse of dimensionality). 7-DOF arm: even 10 cells per dim = 10^7 cells. Memory + time blow up.\n\n**D* + variants**: dynamic A* re-uses computation when the world changes. Used in legacy autonomous-vehicle planners.\n\nA* is used heavily in 2D / 3D navigation; less so in high-DOF manipulation."
     },

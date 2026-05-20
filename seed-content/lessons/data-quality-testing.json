@@ -19,6 +19,38 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Great Expectations in production",
+      "body": "Great Expectations: declarative data-quality framework. Define 'expectations' (column not null, value in range, distribution similar to baseline). On every load: run expectations; pass → load; fail → block + alert. Tracks expectation-fulfillment over time, surfacing drift before it causes downstream issues. Adopted by Airbnb, Capital One, many others as the production data-validation layer."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dq_anomaly",
+        "kind": "guided_derivation",
+        "question": "Derive sample-size for anomaly detection",
+        "goal": "Distribution mean $\\mu$, std $\\sigma$. To detect a shift of size $\\delta$ at significance 0.01 + power 0.8, sample size?",
+        "steps": [
+          {
+            "prompt": "Same rule-of-thumb as A/B testing power analysis. For two-sided test at $\\alpha = 0.01$ + 80% power: $n \\geq ((z_{\\alpha/2} + z_{0.8})/\\delta)^2 \\sigma^2$. With $z_{0.005} \\approx 2.576, z_{0.8} \\approx 0.84$: $n \\geq (3.42)^2 \\sigma^2 / \\delta^2 \\approx 11.7 \\sigma^2/\\delta^2$.",
+            "motivation": "Standard power formula.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~12 sigma^2/delta^2",
+                "12 σ²/δ²"
+              ]
+            },
+            "hints": [
+              "Use the standard formula with stricter $\\alpha$."
+            ],
+            "reveal": "$n \\geq \\sim 12 \\sigma^2/\\delta^2$."
+          }
+        ],
+        "finalResult": "Sample-size rule for anomaly tests. Larger detection threshold → less data needed. Tighter $\\alpha$ → more data. Critical for data quality: alerting too eagerly burns trust; alerting too late lets corruption propagate. Tune the trade-off explicitly."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Contract tests, the upstream-downstream handshake",
       "body": "A **data contract** is a versioned schema + SLA between a producer and consumer of data:\n\n```\nentity: customer_event\nversion: 2.0\nproducer: payments-service\nconsumer: analytics-warehouse\nfields:\n  - name: event_id, type: string, required: true, unique: true\n  - name: user_id, type: string, required: true\n  - name: amount_cents, type: int64, required: true, range: [0, 1e8]\n  - name: occurred_at, type: timestamp_utc, required: true\nsla:\n  freshness: 15min\n  completeness: 99.5%\n```\n\nThe contract is *tested* both sides:\n- **Producer**: 'we publish events matching this contract; CI fails if we change a field's type or remove it without a version bump'.\n- **Consumer**: 'we read events expecting this contract; CI fails our pipeline if the producer's published contract version doesn't match what we coded against'.\n\nWith contracts in place, breaking changes are caught at CI of either side, before they hit production. Without contracts, the consumer discovers the change as a runtime failure or, worse, silent corruption.\n\nThis pattern (data contracts) emerged ~2022 in response to a decade of 'silent breakage' incidents. It's gaining adoption; dbt Cloud + Snowflake + Databricks all have native contract support now."
     },

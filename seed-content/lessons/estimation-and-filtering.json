@@ -7,6 +7,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: GPS + IMU fusion",
+      "body": "Phones, drones, autonomous cars all fuse GPS (~5 m accuracy, 1 Hz) with IMU (mm-scale accuracy short-term, drifts at 1°/s). Kalman filter weighs them: GPS gets ~all the weight at low frequencies (anchors absolute position); IMU gets weight at high frequencies (fast updates between GPS samples). Result: meter-scale absolute accuracy at 100+ Hz update rate. The exact gain values are computed by the Kalman covariance update — automatically optimal weighting given the noise characteristics."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_est_kgain",
+        "kind": "guided_derivation",
+        "question": "Derive Kalman gain as variance-weighted average",
+        "goal": "1-D system. Prediction $\\hat x$ with variance $P$, measurement $z$ with variance $R$. What's the optimal weighting?",
+        "steps": [
+          {
+            "prompt": "Posterior estimate $\\hat x' = w_1 \\hat x + w_2 z$. Posterior variance is minimized when $w_1 + w_2 = 1$ and the variances combine inversely. Solve for the gain $K = w_2$.",
+            "motivation": "Variance-weighted average.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "P / (P + R)"
+              ]
+            },
+            "hints": [
+              "Inverse-variance weighting: weight on a quantity is its precision (= 1/variance)."
+            ],
+            "reveal": "$K = P / (P + R)$."
+          },
+          {
+            "prompt": "Posterior variance $P' = ?$",
+            "motivation": "Reduce variance after observation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(1-K) P",
+                "P R / (P + R)"
+              ]
+            },
+            "hints": [
+              "$P' = (1 - K)P$ — gain reduces uncertainty in proportion to the trust given to the measurement."
+            ],
+            "reveal": "$P' = (1 - K) P = PR/(P+R)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{K = P/(P+R),\\quad P' = (1-K)P}$$ Kalman gain is the optimal inverse-variance weighting. Large $P$ (prediction uncertain) → big $K$ (trust measurement). Small $P$ → small $K$ (trust prediction). Generalized to multivariate via matrix Schur complements."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Kalman filter — the recursive Bayesian update",
       "body": "Given:\n\n- Linear dynamics: `x_{k+1} = F x_k + B u_k + w_k`, `w_k ∼ N(0, Q)`.\n- Linear measurement: `z_k = H x_k + v_k`, `v_k ∼ N(0, R)`.\n\nThe Kalman filter maintains a Gaussian estimate of state `(x̂_k, P_k)`:\n\n**Predict**:\n- `x̂_{k+1|k} = F x̂_{k|k} + B u_k`\n- `P_{k+1|k} = F P_{k|k} F^T + Q`\n\n**Update** (when measurement `z_{k+1}` arrives):\n- Kalman gain: `K = P_{k+1|k} H^T (H P_{k+1|k} H^T + R)^{-1}`\n- `x̂_{k+1|k+1} = x̂_{k+1|k} + K (z_{k+1} - H x̂_{k+1|k})`\n- `P_{k+1|k+1} = (I - KH) P_{k+1|k}`\n\nThe gain `K` is the optimal weighting: trust the measurement more when measurement noise is small or prior uncertainty is large.\n\nThis is exactly Bayesian inference for the linear-Gaussian case, computed recursively (no need to keep history)."
     },

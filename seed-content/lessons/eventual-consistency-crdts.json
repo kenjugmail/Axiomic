@@ -19,6 +19,59 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Yjs in collaborative editors",
+      "body": "Yjs (Y-CRDT in JavaScript) powers Linear, Notion, Trello, and many collaborative editors. State-based CRDT for text + nested data structures. Each client maintains local replica, broadcasts ops, merges replicas. No central server required for correctness (servers help with persistence + connectivity). The CRDT machinery guarantees: any subset of clients can disconnect + reconnect; documents converge once everyone sees the same ops in any order."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_crdt_gcounter_conv",
+        "kind": "guided_derivation",
+        "question": "Prove G-Counter convergence",
+        "goal": "G-counter state: vector of per-replica counts. Merge: elementwise max. Show idempotent + commutative + associative.",
+        "steps": [
+          {
+            "prompt": "Idempotent: $\\text{merge}(s, s) = s$? (Elementwise max of $s$ with itself.)",
+            "motivation": "Direct.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Yes: $\\max(s_i, s_i) = s_i$ for each component.",
+                "No.",
+                "Only sometimes.",
+                "Requires equal inputs."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Max of equal values."
+            ],
+            "reveal": "Yes — elementwise max idempotent."
+          },
+          {
+            "prompt": "Commutative + associative? (Both follow from max's properties.)",
+            "motivation": "Standard.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Yes — max is commutative + associative, so elementwise extension is too.",
+                "No.",
+                "Only commutative.",
+                "Only associative."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Componentwise extension of an associative + commutative operator inherits both."
+            ],
+            "reveal": "Yes. Merge is idempotent, commutative, associative → CRDT (state-based, CvRDT)."
+          }
+        ],
+        "finalResult": "Convergence: idempotent + commutative + associative → all replicas converge to the same state given the same set of merges, regardless of order. The CRDT lattice property."
+      }
+    },
+    {
+      "kind": "text",
       "title": "CRDTs, conflict-free replicated data types",
       "body": "**CRDT**: a data structure designed to converge under concurrent updates without coordination. Two flavors:\n\n**State-based (CvRDTs)**: each replica's state is sent to others; merging is a commutative, associative, idempotent operation.\n\n**Operation-based (CmRDTs)**: each operation is sent to other replicas; operations must commute. Simpler when network is reliable.\n\n**Classic examples**:\n- **G-Counter** (grow-only): each replica increments its own counter; the value is the sum across replicas. Merge = elementwise max. Trivially convergent.\n- **PN-Counter**: pair of G-counters (increments + decrements). Supports decrement.\n- **OR-Set**: add + remove with unique tags. Adds and removes commute under tag-based reconciliation.\n- **LWW-Register**: last write wins by timestamp. Simple; loses data on concurrent writes.\n\n**Production use**: Riak's data types (counters, sets, maps, registers), Redis CRDTs, Yjs and Automerge for collaborative text editing (Figma, Linear, Notion's offline mode).\n\nThe value: build eventually-consistent systems that NEVER need application-level conflict resolution. The cost: limited to operations expressible in CRDT semantics. Arbitrary 'apply this function to two replicas' isn't a CRDT."
     },

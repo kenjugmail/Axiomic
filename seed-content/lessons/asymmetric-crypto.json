@@ -19,6 +19,55 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: TLS 1.3 hybrid post-quantum",
+      "body": "Cloudflare + Google's 2023 rollout of hybrid X25519+ML-KEM in TLS 1.3. Idea: do BOTH classical (X25519 ECDH) and post-quantum (ML-KEM/Kyber) key exchanges in parallel; combine the resulting shared secrets via HKDF; use combined secret to derive symmetric keys. Provides forward-security against both classical breaks AND future quantum attacks. The migration's first step; full PQ-only TLS expected in 5-10 years."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ac_rsa",
+        "kind": "guided_derivation",
+        "question": "Derive RSA encryption/decryption",
+        "goal": "Modulus $N = pq$, public exponent $e$, private exponent $d$ with $ed \\equiv 1 \\pmod{(p-1)(q-1)}$. Show $m^{ed} \\equiv m \\pmod N$.",
+        "steps": [
+          {
+            "prompt": "By Fermat's little theorem, for prime $p$: $m^{p-1} \\equiv 1 \\pmod p$ (when $\\gcd(m, p) = 1$). Generalize to $N = pq$: $m^{(p-1)(q-1)} \\equiv 1 \\pmod N$.",
+            "motivation": "Euler's theorem.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Yes, by CRT + Fermat applied to each prime.",
+                "No.",
+                "Only for prime $N$.",
+                "Requires $m < p$."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Euler's theorem: $m^{\\phi(N)} \\equiv 1 \\pmod N$ when $\\gcd(m, N) = 1$. For $N = pq$, $\\phi(N) = (p-1)(q-1)$."
+            ],
+            "reveal": "$m^{(p-1)(q-1)} \\equiv 1 \\pmod N$ when $\\gcd(m, N) = 1$."
+          },
+          {
+            "prompt": "$ed = 1 + k(p-1)(q-1)$ for some integer $k$. So $m^{ed} = m \\cdot (m^{(p-1)(q-1)})^k \\equiv m \\cdot 1^k = m \\pmod N$. Conclude.",
+            "motivation": "Direct.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "m mod N"
+              ]
+            },
+            "hints": [
+              "Just substitute."
+            ],
+            "reveal": "$m^{ed} \\equiv m \\pmod N$ — encryption then decryption recovers the plaintext."
+          }
+        ],
+        "finalResult": "$$\\boxed{m^{ed} \\equiv m \\pmod N}$$ RSA's mathematical foundation. Security: recovering $d$ from $(N, e)$ requires factoring $N$ — believed hard classically, easy for Shor on a fault-tolerant QC."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Post-quantum, the next ~10 years",
       "body": "Shor's algorithm breaks factoring (RSA) and discrete log (DH, ECC) on a sufficiently-large fault-tolerant quantum computer. Symmetric crypto is only quadratically vulnerable (Grover); doubling key length restores security.\n\n**NIST post-quantum standards** (finalized 2024):\n- **Kyber** (ML-KEM): lattice-based key encapsulation. Replacement for ECDH.\n- **Dilithium** (ML-DSA): lattice-based signatures. Replacement for RSA / ECDSA.\n- **SPHINCS+** (SLH-DSA): hash-based signatures. Conservative backup.\n\n**The 'harvest now, decrypt later' threat**: an adversary recording today's TLS traffic could decrypt it once quantum computers exist. For long-confidentiality data (state secrets, banking records), this means migrating to post-quantum *now*, not in 2035 when the quantum threat materializes.\n\nIn 2024-2025, Cloudflare + Google rolled out hybrid X25519+ML-KEM for TLS. Web infrastructure migration will take 5-10 years."
     },

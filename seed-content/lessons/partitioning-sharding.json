@@ -19,6 +19,38 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Discord's Cassandra migration to ScyllaDB",
+      "body": "Discord (2024) migrated from Cassandra to ScyllaDB across petabytes of message data. The migration used consistent hashing's $1/N$ data-movement property: adding new ScyllaDB nodes alongside Cassandra, gradually shifting partitions to the new cluster. Each shift moved $1/N$ of data, allowing live migration over months without downtime. Without consistent hashing, the migration would have required global redistribution + extensive maintenance windows."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_part_ch_move",
+        "kind": "guided_derivation",
+        "question": "Derive consistent-hashing data movement",
+        "goal": "Ring with $N$ nodes (each owns equal range). Add 1 node. What fraction of keys move?",
+        "steps": [
+          {
+            "prompt": "Ring before: $N$ equal ranges of $1/N$ of key space each. New node added at random ring position; takes over half of the closest existing node's range. So $1/(2N)$ of total keys move (approximately, with random positioning).",
+            "motivation": "Probabilistic counting.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~1/(2N)",
+                "1/(2N)"
+              ]
+            },
+            "hints": [
+              "With $k$ virtual replicas per node, expected fraction moving is more like $1/(N+1)$."
+            ],
+            "reveal": "$\\sim 1/N$ keys move (better with virtual nodes / replicas). Independent of total key count."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Consistent hashing: } O(K/N) \\text{ keys move when adding/removing 1 node}}$$ The signature property. Hash-modulo: $O(K)$ keys move (almost all). Production caches + DBs use consistent hashing or its descendants (rendezvous hashing, jump consistent hash)."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Hot partitions, the classic skew problem",
       "body": "**Hot partition**: one partition receives much more traffic than others. Symptoms: that partition's latency spikes, queues back up, the cluster looks 'fine on average' but specific keys are unusable.\n\nCauses:\n- **Skewed key distribution**: most traffic targets a small subset of keys. E.g., a viral tweet — millions read it, but it lives on one partition.\n- **Time-correlated keys**: timestamp-prefixed keys cause writes to all flow to the partition holding the latest timestamps. (UUIDv1 keys, autoincrement IDs.)\n\nMitigations:\n- **Random-prefix the hot key**: instead of one row for the celebrity, store ten rows (random shard suffix), serve reads from random suffix, combine. Spreads the load 10×.\n- **Cache the hot key in front of the database**: CDN/Redis layer absorbs the hot reads.\n- **Use hash-based partitioning** for write-skewed timestamp data: hash the user_id, not the timestamp, so writes spread.\n\nMost large-scale outages of well-designed systems are hot-partition issues. The 'AWS DynamoDB hot partition' is a search term every back-end engineer learns the hard way."
     },

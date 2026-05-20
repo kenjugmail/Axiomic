@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: $\\pi_0$ + Physical Intelligence",
+      "body": "Physical Intelligence's $\\pi_0$ (2024) is a 3B-parameter VLA model trained on the OXE (Open X-Embodiment) dataset spanning 22 robot embodiments + 500K episodes. Zero-shot performance on a new robot is meaningful but degraded vs single-embodiment training; a handful of demos can fine-tune to SOTA on new robots. Demonstrates that cross-embodiment generalization is real but partial — the path to truly universal robot policies still requires per-embodiment adaptation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_eai_morph",
+        "kind": "guided_derivation",
+        "question": "Identify the cross-embodiment generalization bottleneck",
+        "goal": "Why is transfer to a new embodiment harder than transfer to a new task?",
+        "steps": [
+          {
+            "prompt": "A new task (e.g., new object to grasp) shares: action space, sensors, physics. A new embodiment changes: action dim, link lengths, sensor placement, dynamics. Which is fundamentally harder?",
+            "motivation": "Action-space + dynamics mismatch.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Embodiment transfer is harder because the action space + physics differ — there's no common representation for 'how to act' across embodiments.",
+                "Tasks are harder.",
+                "Both equal.",
+                "Embodiments are easier."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Tasks live in the same action space; embodiments don't."
+            ],
+            "reveal": "Cross-embodiment generalization requires the policy to learn an *invariant representation* of intent that maps to different action spaces — much harder than task generalization within a fixed embodiment."
+          }
+        ],
+        "finalResult": "Cross-embodiment is the hardest open problem in robot learning. Current best-practice: train on diverse embodiments (OXE) for an embodiment-agnostic visual + planning module + per-embodiment action heads. The 'universal robot foundation model' is years away."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Vision-Language-Action models — the new architecture",
       "body": "**VLA architecture**: vision encoder + language encoder + transformer backbone + action decoder.\n\n**Vision encoder**: typically a pretrained vision foundation model (DINOv2, CLIP, SigLIP) or a fresh ViT. Outputs visual tokens.\n\n**Language encoder**: pretrained LLM or LLM-style transformer. Encodes the instruction (e.g., \"pick up the red block and place it on the green block\").\n\n**Transformer backbone**: decoder-only or encoder-decoder. Cross-attention between vision + language tokens; outputs action tokens.\n\n**Action decoder**: maps action tokens to motor commands. Variants:\n\n- **Discrete actions**: tokenize action space; predict tokens autoregressively.\n- **Continuous actions**: predict numerical action vectors directly.\n- **Action chunking**: predict the next K actions as a chunk.\n- **Diffusion / flow matching**: predict the action distribution, sample.\n\n**Training data**:\n\n- **Internet** (RT-2): web images + text. Provides general visual + language understanding.\n- **Robot data**: teleoperation, scripted policies, prior policies' rollouts.\n- **Cross-embodiment data** (Open X-Embodiment): mix of data from different robots. Improves generalization."
     },

@@ -19,6 +19,38 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: the SolarWinds blast radius",
+      "body": "December 2020: SolarWinds Orion (network monitoring software) compromised via supply-chain attack. Malicious update pushed to ~18,000 organizations including DoD, Treasury, multiple Fortune 500. The blast radius was massive because Orion had broad network privileges on every customer network. Lessons: minimize privileges of network monitoring tools, verify supply-chain integrity (signed binaries, SBOMs), assume breach + monitor for lateral movement. The post-mortem reshaped supply-chain security practices industry-wide."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ir_blast",
+        "kind": "guided_derivation",
+        "question": "Derive blast-radius arithmetic",
+        "goal": "Compromised credential has access to $n$ resources. Each resource accessed has read/write to $k$ further resources on average. Compute total reachable resources within 2 hops.",
+        "steps": [
+          {
+            "prompt": "Hop 0: 1 compromised credential. Hop 1: $n$ resources. Hop 2: from each of $n$, access $k$ more — but overlap likely. Conservative upper bound?",
+            "motivation": "Branching factor.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "n + n k",
+                "n(1 + k)"
+              ]
+            },
+            "hints": [
+              "First-hop + second-hop counts."
+            ],
+            "reveal": "$\\leq n + nk = n(1 + k)$ reachable in 2 hops, assuming no overlap."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{2-hop blast} \\leq n(1 + k)}$$ Why least-privilege matters: shrinking $n$ + $k$ shrinks the reachable set quadratically. Production discipline: principle of least privilege, regular access audits, time-limited access tokens."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Blameless postmortems, mechanically",
       "body": "A blameless postmortem is a document + meeting structured to learn from an incident WITHOUT scapegoating. Key elements:\n\n1. **Timeline**: minute-by-minute reconstruction of detection, response actions, customer impact. Pull from logs, chat transcripts, paging system.\n2. **Root-cause analysis**: WHY did this happen? Not 'human error' but 'the deployment system allowed an admin to override the safety gate'. Each 'why' surfaces a structural cause.\n3. **What went well**: the responders made good calls; the alerting caught it; the runbook worked. Celebrate this, even though the incident itself was bad.\n4. **What went poorly**: identify gaps without blame. 'The alert fired at 3am and the on-call didn't notice for 90 minutes because pages were misrouted' — that's a paging-system gap, not a 'the on-call wasn't paying attention' gap.\n5. **Action items**: with owners and deadlines. Engineering changes, process changes, monitoring additions. Track them in the same place you track features — not a forgotten doc.\n\nWhy 'blameless'? Because in any non-trivial system, human errors compound system gaps. Punishing the human prevents future reports of similar mistakes — making the system more brittle. Treating the human as a sensor surfaces the system gaps that produced the mistake; fixing those reduces future incidents."
     },

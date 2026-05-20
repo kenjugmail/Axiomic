@@ -7,6 +7,51 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: thermostat P-only",
+      "body": "A house thermostat with P-only control: $u = K_p (T_{\\text{set}} - T_{\\text{room}})$. If the heat loss to outside is $h = c(T_{\\text{room}} - T_{\\text{out}})$, steady-state room temp obeys $K_p (T_{\\text{set}} - T) = c(T - T_{\\text{out}})$ giving $T = (K_p T_{\\text{set}} + c T_{\\text{out}})/(K_p + c)$. So $T < T_{\\text{set}}$ always (unless $T_{\\text{out}} = T_{\\text{set}}$). The steady-state error scales as $c/(K_p + c)$. Increase $K_p$ → less error but more oscillation. Add integral term → eliminate steady-state error entirely. That's why every real thermostat is PI, not just P."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ctl_pgain",
+        "kind": "guided_derivation",
+        "question": "Derive P-only steady-state error",
+        "goal": "Plant $\\dot x = -ax + bu$, setpoint $r$, P-only $u = K_p(r - x)$. Find steady-state error.",
+        "steps": [
+          {
+            "prompt": "At steady state $\\dot x = 0$. Substitute + solve for $x$.",
+            "motivation": "Algebra.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "x = bK_p r / (a + bK_p)"
+              ]
+            },
+            "hints": [
+              "$0 = -ax + bK_p(r - x)$, solve."
+            ],
+            "reveal": "$x = bK_p r / (a + bK_p)$."
+          },
+          {
+            "prompt": "Error $e = r - x = ?$",
+            "motivation": "Subtract.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "a r / (a + bK_p)"
+              ]
+            },
+            "hints": [
+              "$e = r(1 - bK_p/(a+bK_p)) = ar/(a+bK_p)$."
+            ],
+            "reveal": "$e = ar/(a + bK_p)$ — nonzero unless $K_p \\to \\infty$."
+          }
+        ],
+        "finalResult": "$$\\boxed{e_{\\text{ss}} = ar/(a + bK_p)}$$ Steady-state error decreases with larger $K_p$ but never reaches zero. Adding an integral term $K_i \\int e\\,dt$ pushes $e_{\\text{ss}} = 0$ regardless of $K_p$ — that's the structural difference between P and PI control."
+      }
+    },
+    {
+      "kind": "text",
       "title": "PID — the canonical controller",
       "body": "Given:\n\n- **Setpoint** `r(t)`: the desired output.\n- **Measured output** `y(t)`: what the system actually does.\n- **Error** `e(t) = r(t) - y(t)`.\n\nPID computes a control signal `u(t)`:\n\n`u(t) = K_p · e(t) + K_i · ∫e(τ)dτ + K_d · de/dt`\n\nThree gains:\n\n- **K_p (Proportional)**: respond proportionally to current error.\n- **K_i (Integral)**: accumulate past error; eliminates steady-state offset.\n- **K_d (Derivative)**: anticipate future error from rate of change; damps oscillation.\n\nMost industrial control loops are PID or its variants. Tuning the three gains is part art, part recipe."
     },

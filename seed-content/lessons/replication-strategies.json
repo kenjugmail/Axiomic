@@ -19,6 +19,38 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Postgres async replication's data-loss window",
+      "body": "Standard Postgres setup: 1 primary + 2 async replicas. Replication lag ~10ms in healthy state. If primary's disk fails and replicas don't have the most-recent commits: data-loss window = the unreplicated commits, typically <100ms of writes. For high-stakes systems (banking, ledgers), enable synchronous_commit + at least one synchronous replica. Cost: ~2× write latency. Trade is worth it for the right workloads."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_rep_async",
+        "kind": "guided_derivation",
+        "question": "Derive async-replication data-loss window",
+        "goal": "Primary acks at $T_0$; replication lag $L$ seconds; primary fails at $T$. Data loss = ?",
+        "steps": [
+          {
+            "prompt": "All commits in window $[T - L, T]$ are at risk: acked by primary but not necessarily replicated. Write rate $R$ commits/sec. Data loss?",
+            "motivation": "Lag × rate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "L R",
+                "L · R"
+              ]
+            },
+            "hints": [
+              "Window size × rate."
+            ],
+            "reveal": "Loss $\\leq L \\cdot R$ commits. Mitigations: shrink $L$ (sync replicas, fast network); pay write latency to wait for replica acks."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Async data loss} \\leq L \\cdot R \\text{ commits}}$$ Async replication's failure mode = the unreplicated window. Trade latency (sync) for durability. Consensus-based replication (Raft) eliminates this window: every commit is on majority before ack."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Read replicas vs writeable replicas",
       "body": "**Single-leader writable + read replicas**: writes go only to the leader; replicas are read-only. Reads from replicas can be stale (asynchronously replicated). Useful for read-heavy workloads where stale-by-seconds is OK.\n\n**Multi-leader (active-active)**: writes accepted at multiple replicas; conflicts resolved via vector clocks, CRDTs, or last-write-wins. Useful for low-latency global writes; complicated by conflict resolution.\n\n**Leaderless** (Dynamo-style): every node accepts writes; consistency tunable via $R + W > N$. Cassandra, Riak. Simpler operationally; weak consistency by default.\n\nMost production systems use single-leader + read replicas. It's simpler to reason about; conflict-free; the leader is a bottleneck only when write volume exceeds what one node can sustain. Multi-leader / leaderless become attractive when global write latency dominates."
     },

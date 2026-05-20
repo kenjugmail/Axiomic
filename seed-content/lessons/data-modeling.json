@@ -17,6 +17,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Postgres + adding a JSONB escape hatch",
+      "body": "Strict 3NF requires every fact in one place; some real domains (semi-structured data, custom user fields) are awkward to fit. Modern Postgres: 3NF for core columns + a JSONB column for flexible attributes. Index specific JSONB paths if queried. Get 90% of relational benefits + 90% of NoSQL flexibility. The 'hybrid relational' pattern that has emerged in the 2010s."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dm_3nf",
+        "kind": "guided_derivation",
+        "question": "Apply 3NF to remove a transitive dependency",
+        "goal": "Table Orders(order_id, customer_id, customer_address). Transitive: customer_address depends on customer_id, not order_id. Normalize.",
+        "steps": [
+          {
+            "prompt": "Two-step: (1) keep Orders(order_id, customer_id); (2) create Customers(customer_id, customer_address). What's gained?",
+            "motivation": "Each fact stored once.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Customer address updates touch one row instead of every order; no inconsistency possible.",
+                "Faster queries.",
+                "Smaller disk.",
+                "Avoid foreign keys."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "The point of 3NF: prevent update anomalies."
+            ],
+            "reveal": "Address now lives in Customers only. Updating address: one row. Without normalization: every order for that customer must be updated, and partial-update bugs create inconsistency."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{3NF: every non-key column depends on the key, the whole key, and nothing but the key}}$$ The mnemonic. Codd's original formulation; still the working definition in textbooks + practical schema design."
+      }
+    },
+    {
+      "kind": "text",
       "title": "3NF, in one paragraph",
       "body": "**3NF (Third Normal Form)** is the practical normalization target for OLTP schemas. A table is in 3NF when:\n\n1. Every column is atomic (1NF — no repeating groups or lists in a single field).\n2. Every non-key column depends on the entire primary key (2NF — no partial dependency).\n3. No transitive dependencies — every non-key column depends on the key, not on another non-key column (3NF).\n\nThe 3NF win: each fact is stored in one place. Updating a customer's address updates one row of one table; in a denormalized schema the same address might appear in thousands of orders, all of which need updating.\n\nThe 3NF cost: querying often requires joins across multiple tables. Analytics queries especially suffer — joining ten 3NF tables to answer one question gets slow at scale. That's why the OLAP side denormalizes.\n\n**Star schema**: an OLAP pattern. One large fact table (events with foreign keys to dimensions) + several smaller dimension tables. Query patterns become 'join fact to a few dimensions, group by dimension attributes, aggregate'. The structure is visualized as a star with the fact in the center."
     },

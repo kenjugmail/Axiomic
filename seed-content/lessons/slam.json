@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: visual-inertial SLAM on smartphones",
+      "body": "Apple's ARKit + Google's ARCore use visual-inertial SLAM running at ~60 Hz on phone hardware. Each frame: extract features, match against map, add IMU constraints; periodically optimize a sliding window of recent poses + landmarks via factor-graph optimization. The Schur complement reduces the linear system size dramatically by marginalizing landmarks. Result: real-time map building + 6-DOF tracking on commodity hardware. The 2010s' big infrastructure advance was making SLAM real-time on consumer devices."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_slam_factor",
+        "kind": "guided_derivation",
+        "question": "Derive sparse-graph SLAM complexity",
+        "goal": "$N$ poses, $M$ landmarks, average observations per pose $\\bar k$. Dense optimization: $O((N + M)^3)$. Sparse + Schur complement: ?",
+        "steps": [
+          {
+            "prompt": "Factor graph has $N + M$ variables. Total observations: $N \\bar k$. Building the system matrix: $O(N \\bar k)$. Solving naively: $O((N+M)^3)$. But the structure has block-arrow form (poses + landmarks). Schur-complement out the landmarks first.",
+            "motivation": "Schur reduction.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$O(M \\bar k^2)$ for marginalizing landmarks + $O(N^3)$ for solving the reduced pose system.",
+                "$O((N+M)^3)$.",
+                "$O(NM)$.",
+                "$O(1)$."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Marginalizing M landmarks: each contributes a small block. Reduced system has just $N$ pose variables."
+            ],
+            "reveal": "$O(M \\bar k^2 + N^3)$. With $M \\gg N$, the first term dominates but is linear in M. With $N$ kept small (sliding window), the cubic term stays bounded → real-time."
+          }
+        ],
+        "finalResult": "Real-time SLAM exploits the sparse + arrow structure. Marginalize landmarks (Schur complement) → solve a small dense system in the pose variables → restore landmark estimates. The whole stack (g2o, GTSAM, Ceres) is sparse-linear-algebra optimization for SLAM."
+      }
+    },
+    {
+      "kind": "text",
       "title": "EKF-SLAM (the classical approach)",
       "body": "Treat the robot pose AND all landmarks as a joint state vector. Apply EKF.\n\n**State**: `[robot pose, landmark_1, landmark_2, ..., landmark_N]`. Dimension grows with the number of landmarks.\n\n**Predict**: robot pose updates via motion model; landmarks stay fixed.\n\n**Update**: when sensor sees a landmark, EKF correlates it with stored landmarks; updates joint state.\n\n**Strengths**:\n\n- Conceptually clean.\n- Correct under linear-Gaussian assumptions.\n\n**Limits**:\n\n- Quadratic complexity in landmarks: full covariance update is `O(N²)`. Doesn't scale beyond ~hundreds of landmarks.\n- Linearization errors accumulate.\n- Hard to handle data-association ambiguity (which observed landmark corresponds to which stored one?).\n\nEKF-SLAM was the standard from ~1990 to ~2010. Modern SLAM uses optimization-based + factor-graph methods."
     },

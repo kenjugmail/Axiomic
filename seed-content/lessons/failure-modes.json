@@ -19,6 +19,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Cloudflare 2019 outage",
+      "body": "July 2019: a Cloudflare regex deployed to production. The regex caused CPU spikes on every edge server processing customer requests. Spikes → request timeouts → client retries → more load → more spikes. The cascade affected ~80% of Cloudflare's network for ~30 minutes before rollback. Post-mortem: missing test in deployment pipeline + insufficient circuit-breaker on regex execution time. Modern Cloudflare has both."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fm_cascade",
+        "kind": "guided_derivation",
+        "question": "Derive cascading-failure amplification",
+        "goal": "Base load $R$. Per failed request: client retries $n$ times. Failure rate at base load: $p$. Find equilibrium load.",
+        "steps": [
+          {
+            "prompt": "Each failed request contributes $n$ retries. Effective rate: $R \\cdot (1 + n p)$. If this new rate causes higher failure rate $p'$, system enters runaway. Stability condition?",
+            "motivation": "Fixed-point analysis.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Stable if at the equilibrium rate, the load is below the capacity for which failure stays at $p$. Otherwise: runaway.",
+                "Always stable.",
+                "Always unstable.",
+                "Linear in $n$."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Positive feedback: if load increases failure increases load → cascade."
+            ],
+            "reveal": "Equilibrium load $R^* = R(1 + n p(R^*))$. Stable if the curve $R \\to R(1+np(R))$ has fixed point in the linear regime; unstable if non-trivial fixed point in saturated regime → cascade."
+          }
+        ],
+        "finalResult": "Retry storms = positive feedback loops. Mitigations: circuit breakers (stop sending if downstream failing), exponential backoff (spread retries), retry budgets (cap total retries). All disrupt the feedback before it cascades."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Circuit breakers, the basic resilience pattern",
       "body": "**Circuit breaker**: wraps a downstream call. States:\n\n- **Closed** (normal): requests pass through. Track recent error rates.\n- **Open** (tripped): too many errors recently; fail fast without calling downstream. Avoids the retry storm.\n- **Half-open** (testing): after a cooldown, allow one trial request. If it succeeds, return to closed. If it fails, stay open.\n\nThe pattern protects you from a downstream that's failing — you stop hammering it, give it a chance to recover, and your service stays responsive (with degraded functionality) rather than queueing up on a dead dependency.\n\nReal-world implementations: Hystrix (Netflix, archived but influential), Resilience4j (JVM), Polly (.NET), envoy proxy's outlier detection. Many service-mesh setups (Istio, Linkerd) provide circuit breaking at the proxy layer without application code changes.\n\nThe complementary patterns: **retries with exponential backoff + jitter** (prevent retry storms), **bulkheads** (isolate failures to one resource pool), **timeouts at every boundary** (most cascading failures involve missing timeouts).\n\nAnd: chaos engineering. Pre-emptively inject failures in production. Netflix's Chaos Monkey kills VMs randomly; the discipline forces every service to be resilient to fail-stop. The result is much fewer surprise outages.\n"
     },

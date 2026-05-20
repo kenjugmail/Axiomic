@@ -19,6 +19,37 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: etcd + Kubernetes",
+      "body": "Kubernetes uses etcd (a Raft-based KV store) for all cluster state. Typical cluster: 3 or 5 etcd nodes. Loses an etcd node + a Kubernetes worker simultaneously → cluster keeps working (quorum survives). Loses 2 of 3 etcd nodes → cluster control plane stalls (can't agree on writes). The whole Kubernetes scheduling + state-machine model assumes Raft's linearizability + availability guarantees."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_raft_quorum",
+        "kind": "guided_derivation",
+        "question": "Derive Raft quorum size",
+        "goal": "To tolerate $f$ failures (always make progress with $f$ down), need $N \\geq ?$",
+        "steps": [
+          {
+            "prompt": "Majority quorum: need $\\lceil N/2 \\rceil + 1$ alive. After $f$ failures: $N - f$ alive. Need $N - f \\geq \\lceil N/2 \\rceil + 1$. Solve for $N$.",
+            "motivation": "Algebra.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "N >= 2f+1"
+              ]
+            },
+            "hints": [
+              "$N - f \\geq N/2 + 1 \\Rightarrow N \\geq 2f + 2$? Off by one. Let's recompute: majority = $\\lfloor N/2 \\rfloor + 1$. For odd N: $(N+1)/2$. Need $(N+1)/2 \\leq N - f \\Rightarrow N \\geq 2f + 1$."
+            ],
+            "reveal": "$N \\geq 2f + 1$. Standard: $f=1 \\to N=3, f=2 \\to N=5$."
+          }
+        ],
+        "finalResult": "$$\\boxed{N \\geq 2f + 1}$$ The fundamental Raft cluster-sizing rule. Production: 3 nodes (tolerate 1 failure, common in single-region) or 5 nodes (tolerate 2, common in multi-region for safety against simultaneous correlated failures)."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Quorum + majority arithmetic",
       "body": "**Quorum-based replication**: to tolerate $f$ failures with $N$ nodes, you need $N \\geq 2f + 1$ (majority quorum). Concrete: tolerate 1 failure → 3 nodes; tolerate 2 → 5 nodes; tolerate $f$ → $2f+1$.\n\n**Write quorum** $W$ + **read quorum** $R$: in Dynamo-style systems (Cassandra), you choose $W$ and $R$ separately. For linearizable reads: $W + R > N$. For 'last writer wins' availability: $W = R = 1$ (don't do this for important data; you'll lose writes on conflict).\n\n**The 5-vs-7 question**: why do most production Raft clusters run 3 or 5 nodes, not 7?\n- 3 nodes: tolerate 1 failure. Cheap. Common in single-region.\n- 5 nodes: tolerate 2 failures. Standard in multi-region.\n- 7 nodes: tolerate 3 failures, but writes must replicate to 4 nodes — write latency suffers. The marginal availability win rarely justifies the latency cost.\n\nReplication-quorum math is one of the most useful tools in distributed-systems design; sketching the failure mode + required quorum on a napkin saves a lot of operational pain."
     },

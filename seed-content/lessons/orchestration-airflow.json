@@ -19,6 +19,38 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: parameterizing for backfills",
+      "body": "Production DAG: process daily user-events. Use Airflow's `data_interval_start` macro to parameterize the SQL: `SELECT * FROM events WHERE event_date BETWEEN '{{ ds }}' AND '{{ next_ds }}'`. Each DAG run processes a specific date. Backfill 30 days: `airflow dags backfill -s 2024-04-01 -e 2024-04-30 my_dag`. Each day runs as a separate DAG instance, parallelizable. The data-interval pattern is the right design for date-partitioned data."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_af_dagtime",
+        "kind": "guided_derivation",
+        "question": "Derive DAG execution time for parallel + sequential tasks",
+        "goal": "DAG with 3 stages: extract (parallel 10 tasks, 5 min each), transform (sequential, 10 min), load (parallel 5 tasks, 3 min each). Total time?",
+        "steps": [
+          {
+            "prompt": "Parallel stages bound by max task time. Stage 1: 5 min. Stage 2: 10 min. Stage 3: 3 min. Total sequential through stages?",
+            "motivation": "Sum of stage times.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "18 min",
+                "5+10+3"
+              ]
+            },
+            "hints": [
+              "DAG completion = sum of critical-path stages."
+            ],
+            "reveal": "5 + 10 + 3 = 18 minutes (assuming abundant parallelism within each stage)."
+          }
+        ],
+        "finalResult": "DAG critical path = longest dependency chain. Add more parallelism within a stage → reduces that stage's time. Add more stages → linear extension. Airflow's value: orchestrating this dependency graph reliably across distributed workers."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Common anti-patterns + fixes",
       "body": "**Anti-pattern 1**: doing work in the DAG file. Code at module level (like calling an API) runs on every parse — and Airflow parses DAG files frequently. Move work into task functions.\n\n**Anti-pattern 2**: too-wide tasks. A single task that processes a whole day's data is hard to retry partially. Better: parameterize the task by partition (date, hour), launch one task per partition. Now failures retry granularly.\n\n**Anti-pattern 3**: heavy sensors. A sensor that polls every minute holds a task slot. Use `reschedule` mode (release the slot between polls) or **deferrable operators** (Airflow 2.2+, async sensors that don't hold a slot).\n\n**Anti-pattern 4**: implicit dependencies. Two tasks that share state via a database table without an explicit dependency edge. The DAG runs out of order on a partial failure. Make dependencies explicit.\n\n**Anti-pattern 5**: re-deriving everything on each run. Use Airflow's data-interval semantics: a DAG run is *for* a specific interval; the task processes only data in that interval. Idempotent + reproducible. Backfills become straightforward."
     },
