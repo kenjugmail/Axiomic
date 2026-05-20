@@ -40,6 +40,76 @@
       "kind": "text",
       "title": "What's next",
       "body": "Mechanics foundations gives you the vocabulary: positions, velocities, forces, energy, conservation. The next physics lessons build on this:\n\n- [[oscillations]] — simple harmonic motion, damped + driven oscillators, resonance\n- [[phase-space]] — visualizing dynamics in (x, p) space, fixed points, stability\n- [[lagrangian-mechanics]] — generalizing Newton via least action\n- [[chaos-and-sensitivity]] — when deterministic systems become unpredictable\n- [[statistical-mechanics]] — moving from one particle to many (the microscale → macroscale link)\n- [[entropy-and-information]] — connecting Boltzmann's H to Shannon's H\n\nKey takeaways:\n- Newton's three laws are the foundation: F = ma is the workhorse\n- Conservation laws (momentum, energy, angular momentum) come from symmetries\n- Energy as kinetic + potential, with the Lagrangian L = T - U as the unifying object\n- Mechanics intuitions transfer to ML training: loss as potential, optimization as motion"
+    },
+    {
+      "kind": "text",
+      "title": "Conservation is your shortcut",
+      "body": "A 2 kg block slides down a frictionless ramp from height 5 m. What's its speed at the bottom?\n\nThe Newton-force-diagram approach: decompose gravity along the ramp, integrate $a = g \\sin\\theta$ over the path length. Works, but tedious.\n\nConservation of energy: $mgh = \\tfrac12 m v^2 \\Rightarrow v = \\sqrt{2gh} = \\sqrt{2 \\cdot 9.8 \\cdot 5} \\approx 9.9$ m/s. Two lines.\n\nWhenever a problem says 'frictionless' or 'collision' or 'pendulum reaches what height', reach for conservation first. Newton's $F = ma$ is the foundation, but its integrated forms (energy and momentum conservation) are the practical workhorses."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mech_v",
+        "kind": "math_expression",
+        "question": "Block of mass $m = 4$ kg slides from height $h = 1.25$ m (frictionless). Use $g = 10$ m/s² and conservation of energy to find the speed at the bottom (m/s).",
+        "acceptedAnswers": [
+          "5",
+          "5.0",
+          "sqrt(25)",
+          "5 m/s"
+        ],
+        "hint": "$v = \\sqrt{2gh}$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mech_collision",
+        "kind": "multiple_choice",
+        "question": "Two carts on a frictionless track. Cart A (mass 2 kg) moves at 3 m/s into stationary cart B (mass 1 kg) and they stick together. What's the final velocity of the combined pair?",
+        "options": [
+          "1.0 m/s",
+          "2.0 m/s",
+          "3.0 m/s",
+          "Cannot tell without more info"
+        ],
+        "correctIndex": 1,
+        "explanation": "Conservation of momentum: $(2)(3) + (1)(0) = (3)(v_f)$, so $v_f = 2$ m/s. Note kinetic energy is NOT conserved (this is an inelastic collision) — momentum is."
+      },
+      "hints": [
+        "In any collision, momentum is conserved.",
+        "Sticky collision = perfectly inelastic. KE is lost; momentum isn't."
+      ],
+      "workedSolution": "Apply $p_{\\text{before}} = p_{\\text{after}}$: $m_A v_A = (m_A + m_B) v_f$, so $v_f = (2)(3) / 3 = 2$ m/s. Kinetic energy before is $9$ J; after is $6$ J — $3$ J went to deformation/heat in the sticking. Don't apply energy conservation across inelastic collisions.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mech_collision",
+        "kind": "scenario",
+        "question": "Why energy conservation fails",
+        "prompt": "A teammate uses energy conservation to predict the speed of two colliding clay balls that stick. Their answer is off by 30%. What did they assume that they shouldn't have?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mech",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why momentum is conserved in any collision but kinetic energy isn't.",
+        "rubric": "Mentions that momentum conservation follows from Newton's third law (forces in collision are internal and cancel pairwise); KE can be lost to heat, sound, deformation — all microscopic degrees of freedom not tracked in the macroscopic momentum balance."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Apply Newton's three laws to a force diagram.",
+      "Compute kinetic and potential energy for a simple system.",
+      "Use conservation of momentum + energy to short-circuit a calculation."
+    ],
+    "prereqs": []
+  }
 }

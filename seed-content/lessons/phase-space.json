@@ -36,6 +36,78 @@
       "kind": "text",
       "title": "What this leads into",
       "body": "Phase portraits are the right way to *see* dynamics. They generalize cleanly:\n\n- 2D phase space (position + velocity for a 1D mechanical system) lets us draw spirals, centers, saddles, and limit cycles.\n- 3D phase space is the home of strange attractors. The [Lorenz system](/wiki/chaos-and-sensitivity) lives here.\n- High-dimensional phase space is where neural-network training dynamics happen. The same vocabulary — fixed points, basins of attraction, saddles — is what theorists use to think about why deep learning works.\n\nMaster the 1D picture and the higher-dimensional cases stop looking foreign."
+    },
+    {
+      "kind": "text",
+      "title": "Read stability without solving",
+      "body": "Take $\\dot x = f(x)$. **Fixed points** are zeros: $f(x^*) = 0$. To classify:\n\n- $f'(x^*) < 0$ → stable. A small perturbation $\\delta$ shrinks ($\\dot\\delta < 0$).\n- $f'(x^*) > 0$ → unstable. Perturbations grow exponentially.\n- $f'(x^*) = 0$ → marginal. Need to look at higher-order terms.\n\nExample: logistic equation $\\dot x = rx(1-x)$ with $r > 0$. Fixed points at $x^* = 0$ ($f'(0) = r > 0$, unstable) and $x^* = 1$ ($f'(1) = -r < 0$, stable). Without solving, you know any positive initial condition decays toward $x = 1$ over time.\n\nFor 2D systems ($\\dot{\\mathbf x} = \\mathbf f(\\mathbf x)$) the linearization becomes the Jacobian's eigenvalues, and you get the full bestiary: saddles, nodes, spirals, centers. But the 1D version captures the essential trick: read off behavior from a derivative sign, no ODE solving."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ps_stability",
+        "kind": "math_expression",
+        "question": "$\\dot x = x - x^3$. Stable fixed points are at $x^* = $ which values? List in increasing order separated by commas.",
+        "acceptedAnswers": [
+          "-1,1",
+          "-1, 1",
+          "+1,-1",
+          "1,-1"
+        ],
+        "hint": "$f(x) = x - x^3 = x(1 - x^2)$; zeros at $-1, 0, 1$. Check $f'(x^*)$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ps_logistic",
+        "kind": "multiple_choice",
+        "question": "$\\dot x = rx(1-x)$ with $r > 0$. Trajectories starting at $x_0 = 0.01$ asymptotically:",
+        "options": [
+          "go to 0",
+          "go to 1",
+          "oscillate",
+          "blow up to infinity"
+        ],
+        "correctIndex": 1,
+        "explanation": "Logistic dynamics: $x = 0$ is unstable ($f'(0) = r > 0$); $x = 1$ is stable ($f'(1) = -r < 0$). Any positive initial condition flows to $x = 1$. This is the classical S-curve growth model."
+      },
+      "hints": [
+        "Identify the fixed points and compute $f'(x^*)$ at each.",
+        "Trajectories flow away from unstable fixed points and toward stable ones."
+      ],
+      "workedSolution": "Fixed points at $x^* = 0$ (unstable, $f'(0) = r$) and $x^* = 1$ (stable, $f'(1) = -r$). The basin of attraction of $x^* = 1$ is $(0, \\infty)$. Any positive seed grows monotonically to 1 — the textbook logistic S-curve.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ps_basin",
+        "kind": "scenario",
+        "question": "Multiple stable equilibria",
+        "prompt": "A bistable circuit has $\\dot x = -x^3 + x$. Two attractors at $\\pm 1$, one repeller at 0. A noise pulse pushes the system briefly above 0 from a steady state at $x = -1$. What happens, and what's the design lesson for noise margins?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ps",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why linearization at a fixed point is enough to predict local stability but not global behavior.",
+        "rubric": "Mentions that the linearization captures behavior for arbitrarily-close initial conditions; large perturbations can leave the basin of attraction and converge to a different attractor."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Sketch a 1D phase portrait from a $\\dot x = f(x)$ system.",
+      "Classify fixed points by linearization.",
+      "Read stability off the sign of $f'(x^*)$."
+    ],
+    "prereqs": [
+      "oscillations"
+    ]
+  }
 }

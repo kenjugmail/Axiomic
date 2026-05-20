@@ -61,6 +61,78 @@
       "kind": "text",
       "title": "What's next",
       "body": "Oscillations are the universal local description of any system near equilibrium. The math (sinusoidal solutions, exponential decay, resonance peaks) reappears in dozens of contexts.\n\nNext: [[phase-space]] — a powerful visualization tool for understanding any dynamical system, including the oscillator, by plotting (position, momentum) instead of (position, time).\n\nKey takeaways:\n- SHO equation: ẍ = -ω²x; sinusoidal solutions; energy oscillates between kinetic and potential\n- Damping regimes: underdamped (rings), critically damped (fast settle), overdamped (slow exponential)\n- Resonance: driving at the natural frequency amplifies the response\n- Superposition + Fourier: linear systems decompose complex inputs into sinusoidal components\n- Local approximation: any system near equilibrium looks like an oscillator"
+    },
+    {
+      "kind": "text",
+      "title": "Why every stable equilibrium is locally SHM",
+      "body": "Take any potential energy $U(x)$ with a local minimum at $x_0$. Taylor-expand:\n\n$$U(x) \\approx U(x_0) + \\tfrac12 U''(x_0)\\,(x-x_0)^2 + \\cdots$$\n\nThe linear term vanishes (it's an extremum); the quadratic term dominates for small displacements. So the force $F = -dU/dx \\approx -U''(x_0)\\,(x-x_0)$. That's Hooke's law with effective spring constant $k = U''(x_0)$.\n\nResult: every stable equilibrium behaves like a simple harmonic oscillator for small enough displacements, with period $T = 2\\pi\\sqrt{m/k}$. Pendulums, atoms in crystals, the spring on a screen door — all SHM in the small-amplitude limit. This is one of physics's biggest unification arguments: the same equation $\\ddot x = -\\omega^2 x$ shows up everywhere because nature has a lot of stable equilibria and we mostly study small deviations from them."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_osc_period",
+        "kind": "math_expression",
+        "question": "Mass $m = 0.5$ kg on a spring with $k = 50$ N/m. Compute the period $T = 2\\pi\\sqrt{m/k}$ (s) to 2 decimals.",
+        "acceptedAnswers": [
+          "0.63",
+          "0.628",
+          ".628",
+          "0.6283"
+        ],
+        "hint": "$T = 2\\pi\\sqrt{0.5/50} = 2\\pi \\cdot 0.1$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_osc_damp",
+        "kind": "multiple_choice",
+        "question": "A damped oscillator $\\ddot x + 2\\gamma\\dot x + \\omega_0^2 x = 0$ is critically damped when:",
+        "options": [
+          "$\\gamma < \\omega_0$ (under-damped)",
+          "$\\gamma = \\omega_0$ (critical)",
+          "$\\gamma > \\omega_0$ (over-damped)",
+          "$\\gamma = 0$ (undamped)"
+        ],
+        "correctIndex": 1,
+        "explanation": "Critical damping is $\\gamma = \\omega_0$: the boundary between oscillating-return (under-damped) and slow-without-oscillating return (over-damped). It is the fastest non-oscillating return to equilibrium — the regime door-closers and shock absorbers are tuned to."
+      },
+      "hints": [
+        "The discriminant of the characteristic polynomial is what's at issue.",
+        "Critical = the regime where the two roots coincide."
+      ],
+      "workedSolution": "The characteristic equation $\\lambda^2 + 2\\gamma\\lambda + \\omega_0^2 = 0$ has roots $\\lambda = -\\gamma \\pm \\sqrt{\\gamma^2 - \\omega_0^2}$. Discriminant zero when $\\gamma = \\omega_0$ — critical damping. Above that, real distinct roots (over-damped); below, complex (under-damped, oscillating).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_osc_resonance",
+        "kind": "scenario",
+        "question": "When resonance is the enemy",
+        "prompt": "Tacoma Narrows Bridge famously collapsed in 1940 from wind-driven oscillations. A new highway bridge designer is asked why we don't just damp out every structure to critical damping. What's the engineering tradeoff?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_osc",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why a clock pendulum can have nearly the same period for years despite small amplitude variations.",
+        "rubric": "Mentions that to leading order the period is amplitude-independent for small-angle SHM (the small-angle approximation makes the restoring force linear), so amplitude variations only matter at higher-order corrections."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Recognize SHM as the universal small-oscillation behavior around any stable equilibrium.",
+      "Compute period and angular frequency for spring + pendulum systems.",
+      "Distinguish damped, undamped, and driven oscillators."
+    ],
+    "prereqs": [
+      "mechanics-foundations"
+    ]
+  }
 }

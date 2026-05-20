@@ -61,6 +61,77 @@
       "kind": "text",
       "title": "What's next",
       "body": "Lagrangian mechanics is the abstraction layer that turns local force-balancing into a global optimization principle. Same physics, much cleaner machinery — and the principle generalizes far beyond particles.\n\nKey takeaways:\n- Lagrangian: `L = T - U`. Action: `S = ∫ L dt`. Principle: `δS = 0`.\n- Euler-Lagrange equation: `d/dt(∂L/∂q̇) = ∂L/∂q` for each coordinate.\n- Generalized coordinates absorb constraints — no constraint forces appear.\n- Cyclic coordinates → conserved conjugate momenta.\n- Noether: every continuous symmetry → conservation law.\n- Same machinery powers field theory, optimal control, variational ML.\n\nNext: [[nonlinear-dynamics]] — what happens when systems aren't linear and the simple harmonic oscillator approximation breaks down."
+    },
+    {
+      "kind": "text",
+      "title": "Why physicists prefer Lagrangians",
+      "body": "For a pendulum of length $\\ell$ and mass $m$ swinging at angle $\\theta$:\n\nKinetic energy: $T = \\tfrac12 m (\\ell \\dot\\theta)^2$. Potential energy: $U = -m g \\ell \\cos\\theta$. Lagrangian: $L = T - U$.\n\nEuler-Lagrange:\n$$\\frac{d}{dt}\\frac{\\partial L}{\\partial \\dot\\theta} = \\frac{\\partial L}{\\partial \\theta}$$\n$$\\frac{d}{dt}(m\\ell^2 \\dot\\theta) = -mg\\ell\\sin\\theta$$\n$$\\ell\\ddot\\theta + g\\sin\\theta = 0$$\n\nDone — that's the pendulum equation, with no force diagrams or coordinate decomposition. The Lagrangian approach handles arbitrary generalized coordinates (angles, lengths, anything) and produces the equations of motion directly.\n\nBigger payoff: **Noether's theorem**. Every continuous symmetry of $L$ corresponds to a conserved quantity. Time-translation symmetry → energy conservation. Spatial-translation symmetry → momentum. Rotational symmetry → angular momentum. Conservation laws aren't accidents; they're the *content* of the system's symmetries."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_lag_pendulum",
+        "kind": "multiple_choice",
+        "question": "A simple pendulum has Lagrangian $L = \\tfrac12 m\\ell^2 \\dot\\theta^2 + mg\\ell\\cos\\theta$. Applying Euler-Lagrange, the equation of motion is:",
+        "options": [
+          "$\\ell\\ddot\\theta + g\\sin\\theta = 0$",
+          "$\\ddot\\theta = -g\\cos\\theta/\\ell$",
+          "$\\dot\\theta = -g\\sin\\theta$",
+          "$\\ddot\\theta = 0$"
+        ],
+        "correctIndex": 0,
+        "explanation": "Apply $\\frac{d}{dt}(\\partial L/\\partial \\dot\\theta) = \\partial L/\\partial \\theta$. $\\partial L/\\partial\\dot\\theta = m\\ell^2 \\dot\\theta$, time-derivative is $m\\ell^2\\ddot\\theta$. $\\partial L/\\partial\\theta = -mg\\ell\\sin\\theta$. So $m\\ell^2\\ddot\\theta = -mg\\ell\\sin\\theta \\Rightarrow \\ddot\\theta = -(g/\\ell)\\sin\\theta$, i.e. $\\ell\\ddot\\theta + g\\sin\\theta = 0$."
+      },
+      "hints": [
+        "Apply Euler-Lagrange: $d/dt(\\partial L/\\partial\\dot q) = \\partial L/\\partial q$.",
+        "Differentiate carefully and clear the common factor of $m\\ell$."
+      ],
+      "workedSolution": "$\\partial L/\\partial\\dot\\theta = m\\ell^2\\dot\\theta$. $d/dt$ of that is $m\\ell^2\\ddot\\theta$. $\\partial L/\\partial\\theta = -mg\\ell\\sin\\theta$. Equating: $m\\ell^2\\ddot\\theta + mg\\ell\\sin\\theta = 0$ → $\\ell\\ddot\\theta + g\\sin\\theta = 0$.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_lag_noether",
+        "kind": "scenario",
+        "question": "Symmetry → conservation",
+        "prompt": "A particle moves in a potential $U(r) = -k/r$ (Coulomb / gravity). The Lagrangian has rotational symmetry. Which quantity does Noether's theorem tell you is conserved, and what physical implication does that have for the orbits?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_lag_simp",
+        "kind": "math_expression",
+        "question": "Lagrangian $L = \\tfrac12 m\\dot x^2 - \\tfrac12 kx^2$. The Euler-Lagrange equation gives $m\\ddot x = -kx$. The angular frequency $\\omega$ of the resulting SHM is:",
+        "acceptedAnswers": [
+          "sqrt(k/m)",
+          "√(k/m)",
+          "(k/m)^(1/2)"
+        ],
+        "hint": "Solve $m\\ddot x + kx = 0$ as $\\ddot x = -\\omega^2 x$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_lag",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why action principles (minimizing $\\int L \\, dt$) produce the same equations of motion as Newton's laws.",
+        "rubric": "Mentions that the Euler-Lagrange equation is the necessary condition for the action integral to be stationary, and that this turns out to be algebraically equivalent to F = ma for a wide class of mechanical systems."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "core",
+    "objectives": [
+      "Compute Lagrangian and Euler-Lagrange equation for a simple system.",
+      "Reason about generalized coordinates.",
+      "Connect symmetries to conservation laws (Noether)."
+    ],
+    "prereqs": [
+      "mechanics-foundations"
+    ]
+  }
 }

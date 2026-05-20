@@ -61,6 +61,77 @@
       "kind": "text",
       "title": "What's next",
       "body": "Statistical mechanics gives us a bridge from microscopic dynamics to macroscopic thermodynamic behavior — and along the way produces the same exponential-family / max-entropy distributions ML uses for classification and generative modeling.\n\nKey takeaways:\n- Statistical mechanics tracks distributions over microstates rather than tracking individual particles\n- Boltzmann distribution: `p(s) = exp(-E_s/k_BT)/Z` is the equilibrium distribution at temperature T\n- Partition function Z is the central object — derivatives give all thermodynamics\n- Entropy = log of multiplicity; the second law is a counting argument about huge N\n- Free energy F = -k_BT log Z is what systems minimize at fixed temperature\n- Softmax in ML and Boltzmann in physics are the same distribution, with different names\n\nNext: [[entropy-and-information]] — completing the bridge by showing that Boltzmann's thermodynamic entropy and Shannon's information entropy are the same quantity."
+    },
+    {
+      "kind": "text",
+      "title": "Entropy is counting",
+      "body": "Boltzmann: $S = k_B \\ln W$, where $W$ is the number of microstates compatible with a macrostate.\n\nFlip 4 coins. Macrostate: '2 heads, 2 tails'. Microstates: HHTT, HTHT, HTTH, THHT, THTH, TTHH — six of them. So $S(2,2) = k_B \\ln 6$.\n\nMacrostate '4 heads': 1 microstate. $S = 0$. Macrostate '3 heads, 1 tails': 4 microstates. $S = k_B \\ln 4$.\n\nThe second law (entropy increases): in a closed system, you spend most of your time in macrostates that have many microstates (because there are vastly more of them in any reasonable problem). Mix a drop of ink in water: ordered macrostate has tiny $W$; mixed macrostate has astronomically more. The system spends ~all its time in the mixed macrostate not because of any active 'dispersal force' but because the mixed-state count vastly outnumbers the unmixed.\n\nEvery entropy formula in physics (Gibbs, Shannon, von Neumann) is a refinement of this counting principle."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sm_entropy",
+        "kind": "math_expression",
+        "question": "A macrostate corresponds to $W = 10^{10}$ microstates. Compute $S/k_B = \\ln W$ to 1 decimal.",
+        "acceptedAnswers": [
+          "23.0",
+          "23",
+          "10 ln(10)"
+        ],
+        "hint": "$\\ln 10^{10} = 10 \\ln 10 \\approx 10 \\cdot 2.303$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sm_partfn",
+        "kind": "multiple_choice",
+        "question": "The Boltzmann distribution says state $i$ with energy $E_i$ has probability $p_i = e^{-\\beta E_i}/Z$ where $Z = \\sum_j e^{-\\beta E_j}$ is the partition function. At low temperature ($\\beta = 1/k_BT \\to \\infty$):",
+        "options": [
+          "All states are equally likely",
+          "Only the ground state has measurable probability",
+          "The partition function diverges",
+          "Energy is conserved"
+        ],
+        "correctIndex": 1,
+        "explanation": "As $T \\to 0$, $\\beta \\to \\infty$, and $e^{-\\beta E_i}$ falls off exponentially with $E_i$. The ratio $e^{-\\beta E_1}/e^{-\\beta E_0}$ for first-excited vs ground state goes to zero. Population concentrates entirely in the ground state — the zero-temperature limit."
+      },
+      "hints": [
+        "At $\\beta = \\infty$, $e^{-\\beta E}$ is sharpest for the smallest $E$.",
+        "All other states' probabilities go to zero relative to the ground state."
+      ],
+      "workedSolution": "At $\\beta \\to \\infty$, the ratio $p_{\\text{excited}}/p_{\\text{ground}} = e^{-\\beta \\Delta E} \\to 0$ for any energy gap $\\Delta E > 0$. The system localizes entirely in the ground state — this is the operational definition of 'absolute zero temperature'. Quantum many-body physics uses this limit constantly.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sm_arrow",
+        "kind": "scenario",
+        "question": "The arrow of time",
+        "prompt": "Why does entropy increase even though Newton's laws are time-reversible? Reflect on the role of macrostate vs microstate counting in three sentences."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sm",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why mixing ink into water is irreversible in practice but not in principle.",
+        "rubric": "Mentions that the microstate dynamics are reversible (any microstate trajectory could in principle run backward) but the mixed macrostate has so many more microstates that the system overwhelmingly samples mixed configurations."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Compute the partition function for a small system.",
+      "Connect entropy to log of microstate count (Boltzmann).",
+      "Recognize the equipartition theorem."
+    ],
+    "prereqs": [
+      "mechanics-foundations"
+    ]
+  }
 }
