@@ -7,6 +7,38 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: DINOv2's patch-level features",
+      "body": "Meta's DINOv2 (2023) self-supervised ViT produces patch-level features that are useful out-of-the-box for downstream tasks. Visualize the attention from the CLS token: it focuses on semantically-meaningful objects across the image. Per-patch features serve as drop-in replacements for CNN features in segmentation, depth estimation, etc. The shift from 'CNN features for everything' (Inception-V3, ResNet) to 'ViT features for everything' (DINOv2, OpenCLIP) happened ~2021-2023."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_vit_patches",
+        "kind": "guided_derivation",
+        "question": "Derive patch count for ViT",
+        "goal": "Image $H \\times W$, patch size $p \\times p$. Number of patches?",
+        "steps": [
+          {
+            "prompt": "Patches per row: $\\lfloor W/p \\rfloor$. Patches per column: $\\lfloor H/p \\rfloor$. Total?",
+            "motivation": "Product.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(W/p) (H/p)",
+                "WH/p^2"
+              ]
+            },
+            "hints": [
+              "Product of dims."
+            ],
+            "reveal": "Total = $(H/p)(W/p)$. Plus 1 for the CLS token."
+          }
+        ],
+        "finalResult": "$$\\boxed{N_\\text{patches} = HW/p^2}$$ ViT-B/16 on 224×224: $14 \\times 14 = 196$ patches + 1 CLS = 197 tokens. Quadratic attention cost makes long-context vision (ViT on 1024×1024) expensive — hence Swin / linear attention variants for high-res vision."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Why patches, why 16×16",
       "body": "The patch decomposition is the key design choice. 16×16 is somewhat arbitrary — variants use 8×8, 14×14, 32×32. Trade-offs:\n\n**Smaller patches**:\n- More patches per image (more sequence length).\n- Finer spatial detail.\n- Quadratic attention cost in sequence length → big compute increase.\n\n**Larger patches**:\n- Fewer patches; cheaper attention.\n- Coarser spatial detail; loses fine-grained features.\n- Requires larger embedding dim to capture per-patch info.\n\n16×16 is the sweet spot for 224×224 images at standard sizes. For higher-resolution images (512×512), use 32×32 patches to keep sequence length manageable. For very-fine-grained tasks, smaller patches help.\n\n**The patch-as-token analogy**: the patches play the role of tokens in language models. An image becomes a 'sentence' of patches; the transformer learns relationships between them via attention. Same architecture, different modality."
     },

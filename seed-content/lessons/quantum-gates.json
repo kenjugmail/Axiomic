@@ -7,6 +7,39 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: deferred measurement",
+      "body": "Quantum circuits often interleave gates + measurements. The 'principle of deferred measurement' says: any measurement in the middle of a quantum circuit can be replaced by a measurement at the end + classical control of subsequent gates. Useful theoretically (treat the whole circuit as unitary) + practically (delay measurement until necessary). The principle is the technical backbone of mid-circuit measurement protocols on modern hardware (IBM's Q, Quantinuum's H-series)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_qg_hsq",
+        "kind": "guided_derivation",
+        "question": "Derive $H^2 = I$",
+        "goal": "Show that two applications of Hadamard give the identity.",
+        "steps": [
+          {
+            "prompt": "$H = (1/\\sqrt 2) [[1, 1], [1, -1]]$. Compute $H^2$.",
+            "motivation": "Matrix multiplication.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "I",
+                "[[1,0],[0,1]]",
+                "identity"
+              ]
+            },
+            "hints": [
+              "$H^2 = (1/2)[[1+1, 1-1], [1-1, 1+1]] = (1/2)[[2, 0], [0, 2]] = I$."
+            ],
+            "reveal": "$H^2 = I$."
+          }
+        ],
+        "finalResult": "$$\\boxed{H^2 = I, \\text{ i.e., } H = H^{-1}}$$ Hadamard is its own inverse. So applying H twice in a row is a no-op. Useful identity that comes up in algorithm analysis (e.g., Deutsch-Jozsa, Grover) for simplifying circuits."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Single-qubit gates",
       "body": "**Pauli gates**:\n\n- **X (NOT)**: `[[0,1],[1,0]]`. Bit flip. `X|0⟩ = |1⟩`.\n- **Y**: `[[0,-i],[i,0]]`. Bit + phase flip.\n- **Z (phase)**: `[[1,0],[0,-1]]`. Phase flip on |1⟩.\n\n**Hadamard (H)**: `(1/√2)[[1,1],[1,-1]]`. Creates superposition: `H|0⟩ = (1/√2)(|0⟩ + |1⟩) = |+⟩`. The most-used single-qubit gate.\n\n**T gate**: `[[1,0],[0,e^{iπ/4}]]`. Phase shift; together with H + CNOT forms a universal gate set.\n\n**S gate**: `[[1,0],[0,i]]`. Like T but quarter rotation.\n\n**Rotation gates** (R_x, R_y, R_z): rotate around the Bloch sphere axes by angle θ. Continuous parameters; used in variational algorithms."
     },

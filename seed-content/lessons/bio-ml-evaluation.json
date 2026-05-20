@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: ESMFold vs AlphaFold on novel folds",
+      "body": "ESMFold (single-sequence) and AlphaFold (MSA-based) perform comparably on proteins with rich MSAs. On *orphan* proteins (no homologs), AlphaFold loses badly (no MSA signal); ESMFold loses less (learned protein language has some signal). CASP15 (2022) explicitly evaluated novel-fold targets: ESMFold + AlphaFold both struggled; only AlphaFold-Multimer + careful prompting got close to experimental. The lesson: average accuracy hides large variation across the difficulty axis."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bme_contam",
+        "kind": "guided_derivation",
+        "question": "Estimate contamination probability",
+        "goal": "Sequence identity threshold $t$ (e.g., 30%); database of $N$ sequences. What's the chance a 'random' test sequence has a >$t$-identity match in training?",
+        "steps": [
+          {
+            "prompt": "Sequence space is large but structured. For real protein databases, what's a rough probability that a random 300-residue sequence has a >30%-identity match in a 100M-sequence database?",
+            "motivation": "Order-of-magnitude empirical estimate.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "High: most natural sequences have nearby homologs in large databases — contamination is the norm, not the exception.",
+                "Low: protein space is too large.",
+                "Always 0.",
+                "Always 1."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Real-world protein sequences cluster around functional families."
+            ],
+            "reveal": "High. Real protein sequences cluster heavily; most have close homologs in any modern database. Contamination-aware train/test splits (e.g., CD-HIT at 30%) are non-negotiable for biology ML."
+          }
+        ],
+        "finalResult": "Bio-ML evaluation requires sequence-identity-aware splits. Random train/test is wrong: nearly every test point has homologs in train. Standard practice: cluster at 30% identity, then split cluster-disjoint. CASP, blind evaluations, time-split benchmarks all do versions of this."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Sequence-similarity leakage",
       "body": "**The problem**: most protein databases are highly redundant. Many sequences are 90%+ identical; a 50%-identical homolog is common. If train + test are split randomly, the test set will likely contain close homologs of training proteins.\n\n**Why this matters**: a model that memorizes training sequences (and substitutions thereof) will trivially predict the test set. It hasn't learned generalizable biology; it's essentially a lookup table.\n\n**The fix**: split train + test by **sequence-similarity clustering**.\n\n```\n1. Cluster all sequences with mmseqs2 (or CD-HIT) at 30% identity.\n2. Each cluster goes entirely to train OR test, not both.\n3. Test now contains no sequences > 30% similar to any training sequence.\n```\n\nThis is the standard for serious protein-ML benchmarks (TAPE, ProteinNet, FLIP). 30% identity is a hard cutoff because below that, structural homology is no longer reliable.\n\n**The reality check**: if your held-out validation accuracy is much higher than test accuracy, leakage is the likely culprit. Always verify the split.\n\n**Stricter variants**: 'novel fold' splits — test set contains protein structures from CATH/SCOP folds not in training. Very rare in practice but the gold standard for structure prediction generalization."
     },

@@ -7,6 +7,37 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: CFG = 7-12 sweet spot",
+      "body": "Stable Diffusion guidance scale tuning: $w = 0$ (no guidance) → diverse but ignores prompt. $w = 3$ → moderate prompt adherence. $w = 7-12$ → strong adherence, slightly saturated/oversharpened look. $w = 20+$ → degenerate, oversmoothed, fries detail. Most usage targets $w = 7$. Modern variants like dynamic CFG vary $w$ across timesteps for better trade-offs."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_t2i_cfg",
+        "kind": "guided_derivation",
+        "question": "Derive the CFG noise prediction formula",
+        "goal": "Show $\\hat\\epsilon = (1 + w) \\epsilon_\\theta(x_t, t, c) - w \\epsilon_\\theta(x_t, t, \\emptyset)$ comes from extrapolating in the direction of conditional - unconditional.",
+        "steps": [
+          {
+            "prompt": "Define direction vector $\\Delta = \\epsilon_\\theta(c) - \\epsilon_\\theta(\\emptyset)$ — how the conditional prediction differs from unconditional. Extrapolation: $\\hat\\epsilon = \\epsilon_\\theta(\\emptyset) + (1 + w) \\Delta$. Expand.",
+            "motivation": "Linear extrapolation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "epsilon_theta(empty) + (1+w)(epsilon_theta(c) - epsilon_theta(empty))"
+              ]
+            },
+            "hints": [
+              "Distribute $(1+w)$."
+            ],
+            "reveal": "$\\hat\\epsilon = \\epsilon_\\theta(\\emptyset) + (1+w)\\epsilon_\\theta(c) - (1+w)\\epsilon_\\theta(\\emptyset) = (1+w)\\epsilon_\\theta(c) - w\\epsilon_\\theta(\\emptyset)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\hat\\epsilon = (1+w)\\epsilon_\\theta(c) - w\\epsilon_\\theta(\\emptyset)}$$ At $w = 0$: pure conditional (no extrapolation). At $w > 0$: extrapolate past the conditional in the direction (cond - uncond), pulling samples toward higher prompt adherence at the cost of sample quality at extreme $w$."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Cross-attention conditioning",
       "body": "The diffusion U-Net needs a way to consume the text embedding. The standard approach: **cross-attention**.\n\nRecall: in self-attention, queries, keys, and values all come from the same sequence. In **cross-attention**, the queries come from one sequence (the image features in the U-Net) and the keys + values come from another (the text encoder's output).\n\n```\nQ = image_features @ W_Q\nK = text_features @ W_K\nV = text_features @ W_V\nattn = softmax(Q K^T / sqrt(d)) @ V\n```\n\nEach image-feature position can attend to all text tokens. The cross-attention layer learns which text tokens matter for which spatial regions.\n\n**Where it's inserted**: every level of the U-Net (encoder + decoder, multiple scales). Roughly half the U-Net's parameters are dedicated to cross-attention with text.\n\n**The text encoder**: Stable Diffusion 1.x uses CLIP's text encoder (frozen). SDXL uses CLIP-L + CLIP-G ensembled. Imagen uses T5-XXL (frozen, 4.6B parameters — much larger than CLIP). Larger/stronger text encoders → better prompt following."
     },

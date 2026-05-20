@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Flamingo's gated cross-attention",
+      "body": "Flamingo (DeepMind 2022) added cross-attention layers between a frozen LLM (Chinchilla) and a frozen vision encoder. Critical detail: each cross-attention layer is *gated* — multiplied by tanh($\\alpha$) where $\\alpha$ is a learned scalar initialized to 0. So at init: the cross-attention contributes nothing; the LLM acts as before. As $\\alpha$ trains up, vision information starts flowing. This gating turned out to be load-bearing for stable training with frozen pretrained components."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mf_xattn",
+        "kind": "guided_derivation",
+        "question": "Show cross-attention as querying text from image tokens",
+        "goal": "Cross-attention: $\\text{softmax}(Q_{\\text{txt}} K_{\\text{img}}^T / \\sqrt{d_k}) V_{\\text{img}}$. Explain.",
+        "steps": [
+          {
+            "prompt": "Query Q comes from the text token; Key K + Value V come from image tokens. Output is what?",
+            "motivation": "Output is a weighted combination of image values, weighted by text-image similarity.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Each text token gets a 'image summary' tailored to what it's about — based on which image tokens it attends to most.",
+                "Image tokens are summed.",
+                "Random combination.",
+                "Just text tokens."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Standard attention semantics applied across modalities."
+            ],
+            "reveal": "Each text token attends to image tokens; the output is a text-token-specific image representation. Cross-modal information flow happens per-token."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Cross-attn}(Q_\\text{txt}, K_\\text{img}, V_\\text{img}) = \\text{per-text-token image summary}}$$ The fusion operation underlying every modern VLM. Variants differ in where the cross-attention sits (interleaved with self-attn vs separate blocks) and whether it's gated (Flamingo) or unconditional (LLaVA)."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Late fusion — CLIP",
       "body": "**Late fusion**: separate encoders for each modality; combine only at the very end (typically via dot product in a shared embedding space).\n\nCLIP is the canonical example:\n```\nimage → image_encoder → image_emb (d-dim)\ntext → text_encoder → text_emb (d-dim)\nsimilarity = image_emb · text_emb\n```\n\nThe two encoders never see each other's intermediate features. Each learns a representation; they're aligned only at the embedding level via the contrastive loss.\n\n**Pros**:\n- **Modular**: encoders can be replaced independently.\n- **Indexable**: image embeddings can be precomputed; retrieval at scale is fast (just dot products against text embeddings).\n- **Cheap inference**: each encoder runs once; the comparison is a single multiply.\n\n**Cons**:\n- **No fine-grained alignment**: can't say which part of the image matches which part of the text. The interaction is purely at the global representation level.\n- **Limited reasoning**: 'how many cats are in this image?' is awkward — late fusion captures global semantics, not compositional structure.\n\nBest for: retrieval, zero-shot classification, similarity-based tasks."
     },

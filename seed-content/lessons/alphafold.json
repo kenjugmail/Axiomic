@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: AlphaFold's pLDDT confidence metric",
+      "body": "AlphaFold predicts not just the structure but a per-residue confidence (pLDDT, 'predicted local distance difference test'). Values 70-90 = confident; 50-70 = low confidence (often disordered regions); below 50 = should not be trusted. Disordered regions (intrinsically disordered proteins) have low pLDDT — correctly flagged. Production use: trust high-pLDDT regions for downstream applications; treat low-pLDDT as 'we don't know'."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_af_msaflow",
+        "kind": "guided_derivation",
+        "question": "Describe Evoformer's two-stream architecture",
+        "goal": "Evoformer maintains MSA representation (rows × seq positions) + pair representation (positions × positions). How do they interact?",
+        "steps": [
+          {
+            "prompt": "MSA tells about coevolution. Pair tells about residue-residue relationships. Each block updates each by attending to the other. What's the load-bearing intuition?",
+            "motivation": "Cross-feeding between the two streams.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Coevolution patterns in the MSA inform pair distances (contacts); pair distances inform which MSA columns should be 'aligned'. Iterative refinement converges them.",
+                "MSA only.",
+                "Pair only.",
+                "No interaction."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "The two streams refine each other iteratively, like generalized expectation-maximization."
+            ],
+            "reveal": "MSA → pair: extract coevolution → predict contacts. Pair → MSA: refine alignment based on predicted contacts. 48 layers of mutual refinement, converging on a self-consistent (sequence + contacts) view."
+          }
+        ],
+        "finalResult": "AlphaFold's secret sauce is the iterative refinement of MSA + pair representations. Pure attention applied 48 times to two interlocked tensors converges on the right contacts + the right alignment together. Plus the structure module on top to materialize 3D coordinates."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The pipeline",
       "body": "```\nInput: protein sequence\n\nStep 1: Build MSA\n  Search sequence databases (UniRef, BFD)\n  Extract homologous sequences via JackHMMER + HHblits\n  Result: ~thousands of related sequences aligned to the query\n\nStep 2: Build pair features\n  Initial representation of pairwise residue features\n  Includes: sequence relative position, residue identity\n\nStep 3: Evoformer (48 blocks)\n  Each block updates both MSA representation (rows × cols) and pair representation (residue × residue)\n  MSA self-attention: row-wise (across sequences) and column-wise (across positions)\n  Pair self-attention with triangular updates\n  Information flows between MSA and pair via outer-product mean\n\nStep 4: Structure module (8 cycles)\n  Input: pair representation + first-row MSA (the query's representation)\n  Output: 3D coordinates per residue\n  Iterative refinement: predict frames + side chains, recompute features, repeat\n\nStep 5: Recycling (3 cycles)\n  Run the whole network 3 times, feeding output back as input\n  Refines predictions iteratively\n```\n\nTotal: ~93M parameters. Trained on ~170K PDB structures + lots of MSA data. Inference takes ~minutes per protein on a GPU."
     },

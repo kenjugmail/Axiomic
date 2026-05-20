@@ -7,6 +7,38 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: the wobble position",
+      "body": "Codon table is degenerate — most amino acids have multiple codons. The third position (the 'wobble') is particularly flexible. Selection favors mutations at the wobble that preserve the amino acid (silent mutations). Result: codon usage frequencies (which synonymous codon is preferred) correlate with tRNA abundance + expression level. Codon optimization is a routine step in heterologous gene expression (e.g., putting a human gene in E. coli)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_drp_codon",
+        "kind": "guided_derivation",
+        "question": "Derive codon count",
+        "goal": "How many triplet codons are there with 4 bases?",
+        "steps": [
+          {
+            "prompt": "Each position has 4 choices, 3 positions. Total combinations?",
+            "motivation": "Counting.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "64",
+                "4^3"
+              ]
+            },
+            "hints": [
+              "$4 \\times 4 \\times 4$."
+            ],
+            "reveal": "$4^3 = 64$."
+          }
+        ],
+        "finalResult": "$$\\boxed{4^3 = 64 \\text{ codons}}$$ Maps to 20 amino acids + 3 stops via the degenerate genetic code. The redundancy is what makes it robust to point mutations; the wobble position is where most synonymous variation lives."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The central dogma",
       "body": "**DNA → RNA → Protein**. The three molecular sequences carrying biological information.\n\n**DNA**: a string over the alphabet `{A, T, G, C}` (4 nucleotides). The genome stores all heritable instructions. Human genome: ~3 billion characters, organized into 23 pairs of chromosomes.\n\n**RNA**: similar to DNA but with `{A, U, G, C}` (uracil replaces thymine). Single-stranded; serves as a working copy of DNA. Messenger RNA (mRNA) carries instructions from DNA to the ribosome for protein synthesis.\n\n**Protein**: a string over `{A, R, N, D, C, E, Q, G, H, I, L, K, M, F, P, S, T, W, Y, V}` (20 amino acids). The functional molecules of life — enzymes, structural elements, signaling molecules.\n\n**The translation rule**: every 3 DNA bases (a 'codon') maps to one amino acid. The genetic code is universal (with minor exceptions). 4³ = 64 codons code for 20 amino acids + a stop signal — many codons map to the same amino acid (degeneracy).\n\n**Computational implication**: a 1500-base mRNA codes for a 500-amino-acid protein. Sequence relationships across DNA, RNA, and protein space are well-defined; you can convert between them deterministically. Tasks: predict mRNA → protein structure, infer DNA function from sequence, classify sequences by organism."
     },

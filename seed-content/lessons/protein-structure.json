@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: validating a protein structure with Ramachandran plot",
+      "body": "Every protein structure paper has a Ramachandran plot — scatter of $(\\phi, \\psi)$ backbone angles for every residue. ~98% of residues should fall in allowed regions (alpha-helix + beta-sheet zones); residues in disallowed regions are red flags (could be modeling errors or genuine strained residues at active sites). The plot is a basic quality-control check. AlphaFold's predictions consistently produce excellent Ramachandran plots (~99% allowed) — one signal that the model is producing real protein-like structure."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ps_ram",
+        "kind": "guided_derivation",
+        "question": "Identify Ramachandran allowed regions",
+        "goal": "Why are most $(\\phi, \\psi)$ combinations sterically forbidden?",
+        "steps": [
+          {
+            "prompt": "$(\\phi, \\psi)$ control the orientation of backbone atoms. Most combinations cause atomic clashes between side chains + adjacent backbone atoms. Which two regions in $(\\phi, \\psi)$ space are most populated?",
+            "motivation": "Allowed = no clash; population reflects energy minima.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Alpha-helix ($\\phi \\sim -60°, \\psi \\sim -45°$) + beta-sheet ($\\phi \\sim -120°, \\psi \\sim 120°$).",
+                "All combinations equally.",
+                "Random regions.",
+                "Cis-only."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Two famous secondary-structure motifs dominate."
+            ],
+            "reveal": "Alpha-helix region ($\\phi \\approx -60°, \\psi \\approx -45°$) and beta-sheet region ($\\phi \\approx -120°, \\psi \\approx 120°$). Most residues fall in one of these two; the rest are loops + turns."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Allowed regions: } \\alpha\\text{-helix + }\\beta\\text{-sheet zones}}$$ The Ramachandran plot's pattern is one of the most distinctive 'protein-like' signals — any new structure-prediction method has to produce realistic Ramachandran distributions before its predictions are trusted."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The four levels of structure",
       "body": "**Primary structure**: the amino acid sequence. A 1D string over 20 letters.\n\n**Secondary structure**: local 3D motifs.\n- **α-helix**: a tight right-handed helix; ~3.6 residues per turn. Stabilized by hydrogen bonds between residue `i` and residue `i+4`.\n- **β-strand / β-sheet**: extended residues; multiple strands form sheets via hydrogen bonds. Can be parallel or antiparallel.\n- **Loop / coil**: unstructured connecting regions.\n\nA protein's secondary structure is typically 30-50% α-helix + 20-30% β-sheet + 30-40% loop.\n\n**Tertiary structure**: the full 3D fold. The α-helices and β-sheets pack together; loops connect them. Stabilized by:\n- Hydrophobic interactions: nonpolar residues cluster in the protein's core (away from water).\n- Hydrogen bonds (between secondary-structure elements + with side chains).\n- Disulfide bonds: covalent links between cysteine residues.\n- Salt bridges: ionic interactions between charged residues.\n\n**Quaternary structure**: many proteins are oligomers — multiple folded chains assembled together. Hemoglobin is a tetramer (4 chains). Antibodies are heterotetramers. The interfaces between chains are where the function often lives.\n\nFor ML: the relevant target is typically tertiary structure. AlphaFold predicts atomic-resolution 3D coordinates for every residue."
     },

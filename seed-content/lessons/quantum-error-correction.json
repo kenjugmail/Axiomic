@@ -7,6 +7,37 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Google Willow + below-threshold demo",
+      "body": "Google's Willow chip (December 2024) demonstrated below-threshold quantum error correction: as code distance increases from $d=3$ to $d=5$ to $d=7$, the LOGICAL error rate decreased exponentially. Physical error rate ~5e-4; logical at $d=7$ ~3e-3 (still much worse than physical for short circuits, but the *trend* shows error correction is working). The next milestone: achieve a single logical qubit whose error rate is below the physical error rate — the operational meaning of 'fault-tolerant' for ~practical computations."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_qec_3bf",
+        "kind": "guided_derivation",
+        "question": "Derive 3-qubit bit-flip code's minimum distance",
+        "goal": "Code encodes 1 logical qubit in 3 physical qubits. Minimum number of physical bit-flips to map a valid codeword to another valid codeword?",
+        "steps": [
+          {
+            "prompt": "Codewords: $|0_L\\rangle = |000\\rangle$, $|1_L\\rangle = |111\\rangle$. To flip from $|000\\rangle$ to $|111\\rangle$, how many bit-flips?",
+            "motivation": "Hamming distance.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "3"
+              ]
+            },
+            "hints": [
+              "All three bits must flip."
+            ],
+            "reveal": "Distance = 3. Code corrects $\\lfloor (d-1)/2 \\rfloor = 1$ bit-flip error."
+          }
+        ],
+        "finalResult": "$$\\boxed{d = 3 \\Rightarrow \\text{corrects } 1 \\text{ bit-flip}}$$ The 3-qubit bit-flip code is the simplest example — corrects single X errors but not Z errors. Shor's 9-qubit code corrects either X or Z errors. Surface code (the production standard) achieves much higher distance with ~$L^2$ physical qubits per logical."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The basic idea: stabilizer codes",
       "body": "A **stabilizer code** encodes a small number of logical qubits in a larger number of physical qubits.\n\n**Example: 3-qubit bit-flip code**:\n- Logical |0⟩ → |000⟩\n- Logical |1⟩ → |111⟩\n- Detects single-qubit X (bit-flip) errors.\n\n**How**:\n- Measure parity operators (stabilizers) `Z₁Z₂` and `Z₂Z₃` (without measuring individual qubits).\n- If both are +1: no bit flip.\n- If `Z₁Z₂ = -1, Z₂Z₃ = +1`: error on qubit 1.\n- If `Z₁Z₂ = -1, Z₂Z₃ = -1`: error on qubit 2.\n- If `Z₁Z₂ = +1, Z₂Z₃ = -1`: error on qubit 3.\n\n**Apply correction**: flip the indicated qubit. Logical state preserved.\n\n**Limit**: 3-qubit code corrects only X errors. For both X + Z errors, need a more complex code (Shor's 9-qubit, Steane 7-qubit, surface code).\n\n**Stabilizer formalism** (Gottesman 1997): unifies all known QEC codes. Stabilizer codes are characterized by their stabilizer group — operators that fix the code space."
     },

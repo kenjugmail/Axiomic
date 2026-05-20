@@ -7,6 +7,38 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: edge detection via Sobel filter",
+      "body": "The 3×3 Sobel-x kernel $[[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]]$ approximates the horizontal derivative of an image. Convolve with an image → strong responses at vertical edges. Combine with Sobel-y (transpose) and take magnitude → all edges. This is a *hand-designed* convolutional feature. Modern CNNs learn similar filters in the first layer (visualizations consistently show edge-detector-like kernels emerge), confirming that the convolutional inductive bias matches natural-image statistics."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_img_conv",
+        "kind": "guided_derivation",
+        "question": "Derive the output size of a 2D convolution",
+        "goal": "Input $H \\times W$, kernel $k \\times k$, stride $s$, padding $p$. Output spatial dim?",
+        "steps": [
+          {
+            "prompt": "Number of kernel positions along $H$ axis: starting at position 0, ending at $H + 2p - k$. With stride $s$: positions $0, s, 2s, \\dots$. How many positions fit?",
+            "motivation": "Count.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(H + 2p - k)/s + 1",
+                "floor((H+2p-k)/s) + 1"
+              ]
+            },
+            "hints": [
+              "$\\lfloor (H + 2p - k)/s \\rfloor + 1$."
+            ],
+            "reveal": "$H_{\\text{out}} = \\lfloor (H + 2p - k)/s \\rfloor + 1$."
+          }
+        ],
+        "finalResult": "$$\\boxed{H_{\\text{out}} = \\lfloor (H + 2p - k)/s \\rfloor + 1}$$ The most-quoted formula in computer vision. Common cases: stride 1 + padding $(k-1)/2$ → same dim. Stride 2 → half the spatial dim. Modern ResNet-like blocks pattern: same-conv → stride-2 conv → repeat."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Convolutions: the local-receptive-field operation",
       "body": "A **convolution** slides a small filter (typically 3×3 or 5×5) across the image, computing a dot product between the filter weights and the local pixel patch at each location.\n\n```\nFor each output position (i, j):\n    output[i, j] = Σ_{di, dj} filter[di, dj] · input[i+di, j+dj]\n```\n\n(Plus a bias and possibly a stride or dilation.) For multi-channel: the filter has shape `(C_in, kH, kW)`; you produce `C_out` output channels by stacking `C_out` filters.\n\n**Why convolutions for images**:\n\n1. **Translation equivariance**: a feature in the top-left of the image is recognized the same as a feature in the bottom-right. Same filter applied everywhere.\n2. **Parameter efficiency**: a 3×3 filter has 9 parameters per channel vs 224×224=50k parameters per channel for a fully-connected layer.\n3. **Local structure**: nearby pixels are correlated; a small filter captures that locality.\n\nStacking convolutions builds a hierarchy: early layers detect edges, mid layers detect textures, later layers detect parts/objects. This is the core inductive bias of CNNs.\n\nMatmul-equivalent reformulation: convolutions can be expressed as matmul via `im2col`. This is what makes them GPU-friendly — they're matmul under the hood."
     },

@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: parameter-shift gradients in VQE",
+      "body": "VQE optimizes a parameterized circuit by computing gradients via the parameter-shift rule: $\\partial \\langle H \\rangle / \\partial \\theta_i = \\frac{1}{2}[\\langle H \\rangle_{\\theta_i + \\pi/2} - \\langle H \\rangle_{\\theta_i - \\pi/2}]$. Exact gradient with two circuit evaluations per parameter — no finite-difference noise amplification. Used in essentially every VQE / QAOA / QML training loop. Limitation: per-parameter cost scales linearly; for large parameter counts, this is expensive."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_vqml_pshift",
+        "kind": "guided_derivation",
+        "question": "Derive the parameter-shift rule for $R(\\theta) = e^{-i\\theta G/2}$ with $G^2 = I$",
+        "goal": "Show $\\partial \\langle H \\rangle / \\partial \\theta = (1/2)[\\langle H \\rangle_{\\theta + \\pi/2} - \\langle H \\rangle_{\\theta - \\pi/2}]$.",
+        "steps": [
+          {
+            "prompt": "$R(\\theta) = \\cos(\\theta/2) I - i\\sin(\\theta/2) G$ (using $G^2 = I$). The expectation $\\langle H(\\theta) \\rangle$ is a sum of $\\cos(\\theta), \\sin(\\theta)$ terms. Its derivative w.r.t. $\\theta$ is a sum of $-\\sin, \\cos$ — i.e., still a sinusoid. Why does $(1/2)[\\langle H \\rangle_{\\theta+\\pi/2} - \\langle H \\rangle_{\\theta - \\pi/2}]$ give the exact derivative?",
+            "motivation": "Trig identity.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$\\sin(\\theta + \\pi/2) - \\sin(\\theta - \\pi/2) = 2\\cos\\theta$; same for cosine in the right ratio. Two-point sampled difference exactly equals the derivative for sinusoidal functions.",
+                "Numerical finite difference.",
+                "Approximation only.",
+                "Random."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Use angle-addition formulas."
+            ],
+            "reveal": "$\\sin(\\theta + \\pi/2) - \\sin(\\theta - \\pi/2) = 2\\cos\\theta$ — exact derivative of $\\sin$. Similarly for $\\cos$. The shift rule gives exact gradient with NO approximation, in just 2 circuit evaluations."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\partial_\\theta \\langle H \\rangle = (1/2)[\\langle H \\rangle_{\\theta+\\pi/2} - \\langle H \\rangle_{\\theta-\\pi/2}]}$$ The parameter-shift rule. Exact, not finite-difference. Applies to any gate of the form $e^{-i\\theta G/2}$ where $G^2 = I$ (Pauli rotations). Generalized parameter-shift handles more complex gates."
+      }
+    },
+    {
+      "kind": "text",
       "title": "VQE — Variational Quantum Eigensolver",
       "body": "**VQE** (Peruzzo et al. 2014): find ground-state energy of a Hamiltonian `H`.\n\n**Procedure**:\n1. Choose ansatz `U(θ)` (hardware-efficient or chemistry-inspired).\n2. Prepare `|ψ(θ)⟩ = U(θ)|0⟩^n`.\n3. Measure `⟨ψ(θ)|H|ψ(θ)⟩` (decompose `H` into Pauli strings; measure each).\n4. Update `θ` to minimize the energy.\n5. Repeat.\n\n**Use case**: quantum chemistry. Find ground-state energies of molecules.\n\n**Demonstrated molecules**: H₂, LiH, BeH₂, H₄, H₆ — small (4-12 qubits).\n\n**Larger molecules**: bottlenecks in:\n- Number of measurements (scales with Pauli string count).\n- Optimization landscape (barren plateaus — gradients vanish exponentially in qubit count).\n- Ansatz expressivity vs trainability tradeoff.\n\n**Practical advantage today**: not yet established. Classical methods (DMRG, CCSD(T), DMFT) still dominate for chemistry. VQE may break through for mid-sized molecules with better hardware + algorithms.\n\n**Active research areas**: better ansätze (UCCSD, hardware-efficient, ADAPT-VQE), error mitigation, classical shadows for measurement."
     },

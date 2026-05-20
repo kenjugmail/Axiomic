@@ -7,6 +7,59 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Deutsch's original problem",
+      "body": "Deutsch (1985): given a black-box function $f: \\{0, 1\\} \\to \\{0, 1\\}$ promised to be either constant ($f(0) = f(1)$) or balanced ($f(0) \\neq f(1)$). Classically: must query $f$ twice. Deutsch's quantum algorithm: query *once* via superposition. The toy example of quantum-speedup-via-interference. Deutsch-Jozsa generalizes to $n$-bit functions, exponential separation. Importance: first proof that quantum computers can exponentially outperform classical for some tasks — even if the problems were artificial."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_qa_dj",
+        "kind": "guided_derivation",
+        "question": "Sketch the Deutsch algorithm",
+        "goal": "1 query distinguishes constant from balanced.",
+        "steps": [
+          {
+            "prompt": "Prepare $|0\\rangle|1\\rangle$, apply H to both qubits → $(|0\\rangle + |1\\rangle)/\\sqrt 2 \\otimes (|0\\rangle - |1\\rangle)/\\sqrt 2$. Apply oracle $U_f: |x\\rangle|y\\rangle \\to |x\\rangle|y \\oplus f(x)\\rangle$. Trace through.",
+            "motivation": "Phase kickback.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Result is $(-1)^{f(0)}|0\\rangle + (-1)^{f(1)}|1\\rangle$ in the first qubit (times some unimportant second-qubit factor).",
+                "Same as input.",
+                "Maximally mixed.",
+                "Random."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "$U_f$ kicks the phase of $|x\\rangle$ by $(-1)^{f(x)}$ when the second qubit is in $(|0\\rangle - |1\\rangle)/\\sqrt 2$."
+            ],
+            "reveal": "Phase kickback: first qubit ends in $((-1)^{f(0)}|0\\rangle + (-1)^{f(1)}|1\\rangle)/\\sqrt 2$."
+          },
+          {
+            "prompt": "Apply H to first qubit + measure. What outcome distinguishes constant from balanced?",
+            "motivation": "H maps $\\pm|0\\rangle \\pm |1\\rangle$ to $\\pm|0\\rangle$ or $\\pm|1\\rangle$.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$|0\\rangle$ → constant; $|1\\rangle$ → balanced.",
+                "$|1\\rangle$ → constant.",
+                "Always $|0\\rangle$.",
+                "Random outcome."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Constant: both phases equal → state proportional to $|0\\rangle + |1\\rangle$ → H gives $|0\\rangle$. Balanced: opposite phases → state proportional to $|0\\rangle - |1\\rangle$ → H gives $|1\\rangle$."
+            ],
+            "reveal": "Measure $|0\\rangle$ → constant. Measure $|1\\rangle$ → balanced. One query."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Deutsch: 1 quantum query vs 2 classical}}$$ Tiny example, but the structure (superposition input → phase kickback → interference → measurement) is the template for Deutsch-Jozsa, Shor, Grover. Quantum speedups come from cleverly arranged interference, not from 'trying all possibilities in parallel'."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Deutsch-Jozsa algorithm",
       "body": "The simplest demonstration of quantum advantage.\n\n**Problem**: given a function `f: {0, 1}^n → {0, 1}`, promised to be either CONSTANT (f(x) is always 0 or always 1) or BALANCED (f(x) = 0 for exactly half the inputs). Decide which.\n\n**Classical**: in the worst case, you need 2^{n-1} + 1 queries to be certain.\n\n**Quantum**: 1 query.\n\n**Procedure**:\n1. Initialize n qubits to |0⟩^n; one ancilla to |1⟩.\n2. Apply Hadamard to all qubits.\n3. Apply oracle `O_f`: |x⟩|y⟩ → |x⟩|y ⊕ f(x)⟩.\n4. Apply Hadamard to first n qubits.\n5. Measure the first n qubits. If all 0, f is constant; otherwise balanced.\n\n**Why it works**: the oracle imprints `f` on the phase of the superposition. The final Hadamards perform a Fourier-like transform. Constructive interference at |0...0⟩ for constant f; destructive for balanced.\n\n**Limit**: an artificial problem; not practically useful. But it cleanly demonstrates the quantum-advantage mechanism: superposition + interference."
     },

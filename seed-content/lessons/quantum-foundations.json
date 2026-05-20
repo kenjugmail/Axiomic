@@ -7,6 +7,51 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Stern-Gerlach + measurement basis",
+      "body": "1922 Stern-Gerlach experiment: silver atoms passed through inhomogeneous magnetic field → split into TWO spots, not a continuous distribution. First experimental evidence of quantized angular momentum. In QM language: the atoms' spin states are superpositions of $|↑\\rangle, |↓\\rangle$; measurement collapses to one or the other; observed splits represent measurement statistics. Repeated with two perpendicular Stern-Gerlach magnets in series: same atom can be 'up' along z then random along x — measurement bases don't commute. Foundational evidence of QM."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_qf_born",
+        "kind": "guided_derivation",
+        "question": "Derive Born rule from inner product",
+        "goal": "$|\\psi\\rangle = \\alpha |0\\rangle + \\beta |1\\rangle$ in computational basis. Show $P(\\text{measure } |0\\rangle) = |\\alpha|^2$.",
+        "steps": [
+          {
+            "prompt": "Born rule: $P(\\text{outcome } |k\\rangle) = |\\langle k | \\psi \\rangle|^2$. Compute $\\langle 0 | \\psi \\rangle$ for $|\\psi\\rangle = \\alpha|0\\rangle + \\beta|1\\rangle$.",
+            "motivation": "Inner product with basis state extracts coefficient.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "alpha"
+              ]
+            },
+            "hints": [
+              "Orthonormality: $\\langle 0|0\\rangle = 1, \\langle 0|1\\rangle = 0$."
+            ],
+            "reveal": "$\\langle 0 | \\psi \\rangle = \\alpha \\langle 0|0\\rangle + \\beta \\langle 0|1\\rangle = \\alpha$."
+          },
+          {
+            "prompt": "Apply Born rule.",
+            "motivation": "Magnitude squared.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "|alpha|^2"
+              ]
+            },
+            "hints": [
+              "Direct."
+            ],
+            "reveal": "$P(|0\\rangle) = |\\alpha|^2$."
+          }
+        ],
+        "finalResult": "$$\\boxed{P(\\text{measure } |k\\rangle) = |\\langle k | \\psi \\rangle|^2}$$ The Born rule is the bridge from amplitudes (complex, in Hilbert space) to probabilities (real, in $[0,1]$). It's an *axiom* of QM, not derived from more basic principles — though many attempts to derive it from deeper assumptions (decision theory, Gleason's theorem) exist."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The qubit",
       "body": "A **qubit** is a unit vector in a 2D complex Hilbert space. The standard basis states:\n\n`|0⟩ = [1; 0]`, `|1⟩ = [0; 1]`\n\nA general qubit state:\n\n`|ψ⟩ = α|0⟩ + β|1⟩`\n\nwhere `α, β ∈ ℂ` and `|α|² + |β|² = 1` (the **normalization condition**).\n\n**Bloch sphere**: a geometric picture. Every pure single-qubit state corresponds to a point on the surface of a sphere. The poles are |0⟩ + |1⟩; the equator is superposition states; longitude encodes the relative phase.\n\nThe global phase doesn't matter physically — `e^{iθ}|ψ⟩` is the same state as `|ψ⟩`. Only RELATIVE phases between basis states matter.\n\nThis is more abstract than 'a coin in superposition'. It's a complex amplitude, with phase, that's not directly observable."
     },

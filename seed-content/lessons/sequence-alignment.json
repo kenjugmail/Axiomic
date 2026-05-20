@@ -7,6 +7,51 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: BLAST's seed-and-extend heuristic",
+      "body": "BLAST first finds short exact matches (seeds, length 11 for DNA, 3 for protein) between query and database. For each seed, extends in both directions, scoring matches and gaps. Discards extensions below a threshold. The seeding step is what makes BLAST fast: instead of full DP across the database, only promising regions get full alignment. Compromise: BLAST can miss alignments without exact seed matches. Modern alternatives (DIAMOND, MMseqs2) use better seed strategies + double indexing to be faster than BLAST while maintaining sensitivity."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sa_nw",
+        "kind": "guided_derivation",
+        "question": "Derive the Needleman-Wunsch recurrence",
+        "goal": "Global alignment of sequences A (length m) and B (length n). Define $H(i, j)$ = optimal score aligning $A[1..i]$ with $B[1..j]$.",
+        "steps": [
+          {
+            "prompt": "Recurrence: $H(i, j)$ comes from three predecessors — diagonal (match or substitute $A[i]$ with $B[j]$), up (gap in $B$), left (gap in $A$). Write the recurrence with substitution score $s(\\cdot, \\cdot)$ and gap penalty $g$.",
+            "motivation": "DP combining three transitions.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "max(H(i-1,j-1) + s(A[i],B[j]), H(i-1,j) - g, H(i,j-1) - g)"
+              ]
+            },
+            "hints": [
+              "Three options: diagonal-match, gap in B (up), gap in A (left)."
+            ],
+            "reveal": "$H(i, j) = \\max\\{H(i-1, j-1) + s(A[i], B[j]),\\ H(i-1, j) - g,\\ H(i, j-1) - g\\}$."
+          },
+          {
+            "prompt": "Time complexity?",
+            "motivation": "DP table size + constant per cell.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "O(mn)"
+              ]
+            },
+            "hints": [
+              "Table is $m \\times n$, constant work per cell."
+            ],
+            "reveal": "$O(mn)$ time and space (linear space via Hirschberg)."
+          }
+        ],
+        "finalResult": "$$\\boxed{H(i,j) = \\max\\{H(i-1,j-1) + s(A_i,B_j),\\ H(i-1,j) - g,\\ H(i,j-1) - g\\}}$$ Needleman-Wunsch (1970): global alignment. Smith-Waterman (1981) is the analog for local alignment (set negative scores to 0; find max anywhere). $O(mn)$ time + space; impractical at genome scale → BLAST heuristics."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Smith-Waterman — local alignment",
       "body": "**Smith-Waterman** (1981) finds the optimal local alignment between two sequences. Dynamic programming over a `(|A| + 1) × (|B| + 1)` matrix.\n\nFor each cell `H[i, j]`, the optimal score for an alignment ending at `(i, j)`:\n\n```\nH[i, j] = max(\n    0,                              # start a new alignment\n    H[i-1, j-1] + s(a_i, b_j),     # match/mismatch\n    H[i-1, j] - gap_penalty,        # gap in B\n    H[i, j-1] - gap_penalty         # gap in A\n)\n```\n\nWhere `s(a, b)` is the score for matching `a` with `b` (positive for matches, negative for mismatches). Gap penalty is typically negative; some variants distinguish gap-open vs gap-extend.\n\nThe optimal alignment is found by tracing back from the highest-scoring cell. `O(|A| · |B|)` time and space.\n\n**Substitution matrices**: for proteins, BLOSUM62 (or PAM250) gives biologically-meaningful scores. Identical residues score positively; conservative substitutions (chemically similar) less; non-conservative substitutions negatively.\n\n**Gap penalties**: open + extend. Realistic: gap_open = -10, gap_extend = -1. Reflects that opening a gap is costly (rare event); extending is cheap (single mutation can elongate)."
     },

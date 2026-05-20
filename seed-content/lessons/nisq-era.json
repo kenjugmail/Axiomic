@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: zero-noise extrapolation in practice",
+      "body": "ZNE applied to a small VQE for $H_2$ molecule ground-state energy. Run the circuit at noise scales $\\lambda = 1, 1.5, 2, 3$ (by stretching gate times or inserting gate-pairs that compose to identity). Fit a linear or exponential extrapolation; evaluate at $\\lambda = 0$. Result: extrapolated energy much closer to chemistry-accurate (within ~1 mHa). Effective on shallow circuits; doesn't scale to deep ones — variance grows with $\\lambda$, error bars eat the signal."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_nisq_zne",
+        "kind": "guided_derivation",
+        "question": "Sketch zero-noise extrapolation",
+        "goal": "Run noisy circuit at scaled noise levels; extrapolate to zero noise.",
+        "steps": [
+          {
+            "prompt": "Measure observable $\\langle O \\rangle$ at noise scales $\\lambda_1 < \\lambda_2 < \\dots$. Fit a model $\\langle O \\rangle(\\lambda)$ + extrapolate to $\\lambda = 0$. What's the assumption?",
+            "motivation": "Smooth dependence of expectation on noise.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$\\langle O \\rangle(\\lambda)$ is smooth + has a well-defined $\\lambda \\to 0$ limit (which is the noiseless expectation).",
+                "$\\langle O \\rangle$ is constant.",
+                "Noise is uniform.",
+                "Circuit is identity."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Need a model that extrapolates from observed to unmeasured."
+            ],
+            "reveal": "Smoothness + extrapolation. Linear or Richardson extrapolation; only good for moderately-noisy circuits — deeper circuits → larger variance → noisier extrapolation."
+          }
+        ],
+        "finalResult": "ZNE = error mitigation, not correction. Cheap (classical post-processing) but doesn't scale to deep circuits. The NISQ-era stopgap before fault-tolerant QEC."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Decoherence + noise sources",
       "body": "**Decoherence**: qubits lose quantum coherence by coupling to the environment. Two characteristic times:\n\n- **T₁ (relaxation time)**: time for |1⟩ to decay to |0⟩. Energy loss to environment. Typical superconducting: ~100 μs.\n- **T₂ (dephasing time)**: time for relative phase information to decay. Often shorter than T₁. Typical superconducting: ~50-200 μs.\n\nGates need to complete well within T₂. Modern superconducting gates take ~10-100 ns; ~1000 gates per coherence time.\n\n**Other noise sources**:\n\n- **Single-qubit gate errors**: ~10^-3 to 10^-4. Limited by control precision.\n- **Two-qubit gate errors**: ~10^-2 to 10^-3. Limited by coupling control.\n- **Measurement errors**: ~10^-2.\n- **Crosstalk**: gates on one qubit affect neighbors.\n- **Leakage**: qubits transition to non-computational states (above |1⟩ for transmons).\n\nTotal error budget: ~few-thousand gates before noise dominates the result. Algorithms must work within this budget."
     },

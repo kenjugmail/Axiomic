@@ -7,6 +7,53 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: 30-second Whisper context window",
+      "body": "Whisper processes 30-second audio clips, encoded as 80-bin mel spectrograms with 25ms windows + 10ms hop. So per clip: $80 \\times 3000$ time-frequency bins ($\\approx 240k$ values), much smaller than raw 16kHz audio ($30 \\times 16000 = 480k$ samples, each 2 bytes = ~1 MB). The transformer processes the mel spectrogram as a 2D 'image' — exactly the same encoder structure as ViT, just with audio-shaped input. Whisper's success cemented mel-spectrogram + transformer as the modern speech-recognition stack."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_audio_melsize",
+        "kind": "guided_derivation",
+        "question": "Compute mel spectrogram dimensionality",
+        "goal": "30s audio at 16kHz, window 25ms, hop 10ms, mel filters $F = 80$. What's the spectrogram shape?",
+        "steps": [
+          {
+            "prompt": "Number of frames: total duration / hop = $30 / 0.010 = ?$",
+            "motivation": "Convert seconds to frames.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "3000"
+              ]
+            },
+            "hints": [
+              "30 / 0.01."
+            ],
+            "reveal": "3000 frames."
+          },
+          {
+            "prompt": "Spectrogram shape: $F \\times T = ?$",
+            "motivation": "Final shape.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "80 x 3000",
+                "80 by 3000",
+                "(80, 3000)"
+              ]
+            },
+            "hints": [
+              "Frequency bins × frames."
+            ],
+            "reveal": "$80 \\times 3000$. Compare with raw 480k samples — ~2× compression in element count, but with structure that lets a transformer process it as a 2D 'image'."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Mel shape} = F \\times T = 80 \\times 3000 \\text{ for 30s @ 16kHz}}$$ Standard Whisper input. Spectrogram representation is the right level of abstraction for speech: short-time frequency content, log-mel scale (perceptual), small dim per time step."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Spectrograms — STFT and mel scale",
       "body": "Step 1: **Short-Time Fourier Transform (STFT)**. Slide a small window (e.g., 25ms) across the audio. For each window, compute the FFT to get the frequency content at that point in time. Stride the windows by 10ms so they overlap.\n\nResult: a 2D matrix where rows are frequency bins, columns are time frames. For 10s audio at 16kHz with 25ms windows + 10ms stride: ~1000 time frames × ~200 frequency bins.\n\nStep 2: **Mel scale**. Human perception of pitch is logarithmic — we hear a doubling of frequency as 'one octave', not a linear unit. The mel scale is a perceptually-warped frequency axis that compresses high frequencies and expands low ones.\n\nStep 3: **Log magnitude**. Take the log of the STFT magnitudes. Compresses the dynamic range; matches human perception of loudness.\n\nResult: a **log-mel spectrogram**. Rows = mel-scaled frequency bins (typically 80 or 128). Columns = time frames. Values = log-magnitude.\n\nThis 2D representation is what almost every audio model takes as input. Convolutions or transformer patches over the mel-spectrogram are the standard recipes."
     },

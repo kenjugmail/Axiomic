@@ -7,6 +7,55 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: quantum teleportation",
+      "body": "Alice has a qubit $|\\psi\\rangle$ she wants to send to Bob. They share a Bell pair $|\\Phi^+\\rangle$ from a previous interaction. Alice performs a Bell-basis measurement on her qubit + her half of the pair, sending 2 classical bits to Bob. Bob applies a corrective gate based on the bits → Bob's qubit is now $|\\psi\\rangle$. No physical qubit traveled from Alice to Bob; entanglement + classical communication transferred the state. Limited by speed-of-light (classical channel). Doesn't violate no-cloning (Alice's original qubit was destroyed by measurement). Used in quantum networks, distributed quantum computing."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ent_bellnonfact",
+        "kind": "guided_derivation",
+        "question": "Show $|\\Phi^+\\rangle$ doesn't factor",
+        "goal": "Suppose $|\\Phi^+\\rangle = (|00\\rangle + |11\\rangle)/\\sqrt 2 = |a\\rangle \\otimes |b\\rangle$ for some single-qubit states $|a\\rangle, |b\\rangle$. Derive contradiction.",
+        "steps": [
+          {
+            "prompt": "Suppose $|a\\rangle = a_0|0\\rangle + a_1|1\\rangle$ and $|b\\rangle = b_0|0\\rangle + b_1|1\\rangle$. Expand $|a\\rangle \\otimes |b\\rangle$. What components must equal what?",
+            "motivation": "Match components.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "a_0 b_0 = 1/sqrt 2, a_0 b_1 = 0, a_1 b_0 = 0, a_1 b_1 = 1/sqrt 2"
+              ]
+            },
+            "hints": [
+              "Compare against $(1/\\sqrt 2)(|00\\rangle + |11\\rangle)$."
+            ],
+            "reveal": "$a_0 b_0 = 1/\\sqrt 2, a_0 b_1 = 0, a_1 b_0 = 0, a_1 b_1 = 1/\\sqrt 2$."
+          },
+          {
+            "prompt": "From $a_0 b_0, a_1 b_1$ both nonzero: $a_0, a_1, b_0, b_1$ all nonzero. From $a_0 b_1 = 0$: contradiction. Conclude.",
+            "motivation": "Algebraic contradiction.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$|\\Phi^+\\rangle$ cannot be written as a product state — it's entangled.",
+                "It's a product state.",
+                "Algebra inconclusive.",
+                "Need a different basis."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "The constraints overdetermine + are inconsistent."
+            ],
+            "reveal": "Contradiction: $|\\Phi^+\\rangle$ is not a product state. Hence entangled."
+          }
+        ],
+        "finalResult": "$$\\boxed{|\\Phi^+\\rangle \\neq |a\\rangle \\otimes |b\\rangle \\text{ for any single-qubit } |a\\rangle, |b\\rangle}$$ The simplest possible proof that entanglement is not just classical correlation. The Bell state genuinely cannot be decomposed; it's an irreducible multi-particle state."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Bell states",
       "body": "Four maximally-entangled 2-qubit states form a basis:\n\n- **Φ⁺**: (|00⟩ + |11⟩)/√2.\n- **Φ⁻**: (|00⟩ − |11⟩)/√2.\n- **Ψ⁺**: (|01⟩ + |10⟩)/√2.\n- **Ψ⁻**: (|01⟩ − |10⟩)/√2.\n\nFor each: measuring one qubit perfectly determines the other.\n\n**Φ⁺**: same outcome (00 or 11 with 50/50).\n**Ψ⁻**: opposite outcomes (01 or 10 with 50/50).\n\n**Generation**: starting from |00⟩, apply H to qubit 0 + CNOT (control 0, target 1). For other Bell states, prepend X or Z gates.\n\n**Used in**: quantum teleportation, dense coding, Bell-inequality experiments, EPR-pair generation."
     },

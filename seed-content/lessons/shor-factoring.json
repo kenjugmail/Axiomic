@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: post-quantum cryptography migration",
+      "body": "NSA started internally discussing PQ migration as early as 2015. NIST PQC standardization concluded 2024 with Kyber (lattice KEM) + Dilithium (lattice signatures) as primary picks. Web TLS gradually rolling out hybrid X25519+ML-KEM. Estimates: full PQ migration of internet PKI ~10-15 years. Quantum threat: ~20+ years before fault-tolerant Shor becomes practical for RSA-2048. But: 'harvest-now-decrypt-later' attack means high-confidentiality data should already be migrating."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_shor_qft",
+        "kind": "guided_derivation",
+        "question": "Sketch period finding via QFT",
+        "goal": "Goal: find period $r$ of $f(x) = a^x \\mod N$. Quantum approach uses QFT.",
+        "steps": [
+          {
+            "prompt": "Prepare uniform superposition over $|x\\rangle$ for $x \\in [0, Q)$ where $Q \\gg N$. Apply oracle $|x\\rangle|0\\rangle \\to |x\\rangle|f(x)\\rangle$. Measure second register: get some $f$-value $y_0$; first register collapses to uniform superposition over $\\{x : f(x) = y_0\\} = \\{x_0, x_0 + r, x_0 + 2r, \\dots\\}$. Now apply QFT. What does the output look like?",
+            "motivation": "QFT of an arithmetic progression peaks at multiples of $Q/r$.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Output is concentrated at frequencies $k Q/r$ for integer $k$. Measure → estimate $k Q/r$ → recover $r$ via continued fractions.",
+                "Uniform random output.",
+                "Same superposition.",
+                "Always $|0\\rangle$."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "QFT of a periodic signal peaks at the harmonics."
+            ],
+            "reveal": "QFT output concentrates at $k Q/r$. Measure → $\\hat k$; classical continued-fraction algorithm extracts $r$ from $\\hat k/Q$."
+          }
+        ],
+        "finalResult": "Shor's period-finding is the quantum subroutine that does the work; classical wrapping converts the period into RSA's prime factors. Without QFT, period-finding is exponentially hard classically. With QFT, polynomial. Hence the speedup."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Reduction to period finding",
       "body": "Factoring an integer `N` reduces to finding the period of `f(x) = a^x mod N` for random `a` coprime to `N`.\n\n**Why period finding helps**:\n- The period `r` (smallest `r > 0` with `a^r ≡ 1 mod N`) divides `φ(N)` (Euler's totient).\n- If `r` is even and `a^{r/2} ≢ -1 mod N`, then `gcd(a^{r/2} - 1, N)` and `gcd(a^{r/2} + 1, N)` are non-trivial factors of `N`.\n- For random `a`, this works with probability ≥ 1/2.\n\n**Classical period finding**: requires ~`√N` modular exponentiations. Inefficient for large `N`.\n\n**Quantum period finding** (the Shor's core): `O(n³)` operations using QFT. The exponential speedup is here.\n\nThe reduction is purely classical number theory — well-established before Shor. The quantum innovation is fast period finding."
     },

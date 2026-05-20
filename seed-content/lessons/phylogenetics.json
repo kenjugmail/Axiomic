@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: phylogenetic placement of SARS-CoV-2",
+      "body": "Early 2020 phylogenetic analysis placed SARS-CoV-2 within the bat coronavirus clade, with the closest known relative being RaTG13 (~96% identity). The branch lengths suggested the most-recent-common-ancestor between SARS-CoV-2 and RaTG13 lived ~40-70 years ago — so the immediate source was likely a different coronavirus, not RaTG13 directly. Phylogenetic methods rapidly become real-time tools during outbreaks: variant tracking, transmission inference, vaccine evaluation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_phy_upgma",
+        "kind": "guided_derivation",
+        "question": "Derive UPGMA distance update",
+        "goal": "UPGMA merges the two closest clusters. After merging clusters A and B (with sizes $|A|$, $|B|$), new distance to any other cluster C is?",
+        "steps": [
+          {
+            "prompt": "UPGMA uses weighted average: $d(AB, C) = (|A| d(A,C) + |B| d(B,C)) / (|A| + |B|)$. Why weighted by cluster size?",
+            "motivation": "Ensures the merged distance is the average distance from C to all original points in A+B.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Preserves the property that $d(AB, C)$ is the average pairwise distance from C's members to AB's members.",
+                "Just convention.",
+                "Speeds up computation.",
+                "Avoids overflow."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "$d(A,C)$ is already the average over $|A|$ points; multiplying by $|A|$ reconstructs the sum."
+            ],
+            "reveal": "Weighted average gives $d(AB, C)$ as the mean of all pairwise distances between $A \\cup B$ and $C$ — exactly what 'group-average linkage' means."
+          }
+        ],
+        "finalResult": "$$\\boxed{d(AB, C) = \\frac{|A| d(A,C) + |B| d(B,C)}{|A| + |B|}}$$ UPGMA assumes a molecular clock (constant rate of evolution). Faster but less accurate than maximum-likelihood + Bayesian methods, which are now standard for serious phylogenetics."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Distance-based methods",
       "body": "**Step 1: compute pairwise distances** between all sequences. For DNA: percent identity, or some correction (Jukes-Cantor, Kimura) to handle multiple substitutions at the same site over evolutionary time. For protein: similar but with BLOSUM-derived distances.\n\n**Step 2: build a tree** from the distance matrix.\n\n**Neighbor-Joining (NJ)**: greedy algorithm. Start with a star tree; iteratively pick the pair of taxa minimizing a Q-criterion; merge them as siblings; repeat. Fast (`O(N³)`); usually accurate for moderate-size trees.\n\n**UPGMA**: assumes a constant molecular clock. Cluster sequences by minimum distance hierarchically. Simpler than NJ but the molecular-clock assumption is often violated.\n\n**For most practical bioinformatics**: Neighbor-Joining is the default. Tools like MEGA, FastTree, RAxML implement it (and more sophisticated methods).\n\n**Limitation**: distance-based methods compress sequence data into a single distance per pair, losing information about which sites are conserved vs variable. Character-based methods (next slide) preserve more signal."
     },

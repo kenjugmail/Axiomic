@@ -7,6 +7,51 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: how Verlet handles energy conservation",
+      "body": "Standard ODE integrators (RK4, Euler) gradually drift energy in long simulations — they're not *symplectic*. The Verlet family (and leapfrog, velocity Verlet) preserve a 'shadow Hamiltonian' close to the true one, keeping energy bounded indefinitely. Trade-off: only second-order accurate vs RK4's fourth-order. For MD, where simulation lengths are huge + energy conservation matters, the symplectic property wins."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_md_verlet",
+        "kind": "guided_derivation",
+        "question": "Derive the Verlet integrator",
+        "goal": "From $\\ddot x = F(x)/m$, derive the position-only update $x(t + h) = 2x(t) - x(t - h) + h^2 F(x(t))/m$.",
+        "steps": [
+          {
+            "prompt": "Taylor expand $x(t \\pm h) = x(t) \\pm h \\dot x(t) + (h^2/2) \\ddot x(t) + (h^3/6) \\dddot x(t) + \\dots$. Add the two expansions.",
+            "motivation": "Cancel the odd-order terms.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "x(t+h) + x(t-h) = 2x(t) + h^2 ddot x(t) + O(h^4)"
+              ]
+            },
+            "hints": [
+              "Sum cancels $\\dot x, \\dddot x$ (odd derivatives)."
+            ],
+            "reveal": "$x(t+h) + x(t-h) = 2x(t) + h^2 \\ddot x(t) + O(h^4)$."
+          },
+          {
+            "prompt": "Use Newton: $\\ddot x = F/m$. Solve for $x(t + h)$.",
+            "motivation": "Substitute + isolate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2 x(t) - x(t-h) + h^2 F(x(t))/m"
+              ]
+            },
+            "hints": [
+              "Subtract $x(t-h)$ from both sides."
+            ],
+            "reveal": "$x(t + h) = 2x(t) - x(t - h) + h^2 F(x(t))/m$."
+          }
+        ],
+        "finalResult": "$$\\boxed{x(t+h) = 2 x(t) - x(t-h) + h^2 F(x(t))/m}$$ The Verlet integrator. Second-order accurate, symplectic, no explicit velocity needed (though leapfrog + velocity-Verlet variants carry velocity). The MD workhorse for ~50 years."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The classical MD recipe",
       "body": "**Step 1: Force field**. A potential energy function `U(positions)`:\n\n```\nU = bond stretching + angle bending + dihedral torsions + van der Waals + electrostatics + bonds\n```\n\nEach term has parameters (force constants, equilibrium distances, etc.) fitted to experimental data. Standard force fields: AMBER, CHARMM, OPLS, GROMOS.\n\nThe forces on each atom: `F = -∇U`.\n\n**Step 2: Integration**. Numerically integrate Newton's equations:\n\n```\np_{t+Δt} = p_t + F · Δt           (momentum update)\nx_{t+Δt} = x_t + p_{t+Δt}/m · Δt  (position update)\n```\n\nUsing velocity Verlet or similar (numerical stability matters; energy conservation matters). Timestep `Δt`: 1-2 femtoseconds (10^-15 s) for biomolecular MD.\n\n**Step 3: Thermostat + barostat**. Couple to a heat bath / pressure bath to maintain target temperature + pressure. Langevin dynamics, Nosé-Hoover, etc.\n\n**Step 4: Run for many steps**. To simulate 100 ns of biology: 50 million 2-fs steps. Each step requires computing forces over all atom pairs — `O(N²)` naively. Tricks (cutoffs, Ewald summation for electrostatics, neighbor lists) reduce to `O(N log N)` or better. Still expensive: 100 ns of a 100k-atom system takes ~hours-to-days on a GPU."
     },

@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: a typical 10x Genomics scRNA-seq run",
+      "body": "10x Genomics droplet-based scRNA-seq, the standard platform: ~10,000 cells per experiment, ~20,000 genes detected per cell. Library: a single experiment captures ~$5 \\times 10^7$ unique molecular identifiers (UMIs); average ~2000-5000 UMIs per cell. Result: a sparse 10K × 20K matrix with ~95% zeros. The sparsity is a combination of biological (most genes aren't expressed in any given cell) + technical (capture rate ~30-40% of transcripts) — disentangling them is the entire scRNA-seq analysis stack."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sc_dropout",
+        "kind": "guided_derivation",
+        "question": "Sketch why scRNA-seq is so sparse",
+        "goal": "What fraction of zero counts is biological vs technical?",
+        "steps": [
+          {
+            "prompt": "Each gene-cell entry is 0 either because the gene wasn't expressed (true zero) OR because expression existed but the transcript wasn't captured (dropout). Estimate?",
+            "motivation": "Mixture model.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Both are large: roughly 80-90% of zeros are biological, 10-20% technical (capture efficiency limits).",
+                "All technical.",
+                "All biological.",
+                "Zeros aren't real."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Capture rate ~30-40%, so most genes that ARE expressed get captured. The big zero fraction is mostly 'genes that aren't expressed in this cell'."
+            ],
+            "reveal": "Most zeros (~80-90%) reflect true biological non-expression. Capture efficiency limits add another ~10-20% as 'dropout' (gene was expressed but not detected). Imputation methods (MAGIC, scVI) try to separate them."
+          }
+        ],
+        "finalResult": "Sparsity is mostly biology (cells express ~10% of genes), with technical dropout adding ~10-20%. Treating all zeros as 'missing' fails; modeling dropout explicitly (zero-inflated negative binomial, scVI's hierarchical model) gives better downstream results."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The standard pipeline",
       "body": "**1. Quality control + normalization.**\n\n- Filter out low-quality cells (few genes detected, high mitochondrial gene fraction → dying cells).\n- Normalize counts: divide by total counts per cell, log-transform. Compensates for variable sequencing depth.\n\n**2. Feature selection.**\n\n- Identify highly variable genes (HVGs) — genes with high variance relative to mean. Typically 2000-5000 HVGs out of ~20K total.\n- Reduces noise; speeds downstream analysis.\n\n**3. Dimensionality reduction.**\n\n- **PCA** (50-100 components): captures most variance.\n- **UMAP** or **t-SNE** (2D for visualization): non-linear; preserves local + global structure.\n\n**4. Clustering.**\n\n- **Leiden / Louvain** algorithms on a k-nearest-neighbor graph in PCA space.\n- Output: cells partitioned into clusters; each cluster is (hopefully) a cell type or state.\n\n**5. Cell-type annotation.**\n\n- Identify marker genes per cluster (genes uniquely expressed in this cluster).\n- Match to known cell-type signatures (CellTypist, manual curation).\n- Output: cluster X = T cells; cluster Y = neurons; etc.\n\nTools: **Scanpy** (Python) and **Seurat** (R) implement this pipeline. Standard in every scRNA-seq paper."
     },

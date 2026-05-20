@@ -8,6 +8,55 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: ESM-3 as multi-track foundation model",
+      "body": "ESM-3 (EvolutionaryScale 2024) is multi-track: trained on sequences + structures + function annotations simultaneously. Can generate novel proteins from a partial input (e.g., 'design a 200-aa protein with structure X'). The shift from sequence-only ESM-2 to multi-track ESM-3 mirrors LLMs' shift from text-only to multi-modal: more conditioning, more capabilities, same backbone."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_plm_mlm",
+        "kind": "guided_derivation",
+        "question": "Derive the MLM objective",
+        "goal": "Mask 15% of residues; predict them from context. Show the training objective is $-\\log P(x_{\\text{masked}} | x_{\\text{visible}})$.",
+        "steps": [
+          {
+            "prompt": "Each batch: randomly select 15% of positions, replace with [MASK]. Model predicts the masked tokens given visible context. Per-position loss?",
+            "motivation": "Cross-entropy on masked positions.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-log P(x_i | x_visible)"
+              ]
+            },
+            "hints": [
+              "Standard cross-entropy on masked tokens."
+            ],
+            "reveal": "$L = -\\sum_{i \\in \\text{masked}} \\log P(x_i | x_{\\text{visible}})$."
+          },
+          {
+            "prompt": "Why masking 15% specifically?",
+            "motivation": "Standard BERT-era choice.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Empirical sweet spot: enough mask tokens to learn from; small enough that there's plenty of visible context.",
+                "Theoretically optimal.",
+                "Arbitrary.",
+                "Determined by alphabet size."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "BERT's choice, found empirically."
+            ],
+            "reveal": "Empirical: 15% balances learning signal (lots of mask positions to predict) vs context (lots of visible context to predict from). Lower rates underutilize each example; higher rates leave too little context."
+          }
+        ],
+        "finalResult": "$$\\boxed{L_{\\text{MLM}} = -\\sum_{i \\in \\text{masked}} \\log P(x_i | x_{\\text{visible}})}$$ Same recipe as BERT for text. Trained on UniRef (~250M sequences), ESM-2 / ESM-3 learn rich residue representations useful for downstream structure + function tasks."
+      }
+    },
+    {
+      "kind": "text",
       "title": "ESM training",
       "body": "**ESM-1b (2019)**: BERT-style. 33-layer transformer; 650M params. Trained on UniRef50 (~30M protein sequences) via masked-residue prediction.\n\n**ESM-2 (2022)**: same architecture, more data (UniRef90 + extras), larger sizes. Released in 8M to 15B parameter variants.\n\n**ESM-3 (2024)**: multimodal — sequence + structure + function tokens in one model. ~98B params. Generative; can design new proteins.\n\nTraining objective for ESM-1/2:\n\n```\nmask 15% of residues randomly\npredict masked tokens given context\nloss: cross-entropy on masked positions\n```\n\nIdentical recipe to BERT, applied to protein sequences. The model learns:\n- Statistical patterns (which residues are common in α-helices vs β-sheets).\n- Co-evolution-like patterns (which residues co-occur or substitute together).\n- Structure-relevant features (residues forming binding sites, conserved positions).\n\n**Crucially**: ESM-2 was trained on sequences alone, no MSA, no structure labels. The structural information emerges implicitly. ESMFold (a small structure prediction module trained on top of ESM-2) achieves ~80-90% of AlphaFold's structure prediction accuracy without using MSAs at all."
     },

@@ -7,6 +7,41 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: POPE for hallucination detection",
+      "body": "POPE (Polling-based Object Probing Evaluation) probes VLMs with yes/no questions about object presence: 'Is there a dog in the image?' for both present and absent objects. Vanilla VLMs answer 'yes' to most questions regardless of the image — a strong 'yes' bias. POPE's design uses balanced positive/negative questions to expose this directly. The metric: accuracy on the balanced set; F1 score across hallucinated objects. Modern VLM evaluations include POPE alongside VQA accuracy."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_me_langtest",
+        "kind": "guided_derivation",
+        "question": "Construct the language-bias diagnostic",
+        "goal": "Run the model on questions with blank/random images. Compare to image+question accuracy.",
+        "steps": [
+          {
+            "prompt": "Goal: measure how much accuracy comes from the question alone (language bias) vs from using the image. Setup?",
+            "motivation": "Counterfactual.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Run model with original question + image (full accuracy). Then run with same question + a blank/random image (language-only accuracy). Gap = visual contribution.",
+                "Just run with the original setup.",
+                "Use a smaller model.",
+                "Check the train set."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Counterfactual: what if the image weren't there?"
+            ],
+            "reveal": "Full vs language-only accuracy. The gap is the model's actual visual contribution."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Visual contribution} = \\text{Acc}_\\text{full} - \\text{Acc}_\\text{lang-only}}$$ VQAv2's design balanced questions across image pairs precisely to suppress language bias; even after balancing, residual bias leaks. Always run the language-only baseline before claiming visual reasoning."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The benchmark suite",
       "body": "**Standard benchmarks for VLMs**:\n\n- **VQAv2**: open-ended visual question answering. ~250K image-question-answer triples. Image of dog → 'is the dog brown?' → 'yes'. Saturated; modern VLMs hit 85%+.\n- **GQA**: compositional VQA (counting, relationships). Harder than VQAv2; less saturated.\n- **TextVQA**: questions about text in images. Tests OCR + reasoning.\n- **DocVQA / ChartQA**: document understanding. Critical for enterprise use cases.\n- **MMMU**: multi-discipline understanding (medical, business, art). Designed to be uncontaminated; current frontier models around 70-80%.\n- **MathVista**: math problems with visual context. Tests visual math reasoning.\n- **MM-Vet**: 16 capability categories (recognition, OCR, knowledge, math, spatial). Capability matrix rather than aggregate score.\n- **Hallucination benchmarks**: POPE (Polling-based Object Probing Evaluation) — does the model hallucinate non-existent objects? Critical safety metric.\n\nFor image generation:\n- **FID / KID**: distance between generated and real image distributions. Standard but blunt.\n- **CLIP score**: how well the generated image matches the prompt (CLIP embedding similarity).\n- **Human eval**: pairwise preference. Slow + expensive; the only way to measure real quality.\n\nFor speech:\n- **WER (word error rate)**: standard for ASR.\n- **MOS (mean opinion score)**: standard for TTS naturalness; requires human annotators."
     },

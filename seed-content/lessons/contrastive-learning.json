@@ -7,6 +7,52 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: hard-negative mining boosts CLIP",
+      "body": "Naive contrastive learning samples random negatives. The result is dominated by 'easy' negatives — different categories that are obviously different. Hard-negative mining: sample negatives that are 'almost positive' (similar to the anchor but actually different). Push the model to learn finer distinctions. CLIP scales by using all other in-batch examples as negatives — bigger batches → more (and harder) negatives → better representations. The strongest CLIP variants train with very large batches (32K+) precisely to maximize hard-negative exposure."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cl_infonce",
+        "kind": "guided_derivation",
+        "question": "Derive InfoNCE as cross-entropy on the positive vs negatives",
+        "goal": "Show InfoNCE $= -\\log[e^{s_+/\\tau} / (e^{s_+/\\tau} + \\sum_i e^{s_i/\\tau})]$ is cross-entropy classification with the positive as the true label.",
+        "steps": [
+          {
+            "prompt": "$(N+1)$-way classification: among 1 positive + $N$ negatives, which is the matching one? Softmax probability for the positive: $p_+ = ?$",
+            "motivation": "Softmax setup.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "exp(s_+/tau) / (exp(s_+/tau) + sum exp(s_i/tau))"
+              ]
+            },
+            "hints": [
+              "Softmax normalization."
+            ],
+            "reveal": "$p_+ = e^{s_+/\\tau}/Z$ where $Z = e^{s_+/\\tau} + \\sum_i e^{s_i/\\tau}$."
+          },
+          {
+            "prompt": "Cross-entropy with the positive as the true label: $-\\log p_+ = ?$",
+            "motivation": "CE definition.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-log p_+",
+                "-log[exp(s_+/tau)/Z]"
+              ]
+            },
+            "hints": [
+              "The 'true label' is the positive."
+            ],
+            "reveal": "$L_{\\text{InfoNCE}} = -\\log p_+ = -\\log[e^{s_+/\\tau}/Z]$."
+          }
+        ],
+        "finalResult": "$$\\boxed{L_{\\text{InfoNCE}} = -\\log \\frac{e^{s_+/\\tau}}{e^{s_+/\\tau} + \\sum_i e^{s_i/\\tau}}}$$ InfoNCE is just multi-class cross-entropy treating 'is x_+ the matching pair?' as the prediction. Connects contrastive learning to standard supervised classification — the loss is the same, the supervision is from data structure (which examples should match) rather than labels."
+      }
+    },
+    {
+      "kind": "text",
       "title": "InfoNCE — the standard loss",
       "body": "**InfoNCE** (Information Noise-Contrastive Estimation) is the loss function that powers SimCLR, CLIP, and most modern contrastive methods.\n\nGiven a query `q` and a candidate set with one positive `k+` and many negatives `{k_1, k_2, ..., k_N}`:\n\n$$L_{InfoNCE} = -\\log \\frac{\\exp(q \\cdot k^+ / \\tau)}{\\sum_i \\exp(q \\cdot k_i / \\tau)}$$\n\nThis is **softmax classification**: the positive vs N negatives, where the 'class' is which one is the positive. Temperature `τ` (typically 0.07 or 0.1) controls how peaked the softmax is.\n\nKey properties:\n- More negatives = better gradient signal. SimCLR uses large batch sizes (4096) so each query sees 4094 in-batch negatives.\n- The temperature critically affects training. Too low → gradient saturates on hardest negative. Too high → loss is too soft to discriminate.\n\nIn information-theoretic terms: InfoNCE lower-bounds the mutual information between query and key. Maximizing it = maximizing `I(q; k+)` = the model captures the shared information between the two views."
     },

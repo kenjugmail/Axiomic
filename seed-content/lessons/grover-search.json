@@ -7,6 +7,38 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: Grover on SAT",
+      "body": "Grover gives a quadratic speedup for any unstructured search — including SAT. Classical worst-case 3-SAT: $O(2^n)$. Grover applied to SAT: $O(\\sqrt{2^n}) = O(2^{n/2})$. Faster — but quantum SAT solvers haven't been deployed because (a) modern classical SAT solvers exploit structure beyond brute-force search, and (b) Grover's $2^{n/2}$ is still exponential. Practical SAT instances are tractable for classical solvers despite the worst-case complexity. Grover wins on truly unstructured search; real-world SAT has structure."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_gr_iter",
+        "kind": "guided_derivation",
+        "question": "Derive Grover iteration count",
+        "goal": "Show $\\pi/4 \\sqrt N$ iterations suffice to find the marked item with constant probability.",
+        "steps": [
+          {
+            "prompt": "Grover iteration rotates the amplitude vector in the 2D subspace spanned by marked + unmarked basis states. Initial angle of state vector with marked: $\\theta_0 \\approx 1/\\sqrt N$ (small). Each iteration rotates by $2\\theta_0 \\approx 2/\\sqrt N$. How many iterations to reach total angle $\\pi/2$ (aligned with marked)?",
+            "motivation": "Setup.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "pi / 4 sqrt N",
+                "π/(4·2/√N) = π√N/4"
+              ]
+            },
+            "hints": [
+              "$T \\cdot 2\\theta_0 = \\pi/2 \\Rightarrow T \\approx \\pi/(4/\\sqrt N) = (\\pi/4)\\sqrt N$."
+            ],
+            "reveal": "$T \\approx (\\pi/4)\\sqrt N$ iterations."
+          }
+        ],
+        "finalResult": "$$\\boxed{T_{\\text{Grover}} \\approx (\\pi/4)\\sqrt N}$$ Quadratic speedup over classical $O(N)$. Optimal: BBBV theorem (1996) proves no quantum algorithm can do unstructured search in $o(\\sqrt N)$. Grover saturates the bound up to constants."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Amplitude amplification — the technique",
       "body": "Grover works by amplifying the amplitude of the target state.\n\n**Procedure**:\n1. Start with uniform superposition: `|ψ⟩ = (1/√N) Σ |x⟩`. Each amplitude is `1/√N`.\n2. Apply **oracle** `U_f`: flips sign of the target amplitude. Now target has amplitude `-1/√N`; others have `+1/√N`.\n3. Apply **diffusion operator** `2|ψ⟩⟨ψ| - I`: reflects all amplitudes around the mean.\n4. Repeat steps 2-3 about `(π/4)√N` times.\n5. Measure. The target is observed with probability close to 1.\n\n**Geometric picture**: each iteration rotates the state vector toward the target by a small angle. After `O(√N)` iterations, the state is close to the target.\n\n**Why exactly √N**: the rotation angle is `O(1/√N)` per iteration. To rotate from initial state to target (~90° apart), need `~π/(4·angle) = O(√N)` iterations.\n\n**Critical**: too few or too many iterations, the target probability isn't maximized. Standard Grover needs to know the number of iterations exactly (or at least the number of solutions)."
     },

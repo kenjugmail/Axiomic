@@ -7,6 +7,37 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: cascade diffusion for resolution scaling",
+      "body": "Stable Diffusion XL (Stability AI 2023) and Imagen (Google 2022) both use *cascades*: first model produces a 64×64 image; second model upscales to 256×256 conditioned on the lower-res; third to 1024×1024. Each cascade stage is itself a diffusion model. Why: diffusion at 1024×1024 directly is computationally enormous; the cascade lets each stage operate at a manageable resolution + focuses model capacity on the relevant frequency band."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_diff_xt",
+        "kind": "guided_derivation",
+        "question": "Derive forward-process sample from initial",
+        "goal": "Show $x_t = \\sqrt{\\bar\\alpha_t} x_0 + \\sqrt{1 - \\bar\\alpha_t} \\epsilon$ where $\\epsilon \\sim \\mathcal{N}(0, I)$.",
+        "steps": [
+          {
+            "prompt": "Forward process: $q(x_t | x_{t-1}) = \\mathcal{N}(\\sqrt{1 - \\beta_t} x_{t-1}, \\beta_t I)$. Define $\\alpha_t = 1 - \\beta_t$, $\\bar\\alpha_t = \\prod_{s \\leq t} \\alpha_s$. By induction (or repeated application), $x_t = ?$",
+            "motivation": "Reparameterize.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "sqrt(bar alpha_t) x_0 + sqrt(1 - bar alpha_t) epsilon"
+              ]
+            },
+            "hints": [
+              "Compose Gaussian noisings; the means multiply, variances add."
+            ],
+            "reveal": "$x_t = \\sqrt{\\bar\\alpha_t} x_0 + \\sqrt{1 - \\bar\\alpha_t} \\epsilon$."
+          }
+        ],
+        "finalResult": "$$\\boxed{x_t = \\sqrt{\\bar\\alpha_t}\\,x_0 + \\sqrt{1 - \\bar\\alpha_t}\\,\\epsilon}$$ Closed-form jump to any noise step in O(1) — instead of $t$ sequential steps. This is the key reparameterization trick of DDPM. Train the noise predictor on uniformly-sampled $t$ with this single-step noising."
+      }
+    },
+    {
+      "kind": "text",
       "title": "The forward process",
       "body": "Add small amounts of Gaussian noise per step:\n\n$$x_t = \\sqrt{1 - \\beta_t} \\cdot x_{t-1} + \\sqrt{\\beta_t} \\cdot \\epsilon, \\quad \\epsilon \\sim N(0, I)$$\n\n`β_t` is a small noise level at step `t`. After `T` steps (typically 1000), `x_T ≈ N(0, I)` — pure noise.\n\n**Closed-form jump**: you can sample `x_t` directly from `x_0` without iterating:\n\n$$x_t = \\sqrt{\\bar{\\alpha}_t} \\cdot x_0 + \\sqrt{1 - \\bar{\\alpha}_t} \\cdot \\epsilon$$\n\nwhere `α_t = 1 - β_t` and `ᾱ_t = ∏_{s=1}^t α_s`. This is essential for training: at each step you sample a random `t` and add the noise in one shot, no need to iterate.\n\nThe **noise schedule** `β_t` is a hyperparameter. Linear schedule (`β_t` from 1e-4 to 0.02 over 1000 steps) is the original DDPM. Cosine schedule is smoother and improves quality. Sigmoid schedule is another variant. Most modern recipes pick one of these."
     },

@@ -7,6 +7,38 @@
     },
     {
       "kind": "text",
+      "title": "Worked example: prompting matters for CLIP zero-shot",
+      "body": "CLIP zero-shot ImageNet accuracy with prompt 'a photo of a {label}': ~76%. With just '{label}' (no prompt template): ~71%. With 'a photo of a {label}, a type of animal' (when applicable): ~78%. Prompt-engineering CLIP's text encoder is meaningfully important — different from CLIP's original belief that it would be largely invariant. Modern usage: 7-30 prompt templates per class, ensemble the embeddings. Lifts accuracy +1-3% across benchmarks."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_clip_zs",
+        "kind": "guided_derivation",
+        "question": "Derive zero-shot classification probability",
+        "goal": "Show $P(y | x) = \\text{softmax}_y[\\cos(\\phi_{\\text{img}}(x), \\phi_{\\text{txt}}(\\text{prompt}_y))/\\tau]$.",
+        "steps": [
+          {
+            "prompt": "Image embedding $\\mathbf{v} = \\phi_{\\text{img}}(x)$. Each class $y$ has prompt embedding $\\mathbf{t}_y = \\phi_{\\text{txt}}(\\text{prompt}_y)$. Compute similarity to all classes; apply softmax with temperature $\\tau$. What's the prediction?",
+            "motivation": "Standard softmax over class similarities.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "softmax(cos(v, t_y)/tau)",
+                "exp(cos(v,t_y)/tau)/sum exp(cos(v,t_j)/tau)"
+              ]
+            },
+            "hints": [
+              "Cosine sim → logits via $1/\\tau$ scaling → softmax."
+            ],
+            "reveal": "$P(y | x) = e^{\\cos(\\mathbf{v}, \\mathbf{t}_y)/\\tau} / \\sum_j e^{\\cos(\\mathbf{v}, \\mathbf{t}_j)/\\tau}$."
+          }
+        ],
+        "finalResult": "$$\\boxed{P(y | x) \\propto e^{\\cos(\\phi_\\text{img}(x), \\phi_\\text{txt}(\\text{prompt}_y))/\\tau}}$$ Same softmax-on-logits structure as supervised classification, but with similarities + label-as-text. CLIP's training learns this joint space such that matching pairs have high similarity, mismatched have low."
+      }
+    },
+    {
+      "kind": "text",
       "title": "Zero-shot classification with CLIP",
       "body": "CLIP's killer feature: **zero-shot classification**. To classify an image into one of N categories, you don't need any training data:\n\n```python\nimage_emb = clip_image_encoder(image)\ntext_embs = [clip_text_encoder(f\"a photo of a {label}\") for label in labels]\nsimilarity = [image_emb · t for t in text_embs]\nprediction = labels[argmax(similarity)]\n```\n\nThe text prompts are the 'classifier'. Replace them with new ones to classify into new categories.\n\n**Performance**: zero-shot CLIP on ImageNet gets ~76% top-1 accuracy (CLIP ViT-L/14, 2021). Beat the supervised ResNet-50 baseline. With zero ImageNet training data.\n\n**Why this works**: contrastive pretraining on (image, caption) data makes the image embedding semantically meaningful in the same way captions are. The model learned to associate visual concepts with their linguistic descriptions.\n\n**Prompt engineering matters**: 'a photo of a {label}' beats just '{label}' by several points. CLIP was pretrained on natural-language captions; matching that distribution helps. Ensembling prompts ('a photo', 'a sketch', 'a painting') further helps."
     },
