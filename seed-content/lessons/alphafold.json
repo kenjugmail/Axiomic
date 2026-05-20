@@ -40,6 +40,64 @@
       "kind": "text",
       "title": "What's next",
       "body": "AlphaFold is the canonical example of attention-based bio-ML. Next: protein language models — adapting GPT-style pretraining to proteins.\n\nNext: [[protein-language-models]] — ESM, masked-residue pretraining.\n\nKey takeaways:\n- AlphaFold takes sequence + MSA → 3D structure with atomic accuracy\n- Architecture: build MSA → evoformer (attention on MSA + pair) → structure module (SE(3) IPA) → recycling\n- Evoformer extracts co-evolution + builds geometric constraints\n- Structure module is SE(3)-equivariant; respects rotational symmetry\n- pLDDT confidence per residue tells you which predictions to trust\n- AlphaFold 3 extends to multi-molecule complexes"
+    },
+    {
+      "kind": "text",
+      "title": "Why AlphaFold worked, in one paragraph",
+      "body": "AlphaFold2's central insight: **coevolution** is the load-bearing signal. Across millions of related sequences (the MSA), if two residues need to physically contact in 3D, their amino acids must coevolve — a mutation at one position is compensated by a complementary mutation at the contacting position. Coevolution patterns in MSAs encode the 3D contact map.\n\n**Inputs**: target sequence + its multiple sequence alignment (~thousands of homologs from a sequence database).\n\n**Evoformer** (48 layers): an attention-based 'transformer' over the MSA + a pair representation. Two parallel data structures (the MSA, the pair representation) cross-update via attention. The architecture maintains an invariant: residue pairs that emerge as 'likely in contact' refine the MSA understanding, which refines the contacts further.\n\n**Structure module** (8 layers): turn the refined pair representation into actual 3D coordinates. Iterative refinement with equivariant operations (preserving rotation-translation invariance).\n\n**Why this beat all prior approaches**: prior methods used coevolution signal too, but with one-shot statistical methods (DCA, PSICOV). AlphaFold's deep-learning approach extracts much richer signal from the same MSA, and the iterative refinement structure aligns the MSA + pair + structure understanding in a single trainable model.\n\n**AlphaFold3** (2024) generalizes to nucleic acids + small-molecule ligands + protein complexes. The single-protein structure prediction problem is largely solved; the new frontier is interactions, dynamics, and disorder."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_af_msa",
+        "kind": "multiple_choice",
+        "question": "AlphaFold2's central input is:",
+        "options": [
+          "The single target sequence.",
+          "The MSA — thousands of related sequences from a database.",
+          "The crystallographic data.",
+          "The protein's amino-acid composition."
+        ],
+        "correctIndex": 1,
+        "explanation": "MSA is the load-bearing input. Single-sequence-only AlphaFold (no MSA) is much worse. The coevolution signal across thousands of related sequences encodes the 3D contact map; AlphaFold's architecture extracts this signal. ESMFold and other 'single-sequence' methods later showed that protein language models can substitute for the MSA, but it took a much bigger model and substantial pretraining."
+      },
+      "hints": [
+        "What information does AlphaFold use that classical sequence-based methods didn't have access to until the genomics era?",
+        "Why did pre-2020 single-sequence-only methods fail at the folding problem?"
+      ],
+      "workedSolution": "The MSA (multiple sequence alignment) — thousands of evolutionarily-related sequences — carries the coevolution signal that encodes which residues must contact in 3D. AlphaFold's Evoformer extracts this signal via attention. Single-sequence-only models existed before but were far worse; the genomics-era explosion of sequence databases is what made the MSA-based approach viable.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_af_orphan",
+        "kind": "scenario",
+        "question": "Orphan proteins",
+        "prompt": "Some target proteins have few or no homologous sequences ('orphan proteins'). AlphaFold accuracy drops on these. Why is this expected, and what alternative approach (ESMFold) addresses it?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_af",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why AlphaFold2 was the 'AlexNet moment' of biology.",
+        "rubric": "Mentions that the field had stagnated for years; AlphaFold delivered near-experimental accuracy in a single paper, shifted the protein-structure-prediction problem from open to largely-solved, and unlocked structure-informed analyses across the rest of biology."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "advanced",
+    "objectives": [
+      "Sketch AlphaFold2's evoformer + structure module architecture.",
+      "Explain why MSAs are the load-bearing input.",
+      "Recognize the role of attention in coevolution."
+    ],
+    "prereqs": [
+      "protein-structure",
+      "sequence-alignment"
+    ]
+  }
 }

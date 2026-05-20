@@ -41,6 +41,63 @@
       "kind": "text",
       "title": "What's next",
       "body": "scRNA-seq is one major scale of bio-ML data. Next: a different scale entirely — atomic-resolution simulation.\n\nNext: [[molecular-dynamics]] — force fields, Langevin sampling, simulating biomolecules at the atomic level.\n\nKey takeaways:\n- scRNA-seq: cell × gene matrix; sparse + noisy\n- Standard pipeline: QC → normalize → HVG → PCA → UMAP → Leiden → annotate\n- scVI: VAE with biology-aware likelihood + batch correction\n- Foundation models for cells (Geneformer, scGPT) are emerging\n- Spatial + multi-omics extensions for richer biological context\n- Perturbation prediction is the causal-inference frontier"
+    },
+    {
+      "kind": "text",
+      "title": "scRNA-seq, in one paragraph",
+      "body": "**Bulk RNA-seq**: average gene expression across all cells in a sample. Loses cell-to-cell heterogeneity.\n\n**scRNA-seq**: measure gene expression per individual cell. Output: a cells × genes matrix, ~10,000-100,000 cells × ~20,000 genes. Each entry: how many transcripts of that gene were captured in that cell. Sparse and noisy — most entries are 0.\n\n**Standard pipeline**:\n1. Normalize (account for total counts per cell, depth).\n2. Filter highly-variable genes (~2000).\n3. PCA to ~50 components.\n4. Build a k-NN graph in PCA space.\n5. Louvain/Leiden clustering on the graph → cluster labels.\n6. UMAP/t-SNE embedding for visualization (always 2D).\n7. Annotate clusters with marker genes → cell types.\n\nThis is the standard recipe; every published scRNA-seq paper does some variant. The result: a tissue's cell-type atlas + their gene-expression signatures.\n\n**ML perspective**: scRNA-seq is a high-dimensional clustering problem with lots of structure. Cell types are clusters; cell states (cycling, differentiating) are continuous trajectories through expression space. Variational autoencoders (scVI), graph neural networks, and contrastive methods are all actively applied to this problem."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sc_umap",
+        "kind": "multiple_choice",
+        "question": "UMAP for scRNA-seq visualization is:",
+        "options": [
+          "A linear dimensionality reduction.",
+          "A nonlinear method that preserves local neighborhoods better than global geometry.",
+          "A clustering algorithm.",
+          "Exactly equivalent to PCA."
+        ],
+        "correctIndex": 1,
+        "explanation": "UMAP (and t-SNE) preserves local structure: nearby points in the original high-dim space stay nearby in the 2D embedding. Global distances are distorted. Useful for visualizing cluster separability but unreliable for inferring continuous gradients or branch lengths. The standard mantra: 'don't read too much into UMAP geometry'."
+      },
+      "hints": [
+        "UMAP's optimization objective preserves k-NN graph structure.",
+        "Local structure is captured; global distances aren't reliably preserved.\n"
+      ],
+      "workedSolution": "UMAP optimizes a nonlinear embedding that preserves local k-NN structure — nearby points in high-dim stay nearby in 2D. Global distances aren't preserved; clusters' apparent separation, branch geometry, and global layout are unreliable. Useful for visualization + identifying cluster boundaries but not for quantitative claims about distances in the embedding.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sc_batch",
+        "kind": "scenario",
+        "question": "Batch effects",
+        "prompt": "Your scRNA-seq experiment shows clusters that strongly correlate with batch (sequencing run) rather than biology. Why does this happen, and what mitigations are standard practice?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sc",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why scRNA-seq's sparse, noisy counts make naïve Euclidean distance unreliable.",
+        "rubric": "Mentions that ~90%+ entries are zero (dropout), counts follow negative-binomial distributions not Gaussians, and per-cell capture rates vary; standard preprocessing (normalization, log-transform, variance stabilization) is necessary before any geometric reasoning."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Explain what scRNA-seq measures.",
+      "Recognize UMAP / t-SNE as nonlinear-dimensionality-reduction tools.",
+      "Distinguish technical from biological variation."
+    ],
+    "prereqs": [
+      "dna-rna-protein"
+    ]
+  }
 }

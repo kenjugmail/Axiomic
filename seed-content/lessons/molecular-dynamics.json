@@ -35,6 +35,77 @@
       "kind": "text",
       "title": "What's next",
       "body": "MD is the atomic-resolution end of bio-ML. The final lesson covers how to evaluate bio-ML methods rigorously — the field's evaluation pitfalls.\n\nNext: [[bio-ml-evaluation]] — CASP, contamination, leakage.\n\nKey takeaways:\n- MD: atomic positions evolved via Newton's equations + force-field forces\n- Standard recipe: force field + integrator + thermostat; nanoseconds typical, expensive\n- ML potentials (NequIP, MACE) replace classical force fields with neural networks; faster + accurate\n- Coarse-graining + generative sampling are the other ML directions\n- MD is complementary to AlphaFold: AlphaFold gives static structure; MD gives dynamics"
+    },
+    {
+      "kind": "text",
+      "title": "MD, in one paragraph",
+      "body": "**Molecular dynamics**: simulate the time-evolution of atoms by integrating Newton's equations. At each time step (typically 1-2 femtoseconds), compute forces on each atom from a **force field** (a parameterized potential approximating QM-level interactions), update velocities + positions, repeat.\n\n**Force fields**: AMBER, CHARMM, OPLS — sets of bonded + non-bonded interaction parameters fit to small-molecule QM calculations and experimental data. Approximate enough to capture biophysics; not exact like full QM.\n\n**Timescale problem**: many biologically-relevant events (protein folding, ligand binding, conformational changes) happen on microsecond-to-millisecond timescales. Each MD step is ~1 femtosecond. So you need $10^{9}$ to $10^{12}$ steps. Even with massive parallelism on Anton-3 supercomputers, milliseconds of dynamics take weeks of wall-clock time.\n\n**ML acceleration**: train neural-network potentials (NequIP, MACE) that are nearly as accurate as DFT but much faster, on tens of thousands of atoms. Long-timescale sampling methods (metadynamics, weighted ensemble) explore rare events without simulating every step. Both directions are active research; the timescale gap is closing but not closed."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_md_timestep",
+        "kind": "multiple_choice",
+        "question": "MD typically uses 1-2 femtosecond time steps because:",
+        "options": [
+          "The simulation diverges for larger steps.",
+          "The fastest vibrational period in molecules is ~10 fs (X-H bond stretching); the time step must be much shorter to integrate stably.",
+          "Computers can't handle nanoseconds.",
+          "Larger steps cause energy non-conservation."
+        ],
+        "correctIndex": 1,
+        "explanation": "The shortest vibrational period in biomolecules is the X-H bond stretching, ~10 fs. By the Nyquist-like criterion for stable Verlet-type integrators, you need a time step ~$10\\times$ shorter than the fastest period. Hence 1-2 fs. SHAKE/RATTLE constraints fix bond lengths so you can use 2-4 fs; longer is unstable."
+      },
+      "hints": [
+        "What is the natural timescale of the fastest motions in the system?",
+        "Numerical integration of oscillatory motion needs a step much shorter than the period."
+      ],
+      "workedSolution": "The fastest motion is X-H bond vibration with period ~10 fs. Stable integration of an oscillator requires step size $\\ll$ period (the Verlet integrator typically needs ~$10\\times$ shorter for stability). Hence 1-2 fs. SHAKE/RATTLE constraints freeze fast modes so you can use 2-4 fs; beyond that, simulations become unstable.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_md_drug",
+        "kind": "scenario",
+        "question": "Drug discovery + MD",
+        "prompt": "A team wants to predict how strongly a drug candidate binds to a target protein. They run 100ns of MD per candidate × 1000 candidates. Why is this not enough simulation time for many candidates, and what hybrid ML+MD approaches address it?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_md_count",
+        "kind": "math_expression",
+        "question": "1 millisecond = $10^{12}$ femtoseconds. With 2 fs/step, how many steps? Express as $\\sim 10^k$.",
+        "acceptedAnswers": [
+          "5*10^11",
+          "5e11",
+          "500000000000"
+        ],
+        "hint": "Just divide."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_md",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why neural network potentials are reshaping MD even though force fields have been around for 50 years.",
+        "rubric": "Mentions that classical force fields have fixed functional forms with limited accuracy; NN potentials trained on DFT can achieve near-DFT accuracy at force-field cost; this lets MD explore chemical reactions and large systems classical FF can't handle."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish MD from quantum simulation.",
+      "Recognize the force-field assumption.",
+      "Reason about why long timescales are hard."
+    ],
+    "prereqs": [
+      "protein-structure"
+    ]
+  }
 }

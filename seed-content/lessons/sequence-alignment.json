@@ -40,6 +40,77 @@
       "kind": "text",
       "title": "What's next",
       "body": "Sequence alignment is the classical foundation. Next: how alignment + co-evolution combine to give us protein structure prediction.\n\nNext: [[phylogenetics]] — inferring evolutionary trees from aligned sequences.\n\nKey takeaways:\n- Smith-Waterman: optimal local pairwise alignment via dynamic programming\n- BLAST: heuristic for fast database search; E-value measures statistical significance\n- BLOSUM62 substitution matrix encodes biological similarity (conservative vs dramatic substitutions)\n- Multiple sequence alignment (MSA): N sequences aligned simultaneously; reveals conservation + co-evolution\n- AlphaFold's evoformer takes an MSA as input; the MSA is one of the most informative features in bio-ML"
+    },
+    {
+      "kind": "text",
+      "title": "Smith-Waterman, the DP recipe",
+      "body": "**Local alignment**: find the highest-scoring matched subsequence between two strings, allowing gaps + mismatches with a scoring scheme.\n\n**Recipe** (Smith-Waterman, 1981):\n- $H(i, j) = \\max\\{0, H(i-1, j-1) + s(a_i, b_j), H(i-1, j) + g, H(i, j-1) + g\\}$\n- $s$ is the substitution score (BLOSUM62 for proteins); $g$ is gap penalty (typically negative).\n- $H$ is a 2D DP table, filled in $O(MN)$ time.\n\nBacktrack from the max cell of $H$ to recover the alignment.\n\n**BLAST** (1990): when $M$ and $N$ are very large (search a 1kb sequence against a 100GB database), $O(MN)$ is too slow. BLAST is a heuristic: index short k-mers, find seeds, extend seeds without gaps then with gaps. Sacrifices guaranteed-optimality for ~$10^4$ to $10^6$ speedup. The standard tool for sequence search since 1990, only displaced by ML-based methods (e.g., ESM-fold for distant homologs) in the last 2-3 years.\n\nFor ML researchers: BLAST is the right tool when you need fast similarity search; transformer-based embeddings + nearest neighbor are the right tool when you need representation-level reasoning beyond exact-sequence-match."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sa_smwh",
+        "kind": "multiple_choice",
+        "question": "Smith-Waterman has time complexity:",
+        "options": [
+          "$O(M + N)$",
+          "$O(M \\log N)$",
+          "$O(MN)$",
+          "$O((M+N)^2)$"
+        ],
+        "correctIndex": 2,
+        "explanation": "Standard DP: fill an $M \\times N$ table, each cell does constant work, total $O(MN)$. Space is also $O(MN)$ unless you use the linear-space variant (Hirschberg). For genome-scale sequences ($M, N \\sim 10^9$), this is too slow — hence BLAST."
+      },
+      "hints": [
+        "Standard DP fills an $M \\times N$ table with constant work per cell.",
+        "Linear-space variants exist but the time complexity is the same.\n"
+      ],
+      "workedSolution": "Smith-Waterman fills a 2D table of size $M \\times N$. Each cell depends on three neighbors and does constant work to take the max. Time: $O(MN)$. Space: also $O(MN)$ for the full table, but Hirschberg's algorithm gives $O(\\min(M, N))$ space with the same time.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sa_blast",
+        "kind": "scenario",
+        "question": "When to use BLAST",
+        "prompt": "You have a 300-bp query sequence and want to find similar sequences in a 1TB genome database. A teammate proposes running Smith-Waterman pairwise against every entry. Why is this infeasible, and what's BLAST's heuristic shortcut?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sa_blosum",
+        "kind": "math_expression",
+        "question": "BLOSUM62 gives identical residues a positive score, mismatches a negative score. For two perfectly-matched 50-residue sequences (no gaps), if the average match score is +4, the total alignment score is:",
+        "acceptedAnswers": [
+          "200",
+          "50*4",
+          "200.0"
+        ],
+        "hint": "50 positions × +4 per position."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sa",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why BLAST is still the bioinformatician's reflex for sequence search 30 years later despite ML alternatives.",
+        "rubric": "Mentions that BLAST is fast, well-understood, has rigorous E-value statistics, and is the lingua franca for biologists; ML alternatives win on remote-homology detection but BLAST still dominates routine close-sequence search."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Distinguish global from local alignment.",
+      "Sketch the dynamic-programming structure of Smith-Waterman.",
+      "Recognize when BLAST replaces SW."
+    ],
+    "prereqs": [
+      "dna-rna-protein"
+    ]
+  }
 }

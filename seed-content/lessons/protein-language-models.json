@@ -42,6 +42,63 @@
       "kind": "text",
       "title": "What's next",
       "body": "Protein LMs are the foundation models for biology. Next: how single-cell biology uses ML for a different challenge — high-dim, sparse data per cell.\n\nNext: [[single-cell-rna-seq]] — scRNA-seq, dimensionality reduction, cell-type clustering.\n\nKey takeaways:\n- Protein LMs: BERT/GPT for proteins\n- ESM-1/2: masked-residue pretraining on UniRef\n- Structural information emerges from sequence-only pretraining (co-evolution implicit in data)\n- Use cases: embeddings for downstream tasks, variant effect prediction, MSA-free structure (ESMFold), protein design\n- ESM-3: multimodal (sequence + structure + function); generative; can design novel proteins\n- Protein foundation models are catching up to AlphaFold while adding generation"
+    },
+    {
+      "kind": "text",
+      "title": "Protein language models, in one paragraph",
+      "body": "**ESM (Evolutionary Scale Modeling)** by Meta-AI: BERT trained on UniRef (~250M protein sequences) with masked-residue prediction. Predict the missing amino acid from context.\n\nWhy this works: masking forces the model to learn co-evolutionary patterns from individual sequences. Two residues that contact in 3D have correlated amino-acid identities across evolution; masking trains the model to exploit this correlation.\n\n**Result**: ESM embeddings of single sequences contain enough structure information to fold proteins (ESMFold) without an MSA. They aren't as accurate as full AlphaFold but are ~100× faster, useful for screening thousands of proteins.\n\n**Other PLMs**: ProGen (generative), Ankh, ProtBERT. Variants are now used for: drug-target binding, enzyme engineering, antibody design, protein function prediction. Each task uses PLM embeddings as inputs to a downstream model, exploiting the rich representation learned from masked pretraining.\n\nThe whole field has converged on the pattern 'pretrain a transformer on protein sequences, fine-tune for the task'. It's the bio equivalent of BERT/GPT pretraining. The next big advances are likely from multimodal PLMs that consume sequence + structure + function jointly."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_plm_mlm",
+        "kind": "multiple_choice",
+        "question": "ESM is trained with masked language modeling. What does that mean for protein sequences?",
+        "options": [
+          "Predict the next amino acid given previous ones.",
+          "Mask ~15% of residues in each sequence and predict the masked ones from context.",
+          "Predict the structure from the sequence.",
+          "Compute the likelihood of the entire sequence."
+        ],
+        "correctIndex": 1,
+        "explanation": "Masked language modeling: randomly mask 15% of residues, predict the masked ones from the surrounding context. Same recipe as BERT for text. Forces the model to learn coevolution-style relationships between residues. The pretrained encoder is then used as a frozen feature extractor or fine-tuned for downstream tasks."
+      },
+      "hints": [
+        "MLM is exactly the BERT recipe.",
+        "The recipe doesn't care what language you mask — proteins are 20-letter strings."
+      ],
+      "workedSolution": "MLM: mask ~15% of input tokens (residues), predict them from context. The model learns rich co-occurrence patterns between residues — including the coevolutionary patterns that encode 3D contacts. ESM's MLM-pretrained transformer produces embeddings that carry structure and function signal usable downstream.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_plm_screen",
+        "kind": "scenario",
+        "question": "Screening at scale",
+        "prompt": "You need to predict structures for 10 million candidate proteins from a screening library. AlphaFold takes ~30 minutes per protein. ESMFold takes ~5 seconds. Why is ESMFold the right tool here, and what's the accuracy tradeoff?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_plm",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why PLM pretraining + task-specific fine-tuning has become the dominant pattern for protein-ML tasks.",
+        "rubric": "Mentions that PLM embeddings capture substantial sequence-structure-function signal from the unsupervised MLM objective; downstream tasks (binding, function prediction) benefit from this transfer; trains on far less labeled data than training from scratch would require."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Recognize ESM as a BERT-for-proteins.",
+      "Distinguish masked language modeling for proteins from for natural language.",
+      "Reason about when PLM embeddings substitute for MSA."
+    ],
+    "prereqs": [
+      "protein-structure"
+    ]
+  }
 }

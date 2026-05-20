@@ -40,6 +40,63 @@
       "kind": "text",
       "title": "What's next",
       "body": "Protein structure is the 3D substrate of biology. Next: how AlphaFold went from 'sequence + MSA → 3D structure' and what the architecture looks like.\n\nNext: [[alphafold]] — Evoformer, structure module, MSA attention.\n\nKey takeaways:\n- 4 levels: primary (sequence) → secondary (helix/sheet/coil) → tertiary (3D fold) → quaternary (multi-chain)\n- Anfinsen's hypothesis: sequence determines structure (mostly)\n- Computational representations: atomic coordinates, internal coordinates, pairwise distances\n- Pairwise distances are rotation-invariant → easier prediction targets than coordinates\n- Folding was hard because of: conformational search, energy-function inaccuracy, data scarcity, co-evolution signal extraction\n- AlphaFold (2020) effectively solved it"
+    },
+    {
+      "kind": "text",
+      "title": "Why protein folding was hard",
+      "body": "**Primary structure**: the amino-acid sequence. Easy — sequencing is cheap.\n\n**Secondary structure**: local 3D motifs (alpha-helix, beta-sheet, turn). Determined by hydrogen-bonding patterns. Can be predicted from sequence with ~85% accuracy by classical methods.\n\n**Tertiary structure**: the full 3D fold. Determined by hydrophobic packing, charge interactions, disulfide bonds, and the constraints of the secondary-structure elements. THIS is what was hard.\n\n**Quaternary structure**: arrangement of multiple protein chains into complexes (hemoglobin = 4 chains).\n\nThe folding problem: given a sequence, what 3D structure does it adopt? Anfinsen showed (1957-1973) that the sequence alone determines the structure (for many proteins). So in principle the folding problem is computational. In practice the configuration space is astronomical and the energy landscape is rough.\n\nProgress from 1990-2018: from random-guess accuracy on CASP benchmarks to ~50% structures with sub-Å RMSD on the easy targets. Then AlphaFold2 (2020) jumped to near-experimental accuracy across all targets — solving the field's central problem in one paper. The 'how it works' is in the next lesson."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ps_motif",
+        "kind": "multiple_choice",
+        "question": "An alpha-helix is held together by:",
+        "options": [
+          "Disulfide bonds between cysteines.",
+          "Hydrogen bonds between backbone amide and carbonyl groups four residues apart.",
+          "Hydrophobic packing.",
+          "Salt bridges between charged side chains."
+        ],
+        "correctIndex": 1,
+        "explanation": "Alpha-helix: backbone amide-H hydrogen-bonds to the carbonyl-O four residues earlier (the i to i-4 H-bond). The 3.6-residues-per-turn geometry is set by this bond pattern. Disulfide bonds + hydrophobic packing + salt bridges all matter elsewhere in tertiary structure but the helix itself is held by backbone H-bonds."
+      },
+      "hints": [
+        "Alpha-helix is a regular secondary-structure motif defined by a specific H-bond pattern.",
+        "The H-bond is between backbone groups, not side chains."
+      ],
+      "workedSolution": "Alpha-helix: backbone N-H of residue $i+4$ hydrogen-bonds to backbone C=O of residue $i$. This i-to-i+4 pattern repeats throughout the helix, with 3.6 residues per turn. Side-chain interactions modulate stability but the helix itself is a backbone-H-bond pattern.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ps_misfold",
+        "kind": "scenario",
+        "question": "Misfolding diseases",
+        "prompt": "Several human diseases (Alzheimer's, prion diseases, ALS) involve protein misfolding into pathogenic aggregates. Why does the same primary sequence sometimes fold to a healthy structure and sometimes to an aggregate, and what does this imply about the folding-landscape model?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ps",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why solving structure from sequence is a fundamentally harder problem than solving structure from x-ray crystallography.",
+        "rubric": "Mentions that crystallography measures an experimental quantity that constrains the structure directly; sequence-to-structure is a search over an astronomically large conformation space governed by complex energetics."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish primary, secondary, tertiary, quaternary structure.",
+      "Recognize the alpha-helix and beta-sheet motifs.",
+      "Reason about why structure prediction was hard for 50 years."
+    ],
+    "prereqs": [
+      "dna-rna-protein"
+    ]
+  }
 }
