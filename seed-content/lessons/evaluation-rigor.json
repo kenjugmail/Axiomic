@@ -61,6 +61,63 @@
       "kind": "text",
       "title": "What's next",
       "body": "Evaluation rigor is the difference between an experimental result and a marketing number. Most published ML evaluations cut corners on at least 2-3 of the items in this lesson. Build the muscle to read papers critically and to evaluate your own work honestly.\n\nKey takeaways:\n- Test contamination is endemic on public LLM benchmarks; the headline 95%s are partly memorization\n- Train/val leakage is mostly fixable with the right splits (dedup, time-based, subject-based)\n- Every metric is a proxy. Pair with sanity checks; watch for gaming\n- A 0.5% accuracy difference often isn't statistically significant. Bootstrap CIs matter\n- Reward hacking is Goodhart's Law for RLHF\n\nNext: [[interpretability]] — researcher-tier mech-interp."
+    },
+    {
+      "kind": "text",
+      "title": "Why benchmarks die",
+      "body": "Three corruption pathways:\n\n1. **Data contamination**: the test set leaks into pretraining. MMLU was already partially contaminated by mid-2023. Once a benchmark is on the open web, every model after it is potentially contaminated. Mitigation: held-out benchmarks (Anthropic's, OpenAI's), and 'membership inference' tests on candidate models.\n\n2. **Goodhart drift**: as the benchmark becomes a target, optimization moves toward gaming-the-metric rather than improving the underlying skill. GLUE → SuperGLUE → GLUE-X is the textbook generation pattern: each benchmark saturates, and a harder one is needed.\n\n3. **Construct validity erosion**: the original benchmark question 'does this model understand X?' becomes 'does this model do well on this benchmark?' Eventually models do well by exploiting biases or surface patterns rather than 'understanding'. Diagnostic: human-trivial perturbations should not flip predictions; if they do, the model isn't using the intended signal.\n\nThe cycle is roughly 2-3 years per benchmark. By the time you see a paper report SOTA on benchmark X, that benchmark's headline number has probably been compromised; look at decomposed metrics, OOD subsets, and recently-released subsets."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_er_contam",
+        "kind": "multiple_choice",
+        "question": "You suspect MMLU has been contaminated by pretraining data leakage. The cleanest diagnostic is:",
+        "options": [
+          "Train a smaller model and compare.",
+          "Check whether the model's accuracy on MMLU dropped on a held-out subset released AFTER the model's training cutoff.",
+          "Measure parameter count.",
+          "Use a different prompt format."
+        ],
+        "correctIndex": 1,
+        "explanation": "Contamination diagnostic: split the benchmark by release date relative to the model's training cutoff. If accuracy is much higher on pre-cutoff items than post-cutoff items, the model has likely seen the pre-cutoff items during training. The headline number conflates 'memorized' with 'reasoned'."
+      },
+      "hints": [
+        "Contamination = the model has seen the test items during pretraining.",
+        "What's the cleanest way to make the test items 'fresh'?"
+      ],
+      "workedSolution": "Held-out-by-date diagnostic: separate benchmark items by whether they were released before or after the model's training cutoff. Models can't have memorized post-cutoff items. A big accuracy drop from pre-cutoff to post-cutoff items is the smoking gun for contamination. Anthropic, OpenAI, and others have begun publishing 'release-date-filtered' eval numbers for this reason.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_er_dressed",
+        "kind": "scenario",
+        "question": "A benchmark of dubious construct",
+        "prompt": "A new benchmark claims to measure 'commonsense reasoning' via multiple-choice questions. A model that gets 95% reports SOTA. A team finds that BERT trained only on the answer-choices (no question text) gets 75%. What's the diagnostic, and what does the result tell you about the benchmark?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_er",
+        "kind": "explain_back",
+        "prompt": "Explain in three sentences why 'release-date-filtered' evaluations have become the gold standard for reporting model capability.",
+        "rubric": "Mentions that web data inevitably contaminates static benchmarks; filtering by release date relative to model training cutoff bounds the contamination; this is the strongest cheap diagnostic available without expensive held-out benchmark creation."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Identify three reasons benchmarks become contaminated.",
+      "Distinguish capability from skill from preference evaluations.",
+      "Apply held-out evaluation correctly."
+    ],
+    "prereqs": [
+      "statistics-for-ml"
+    ]
+  }
 }

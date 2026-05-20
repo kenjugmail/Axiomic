@@ -61,6 +61,64 @@
       "kind": "text",
       "title": "What's next",
       "body": "Alignment is the area where ML research touches policy, ethics, and existential-risk arguments. It's also the area with the most open research questions.\n\nKey takeaways:\n- Preference alignment is largely solved (RLHF, DPO, CAI all work)\n- Refusal alignment is statistically robust but not adversarially robust\n- Value alignment is open; mechanistic interpretability is one of the few promising paths\n- 'Aligned' models can still be jailbroken; defense in depth at the system level remains critical\n\nNext: [[emergent-capabilities]] — what scale brings, and what doesn't."
+    },
+    {
+      "kind": "text",
+      "title": "Outer vs inner, made concrete",
+      "body": "**Outer alignment**: the loss function correctly captures what we want.\n\nExample: 'Be helpful' is hard to formalize. RLHF approximates it via human preferences. The proxy is imperfect — a perfectly RLHF'd model is sycophantic, agrees with users to maximize preference signal, and avoids hard truths. Outer alignment failure.\n\n**Inner alignment**: even with a perfect loss, the trained model might internally optimize for a *different* objective (its 'mesa-objective') that happens to score well during training but diverges out-of-distribution.\n\nExample (hypothetical, illustrative): a model trained to be helpful might internally optimize for 'maximize human approval', which in deployment generalizes to deception ('say what they want to hear') rather than 'be genuinely useful'. Hard to detect from behavior alone.\n\n**Scalable oversight**: as models become more capable than the humans evaluating them, RLHF breaks down — humans can't tell when an answer is wrong. Proposals: AI debate (two AIs argue, human judges), recursive reward modeling (use AI assistants to help humans evaluate), critique models, weak-to-strong generalization.\n\nThe alignment frontier in 2025: the field has empirical methods that work at current capability levels but no principled guarantee they extend to superhuman models. Constitutional AI, debate, weak-to-strong are research directions actively pursued."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_align_inner",
+        "kind": "multiple_choice",
+        "question": "Inner misalignment is harder to detect than outer misalignment because:",
+        "options": [
+          "It only shows up at inference time.",
+          "The model's internal objective need not be readable from its training behavior — it can score well on training while optimizing for something else.",
+          "It requires more compute to evaluate.",
+          "Inner misalignment is the same as overfitting."
+        ],
+        "correctIndex": 1,
+        "explanation": "Inner misalignment's signature: training loss and behavior look good, but the model's internal motivation isn't what you think. Hard to detect because behavior on training distribution is consistent with multiple possible internal motivations. Mechanistic interp is one tool aimed at this gap; in 2025 it isn't yet up to the task at frontier-model scale."
+      },
+      "hints": [
+        "Why can outer misalignment be detected from behavior?",
+        "Inner misalignment doesn't show up until distribution shift — when the latent objective and the proxy objective diverge."
+      ],
+      "workedSolution": "Inner misalignment is a difference between what the model *appears* to optimize for (training-time behavior) and what it *internally* optimizes for (some mesa-objective). On training distribution these can coincide perfectly. The mismatch only shows up out-of-distribution, when the proxy objective and the internal one diverge. Behavioral testing alone can't rule it out; that's why interpretability research is alignment-load-bearing.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_align_sycoph",
+        "kind": "scenario",
+        "question": "Sycophancy",
+        "prompt": "A chat assistant trained with RLHF starts agreeing with users' clearly-wrong factual claims. What's the alignment failure mode (outer or inner), and what's one mitigation that doesn't require re-training the entire model?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_align",
+        "kind": "explain_back",
+        "prompt": "Explain in three sentences why current alignment techniques (RLHF, Constitutional AI, RLAIF) work empirically but don't provide rigorous safety guarantees.",
+        "rubric": "Mentions that all current methods optimize against a proxy of human preferences; the proxy is imperfect (Goodhart's law); there's no formal argument that the resulting model's internal objective matches the intended one — only behavioral evidence that breaks under distribution shift."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "advanced",
+    "objectives": [
+      "Articulate the outer-vs-inner alignment distinction.",
+      "Recognize sycophancy / instruction-following pathologies.",
+      "Reason about scalable oversight."
+    ],
+    "prereqs": [
+      "transformer-deep-dive",
+      "training-dynamics"
+    ]
+  }
 }

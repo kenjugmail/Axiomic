@@ -61,6 +61,77 @@
       "kind": "text",
       "title": "What's next",
       "body": "You now have an integrated picture of the transformer: residual stream as bus, parameter accounting, stability tricks, architecture-reading recipe.\n\nThe rest of the AI Researcher path uses this foundation:\n\n- [[training-dynamics]]: what the loss curve and gradient norms tell you\n- [[evaluation-rigor]]: how to evaluate models without fooling yourself\n- [[interpretability]]: reverse-engineering what the residual stream actually carries\n- [[alignment-frontier]]: RLHF + DPO + Constitutional AI\n\nKey takeaways:\n- Residual stream = shared bus across layers; circuits live in subspaces of it\n- 12d² params per block; 2:1 split between FFN and attention\n- Pre-norm + RMSNorm + RoPE + GQA + SwiGLU is the modern recipe\n- Architecture reading checklist: norm placement, attention variant, activation, init"
+    },
+    {
+      "kind": "text",
+      "title": "FlashAttention, in one paragraph",
+      "body": "Standard attention: $\\text{softmax}(QK^T/\\sqrt{d_k})V$. The intermediate $QK^T$ is an $N \\times N$ matrix — for $N = 8192$ context length, that's $\\sim 2.6 \\cdot 10^8$ FP16 floats, $\\sim 520$ MB. Computing then re-reading it dominates the attention computation on long contexts (memory-bandwidth-bound).\n\n**FlashAttention** (Dao et al. 2022): never materializes the full $QK^T$. Tiles the computation, keeps tiles in SRAM, never writes them to HBM. Mathematically identical output, but real-world 2-4× speedup on long contexts.\n\n**Grouped-Query Attention** (GQA): instead of one K, V per query head, share K and V across groups of query heads. Reduces KV cache size at inference and matches multi-head attention quality on most benchmarks. Used in Llama 2 70B, Llama 3, Mistral.\n\n**ALiBi / RoPE / NoPE**: alternative position encodings. RoPE applies a rotation per token to Q, K based on position — gives the model relative-position information without additive positional embeddings. ALiBi just biases attention scores by token distance — cleaner extrapolation to longer-than-trained contexts. NoPE skips positional encoding entirely and surprisingly works for some architectures.\n\nThe 'attention' you implement is rarely textbook scaled-dot-product anymore. Modern transformer variants are stacks of these optimizations."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_tdd_flash",
+        "kind": "multiple_choice",
+        "question": "FlashAttention's speedup primarily comes from:",
+        "options": [
+          "A new mathematical formula.",
+          "Avoiding the $N^2$-sized intermediate matrix by tiling the computation in SRAM.",
+          "Skipping the softmax step.",
+          "Using lower precision."
+        ],
+        "correctIndex": 1,
+        "explanation": "FlashAttention computes the same output as standard attention but never materializes the $N \\times N$ score matrix in HBM. By keeping tiles in fast on-chip SRAM and accumulating the softmax incrementally, it avoids the HBM read-write bottleneck that dominates long-context attention. The math is identical; the trick is in the memory hierarchy."
+      },
+      "hints": [
+        "What was the bottleneck in standard attention on long contexts?",
+        "FlashAttention's win is in the memory hierarchy, not the math."
+      ],
+      "workedSolution": "Standard attention reads/writes the $N \\times N$ score matrix from HBM — memory-bandwidth-bound on long contexts. FlashAttention tiles the computation so each tile of scores lives only in SRAM (much faster, much smaller). The accumulated softmax + matmul still produce the same output. The 2-4× speedup is entirely from skipping HBM traffic; FP precision, math, and attention semantics are unchanged.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_tdd_kvcache",
+        "kind": "scenario",
+        "question": "KV cache memory",
+        "prompt": "A 70B model with multi-head attention has a huge KV cache that limits batch size at inference. A teammate switches the architecture to grouped-query attention. Walk through why this reduces KV cache memory without hurting quality much."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_tdd_scale",
+        "kind": "math_expression",
+        "question": "Why $\\sqrt{d_k}$ scaling: scores $QK^T$ have variance proportional to $d_k$. Dividing by $\\sqrt{d_k}$ normalizes to variance 1. For $d_k = 64$, the scaling factor is:",
+        "acceptedAnswers": [
+          "8",
+          "sqrt(64)",
+          "√64"
+        ],
+        "hint": "Just $\\sqrt{d_k}$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_tdd",
+        "kind": "explain_back",
+        "prompt": "Explain in three sentences why every transformer-era ML researcher needs to read the FlashAttention paper.",
+        "rubric": "Mentions that it's the first systems-level optimization most ML researchers encounter; understanding it bridges the attention math with how compute actually happens on a GPU; the design pattern (tile + fuse + avoid materializing) reappears throughout modern ML systems."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 35,
+    "difficulty": "advanced",
+    "objectives": [
+      "Connect attention's matrix algebra to the geometric reading.",
+      "Reason about why scaled dot-product (not unscaled) is the standard.",
+      "Recognize the structural innovations in modern variants (FlashAttention, GQA, ALiBi)."
+    ],
+    "prereqs": [
+      "math-foundations"
+    ]
+  }
 }

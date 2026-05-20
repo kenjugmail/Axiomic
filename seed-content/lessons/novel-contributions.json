@@ -61,6 +61,63 @@
       "kind": "text",
       "title": "What's next",
       "body": "This lesson is the last in the AI Researcher path. From [[math-foundations]] through novel contributions, you've covered the conceptual stack of ML research.\n\nThe practical takeaway: **research is craft work**. The tools (math, ML, reading, scoping) are learnable. The taste — for which questions are worth asking, which results are worth chasing, which contributions are real — develops over years of practice. The capstone projects on Axiomic ([[mech-interp-induction-heads]] in particular) are designed to give you that practice in a structured way.\n\nKey takeaways:\n- Most novel contributions fall into: empirical (with rigor), methodological, or theoretical\n- '+0.5% on a benchmark' is not a contribution by itself\n- Failure-mode papers are underrated; they're often the most valuable\n- Scope by sketching the figure first; design for differential predictions\n- Publish honestly; acknowledge limitations; release code; engage the discussion\n- Most papers are forgotten — optimize for sustained presence, not any single submission"
+    },
+    {
+      "kind": "text",
+      "title": "From question to publishable result, in 10 steps",
+      "body": "1. **Pose a question** that you don't already know the answer to. If you can guess the answer in 5 seconds, it's not a research question.\n\n2. **State the question as a falsifiable hypothesis**. 'Does X help?' is a survey; 'X helps under conditions Y' is a hypothesis.\n\n3. **Find the smallest experiment that could falsify it**. Resist the urge to start big.\n\n4. **Pre-register the analysis**. Write down what success looks like *before* running anything.\n\n5. **Run the experiment, end-to-end**. Even a rough first pass — get a complete result, even if ugly.\n\n6. **Diagnose unexpected results**. Often the most interesting outcome is 'X doesn't help, but here's why', leading to a sharper hypothesis.\n\n7. **Replicate**. Same experiment, different seed. If results change qualitatively, you don't have a result yet — you have noise.\n\n8. **Extend to multiple conditions**. Generalize: does X help on more datasets, model sizes, modalities? Ablate the conditions of Y.\n\n9. **Write the headline first**. The first sentence of your paper should state the central claim, the conditions under which it holds, and the strongest piece of evidence. If you can't write this sentence, the work isn't done.\n\n10. **Adversarial review**. Send to two skeptical colleagues. Re-read your introduction as if you were trying to refute it. Most worthy results survive this; many initial impressions don't."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_nc_pre",
+        "kind": "multiple_choice",
+        "question": "Pre-registering an analysis means:",
+        "options": [
+          "Documenting the experimental method publicly before reading other papers.",
+          "Writing down the analysis plan and success criteria before running the experiment, so that p-hacking is impossible.",
+          "Submitting the paper before completing experiments.",
+          "Pre-printing on arXiv before peer review."
+        ],
+        "correctIndex": 1,
+        "explanation": "Pre-registration is the methodological discipline of writing down what counts as a positive vs negative result *before* you see the data. Standard practice in clinical trials; gaining ground in ML where the temptation to retrofit hypotheses to results is huge. Eliminates the kind of post-hoc storytelling that makes papers look stronger than they are."
+      },
+      "hints": [
+        "What does pre-registration discipline you not to do?",
+        "The point is to bind your future self to a falsification criterion.\n"
+      ],
+      "workedSolution": "Pre-registration locks in the analysis plan + success criteria before you see data. After data are collected, the only honest analyses are the pre-registered ones; everything else is exploratory and must be labeled as such. Eliminates post-hoc selection of metrics, subgroups, comparisons. Becoming standard in ML, partly via tools like wandb's experiment-design templates.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_nc_falsify",
+        "kind": "scenario",
+        "question": "A falsifiable result",
+        "prompt": "Your hypothesis: 'A self-attention variant with relative-position bias generalizes better to longer contexts than a fixed-position variant.' Walk through a minimal experiment that could falsify this in three steps."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_nc",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why 'write the headline first' is more practical than it sounds.",
+        "rubric": "Mentions that if you can't summarize your central claim in one sentence, the work isn't ready — and writing it forces clarification of what the central claim actually is, often revealing missing evidence."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish a question that can be answered from one that can't.",
+      "Plan a small experiment with a clear falsification criterion.",
+      "Write up a result so the central claim is unmissable."
+    ],
+    "prereqs": [
+      "research-frontiers"
+    ]
+  }
 }
