@@ -1,0 +1,145 @@
+{
+  "meta": {
+    "timeMinutes": 28,
+    "difficulty": "core",
+    "objectives": [
+      "State the classical 5-stage pipeline.",
+      "Reason about data + control hazards + forwarding.",
+      "Outline branch prediction + speculative execution."
+    ],
+    "prereqs": [
+      "digital-logic",
+      "rtl-and-hdl"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The classical 5-stage RISC pipeline",
+      "body": "A pipelined CPU executes multiple instructions in parallel by SPLITTING execution into stages. The canonical academic example (MIPS R2000, RISC-V RV32I):\n\n1. **IF (Instruction Fetch)**: fetch instruction from instruction cache using PC; increment PC.\n2. **ID (Instruction Decode)**: decode the instruction; read register file.\n3. **EX (Execute)**: ALU operation. For branches, compute target + condition.\n4. **MEM (Memory access)**: load/store accesses data cache.\n5. **WB (Writeback)**: write ALU result or load result back to register file.\n\n**Why pipelining**: ideal speedup = N (number of stages). Each stage runs one instruction per cycle; throughput is 1 instruction per cycle (IPC=1) at steady state.\n\n**Pipeline registers**: between each stage, registers (IF/ID, ID/EX, EX/MEM, MEM/WB) hold the partial state of the in-flight instruction.\n\n**Cycle time** is limited by the SLOWEST stage. So even though more stages means more parallelism, each stage's combinational logic must fit in 1 cycle.\n\n**Real pipelines** are much deeper:\n- Intel P4: 20-31 stages.\n- Intel Skylake: 14 stages.\n- Apple M1: ~10 stages (shorter; balanced).\n- AMD Zen 4: ~12 stages.\n\n**Trade-offs of deeper pipelines**:\n- ✅ Higher clock frequency (each stage simpler + faster).\n- ❌ More cycles per branch mispredict (pipeline flush penalty).\n- ❌ More hazards to manage.\n\n**Modern CPUs add**:\n- Superscalar (multiple instructions per cycle).\n- Out-of-order execution (instructions complete in any order, retire in order).\n- Speculative + branch prediction.\n- SMT (hyperthreading): two thread states share execution units.\n\nA modern Apple M2 or AMD Ryzen 7 has ~8 ALUs, ~6 load/store units, multiple FP units, hundreds of in-flight instructions, ~200 entry reorder buffer."
+    },
+    {
+      "kind": "text",
+      "title": "Hazards: data + control + structural",
+      "body": "Pipelines stall or err when sequential dependencies break in-flight execution. Three types:\n\n**Data hazards (RAW: read-after-write)**:\n```\nADD r1, r2, r3   ; r1 = r2 + r3 (writes r1)\nSUB r4, r1, r5   ; r4 = r1 - r5 (reads r1 — needs add's result)\n```\nThe ADD is in EX/MEM/WB while SUB tries to read r1 in ID. Without intervention, SUB gets the OLD r1.\n\n**Fixes**:\n- **Stalling** (insert bubbles): freeze SUB in ID until ADD writes back. Simple, slow.\n- **Forwarding** (bypassing): take ADD's EX-stage result + forward directly to SUB's EX input. Avoids stall.\n- **Compile-time scheduling**: compiler reorders instructions to avoid dependent ones being adjacent.\n\n**Load-use hazard**:\n```\nLW r1, 0(r2)   ; r1 = mem[r2]  (writes r1 in MEM stage)\nADD r3, r1, r4 ; needs r1\n```\nLW produces r1 in MEM stage (later than ADD's). One-cycle stall is mandatory.\n\n**Control hazards**: branch instructions don't resolve until EX. The pipeline has fetched 1-2 wrong instructions while branch resolves.\n\n**Fixes**:\n- **Stall**: freeze pipeline until branch resolves. Costly.\n- **Predict not-taken**: assume branch not taken, fetch from PC+4. Flush if wrong.\n- **Branch prediction** (next slide).\n- **Delayed branch**: ISA architecture-level fix; SPARC + MIPS used this. Modern ISAs (ARMv8, RISC-V) don't.\n\n**Structural hazards**: limited resources (e.g., a single memory port shared between IF + MEM). Modern designs avoid this by replicating resources (separate I-cache + D-cache).\n\n**Hazard detection unit**: in real pipelines, dedicated logic detects + handles all three. Implemented in RTL as a complex combinational + sequential module."
+    },
+    {
+      "kind": "text",
+      "title": "Branch prediction + speculative execution",
+      "body": "Modern CPUs spend much of their silicon on **branch prediction**. Why: branches are ~15-20% of all instructions; mispredicting flushes 10-30 in-flight ops on a deep out-of-order machine.\n\n**Static prediction**:\n- Predict not-taken (simple; ~50-70% accurate).\n- Predict backward-taken, forward-not-taken (loops are backward branches; ~75-85%).\n\n**Dynamic prediction** (modern CPUs):\n- **1-bit predictor**: remember last outcome per branch.\n- **2-bit predictor (bimodal)**: a small saturation counter per branch. Doesn't flip on a single mispredict.\n- **Branch History Table (BHT)**: ~2K-16K entries indexed by branch PC.\n- **Pattern History Table (PHT)**: tracks 2-history-bit patterns.\n- **GShare**: XOR of branch PC + global branch history. ~95-97% accuracy.\n- **TAGE** (Geometric History Length, 2006): multiple tables with increasing history lengths. Best practical predictor. ~97-98% accuracy.\n- **Perceptron predictors**: small ML model per branch. AMD uses neural-style predictors.\n\n**Branch Target Buffer (BTB)**: caches branch TARGETS so the next IF can fetch from there without waiting for ID.\n\n**Return Address Stack (RAS)**: predicts return targets specially (LIFO matching call/return).\n\n**Speculative execution**: don't WAIT for branch outcome; PREDICT + execute as if. If prediction was right, the work is committed. If wrong, flush the in-flight ops.\n\n**Misprediction penalty**: 10-30 cycles on modern CPUs. With ~5% misprediction rate, branches alone cost ~1 cycle per branch on average.\n\n**Spectre + Meltdown (2018)**: speculative execution can leak data via microarchitectural side channels (cache state). Even if the speculative work is squashed architecturally, its side effects (cache loads) persist + can be measured. Forced industry-wide mitigations (KPTI, retpoline, IBRS); some performance lost; ongoing arms race."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cpu_pipe",
+        "kind": "guided_derivation",
+        "question": "Compute pipeline speedup for a sequential vs branchy workload",
+        "goal": "5-stage pipeline. Branchy code: 20% branches, 5% misprediction rate, 4-cycle misprediction penalty.",
+        "steps": [
+          {
+            "prompt": "Without branches/hazards, ideal CPI = 1 (one instruction per cycle). Effective CPI with branch mispredictions: $\\text{CPI} = 1 + 0.2 \\times 0.05 \\times 4 = ?$",
+            "motivation": "Add penalty.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1.04"
+              ]
+            },
+            "hints": [
+              "1 + 0.2 × 0.05 × 4."
+            ],
+            "reveal": "$\\text{CPI} = 1.04$."
+          },
+          {
+            "prompt": "Speedup vs non-pipelined CPU (CPI = 5)?",
+            "motivation": "Speedup ratio.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "4.81",
+                "approximately 4.8"
+              ]
+            },
+            "hints": [
+              "5/1.04."
+            ],
+            "reveal": "Speedup ≈ 4.81. Close to ideal 5×; mispredictions cost <5%."
+          },
+          {
+            "prompt": "If misprediction rate were 20% (poor predictor)?",
+            "motivation": "Recompute.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "CPI = 1.04 (no change).",
+                "CPI = 1 + 0.2 × 0.2 × 4 = 1.16. Speedup = 5/1.16 ≈ 4.31.",
+                "CPI = 2.",
+                "Speedup zero."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "More mispredictions cost more cycles."
+            ],
+            "reveal": "CPI = 1.16, speedup 4.31. Branch prediction REALLY matters: a quality predictor preserves most of the pipelining win. A bad one + deep pipeline can lose substantial throughput."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Real speedup} = \\frac{\\text{CPI}_{\\text{nonpipelined}}}{\\text{CPI}_{\\text{pipelined}} + \\text{stalls}}}$$ The classical 'how much does pipelining help' analysis. Modern out-of-order processors with 8+ wide issue, deep pipelines, + ~98% branch prediction achieve IPC of 3-6 on integer code (close to the ideal of 8 for the issue width). Branch prediction has been the single most-important architectural lever for the last 30 years."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cpu_spectre",
+        "kind": "multiple_choice",
+        "question": "Spectre vulnerabilities work because:",
+        "options": [
+          "CPU bugs.",
+          "Speculative execution leaves microarchitectural traces (cache state, branch predictor state) that persist even when the speculative work is architecturally rolled back. Attacker can craft code to leak secrets via these traces.",
+          "Bad programming.",
+          "OS bugs."
+        ],
+        "correctIndex": 1,
+        "explanation": "Spectre + Meltdown (Jan 2018): the CPU speculatively executes attacker-controlled code that reads a secret, USES the secret to index into an attacker-readable array, + the cache line for that array stays loaded. Attacker measures cache timing to deduce the secret. The architectural rollback discards the secret from registers but cache state persists. Required years of hardware + microcode mitigations. Modern chips include hardware fixes (Intel Indirect Branch Restricted Speculation, branch-history-isolation between contexts)."
+      },
+      "hints": [
+        "What does speculation leave behind?",
+        "Why isn't rollback enough?"
+      ],
+      "workedSolution": "Speculation loads data into caches, primes the branch predictor, allocates structures. When rolled back architecturally (registers restored), the MICROARCHITECTURAL state remains. Attacker can probe the cache via timing to infer what was speculatively touched. Cache lines = data leak channel. Mitigations: barriers (LFENCE), isolated branch predictor state per context, retpolines for indirect branches. Some performance lost; arms race continues.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_cpu_ipc",
+        "kind": "math_expression",
+        "question": "CPU has IPC=3.5 (instructions per cycle) at 3.5 GHz. Throughput in GIPS (gigainstructions/sec)?",
+        "acceptedAnswers": [
+          "12.25 GIPS",
+          "12.25",
+          "~12 GIPS"
+        ],
+        "hint": "3.5 × 3.5."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_cpu_loop",
+        "kind": "scenario",
+        "question": "Optimizing a tight loop",
+        "prompt": "A loop performs `for (int i = 0; i < N; i++) sum += a[i] * b[i];`. The CPU has SIMD + a wide out-of-order core. Walk through the microarchitecture interactions that make this fast."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cpu",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why branch prediction is described as 'one of the most important architectural innovations' of the last 30 years.",
+        "rubric": "Mentions that deep pipelines + speculative execution depend on accurate branch prediction; without it, the pipeline stalls or flushes constantly + IPC drops dramatically; modern predictors achieve 97-98% accuracy via global + local history + neural approaches; the win is multiplied by parallel execution (a 6-wide CPU loses 6× more on each misprediction)."
+      }
+    }
+  ]
+}

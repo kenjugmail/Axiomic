@@ -1,0 +1,165 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "expert",
+    "objectives": [
+      "Outline GPU SM + tensor-core architecture.",
+      "Describe the systolic-array structure of TPUs.",
+      "Reason about the roofline performance model."
+    ],
+    "prereqs": [
+      "digital-logic",
+      "memory-systems-hw"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "GPU architecture: SMs + tensor cores",
+      "body": "**GPU (Graphics Processing Unit)**: massively parallel processor originally designed for graphics; now dominant for ML.\n\n**NVIDIA H100 example** (2022 architecture):\n- 132 **Streaming Multiprocessors (SMs)** — units of execution.\n- Each SM has: 4 sub-warps × 32 threads = 128 'CUDA cores' (FP32) + 4 tensor cores + shared memory + register file.\n- Total: 16,896 FP32 cores + 528 tensor cores.\n- 80 GB HBM3 @ 3.35 TB/s.\n- 60 TFLOPs FP32, 1000 TFLOPs FP16 via tensor cores, 4000 TOPS INT8.\n\n**SIMT execution**: Single Instruction, Multiple Thread. Groups of 32 threads ('warps') execute the same instruction in lock-step. Diverging branches serialize the warp (slow path).\n\n**Memory hierarchy**:\n- Registers (per thread): fast, plentiful.\n- Shared memory / L1 (per SM): ~228 KB. Programmable scratchpad.\n- L2 cache (chip-wide): ~50 MB. Shared.\n- HBM: GBs.\n\n**Tensor cores**: dedicated matrix-multiply units. A single tensor-core instruction performs a 4×4×4 matrix multiply-accumulate in 1 cycle (and more in newer generations). Specialized for ML.\n\n**Modern tensor types**:\n- FP32 / FP16 / BF16 (brain float, wider range than FP16).\n- FP8 (Hopper / Blackwell): 8-bit float with E5M2 or E4M3 formats.\n- INT8 / INT4 for inference quantization.\n- Sparsity: 2:4 structured sparsity (skip half the multiplies).\n\n**CUDA programming**: write 'kernels' as C++ functions; launch with grid of thread blocks. Each thread has a unique (block, thread) ID. The CUDA runtime + hardware schedule warps on SMs.\n\n**Other GPUs**:\n- AMD MI300: similar architecture, ROCm software stack.\n- Intel Gaudi 2/3: matrix engines + general-purpose tensors.\n- Apple GPU (M-series): unified memory; smaller scale; tile-based deferred renderer for graphics.\n- Mobile GPUs (Mali, Adreno, PowerVR): tile-based for power efficiency."
+    },
+    {
+      "kind": "text",
+      "title": "TPU + systolic arrays",
+      "body": "**Google TPU (Tensor Processing Unit)**: custom ASIC for ML, used in Google data centers + Cloud. Architecture distinct from GPUs.\n\n**Core: systolic array**. A 2D grid of multiply-accumulate (MAC) units, each connected to neighbors. Data flows through the grid systematically.\n\n**TPUv4 example**:\n- 128 × 128 systolic array per core. 16,384 MACs.\n- BF16 / INT8 supported.\n- 32 GB HBM per chip.\n- ~275 TFLOPs BF16, ~275 TOPS INT8 per chip.\n- Massively multi-chip (TPUv4 pod: 4096 chips with optical interconnect, ~1 ExaFLOP).\n\n**Systolic-array operation**:\n1. Weight matrix W is loaded into the array (each MAC holds one weight).\n2. Activations stream in from the LEFT, one column per cycle.\n3. Partial products accumulate vertically.\n4. After N cycles (where N is matrix dimension), output emerges from the right.\n\n**Why it's efficient**:\n- Each MAC reuses the weight ~N times.\n- Each activation reuses ~N times.\n- Massive data reuse → much less memory traffic than naive matrix multiply.\n- Simple control: neighbor-to-neighbor data movement, no global routing.\n\n**Trade-offs vs GPU**:\n- ✅ More efficient (less area, less power per MAC) for matrix-multiply-heavy workloads.\n- ✅ Higher utilization (~70-80%) on big matrix multiplies.\n- ❌ Inflexible for general workloads.\n- ❌ Tail effects: small matrices waste the array.\n\n**Other ML accelerators**:\n- **Cerebras Wafer-Scale Engine**: an entire wafer = one chip. 850K cores, 40 GB on-chip SRAM. Targets large-model training.\n- **Graphcore IPU**: massive on-chip SRAM (~900 MB), MIMD architecture.\n- **Tenstorrent Wormhole**: similar to IPU; scales out via direct chip-to-chip Ethernet.\n- **AWS Trainium / Inferentia**: in-house Amazon ML chips.\n- **Apple Neural Engine**: mobile/edge inference (~38 TOPS in M3).\n- **Edge TPU / Coral / Hailo**: low-power inference."
+    },
+    {
+      "kind": "text",
+      "title": "Roofline model + the FLOPs/byte arithmetic intensity",
+      "body": "The **roofline model** (Williams 2009): a simple, predictive model of HW performance limits.\n\n**Arithmetic intensity (AI)**: FLOPs per byte of memory traffic. Units: FLOPs/byte.\n- Matrix multiply: ~2N FLOPs per element. AI grows with N. Good for hardware.\n- Vector ops: 1 FLOP per element × ~4 bytes = 0.25 FLOPs/byte. Memory-bound.\n- BLAS-3 routines (gemm): high AI, compute-bound.\n- BLAS-1/-2 routines (axpy, gemv): low AI, memory-bound.\n\n**Roofline**:\n$$\\text{Performance} = \\min(\\text{Peak FLOPS}, \\text{AI} \\times \\text{Peak Bandwidth})$$\n\nPlot AI on x-axis (log), achievable FLOPS on y-axis (log):\n- Below 'ridge point': bandwidth-bound. Performance = AI × BW.\n- Above 'ridge point': compute-bound. Performance = peak FLOPS.\n\n**Modern hardware ridge points** (FLOPS/byte at which compute saturates):\n- Apple M-series CPU: ~10 FLOPS/byte.\n- NVIDIA H100 FP16: 1000 / 3.35 TB/s ≈ ~300 FLOPS/byte.\n- TPU v4 BF16: 275 TFLOPS / 1.2 TB/s ≈ ~230 FLOPS/byte.\n- AMD Genoa CPU: ~5 FLOPS/byte.\n\nHigh ridge point = the hardware needs HIGH AI workloads to use compute. ML matrix multiply has AI ~100-1000 (large matrices), staying compute-bound. Vector or low-batch-size inference has AI <10, becoming bandwidth-bound + leaving compute idle.\n\n**Implications**:\n- Lower-precision data (FP8, INT8) doubles AI (smaller bytes per op).\n- Operator fusion (combine multiple ops into one kernel) increases AI by reusing values.\n- KV-cache + tiling improves AI in attention.\n- Memory bandwidth (HBM > GDDR > DDR > NVMe) directly determines bandwidth-bound performance.\n\n**Industry frontier**:\n- More aggressive low-precision (FP4, FP6 experimental).\n- Sparse training/inference (skip zero or near-zero weights).\n- Mixture-of-experts (route to subset of weights per token; effectively higher AI per active parameter).\n- On-package + 3D-stacked memory (closer = higher bandwidth = lower ridge point)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_acc_roofline",
+        "kind": "guided_derivation",
+        "question": "Apply roofline to a matrix multiplication",
+        "goal": "GPU peak: 100 TFLOPS FP16, 1 TB/s HBM. Run matrix multiply A (1024×1024) × B (1024×1024) = C (1024×1024). Each element of C requires 1024 multiply-adds.",
+        "steps": [
+          {
+            "prompt": "Total FLOPs for full GEMM: 2 × 1024³ = ?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2 GFLOPs",
+                "2.15 billion",
+                "2.1e9",
+                "2147483648"
+              ]
+            },
+            "hints": [
+              "2 × 1024 × 1024 × 1024."
+            ],
+            "reveal": "~2.15 GFLOPs (2 ops per multiply-add)."
+          },
+          {
+            "prompt": "Memory traffic: read A + B + write C = 3 × 1024² × 2 bytes (FP16) = ?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "6 MB",
+                "6.29 MB",
+                "6e6"
+              ]
+            },
+            "hints": [
+              "3 × 1024 × 1024 × 2."
+            ],
+            "reveal": "~6 MB (assuming each matrix read once + each output written once)."
+          },
+          {
+            "prompt": "Arithmetic intensity = FLOPs / bytes = 2.15e9 / 6.29e6 = ?",
+            "motivation": "Divide.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~340",
+                "340",
+                "~342",
+                "342 FLOPs/byte"
+              ]
+            },
+            "hints": [
+              "FLOPs / bytes."
+            ],
+            "reveal": "~340 FLOPs/byte. Above this hardware's ridge point (100 / 1 = 100 FLOPs/byte). COMPUTE-BOUND."
+          },
+          {
+            "prompt": "Expected time at peak compute: 2.15e9 / 100e12 = ?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "21.5 microseconds",
+                "~22 μs",
+                "21.5e-6",
+                "0.0000215 sec"
+              ]
+            },
+            "hints": [
+              "FLOPs / peak FLOPS."
+            ],
+            "reveal": "~22 μs. At memory bandwidth limit: 6.29e6 / 1e12 = 6.3 μs (memory could finish faster). So compute is the binding constraint. Real-world GEMM often hits ~80% of peak (overhead + tail effects) → ~28 μs."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Roofline: } \\text{Performance} = \\min(\\text{Peak}, \\text{AI} \\times \\text{BW})}$$ Roofline is the ML engineer's mental model. Large GEMM (high AI) = compute-bound = scale with FLOPS. Small batch attention or vector ops (low AI) = bandwidth-bound = scale with bandwidth. Optimization strategies depend on which regime: compute-bound → use lower precision (more FLOPS/byte effectively); bandwidth-bound → fuse ops to reduce memory traffic, use more on-chip cache."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_acc_tpu",
+        "kind": "multiple_choice",
+        "question": "Google TPUs use systolic arrays while NVIDIA GPUs use SIMT cores + tensor cores. Trade-offs?",
+        "options": [
+          "TPU always better.",
+          "TPU: more efficient on big GEMMs (high utilization, less control overhead), less flexible for general code. GPU: more flexible, slightly less efficient per GEMM but handles smaller batches + irregular workloads better.",
+          "GPU always better.",
+          "Equivalent."
+        ],
+        "correctIndex": 1,
+        "explanation": "Systolic arrays are HIGHLY specialized for matrix multiply. ~70-80% utilization on big GEMM, but small matrices waste the array. GPUs are more general-purpose: tensor cores boost matrix multiply, but the surrounding general SIMT cores handle the rest. Trade-off: TPU wins on pure transformer training at scale; GPU wins on diverse workloads (mixed precision, irregular shapes, custom ops). Both architectures evolved; GPUs added more tensor functionality; TPUs added more flexibility around the array. Both essential in modern ML."
+      },
+      "hints": [
+        "What's a systolic array's strength?",
+        "What's its weakness?"
+      ],
+      "workedSolution": "Strength: 70-80% utilization on big GEMM, minimal control overhead, every cycle does useful work. Weakness: rigid shape; small matrices waste array; non-GEMM ops (activations, norms, softmax) require auxiliary units; flexibility costs efficiency. GPU SMs are softer; less peak efficiency but better at irregular workloads. NVIDIA + Google compete + co-evolve; modern systems use mixes.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_acc_tops",
+        "kind": "math_expression",
+        "question": "Tensor core does 4×4×4 FP16 matrix multiply-accumulate per cycle. At 1 GHz that's how many TFLOPS per tensor core?",
+        "acceptedAnswers": [
+          "0.128 TFLOPS",
+          "128 GFLOPS",
+          "0.128"
+        ],
+        "hint": "2 × 4 × 4 × 4 × 1e9 = 128 GFLOPS."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_acc_decide",
+        "kind": "scenario",
+        "question": "Choosing an accelerator",
+        "prompt": "Your team is deploying a 70B-parameter LLM for inference, with ~10 ms latency budget per token. Walk through whether to deploy on GPU, TPU, or custom inference ASIC."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_acc",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why specialized ML accelerators (TPU, NPU, AI ASIC) achieve 10-100× more ops-per-watt than general CPUs.",
+        "rubric": "Mentions that specialization replaces flexible-but-expensive control logic (instruction fetch, decode, OoO, etc.) with simple data-flow patterns (systolic arrays, dot-product units); lower-precision arithmetic (FP16, FP8, INT8) shrinks energy per op; massive parallelism is exposed via dedicated structures. The cost is loss of generality — the accelerator only does one (or few) things well."
+      }
+    }
+  ]
+}

@@ -1952,6 +1952,27 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P15 — Hardware Engineer path. Digital logic, RTL/HDL, CPU
+  // microarchitecture, memory + interconnect, FPGA, ASIC flow,
+  // ML accelerators. Complements compiler-engineer + systems-
+  // engineer + ml-engineer with the hardware layer.
+  seedMasteryPath({
+    slug: "hardware-engineer",
+    title: "Hardware Engineer",
+    description:
+      "From Boolean logic + flip-flops through RTL/Verilog, CPU pipelines + branch prediction, cache hierarchies + DRAM/NAND, FPGA architecture + place-and-route, the ASIC RTL-to-GDSII flow, high-speed SerDes + NoCs, and ML accelerators (GPU SMs, TPU systolic arrays, roofline analysis). The full hardware stack.",
+    nodes: [
+      { slug: "digital-logic", title: "Digital Logic", level: "apprentice", order: 1, pages: ["gates-boolean", "comb-blocks", "flip-flops-timing"], prereqs: [], description: "Gates + Boolean algebra, combinational blocks (adder/MUX/decoder), flip-flops + setup/hold timing." },
+      { slug: "rtl-and-hdl", title: "RTL + Hardware Description Languages", level: "practitioner", order: 2, pages: ["verilog-vhdl", "behavioral-structural", "blocking-nonblocking"], prereqs: ["digital-logic"], description: "Verilog/VHDL syntax, behavioral vs structural RTL, always blocks + blocking vs non-blocking semantics." },
+      { slug: "cpu-microarchitecture", title: "CPU Microarchitecture", level: "practitioner", order: 3, pages: ["five-stage-pipeline", "hazards-forwarding", "branch-prediction"], prereqs: ["digital-logic", "rtl-and-hdl"], description: "Classical 5-stage pipeline, data + control hazards, branch prediction + speculative execution + Spectre." },
+      { slug: "memory-systems-hw", title: "Memory Systems Hardware", level: "practitioner", order: 4, pages: ["cache-hierarchy", "dram-sram", "nand-flash"], prereqs: ["digital-logic"], description: "Cache hierarchy + AMAT, DRAM/SRAM/HBM, NAND flash + SSD trade-offs." },
+      { slug: "fpga-design", title: "FPGA Design", level: "specialist", order: 5, pages: ["lut-bram-dsp", "fpga-flow", "fpga-applications"], prereqs: ["rtl-and-hdl"], description: "LUTs/BRAMs/DSPs, place-and-route + timing closure, FPGA in networking + radar + ML." },
+      { slug: "asic-design-flow", title: "ASIC Design Flow (RTL→GDSII)", level: "specialist", order: 6, pages: ["asic-flow", "verification", "tape-out"], prereqs: ["rtl-and-hdl"], description: "RTL-to-GDSII flow (synthesis, P&R, STA, DRC, LVS), UVM + functional verification, process nodes + tape-out economics." },
+      { slug: "high-speed-interconnect", title: "High-Speed Interconnect", level: "specialist", order: 7, pages: ["serdes", "pcie-cxl", "noc"], prereqs: ["digital-logic"], description: "SerDes electrical + encoding, PCIe/DDR/CXL/HBM, NoC topologies + cache coherence." },
+      { slug: "accelerators-and-systolic", title: "Accelerators + Systolic Arrays", level: "expert", order: 8, pages: ["gpu-sm-tensor", "tpu-systolic", "roofline"], prereqs: ["digital-logic", "memory-systems-hw"], description: "GPU SM + tensor cores, TPU systolic array, roofline + arithmetic-intensity model." },
+    ],
+  });
+
   // P14 — Neuroscientist path. Brain + cognition complement to
   // ml-engineer / ai-researcher: neurons, synapses, coding,
   // anatomy, imaging, computational models, decision-making,

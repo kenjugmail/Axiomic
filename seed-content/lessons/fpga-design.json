@@ -1,0 +1,146 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "specialist",
+    "objectives": [
+      "State the FPGA architecture (LUTs, BRAMs, DSPs).",
+      "Outline the place-and-route flow.",
+      "Reason about timing closure."
+    ],
+    "prereqs": [
+      "rtl-and-hdl"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "FPGA architecture: LUTs, BRAMs, DSPs",
+      "body": "**FPGA (Field-Programmable Gate Array)**: chip with reconfigurable hardware. The user's RTL is compiled to a 'bitstream' that programs the FPGA's resources.\n\n**Resources**:\n\n**Look-Up Tables (LUTs)**: implement any N-input Boolean function via a $2^N$-entry SRAM. Common: 6-LUT (one of 64 1-bit values selected by 6 inputs). One LUT can implement any function of 6 variables OR be used to build wider/larger functions.\n\n**Flip-Flops (FFs)**: 1-bit storage. Usually 2 FFs per LUT, configurable.\n\n**Logic blocks (Slices / CLBs / LABs depending on vendor)**: contain LUTs + FFs + carry chains. Bundled.\n\n**Block RAMs (BRAMs)**: dedicated SRAM blocks, typically 18-36 Kbits each. Used for buffers, FIFOs, register files. Modern FPGAs have ~100-3000 BRAMs.\n\n**DSP slices**: hard-IP multipliers (typically 18×18 or 18×27 bit) + accumulator. Used for filters, matrix multiply, signal processing. Critical for ML on FPGA.\n\n**UltraRAM / URAM**: larger SRAM blocks (288 Kbit). Newer FPGAs.\n\n**I/O + transceivers**: high-speed serial I/O. SerDes up to 28 Gbps for PCIe, 100G Ethernet, etc.\n\n**Major vendors**:\n- **Xilinx (now AMD)**: dominant. Virtex (high-end), Kintex (mid), Spartan (cheap).\n- **Intel (formerly Altera)**: Stratix, Arria, Cyclone.\n- **Lattice**: low-power, low-cost (iCE40, ECP5). Very popular for hobbyists.\n- **Microsemi (now Microchip)**: defense, aerospace.\n\n**Sizes**:\n- Small (iCE40): ~10K LUTs. \\$10. IoT, glue logic.\n- Mid (Spartan-7): ~100K LUTs. \\$100.\n- High-end (Virtex Ultrascale+): ~3M LUTs. \\$10,000. Data centers, scientific instruments.\n\n**Why FPGAs**:\n- **Prototyping**: simulate an ASIC at full speed before tape-out.\n- **Acceleration**: deploy custom hardware without ASIC NRE costs (Microsoft Bing + Brainwave; Amazon EC2 F1 instances; finance HFT firms).\n- **Low-volume products**: scientific instruments, radar, medical devices."
+    },
+    {
+      "kind": "text",
+      "title": "The FPGA design flow",
+      "body": "Standard tool flow (Vivado for Xilinx; Quartus for Intel):\n\n1. **RTL design**: Verilog/SystemVerilog (or VHDL, Chisel).\n2. **Simulation**: testbench in Verilog or Cocotb (Python). Run with ModelSim, Questa, Icarus, Verilator.\n3. **Synthesis**: convert RTL → gate-level netlist (LUT + FF instances, technology-mapped).\n4. **Place + route**:\n   - **Placement**: assign each LUT/FF to a specific physical location on the chip.\n   - **Routing**: connect them via the FPGA's switch fabric.\n5. **Timing analysis**: verify all paths meet timing constraints.\n6. **Bitstream generation**: produce binary file to load onto FPGA.\n7. **Programming**: load bitstream via JTAG, USB, or boot flash.\n\n**Timing closure**: the hardest step. The synthesizer + P&R try to meet timing, but designs that worked at 100 MHz may fail at 200 MHz.\n\n**Constraints** (XDC file for Xilinx):\n```\ncreate_clock -name clk -period 5.0 [get_ports clk]  # 200 MHz\nset_input_delay -clock clk 1.0 [get_ports data_in]\nset_output_delay -clock clk 2.0 [get_ports data_out]\nset_max_delay 3.0 -from [...] -to [...]\n```\n\n**Failing timing**: tools report worst negative slack (WNS). Designer must:\n- Add pipeline registers (split combinational into stages; higher latency but higher frequency).\n- Refactor critical-path logic (smaller adders, lookups instead of computes).\n- Increase device speed grade (faster transistors, more $).\n- Lower the clock target.\n\n**Open-source toolchain** (yosys + nextpnr): for Lattice iCE40, ECP5, Xilinx 7-series. Reverse-engineered. Very active community. Used in Project Trellis, SymbiFlow.\n\n**Build times**: 5 minutes to 8+ hours for large designs. Place+route is heuristic + non-deterministic — same design re-run gives different results."
+    },
+    {
+      "kind": "text",
+      "title": "Common FPGA applications + accelerators",
+      "body": "FPGAs span a wide range of applications:\n\n**Networking**:\n- **Packet processing**: SmartNICs (Intel Mount Evans, Marvell Octeon). Offload from CPU.\n- **High-frequency trading**: ultra-low-latency order processing. Tens of nanoseconds matter.\n- **5G basebands**: signal processing in cellular base stations.\n\n**Signal processing**:\n- **SDR (software-defined radio)**: USRP devices.\n- **Real-time radar / sonar**: phased-array beamforming.\n- **Medical imaging**: ultrasound, MRI reconstruction.\n\n**ML acceleration**:\n- **Microsoft Brainwave + Bing**: FPGAs accelerated DNNs at scale.\n- **AWS EC2 F1**: rentable FPGA cloud instances.\n- **Edge ML**: low-power inference on Lattice + Xilinx Zynq.\n\n**Scientific instruments**:\n- **CERN Large Hadron Collider**: trigger systems use FPGAs to filter petabytes/second of detector data in real-time.\n- **Quantum-computing control**: pulse generation with picosecond precision.\n- **Microscopy**: live image processing.\n\n**Why FPGA-not-ASIC**:\n- ✅ Quick turnaround (hours-to-weeks).\n- ✅ Field-update via reprogramming.\n- ✅ No NRE costs (vs ASIC: \\$10M+).\n- ❌ ~10× less efficient than ASIC (power, area).\n- ❌ Slower (~3-5× than equivalent ASIC).\n\n**Hybrid SoC FPGAs** (Xilinx Zynq, Intel Stratix-with-ARM): integrate hardened ARM CPUs + FPGA fabric on one chip. CPU runs Linux + control logic; FPGA accelerates hot kernels. Used in robotics, automotive, autonomous vehicles."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fpga_lut",
+        "kind": "guided_derivation",
+        "question": "Map a function to LUTs",
+        "goal": "Function $F(A, B, C, D, E) = (A \\cdot B) + (C \\cdot D) + E$. Implement on an FPGA with 6-input LUTs.",
+        "steps": [
+          {
+            "prompt": "How many inputs does F have?",
+            "motivation": "Compare to LUT size.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "5",
+                "5 inputs"
+              ]
+            },
+            "hints": [
+              "A, B, C, D, E."
+            ],
+            "reveal": "5 inputs."
+          },
+          {
+            "prompt": "6-LUT can implement any 6-input function. 5 inputs is less, so one 6-LUT suffices. How many LUTs?",
+            "motivation": "Trivial.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1",
+                "1 LUT"
+              ]
+            },
+            "hints": [
+              "5 ≤ 6."
+            ],
+            "reveal": "1 LUT. Programmed with the truth table."
+          },
+          {
+            "prompt": "If function had 8 inputs, how many 6-LUTs needed (rough estimate)?",
+            "motivation": "LUT decomposition.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "1.",
+                "2-3 LUTs (split into a tree: compute partial 6-input subfunctions; combine).",
+                "10.",
+                "100."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Each LUT covers 6 inputs; need to compose."
+            ],
+            "reveal": "Typically 2-3 LUTs. Decompose: compute $f_1(A,B,C,D,E,F)$ + $f_2(G,H,f_1)$ — each in 1 LUT. Synthesis tools do this automatically; designer just writes RTL."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{6-LUT implements any 6-input function; bigger functions decompose}}$$ The 6-LUT became the FPGA industry standard around 2008 (Xilinx Virtex-5, Altera Stratix III). Larger functions are decomposed into LUT trees by the synthesizer. Counting LUTs in a design indicates 'area' on the FPGA. Modern designs use millions of LUTs; tools handle the decomposition. Reading reports (LUT utilization, BRAM utilization, max frequency) is standard part of the FPGA designer's workflow."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fpga_vs_asic",
+        "kind": "multiple_choice",
+        "question": "When would you choose FPGA over ASIC for a product?",
+        "options": [
+          "ASIC always better.",
+          "FPGA when: (1) volumes are too low to amortize ASIC NRE (\\$10M+); (2) functionality needs to change in field (e.g., evolving protocols, security updates); (3) time-to-market is critical; (4) prototyping before ASIC tape-out.",
+          "When clock speed is critical.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "ASICs are ~10× more efficient (power, area, cost-at-scale) but have huge NRE (~\\$10-50M depending on node) + months of tape-out turnaround. FPGAs cost more per unit but reach market in weeks + can be reprogrammed. Use FPGA for: low-volume products, prototypes, products with evolving standards, ASIC bring-up testing. Use ASIC for: high-volume + power-constrained (smartphones, data center accelerators at scale)."
+      },
+      "hints": [
+        "When does NRE amortize?",
+        "What matters for early product?"
+      ],
+      "workedSolution": "ASIC NRE (\\$10-50M) amortizes over millions of units. Below that volume, FPGA is cheaper total cost. Plus: FPGA = field-programmable (updates), faster time-to-market, no tape-out risk. ASIC: only justified at scale OR when efficiency is critical (battery devices, data center power). Hybrid: prototype on FPGA, tape-out ASIC for volume. Microsoft started with FPGAs in Azure + later moved to ASICs.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fpga_dsp",
+        "kind": "math_expression",
+        "question": "An ML accelerator needs 1024 multiplies/cycle. FPGA has 2000 DSP slices each doing 1 mul/cycle. Sufficient?",
+        "acceptedAnswers": [
+          "Yes",
+          "yes",
+          "sufficient",
+          "1024 < 2000"
+        ],
+        "hint": "Compare."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fpga_radar",
+        "kind": "scenario",
+        "question": "Designing a radar signal processor",
+        "prompt": "A radar system needs to process 100 MS/s (megasamples per second) input + perform FFT + filtering in real-time. Walk through FPGA architecture choices."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fpga",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why FPGAs are 'configurable hardware' rather than 'soft CPUs'.",
+        "rubric": "Mentions that FPGAs program PHYSICAL CONNECTIONS between LUTs / DSPs / BRAMs to implement custom data paths, not a fixed CPU ISA; this lets the user create deeply pipelined or parallel circuits optimized for their algorithm; soft CPUs (RISC-V cores on FPGA) exist but are slower than the same code on a 'hard' CPU — the FPGA's win is custom hardware, not running general-purpose code."
+      }
+    }
+  ]
+}
