@@ -1,0 +1,129 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish user mode from kernel mode.",
+      "Trace a system-call's hardware path.",
+      "Recognize syscall overhead patterns."
+    ],
+    "prereqs": [
+      "processes-and-threads"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "User mode vs kernel mode",
+      "body": "x86-64 + ARM64 CPUs have privilege rings:\n- **Ring 0 (kernel mode)**: full access to hardware, I/O, memory.\n- **Ring 3 (user mode)**: restricted; no direct hardware access; trapped by hardware on disallowed ops.\n\nUser-mode code cannot:\n- Execute privileged CPU instructions (LIDT, MOV CR3, INVLPG, etc.).\n- Access kernel-only memory regions.\n- Do I/O directly.\n\nTo do these things, user code makes a **system call** (syscall): an instruction that transfers control to the kernel at a predefined entry point, with the CPU privilege level switched to ring 0.\n\nThe kernel does the work, then returns to user mode. The user-mode caller sees a result; the kernel internals stay hidden behind the syscall ABI. This is the fundamental contract: 'apps can do anything that the kernel mediates'."
+    },
+    {
+      "kind": "text",
+      "title": "Syscall hardware path, x86-64",
+      "body": "On x86-64, the `syscall` instruction is the fast path. The pre-existing mechanism (`int 0x80`) is slower + only used for legacy.\n\n`syscall` instruction:\n1. CPU saves user-mode RIP (instruction pointer) + RFLAGS into MSRs.\n2. CPU loads kernel-mode CS, SS, RIP from MSRs (set up by the kernel at boot).\n3. Privilege level switches to ring 0.\n4. Kernel code runs: dispatches based on RAX (syscall number), arguments in RDI/RSI/RDX/R10/R8/R9.\n5. `sysret` instruction: restores user-mode CS, SS, RIP from MSRs.\n6. Returns to user mode with result in RAX.\n\nCost: ~50-200ns on modern CPUs. Spectre/Meltdown mitigations made syscalls 2-3× slower (KPTI = Kernel Page Table Isolation flushes some TLB on every syscall). On Linux post-2018, `perf stat` shows syscalls at ~200-500ns each.\n\n**Implications**: syscall-per-byte I/O is hopeless (a 1MB read with 1 syscall per byte = 200ms just in syscall overhead). Batch + buffer. `read(fd, buf, 4096)` reads 4KB in one syscall instead of 4096."
+    },
+    {
+      "kind": "text",
+      "title": "io_uring: the modern syscall bypass",
+      "body": "Linux 5.1+ added **io_uring**: a submission queue + completion queue, both shared between user and kernel via mmap'd memory. App submits I/O operations to the queue; kernel processes them in background; app polls the completion queue.\n\nResult: NO syscall per I/O operation. Submitting 1000 reads = 1 syscall (or zero if using busy-polling mode). Especially valuable for storage-heavy workloads (Postgres on NVMe, fio benchmarks).\n\nReal-world impact:\n- Benchmark loads ~2× faster with io_uring vs epoll on NVMe-heavy workloads.\n- Some allocators + databases now use io_uring directly: ScyllaDB, postgres+pg_io_uring, BoringSSL's QUIC stack.\n- nginx + Envoy still mostly on epoll; io_uring adoption is gradual.\n\nThe pattern (shared-memory queues bypassing syscalls) is broader: DPDK for networking, SPDK for storage, RDMA. The cost of crossing the user/kernel boundary keeps motivating these designs."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_syscall_cost",
+        "kind": "guided_derivation",
+        "question": "Estimate syscall overhead for naive I/O",
+        "goal": "Read a 1MB file using `read(fd, buf, 1)` (one byte at a time). Per-syscall cost 500ns.",
+        "steps": [
+          {
+            "prompt": "Total syscalls?",
+            "motivation": "1 byte per syscall × 1MB.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1048576",
+                "10^6",
+                "1 million"
+              ]
+            },
+            "hints": [
+              "~$10^6$ syscalls."
+            ],
+            "reveal": "~$10^6$ syscalls."
+          },
+          {
+            "prompt": "Total syscall overhead?",
+            "motivation": "Multiply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "500 ms",
+                "0.5 s"
+              ]
+            },
+            "hints": [
+              "$10^6 \\times 500$ns."
+            ],
+            "reveal": "0.5 seconds JUST in syscall overhead — before any actual I/O."
+          },
+          {
+            "prompt": "Same with `read(fd, buf, 4096)` (one page at a time):",
+            "motivation": "256 syscalls.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "256 syscalls, 0.13 ms",
+                "0.13 ms total"
+              ]
+            },
+            "hints": [
+              "1MB / 4KB = 256 calls."
+            ],
+            "reveal": "256 syscalls × 500ns = 128µs. ~4000× faster."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Buffered I/O: }\\sim 4000\\times \\text{ faster than byte-at-a-time}}$$ Syscall overhead is fixed per call. Larger buffers amortize it. Every modern I/O library buffers automatically; `stdio` in C, `BufferedReader` in Java, BufWriter in Rust."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sys_io_uring",
+        "kind": "multiple_choice",
+        "question": "io_uring's main benefit over epoll for high-IOPS workloads:",
+        "options": [
+          "Better security.",
+          "No syscall per I/O operation — submissions + completions go through shared-memory queues.",
+          "Smaller binary size.",
+          "Built into older kernels."
+        ],
+        "correctIndex": 1,
+        "explanation": "io_uring amortizes syscall overhead by batching: many I/O operations go through one syscall (or zero, in polling mode). epoll still requires one syscall per readiness-check; io_uring eliminates this. For NVMe-class IOPS (~1M+/sec), saving ~500ns × 1M = 500ms/sec of CPU just on syscall overhead is a real gain."
+      },
+      "hints": [
+        "What's the per-op overhead of epoll vs io_uring?",
+        "Shared-memory queues mean no kernel transition per op."
+      ],
+      "workedSolution": "epoll: 1 syscall per wait + 1 per ready check + 1 per actual I/O. io_uring: shared-memory submission + completion queues; many I/O ops per syscall (or zero with polling). For high-IOPS storage (NVMe at 1M IOPS), the syscall overhead saved is 500ms/sec of CPU.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sys_slow",
+        "kind": "scenario",
+        "question": "Slow application despite fast disk",
+        "prompt": "A teammate's data-loading benchmark gets 50MB/s read throughput on an NVMe SSD that benchmarks at 5GB/s. Their code uses `read(fd, buf, 1)`. Walk through the diagnosis + fix."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sys",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why kernel-bypass technologies (io_uring, DPDK, RDMA) all share a common architectural pattern.",
+        "rubric": "Mentions that all of them move I/O submissions + completions to shared-memory queues read/written by both user + kernel; eliminates per-op syscall transitions; preserves kernel's role for control-plane (setup) but bypasses it for data-plane (per-op processing); the speedup over syscall-per-op is substantial at high op rates."
+      }
+    }
+  ]
+}

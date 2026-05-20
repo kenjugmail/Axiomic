@@ -1952,6 +1952,27 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P7 — Operating Systems path. The kernel-level foundation
+  // under every other engineering discipline. Sits beneath
+  // algorithms-engineer, distributed-systems, systems-engineer,
+  // and container-deployment concerns.
+  seedMasteryPath({
+    slug: "operating-systems",
+    title: "Operating Systems",
+    description:
+      "Processes + threads, virtual memory, file systems, scheduling, synchronization, system calls, interrupts + I/O, and container isolation. The kernel-level foundation under every other engineering discipline.",
+    nodes: [
+      { slug: "processes-and-threads", title: "Processes & Threads", level: "apprentice", order: 1, pages: ["process-model", "fork-cow"], prereqs: [], description: "Process vs thread, fork() + copy-on-write, the C10K story, modern coroutines." },
+      { slug: "virtual-memory", title: "Virtual Memory", level: "practitioner", order: 2, pages: ["page-tables", "tlb", "mmap"], prereqs: ["processes-and-threads"], description: "Page tables, TLB, page faults (minor/major/COW), mmap as a unified abstraction." },
+      { slug: "file-systems", title: "File Systems", level: "practitioner", order: 3, pages: ["inodes", "journaling", "fsync"], prereqs: [], description: "Inodes, journaling vs copy-on-write, fsync + group commit, ext4/XFS/ZFS." },
+      { slug: "scheduling", title: "Scheduling", level: "practitioner", order: 4, pages: ["cfs", "real-time-scheduling"], prereqs: ["processes-and-threads"], description: "Cooperative vs preemptive, Linux CFS fairness, SCHED_FIFO/RR/DEADLINE for real-time." },
+      { slug: "synchronization", title: "Synchronization", level: "specialist", order: 5, pages: ["mutex-rwlock", "futex", "lock-free"], prereqs: ["processes-and-threads"], description: "Mutex/RWLock/spinlock, futex fast-path, lock-free + the ABA problem." },
+      { slug: "system-calls", title: "System Calls", level: "specialist", order: 6, pages: ["syscall-abi", "io-uring"], prereqs: ["processes-and-threads"], description: "User/kernel transition, syscall ABI, io_uring as syscall-bypass for high-IOPS." },
+      { slug: "interrupts-and-io", title: "Interrupts & I/O", level: "expert", order: 7, pages: ["interrupts", "dma", "polling-vs-interrupt"], prereqs: ["system-calls"], description: "Interrupt-driven I/O, DMA, interrupt coalescing, when polling (DPDK/SPDK) beats interrupts." },
+      { slug: "container-isolation", title: "Container Isolation", level: "expert", order: 8, pages: ["namespaces", "cgroups", "microvm"], prereqs: ["processes-and-threads", "virtual-memory", "file-systems"], description: "Containers vs VMs, namespaces + cgroups, the security limits, microvms (Firecracker, Kata)." },
+    ],
+  });
+
   // P6 — Frontend Engineer path. Modern web stack: DOM rendering,
   // JS runtime, React, accessibility, performance budgets,
   // TypeScript, testing, build tooling. Complements security,

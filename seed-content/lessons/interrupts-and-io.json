@@ -1,0 +1,133 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish interrupt-driven from polled I/O.",
+      "Trace a DMA transfer's data path.",
+      "Recognize when each I/O model wins."
+    ],
+    "prereqs": [
+      "system-calls"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Interrupts, the asynchronous mechanism",
+      "body": "When hardware needs the CPU's attention (network packet arrived, disk read completed, key pressed), it raises an **interrupt** — a hardware signal that suspends the current task + jumps to a kernel handler.\n\nProcess (simplified x86):\n1. Device asserts IRQ line.\n2. CPU completes current instruction.\n3. CPU saves RIP + RFLAGS, looks up IDT (Interrupt Descriptor Table) for IRQ handler.\n4. Jumps to handler (kernel code).\n5. Handler does minimum (acknowledge device, queue work for a 'softirq' or kernel thread), returns.\n6. CPU restores state, resumes interrupted task.\n\nCost: ~1µs per interrupt on modern CPUs. Not free — but vastly better than polling at the kernel's rate.\n\n**Top-half / bottom-half split**: the top half runs in interrupt context (preempts everything; must be fast). It schedules a bottom half (softirq, tasklet, work queue) to run with normal priority, doing the actual work. Network packet handling is the canonical example: top half ACKs the device + pulls the packet to RAM; bottom half does TCP processing."
+    },
+    {
+      "kind": "text",
+      "title": "DMA: hardware-direct data movement",
+      "body": "Without DMA: every byte moved between disk + RAM goes through the CPU (`mov` instructions). On a 5GB/s NVMe, this would saturate the CPU just on copying.\n\n**DMA (Direct Memory Access)**: dedicated controller moves data between device + RAM without CPU involvement. CPU sets up the transfer (source addr, dest addr, length); DMA controller runs autonomously; CPU is free to do other work; interrupt fires when transfer completes.\n\nModern NVMe SSDs: PCIe transactions handle the data path; the CPU just submits commands + handles completion interrupts. 5GB/s read throughput costs the CPU ~1% utilization (mostly interrupt handling, not data movement).\n\nThis is the substrate of modern I/O performance: the CPU never sees the bytes. The same pattern applies to GPUs (cuMemcpyAsync is DMA), network cards (NIC DMA descriptors), USB controllers."
+    },
+    {
+      "kind": "text",
+      "title": "Polled vs interrupt-driven I/O — when each wins",
+      "body": "**Polled** (busy-wait): CPU repeatedly checks if device is ready. Low latency (no interrupt overhead). High CPU cost (CPU is busy doing nothing useful while polling).\n\n**Interrupt-driven**: CPU does other work; interrupt fires when ready. Latency: ~1µs handler overhead. Throughput: limited by interrupt rate the CPU can handle.\n\nThe crossover:\n- **Very high IOPS** (>1M/sec on NVMe, 10M+ packets/sec on network): interrupt overhead becomes the bottleneck. DPDK/SPDK switch to polling for the data plane.\n- **Low-rate I/O** (typical disk, network): interrupts are cheaper than polling.\n- **Mixed**: NIC interrupt coalescing — accumulate packets, fire one interrupt for many. Throws away some latency for lower CPU.\n\nProduction: typical app uses interrupt-driven (the OS default). High-frequency-trading + AAA gaming + custom networking move to polling. The whole 'kernel bypass' ecosystem (DPDK, XDP, SPDK) is about replacing interrupts with polling for the data plane."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_io_dma",
+        "kind": "guided_derivation",
+        "question": "Derive when polling beats interrupts",
+        "goal": "Interrupt cost $C_i$ (1µs). Poll cost $C_p$ per check (50ns). Device rate $R$ ops/sec.",
+        "steps": [
+          {
+            "prompt": "Interrupt mode total CPU per second: $R \\cdot C_i$. Polling mode (poll once per check): assume 1 poll per op = $R \\cdot C_p$. Crossover when $R \\cdot C_p \\geq R \\cdot C_i$ — never with these parameters. Why might polling still win?",
+            "motivation": "Polling has a CPU-time floor.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Polling burns CPU even when no work is available — the comparison isn't symmetric.",
+                "Polling is always faster.",
+                "Interrupts are always faster.",
+                "Both equal."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Interrupt cost is per-event; polling cost is per-poll (more polls than events)."
+            ],
+            "reveal": "Polling polls many times to catch each event; total polling cost is much higher than $R \\cdot C_p$. Crossover depends on poll frequency vs event rate."
+          },
+          {
+            "prompt": "At very high $R$ (~1M/sec), interrupt cost approaches 100% CPU. Why does polling win?",
+            "motivation": "Interrupt cost dominates.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$R \\cdot C_i = 10^6 \\cdot 10^{-6}$ s = 1 second of CPU per second of wallclock — fully saturated by interrupts. Polling, even busy-polling, can be cheaper per op once you're below the 'one poll per arrival' density.",
+                "Polling is free.",
+                "Interrupts can't fire.",
+                "Same as low-rate case."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "At 1M/sec interrupt rate, all CPU goes to handling them."
+            ],
+            "reveal": "Interrupt saturation at $R \\geq 1/C_i$. For $C_i = 1$µs, that's $10^6$/sec. Above this, polling wins because per-poll cost is lower than per-interrupt cost AND you can amortize across many ops."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Polling wins when interrupt rate would saturate the CPU}}$$ DPDK + SPDK exist for exactly this regime. Below: interrupts win because they don't burn CPU when idle. The crossover is around 100K-1M events/sec depending on hardware."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_io_dma",
+        "kind": "multiple_choice",
+        "question": "A 10Gbps network card receives 1.5M packets/sec at small-packet workload. Default mode: one interrupt per packet. CPU is overwhelmed. Best mitigation:",
+        "options": [
+          "Disable the network card.",
+          "Enable interrupt coalescing — accumulate N packets per interrupt.",
+          "Buy a slower NIC.",
+          "Add more CPUs."
+        ],
+        "correctIndex": 1,
+        "explanation": "Interrupt coalescing accumulates multiple packet arrivals into a single interrupt. The NIC waits ~50-100µs to batch arrivals; CPU handles N packets per interrupt instead of 1. Trade-off: small latency increase (~50µs) for dramatically reduced interrupt overhead. Production network cards all support this; many auto-tune it."
+      },
+      "hints": [
+        "What's the cost trade in batching interrupts?",
+        "Latency for throughput."
+      ],
+      "workedSolution": "Coalescing reduces interrupts/sec at the cost of small added latency. At 1.5M pps with no coalescing, that's 1.5M interrupts/sec — saturating the CPU. With 10:1 coalescing, 150K interrupts/sec — manageable. Adds ~50µs latency. For non-latency-critical workloads (web serving), big win.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_io_rate",
+        "kind": "math_expression",
+        "question": "1µs per interrupt. Sustained CPU usage if interrupt rate is 500K/sec?",
+        "acceptedAnswers": [
+          "50%",
+          "0.5",
+          "50 percent"
+        ],
+        "hint": "500K × 1µs = 0.5 sec of CPU per sec."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_io_dpdk",
+        "kind": "scenario",
+        "question": "Choosing DPDK vs kernel networking",
+        "prompt": "Your team is building a software load balancer that needs to handle 10M packets/sec. The kernel TCP stack can sustain ~1M pps per core. Walk through whether to use DPDK (kernel bypass) vs scaling kernel-based + the trade-offs."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_io",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why DMA + interrupts together enable modern I/O.",
+        "rubric": "Mentions that DMA moves data without CPU; interrupts notify the CPU when transfers complete; together the CPU only does setup + completion, never the bulk data movement; this is what makes 5GB/s NVMe + 100Gbps NICs feasible on a single CPU core."
+      }
+    }
+  ]
+}

@@ -1,0 +1,128 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish mutex vs RWLock vs spinlock.",
+      "Apply the futex mechanism.",
+      "Recognize lock-free + wait-free programming."
+    ],
+    "prereqs": [
+      "processes-and-threads"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Locks, the working menu",
+      "body": "**Mutex** (`pthread_mutex_t`, `std::mutex`): mutual exclusion. One holder at a time; others block. Fair-ish; supports priority inheritance to avoid priority inversion. Cost: ~25ns to acquire when uncontended; ~100ns + context switch when contended (~µs total).\n\n**RWLock** (`pthread_rwlock_t`, `std::shared_mutex`): allows many readers OR one writer. Useful when reads vastly outnumber writes. Cost: more state to manage; slower than mutex in the uncontended case. Win when reads dominate AND lock-hold time is meaningful.\n\n**Spinlock**: busy-wait instead of blocking. Useful when lock-hold time is < context-switch time (~1µs). Used inside the kernel + in lock-free algorithms. Burns CPU while waiting — use sparingly.\n\n**Recursive mutex**: same thread can lock it multiple times (must unlock same # times). Convenient but a code smell — usually means your invariants are unclear.\n\n**Reader-writer-lock vs RCU**: RCU (Read-Copy-Update) is even faster than RWLock for read-heavy workloads. Readers don't take any lock; writers copy + atomically swap. Used pervasively in the Linux kernel."
+    },
+    {
+      "kind": "text",
+      "title": "Futex: the Linux fast-path",
+      "body": "**futex** (Fast Userspace Mutex): Linux's primitive that mutexes are built on. Two ops:\n- `futex_wait(addr, val)`: if `*addr == val`, sleep. Else return immediately.\n- `futex_wake(addr, N)`: wake up to N waiters on `addr`.\n\nThe magic: futex_wait + futex_wake are kernel calls, but the FAST PATH (uncontended lock) is pure userspace atomic operations. Only when contention exists does the kernel get involved.\n\nUncontended mutex acquire:\n1. CAS (compare-and-swap) on the lock word in userspace.\n2. CAS succeeds → done. No syscall.\n\nContended mutex acquire:\n1. CAS fails.\n2. `futex_wait()` syscall to sleep.\n3. When holder releases: CAS to 0 + futex_wake() to wake one waiter.\n\nThe glibc + Rust + Java synchronization primitives all use this pattern. The lock cost on Linux: ~25ns uncontended (just the CAS), ~1µs contended (syscall + context switch)."
+    },
+    {
+      "kind": "text",
+      "title": "Lock-free vs wait-free",
+      "body": "**Lock-free**: at any time, *some* thread makes progress. No locks; uses atomic operations (CAS, fetch-add).\n\n**Wait-free**: *every* thread makes progress in bounded steps. Strictly stronger than lock-free.\n\nClassical lock-free queue (Michael-Scott 1996): linked list with atomic head + tail. Enqueue: CAS to append a node. Dequeue: CAS to advance head. Failed CAS → retry. Lock-free; some thread always succeeds; failed retries are bounded by other threads' success.\n\n**ABA problem**: thread A reads value X, gets preempted. Thread B changes X → Y → X (same address, different version). A resumes with stale assumption that the value is X. CAS succeeds (because the bits match) but the world has changed. Mitigations: tagged pointers (version counter), hazard pointers (track which addresses are in use), generational counters.\n\nProduction lock-free: Disruptor (LMAX), JCTools, crossbeam (Rust), folly (Facebook). Production use is niche — most apps are fine with locks. Lock-free is for queues with millions-of-ops-per-second throughput where lock contention is the bottleneck. Wait-free is mostly academic."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sync_futex",
+        "kind": "guided_derivation",
+        "question": "Derive futex's fast-path cost",
+        "goal": "Uncontended mutex lock + unlock. Cost in CPU cycles (rough)?",
+        "steps": [
+          {
+            "prompt": "Lock: CAS instruction (1 cycle uncontended) + atomic-fence overhead (~10 cycles on modern CPUs). Unlock: atomic store + fence. Total cycles?",
+            "motivation": "Just count.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~20-50 cycles",
+                "~30"
+              ]
+            },
+            "hints": [
+              "Atomic ops + fences are ~10-20 cycles each."
+            ],
+            "reveal": "~20-50 cycles, ~10-20ns on a 3GHz CPU. No syscall."
+          },
+          {
+            "prompt": "Contended lock: CAS fails + futex_wait syscall + context switch + later futex_wake + context switch. Cost?",
+            "motivation": "Add up the heavy operations.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~1us",
+                "~1000 cycles",
+                "around 1 microsecond"
+              ]
+            },
+            "hints": [
+              "Syscall ~100ns + context switch ~500ns."
+            ],
+            "reveal": "~1µs — about 100× more than uncontended. Contention is the killer; reduce contention by sharding/finer locks."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Uncontended: ~20ns. Contended: ~1µs. Ratio: 50×.}}$$ Avoid lock contention. Sharded locks (per-thread, per-bucket) often eliminate contention entirely. Lock-free structures: alternative when sharding doesn't fit the data structure."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sync_aba",
+        "kind": "multiple_choice",
+        "question": "Lock-free CAS-based code is vulnerable to the ABA problem when:",
+        "options": [
+          "Two threads compete for the same lock.",
+          "A value changes from X to Y to X between a read and a CAS — the CAS succeeds incorrectly because the bits match.",
+          "ABA can't happen.",
+          "Only with mutexes."
+        ],
+        "correctIndex": 1,
+        "explanation": "ABA: thread A reads X, gets preempted. Thread B does X → Y → X. Thread A resumes with stale 'world view' (assumes nothing changed since X). CAS succeeds because bits match. But underneath, something happened. Mitigations: tagged pointers (counter + pointer in one CAS word), hazard pointers, epoch-based reclamation."
+      },
+      "hints": [
+        "What's special about the pattern X → Y → X?",
+        "The CAS only checks bits, not the history."
+      ],
+      "workedSolution": "CAS checks the current value matches the expected; doesn't check the history. If the value cycled X → Y → X between read + CAS, the CAS succeeds but a different state was reached + unreached. Common in lock-free linked lists: node was freed, reused; old pointer in new node's place. Mitigations: version-tagged pointers (CAS on (ptr, version) together), hazard pointers, RCU's epoch-based reclamation.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sync_cas",
+        "kind": "math_expression",
+        "question": "CAS cost ~10ns. 10K threads contending on one CAS. Worst-case wait time per op (ms)?",
+        "acceptedAnswers": [
+          "0.1",
+          "100us",
+          "0.1 ms"
+        ],
+        "hint": "10K × 10ns = 100µs."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sync_contention",
+        "kind": "scenario",
+        "question": "Lock contention in production",
+        "prompt": "Your service uses a single shared cache protected by a mutex. Under load, you see threads spending 80% of their time waiting for the lock. Walk through three approaches to reduce contention, ordered from least to most invasive."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sync",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why most production code uses regular mutexes instead of lock-free data structures.",
+        "rubric": "Mentions that mutexes are simpler to reason about, easier to debug, and fast enough (~25ns uncontended); lock-free is correct only with careful design + tagged pointers + memory-ordering reasoning; the engineering cost outweighs the throughput gain except in genuinely-contended hot paths."
+      }
+    }
+  ]
+}
