@@ -61,6 +61,64 @@
       "kind": "text",
       "title": "What's next",
       "body": "Production failure modes are the closing lesson of the systems-engineer path. After this you've covered the full lifecycle: training infrastructure, serving infrastructure, monitoring, and the playbooks for when reality hits.\n\nKey takeaways:\n- OOM under load: per-request memory budget at the router, OOM handler in the worker, never crash the whole process\n- NaN in training: gradient clipping + logit clamp + per-layer norm logs + checkpoint rollback\n- Silent corruption is the worst class; mitigate with input/output diffs, smoke evals, checkpoint hashing, schema validation\n- Rollback playbooks: pre-decided triggers, known-good target, single-command procedure, rehearsed in staging\n- Roll back first, fix later — the discipline that limits time-to-recovery\n\nThis was the last lesson in the systems-engineer path. From [[gpu-architecture]] through production failure modes, you've covered the full infrastructure stack of modern ML."
+    },
+    {
+      "kind": "text",
+      "title": "The failure-mode cheat sheet",
+      "body": "**OOM in training** — usually batch size × sequence length × activation memory. Lower batch, use grad checkpointing, switch to FSDP.\n\n**NaN loss** — typically FP16 overflow on a single bad activation. Lower learning rate, add gradient clipping, switch to BF16, check for `inf` in data.\n\n**Silent corruption** — gradients clipped to zero by a too-tight clip threshold; data loader dropping examples silently; tokenizer changed between train and inference. Catch with per-step gradient-norm monitoring + tokenizer hash logging.\n\n**Latency regression at deploy** — usually a model-size or quantization change; sometimes a serving framework upgrade. Canary release + automatic rollback on p99 SLO breach.\n\n**Hallucination spike post-finetune** — overfitting to a small instruction set; rolled-out base-model change. KL-regularize against base, watch held-out perplexity, prefer SFT-then-DPO over big single-step changes.\n\nThe playbook discipline matters more than the specific incident: write rollback steps **before** the incident, not during."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_prod_clip",
+        "kind": "multiple_choice",
+        "question": "A trainer logs gradient L2 norm = 1.0 every step for hours. Initially this looked stable; now you suspect a bug. What's the most likely cause?",
+        "options": [
+          "Gradient clipping with threshold 1.0 is being hit on every step — the *real* gradient is much larger and the clip is doing all the work.",
+          "The loss is constant.",
+          "Gradients are physically incapable of exceeding 1.0.",
+          "The optimizer has converged."
+        ],
+        "correctIndex": 0,
+        "explanation": "Hitting the clip threshold every single step is a textbook silent failure: gradients are being capped to a constant magnitude, so the optimizer is moving in the *direction* of the gradient but ignoring its scale. Loss often still decreases (the direction is still right) but training is slower than it should be and you've lost the diagnostic signal of varying gradient norms."
+      },
+      "hints": [
+        "What is the expected variability of the gradient norm during real training?",
+        "What is the relationship between the logged norm and the gradient clipping threshold?"
+      ],
+      "workedSolution": "Real training gradient norms vary substantially step-to-step — log-magnitudes typically span an order of magnitude in the first epoch. If the logged norm is *exactly* the clip value every step, the clip is binding on every step: the underlying gradient is being capped to a constant magnitude, and you've lost the signal that the gradient norm is supposed to give you. Raise the clip threshold or remove it for a few steps to see the real norm.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_prod_canary",
+        "kind": "scenario",
+        "question": "Canary rollback",
+        "prompt": "You're rolling out a new model to 5% canary traffic. The model's offline eval looked great but canary p99 latency has doubled and accuracy on a fresh online slice is unchanged. Walk through your rollback decision in three sentences."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_prod",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why 'write the rollback playbook before the incident' is the highest-leverage piece of MLOps hygiene.",
+        "rubric": "Mentions that the cognitive load during an incident is too high to design recovery on the fly, and that pre-written playbooks dramatically shorten time-to-rollback."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Diagnose common training- and serving-time failure modes from their symptoms.",
+      "Write a rollback playbook that doesn't require the model team awake at 3am.",
+      "Reason about which failures need feature flags vs. canary releases vs. full rollback."
+    ],
+    "prereqs": [
+      "monitoring-observability",
+      "mlops-experiment-tracking"
+    ]
+  }
 }

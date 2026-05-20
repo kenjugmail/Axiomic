@@ -61,6 +61,78 @@
       "kind": "text",
       "title": "What's next",
       "body": "Model parallelism is the foundation for any frontier-scale training. After this lesson the rest of the systems-engineer path is about putting it into production.\n\nNext: [[mlops-experiment-tracking]] — keeping experiments reproducible across many parallelism configurations.\n\nKey takeaways:\n- DP replicates; TP shards within layers; PP shards across layers; FSDP shards state\n- TP needs high bandwidth (NVLink within host)\n- PP tolerates low bandwidth (across hosts)\n- FSDP shards everything cheaply via all-gather + reduce-scatter\n- 3D parallelism: TP intra-host + PP inter-host + DP across replicas\n- For most teams, FSDP alone reaches 70B; TP+PP is frontier-scale only"
+    },
+    {
+      "kind": "text",
+      "title": "The three flavors of parallel",
+      "body": "**Tensor parallel (TP)** shards individual matrix multiplications across GPUs (e.g., Megatron's column-row split). Each GPU sees the full batch but only computes part of each matmul; an all-reduce inside the forward+backward combines partials. Latency-sensitive; you typically run TP only within a node, over NVLink.\n\n**Pipeline parallel (PP)** assigns different *layers* to different GPUs. The data flows GPU 1 → GPU 2 → ... like an assembly line. Microbatches keep all stages busy; the bubble at start/end is wasted time. With $M$ microbatches and $S$ stages the bubble fraction is $(S-1)/(M+S-1)$ — that's the case for microbatch ≫ stage count.\n\n**FSDP / ZeRO** shards the optimizer state (ZeRO-1), gradients (ZeRO-2), and parameters (ZeRO-3) across DP replicas. The parameter shards are gathered on-demand for the layer that needs them. Trades extra communication for big memory savings — letting DDP-style training reach much larger models."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mp_bubble",
+        "kind": "multiple_choice",
+        "question": "Pipeline-parallel training with 8 stages. You sweep the number of microbatches and see throughput improving up to ~32 microbatches, then flattening. Why?",
+        "options": [
+          "Above 32 microbatches the bubble fraction $(S-1)/(M+S-1)$ has dropped from ~22% at $M=32$ to under ~6% — additional microbatches give diminishing returns and just add scheduling overhead.",
+          "The optimizer can't handle more than 32 microbatches.",
+          "Past 32 you start running out of activation memory.",
+          "Throughput is purely a function of stage count, not microbatch count."
+        ],
+        "correctIndex": 0,
+        "explanation": "The bubble fraction is the source of non-perfect scaling. At $M=32, S=8$ it's $7/39 ≈ 18\\%$; at $M=64$ it drops to $7/71 ≈ 10\\%$. Each doubling of $M$ roughly halves the remaining bubble, so you see classic diminishing returns. There's a *separate* constraint from activation memory but that bites first as OOM, not as flat throughput."
+      },
+      "hints": [
+        "The bubble fraction has $M$ in the denominator — it shrinks toward 0 as $M$ grows.",
+        "Compute the bubble at $M=32$ and at $M=64$ and compare to the throughput curve."
+      ],
+      "workedSolution": "Bubble fraction is $(S-1)/(M+S-1)$. With $S=8$: at $M=32$ it's $7/39 ≈ 0.18$, at $M=64$ it's $7/71 ≈ 0.10$. Each doubling halves the remaining bubble, giving classic diminishing returns. Beyond a certain $M$ the bubble is negligible and the curve flattens at ~per-stage peak.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mp_topology",
+        "kind": "scenario",
+        "question": "TP across nodes",
+        "prompt": "A teammate proposes running tensor parallel with TP=16 across two 8-GPU nodes connected by 200 Gb/s InfiniBand. Why is this a worse idea than TP=8 within a node, and what would you suggest instead?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mp_bubble",
+        "kind": "math_expression",
+        "question": "$S=4$ stages, $M=12$ microbatches. What is the bubble fraction (3 decimals)?",
+        "acceptedAnswers": [
+          "0.200",
+          "3/15",
+          "0.2",
+          "1/5"
+        ],
+        "hint": "Bubble fraction = $(S-1)/(M+S-1)$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mp",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences when you'd pick FSDP over a TP+PP combination, even though TP+PP can also fit a giant model.",
+        "rubric": "Mentions that FSDP is simpler to set up, scales well within a single replica group, and avoids the latency-sensitive intra-layer comms of TP; trade-off is more bandwidth used per step."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish tensor parallel, pipeline parallel, and FSDP/ZeRO by what they shard.",
+      "Recognize a 'bubble' in pipeline parallelism and reason about microbatch counts.",
+      "Choose between TP + DP + PP combinations for a given model size and network."
+    ],
+    "prereqs": [
+      "data-parallelism"
+    ]
+  }
 }

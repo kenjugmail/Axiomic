@@ -61,6 +61,77 @@
       "kind": "text",
       "title": "What's next",
       "body": "Mixed precision is foundational. Every other systems-engineer lesson assumes you've picked the right precision and configured the recipe correctly.\n\nNext: [[data-parallelism]] — synchronizing gradients across multiple GPUs.\n\nKey takeaways:\n- bf16 is the modern default for Ampere+; same range as fp32, no loss scaling needed\n- fp16 needs dynamic loss scaling to avoid gradient underflow\n- Master weights stay in fp32 — bf16 precision can't represent small updates\n- Memory budget per parameter: ~16 bytes for standard mixed-precision Adam\n- fp8 (Hopper+) doubles throughput again, with per-tensor scaling and E4M3/E5M2 split"
+    },
+    {
+      "kind": "text",
+      "title": "FP16 vs BF16, the one chart",
+      "body": "**FP16** (IEEE half): 1 sign / 5 exponent / 10 mantissa. Range ≈ $10^{\\pm 5}$, precision ~3 decimal digits. **Underflows badly** in gradient tails.\n\n**BF16** (Brain Float): 1 sign / 8 exponent / 7 mantissa — **same dynamic range as FP32**, half its precision. No loss-scaling needed. Dominant format on TPUs and modern GPUs.\n\n**FP8 (e4m3 / e5m2)**: emerging. e5m2 is for gradients (range > precision); e4m3 for weights/activations (precision > range). Requires per-tensor scaling at runtime to stay in-range.\n\nIf the framework gives you a free choice: BF16 every time on hardware that supports it. The only reason FP16 + loss scaling persists is older accelerators that lack BF16 tensor cores."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mp_loss_scale",
+        "kind": "multiple_choice",
+        "question": "Loss scaling multiplies the loss by ~$10^4$ before backprop and divides gradients by the same factor before the optimizer step. Why does this help under FP16 but not under BF16?",
+        "options": [
+          "BF16 has no exponent bits, so scaling does nothing.",
+          "FP16's narrow exponent range underflows small gradient values to zero; scaling pushes them into a representable range. BF16's exponent matches FP32 and doesn't underflow on the same gradients.",
+          "Loss scaling is a placebo and only works because it slows training.",
+          "Both formats need it; BF16 just hides the scaling."
+        ],
+        "correctIndex": 1,
+        "explanation": "FP16's minimum positive normal value is ~$6 \\times 10^{-5}$ — way above the magnitude of many small gradients, which become exact zero. Multiplying the loss by $10^4$ moves those gradients into FP16's range. BF16 has the same exponent range as FP32, so small gradients are already representable."
+      },
+      "hints": [
+        "Think about which bits handle range (exponent) vs precision (mantissa).",
+        "Underflow comes from running out of exponent range, not from running out of mantissa precision."
+      ],
+      "workedSolution": "Loss scaling targets *underflow* — gradients smaller than the minimum positive value the format can represent. FP16's 5-bit exponent means its minimum is around $6\\!\\times\\!10^{-5}$, which is bigger than many real gradient values, so they round to exact zero and learning stops. Scaling the loss by $10^4$ shifts those gradients into the representable range. BF16's exponent is 8 bits (same as FP32), so it already represents tiny gradients fine.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mp_nan",
+        "kind": "scenario",
+        "question": "NaN loss after FP16 transition",
+        "prompt": "You switch a working FP32 trainer to FP16 mixed precision and the loss goes to NaN within the first 10 steps. What's the single most likely root cause and the single change that usually fixes it?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mp_memory",
+        "kind": "math_expression",
+        "question": "A model has 7B parameters. Stored as FP16, how many GB of GPU memory do the weights alone occupy? (1 GB = $10^9$ bytes)",
+        "acceptedAnswers": [
+          "14",
+          "14 GB",
+          "14.0"
+        ],
+        "hint": "FP16 is 2 bytes per parameter."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mp",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why BF16 has become the default for transformer training on modern accelerators, even though it has *less* numerical precision than FP16.",
+        "rubric": "Mentions that range matters more than precision for gradient magnitudes; BF16 matches FP32 range and avoids the loss-scaling complexity entirely."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Distinguish FP16 vs BF16 by exponent vs mantissa allocation.",
+      "Explain why loss scaling fixes FP16 underflow but isn't needed for BF16.",
+      "Reason about when FP8 becomes safe (and when it doesn't)."
+    ],
+    "prereqs": [
+      "gpu-architecture"
+    ]
+  }
 }

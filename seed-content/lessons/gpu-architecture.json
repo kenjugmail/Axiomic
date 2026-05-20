@@ -61,6 +61,75 @@
       "kind": "text",
       "title": "What's next",
       "body": "Now you have the substrate. Next lessons drill into how training and serving exploit it:\n\n- [[mixed-precision]] — what each precision actually buys you\n- [[data-parallelism]] — synchronizing gradients across GPUs\n- [[fsdp]] — sharding state when the model doesn't fit\n- [[vllm]] — turning a checkpoint into a high-throughput service\n\nKey takeaways:\n- Tensor cores do matmul fast at reduced precision; CUDA cores are 10-15× slower\n- HBM bandwidth caps memory-bound kernels (softmax, layernorm); compute is rarely the limit on small ops\n- Adam training memory: ~16 bytes per parameter (weights + grads + optimizer state)\n- FlashAttention, FSDP, gradient checkpointing all attack different parts of the same memory wall\n- MFU < 50% almost always means memory traffic, not compute"
+    },
+    {
+      "kind": "text",
+      "title": "Bandwidth, not FLOPs, is usually the limit",
+      "body": "An A100 SXM has roughly **312 TFLOPS** of FP16 tensor-core throughput and **2.0 TB/s** of HBM2e bandwidth.\n\nNaive arithmetic: each FP16 element is 2 bytes, so the GPU can READ at $2.0\\text{ TB/s} / 2 = 10^{12}$ elements/s. To keep the tensor cores busy at 312 TFLOPS, each element loaded from HBM needs to participate in ~300 FLOPs — i.e., the **arithmetic intensity** must exceed ~150 FLOPs/byte.\n\nMatrix multiplies have intensity proportional to the contraction dimension, so a big GEMM (say $K\\!=\\!4096$) is compute-bound. An elementwise add is memory-bound — it does 1 FLOP per 8 bytes (read A, read B, write C) and runs at HBM bandwidth, ~5% of peak FLOPs.\n\nKnowing which side you're on tells you what optimization will help: fusion + tiling for memory-bound code, picking a bigger GEMM shape for compute-bound code."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_gpu_intensity",
+        "kind": "math_expression",
+        "question": "A 4096×4096 × 4096×4096 FP16 matmul does $2 \\cdot 4096^3 \\approx 1.37\\times 10^{11}$ FLOPs and reads ~$2\\cdot 2 \\cdot 4096^2 = 6.7\\times 10^{7}$ bytes. What's its arithmetic intensity (FLOPs/byte, to the nearest 100)?",
+        "acceptedAnswers": [
+          "2048",
+          "2000",
+          "2100"
+        ],
+        "hint": "Intensity = FLOPs / bytes. Drop the cancelling factors carefully."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_gpu_tcvscuda",
+        "kind": "multiple_choice",
+        "question": "When does a Tensor Core deliver a speedup over a CUDA core for the same matmul?",
+        "options": [
+          "Always — it is just a faster CUDA core.",
+          "When the operation is a small-precision dense matmul with shapes that match the TC tile size.",
+          "Only for FP64 matmul.",
+          "Only for batch size 1 inference."
+        ],
+        "correctIndex": 1,
+        "explanation": "Tensor Cores execute small 4×4 or 16×16 mixed-precision matmul tiles in a single instruction. They light up on FP16/BF16/INT8/FP8 GEMMs whose dimensions are multiples of the TC tile (commonly 8 or 16). At FP64 or for non-GEMM kernels they sit idle and CUDA cores do the work."
+      },
+      "hints": [
+        "Tensor cores are specialized matmul units — what is special about them?",
+        "If a dimension is 7 wide instead of 8, padding makes the TC operate sub-peak."
+      ],
+      "workedSolution": "TCs execute small fixed-shape MMA instructions in low precision. They beat CUDA cores when (a) the op is dense matmul, (b) operands are FP16/BF16/INT8/FP8, and (c) the shape is a multiple of the TC tile size (typically 8 or 16). Outside those conditions — FP64 work, irregular kernels, off-shape dimensions — CUDA cores carry the load.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_gpu_bound",
+        "kind": "scenario",
+        "question": "Compute-bound or memory-bound?",
+        "prompt": "Your training profile shows tensor-core utilization at 12%, HBM read bandwidth saturated at ~95% of peak. Which side is the bottleneck, and which class of optimization should you reach for first?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_gpu",
+        "kind": "explain_back",
+        "prompt": "Explain, in your own words, why 'arithmetic intensity' is the right way to predict whether a kernel will benefit from a faster GPU vs. faster memory.",
+        "rubric": "Mentions the roofline model intuition: low intensity = bandwidth-bound (faster FLOPs won't help); high intensity = compute-bound (faster bandwidth won't help)."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Distinguish SM/CUDA-core/Tensor-core throughput and what each is for.",
+      "Reason about HBM bandwidth as a first-order constraint on training speed.",
+      "Estimate whether a kernel is compute-bound or memory-bound."
+    ],
+    "prereqs": []
+  }
 }

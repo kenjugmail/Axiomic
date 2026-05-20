@@ -61,6 +61,77 @@
       "kind": "text",
       "title": "What's next",
       "body": "DDP is the floor. Every modern training setup starts here and adds parallelism strategies on top.\n\nNext: [[fsdp]] — sharding the model state across GPUs when DP can't fit it.\n\nKey takeaways:\n- DDP: replicate model on each GPU, all-reduce gradients, identical weights at every step\n- NCCL ring all-reduce is bandwidth-optimal for large gradients; tree for small\n- DDP overlaps gradient comm with backward — hides ~80% of comm cost on well-tuned setups\n- Effective batch size = per-GPU batch × world_size; scale LR sub-linearly\n- DP fails when the model is too big (use FSDP), activations are too big (use grad checkpoint), or comm is too slow (use grad accumulation + TP)"
+    },
+    {
+      "kind": "text",
+      "title": "DDP, mechanically",
+      "body": "Every GPU keeps a full copy of the model. Each step:\n\n1. Split the global batch across $G$ GPUs. Each does its own forward + backward.\n2. **All-reduce** the gradients across GPUs (NCCL ring or tree). After this every GPU has the *same* gradient = $1/G \\sum_g \\nabla_g$.\n3. Each GPU applies the optimizer step locally → all replicas stay in sync.\n\nThe all-reduce moves $|\\theta|$ bytes per step, parallelizable across the ring. On a fat-tree NVLink/InfiniBand network the per-step cost scales like $O(|\\theta|/B)$ where $B$ is the inter-GPU bandwidth.\n\nThe win is **strong scaling**: with $G$ GPUs you do roughly $G\\times$ work per step at $\\sim G\\times$ the FLOP cost — provided the gradient all-reduce stays small compared to forward+backward. When the model gets large enough that the all-reduce dominates, DDP plateaus and you need ZeRO / FSDP / tensor parallel."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dp_plateau",
+        "kind": "multiple_choice",
+        "question": "You scale DDP from 8 to 64 GPUs and observe sub-linear throughput growth: 64 GPUs only deliver ~3× the throughput of 8. What's the most likely cause?",
+        "options": [
+          "GPUs above 8 are slower.",
+          "All-reduce time grew faster than per-GPU compute time — gradient communication is now the bottleneck.",
+          "The optimizer step doesn't parallelize.",
+          "The batch size was reduced."
+        ],
+        "correctIndex": 1,
+        "explanation": "Classic strong-scaling cliff. Per-GPU compute halves each time you double GPUs (constant global batch), but all-reduce time only drops sub-linearly because of network latency overhead and ring topology. Past some $G^*$, communication dominates and adding more GPUs hurts. Fixes: bigger global batch (weak scaling), gradient bucketing/overlap, or ZeRO/FSDP."
+      },
+      "hints": [
+        "Per-GPU FLOPs shrink as $1/G$. What about per-GPU comms time?",
+        "An all-reduce ring scales as $\\Theta(2(G-1)/G \\cdot |\\theta|/B)$ — almost constant in $G$."
+      ],
+      "workedSolution": "Per-GPU compute shrinks as $1/G$ (constant global batch); the all-reduce cost barely shrinks — for a ring it's $\\sim 2|\\theta|/B$ regardless of $G$. So compute-to-comms ratio degrades and we hit the strong-scaling cliff. Mitigations: weak-scale (grow batch with GPUs), overlap gradient comms with the next backward, or shard the optimizer state with ZeRO/FSDP.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_dp_step",
+        "kind": "math_expression",
+        "question": "A model has $10^9$ parameters in FP32 (4 bytes). What is the gradient payload (in GB) that DDP needs to all-reduce each step?",
+        "acceptedAnswers": [
+          "4",
+          "4 GB",
+          "4.0"
+        ],
+        "hint": "Bytes per parameter × parameter count."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_dp_oom",
+        "kind": "scenario",
+        "question": "DDP runs out of memory at world-size 8",
+        "prompt": "You can train your 13B model on 1 GPU with tiny batch size. You scale to 8-GPU DDP for a bigger global batch — and immediately get OOM on every GPU. Why does that happen, and which technique would you reach for first?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dp",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why DDP's correctness doesn't depend on which GPU finishes a backward pass first.",
+        "rubric": "Mentions that the all-reduce produces an identical averaged gradient on every replica before any GPU steps — so optimizer states stay bitwise-equal across replicas."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Explain DDP's split-and-allreduce loop in one minute.",
+      "Reason about communication-vs-compute scaling on multi-GPU training.",
+      "Recognize when DDP stops being enough and you need FSDP or tensor parallel."
+    ],
+    "prereqs": [
+      "mixed-precision-training"
+    ]
+  }
 }

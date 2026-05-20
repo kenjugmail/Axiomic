@@ -61,6 +61,61 @@
       "kind": "text",
       "title": "What's next",
       "body": "Tracking is the hygiene layer. Everything in production ML inherits from it: monitoring, A/B testing, model evaluation, regulatory audits.\n\nNext: [[inference-serving]] — turning your tracked, reproduced, validated checkpoint into a production service.\n\nKey takeaways:\n- Log config + metrics + provenance + artifacts + notes for every run\n- Pin versions (code, data, hardware, libraries) and log seeds\n- 1% improvements need multiple seeds to claim — n=1 lies\n- Random search is a strong baseline; Bayesian sweeps pay off for expensive runs\n- The historical record is the team's institutional memory; underrated until you don't have it"
+    },
+    {
+      "kind": "text",
+      "title": "The five things every run should log",
+      "body": "If a colleague has to redo your experiment six months from now, these five identifiers determine whether they can. Forget any one and the run is forever a black box:\n\n1. **Git commit hash** of the training code (or a content-hashed bundle of the env if you don't use git).\n2. **Data version** — checksum or dataset URI + version tag. 'Files in this folder right now' is not a version.\n3. **Hyperparameters** as a single JSON object, not a list of CLI flags.\n4. **Random seeds** (numpy, torch, CUDA — all of them).\n5. **Hardware fingerprint** — GPU model, driver, CUDA version, possibly cuDNN.\n\nMLflow, Weights & Biases, Sacred, ClearML — pick one. The discipline matters; the tool less so."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mlops_repro",
+        "kind": "multiple_choice",
+        "question": "A teammate can't reproduce your reported 87.3% accuracy. They've matched code (same commit), data version, and hyperparams. What's the most common remaining cause?",
+        "options": [
+          "Different random seeds (or unset seeds).",
+          "Different GPU model.",
+          "Different OS.",
+          "Different Python version."
+        ],
+        "correctIndex": 0,
+        "explanation": "Unset random seeds account for the vast majority of unreproducibility-after-matching-code-and-data. Without explicit seeds, init randomness + data shuffling diverge between runs. Hardware diffs cause smaller wobbles (CUDA op nondeterminism) but rarely the headline difference."
+      },
+      "hints": [
+        "Eliminate the candidates that are usually controlled by Conda/Docker images.",
+        "Which knob is most often forgotten when the experiment notebook is hastily cleaned up?"
+      ],
+      "workedSolution": "Unset/different random seeds are the #1 cause of 'I got slightly different numbers' once code + data + hyperparams are pinned. Hardware differences add a 0.1-0.3% wobble at most (CUDA non-determinism on certain ops); OS and Python version differences are rare unless you pinned the environment loosely.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mlops_metric_drift",
+        "kind": "scenario",
+        "question": "An older 'best' model",
+        "prompt": "Last quarter's run logged 92.1% accuracy. Today you re-run the same config with the same data + commit and get 89.4%. The lab tracks runs in MLflow. Walk through the *first three things* you would check to explain the gap."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mlops",
+        "kind": "explain_back",
+        "prompt": "Explain why 'I always save my notebook' is not a reproducibility strategy.",
+        "rubric": "Mentions that notebooks lack the structure (env + data version + seeds) needed to re-run the experiment cleanly, and notebook state is hidden in cell execution order."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "core",
+    "objectives": [
+      "Articulate the discipline behind reproducible experiments.",
+      "Distinguish 'run identifiers' you need to log vs. ones you only need to compute.",
+      "Recognize the symptoms of an unreproducible experiment."
+    ],
+    "prereqs": []
+  }
 }
