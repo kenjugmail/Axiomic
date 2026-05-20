@@ -1,0 +1,80 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish range-based from hash-based partitioning.",
+      "Recognize hot partition problems.",
+      "Apply consistent hashing."
+    ],
+    "prereqs": [
+      "replication-strategies"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Range, hash, and consistent hashing",
+      "body": "**Range partitioning**: split the key space into contiguous ranges, assign each range to a partition. Postgres native, MongoDB sharded, HBase. Good for range queries (`SELECT WHERE user_id BETWEEN 1000 AND 2000`); a single partition can be hot if access is skewed.\n\n**Hash partitioning**: hash the key, take modulo $N$ (or use consistent hashing). Cassandra default, DynamoDB. Spreads load uniformly; kills range queries (a range scan must hit every partition).\n\n**Consistent hashing** (Karger 1997): both keys AND partitions hash to positions on a ring; a key is assigned to the next partition clockwise. Adding/removing a partition only moves ~$1/N$ of keys (vs hash-mod which moves almost everything). Dynamo, Cassandra, Memcached's libketama all use consistent hashing under the hood.\n\nProduction systems often layer both: hash partitioning at the top (load distribution), range partitioning within each shard (range queries on a per-shard basis)."
+    },
+    {
+      "kind": "text",
+      "title": "Hot partitions, the classic skew problem",
+      "body": "**Hot partition**: one partition receives much more traffic than others. Symptoms: that partition's latency spikes, queues back up, the cluster looks 'fine on average' but specific keys are unusable.\n\nCauses:\n- **Skewed key distribution**: most traffic targets a small subset of keys. E.g., a viral tweet — millions read it, but it lives on one partition.\n- **Time-correlated keys**: timestamp-prefixed keys cause writes to all flow to the partition holding the latest timestamps. (UUIDv1 keys, autoincrement IDs.)\n\nMitigations:\n- **Random-prefix the hot key**: instead of one row for the celebrity, store ten rows (random shard suffix), serve reads from random suffix, combine. Spreads the load 10×.\n- **Cache the hot key in front of the database**: CDN/Redis layer absorbs the hot reads.\n- **Use hash-based partitioning** for write-skewed timestamp data: hash the user_id, not the timestamp, so writes spread.\n\nMost large-scale outages of well-designed systems are hot-partition issues. The 'AWS DynamoDB hot partition' is a search term every back-end engineer learns the hard way."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_part_consistent",
+        "kind": "multiple_choice",
+        "question": "Consistent hashing's main advantage over hash-modulo partitioning is:",
+        "options": [
+          "It distributes keys more uniformly.",
+          "When you add or remove a partition, only ~1/N of keys move (vs almost all keys in hash-modulo).",
+          "It avoids the need for a coordinator.",
+          "It's faster to compute."
+        ],
+        "correctIndex": 1,
+        "explanation": "Consistent hashing's signature benefit: rebalancing cost. Adding a partition with hash-modulo moves nearly every key (because the modulus changed); consistent hashing moves only ~1/N keys (those that previously hashed between the new partition's position and its predecessor on the ring). For long-running systems that scale up + down, this is the difference between 'rebalancing is cheap' and 'rebalancing is a multi-hour outage'."
+      },
+      "hints": [
+        "What happens when you add a new partition in each scheme?",
+        "Hash-modulo: changing N changes every key's position. Consistent hashing: only keys near the new partition's ring position move."
+      ],
+      "workedSolution": "Hash-modulo partitioning: adding a partition changes the modulus, so almost every key changes partitions — a full reshuffle. Consistent hashing: each key hashes to a fixed ring position; partitions also hash to positions; key goes to the next clockwise partition. Adding a new partition only moves keys that were between the new partition's position and its predecessor on the ring (~$1/N$ of all keys). Critical for systems that scale up + down without downtime.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_part_hot",
+        "kind": "scenario",
+        "question": "Diagnosing a hot partition",
+        "prompt": "Your DynamoDB table is averaging 10ms latency, but p99 is 800ms. Investigation shows one partition is 20× the average throughput. What are two structural causes, and what's the fastest mitigation?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_part_move",
+        "kind": "math_expression",
+        "question": "Hash-modulo: scaling from 10 to 11 partitions moves what fraction of keys (approximately)?",
+        "acceptedAnswers": [
+          "10/11",
+          "0.91",
+          "~91%"
+        ],
+        "hint": "Hash-modulo reshuffle is approximately full."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_part",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why consistent hashing is used in CDNs, distributed caches, AND distributed databases.",
+        "rubric": "Mentions that all three need to add/remove nodes without massive data movement; consistent hashing's $O(1/N)$ rebalancing cost makes operations cheap; the algorithm is application-agnostic, just hash some IDs to a ring."
+      }
+    }
+  ]
+}

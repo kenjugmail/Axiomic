@@ -1,0 +1,66 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Sketch two-phase commit + its failure modes.",
+      "Distinguish 2PC from saga pattern.",
+      "Recognize idempotency keys."
+    ],
+    "prereqs": [
+      "consensus-raft"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "2PC, three-phase, and why we avoid them",
+      "body": "**Two-phase commit (2PC)**: a coordinator asks all participants 'can you commit?', then if all say yes, tells them 'commit'. Atomicity across multiple participants.\n\n**Failure mode**: the coordinator crashes between phase 1 (got all 'yes' votes) and phase 2 (sending 'commit'). The participants are stuck — they've promised to commit but don't know whether to actually commit or abort. They block, waiting forever for the coordinator. This is the **blocking problem** of 2PC.\n\n**Three-phase commit** mitigates with an extra round; vulnerable to other failure modes; rarely used in production.\n\n**Modern approach**: avoid distributed transactions entirely. Either:\n1. **Keep transactions within a single shard** when possible (most use cases can be designed this way).\n2. **Use the saga pattern**: a distributed transaction is a sequence of local transactions, each with a compensating action if a later step fails. 'Reserve seat' + 'charge card' + 'send confirmation' — if charging fails, reverse the reservation.\n3. **Use a database that internally supports distributed transactions via consensus** (CockroachDB, Spanner). Push the complexity into the database; the application sees ACID semantics.\n\nThe saga pattern dominates in microservice architectures because it doesn't require coordination across services. The cost is that intermediate states are visible (between local transactions); reads can see partial saga states. Most teams accept this for the operational simplicity."
+    },
+    {
+      "kind": "text",
+      "title": "Idempotency keys, the lifeblood of distributed reliability",
+      "body": "Every cross-service write should be idempotent on retry. The standard pattern:\n\n```\nclient: POST /charge { ..., idempotency_key: 'a3f2...' }\nserver: have I seen this key? \n  yes -> return cached result\n  no  -> process + store result under this key\n```\n\nStripe, every payment provider, every modern API requires (or strongly recommends) idempotency keys. The reason: the client doesn't know whether its previous request succeeded but the response was lost, or failed entirely. Retry without idempotency = double-charge.\n\nKey choice:\n- **Client-generated**: client generates a UUID per logical operation. The right pattern; lets the client safely retry.\n- **Server-generated**: rare; only useful for replay-on-server-restart scenarios.\n- **Natural keys** (request hash + timestamp): brittle if request contains anything mutable.\n\nIdempotency turns 'distributed transaction' into 'idempotent operation + retry'. Combined with sagas, it's the dominant pattern in modern microservice architectures."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dt_2pc",
+        "kind": "multiple_choice",
+        "question": "The blocking problem in two-phase commit happens when:",
+        "options": [
+          "Two participants both abort.",
+          "The coordinator fails after the prepare phase, leaving participants holding locks and waiting for instructions that never arrive.",
+          "Network is too fast.",
+          "Three or more participants are involved."
+        ],
+        "correctIndex": 1,
+        "explanation": "2PC's defining failure mode: after participants have voted 'yes' (promising they can commit), they wait for the coordinator's commit/abort decision. If the coordinator crashes in that window, participants are blocked — they cannot commit (haven't been told to) and cannot abort (they've promised they can commit). They hold locks until the coordinator recovers. In practice, this is the main reason 2PC is avoided."
+      },
+      "hints": [
+        "What state are participants in after voting 'yes'?",
+        "If the coordinator never comes back, what can participants do?"
+      ],
+      "workedSolution": "After phase 1 (vote 'yes'), participants have promised to be able to commit if instructed. They hold locks. If the coordinator crashes in this window, participants can't unilaterally commit (no permission) or abort (they promised they could commit). They wait. In practice this means locks are held indefinitely, blocking other transactions on the same data. Recovery requires coordinator restart and replay of the protocol log — operationally painful, hence the modern preference for sagas + idempotency.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_dt_saga",
+        "kind": "scenario",
+        "question": "Designing a saga",
+        "prompt": "An e-commerce checkout flow has three steps: reserve inventory → charge card → schedule shipping. Walk through how you'd design this as a saga: what's the compensating action for each step, and what happens if charge fails after the reservation succeeded?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dt",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why idempotency keys + sagas have largely replaced 2PC in modern distributed-system designs.",
+        "rubric": "Mentions that 2PC's blocking problem makes it operationally fragile; sagas + idempotent operations decompose distributed atomicity into local atomicity + retry, which is simpler to reason about; the cost is that intermediate states are visible, but that's acceptable for most workloads."
+      }
+    }
+  ]
+}

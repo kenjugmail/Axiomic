@@ -1952,6 +1952,26 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P3 — Distributed Systems path. The foundation under any
+  // multi-node service — ML training infra, data pipelines,
+  // production serving. Sits beneath data-engineer + systems-engineer.
+  seedMasteryPath({
+    slug: "distributed-systems",
+    title: "Distributed Systems",
+    description:
+      "From CAP through consensus, replication, partitioning, distributed transactions, eventual consistency, failure modes, and observability. The foundation under every multi-node service — ML training infra, data pipelines, production serving.",
+    nodes: [
+      { slug: "cap-theorem", title: "CAP & PACELC", level: "apprentice", order: 1, pages: ["cap-theorem", "pacelc"], prereqs: [], description: "C vs A during partition, the practical PACELC refinement, picking the right posture per subsystem." },
+      { slug: "consensus-raft", title: "Consensus & Raft", level: "practitioner", order: 2, pages: ["raft", "consensus"], prereqs: ["cap-theorem"], description: "Raft's leader election + log replication, quorum arithmetic, when 5 nodes beats 7." },
+      { slug: "replication-strategies", title: "Replication Strategies", level: "practitioner", order: 3, pages: ["replication"], prereqs: ["consensus-raft"], description: "Sync vs async vs semi-sync; single-leader vs multi-leader vs leaderless; latency-vs-durability." },
+      { slug: "partitioning-sharding", title: "Partitioning & Sharding", level: "practitioner", order: 4, pages: ["partitioning", "consistent-hashing"], prereqs: ["replication-strategies"], description: "Range vs hash, consistent hashing, hot partitions + how to spot + fix them." },
+      { slug: "distributed-transactions", title: "Distributed Transactions", level: "specialist", order: 5, pages: ["two-phase-commit", "saga-pattern", "idempotency-keys"], prereqs: ["consensus-raft"], description: "2PC's blocking problem, sagas + compensating actions, idempotency keys as the modern reliability discipline." },
+      { slug: "eventual-consistency-crdts", title: "Eventual Consistency & CRDTs", level: "specialist", order: 6, pages: ["eventual-consistency", "crdt"], prereqs: ["replication-strategies"], description: "The consistency spectrum, CRDTs for conflict-free convergence, where they shine (collaborative editing) and where they don't." },
+      { slug: "failure-modes", title: "Failure Modes", level: "expert", order: 7, pages: ["failure-modes", "circuit-breaker"], prereqs: ["consensus-raft"], description: "Fail-stop vs Byzantine vs gray failures, retry storms, circuit breakers, cascading failure mitigation." },
+      { slug: "distributed-tracing", title: "Distributed Tracing & Observability", level: "expert", order: 8, pages: ["distributed-tracing", "opentelemetry"], prereqs: ["failure-modes"], description: "Traces / metrics / logs, OpenTelemetry, propagation, sampling. The discipline that makes cross-service debugging tractable." },
+    ],
+  });
+
   // P2 — Data Engineer path. The data-plumbing discipline every
   // ML / analytics team eventually needs: modeling, ETL/ELT, batch +
   // streaming, warehousing, orchestration, quality, ML feature
