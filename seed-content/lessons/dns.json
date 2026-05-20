@@ -1,0 +1,114 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "intro",
+    "objectives": [
+      "Trace a DNS resolution.",
+      "Recognize DNS record types.",
+      "Reason about DNS caching + TTLs."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "DNS resolution, traced",
+      "body": "A browser visiting `axiomic.ai`:\n1. Browser asks the OS DNS resolver.\n2. OS checks local cache. Cache miss → forwards to recursive resolver (usually ISP, or 1.1.1.1, 8.8.8.8).\n3. Recursive resolver checks its cache. Miss → queries the root nameservers ('.').\n4. Root nameservers don't have the answer but know who has `.ai` → return TLD nameserver.\n5. Recursive resolver queries the `.ai` TLD nameserver → returns authoritative nameserver for `axiomic.ai`.\n6. Recursive resolver queries the authoritative nameserver → returns the A record (IP address).\n7. Recursive resolver caches the answer + returns to OS + returns to browser.\n\nNormally this takes ~30-100ms (each hop is one round-trip). Heavy caching makes most lookups much faster — your local OS, the resolver, and intermediate caches all cache."
+    },
+    {
+      "kind": "text",
+      "title": "DNS record types",
+      "body": "Key DNS record types:\n- **A**: maps hostname → IPv4 address.\n- **AAAA**: maps hostname → IPv6 address.\n- **CNAME**: aliases (foo.example.com → bar.example.com). The DNS recursion follows.\n- **MX**: mail-exchange servers for email.\n- **NS**: nameservers for the zone.\n- **TXT**: arbitrary text (used for SPF, DKIM, domain verification).\n- **SOA**: start of authority + zone metadata.\n- **PTR**: reverse DNS (IP → hostname).\n\nModern additions: CAA (which CAs can issue certs for this domain), DNSKEY/DS/RRSIG (DNSSEC chain of trust)."
+    },
+    {
+      "kind": "text",
+      "title": "TTL + cache propagation",
+      "body": "Every DNS record has a TTL (time-to-live) saying how long it's valid to cache. Typical values:\n- A records: 300s to 86400s (5min to 24hr).\n- CNAME: similar.\n- NS records: 86400s+ (rarely change).\n\n**Propagation delay**: when you change a DNS record, the old value is cached at every layer until TTL expires. So a change with TTL=86400 takes up to 24 hours to fully propagate.\n\n**Migration strategy**: lower TTL to 60s a day before changes. Change record. Wait for propagation. Raise TTL back. The 60s window gives you flexibility to revert quickly if needed.\n\n**DDoS amplification**: DNS UDP responses can be larger than queries — used in reflection attacks. Mitigation: rate-limit per source, drop spoofed requests."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dns_recursion",
+        "kind": "guided_derivation",
+        "question": "Derive DNS recursion cost",
+        "goal": "Recursive resolver queries: root → TLD → authoritative. Cache miss at each. Total RTTs?",
+        "steps": [
+          {
+            "prompt": "Three sequential DNS queries (root, TLD, auth). Each one round-trip. Total?",
+            "motivation": "Just count.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "3",
+                "3 RTTs"
+              ]
+            },
+            "hints": [
+              "Three sequential hops."
+            ],
+            "reveal": "3 RTTs for fully-cold lookup."
+          },
+          {
+            "prompt": "Plus the client → recursive resolver round-trip (1 RTT). Total time to first byte: $4 \\cdot \\text{RTT}$. For typical 30ms RTTs, that's ~120ms cold. With root + TLD heavily cached at the recursive resolver, this drops to ~30ms (just the auth lookup).",
+            "motivation": "Add client→resolver.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "4 RTT cold; ~1 RTT for the typical case where root + TLD are cached.",
+                "1 RTT always.",
+                "10 RTT.",
+                "Free."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Cold = 4 RTTs. Warm = 1-2 RTTs."
+            ],
+            "reveal": "4 RTTs cold; in practice 1-2 RTTs because root + TLD records are heavily cached."
+          }
+        ],
+        "finalResult": "DNS lookup latency: ~30-120ms typically, ~1-2 RTTs in the steady state. CDNs cache aggressively to minimize this. DNS-prefetch hints in HTML preload the lookup before the user clicks the link."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dns_propagation",
+        "kind": "multiple_choice",
+        "question": "You change an A record from old-IP to new-IP. TTL is 300s. When is the change fully propagated?",
+        "options": [
+          "Immediately.",
+          "Within 5 minutes — old caches expire as their TTL counts down.",
+          "After 24 hours.",
+          "Never."
+        ],
+        "correctIndex": 1,
+        "explanation": "TTL determines how long caches keep the old record. Within TTL=300s of the change, all caches must re-fetch. After 5 minutes, no cache has the old record anymore. The propagation strategy: lower TTL before changes; change record; wait for TTL to elapse."
+      },
+      "hints": [
+        "TTL tells caches how long to keep a record.",
+        "After what duration do all caches have to re-fetch?"
+      ],
+      "workedSolution": "TTL = 300s means caches keep the record for at most 5 minutes. After 5 minutes of the change, all caches have expired the old record + must re-fetch (getting the new IP). Production migration: lower TTL ahead of the change, change, wait, raise TTL.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_dns_blackhole",
+        "kind": "scenario",
+        "question": "Investigating a DNS outage",
+        "prompt": "Your site is suddenly unreachable for users in Asia but works for users in Europe + US. Walk through your debug steps + the likely cause."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dns",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why DNS responses get cached so aggressively at multiple layers.",
+        "rubric": "Mentions that recursive lookups are expensive (multiple RTTs) but answers change rarely; caching at the recursive resolver + OS + browser dramatically reduces effective latency; staleness is bounded by TTL."
+      }
+    }
+  ]
+}

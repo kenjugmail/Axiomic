@@ -1,0 +1,98 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish L4 vs L7 load balancing.",
+      "Apply consistent hashing for sticky connections.",
+      "Recognize health-check + failover patterns."
+    ],
+    "prereqs": [
+      "ip-and-tcp"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "L4 vs L7 load balancing",
+      "body": "**L4 (transport layer)**: balance TCP connections. Lightweight, fast (~millions of connections/sec). Doesn't understand HTTP. AWS NLB, HAProxy in TCP mode.\n\n**L7 (application layer)**: balance HTTP requests. Can route by URL, headers, cookies. Slower (~10× the overhead of L4). AWS ALB, HAProxy in HTTP mode, NGINX, Envoy.\n\nProduction usage:\n- L4: low-latency TCP services, raw TCP/UDP, gRPC-direct.\n- L7: HTTP APIs where routing decisions need request inspection.\n\nMany production setups layer L4 in front of L7 (Anycast L4 distributes globally → regional L7 routes by URL)."
+    },
+    {
+      "kind": "text",
+      "title": "Connection distribution algorithms",
+      "body": "Common L4 LB algorithms:\n- **Round-robin**: distribute connections evenly. Simplest, no state.\n- **Least connections**: send next connection to the node with fewest active connections. Better balance under variable connection durations.\n- **IP hash**: hash source IP → server. Same source always reaches same server (sticky).\n- **Consistent hashing**: as for distributed databases. Sticky + scales when adding/removing servers.\n\nL7 adds:\n- **Path-based**: `/api/v1/*` → service A, `/static/*` → CDN.\n- **Header-based**: route by `X-User-Role: admin` to special servers.\n- **Cookie-based**: route by session cookie for sticky sessions.\n\nProduction default: round-robin for stateless services; consistent-hashing for stateful (caching, sessions); least-connections for variable workloads."
+    },
+    {
+      "kind": "text",
+      "title": "Health checks + failover",
+      "body": "Each LB periodically probes its backends via:\n- **TCP health check**: open a TCP connection. Simple but doesn't detect application-layer failures.\n- **HTTP health check**: GET `/health` + check response code + (optionally) body. Better — catches stuck-in-bad-state instances that still accept TCP.\n- **gRPC health check**: standard gRPC health-checking protocol (https://github.com/grpc/grpc/blob/master/doc/health-checking.md).\n\nFailed health checks mark backend as unhealthy → LB stops routing to it. Common knobs: timeout (per-probe), interval (between probes), threshold (consecutive failures before marking unhealthy).\n\nProduction defaults: 5s interval + 2s timeout + 2-3 consecutive failures. Faster detection = faster failover but more false positives during minor blips."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_lb_consistent",
+        "kind": "guided_derivation",
+        "question": "Derive consistent-hashing key movement",
+        "goal": "Ring of $N$ servers + $K$ keys. Add one server. How many keys move?",
+        "steps": [
+          {
+            "prompt": "Consistent hashing: each server gets a position on the ring (often multiple via virtual nodes). New server takes over keys in its 'arc' — keys between its position + the previous server's. With random positioning, the new server's arc is about $1/(N+1)$ of total.",
+            "motivation": "Probabilistic share.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "K / (N+1)",
+                "K/N+1"
+              ]
+            },
+            "hints": [
+              "New server claims fraction $1/(N+1)$ of total."
+            ],
+            "reveal": "$K/(N+1)$ keys move. Independent of total key count $K$."
+          }
+        ],
+        "finalResult": "$$\\boxed{K/(N+1) \\text{ keys move when adding 1 server}}$$ The reason consistent hashing dominates in CDNs, caches, distributed DBs. Hash-modulo would move ~all keys; consistent hashing moves only the new server's share."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_lb_l7",
+        "kind": "multiple_choice",
+        "question": "You're load-balancing a microservice fleet. Some services need sticky sessions (state on a specific node); others are stateless. Best architecture:",
+        "options": [
+          "Use sticky sessions for everything — simpler.",
+          "Use L7 LB with cookie-based stickiness for stateful services + round-robin for stateless.",
+          "Use L4 LB only.",
+          "Don't load-balance."
+        ],
+        "correctIndex": 1,
+        "explanation": "L7 LB can route stateful requests via cookie (sticky) + stateless requests via round-robin. Different services configured differently. L4 doesn't see cookies; sticky-everything wastes resource utilization on stateless services. Hybrid is the production pattern."
+      },
+      "hints": [
+        "You need different policies per service.",
+        "L7 sees application-layer data (cookies, headers) needed for cookie-based routing."
+      ],
+      "workedSolution": "L7 LB inspects HTTP, can route via cookie (sticky) or path/method (stateless). Different services in the same fleet can have different routing policies. L4 doesn't see cookies; sticky-everywhere wastes load-balancing benefits on stateless services. Production: L7 with per-service config.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_lb_hotspot",
+        "kind": "scenario",
+        "question": "A hot spot in consistent hashing",
+        "prompt": "Your consistent-hashing-based cache has one node receiving 5× the QPS of the average. Walk through why this can happen + what to do about it."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_lb",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why modern microservice architectures heavily layer L7 load balancers (e.g., Envoy as service mesh).",
+        "rubric": "Mentions that L7 LBs can do circuit breaking, retries, rate limiting, observability, etc., all without app code changes; the service mesh pattern (sidecar L7 proxy per pod) extends this to every service in a microservice cluster."
+      }
+    }
+  ]
+}

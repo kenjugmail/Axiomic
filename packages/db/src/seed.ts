@@ -1952,6 +1952,27 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P5 — Networking path. The network-stack foundation:
+  // IP/TCP/UDP, HTTP/REST, TLS, DNS, CDNs, load balancers,
+  // QUIC/HTTP3, network failure modes. Sits beneath every
+  // distributed system.
+  seedMasteryPath({
+    slug: "networking",
+    title: "Networking",
+    description:
+      "From IP+TCP through HTTP/REST, TLS 1.3, DNS, CDNs, load balancing, QUIC + HTTP/3, and network failure modes. The network-stack foundation under every distributed system.",
+    nodes: [
+      { slug: "ip-and-tcp", title: "IP + TCP", level: "apprentice", order: 1, pages: ["ip-tcp", "bandwidth-delay-product"], prereqs: [], description: "Layer responsibilities, three-way handshake, congestion control, BDP." },
+      { slug: "http-and-rest", title: "HTTP & REST", level: "apprentice", order: 2, pages: ["http", "rest-conventions"], prereqs: ["ip-and-tcp"], description: "Methods, status codes, caching headers, idempotency in API design." },
+      { slug: "tls-handshake", title: "TLS 1.3", level: "practitioner", order: 3, pages: ["tls13", "0-rtt"], prereqs: ["ip-and-tcp"], description: "TLS 1.3 handshake, cipher suites, 0-RTT, post-quantum migration." },
+      { slug: "dns", title: "DNS", level: "apprentice", order: 4, pages: ["dns", "ttl-propagation"], prereqs: [], description: "Resolution path, record types, TTL + propagation, DNSSEC, amplification attacks." },
+      { slug: "cdns-and-caching", title: "CDNs & Edge Caching", level: "practitioner", order: 5, pages: ["cdn", "cache-headers"], prereqs: ["http-and-rest", "dns"], description: "Topology, push vs pull, versioned URLs vs purge, hit-ratio math." },
+      { slug: "load-balancing", title: "Load Balancing", level: "practitioner", order: 6, pages: ["load-balancing", "consistent-hashing"], prereqs: ["ip-and-tcp"], description: "L4 vs L7, algorithms, health checks, service-mesh patterns." },
+      { slug: "quic-and-http3", title: "QUIC & HTTP/3", level: "specialist", order: 7, pages: ["quic", "http3"], prereqs: ["tls-handshake"], description: "UDP-based transport, 0-RTT setup, connection migration, no head-of-line blocking." },
+      { slug: "network-failure-modes", title: "Network Failure Modes", level: "expert", order: 8, pages: ["timeouts", "circuit-breaker", "retry-backoff-jitter"], prereqs: ["ip-and-tcp", "load-balancing"], description: "Common failures, timeout discipline, retry + backoff + jitter, circuit breakers, deadline propagation." },
+    ],
+  });
+
   // P4 — Database Internals path. Sits beneath data-engineer +
   // distributed-systems. The 'how does the database actually work'
   // foundation: storage engines, indexes, transactions, concurrency,

@@ -1,0 +1,101 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish QUIC from TCP.",
+      "Recognize HTTP/3's multiplexing model.",
+      "Reason about why QUIC runs on UDP."
+    ],
+    "prereqs": [
+      "tls-handshake"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why QUIC was designed",
+      "body": "TCP + TLS have problems:\n1. **Head-of-line blocking in HTTP/2**: HTTP/2 multiplexes many streams over one TCP connection. If a packet drops, ALL streams wait for retransmit (because TCP is byte-stream-ordered).\n2. **Connection setup**: TCP 3-way handshake (1 RTT) + TLS handshake (1 RTT) = 2 RTTs before first byte (1 RTT with TLS 1.3).\n3. **Connection migration**: TCP connections are tied to (src IP, src port, dst IP, dst port). Switching networks (Wi-Fi → cellular) breaks the connection.\n\nQUIC (Quick UDP Internet Connections), originally Google 2013, standardized as RFC 9000 (2021):\n- **UDP-based**: skip TCP's head-of-line blocking entirely. QUIC streams are independent.\n- **Built-in encryption**: TLS 1.3 is part of QUIC; no separate handshake.\n- **0-RTT connection setup**: same trick as TLS 1.3 0-RTT.\n- **Connection migration**: QUIC connections are identified by a connection ID, not IP+port. Switching networks doesn't break."
+    },
+    {
+      "kind": "text",
+      "title": "HTTP/3 = HTTP over QUIC",
+      "body": "HTTP/3 is HTTP semantics over QUIC. Compared to HTTP/2 (over TCP):\n- Same HTTP methods, status codes, headers.\n- Independent streams: a dropped packet on one stream doesn't block others (HoL blocking gone).\n- Faster connection setup: 0-1 RTT vs 2-3 RTT for HTTP/2.\n- Connection migration: mobile clients can switch Wi-Fi ↔ cellular without re-handshaking.\n\nDeployment: Cloudflare, Google, Facebook serve majority of traffic over HTTP/3 in 2024+. Browser support: Chrome, Firefox, Safari, Edge all support HTTP/3 by default. Caveat: enterprise firewalls sometimes block UDP-based protocols.\n\nFor an end-user: HTTP/3 is invisible — just faster page loads on lossy networks + smoother mobile experience."
+    },
+    {
+      "kind": "text",
+      "title": "QUIC's transport choices",
+      "body": "Why UDP? Because middleboxes (NATs, firewalls, load balancers) are deeply tied to TCP semantics. Trying to change TCP at the network layer is impossible without years of internet-wide upgrades. UDP is just a thin shim over IP; QUIC builds its own reliability + congestion control on top.\n\nKey QUIC concepts:\n- **Stream**: a unidirectional ordered byte stream. Many streams per connection.\n- **Frame**: smallest unit of QUIC data. Multiple frames per packet.\n- **Connection ID**: 64+ bit identifier. Allows migration.\n- **Packet number**: increments per packet, never reuses.\n\nQUIC's congestion control resembles TCP's — same AIMD or BBR algorithms applied to QUIC packets. The transport differences are about HoL blocking, encryption, connection migration; the network-load-management math is similar."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_quic_hol",
+        "kind": "guided_derivation",
+        "question": "Why QUIC avoids head-of-line blocking",
+        "goal": "HTTP/2 over TCP with 4 multiplexed streams. One packet drops. What happens to the others?",
+        "steps": [
+          {
+            "prompt": "TCP delivers bytes in order. So if a packet is lost, all subsequent bytes (across all multiplexed streams) wait for retransmit. How does QUIC differ?",
+            "motivation": "QUIC streams are independent.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Each QUIC stream has its own byte-stream ordering. A drop on stream A doesn't block stream B's delivery.",
+                "QUIC has no streams.",
+                "QUIC retransmits everything.",
+                "Streams are sequential in QUIC."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "QUIC's streams are independent; TCP's are not."
+            ],
+            "reveal": "QUIC streams are independent. Each maintains its own ordering. A packet drop only blocks the stream the lost data belongs to; other streams keep delivering."
+          }
+        ],
+        "finalResult": "QUIC's signature improvement over HTTP/2 over TCP: independent streams = no head-of-line blocking across streams. On lossy networks (mobile, transcontinental), this dramatically improves throughput."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_quic_migration",
+        "kind": "multiple_choice",
+        "question": "QUIC supports connection migration: switching networks (Wi-Fi → cellular) without breaking the connection. The key enabler:",
+        "options": [
+          "QUIC uses TCP.",
+          "QUIC connections are identified by a 64-bit connection ID instead of (IP, port) tuples.",
+          "QUIC re-handshakes on every packet.",
+          "QUIC blocks migration."
+        ],
+        "correctIndex": 1,
+        "explanation": "TCP ties a connection to (src IP, src port, dst IP, dst port). Switching networks changes src IP → breaks connection. QUIC uses a connection ID independent of IP — switching networks just sends packets with the same connection ID from the new IP. Server recognizes the connection + continues."
+      },
+      "hints": [
+        "TCP connection identifier vs QUIC connection identifier.",
+        "If the identifier doesn't depend on IP, what happens when IP changes?"
+      ],
+      "workedSolution": "QUIC's connection-ID-based identification severs the connection's identity from network identity. When a mobile device switches from Wi-Fi to cellular, its IP changes but the QUIC connection ID stays the same. Server recognizes the connection + keeps it alive. Important for mobile UX: video calls, gaming, long-running downloads don't break on network switch.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_quic_firewall",
+        "kind": "scenario",
+        "question": "Enterprise firewall blocks QUIC",
+        "prompt": "Your video-call app uses QUIC. A user reports it doesn't work on their corporate Wi-Fi. Walk through why this happens + what fallback strategy is standard."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_quic",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why QUIC is built on UDP rather than as an upgrade to TCP.",
+        "rubric": "Mentions that the internet's middleboxes (NATs, firewalls, LBs) deeply assume TCP semantics; changing TCP requires internet-wide upgrade (decades); UDP is a thin shim that doesn't constrain QUIC's design; QUIC builds its own reliability + flow control on top."
+      }
+    }
+  ]
+}

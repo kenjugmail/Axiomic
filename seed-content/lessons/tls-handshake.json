@@ -1,0 +1,119 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Walk through TLS 1.3 handshake.",
+      "Distinguish authentication from key exchange.",
+      "Reason about cipher-suite negotiation."
+    ],
+    "prereqs": [
+      "ip-and-tcp"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "TLS 1.3: 1-RTT handshake",
+      "body": "TLS 1.3 (RFC 8446, 2018) cleaned up TLS 1.2 considerably.\n\n**Standard handshake** (1 RTT):\n1. Client → server: `ClientHello` (TLS version, supported cipher suites, ephemeral X25519 public key, optional session ticket, SNI).\n2. Server → client: `ServerHello` (chosen cipher suite, server's ephemeral X25519 public key), `Certificate`, `CertificateVerify`, `Finished`, + application data.\n3. Client → server: `Finished` + application data.\n\nAfter ClientHello + ServerHello, both sides know each other's ephemeral DH public keys + can compute the shared secret. The shared secret derives session keys via HKDF. Authentication: server's signature over the handshake transcript proves it owns the certificate's private key.\n\n**TLS 1.3 vs 1.2**: TLS 1.3 removed insecure cipher suites (RC4, SHA-1, CBC modes), reduced handshake from 2 RTT → 1 RTT, encrypted more of the handshake."
+    },
+    {
+      "kind": "text",
+      "title": "0-RTT resumption + the replay risk",
+      "body": "TLS 1.3 supports **0-RTT** resumption: client sends application data IMMEDIATELY with the first message (no waiting for handshake to complete). Uses a pre-shared key from a previous session.\n\nThe trade-off: 0-RTT data isn't replay-protected — an attacker who recorded a previous 0-RTT request can replay it. The TLS spec restricts 0-RTT to idempotent operations (typically GET requests).\n\nProduction usage: Cloudflare + Google enabled 0-RTT for static GETs. POSTs + state-changing requests use 1-RTT. This trade-off (latency vs replay-safety) is application-specific."
+    },
+    {
+      "kind": "text",
+      "title": "Cipher suite negotiation",
+      "body": "Modern TLS 1.3 cipher suites (a much shorter list than TLS 1.2):\n- `TLS_AES_128_GCM_SHA256`: AES-128-GCM + HMAC-SHA256.\n- `TLS_AES_256_GCM_SHA384`: AES-256-GCM + HMAC-SHA384.\n- `TLS_CHACHA20_POLY1305_SHA256`: ChaCha20-Poly1305 + HMAC-SHA256 (mobile-friendly, no AES-NI required).\n\nClient sends ordered preference list in ClientHello; server picks the first one it supports. All are AEAD (authenticated encryption with associated data); all are considered secure.\n\nPost-quantum: hybrid key exchange (X25519 + ML-KEM) added as new key-exchange options in 2023-2024; AEAD ciphers stay the same (symmetric crypto is quantum-resistant)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_tls_keys",
+        "kind": "guided_derivation",
+        "question": "Derive HKDF key schedule",
+        "goal": "Shared secret from DH. Derive session keys for client + server + finished + application traffic.",
+        "steps": [
+          {
+            "prompt": "TLS 1.3 derives a sequence of secrets from the DH shared secret using HKDF (HMAC-based extract+expand). What's the operation $\\text{HKDF-Extract}(\\text{salt}, \\text{IKM})$?",
+            "motivation": "Standard KDF.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Apply HMAC with salt as key, IKM as message → pseudorandom secret.",
+                "XOR salt with IKM.",
+                "Concatenate.",
+                "Random."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "HKDF Extract: HMAC(salt, IKM)."
+            ],
+            "reveal": "$\\text{HKDF-Extract}(\\text{salt}, \\text{IKM}) = \\text{HMAC}(\\text{salt}, \\text{IKM})$."
+          },
+          {
+            "prompt": "$\\text{HKDF-Expand}(\\text{PRK}, \\text{info}, \\text{len})$ produces output of `len` bytes from secret PRK + context `info`. Used to derive per-direction keys (`client traffic`, `server traffic`). The label binding prevents cross-key confusion attacks.",
+            "motivation": "Domain separation.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Different labels for different keys → can't confuse client traffic key with server traffic key.",
+                "Same key everywhere.",
+                "Random labels.",
+                "Not used."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "TLS 1.3 labels each derived key with its purpose."
+            ],
+            "reveal": "HKDF-Expand with distinct labels prevents an attacker from confusing or replaying keys across contexts. TLS 1.3's key schedule is meticulous about this."
+          }
+        ],
+        "finalResult": "TLS 1.3's key schedule: shared secret → HKDF-Extract → 'master secret' → HKDF-Expand-Label for each per-direction key. Carefully labeled to prevent cross-key attacks. The design is intentionally conservative; getting key derivation wrong is a classic security bug."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_tls_0rtt",
+        "kind": "multiple_choice",
+        "question": "TLS 1.3 0-RTT data has which security limitation?",
+        "options": [
+          "It's not encrypted.",
+          "It's vulnerable to replay attacks — an attacker who recorded earlier 0-RTT traffic can replay it.",
+          "It can't be authenticated.",
+          "It doesn't work over the internet."
+        ],
+        "correctIndex": 1,
+        "explanation": "0-RTT data is encrypted with a key derived from a previously-established session. But because it's sent BEFORE the server confirms the handshake, an attacker can replay the recorded 0-RTT data to the server; the server can't tell it's a replay. So 0-RTT is restricted to idempotent operations."
+      },
+      "hints": [
+        "What's the difference between 0-RTT and 1-RTT in terms of what the server has confirmed?",
+        "Server hasn't completed the handshake yet when 0-RTT data arrives — what's it missing?"
+      ],
+      "workedSolution": "0-RTT data arrives before the server has confirmed the client's fresh handshake. So an attacker who recorded a previous client's 0-RTT data can replay it; the server sees the same bytes + processes them. Mitigation: restrict 0-RTT to safe + idempotent operations (GET requests), or use TLS 1.3 with replay-prevention extensions.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_tls_mitm",
+        "kind": "scenario",
+        "question": "Detecting a MitM",
+        "prompt": "A user reports their browser shows a certificate warning when visiting your site from a corporate network. The certificate authority chain looks legitimate but the certificate itself is unfamiliar. Walk through what's likely happening + what defenses exist."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_tls",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why TLS 1.3 dropped support for RSA key exchange in favor of (EC)DHE.",
+        "rubric": "Mentions that RSA key exchange has no forward secrecy (a stolen private key can decrypt all past sessions); (EC)DHE generates ephemeral keys per session; even if the long-term cert key leaks, past sessions remain confidential."
+      }
+    }
+  ]
+}
