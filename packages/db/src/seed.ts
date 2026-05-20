@@ -1952,6 +1952,27 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P14 — Neuroscientist path. Brain + cognition complement to
+  // ml-engineer / ai-researcher: neurons, synapses, coding,
+  // anatomy, imaging, computational models, decision-making,
+  // consciousness.
+  seedMasteryPath({
+    slug: "neuroscientist",
+    title: "Neuroscientist",
+    description:
+      "From single neurons through synaptic plasticity, neural coding, brain anatomy + circuits, neuroimaging modalities, computational models, decision-making + cognition, and consciousness. The brain + behavior end-to-end.",
+    nodes: [
+      { slug: "neurons-and-action-potentials", title: "Neurons + Action Potentials", level: "apprentice", order: 1, pages: ["resting-potential", "hodgkin-huxley", "refractory"], prereqs: [], description: "Nernst equation, Hodgkin-Huxley mechanism, refractory periods, channel pharmacology." },
+      { slug: "synapses-and-plasticity", title: "Synapses + Plasticity", level: "practitioner", order: 2, pages: ["chemical-electrical", "ltp-nmda", "stdp-hebb"], prereqs: ["neurons-and-action-potentials"], description: "Chemical vs electrical synapses, neurotransmitters + receptors, LTP/LTD via NMDA, STDP + Hebb's rule." },
+      { slug: "neural-coding", title: "Neural Coding + Information", level: "practitioner", order: 3, pages: ["rate-temporal", "population-codes", "shannon-info"], prereqs: ["neurons-and-action-potentials"], description: "Rate vs temporal codes, population vectors + Bayesian decoding, mutual information + sparse coding." },
+      { slug: "brain-anatomy-and-circuits", title: "Brain Anatomy + Circuits", level: "practitioner", order: 4, pages: ["divisions-lobes", "cortical-column", "hippocampus-bg-cerebellum"], prereqs: ["neurons-and-action-potentials"], description: "Major brain divisions, canonical 6-layer cortical column, hippocampus + basal ganglia + cerebellum roles." },
+      { slug: "neuroimaging", title: "Neuroimaging", level: "specialist", order: 5, pages: ["fmri-eeg-meg", "bold-interpretation", "bci-prosthetics"], prereqs: ["brain-anatomy-and-circuits"], description: "fMRI / EEG / MEG / ECoG / calcium tradeoffs, BOLD interpretation + reverse-inference fallacy, BCIs + prosthetics." },
+      { slug: "computational-neuroscience", title: "Computational Neuroscience", level: "specialist", order: 6, pages: ["lif-models", "hopfield-attractors", "neuro-ai"], prereqs: ["neurons-and-action-potentials"], description: "Integrate-and-fire models, attractor + Hopfield networks, what biological vs artificial NNs share + differ." },
+      { slug: "decision-making-and-cognition", title: "Decision-Making + Cognition", level: "expert", order: 7, pages: ["drift-diffusion", "value-vmpfc", "explore-exploit"], prereqs: ["brain-anatomy-and-circuits"], description: "Drift-diffusion model + LIP accumulator, value coding in vmPFC + prospect theory, exploration vs exploitation foraging." },
+      { slug: "consciousness-and-attention", title: "Consciousness + Attention", level: "expert", order: 8, pages: ["gwt-iit-hot", "attention-types", "binding-ncc"], prereqs: ["brain-anatomy-and-circuits"], description: "Theories of consciousness (GWT, IIT, HOT), attention vs awareness, binding problem + neural correlates of consciousness." },
+    ],
+  });
+
   // P13 — Climate Scientist path. Earth-system science:
   // atmospheric + ocean physics, carbon cycle, climate models,
   // paleoclimate, extreme-event attribution, mitigation, tipping.

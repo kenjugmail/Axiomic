@@ -1,0 +1,146 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "intro",
+    "objectives": [
+      "State the resting membrane potential + its origin.",
+      "Outline the Hodgkin-Huxley action-potential mechanism.",
+      "Reason about ion channels + refractory periods."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The neuron + the resting potential",
+      "body": "A **neuron** is an excitable cell that signals via electrical + chemical activity. ~86 billion in the human brain; ~10× as many glia (support cells).\n\n**Anatomy**:\n- **Dendrites**: receive inputs from other neurons.\n- **Soma (cell body)**: integrates inputs.\n- **Axon**: long process that conducts the output signal — can be from microns to a meter long (motor neurons innervating the leg).\n- **Axon terminals**: release neurotransmitter at synapses onto downstream neurons.\n\n**Resting membrane potential**: ~-70 mV (inside negative relative to outside). Origin: differential ion concentrations + selective permeability.\n\n**Major ions**: K⁺ (high inside), Na⁺ (high outside), Ca²⁺ (very high outside, low inside), Cl⁻ (high outside). Maintained by **Na⁺/K⁺-ATPase** pumps (3 Na⁺ out, 2 K⁺ in per ATP).\n\nAt rest, K⁺ channels are most open. K⁺ flows out (down its concentration gradient) until the electrical gradient (negative inside attracts positive K⁺ back) balances the chemical gradient. This **equilibrium potential** is given by the **Nernst equation**:\n$$E_K = \\frac{RT}{zF} \\ln \\frac{[K^+]_{\\text{out}}}{[K^+]_{\\text{in}}} \\approx -90 \\text{ mV at 37°C}$$\n\n**Goldman-Hodgkin-Katz equation** generalizes this to multiple ions weighted by permeability. Resting potential ≈ -70 mV reflects K⁺-dominated permeability + a small Na⁺ leak."
+    },
+    {
+      "kind": "text",
+      "title": "The action potential + Hodgkin-Huxley",
+      "body": "**Hodgkin + Huxley (1952)**: used squid giant axon (~1 mm diameter, electrically large) + voltage-clamp to dissect ionic currents underlying the action potential. Nobel Prize 1963.\n\n**Action potential phases**:\n1. **Rest** (~-70 mV): leak channels balanced. Na⁺ + K⁺ channels mostly closed.\n2. **Depolarization** (triggered when membrane crosses ~-55 mV threshold): voltage-gated Na⁺ channels open rapidly. Na⁺ rushes in (driven by both electrical + chemical gradients). Membrane swings to ~+30 mV.\n3. **Repolarization**: Na⁺ channels inactivate (close + can't reopen for ~1 ms). Voltage-gated K⁺ channels open (delayed). K⁺ flows out, restoring negative potential.\n4. **Hyperpolarization**: K⁺ channels stay open briefly past resting potential → undershoot to ~-80 mV.\n5. **Return to rest**: K⁺ channels close; pumps restore concentrations.\n\nTotal duration: ~1-2 ms.\n\n**The HH equations**: a 4-variable ODE system (membrane potential V + 3 channel gating variables m, h, n) with nonlinear voltage-dependent rate constants. Reproduces the action potential quantitatively.\n\n**All-or-nothing**: once threshold is crossed, the action potential goes to completion + has stereotyped amplitude. Information is encoded in TIMING + RATE of spikes, not amplitude.\n\n**Propagation along the axon**: each region's depolarization triggers the adjacent region. Speed ~1 m/s in unmyelinated axons; up to ~120 m/s in heavily myelinated ones.\n\n**Myelin**: lipid wrapping by Schwann cells / oligodendrocytes. Acts as electrical insulation. Action potential jumps between **nodes of Ranvier** (unmyelinated gaps). Saltatory conduction. Lost in multiple sclerosis → demyelination → conduction failure."
+    },
+    {
+      "kind": "text",
+      "title": "Refractory periods + the role of channel kinetics",
+      "body": "After an action potential, the neuron has two refractory phases:\n\n**Absolute refractory period** (~1-2 ms): Na⁺ channels inactivated; CANNOT fire again no matter how strong the input. Hard upper bound on firing rate.\n\n**Relative refractory period** (~2-10 ms): K⁺ channels still open (hyperpolarized); requires LARGER input to fire. Possible but unlikely.\n\n**Implication**: max firing rate ~500-1000 Hz (limited by absolute refractory). Most neurons fire 1-100 Hz in physiological conditions.\n\n**Channel inactivation gating**: voltage-gated Na⁺ channels have THREE states: closed, open, inactivated. The 'h' gate in HH equations models inactivation. Channel must transition closed→open during depolarization, then inactivated→closed during repolarization before it can open again.\n\n**Pharmacology**:\n- **Tetrodotoxin (TTX)**: blocks Na⁺ channels. Found in puffer fish. Single neuron exposed = silenced.\n- **Local anesthetics** (lidocaine, novocaine): voltage-dependent Na⁺ channel block. Preferentially block active (firing) nerves — pain fibers more than touch.\n- **Antiarrhythmics**: target cardiac Na⁺/K⁺/Ca²⁺ channels.\n- **Anti-epileptic drugs** (carbamazepine, lamotrigine): also Na⁺-channel modulators.\n\n**Neural diseases of excitability**:\n- **Epilepsy**: hyperexcitable networks; channel mutations or imbalances.\n- **ALS, multiple sclerosis**: demyelination / loss of conduction.\n- **Channelopathies**: genetic mutations in ion channels → muscle (myotonia, periodic paralysis) or neural (familial migraine, episodic ataxia) disorders.\n\nThe Hodgkin-Huxley framework is the foundation — every modern computational model of neurons builds on it."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_neuron_nernst",
+        "kind": "guided_derivation",
+        "question": "Derive Nernst potential for K⁺",
+        "goal": "[K⁺] inside = 140 mM, [K⁺] outside = 5 mM. T = 37°C = 310 K. Use $E_K = (RT/F) \\ln([K]_{\\text{out}}/[K]_{\\text{in}})$ where $RT/F \\approx 26.7$ mV at 37°C for monovalent ions.",
+        "steps": [
+          {
+            "prompt": "Compute $\\ln([K]_{\\text{out}}/[K]_{\\text{in}}) = \\ln(5/140)$.",
+            "motivation": "Substitute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-3.33",
+                "-3.33",
+                "-ln(28)",
+                "ln(5/140)"
+              ]
+            },
+            "hints": [
+              "$\\ln(5/140) = \\ln(1/28) = -\\ln(28) \\approx -3.33$."
+            ],
+            "reveal": "$\\ln(5/140) \\approx -3.33$."
+          },
+          {
+            "prompt": "Multiply by 26.7 mV: $E_K = ?$",
+            "motivation": "Arithmetic.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-89",
+                "-89 mV",
+                "approximately -90 mV"
+              ]
+            },
+            "hints": [
+              "$26.7 \\times -3.33 \\approx -89$."
+            ],
+            "reveal": "$E_K \\approx -89$ mV. Close to actual ~-90 mV."
+          },
+          {
+            "prompt": "If extracellular [K⁺] doubled (pathological hyperkalemia, e.g., kidney failure), how does $E_K$ change?",
+            "motivation": "Concentration dependence.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "More negative.",
+                "Less negative (depolarized toward resting potential or beyond) — log dependence: doubling [K]_out shifts E_K by $26.7 \\times \\ln 2 \\approx +18.5$ mV.",
+                "Unchanged.",
+                "Approaches 0."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "$\\ln 2 \\times 26.7$."
+            ],
+            "reveal": "Hyperkalemia depolarizes neurons → can trigger spurious firing or muscle weakness; severe hyperkalemia causes cardiac arrhythmia + can be fatal. A medical emergency."
+          }
+        ],
+        "finalResult": "$$\\boxed{E_K \\approx -90 \\text{ mV}; \\text{ depolarization for higher [K]}_{\\text{out}}}$$ The Nernst equation underlies all of bioelectricity. Different ions give different equilibrium potentials (E_Na ≈ +60 mV, E_Cl ≈ -65 mV, E_Ca ≈ +120 mV). The resting potential is a weighted average (Goldman equation) reflecting channel permeabilities. Action potentials happen when permeability shifts from K⁺-dominated (rest) to Na⁺-dominated (peak) + back."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_neuron_ttx",
+        "kind": "multiple_choice",
+        "question": "TTX from puffer fish blocks voltage-gated Na⁺ channels. What happens to a neuron exposed to TTX?",
+        "options": [
+          "Hyperactive firing.",
+          "Cannot generate action potentials (Na⁺ influx is necessary for depolarization phase); cell still has resting membrane potential but is electrically silenced.",
+          "Cell dies immediately.",
+          "Cell becomes calcium-only."
+        ],
+        "correctIndex": 1,
+        "explanation": "Action potential requires voltage-gated Na⁺ channels for the rapid depolarization phase. TTX blocks them → no AP can be initiated or propagated. The cell still has resting potential (set by K⁺ leak) + can receive synaptic input, but cannot SPIKE. Used widely in research to silence neurons. Puffer fish toxicity: respiratory paralysis (motor neurons silenced) → death without ventilation support."
+      },
+      "hints": [
+        "What's necessary for the AP depolarization phase?",
+        "What happens to resting potential?"
+      ],
+      "workedSolution": "Voltage-gated Na⁺ inflow is the depolarizing current that initiates an AP. Block it: no APs possible. The K⁺ leak still maintains resting potential, so the cell isn't depolarized — it's just non-excitable. Synaptic potentials may still occur but can't trigger spikes. Used in research (silencing experiments) + pathophysiology (puffer-fish poisoning: respiratory + cardiac arrest).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_neuron_rate",
+        "kind": "math_expression",
+        "question": "An axon can fire at most every 2 ms (absolute refractory). Maximum firing rate?",
+        "acceptedAnswers": [
+          "500 Hz",
+          "500",
+          "500 spikes/sec"
+        ],
+        "hint": "1 / 0.002 sec."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_neuron_ms",
+        "kind": "scenario",
+        "question": "Multiple sclerosis",
+        "prompt": "An MS patient suffers from slowed nerve conduction + sometimes vision loss. Walk through the cellular mechanism + why it's specifically a 'demyelinating' disease."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_neuron",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why the action potential is an 'all-or-nothing' event + what that means for neural coding.",
+        "rubric": "Mentions that the regenerative Na⁺-channel positive feedback produces stereotyped APs regardless of input strength (above threshold); information must therefore be encoded in TIMING + RATE of spikes, not amplitude; this is the foundation of rate codes + temporal codes in neural coding."
+      }
+    }
+  ]
+}

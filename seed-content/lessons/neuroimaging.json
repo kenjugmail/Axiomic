@@ -1,0 +1,151 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "specialist",
+    "objectives": [
+      "Distinguish fMRI / EEG / MEG / ECoG / calcium imaging.",
+      "Reason about spatial-temporal resolution trade-offs.",
+      "Outline BOLD-signal interpretation pitfalls."
+    ],
+    "prereqs": [
+      "brain-anatomy-and-circuits"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Neuroimaging modalities + their trade-offs",
+      "body": "Brain measurement techniques span 6 orders of magnitude in time + space resolution. None are 'best' — each has trade-offs.\n\n**fMRI (functional MRI)**:\n- Measures BOLD signal: deoxyhemoglobin concentration changes with neural activity (hemodynamic).\n- Spatial: ~1-3 mm.\n- Temporal: ~1-3 sec (limited by hemodynamic lag).\n- Whole brain coverage. Non-invasive. Expensive (~\\$300-500 per scan).\n- Best for: brain mapping, network analysis, cognitive neuroscience.\n\n**EEG (electroencephalography)**:\n- Scalp electrodes record electric potentials.\n- Spatial: ~3-10 cm (volume conduction; hard to localize sources).\n- Temporal: ~1 ms.\n- Cheap. Portable.\n- Best for: oscillations, ERPs (event-related potentials), epilepsy diagnosis, BCIs.\n\n**MEG (magnetoencephalography)**:\n- Like EEG but measures magnetic fields. Less smeared by skull.\n- Spatial: ~5 mm.\n- Temporal: ~1 ms.\n- Expensive (~\\$5M facility); requires magnetic shielding.\n- Best for: high-temporal precision in cortex; oscillations.\n\n**ECoG (electrocorticography)**:\n- Electrodes ON cortex (invasive). Used in epilepsy surgery patients.\n- Spatial: ~1 mm.\n- Temporal: ~1 ms.\n- Best for: BCI, intracranial precision recording.\n\n**Intracranial single-unit recording**:\n- Electrodes IN cortex. Records individual neurons.\n- Spatial: single cell (~10 μm).\n- Temporal: ~0.1 ms.\n- Invasive; used in NHP research + clinical (epilepsy, DBS).\n- Best for: precise neural mechanisms.\n\n**Optical / calcium imaging**:\n- Genetically-encoded indicators (GCaMP) fluoresce when neurons fire. Two-photon microscopy.\n- Spatial: cellular.\n- Temporal: ~10-100 ms.\n- Animal models (mice, fish, flies). Allows imaging hundreds-thousands of neurons.\n\n**Voltage imaging**: newer; voltage-sensitive dyes. Direct membrane potential readout. Active research."
+    },
+    {
+      "kind": "text",
+      "title": "Interpreting fMRI: BOLD + cognitive subtraction",
+      "body": "**BOLD signal** (Blood Oxygenation Level Dependent): active neurons demand more oxygen → blood flow increases (overcompensating) → deoxyhemoglobin DECREASES → MRI signal INCREASES.\n\nA proxy for neural activity, not a direct measurement. Lags neural activity by ~5-6 seconds. Reflects mostly METABOLISM, which roughly tracks INPUT activity (dendritic + synaptic) rather than output spikes.\n\n**Cognitive subtraction**: subtract baseline condition's BOLD from experimental condition's. e.g., 'face viewing' minus 'house viewing' → activity specific to face processing. Result: face-responsive regions (FFA, fusiform face area).\n\n**Power**:\n- Reveals functional organization without surgery.\n- Maps task networks across whole brain.\n- Group-level statistics (combine many participants) for population inference.\n\n**Pitfalls**:\n- **Reverse inference**: 'amygdala activated → therefore subject is afraid' is not valid; amygdala has many roles. Common error in popular reporting.\n- **Statistical thresholds**: must correct for multiple comparisons (whole brain = ~50,000 voxels). Bennett 2010 'dead-salmon fMRI' demonstrated false positives WITHOUT correction.\n- **Hemodynamic confounds**: BOLD reflects blood flow, which is altered by drugs, attention, etc., independent of 'computation'.\n- **Susceptibility artifacts**: regions near sinuses (orbitofrontal cortex, anterior temporal) are difficult to image.\n- **Group vs individual**: average activation maps may not reflect any individual; functional networks have substantial individual variability.\n\n**Multivariate pattern analysis (MVPA)**: decode patterns instead of just averaging. Classifier on voxel patterns can decode 'is the subject thinking about a face or a house?' even when average activity is similar. Modern fMRI uses MVPA extensively.\n\n**Resting-state fMRI**: subject not doing a task; spontaneous correlations reveal large-scale networks (default-mode, attention, etc.). Used in connectomics (Human Connectome Project, UK Biobank).\n\n**The fundamental limit**: BOLD is ~5 seconds + millimeter resolution. For ms-precise dynamics or cellular precision, other modalities are needed."
+    },
+    {
+      "kind": "text",
+      "title": "BCIs + neural prosthetics",
+      "body": "**Brain-Computer Interface (BCI)**: extract neural signals + decode them into action (cursor movement, prosthetic limb, speech).\n\n**Invasive (intracortical)**:\n- **Utah arrays**: 96-electrode silicon arrays embedded in cortex. Records ~hundreds of neurons.\n- **BrainGate**: clinical trial. Tetraplegic patients control cursor + robotic arms.\n- **Neuralink**: thin flexible threads (thousands of electrodes); robotic insertion. First human implant 2024 (Noland Arbaugh, chess + cursor control).\n- **Synchron stentrode**: implanted via blood vessels (no craniotomy). Coarser but less invasive.\n- Decoding: ~96-bit channels of neural data → predict intended motor command. Modern decoders use deep learning (LSTM, transformer) trained on calibration data.\n\n**Non-invasive (EEG)**:\n- ~20-100 scalp electrodes. Coarser signal.\n- P300 speller: stares at flashing letter grid; ERP at intended letter is decoded.\n- Motor-imagery: imagining moving left vs right hand decoded to commands.\n- Bandwidth: ~1-10 bits/sec (much less than invasive).\n- Used for AT (assistive technology), gaming, neurofeedback.\n\n**Sensory prosthetics**:\n- **Cochlear implants** (most successful BCI): electrode array in cochlea stimulates auditory nerve. ~300,000 users. Restores useful hearing to profoundly deaf.\n- **Retinal implants** (Argus II, recently discontinued): stimulates retinal cells. Limited resolution but provides light/shape perception.\n- **Visual cortical prostheses** (UCLA, Spain teams): direct V1 stimulation. Still early.\n\n**State of the art (2024)**:\n- Willett et al 2023 (Nature): tetraplegic patient typed 62 words/min via neural recordings of imagined speech.\n- Bouton et al (BrainGate): tetraplegic patient regaining hand control via FES (electrical stim of paralyzed muscles driven by brain signals).\n- Neuralink: limited public data; first human implant + chess-control demo.\n\n**Future**: bidirectional BCIs (also stimulate cortex for feedback). Memory enhancement. Higher-bandwidth language + thought. Ethical + safety questions abound."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_imaging_tradeoff",
+        "kind": "guided_derivation",
+        "question": "Choose a modality for a research question",
+        "goal": "Question: 'Where in the brain does a specific 70 Hz gamma oscillation arise during attention?'",
+        "steps": [
+          {
+            "prompt": "70 Hz means temporal resolution must capture that frequency — at least 200 Hz sampling. Which modalities provide ≥200 Hz?",
+            "motivation": "Temporal requirement.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "fMRI (1 Hz).",
+                "EEG, MEG, ECoG, intracranial. All ≥1 kHz sampling typically.",
+                "Only fMRI.",
+                "Only PET."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "fMRI is too slow."
+            ],
+            "reveal": "Only electrical/magnetic modalities: EEG, MEG, ECoG, intracranial. fMRI cannot resolve 70 Hz."
+          },
+          {
+            "prompt": "'Where in the brain' implies spatial localization. EEG has ~3-10 cm resolution; MEG ~5 mm; ECoG ~1 mm; intracranial ~10 μm. For 'localize a specific region', MEG or ECoG. Which is invasive?",
+            "motivation": "Trade-off invasiveness.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "MEG is invasive.",
+                "ECoG (electrodes on cortex). MEG is non-invasive but requires special facility.",
+                "Both invasive.",
+                "Neither."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "MEG = magnetic field outside head."
+            ],
+            "reveal": "MEG non-invasive (external SQUID sensors); ECoG invasive but offers higher precision in opportunistic patients (e.g., epilepsy surgery candidates)."
+          },
+          {
+            "prompt": "If non-invasive ethics required, MEG is the choice. Best of both worlds: ms temporal + ~cm spatial.",
+            "motivation": "Apply.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "fMRI.",
+                "MEG: non-invasive, ms-precise, cm-resolution — well-suited for localizing gamma oscillations in cortex.",
+                "PET.",
+                "Calcium imaging."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Trade-off."
+            ],
+            "reveal": "MEG. Standard tool for cortical-gamma research in non-invasive humans. ECoG would be more precise but requires implantation only justified for clinical reasons."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Modality choice = task's spatiotemporal requirements + ethical/practical constraints}}$$ No single modality dominates. fMRI for spatial/cognitive mapping. EEG for cheap-fast oscillations. MEG for spatial-temporal balance. ECoG + intracortical for clinical-or-NHP precision. Calcium imaging for animal models with cellular precision. Modern neuroscience uses MULTIPLE modalities together (e.g., simultaneous EEG + fMRI) to triangulate."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_imaging_reverse",
+        "kind": "multiple_choice",
+        "question": "A press release claims 'fMRI shows the brain's love center is activated when subjects view a photo of their partner'. What's wrong with this claim?",
+        "options": [
+          "Nothing — sounds reasonable.",
+          "Reverse inference fallacy. Brain regions are NOT specialized for psychological concepts at the granularity of 'love'; the activated regions also activate for many other things (anticipation, attention, reward). Showing activity ≠ showing the brain has a 'love center'.",
+          "Subjects were lying.",
+          "fMRI doesn't work."
+        ],
+        "correctIndex": 1,
+        "explanation": "Reverse inference: going from observed activation to inferring a psychological state. Not valid without selectivity evidence. The same regions (insula, anterior cingulate, etc.) activate for pain, expectation, attention, decision-making, social-cognition. Claiming 'love center' from group activation is sloppy science (popular press unfortunately runs with such claims often). Better fMRI analysis: pattern-based decoding, individual differences, careful control conditions."
+      },
+      "hints": [
+        "What's the inference 'activity → psychological state'?",
+        "Is it valid?"
+      ],
+      "workedSolution": "Reverse inference: A activates during state X → A means X. Invalid if A also activates during many other states. Russ Poldrack's classic critique: brain regions overlap heavily in functions; you need selectivity evidence + careful task design. Popular media often gets this wrong (every fMRI study claims to find 'the brain's X center'). MVPA + careful contrasts can salvage some inferences; raw activation alone cannot.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_imaging_voxels",
+        "kind": "math_expression",
+        "question": "fMRI voxel size 3×3×3 mm. Brain volume ~1300 cm³ = 1.3e6 mm³. Voxels per scan?",
+        "acceptedAnswers": [
+          "48000",
+          "~48000",
+          "approximately 50000"
+        ],
+        "hint": "1.3e6 / 27 ≈ 48000."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_imaging_brain_age",
+        "kind": "scenario",
+        "question": "Using neuroimaging for brain age",
+        "prompt": "A team wants to predict biological age from brain MRIs. Walk through the modality choice + the ML approach + how to validate."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_imaging",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why fMRI is BOTH the most-used neuroimaging method AND the most-critiqued.",
+        "rubric": "Mentions that fMRI offers whole-brain coverage at mm resolution non-invasively; the BOLD signal is an indirect proxy (blood flow, lags 5+ sec, doesn't equal spike rate); statistical multi-comparison + reverse-inference issues create false positives + over-interpretation; nonetheless, when used carefully, fMRI is the workhorse of cognitive neuroscience. Critique drives methodological improvement (Bayesian, MVPA, prereg, large samples)."
+      }
+    }
+  ]
+}

@@ -1,0 +1,148 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "specialist",
+    "objectives": [
+      "State the integrate-and-fire model + LIF equations.",
+      "Outline attractor networks + Hopfield model.",
+      "Distinguish biological from artificial neural networks."
+    ],
+    "prereqs": [
+      "neurons-and-action-potentials"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Integrate-and-fire models",
+      "body": "Computational neuroscience builds + analyzes MODELS of neural dynamics. The level of abstraction varies.\n\n**Hodgkin-Huxley** (high-fidelity, ion-channel level): 4 ODEs per cell. Captures channel kinetics. Expensive to simulate.\n\n**Integrate-and-fire (IF)** (intermediate): captures spike timing without ion-channel detail.\n$$\\tau_m \\frac{dV}{dt} = -(V - V_{\\text{rest}}) + R I(t)$$\nMembrane voltage V relaxes to rest with time constant τ_m; driven by input current I(t). When V crosses threshold V_thresh, a spike is emitted + V resets to V_reset. Add refractory period.\n\nVariants:\n- **Leaky IF (LIF)**: as above, with leak conductance.\n- **Adaptive IF**: spike-frequency adaptation, captures slow-K⁺ currents.\n- **Izhikevich model**: 2 ODEs; can reproduce most biophysical spiking patterns. Good for large-scale networks.\n\n**Rate models** (low-fidelity, mean-field): single neuron firing rate $r(t)$ tracked, not individual spikes.\n$$\\tau \\frac{dr}{dt} = -r + f(W r + I)$$\nwhere $W$ is connectivity, $f$ a nonlinearity (sigmoid). Used for network-level analysis (population dynamics, attractors).\n\n**Spiking neural networks (SNNs)**: networks of LIF or Izhikevich neurons. STDP learning rules. Substrate for neuromorphic hardware (Intel Loihi, IBM TrueNorth, SpiNNaker). Energy-efficient but harder to train than ANN.\n\n**Mean-field analysis** (Wilson-Cowan equations, 1972): describe excitatory + inhibitory populations as coupled ODEs. Used to predict network states (quiescent, oscillating, chaotic) + transitions."
+    },
+    {
+      "kind": "text",
+      "title": "Attractor networks + Hopfield model",
+      "body": "**Attractor network**: dynamics converge to one of several stable patterns (attractors). Used to model memory + decision-making.\n\n**Hopfield network** (1982): N binary neurons, symmetric weights. Activation rule:\n$$s_i \\leftarrow \\text{sign}\\left(\\sum_j W_{ij} s_j\\right)$$\nEnergy function:\n$$E = -\\frac{1}{2} \\sum_{i,j} W_{ij} s_i s_j$$\nDynamics monotonically decrease E. Stable states = local minima of E = stored memories.\n\n**Storage rule** (Hebb): for K memories $\\xi^k$:\n$$W_{ij} = \\frac{1}{N} \\sum_k \\xi_i^k \\xi_j^k$$\n\nCapacity: ~0.14 N memories with low error (Amit-Gutfreund-Sompolinsky 1985). For 1000 neurons: ~140 memories.\n\n**Pattern completion**: starting from a noisy version of a stored pattern, the network's dynamics CONVERGE to the clean memory. Associative recall.\n\n**Hippocampal model**: CA3 has recurrent connectivity that resembles Hopfield architecture. Modern theory: CA3 acts as a content-addressable memory store for episodes.\n\n**Modern attractor networks**:\n- **Continuous attractors** (Ben-Yishai-Bar-Or-Sompolinsky 1995): instead of discrete memories, a continuous manifold of stable states. Used for head-direction cells, grid cells (path integration).\n- **Hopfield-Krotov modern Hopfield** (2016, 2020): high-capacity attractor networks with $K = 2^{N/2}$ memories. Mathematical equivalence to attention in transformers (Ramsauer et al 2020). Brain-attention bridge.\n- **Decision-making attractors** (Wang 2002): bistable neural state corresponding to 'left' vs 'right' decision; noise integration + bifurcation match psychophysics + electrophysiology of decision tasks.\n\nAttractor frameworks unify memory, decision-making, persistent activity, working memory. Active theoretical + experimental field."
+    },
+    {
+      "kind": "text",
+      "title": "Bridging biology + AI: what's similar + different",
+      "body": "Both biological + artificial neural networks compute via weighted-sum + nonlinearity. But significant differences:\n\n**Architecture**:\n- ANNs: feedforward layers with backprop-trainable weights.\n- Brains: massive recurrence, top-down feedback, sparse connectivity, multiple cell types per area.\n\n**Activation**:\n- ANNs: graded outputs (ReLU, sigmoid, etc.).\n- Brains: spikes (binary events) with variable rates.\n\n**Learning**:\n- ANNs: backpropagation. Requires global error signal + symmetric weights. Biologically implausible.\n- Brains: STDP + dopamine-modulated learning + many other rules. Local. No clear biological backprop equivalent.\n- Active research: 'feedback alignment' (Lillicrap 2016), 'difference target propagation' (Bengio 2014), 'predictive coding' (Whittington 2017), 'NGRAD' (Bengio 2020). Each tries to find biologically-plausible learning that approximates backprop.\n\n**Energy**:\n- ANN training: ~MW for large models, GPU clusters.\n- Brain: ~20 W. ~10^15 ops/joule. Massive efficiency gap; neuromorphic hardware aims to close it.\n\n**Continual learning**:\n- ANNs: catastrophic forgetting; learn new task → forget old.\n- Brain: lifelong learning. Mechanisms: complementary memory systems (HC = fast, NC = slow consolidation), synaptic-tagging, replay during sleep.\n\n**Symbolic computation**:\n- LLMs: emergent symbolic-like reasoning at scale.\n- Brain: still unclear how symbolic structure is represented. Some evidence for grid-cell-like coordinate systems extending into abstract spaces (Constantinescu-Behrens 2016).\n\n**The neuro-AI convergence**:\n- ML inspired by brain (CNN by Hubel-Wiesel V1, RL by dopamine RPE, attention by feature-binding).\n- AI inspiring neuro (use ML decoders for neuroscience data; use deep nets as 'goal-driven models' of V1, V2, IT — Yamins-DiCarlo 2014: CNNs explain V4 + IT responses).\n\nThe bidirectional relationship is the most productive area of comp neuro today."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_comp_lif",
+        "kind": "guided_derivation",
+        "question": "Solve the LIF equation for a step current",
+        "goal": "LIF: $\\tau_m dV/dt = -V + RI$ (using $V_{\\text{rest}}=0$). At t=0, V=0, then constant current I applied. Find V(t) until threshold.",
+        "steps": [
+          {
+            "prompt": "Solve ODE with V(0)=0. General solution form: $V(t) = ?$",
+            "motivation": "First-order linear ODE.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$V = RI t$.",
+                "$V = RI(1 - e^{-t/\\tau_m})$. Exponential approach to steady state $RI$.",
+                "$V = e^{-t/\\tau_m}$.",
+                "$V = \\sin(t/\\tau_m)$."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Exponential relaxation with time constant τ_m to steady state RI."
+            ],
+            "reveal": "$V(t) = RI(1 - e^{-t/\\tau_m})$."
+          },
+          {
+            "prompt": "If $RI < V_{\\text{thresh}}$ (steady state below threshold), neuron never fires. If $RI > V_{\\text{thresh}}$, find when $V = V_{\\text{thresh}}$.",
+            "motivation": "Solve.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "tau ln(RI/(RI - V_th))",
+                "τ_m ln(RI/(RI - V_thresh))",
+                "tau_m * ln(RI/(RI-Vth))"
+              ]
+            },
+            "hints": [
+              "Solve $V_{\\text{thresh}} = RI(1 - e^{-t/\\tau})$."
+            ],
+            "reveal": "$t_{\\text{spike}} = \\tau_m \\ln\\frac{RI}{RI - V_{\\text{thresh}}}$."
+          },
+          {
+            "prompt": "Firing rate of LIF under constant current $I$ above threshold: $r = 1/t_{\\text{spike}}$. As $I$ increases, what happens to $r$?",
+            "motivation": "Frequency-current relationship.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Rate decreases.",
+                "Rate increases monotonically; for large $I$, $r \\to 1/\\tau_m$ (limited by membrane time constant).",
+                "Rate stays constant.",
+                "Rate goes to 0."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Larger I = faster reach threshold = higher rate."
+            ],
+            "reveal": "Rate increases monotonically with $I$, saturating at $\\sim 1/\\tau_m$. The 'F-I curve'. For LIF, F-I is logarithmic; real neurons can be sublinear (adaptation) or supralinear (intrinsic bursting)."
+          }
+        ],
+        "finalResult": "$$\\boxed{V(t) = RI(1 - e^{-t/\\tau_m}); t_{\\text{spike}} = \\tau_m \\ln\\frac{RI}{RI - V_{\\text{thresh}}}}$$ The LIF model is the workhorse for large-scale network simulation. Despite simplicity (no ion channels), it captures spiking + integration. Extended versions (adaptive LIF, Izhikevich) add diversity. Spiking neural networks built from LIF neurons are the basis of neuromorphic computing — running on dedicated chips at orders of magnitude less power than GPUs."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_comp_back",
+        "kind": "multiple_choice",
+        "question": "Why is backpropagation considered biologically implausible?",
+        "options": [
+          "It's too simple.",
+          "It requires (1) a global error signal sent backward through the network, (2) symmetric weights (forward + backward must equal), (3) a non-local update rule (uses information not available at the synapse). None obviously map onto brain physiology.",
+          "It's too random.",
+          "Brains don't learn."
+        ],
+        "correctIndex": 1,
+        "explanation": "Backprop's gradient computation needs global error signals + weight symmetry + non-local information at the synapse. Brain learning seems to use local rules (STDP, dopamine modulation) without obvious global error propagation. Recent work proposes mechanisms that approximate backprop biologically: feedback alignment (random feedback weights work surprisingly well), difference target propagation, predictive coding networks. Whether the brain implements something LIKE backprop or fundamentally different remains debated."
+      },
+      "hints": [
+        "What does backprop require?",
+        "What's the biological mismatch?"
+      ],
+      "workedSolution": "Backprop: (1) global error sent back through network, (2) weight symmetry, (3) update needs non-local information. Brain: (1) only local signals (neurotransmitters, STDP); (2) no clear weight-symmetry mechanism; (3) no clear global error broadcast. Alternative models: feedback alignment, target propagation, predictive coding. Whether brain learning is 'similar' to backprop is active research.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_comp_cap",
+        "kind": "math_expression",
+        "question": "Hopfield network has 1000 neurons. Approximate capacity for stored memories at low error rate?",
+        "acceptedAnswers": [
+          "140",
+          "~140"
+        ],
+        "hint": "0.14 × 1000."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_comp_decision",
+        "kind": "scenario",
+        "question": "Modeling decision-making",
+        "prompt": "Neuroscientists ask you to build a network model of how monkeys decide left-vs-right based on noisy visual evidence. Walk through using an attractor network model."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_comp",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why computational neuroscience builds models at multiple levels of abstraction (HH → LIF → rate).",
+        "rubric": "Mentions that each level trades fidelity for tractability: HH captures ion-channel dynamics but is expensive; LIF captures spike timing efficiently; rate models support analysis of large populations. Different questions require different levels — single-cell biophysics vs network dynamics vs cognitive function. The same brain process can be modeled at multiple levels to triangulate explanations."
+      }
+    }
+  ]
+}

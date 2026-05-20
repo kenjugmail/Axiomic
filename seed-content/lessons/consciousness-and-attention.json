@@ -1,0 +1,151 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "expert",
+    "objectives": [
+      "Compare Global Workspace, Integrated Information, and Higher-Order theories.",
+      "Distinguish attention from awareness.",
+      "Reason about the binding problem + neural correlates of consciousness."
+    ],
+    "prereqs": [
+      "brain-anatomy-and-circuits"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Theories of consciousness",
+      "body": "Consciousness is the hardest problem in neuroscience + philosophy. Several leading theories:\n\n**Global Workspace Theory (GWT)** — Baars 1988, Dehaene + Changeux 2011: consciousness = global broadcast of information across a 'workspace' (fronto-parietal network). When a stimulus enters the workspace, it becomes available to many brain modules at once → conscious access.\n\nPredictions: conscious stimuli show widespread fronto-parietal activation; unconscious stimuli stay local. Empirically supported by many studies (Pierre Pibarot, Bert Sergent's 'late ignition' EEG findings).\n\n**Integrated Information Theory (IIT)** — Giulio Tononi 2004+: consciousness = integrated information ($\\Phi$, 'phi'). Any system with high $\\Phi$ (information that's irreducible to its parts) IS conscious to that degree.\n\nPredictions: brain regions with high recurrent connectivity (posterior cortex) more conscious; less recurrent (cerebellum) less conscious. Anesthesia reduces $\\Phi$. Predictions partially confirmed but $\\Phi$ is computationally intractable for systems of nontrivial size.\n\n**Higher-Order Theories** — David Rosenthal, Hakwan Lau: a mental state is conscious if it's the target of a HIGHER-ORDER representation (a thought ABOUT the state). Conscious experience requires meta-cognition.\n\n**Predictive Processing / Free-Energy** — Karl Friston, Andy Clark: brain is a predictive engine; consciousness arises from the rich generative model of self + world.\n\n**Attention Schema Theory** — Michael Graziano: consciousness is the brain's internal model OF its attention. Functional, not a special property.\n\n**Quantum mind theories** (Penrose-Hameroff): consciousness requires quantum coherence in microtubules. Widely rejected by neuroscientists (no evidence; physics arguments).\n\n**Status**: no consensus. Each theory makes some predictions; some (GWT, IIT) are testable + actively researched. The 'hard problem' (Chalmers): even if we explain neural correlates, why is there subjective experience at all? Open."
+    },
+    {
+      "kind": "text",
+      "title": "Attention: the orchestrator",
+      "body": "**Attention** != consciousness. Attention is the selection mechanism that determines what GETS processed deeply. Consciousness is what's in the broadcast / globally available.\n\n**Types**:\n- **Top-down (endogenous, voluntary)**: 'I will attend to the red ball'. Slow (~200-500 ms). Modulates V1+ responses.\n- **Bottom-up (exogenous, reflexive)**: bright flash captures attention. Fast (~50-150 ms).\n- **Selective**: focus on one stream, suppress others (cocktail party — listening to one conversation).\n- **Sustained**: maintain over seconds-minutes.\n- **Divided**: across multiple targets (with cost).\n\n**Neural correlates**:\n- **Frontal Eye Field (FEF)** + **Lateral IntraParietal area (LIP)**: top-down attention signals.\n- **Pulvinar (thalamic)**: attention coordination across cortex.\n- **Anterior Cingulate**: attentional control + conflict monitoring.\n- **Locus Coeruleus** (noradrenaline source): arousal + attention.\n\n**Attention's effect on neural responses**:\n- Multiplicative gain: attended stimuli evoke 20-100% larger responses in V1, V4, etc.\n- Sharper tuning: noise reduced.\n- Earlier latencies.\n\n**Inattentional blindness**: stimuli outside attention often go unnoticed even when looked AT. 'Invisible gorilla' experiment (Simons + Chabris 1999): subjects counting basketball passes failed to notice a gorilla walking through.\n\n**Change blindness**: large changes between scenes go unnoticed without attention.\n\n**ADHD**: dysregulation of attention networks. Treatment (stimulants): boost noradrenaline + dopamine, sharpen attentional control. Major target for treatment + neuroscience research.\n\n**Modern attention (in AI)**: transformer attention is INSPIRED by feature-binding theories. 'Query / Key / Value' analogous to top-down attentional template, current stimuli, full input. Some researchers (Whittington, Behrens) explore brain-AI attention parallels."
+    },
+    {
+      "kind": "text",
+      "title": "The binding problem + neural correlates of consciousness (NCC)",
+      "body": "**Binding problem**: how does the brain bind features (red + round + moving + rightward) of one object into a unified percept, distinct from a second object (blue + square + stationary + left)?\n\nVarious proposals:\n1. **Feature integration theory** (Treisman 1980): attention 'glues' features. Without attention, features remain separated.\n2. **Synchrony hypothesis** (von der Malsburg 1981, Singer 1999): neurons coding features of the same object SYNCHRONIZE their firing (gamma oscillations, 30-80 Hz). Different objects → different sync groups. Empirically controversial (synchrony observed; functional role debated).\n3. **Convergence**: dedicated higher-order neurons code conjunctions. Limited scaling (combinatorial explosion).\n\n**Neural correlates of consciousness (NCC)**: minimum neural events sufficient for conscious experience. Search programs use binocular rivalry, masking, anesthesia transitions to find brain states distinguishing 'aware' from 'unaware' of the same stimulus.\n\nGeneral findings:\n- **Fronto-parietal** activation correlates with consciousness (GWT-compatible).\n- **Posterior 'hot zone'** (parietal + occipital + temporal): contains the QUALITY of conscious experience (Koch + Tononi).\n- **Recurrent loops** between regions are essential. Feedforward-only sweeps (~100 ms) are usually NOT conscious.\n- **Anesthesia**: reduces effective connectivity (cortex still active but doesn't integrate). Loss of feedback.\n\n**Disorders of consciousness**:\n- **Coma**: no arousal, no awareness.\n- **Vegetative state**: arousal but no awareness (eyes open, no responses).\n- **Minimally conscious state**: fluctuating awareness, some responses.\n- **Locked-in syndrome**: full consciousness but unable to move (brainstem damage). Patients can communicate via eye movements or BCIs.\n\nDiagnosis errors are high (~40% in some studies). fMRI 'covert' commands (Owen 2010: 'imagine playing tennis' vs 'walking through your house') reveal consciousness in some vegetative-diagnosed patients."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cons_bistable",
+        "kind": "guided_derivation",
+        "question": "Use binocular rivalry to find NCCs",
+        "goal": "Binocular rivalry: present DIFFERENT images to each eye. Subject's percept alternates every few seconds, even though stimuli are constant. Used to dissociate stimulus from percept.",
+        "steps": [
+          {
+            "prompt": "What's the experimental advantage of binocular rivalry?",
+            "motivation": "Stimulus held constant.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "You can change stimulus rapidly.",
+                "Stimulus is HELD CONSTANT but conscious percept varies. Brain regions whose activity tracks PERCEPT (not stimulus) reveal the NCCs.",
+                "It's easier.",
+                "It works for anesthesia."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Decouple stimulus from awareness."
+            ],
+            "reveal": "Stimulus is fixed but percept fluctuates. Regions correlating with percept (not stimulus) reveal consciousness-related activity."
+          },
+          {
+            "prompt": "Frye + colleagues recorded face- + house-selective regions while subjects rivalrously perceived face or house. What does fMRI/single-unit find?",
+            "motivation": "Predict.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "No modulation.",
+                "FFA (face-selective region) activity tracks subject's REPORTED percept, not the stimulus to either eye. Same for PPA (house-selective).",
+                "Modulation only with stimulus changes.",
+                "Random activity."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Percept-tracking is the finding."
+            ],
+            "reveal": "FFA + PPA track PERCEPT, not stimulus. When subject perceives face: FFA high. When house: PPA high. Despite both stimuli always present in different eyes. This DEMONSTRATES that high-level visual cortex tracks conscious experience, not raw input."
+          },
+          {
+            "prompt": "Which regions DO NOT show percept-tracking in rivalry?",
+            "motivation": "V1 typically tracks stimulus more than percept.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Frontal cortex (no modulation).",
+                "V1 (primary visual cortex): tracks the stimulus from BOTH eyes; only weakly modulated by percept. The percept-tracking emerges in higher visual + frontal cortex.",
+                "Higher visual cortex (no modulation).",
+                "Hippocampus."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "V1 sees both stimuli."
+            ],
+            "reveal": "V1 weakly modulated by percept (some, but smaller than FFA/PPA). Suggests V1 is closer to stimulus end of the consciousness hierarchy; higher cortex (V4, IT, frontal) tracks awareness more."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Binocular rivalry: NCCs are higher-cortex percept-tracking activity}}$$ Decades of binocular-rivalry research established that conscious percepts correlate with activity in HIGHER visual + fronto-parietal regions more than early sensory cortex. Findings consistent with GWT (global workspace) + with the 'posterior hot zone' (IIT). Methodology generalizes to other consciousness paradigms (masking, attentional blink)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cons_zombie",
+        "kind": "multiple_choice",
+        "question": "A 'philosophical zombie' (Chalmers): a hypothetical being behaviorally identical to a conscious human but lacking subjective experience. Why does the thought experiment matter?",
+        "options": [
+          "It doesn't.",
+          "It dramatizes the 'hard problem': even a COMPLETE neurophysiological + functional account of behavior leaves open whether subjective experience exists. The thought experiment exposes an explanatory gap between physical theory + 'what it is like'.",
+          "It proves consciousness exists.",
+          "It's just philosophy."
+        ],
+        "correctIndex": 1,
+        "explanation": "The philosophical zombie illustrates Chalmers's 'hard problem': even granting all functional + neural facts, there's the further question of why those facts are accompanied by subjective experience. Critics (Dennett, Frankish) reject the coherence of zombies. The debate centers on whether subjective experience is reducible to function/computation/information OR is something extra. The implications affect how we'd ever recognize machine consciousness, animal consciousness, etc. The thought experiment is generative — it frames the explanatory target precisely."
+      },
+      "hints": [
+        "What does the zombie thought experiment isolate?",
+        "Why is this the 'hard problem'?"
+      ],
+      "workedSolution": "The zombie has the same function/behavior/computation but lacks subjective experience. Coherent or not, it dramatizes the gap between objective neural facts + subjective experience. The hard problem: even with full physical/computational accounts of perception, attention, reasoning, there's nothing OBVIOUS about why these would be accompanied by 'what it is like'. Theories of consciousness (GWT, IIT) try to bridge this; whether they truly explain or just describe correlates is contested.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_cons_gamma",
+        "kind": "math_expression",
+        "question": "Gamma oscillation frequency range commonly associated with feature binding?",
+        "acceptedAnswers": [
+          "30-80 Hz",
+          "30 to 80 Hz",
+          "gamma 30-80"
+        ],
+        "hint": "Gamma range."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_cons_vs",
+        "kind": "scenario",
+        "question": "Diagnosing a vegetative patient",
+        "prompt": "A patient is diagnosed vegetative after brain injury — eyes open but no response. Walk through how fMRI mental-imagery tasks can detect 'covert' consciousness in such patients."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cons",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why consciousness is considered the 'hardest problem' in neuroscience.",
+        "rubric": "Mentions that explaining neural correlates of consciousness still doesn't bridge the gap to subjective experience (the 'hard problem'); we lack agreed-upon criteria for what consciousness is (theories like GWT vs IIT vs HOT make different predictions); the explanatory gap remains even with full neural data. Operationally, consciousness can be tested via behavior + neural correlates; philosophically the deep questions are open."
+      }
+    }
+  ]
+}

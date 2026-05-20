@@ -1,0 +1,151 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "core",
+    "objectives": [
+      "Identify the major brain divisions + functions.",
+      "Outline the canonical cortical column.",
+      "Describe hippocampus, basal ganglia, cerebellum circuits + roles."
+    ],
+    "prereqs": [
+      "neurons-and-action-potentials"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Major brain divisions",
+      "body": "The human brain is divided into:\n\n**Cerebrum** (largest): high-level cognition, perception, voluntary action.\n- **Cortex** (outer 2-4 mm of gray matter, ~16 billion neurons): folded into gyri + sulci to fit ~2200 cm² of surface in the skull.\n- **Subcortex**: basal ganglia, thalamus, hypothalamus, amygdala, hippocampus.\n\n**Cerebellum**: motor coordination, timing, fine error correction. Contains MORE neurons than the rest of the brain combined (~70 billion granule cells).\n\n**Brainstem**: vital functions (breathing, heart rate, sleep-wake). Includes midbrain, pons, medulla.\n\n**Cortical lobes** (by location):\n- **Frontal**: motor control, executive function, decision-making, working memory, language production (Broca's area).\n- **Parietal**: somatosensory, spatial awareness, attention.\n- **Temporal**: auditory, language comprehension (Wernicke's area), memory (hippocampus deep within), visual object recognition.\n- **Occipital**: vision. V1, V2, V3, V4, V5/MT, etc.\n\n**Functional networks**: brain regions are organized into co-activated networks: default mode (rest, mind-wandering), salience (attentional switching), executive control, dorsal + ventral attention, language, visual, sensorimotor. Identified via resting-state fMRI.\n\n**Lateralization**: hemispheres specialize. Left: dominant for language (in ~95% of right-handers). Right: spatial processing, face recognition. Corpus callosum (~200 million axons) connects them.\n\n**Subcortex matters disproportionately**: basal ganglia disorders (Parkinson's, Huntington's) cause severe motor + cognitive symptoms. Hippocampal damage = memory loss (patient H.M., bilateral hippocampectomy → couldn't form new memories). Amygdala = emotion + fear conditioning. Thalamus = relay station for nearly all sensory + cortical traffic."
+    },
+    {
+      "kind": "text",
+      "title": "The canonical cortical column",
+      "body": "Cortex is structured in 6 layers (cytoarchitectonically defined). Layered organization is largely uniform across the cortex — the **canonical microcircuit**.\n\n**Layers**:\n- **Layer 1 (molecular)**: thin, mostly axons + apical dendrites of deeper-layer neurons.\n- **Layer 2-3 (external pyramidal)**: pyramidal cells projecting to OTHER cortical areas.\n- **Layer 4 (granular)**: small cells; receives THALAMIC input. Sensory cortex (V1, A1) has thickened layer 4.\n- **Layer 5 (internal pyramidal)**: large pyramidal cells projecting OUT of cortex — to brainstem, spinal cord (motor cortex), or other subcortical targets.\n- **Layer 6**: projects to thalamus (cortico-thalamic feedback).\n\n**Vertical microcolumn** (Mountcastle 1957): a ~50-μm-wide column of neurons spanning all 6 layers shares similar response properties. Hubel + Wiesel showed V1 columns share orientation preference for visual edges.\n\n**Information flow** (canonical):\n- Thalamus → L4 (sensory input).\n- L4 → L2/3 (within-column processing).\n- L2/3 → L5 + other cortical areas.\n- L5 → output to subcortex.\n- L6 → back to thalamus.\n\n**Repetition with specialization**: the same 6-layer scheme is found in V1, motor cortex, prefrontal cortex, etc. Local circuit is similar; what DIFFERS is the inputs + outputs each area connects to. This generality led some (Mountcastle, Hawkins) to propose 'one cortical algorithm' running in parallel across the cortex.\n\n**Computational interpretation**: predictive coding models (Rao + Ballard, Friston) map the layers onto a Bayesian-inference hierarchy: each region's L2/3 sends predictions to lower regions; lower regions send prediction errors back via L5/L6 — implementing a hierarchical generative model. Active research field."
+    },
+    {
+      "kind": "text",
+      "title": "Hippocampus, basal ganglia, cerebellum",
+      "body": "Three subcortical systems with distinct + critical roles:\n\n**Hippocampus** (memory):\n- Patient H.M. (1957 bilateral hippocampectomy for epilepsy): couldn't form new declarative memories. Could form new motor skills (procedural memory unaffected).\n- **Place cells** (O'Keefe 1971): hippocampal cells fire at specific locations. Cognitive maps. Earned the 2014 Nobel.\n- **Grid cells** (Moser + Moser 2005): entorhinal cortex (input to hippocampus) cells fire at hexagonally-spaced locations. Spatial coordinate system.\n- Function: spatial memory + episodic memory consolidation. New memories first stored in hippocampus, then gradually consolidated to neocortex (theory: HC is short-term store + 'binder', neocortex is long-term).\n\n**Basal ganglia** (action selection + reinforcement learning):\n- Caudate, putamen, pallidum, substantia nigra, subthalamic nucleus.\n- Receives input from cortex; output back to cortex via thalamus → 'cortico-basal-thalamic loop'.\n- **Dopamine** from substantia nigra modulates striatum, encoding REWARD PREDICTION ERROR. The basis of reinforcement learning in brain.\n- **Parkinson's disease**: loss of substantia nigra dopamine neurons. Symptoms: bradykinesia, tremor, rigidity. Treatment: L-DOPA (precursor that crosses blood-brain barrier).\n- **Huntington's disease**: caudate degeneration (genetic, CAG repeats). Chorea (uncontrolled movements) + cognitive decline.\n- Schultz et al 1990s: monkeys' dopamine neurons fire at REWARD initially, then SHIFT to firing at predictive CUE. The temporal-difference learning signal. Inspired RL algorithms.\n\n**Cerebellum** (motor timing + error correction):\n- 70 billion neurons (more than the cortex's 16 billion).\n- Stereotyped circuit: Purkinje cells, mossy fibers, climbing fibers, granule cells.\n- **Marr-Albus model** (1969): cerebellum implements supervised learning. Climbing fibers carry ERROR signals; modify Purkinje synapses to reduce future errors.\n- Function: smooth, well-timed movements; learns motor sequences; coordinates limbs.\n- Damage: ataxia (wobbly, uncoordinated movement). Drunk people exhibit cerebellar-like ataxia.\n- Recent recognition: cerebellum also contributes to COGNITION + LANGUAGE. Cerebellar lesions can impair non-motor functions.\n\nThe cortex/hippocampus/basal-ganglia/cerebellum cooperation underpins essentially all complex behavior."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_anatomy_lobotomy",
+        "kind": "guided_derivation",
+        "question": "Connectome-based reasoning",
+        "goal": "Patient with bilateral hippocampal damage (like H.M.). Predict what cognitive functions are spared + impaired.",
+        "steps": [
+          {
+            "prompt": "Hippocampus is essential for FORMING new declarative (factual, episodic) memories. Predict: impaired ability to form new...",
+            "motivation": "Specificity.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Motor skills.",
+                "Declarative memories — facts about the world + recall of personal experiences.",
+                "Vision.",
+                "Reflexes."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Hippocampus + declarative memory."
+            ],
+            "reveal": "Impaired: forming new declarative memories (facts, experiences). Once forgotten you re-meet the same person + don't recognize them. Anterograde amnesia."
+          },
+          {
+            "prompt": "What about pre-existing memories from before the damage?",
+            "motivation": "Spared if consolidated.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Also lost.",
+                "Mostly intact — old memories are consolidated to neocortex + don't depend on hippocampus. Recent memories (last few years before damage) may be retrograde-amnesia.",
+                "Completely gone.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Consolidation theory."
+            ],
+            "reveal": "Largely spared. Memories from years before damage are intact (already consolidated). Memories from months-years prior may show retrograde amnesia (gradient). H.M. remembered his childhood but not recent events."
+          },
+          {
+            "prompt": "And motor skills?",
+            "motivation": "Procedural memory uses different system.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Lost.",
+                "Spared — procedural learning (typing, riding bike, mirror tracing) depends on basal ganglia + cerebellum, NOT hippocampus. H.M. learned new motor skills (mirror-drawing improvement over days) despite no memory of having practiced.",
+                "Random.",
+                "Worse."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Motor learning is separable from declarative."
+            ],
+            "reveal": "Spared. H.M. learned mirror-tracing over days + got better, while denying he'd ever done it. Multiple memory systems: declarative (hippocampus) vs procedural (basal ganglia + cerebellum)."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Memory has multiple systems: declarative (hippocampus) + procedural (basal ganglia/cerebellum) are dissociable}}$$ Patient H.M. (1953-2008) established the modern theory of multiple memory systems. He couldn't form new declarative memories but could learn new motor skills. This dissociation is foundational + has been replicated across decades of neuropsychology. It also predicted that you can damage one type of memory without affecting another — important for understanding stroke + Alzheimer's + Parkinson's syndromes."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_anatomy_da",
+        "kind": "multiple_choice",
+        "question": "Wolfram Schultz's monkey experiments showed dopamine neurons fire at reward initially, then shift to firing at the predictive cue. Why does this matter?",
+        "options": [
+          "Just an interesting observation.",
+          "It's the neural implementation of TEMPORAL-DIFFERENCE LEARNING (Sutton + Barto). The dopamine signal IS the reward-prediction error. Established that the brain implements RL-style algorithms + inspired modern RL theory.",
+          "Random spiking.",
+          "Doesn't matter for AI."
+        ],
+        "correctIndex": 1,
+        "explanation": "Schultz's findings + Sutton-Barto's TD-learning theory came together in 1997 (Schultz, Dayan, Montague). Showed that the brain implements something computationally identical to TD-learning. Inspired neuro-AI integration: deep reinforcement learning, dopamine-modulated learning rules, Atari-playing DQN. Modern: Yael Niv + others continue mapping brain RL to algorithmic RL."
+      },
+      "hints": [
+        "What computational role does dopamine play?",
+        "What RL concept matches?"
+      ],
+      "workedSolution": "Dopamine response: initial at reward, shifts to predictive cue. This is exactly the TD-error in temporal difference learning. The brain implements reinforcement learning literally — dopamine = reward-prediction-error signal. Inspired neuro-AI: deep RL, dopamine-modulated plasticity, modular RL theories of cognition. One of the strongest examples of computational + biological neuroscience converging.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_anatomy_count",
+        "kind": "math_expression",
+        "question": "Cerebellum has ~70 billion granule cells. Total brain neuron count ~86 billion. What fraction is cerebellum?",
+        "acceptedAnswers": [
+          "~80%",
+          "80%",
+          "0.8"
+        ],
+        "hint": "70/86 ≈ 0.81."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_anatomy_parkinson",
+        "kind": "scenario",
+        "question": "Treating Parkinson's",
+        "prompt": "A patient with Parkinson's loses dopamine neurons in the substantia nigra. Walk through the symptom set + how L-DOPA + deep-brain stimulation work."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_anatomy",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why understanding brain anatomy + circuits is essential for understanding what the brain does + why specific damage causes specific symptoms.",
+        "rubric": "Mentions that function is localized (hippocampus = memory, basal ganglia = action selection, V1 = vision) so specific damage produces predictable symptoms; the cortical microcircuit + subcortical loops constrain WHAT computations are possible; neuroimaging + lesion studies connect anatomy to cognition. Without anatomy, neuroscience reduces to vague claims about 'brain activity'."
+      }
+    }
+  ]
+}

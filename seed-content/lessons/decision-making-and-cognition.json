@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "expert",
+    "objectives": [
+      "Outline the drift-diffusion model of perceptual decisions.",
+      "State expected utility + the role of prefrontal cortex in valuation.",
+      "Reason about exploration vs exploitation in foraging."
+    ],
+    "prereqs": [
+      "brain-anatomy-and-circuits"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Perceptual decisions + the drift-diffusion model",
+      "body": "**Perceptual decision**: given noisy evidence, decide between alternatives. Classic paradigm: random-dot motion task. Subject sees field of dots, some fraction moving COHERENTLY (left or right), the rest random. Subject judges direction.\n\n**Drift-diffusion model (DDM)** — Ratcliff 1978: a single decision variable $x(t)$ accumulates evidence over time:\n$$dx = v \\, dt + \\sigma \\, dW$$\nwhere $v$ = drift rate (evidence quality), $\\sigma$ = noise. Decision = first time $x$ hits an upper ($+a$) or lower ($-a$) threshold.\n\nPredictions:\n- Accuracy + reaction time depend on $v$, $a$, $\\sigma$.\n- **Speed-accuracy trade-off**: higher threshold $a$ → more accurate but slower.\n- Slower decisions → more accurate (more evidence accumulated).\n\nFits behavior of humans, monkeys, rats on perceptual tasks accurately.\n\n**Neural correlates** (Shadlen + Newsome 1996+): LIP (lateral intraparietal) neurons in monkey cortex track accumulating evidence — firing rate ramps up during decision; ramp-rate matches drift-rate; decision = when firing crosses threshold. Direct biological implementation of DDM-like accumulation.\n\n**Generalizations**:\n- **Race models**: each option has its own accumulator; first to threshold wins.\n- **Diffusion models with collapsing bounds**: threshold decreases with time (urgency).\n- **Multi-attribute integration** (Krajbich 2010): visual attention modulates accumulation; gaze toward an option boosts its evidence.\n\nThe DDM is one of the most-validated quantitative models in cognitive neuroscience. Used in clinical assessment (ADHD, depression — show abnormal drift rates or thresholds)."
+    },
+    {
+      "kind": "text",
+      "title": "Value-based decisions + prefrontal cortex",
+      "body": "**Value-based decisions**: choose between options based on subjective preferences (food, money, risky bets). Different from perceptual (no objective right answer).\n\n**Expected utility theory** (von Neumann + Morgenstern 1944): rational agent chooses option with highest expected utility $\\mathbb{E}[U] = \\sum_i p_i U(x_i)$. Concave utility = risk aversion.\n\n**Empirical reality** — **Prospect theory** (Kahneman + Tversky 1979, Nobel 2002): humans systematically deviate from EU:\n- **Loss aversion**: losses weighted ~2× more than equivalent gains.\n- **Probability weighting**: small probabilities overweighted; large probabilities underweighted.\n- **Reference-dependence**: outcomes evaluated relative to a reference point, not absolute wealth.\n\n**Neural valuation**:\n- **Ventromedial prefrontal cortex (vmPFC)**: tracks SUBJECTIVE VALUE of options. fMRI shows vmPFC activation scales with how much the subject is willing to pay.\n- **Orbitofrontal cortex (OFC)**: maintains task / context-relevant value representations.\n- **Striatum**: encodes prediction errors (dopamine; Schultz). Drives reinforcement learning.\n- **Insula**: encodes losses + aversive outcomes.\n- **Amygdala**: encodes salience + threat (affects risky decisions).\n\n**Patient evidence**:\n- vmPFC damage (e.g., Phineas Gage, modern lesion patients) → poor real-world decisions despite intact IQ. Inability to integrate emotional/value signals (Damasio's 'somatic marker' hypothesis).\n- Iowa Gambling Task: vmPFC-damaged patients keep choosing high-risk decks despite mounting losses; healthy controls quickly learn to avoid.\n\n**Behavioral economics + neuroeconomics**: combine economics + neuroscience to understand WHY humans deviate from rational models. Camerer, Glimcher, Rustichini key figures."
+    },
+    {
+      "kind": "text",
+      "title": "Exploration vs exploitation + the foraging brain",
+      "body": "Every decision-maker faces the **explore-exploit trade-off**: stick with known-good options (exploit) or sample unknown alternatives (explore).\n\n**Bandit problems**: $N$ slot machines with unknown reward rates. Strategy choices:\n- **ε-greedy**: exploit with probability $1-\\epsilon$, explore randomly with $\\epsilon$.\n- **Upper Confidence Bound (UCB)**: choose option with highest mean + uncertainty bonus. Directed exploration.\n- **Thompson sampling**: sample from posterior over each option's reward; pick max.\n\n**Brain implementation**:\n- **Frontopolar cortex (BA10)** active during EXPLORATION; tracks counterfactual value (what could have been gotten elsewhere).\n- **Striatum + vmPFC** active during EXPLOITATION (using known values).\n- **Locus coeruleus + noradrenaline**: modulates explore-exploit balance. High NA → exploratory (Aston-Jones + Cohen 2005).\n- **Dopamine baseline** + **tonic activity**: hypothesized to bias explore vs exploit (Niv 2009).\n\n**Foraging models** (Charnov 1976 marginal-value theorem): optimal forager LEAVES current patch when local reward rate falls below average rate across all available patches. Applied to behaviors as diverse as: monkeys + birds choosing patches, humans browsing web pages, scientists choosing research projects.\n\n**Hayden + Pearson** showed dorsal ACC tracks 'average rate' signal that triggers patch-leaving decisions in monkeys.\n\n**Cognition + age**:\n- Children explore more (need to build world model).\n- Adults exploit accumulated knowledge.\n- Aging: reduced exploration; preference for familiar.\n- ADHD: hyperexploration (constantly switching).\n- Depression: hypoexploration (anhedonia, low engagement).\n\n**ML connections**: RL algorithms (DQN, PPO, etc.) face the same problem. Many use noise injection (ε-greedy, entropy bonuses) or learned exploration policies. Reinforcement learning + decision-neuroscience are deeply interconnected; many ML insights (TD learning, actor-critic) trace back to dopamine + cortical models."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dec_ddm",
+        "kind": "guided_derivation",
+        "question": "Apply the DDM to a perceptual decision",
+        "goal": "Random-dot motion task: drift rate v=0.1 (per second, units of evidence), noise σ²=1, threshold a=0.5 (no starting bias). What's the expected accuracy + reaction time?",
+        "steps": [
+          {
+            "prompt": "Expected accuracy of DDM (with symmetric thresholds): $P(\\text{correct}) = 1/(1 + e^{-2av/\\sigma^2})$. Plug in: $a=0.5, v=0.1, \\sigma^2 = 1$.",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.525",
+                "~0.53",
+                "approximately 0.525"
+              ]
+            },
+            "hints": [
+              "$2av/\\sigma^2 = 0.1$. $e^{-0.1} \\approx 0.905$. $1/(1+0.905) \\approx 0.525$."
+            ],
+            "reveal": "$P(\\text{correct}) \\approx 0.525$. Only slightly above chance — low drift rate."
+          },
+          {
+            "prompt": "Mean decision time (excluding non-decision processes): $E[T] = (a/v) \\tanh(av/\\sigma^2)$. Plug in.",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "~0.5 sec.",
+                "~5 sec — (0.5/0.1) × tanh(0.05) ≈ 5 × 0.05 = 0.25 sec.",
+                "Same as accuracy.",
+                "Infinite."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "$\\tanh(0.05) \\approx 0.05$."
+            ],
+            "reveal": "$\\sim 0.25$ sec. Very fast decision because noise dominates evidence (low drift)."
+          },
+          {
+            "prompt": "If the experimenter increased threshold to $a=1$ (more conservative), what's the expected effect?",
+            "motivation": "Speed-accuracy tradeoff.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Faster + less accurate.",
+                "Slower but more accurate. Higher threshold = more evidence required = longer to reach, but more reliable.",
+                "Both faster + more accurate.",
+                "No change."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Threshold trades RT for accuracy."
+            ],
+            "reveal": "Slower (more time to accumulate) but more accurate. With $a=1$: $P(\\text{correct}) \\approx 0.55$, $E[T] \\approx 1$ sec. The speed-accuracy trade-off is central to perceptual decision-making + tunable by attention / instructions / threats."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{DDM: drift + diffusion + boundary; explains accuracy + RT}}$$ The DDM with just 3 parameters (drift, threshold, non-decision time) fits human + monkey performance across thousands of tasks. Neural correlates in LIP + dlPFC track the accumulator variable. Clinical applications: ADHD shows low drift rates; aging shows higher non-decision time; depression shows lower thresholds (impulsive). The DDM is a quantitative bridge between behavior + neural activity."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dec_loss",
+        "kind": "multiple_choice",
+        "question": "Kahneman + Tversky's prospect theory: subjects are offered '50% chance to win \\$100, 50% chance to lose \\$100'. Most decline. Why?",
+        "options": [
+          "It's a bad bet.",
+          "Loss aversion: humans weight losses ~2× more than equivalent gains. The expected value is 0, but subjective utility is NEGATIVE due to loss-aversion. Robust across cultures + ages. vmPFC + amygdala activity reflects this in fMRI.",
+          "Statistics confusion.",
+          "Risk aversion only."
+        ],
+        "correctIndex": 1,
+        "explanation": "Prospect theory: loss aversion (~2× weight) means a 50-50 gain/loss bet has NEGATIVE subjective utility for most. This is distinct from risk aversion in expected-utility (concave utility) — even with gains > losses (60% win/40% lose), many decline. Loss aversion is robust + has neural correlates (amygdala for losses, vmPFC for gains, asymmetry). Behavioral economics built on this asymmetric finding. Sometimes leads to bad choices (endowment effect, status-quo bias) but also some adaptive (avoid ruin)."
+      },
+      "hints": [
+        "What's the EV of the bet?",
+        "What's the brain weighting losses vs gains?"
+      ],
+      "workedSolution": "EV = 0 (50% × \\$100 - 50% × \\$100 = 0). But subjective utility is negative due to loss aversion (~2× weight on losses). vmPFC + amygdala asymmetrically track losses. The asymmetry is robust across cultures + ages + species (animals show similar). Implications: status quo bias, endowment effect, framing effects in policy + marketing. Recognizing this can improve decisions.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_dec_speed",
+        "kind": "math_expression",
+        "question": "DDM accuracy increases with longer decision time. If 200ms gives 70%, ~doubling the time (400ms) approximately gives what accuracy?",
+        "acceptedAnswers": [
+          "~85%",
+          "85%",
+          "approximately 0.85"
+        ],
+        "hint": "Accuracy approaches asymptote with time."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_dec_addict",
+        "kind": "scenario",
+        "question": "Decision-making in addiction",
+        "prompt": "An addiction researcher claims that drug addicts have impaired DECISION-MAKING + that this is part of the disease. Walk through the neural + behavioral evidence."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dec",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why the drift-diffusion model is considered THE leading quantitative model of perceptual decision-making.",
+        "rubric": "Mentions that it fits behavior (accuracy + RT distributions) across many tasks + species with few parameters; has direct neural correlates (LIP + dlPFC accumulator dynamics); makes precise + testable predictions; bridges psychology + neuroscience. Its longevity (50+ years) + survival under continual testing make it as central a model in cognitive neuroscience as the Hodgkin-Huxley equations are at the cellular level."
+      }
+    }
+  ]
+}

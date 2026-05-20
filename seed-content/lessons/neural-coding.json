@@ -1,0 +1,143 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish rate from temporal codes.",
+      "Apply information theory to neural spike trains.",
+      "Reason about population codes + decoding."
+    ],
+    "prereqs": [
+      "neurons-and-action-potentials"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Rate codes vs temporal codes",
+      "body": "**Rate code**: information is encoded in the FIRING RATE (spikes per second). Counted over a window of ~100-500 ms.\n\nE.g., motor cortex neuron firing 50 Hz vs 100 Hz encodes different desired hand velocities. Vision cortex neuron firing more when oriented edge moves to the right.\n\n**Why rate codes might be the right model**:\n- Easy to read: just count spikes.\n- Robust to noise: averaging smooths out spike-timing variability.\n- Lots of evidence: neurons in many cortical areas show clear rate tuning.\n\n**Temporal code**: information is encoded in the PRECISE TIMING of spikes (down to milliseconds or less).\n\nE.g., a binary 'first to fire' code: among many neurons, the FIRST one to fire signals the answer. Used in some olfactory + auditory circuits.\n\n**Why temporal codes might matter**:\n- More information per spike: 1 bit per ms timing precision vs ~0.01 bits per ms in rate code.\n- Sensory neurons can be highly time-locked (auditory neurons phase-lock to sound waveforms down to ~5 kHz).\n- Cortical synchronization: gamma oscillations may bind together features belonging to the same object.\n\n**Many neurons use both**:\n- Rate over long windows; temporal patterning within.\n- Olfactory cortex: rate over 100s of ms; precise sequence within.\n- Hippocampus: place cells fire at specific locations (rate) AND phase-precess relative to theta oscillation (temporal).\n\n**Active debate**: which code is 'used' depends on downstream readout. Most neuroscientists now think both rate + temporal codes coexist; the brain combines them flexibly."
+    },
+    {
+      "kind": "text",
+      "title": "Population codes + decoding",
+      "body": "Single neurons are noisy + ambiguous. The brain uses POPULATIONS of neurons.\n\n**Population code**: many neurons together encode a variable. E.g., motor cortex: each neuron has a preferred direction; population vector = sum of (each neuron's preferred direction × its firing rate) ≈ actual movement direction (Georgopoulos 1986).\n\n**Decoding methods**:\n- **Population vector**: simplest. Sum of preferred-vectors weighted by firing rates.\n- **Maximum likelihood**: given firing rates $\\mathbf{r}$, find stimulus $s$ maximizing $P(\\mathbf{r}|s)$. Optimal under known noise model.\n- **Bayesian**: posterior $P(s|\\mathbf{r}) \\propto P(\\mathbf{r}|s) P(s)$. Adds prior.\n- **Linear decoders**: trained to predict variable from firing rates. Used in modern brain-computer interfaces.\n- **Neural networks**: deep decoders are state of the art for complex stimuli (visual scenes, intended speech).\n\n**Why populations are robust**:\n- Single-neuron noise (~30% trial-to-trial variability in cortex) averages out.\n- Redundancy: lose 10% of neurons, decoding still works.\n- Distributed representation: each neuron contributes to many features.\n\n**The 'neural correlations problem'**: if neurons are CORRELATED, averaging doesn't help as much as you'd think. Adding more neurons hits diminishing returns. Quantified by Fisher information.\n\n**Sparse coding**: many neurons in cortex are silent most of the time + fire only for specific stimuli. Compute-efficient (V1 simple cells respond to specific edges at specific locations + orientations).\n\n**Olshausen + Field 1996**: trained a model with sparsity constraint on natural images. Learned Gabor-like filters resembling V1 simple cells. Showed that sparse coding is OPTIMAL for natural-image statistics. Foundational for self-supervised + dictionary-learning ML methods."
+    },
+    {
+      "kind": "text",
+      "title": "Information theory in the brain",
+      "body": "**Information theory** (Shannon 1948) gives precise tools to quantify neural codes.\n\n**Mutual information** between stimulus $S$ + neural response $R$:\n$$I(S; R) = H(S) - H(S|R) = \\sum_{s, r} P(s, r) \\log_2 \\frac{P(s, r)}{P(s) P(r)}$$\n\nMeasured in bits. Tells you how many bits of stimulus information a neuron's response carries.\n\n**Typical values**:\n- Single retinal ganglion cell: ~1-10 bits/sec for natural movies.\n- Single V1 neuron: ~1-2 bits/sec for natural images.\n- Population of 100 V1 neurons: substantially more, but with redundancy.\n- Cortical neuron's total spike-train information: typically 1-3 bits/spike (de Ruyter van Steveninck, Strong 1997).\n\n**Entropy of a spike train**: ~$N \\log_2(T/\\Delta t)$ where $N$ is # spikes, $T$ is time window, $\\Delta t$ is timing precision. With 100 ms windows + 1 ms precision: ~7 bits/spike maximum (most neurons use far less).\n\n**Efficient coding hypothesis** (Attneave 1954, Barlow 1961): sensory systems should maximize information transmitted per spike (or per metabolic-energy unit). Reduces redundancy.\n\nPredictions:\n- Retina + LGN should DECORRELATE natural-image inputs → center-surround receptive fields (predicted, observed).\n- V1 should sparse-code edges → Gabor-like filters (predicted, observed).\n- Auditory cortex should optimize for natural-sound statistics → wavelet-like decompositions.\n\nThe efficient-coding hypothesis is one of the cleanest examples of a NORMATIVE neuroscience theory: it predicts what the brain should do from first principles, + experiments confirm broad agreement."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_code_info",
+        "kind": "guided_derivation",
+        "question": "Compute mutual information for a simple neuron",
+        "goal": "Neuron fires (R=1) with probability 0.8 when stimulus present (S=1); R=1 with probability 0.2 when stimulus absent (S=0). Each stimulus equally likely. Compute $I(S; R)$ in bits.",
+        "steps": [
+          {
+            "prompt": "First, compute $P(R=1) = ?$",
+            "motivation": "Marginal probability.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.5",
+                "1/2"
+              ]
+            },
+            "hints": [
+              "$P(R=1) = P(R=1|S=1)P(S=1) + P(R=1|S=0)P(S=0) = 0.8 \\times 0.5 + 0.2 \\times 0.5$."
+            ],
+            "reveal": "$P(R=1) = 0.5$. Symmetric."
+          },
+          {
+            "prompt": "Entropy of R: $H(R) = -P(R=1)\\log P(R=1) - P(R=0)\\log P(R=0) = -0.5 \\log 0.5 - 0.5 \\log 0.5 = ?$ (bits)",
+            "motivation": "Entropy.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1",
+                "1 bit"
+              ]
+            },
+            "hints": [
+              "$-\\log_2 0.5 = 1$."
+            ],
+            "reveal": "$H(R) = 1$ bit. Maximum possible for a binary variable."
+          },
+          {
+            "prompt": "Conditional entropy $H(R|S=1) = -0.8 \\log 0.8 - 0.2 \\log 0.2 \\approx 0.722$ bits. Same for $S=0$. So $H(R|S) \\approx 0.722$. Mutual info $I(S;R) = H(R) - H(R|S) = ?$",
+            "motivation": "Subtract.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.278",
+                "0.278 bits",
+                "~0.28"
+              ]
+            },
+            "hints": [
+              "1 - 0.722."
+            ],
+            "reveal": "$I(S;R) \\approx 0.28$ bits per response. Less than 1 (some ambiguity remains). A noisier neuron ($p = 0.6$ vs $0.4$) carries less info; a perfect neuron ($p=1$ vs $0$) carries 1 bit."
+          }
+        ],
+        "finalResult": "$$\\boxed{I(S;R) \\approx 0.28 \\text{ bits in this case}}$$ Mutual information measures how much each spike (response) reduces uncertainty about the stimulus. Perfect (deterministic) response = 1 bit per binary stimulus. Random response (uncorrelated) = 0 bits. Real cortical neurons typically transmit 0.5-3 bits per spike depending on context. Used to compare neural-code efficiency across brain areas, species, behavioral states."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_code_v1",
+        "kind": "multiple_choice",
+        "question": "Olshausen + Field (1996) showed that a sparse-coding objective applied to natural images learns Gabor-like receptive fields very similar to V1 simple cells. What does this suggest?",
+        "options": [
+          "Coincidence.",
+          "V1 may have evolved to encode natural-image statistics efficiently (sparsely). The receptive-field structure emerges from a NORMATIVE principle (maximize information per spike under sparsity), not just arbitrary biology.",
+          "V1 doesn't actually do this.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Normative neuroscience: derive what the brain SHOULD do from first principles, compare to what it does. Sparse coding (information / spike under metabolic budget) predicts Gabor-like edge detectors for natural images. V1 simple cells empirically match. Suggests the brain solved an optimization problem during evolution + development. Same logic explains retinal center-surround (decorrelate natural images), auditory cortex receptive fields (decompose natural sounds), etc."
+      },
+      "hints": [
+        "What does sparse coding predict?",
+        "Does V1 match?"
+      ],
+      "workedSolution": "Sparse coding: minimize sum |a| of activations subject to reconstruction constraint. Applied to natural images, learns oriented edge filters at multiple scales — Gabors. V1 simple cells exhibit exactly this structure. Normative theory: the brain is OPTIMIZED for natural-image stats. Same approach reproduces retina (decorrelating filters), auditory cortex (wavelet-like), etc. One of the cleanest theory-data agreements in neuroscience.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_code_pop",
+        "kind": "math_expression",
+        "question": "Population of 1000 neurons each carrying 2 bits/sec, with 50% redundancy due to correlations. Effective info per second?",
+        "acceptedAnswers": [
+          "1000 bits",
+          "1000",
+          "1 kbit/s"
+        ],
+        "hint": "1000 × 2 × 0.5."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_code_bci",
+        "kind": "scenario",
+        "question": "Decoding a BCI cursor",
+        "prompt": "A brain-computer-interface team records 200 motor-cortex neurons + needs to decode intended 2D cursor velocity. Walk through the population-decoding choices."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_code",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why the brain uses population codes instead of single-neuron codes for important variables.",
+        "rubric": "Mentions that single neurons are noisy (~30% trial-to-trial variability); populations average out noise + add redundancy (robust to neuron loss); distributed representations let each neuron participate in many computations; provides exponentially larger representational capacity than single-neuron coding alone. The cost is downstream readout — decoding requires integrating across the population."
+      }
+    }
+  ]
+}
