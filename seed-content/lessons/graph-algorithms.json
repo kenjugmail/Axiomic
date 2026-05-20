@@ -43,12 +43,93 @@
         "kind": "explain_back",
         "prompt": "You're picking between A* and Dijkstra's algorithm for pathfinding in a 2D game. Both are $O((V + E) \\log V)$ with a binary heap. Why is A* the standard production choice, and what's the ONE condition the heuristic must satisfy for A* to give optimal answers?",
         "rubricCriteria": [
-          { "id": "expansion-difference", "description": "Names that A* expands far fewer nodes in practice — Dijkstra explores in all directions equally; A* is biased toward the goal by the heuristic" },
-          { "id": "admissibility-or-consistency", "description": "Names **admissibility** (heuristic never overestimates true distance to goal) — equivalently consistency / monotonicity for graph search — as the optimality condition" },
-          { "id": "concrete-heuristic", "description": "Names a concrete admissible heuristic for the 2D-grid case: Manhattan distance (4-connected grid) or Euclidean / Chebyshev (8-connected grid)" }
+          {
+            "id": "expansion-difference",
+            "description": "Names that A* expands far fewer nodes in practice — Dijkstra explores in all directions equally; A* is biased toward the goal by the heuristic"
+          },
+          {
+            "id": "admissibility-or-consistency",
+            "description": "Names **admissibility** (heuristic never overestimates true distance to goal) — equivalently consistency / monotonicity for graph search — as the optimality condition"
+          },
+          {
+            "id": "concrete-heuristic",
+            "description": "Names a concrete admissible heuristic for the 2D-grid case: Manhattan distance (4-connected grid) or Euclidean / Chebyshev (8-connected grid)"
+          }
         ],
         "passingScore": 0.5
       }
+    },
+    {
+      "kind": "text",
+      "title": "Choose your shortest-path algorithm",
+      "body": "**BFS**: unweighted graphs. $O(V + E)$. Hits the destination via the path with fewest edges.\n\n**Dijkstra**: non-negative weights. $O((V + E) \\log V)$ with a binary heap; $O(E + V \\log V)$ with Fibonacci heaps. Greedy: pop the closest unvisited node, relax its edges.\n\n**Bellman-Ford**: allows negative edges. $O(V E)$. Detects negative cycles. Slower; only use when you need it.\n\n**A***: Dijkstra + heuristic. Same correctness as Dijkstra if heuristic is admissible (never over-estimates). Massively faster on grid-like search spaces (route planning, game AI) because the heuristic prunes the search.\n\nWhy Dijkstra fails on negative edges: the greedy 'pop the closest' assumes the current best distance won't improve. A negative edge can later improve a finalized node's distance, breaking the invariant. Bellman-Ford handles this by simply iterating $V-1$ times."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_graph_dij",
+        "kind": "multiple_choice",
+        "question": "A road network with all positive edge weights. You want the shortest path from $s$ to $t$. Which is the wrong choice?",
+        "options": [
+          "Dijkstra's algorithm.",
+          "A* with a Euclidean-distance heuristic.",
+          "Bellman-Ford.",
+          "Bidirectional Dijkstra."
+        ],
+        "correctIndex": 2,
+        "explanation": "Bellman-Ford works but is asymptotically worse: $O(VE)$ vs. Dijkstra's $O((V+E) \\log V)$. On a road network with millions of nodes the constant factor difference is hundreds of seconds. Use Bellman-Ford only when you actually have negative edges or need to detect negative cycles."
+      },
+      "hints": [
+        "Bellman-Ford handles negative edges. You don't have any.",
+        "Compare worst-case running times: $O(VE)$ vs. $O((V+E)\\log V)$."
+      ],
+      "workedSolution": "Bellman-Ford handles negative edges that Dijkstra cannot — but at the cost of $O(VE)$ runtime. With all positive edges, Dijkstra's $O((V+E)\\log V)$ wins by orders of magnitude. A* with admissible heuristic is even faster on geometric road networks because the heuristic prunes the search.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_graph_neg",
+        "kind": "scenario",
+        "question": "When Bellman-Ford is the right call",
+        "prompt": "You're modeling currency-exchange paths between assets where each edge has a (positive or negative) profit. A teammate proposes Dijkstra. Why is that wrong, and what specific failure modes would it produce?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_graph_dij",
+        "kind": "math_expression",
+        "question": "Dijkstra with binary heap on a graph with $V = 10000$ and $E = 50000$ has complexity $O((V+E)\\log V)$. Estimate the leading-order operation count using $\\log_2 V = \\log_2 10000 \\approx 13.3$. Round to the nearest 1000.",
+        "acceptedAnswers": [
+          "800000",
+          "798000",
+          "797000",
+          "798259"
+        ],
+        "hint": "$(V+E)\\log_2 V$ ≈ 60000 × 13.3."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_graph",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why A* with an admissible heuristic returns the same shortest path as Dijkstra but typically explores fewer nodes.",
+        "rubric": "Mentions that admissibility (heuristic never over-estimates) preserves optimality; the heuristic biases the search toward the goal, pruning nodes Dijkstra would still visit."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "core",
+    "objectives": [
+      "Choose between BFS, DFS, Dijkstra, A* given the problem structure.",
+      "Explain why Dijkstra fails on negative edges.",
+      "Reason about Big-O for sparse vs dense graphs."
+    ],
+    "prereqs": [
+      "linked-structures"
+    ]
+  }
 }

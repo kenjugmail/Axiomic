@@ -43,12 +43,92 @@
         "kind": "explain_back",
         "prompt": "You're sorting 100M user records by `(department, hire_date, last_name)`. Your colleague writes three nested `sorted()` calls — first by `last_name`, then by `hire_date`, then by `department`. Why does this work, and what property of the sort algorithm is it relying on?",
         "rubricCriteria": [
-          { "id": "stability-required", "description": "Names that the sort must be **stable** for this pattern to work" },
-          { "id": "order-of-keys", "description": "Explains: with a stable sort, sorting by least-significant key first then by next-significant preserves the prior order within ties; final sort by most-significant produces the multi-key result" },
-          { "id": "alternative", "description": "Notes the simpler alternative: a single sort with a tuple key `(department, hire_date, last_name)` — equivalent result, one pass, doesn't depend on stability" }
+          {
+            "id": "stability-required",
+            "description": "Names that the sort must be **stable** for this pattern to work"
+          },
+          {
+            "id": "order-of-keys",
+            "description": "Explains: with a stable sort, sorting by least-significant key first then by next-significant preserves the prior order within ties; final sort by most-significant produces the multi-key result"
+          },
+          {
+            "id": "alternative",
+            "description": "Notes the simpler alternative: a single sort with a tuple key `(department, hire_date, last_name)` — equivalent result, one pass, doesn't depend on stability"
+          }
         ],
         "passingScore": 0.5
       }
+    },
+    {
+      "kind": "text",
+      "title": "Why $\\Omega(n \\log n)$ is a lower bound for comparison sort",
+      "body": "Any comparison-based sort can be modeled as a binary decision tree: each internal node is a comparison, each leaf is one of the $n!$ possible orderings.\n\nA binary tree of depth $d$ has at most $2^d$ leaves. To distinguish all $n!$ permutations, we need $2^d \\geq n!$, so $d \\geq \\log_2(n!) = \\Theta(n \\log n)$ by Stirling.\n\nThat's the floor any comparison sort must obey. Quicksort, mergesort, heapsort, timsort — they all hit it.\n\nRadix sort gets $O(nk)$ for $k$-digit keys because it isn't comparison-based — it exploits the structure of fixed-width integer keys. For sorting 64-bit integers, $k = 8$ bytes is constant, so radix sort is genuinely $O(n)$. The 'always $n \\log n$' rule applies only inside the comparison model."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sort_pivot",
+        "kind": "multiple_choice",
+        "question": "Quicksort's worst case is $O(n^2)$. Which pivot strategy makes that worst case essentially impossible on adversarial input?",
+        "options": [
+          "Always pick the first element.",
+          "Always pick the median (computed exactly).",
+          "Pick a random pivot per partition.",
+          "Pick the last element."
+        ],
+        "correctIndex": 2,
+        "explanation": "A random pivot makes any input behave like an average-case input in expectation, giving $O(n \\log n)$ expected. Adversaries can construct inputs that defeat any deterministic pivot rule. Computing the exact median per partition works but adds overhead (the linear-time median selection is intricate); random pivots are the simple, robust default."
+      },
+      "hints": [
+        "Deterministic rules (first, last, median-of-three) all have inputs that defeat them.",
+        "Randomization removes the adversary's ability to predict your behavior."
+      ],
+      "workedSolution": "Random pivots give expected $O(n \\log n)$ on adversarial input because the adversary can't predict pivot choices. Median pivots also avoid the worst case but require a separate selection algorithm. First/last pivots have famous worst cases (already-sorted input).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sort_compare",
+        "kind": "math_expression",
+        "question": "Mergesort on $n = 1024$ elements does roughly how many comparisons in the worst case? Use $n \\log_2 n$ as the leading-order estimate.",
+        "acceptedAnswers": [
+          "10240",
+          "10000",
+          "1024*10"
+        ],
+        "hint": "$n \\log_2 1024 = 1024 \\cdot 10$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sort_stability",
+        "kind": "scenario",
+        "question": "Stable vs unstable",
+        "prompt": "Your application sorts records by primary key, then re-sorts by a secondary key, expecting items with equal secondary keys to retain their primary-key order. The team uses quicksort and gets garbled output for tied secondary keys. What property is missing and which sort would fix it?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sort",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why radix sort can beat the $n \\log n$ lower bound without contradicting it.",
+        "rubric": "Mentions that the lower bound is for comparison-based sorts; radix sort uses key structure (digit access) rather than comparisons."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish quicksort, mergesort, heapsort by their tradeoffs.",
+      "Explain the $O(n \\log n)$ lower bound for comparison-based sorting.",
+      "Recognize when radix-sort beats comparison-based sorts."
+    ],
+    "prereqs": [
+      "asymptotic-analysis"
+    ]
+  }
 }
