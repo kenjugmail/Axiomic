@@ -1952,6 +1952,27 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P8 — Cryptographer path. Deeper crypto complement to
+  // security-engineer: hash functions, block ciphers, AEAD,
+  // public-key primitives, zero-knowledge proofs, post-quantum,
+  // password hashing, side-channels.
+  seedMasteryPath({
+    slug: "cryptographer",
+    title: "Cryptographer",
+    description:
+      "From hash functions through block-cipher design, authenticated encryption, public-key primitives, zero-knowledge proofs, post-quantum schemes, password hashing, and side-channel attacks. The deeper crypto complement to security-engineer.",
+    nodes: [
+      { slug: "hash-functions", title: "Cryptographic Hash Functions", level: "apprentice", order: 1, pages: ["hash-properties", "hmac", "merkle-trees"], prereqs: [], description: "Preimage / 2nd-preimage / collision resistance, HMAC, Merkle trees, the birthday bound." },
+      { slug: "block-cipher-design", title: "Block Cipher Design (AES)", level: "practitioner", order: 2, pages: ["aes-rounds", "confusion-diffusion", "aes-ni"], prereqs: ["hash-functions"], description: "AES round structure, Shannon's confusion + diffusion, constant-time S-boxes, AES-NI." },
+      { slug: "authenticated-encryption", title: "Authenticated Encryption (AEAD)", level: "practitioner", order: 3, pages: ["aead", "aes-gcm", "nonce-reuse"], prereqs: ["block-cipher-design"], description: "Why encrypt-then-MAC is the right shape, AES-GCM = CTR + GHASH, nonce-reuse catastrophe, ChaCha20-Poly1305." },
+      { slug: "public-key-primitives", title: "Public-Key Primitives", level: "specialist", order: 4, pages: ["diffie-hellman", "rsa", "ecdsa-nonces"], prereqs: ["hash-functions"], description: "DH/ECDH, RSA encrypt vs sign, ECDSA nonce-reuse (PS3 + Bitcoin breaks), X25519." },
+      { slug: "zero-knowledge-proofs", title: "Zero-Knowledge Proofs", level: "expert", order: 5, pages: ["zk-properties", "snarks-vs-starks", "schnorr"], prereqs: ["public-key-primitives"], description: "Completeness / soundness / zero-knowledge, SNARKs vs STARKs vs Bulletproofs, zk-rollups." },
+      { slug: "post-quantum-cryptography", title: "Post-Quantum Cryptography", level: "expert", order: 6, pages: ["shor", "lattice-lwe", "kyber-dilithium"], prereqs: ["public-key-primitives"], description: "Shor's threat, LWE, Kyber + Dilithium + SPHINCS+, hybrid migration (X25519 + Kyber768)." },
+      { slug: "password-hashing", title: "Password Hashing", level: "practitioner", order: 7, pages: ["argon2id", "salts-peppers", "constant-time-cmp"], prereqs: ["hash-functions"], description: "Argon2id memory-hardness, bcrypt / scrypt / PBKDF2 trade-offs, salts, constant-time comparison." },
+      { slug: "side-channel-attacks", title: "Side-Channel Attacks", level: "expert", order: 8, pages: ["timing-power-em", "spectre-meltdown", "constant-time-discipline"], prereqs: ["block-cipher-design", "public-key-primitives"], description: "Timing / power / EM / microarchitectural channels, Spectre + Meltdown, constant-time discipline." },
+    ],
+  });
+
   // P7 — Operating Systems path. The kernel-level foundation
   // under every other engineering discipline. Sits beneath
   // algorithms-engineer, distributed-systems, systems-engineer,

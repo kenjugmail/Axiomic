@@ -1,0 +1,133 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "State the structure of AES (rounds, S-box, MixColumns).",
+      "Distinguish confusion from diffusion.",
+      "Recognize why constant-time S-boxes matter."
+    ],
+    "prereqs": [
+      "hash-functions"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "AES-128, the high-level structure",
+      "body": "**AES** (Advanced Encryption Standard, 2001) operates on 16-byte (128-bit) blocks. Three key sizes: AES-128 (10 rounds), AES-192 (12 rounds), AES-256 (14 rounds).\n\nEach round transforms the 16-byte state through 4 steps:\n1. **SubBytes**: byte-wise substitution through a fixed S-box. Provides **confusion** (non-linearity).\n2. **ShiftRows**: cyclic shift of each row of the 4×4 state matrix. Provides **diffusion** within rows.\n3. **MixColumns**: matrix multiplication of each column over $\\mathbb{F}_{256}$. Provides cross-row diffusion.\n4. **AddRoundKey**: XOR with the round key (derived from the master key via key schedule).\n\nLast round skips MixColumns. The first AddRoundKey is before round 1 (pre-whitening).\n\n**Why these specific operations**:\n- S-box: maximal non-linearity. The Rijndael S-box (Daemen-Rijmen) is the inverse function in $\\mathbb{F}_{256}$ composed with an affine map.\n- MixColumns: matrix chosen to be MDS (Maximum Distance Separable) — any 1-byte input change diffuses to all 4 output bytes."
+    },
+    {
+      "kind": "text",
+      "title": "Confusion + diffusion + Shannon",
+      "body": "Shannon's 1949 framework for symmetric ciphers:\n\n- **Confusion**: relationship between plaintext + ciphertext should be complex + non-linear. S-boxes provide this. A 1-bit change in input ideally changes ~half the output bits (avalanche).\n- **Diffusion**: each bit of input should influence many bits of output. Permutations + linear mixing provide this.\n\nEvery modern block cipher (AES, Serpent, Camellia, GOST, ChaCha) follows this pattern: alternate confusion + diffusion across multiple rounds. The 'number of rounds' is chosen so that no shortcut attack is faster than brute-force key search.\n\n**Avalanche test**: flip one bit of input; count output bits that change. Should be ~50%. AES achieves full avalanche after 2-3 rounds; the remaining rounds add margin against cryptanalytic attacks.\n\nThe ciphers that have been broken (DES, AES-reduced-round) had insufficient diffusion or too-small S-boxes for the round count."
+    },
+    {
+      "kind": "text",
+      "title": "Constant-time S-boxes + cache attacks",
+      "body": "**The problem**: a naive S-box is a 256-byte lookup table. Looking up `S[byte]` accesses memory at byte's offset. On modern CPUs with cache, this access timing reveals which byte was looked up — via cache-hit/miss patterns. A nearby attacker (sharing CPU/cache) can extract the key over many AES operations.\n\n**Bernstein 2005**: published a remote cache-timing attack on OpenSSL's AES implementation. Key extraction over a network in ~minutes. The fix had to come at the implementation level.\n\nModern AES implementations are **constant-time**:\n- **AES-NI** (Intel x86, ARMv8 Crypto Extensions): dedicated CPU instructions. Single-cycle, no table lookups, no cache effects. Used by every modern crypto library on modern hardware.\n- **Bitsliced AES**: software fallback when AES-NI is unavailable. Implements the S-box as a sequence of bitwise operations on multiple blocks in parallel.\n\nProduction crypto libraries (OpenSSL, BoringSSL, libsodium, Rust's `aes` crate) detect AES-NI at runtime + use it when available, fall back to bitsliced or other constant-time impls otherwise. Never roll your own AES."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bc_avalanche",
+        "kind": "guided_derivation",
+        "question": "Estimate avalanche effect after multiple AES rounds",
+        "goal": "Single round changes ~half the output bits given one-bit input change. After $r$ rounds, output bits change with what probability?",
+        "steps": [
+          {
+            "prompt": "After round 1: ~50% bits change. Round 2: the changed bits propagate, each with ~50% probability. After 2 rounds: ~?",
+            "motivation": "Each round randomizes.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "~50% (already saturated; further rounds don't change the saturation level)",
+                "100%",
+                "25%",
+                "Decreases"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Once saturated at ~50%, more rounds don't change it."
+            ],
+            "reveal": "Saturated at ~50%. The avalanche is 'maximal' after a few rounds; more rounds add resistance against cryptanalytic shortcuts."
+          },
+          {
+            "prompt": "Why 10 AES rounds, not 3?",
+            "motivation": "Cryptanalytic margin.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Margin against differential + linear cryptanalysis: reduced-round AES (5-6 rounds) has known shortcut attacks; 10 rounds defeats all known attacks comfortably.",
+                "Avalanche needs 10 rounds.",
+                "Performance requires 10.",
+                "Standard mandated 10."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Avalanche saturates quickly; rounds add cryptanalytic margin."
+            ],
+            "reveal": "Avalanche saturates by round 3-4; rounds 4-10 provide margin against known + future cryptanalytic attacks. Reduced-round AES variants (AES-5, AES-6) have published attacks; full AES-10 doesn't."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{AES avalanche saturates by round 3; rounds 4-10 add cryptanalytic margin}}$$ Round count is chosen so the cipher resists the strongest known attacks with comfortable buffer. AES-128 is currently considered secure indefinitely; AES-256 has even more margin."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bc_constant_time",
+        "kind": "multiple_choice",
+        "question": "AES is implemented via a 256-byte S-box lookup table. Why is this potentially insecure even though AES itself is mathematically secure?",
+        "options": [
+          "Lookup tables are slow.",
+          "Cache-timing leakage: the table-access pattern reveals key bytes via timing measurements.",
+          "Tables compress badly.",
+          "Lookup tables are insecure by definition."
+        ],
+        "correctIndex": 1,
+        "explanation": "Side-channel: an attacker who can measure cache-timing (locally OR over a network, even) can recover the AES key. The S-box is mathematically correct; the implementation leaks via timing. Fix: use AES-NI hardware instructions (constant-time by design) or bitsliced AES (no table lookups). OpenSSL had this vulnerability historically; modern libraries are constant-time by default."
+      },
+      "hints": [
+        "What information leaks through a table lookup's timing?",
+        "Cache hits vs misses depend on which entry was accessed."
+      ],
+      "workedSolution": "Cache-timing side channel: the time of `lookup(table, byte)` depends on whether `byte`'s entry was in cache or not. An attacker who measures timing across many AES operations can deduce which bytes are being looked up → key bytes. Mitigations: AES-NI (CPU instructions that don't use tables), bitsliced AES (XOR/AND only). All modern crypto libraries do this.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_bc_rounds",
+        "kind": "math_expression",
+        "question": "AES-128 rounds, AES-256 rounds. Difference?",
+        "acceptedAnswers": [
+          "4",
+          "14-10",
+          "four"
+        ],
+        "hint": "10 vs 14."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_bc_aesni",
+        "kind": "scenario",
+        "question": "Choosing AES vs ChaCha20",
+        "prompt": "Your service serves mobile clients with mixed CPU support — some have AES-NI, some don't. Walk through whether to use AES-GCM or ChaCha20-Poly1305 + the reasoning."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bc",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why 'don't roll your own crypto' applies even when the algorithm itself is fully documented.",
+        "rubric": "Mentions that the math + the published algorithm are public; the implementation has subtle pitfalls (side channels, padding oracles, key derivation); production crypto libraries have been audited + hardened for years; reimplementing is reinventing decades of breakage."
+      }
+    }
+  ]
+}

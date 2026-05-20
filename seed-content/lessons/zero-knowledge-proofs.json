@@ -1,0 +1,129 @@
+{
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "advanced",
+    "objectives": [
+      "State the three properties of a ZKP (completeness, soundness, zero-knowledge).",
+      "Recognize SNARKs vs STARKs vs Bulletproofs.",
+      "Reason about real-world use cases (zkRollups, identity proofs)."
+    ],
+    "prereqs": [
+      "public-key-primitives"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Zero-knowledge, the three properties",
+      "body": "A zero-knowledge proof allows a **prover** to convince a **verifier** of a statement $x \\in L$ (in some language $L$) WITHOUT revealing anything beyond the truth of the statement.\n\nThree properties:\n1. **Completeness**: if $x \\in L$, an honest prover convinces an honest verifier with high probability.\n2. **Soundness**: if $x \\notin L$, no (computationally-bounded) prover can convince an honest verifier (except with negligible probability).\n3. **Zero-knowledge**: the verifier learns NOTHING about why $x \\in L$ beyond the fact that it is.\n\nClassic example (Schnorr's protocol): prove knowledge of discrete log $x$ such that $y = g^x$ without revealing $x$. The verifier becomes convinced; cannot extract $x$ from the transcript.\n\nMore powerful: **zk-SNARKs** prove ANY NP statement (computation) in zero knowledge, with a small constant-size proof + cheap verification."
+    },
+    {
+      "kind": "text",
+      "title": "SNARKs vs STARKs vs Bulletproofs",
+      "body": "**zk-SNARK** (Succinct Non-interactive ARgument of Knowledge): proof is ~200 bytes, verification ~10ms. Requires **trusted setup** (a one-time ceremony to generate parameters; if compromised, fake proofs become possible). Example systems: Groth16, PLONK.\n\n**zk-STARK** (Scalable Transparent ARgument of Knowledge): no trusted setup. Proof larger (~100KB) but verification faster. Quantum-resistant (uses hashes instead of pairings). Used by StarkWare, Polygon Hermez.\n\n**Bulletproofs**: no trusted setup. Proof ~1KB. Verification linear in circuit size. Used in Monero for confidential transactions.\n\nThe whole modern zk landscape:\n- **Production**: Ethereum Layer-2 (zkSync, Starknet, Polygon zkEVM) using SNARKs/STARKs to compress L1 verification costs.\n- **Identity**: anonymous credentials (e.g., 'prove you're over 18 without revealing your age').\n- **ML**: verify a model's output came from a specific model without revealing the model (zkML, Modulus Labs).\n\nThe field exploded 2018-2025. Proof generation is the bottleneck (often minutes to hours); verification is fast. GPU + custom-ASIC provers are an active area."
+    },
+    {
+      "kind": "text",
+      "title": "Real-world: zkRollups + their economic model",
+      "body": "Ethereum L1: ~15 transactions/second. ZkRollup L2: ~thousands of transactions/second.\n\n**The architecture**:\n1. Users submit transactions to a rollup operator.\n2. Operator batches thousands of transactions, executes them off-chain.\n3. Operator computes a zk-SNARK proving 'I correctly executed all these transactions starting from the previous state'.\n4. Posts the new state + proof to L1.\n5. L1 contract verifies the proof in ~10ms + ~$1 of gas, accepts the new state.\n\n**Result**: thousands of transactions get the security guarantee of L1 verification, but L1 only does ~10ms of verification work for the batch.\n\nProduction zk rollups in 2024-2025: zkSync, Starknet, Polygon zkEVM, Scroll. Each verifies ~1M+ TPS effectively at L2 prices ($0.0001 per transaction), inheriting L1 security.\n\nFundamental challenge: the prover is heavyweight (proves complex execution traces). Hardware accel (GPU/ASIC provers) is the bottleneck for throughput at scale."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_zk_schnorr",
+        "kind": "guided_derivation",
+        "question": "Trace Schnorr's protocol",
+        "goal": "Prover knows $x$ s.t. $y = g^x$. Wants to convince verifier without revealing $x$.",
+        "steps": [
+          {
+            "prompt": "Prover picks random $r$, sends commitment $A = g^r$. Verifier sends random challenge $c$. Prover responds $s = r + c \\cdot x$. Verifier checks $g^s = A \\cdot y^c$. Walk through: why does the check succeed for honest prover?",
+            "motivation": "Algebraic verification.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "g^s = g^(r + cx) = g^r * g^(cx) = A * y^c"
+              ]
+            },
+            "hints": [
+              "Substitute $s = r + cx$; use $y = g^x$."
+            ],
+            "reveal": "$g^s = g^{r+cx} = g^r \\cdot g^{cx} = A \\cdot y^c$. Check passes."
+          },
+          {
+            "prompt": "Why is this zero-knowledge? The transcript $(A, c, s)$ — can the verifier extract $x$?",
+            "motivation": "Simulation argument.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "No: the transcript $(A, c, s)$ can be simulated WITHOUT knowing $x$, by picking random $c, s$ first, then computing $A = g^s / y^c$. The simulation is indistinguishable from a real proof.",
+                "Yes, the verifier can extract $x$.",
+                "Sometimes.",
+                "Only with multiple proofs."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Simulator argument: build a fake transcript that's identically distributed."
+            ],
+            "reveal": "Simulator: pick $c$ random, $s$ random, compute $A = g^s \\cdot y^{-c}$. Transcript $(A, c, s)$ is identically distributed to a real one but the simulator never knew $x$. Hence the proof reveals nothing about $x$."
+          }
+        ],
+        "finalResult": "Schnorr's protocol is the simplest nontrivial ZKP. The Fiat-Shamir transform replaces the verifier's challenge $c$ with $c = H(g, y, A)$ (hash of the transcript so far) to make it non-interactive. Used in Schnorr signatures, BIP-340 (Bitcoin Taproot)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_zk_rollup",
+        "kind": "multiple_choice",
+        "question": "An L2 zkRollup processes 1000 TPS + posts a SNARK proof to L1 every 5 minutes. What scaling benefit does L1 get?",
+        "options": [
+          "L1 verifies each transaction individually (1000 TPS).",
+          "L1 verifies only the proof every 5 minutes: ~one verification handles 300,000 transactions.",
+          "L1 doesn't see any rollup transactions.",
+          "Rollup transactions are insecure."
+        ],
+        "correctIndex": 1,
+        "explanation": "The whole point of a zkRollup: L1 verifies the proof (~10ms) ONCE per batch. The batch can contain hundreds of thousands of transactions. L1's verification cost stays constant (proof size is small + verification fast); L2 throughput scales with prover capacity. Inherits L1 security since the proof guarantees correct off-chain execution."
+      },
+      "hints": [
+        "L1 verifies the SNARK proof, not each tx.",
+        "One proof represents the whole batch."
+      ],
+      "workedSolution": "L1's role: verify the SNARK every 5 min (~10ms of compute). The proof attests that the L2 operator correctly executed all 300K txs starting from the previous state. L1's verification cost is constant in batch size; L2's throughput is limited only by the prover's capacity. This is why zkRollups can achieve thousands of TPS at L2 cost while inheriting L1 security.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_zk_size",
+        "kind": "math_expression",
+        "question": "Groth16 SNARK proof size (bytes)?",
+        "acceptedAnswers": [
+          "~200",
+          "200",
+          "around 200 bytes"
+        ],
+        "hint": "Roughly three group elements."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_zk_identity",
+        "kind": "scenario",
+        "question": "Anonymous age verification",
+        "prompt": "A government wants to verify users are over 18 without learning their exact age or identity. Walk through how a ZK identity scheme could enable this + what trust assumptions remain."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_zk",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why zero-knowledge proofs are foundational to modern privacy-preserving systems.",
+        "rubric": "Mentions that they let one party prove statements about their data without revealing the data; this resolves a fundamental tension between privacy + verifiability; deploy targets include identity (anonymous credentials), blockchain (zkRollups), ML (verifiable inference)."
+      }
+    }
+  ]
+}

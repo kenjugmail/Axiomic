@@ -1,0 +1,98 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "State the AEAD security definition.",
+      "Walk through GCM's construction (CTR mode + GHASH).",
+      "Recognize the nonce-reuse pitfall."
+    ],
+    "prereqs": [
+      "block-cipher-design"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "AEAD: authenticated encryption with associated data",
+      "body": "AEAD (Authenticated Encryption with Associated Data) is the modern crypto contract:\n- Confidentiality of plaintext.\n- Integrity of plaintext.\n- Integrity of ASSOCIATED data (not encrypted but bound to the ciphertext).\n\nAPI:\n```\nencrypt(key, nonce, plaintext, associated_data) → ciphertext, tag\ndecrypt(key, nonce, ciphertext, tag, associated_data) → plaintext OR ⊥\n```\n\nIf the tag doesn't verify, decryption returns failure (don't try to use partial output). If it verifies, plaintext is authentic + integrity-protected.\n\n**Why AEAD won**:\n- Pre-AEAD: 'encrypt-then-MAC' was the recipe; getting it right was easy to mess up.\n- AEAD bundles encryption + authentication into one primitive with one key.\n- All modern crypto APIs (libsodium, Web Crypto, AWS Encryption SDK) expose AEAD.\n\nDominant constructions: **AES-GCM** (hardware-accelerated on AES-NI CPUs), **ChaCha20-Poly1305** (software-friendly, used by TLS 1.3 + WireGuard), **XChaCha20-Poly1305** (24-byte nonce, randomly-generated, easier to use safely)."
+    },
+    {
+      "kind": "text",
+      "title": "GCM, deconstructed",
+      "body": "AES-GCM combines two pieces:\n\n**CTR mode for encryption**: AES used as a keystream generator. $C_i = P_i \\oplus \\text{AES}_K(\\text{nonce} \\| \\text{counter}_i)$. Each block uses a unique counter. Parallelizable; AES-NI makes it very fast.\n\n**GHASH for authentication**: a polynomial hash over the ciphertext + associated data, evaluated at a key-derived point in $\\mathbb{F}_{2^{128}}$.\n\n$\\text{GHASH}(H, A, C) = \\sum_i X_i \\cdot H^{n - i + 1}$ where $H = \\text{AES}_K(0)$ and $X_i$ are the blocks of $A \\| C \\| \\text{lengths}$.\n\nThe authentication tag: $T = \\text{GHASH}(H, A, C) \\oplus \\text{AES}_K(\\text{nonce} \\| 0^{31} \\| 1)$.\n\nGHASH is fast on modern CPUs with the **CLMUL** (carry-less multiplication) instruction — combined with AES-NI, GCM achieves ~1 cycle per byte on a single core.\n\nProperties: confidentiality + integrity + associated data. Nonce: 96-bit (12 bytes) is canonical; longer or shorter need careful spec compliance. Tag: 128-bit standard, can be truncated to 96/64 for some applications."
+    },
+    {
+      "kind": "text",
+      "title": "Nonce reuse: the AEAD footgun",
+      "body": "**Nonce reuse with same key in CTR-based AEAD = catastrophic.** If you encrypt $P_1$ and $P_2$ under the same (key, nonce):\n- $C_1 = P_1 \\oplus \\text{keystream}$ and $C_2 = P_2 \\oplus \\text{keystream}$.\n- $C_1 \\oplus C_2 = P_1 \\oplus P_2$. Attacker recovers XOR of plaintexts; classical analysis recovers both.\n- WORSE: the GHASH key (= $\\text{AES}_K(0)$) gets revealed once you have enough (nonce, key) reuses, allowing forgery.\n\nSafe nonce strategies:\n- **Random 96-bit nonce per message**: birthday bound = $2^{48}$ messages before reuse risk. Fine for ~billions of messages per key.\n- **Counter-based nonce**: increment per message. Requires durable state (don't reset across crashes).\n- **XChaCha20-Poly1305**: 192-bit nonce. Random nonces are safe up to $2^{96}$ messages. Used when you can't track state.\n\n**Misuse-resistant AEAD** (AES-GCM-SIV, the modern recommendation for high-stakes nonce-management): even with nonce reuse, only repeated plaintexts collide. Doesn't catastrophically break. Used by Google internally for cookie encryption."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ae_aesgcm",
+        "kind": "guided_derivation",
+        "question": "Derive AES-GCM's per-byte cost",
+        "goal": "AES-NI: ~1 cycle/byte for encryption. CLMUL: ~1 cycle/byte for GHASH. Combined cost?",
+        "steps": [
+          {
+            "prompt": "GCM does encryption + GHASH in parallel (different execution units). Pipelined throughput?",
+            "motivation": "Parallelism.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~1 cycle/byte",
+                "1 cycle per byte"
+              ]
+            },
+            "hints": [
+              "Encryption + GHASH overlap; bottlenecked by the slower one."
+            ],
+            "reveal": "~1 cycle/byte on a modern x86 CPU with AES-NI + CLMUL. At 3GHz: ~3 GB/s per core."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{AES-GCM: ~1 cycle/byte on modern hardware}}$$ Throughput limited only by memory bandwidth on most workloads. TLS 1.3 + HTTPS + most disk encryption use AES-GCM precisely because of this performance."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ae_nonce",
+        "kind": "multiple_choice",
+        "question": "You use AES-GCM with 96-bit random nonces. After how many messages does collision probability reach 50%?",
+        "options": [
+          "~2^48",
+          "~2^96",
+          "~2^32",
+          "~2^128"
+        ],
+        "correctIndex": 0,
+        "explanation": "Birthday bound on 96-bit nonces: $2^{96/2} = 2^{48}$. About $2.8 \\times 10^{14}$ messages per key. For most applications, key rotation happens before this — but high-volume systems (Google's Spanner, AWS S3) keep careful track + rotate keys long before the bound."
+      },
+      "hints": [
+        "Random 96-bit nonces: birthday bound at $2^{48}$.",
+        "Roughly $3 \\times 10^{14}$ messages."
+      ],
+      "workedSolution": "Birthday bound: $2^{n/2}$ random samples before collision is likely. 96-bit nonces → $2^{48} \\approx 2.8 \\times 10^{14}$ messages before reuse becomes probable. Production systems rotate keys before this; misuse-resistant variants (AES-GCM-SIV, XChaCha20-Poly1305) lift the bound considerably.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ae_chacha",
+        "kind": "scenario",
+        "question": "When to use ChaCha20-Poly1305 over AES-GCM",
+        "prompt": "You're building a mobile app that targets older Android devices without AES-NI. Walk through whether to use AES-GCM or ChaCha20-Poly1305."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ae",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why AEAD is the modern default + raw block ciphers (CBC, ECB) are deprecated for new code.",
+        "rubric": "Mentions that pre-AEAD ('encrypt-then-MAC') compositions were error-prone (padding oracles, MAC ordering bugs); AEAD bundles confidentiality + integrity into one primitive; modern libraries expose only AEAD APIs for new code; older raw-cipher APIs are kept for legacy interop only."
+      }
+    }
+  ]
+}
