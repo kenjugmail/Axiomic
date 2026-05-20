@@ -1,0 +1,163 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "expert",
+    "objectives": [
+      "Outline the project-delivery lifecycle.",
+      "Apply CPM scheduling.",
+      "Reason about cost estimation + risk management."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Project delivery + the lifecycle",
+      "body": "**Construction project lifecycle**:\n1. **Concept + planning**: needs, feasibility, environmental, permits.\n2. **Design**: schematic → design development → construction documents.\n3. **Bidding/procurement**: tender, evaluate bids, contract.\n4. **Construction**: build.\n5. **Commissioning + close-out**: handover.\n6. **Operations + maintenance**: long-term.\n7. **End of life / decommissioning**.\n\n**Delivery methods**:\n- **Design-Bid-Build (DBB)**: traditional. Owner contracts designer, then separately contracts builder via competitive bid. Sequential. Most public projects.\n- **Design-Build (DB)**: owner contracts one team for both design + construction. Faster; single point of responsibility. Growing share.\n- **Construction Manager at Risk (CM at Risk, CMAR, GMP)**: CM joins design team early; commits to GMP (Guaranteed Maximum Price). Hybrid.\n- **Integrated Project Delivery (IPD)**: owner, designer, builder share risk + reward. Multi-party contract. Emerging.\n- **Public-Private Partnerships (P3, PPP)**: private sector finances, designs, builds, operates infrastructure for long-term contract. Highways, hospitals, airports.\n\n**Parties + roles**:\n- **Owner**: who pays. Public agency, private developer, corporation.\n- **Designer (architect + engineers)**: prepares drawings + specifications.\n- **Contractor (general or prime)**: builds. Subcontracts trades.\n- **Subcontractors**: specialty (electrical, mechanical, concrete, etc.).\n- **Construction manager**: agent of owner, may also be at-risk.\n- **Suppliers**: materials + equipment.\n- **Surety**: bonds (performance, payment).\n- **Inspectors + jurisdictions**: code enforcement.\n\n**Documents**:\n- **Construction drawings**: graphical.\n- **Specifications**: written technical requirements. CSI MasterFormat divisions.\n- **General conditions** + **supplementary conditions**: legal terms.\n- **Cost estimates**: preliminary → detailed.\n- **Schedule**: when activities happen.\n- **Submittals**: contractor proposes materials + shop drawings; designer approves.\n- **RFIs (Requests for Information)**: questions during construction.\n- **Change orders**: modifications to scope/cost/schedule.\n\n**Modern**:\n- **BIM (Building Information Modeling)**: 3D models with all data. Revit, ArchiCAD, Tekla. Used for design, fabrication, construction, FM (facilities management).\n- **4D BIM**: model + schedule.\n- **5D BIM**: + cost.\n- **6D**: + sustainability.\n- **7D**: + facilities management.\n- **Digital twins**: live model of operating asset.\n- **Drones, lidar, photogrammetry**: as-built monitoring.\n- **AR/VR**: design review + training.\n- **Modular + prefab**: factory-built modules; site assembly.\n- **3D-printed concrete**: emerging; full houses printed in 24 hours."
+    },
+    {
+      "kind": "text",
+      "title": "CPM scheduling + earned value",
+      "body": "**Critical Path Method (CPM)**: standard schedule planning.\n\nProject = network of ACTIVITIES with DURATION + DEPENDENCIES.\n\nDependencies:\n- **Finish-to-Start (FS)**: A finishes before B starts. Default.\n- **Start-to-Start (SS)**: B can start when A starts.\n- **Finish-to-Finish (FF)**: A + B must finish together.\n- **Start-to-Finish (SF)**: rare.\n\n**Forward + backward pass** through the network:\n- **Early Start (ES) + Early Finish (EF)**: forward pass; earliest possible.\n- **Late Start (LS) + Late Finish (LF)**: backward pass; latest without delaying project.\n- **Total Float (TF) = LS - ES = LF - EF**: how much slack.\n- **Free Float**: how much without delaying immediate successor.\n\n**Critical path**: sequence with zero total float. Any delay here delays project. Manage tightly.\n\n**Non-critical activities**: have float. Can shift within float window.\n\n**Software**: Microsoft Project, Primavera P6 (oracle, standard for large projects), Asta Powerproject, ProjectLibre, etc.\n\n**Schedule compression**:\n- **Fast-track**: overlap design + construction phases. Or overlap activities normally sequential.\n- **Crashing**: add resources to critical activities. Trade money for time.\n- **Resource leveling**: smooth resource demand. May extend schedule.\n\n**Risks to schedule**:\n- Weather (especially earthwork, exterior).\n- Long-lead items (specialty equipment).\n- Permits + approvals delays.\n- Labor availability.\n- Material price + availability.\n- Site conditions (differing geo, contamination).\n- Owner changes.\n\n**Earned Value Management (EVM)**: combine cost + schedule.\n- **Planned Value (PV / BCWS)**: budget for work scheduled.\n- **Earned Value (EV / BCWP)**: budget for work PERFORMED.\n- **Actual Cost (AC / ACWP)**: actual cost incurred.\n- **Schedule Variance (SV) = EV - PV**: positive = ahead.\n- **Cost Variance (CV) = EV - AC**: positive = under budget.\n- **CPI = EV/AC**: cost performance index. Above 1 = good.\n- **SPI = EV/PV**: schedule performance index. Above 1 = good.\n- **Estimate at Completion (EAC) = BAC / CPI**: forecast final cost.\n\nFederal projects + many large projects require EVM reporting (DCMA, EIA-748)."
+    },
+    {
+      "kind": "text",
+      "title": "Cost estimation + risk + the future",
+      "body": "**Cost estimation accuracy by phase**:\n- **Order-of-magnitude (OOM)** at concept: ±50%.\n- **Conceptual** at schematic design: ±30%.\n- **Budget** at design development: ±15%.\n- **Definitive** at construction documents: ±10%.\n- **Detailed** by trade: ±5%.\n\n**Estimating methods**:\n- **Square-foot / unit cost**: \\$/SF or \\$/unit. Early phases.\n- **Parametric**: cost = f(parameters). E.g., bridge cost as function of length + span.\n- **Assembly / system**: breakdown by building system (foundation, framing, MEP).\n- **Detailed quantity takeoff (QTO)**: every material + labor item.\n- **Subcontractor pricing**: bid out trades.\n\n**Resources**:\n- **RSMeans**: standard cost data.\n- **State DOT bid data**: historical.\n- **Subcontractor relationships**: most-accurate for specific local markets.\n- **AI + ML estimating**: emerging; pattern-match from historical projects.\n\n**Bidding**:\n- **Competitive (low bid)**: cheapest qualified wins. Public projects.\n- **Best value**: combine cost + quality + experience.\n- **Negotiated**: with selected contractor.\n- **Reverse auction**: live bidding event.\n\n**Risk management**:\n- **Identify**: brainstorm + checklists.\n- **Assess**: probability × impact.\n- **Plan**: avoid, mitigate, transfer (insurance, contract), accept.\n- **Monitor**: throughout project.\n\n**Common risks**:\n- Cost overruns (almost universal at some level).\n- Schedule delays.\n- Quality defects → rework.\n- Safety incidents.\n- Disputes + claims.\n- Force majeure (COVID).\n- Material price volatility.\n\n**Disputes + claims**:\n- Causes: changes, delays, differing site conditions, defective design, contract ambiguities.\n- Resolution: negotiation → mediation → arbitration → litigation.\n- Notice provisions in contracts critical.\n\n**Safety**:\n- USA construction: ~1000 deaths/year (industry leader in fatalities). 'Fatal four': falls, struck-by, electrocution, caught-in-between.\n- OSHA regulations.\n- Toolbox talks, PPE, training, fall protection.\n- Modern: drone inspection (no workers at heights), exoskeletons, sensors.\n\n**Sustainability**:\n- **LEED, BREEAM, Living Building Challenge**: certifications.\n- **Embodied carbon**: emissions from materials production. Increasingly tracked.\n- **Carbon-neutral / Net-Zero**: targets for new buildings.\n- **Adaptive reuse**: renovate existing > new construction.\n- **Material passport**: track materials for future reuse.\n\n**Modern construction**:\n- **Prefab + modular**: factory production, site assembly. Marriott opening new hotels in months not years.\n- **3D printing**: walls, full small buildings.\n- **Robotics**: bricklayer robots, drone-based survey, autonomous earth moving (Built Robotics).\n- **AI**: design generation, cost prediction, schedule optimization, safety monitoring.\n- **Decarbonization**: green steel + cement, electric equipment, on-site renewables.\n\n**Productivity**: construction productivity has stagnated for decades while other industries (manufacturing, agriculture) grew. McKinsey + others identify large opportunity for digitization + modernization. Industry slowly transforming."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cm_cpm",
+        "kind": "guided_derivation",
+        "question": "Apply CPM to a small project",
+        "goal": "5 activities: A (3 days), B (5), C (4), D (2), E (3). Dependencies: A→B, A→C, B→D, C→D, D→E. Find critical path + duration.",
+        "steps": [
+          {
+            "prompt": "A is the first task. After A, both B + C can start in parallel. Then D needs both. Then E. Compute durations through each path: A-B-D-E vs A-C-D-E.",
+            "motivation": "Trace paths.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Both 13 days.",
+                "A-B-D-E: 3+5+2+3 = 13 days. A-C-D-E: 3+4+2+3 = 12 days. Critical: A-B-D-E (longest).",
+                "12 days.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Sum each path."
+            ],
+            "reveal": "A-B-D-E = 13 days (critical). A-C-D-E = 12 days."
+          },
+          {
+            "prompt": "Critical path activities (no float):",
+            "motivation": "Identify.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "A, B, D, E.",
+                "Just A.",
+                "Just D.",
+                "All five."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "No float on critical path."
+            ],
+            "reveal": "A, B, D, E. Float = 0. Delays here delay project."
+          },
+          {
+            "prompt": "Activity C has total float = ?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1 day",
+                "1"
+              ]
+            },
+            "hints": [
+              "13 - 12 = 1."
+            ],
+            "reveal": "1 day. C can slip up to 1 day without delaying project."
+          },
+          {
+            "prompt": "If you can compress only ONE activity by 1 day, which has biggest project-finish impact?",
+            "motivation": "Critical path.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "C.",
+                "Any critical activity (A, B, D, or E). Compressing C doesn't help — it has float. Compress critical path activities for shortest project.",
+                "All.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Critical path."
+            ],
+            "reveal": "Compress critical path activities to shorten project. Compressing non-critical does NOTHING for total duration (just increases float). Standard fast-track + crashing focus on critical path."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Critical path = longest path = project duration; only compressing critical path helps}}$$ CPM is the foundation of construction scheduling. Real projects have thousands of activities + complex networks; software (P6) computes critical path + tracks progress + variance. Modern: 4D BIM links schedule to model; visualizes sequence. Linear scheduling for repetitive work (highways, tunnels). Lean construction principles minimize waste + variability."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cm_overrun",
+        "kind": "multiple_choice",
+        "question": "Why do mega-projects (Boston Big Dig, California HSR, Berlin BER) routinely overrun budgets + schedules?",
+        "options": [
+          "Marketing.",
+          "Multiple causes: optimistic initial estimates (often political, to get approval), scope creep, unforeseen conditions (geological, environmental, archaeological), changes in requirements, design errors, contract disputes, supply-chain issues, political delays. Bent Flyvbjerg's research: 'megaprojects pathology' — strategic misrepresentation, optimism bias, planning fallacy. Documented across hundreds of projects globally.",
+          "Random.",
+          "Bad luck."
+        ],
+        "correctIndex": 1,
+        "explanation": "Flyvbjerg (Oxford prof, megaproject expert) documents systemic megaproject failure across all sectors + countries. Average overrun: 28% cost, 70% schedule. Big Dig (Boston): 3× original budget. California HSR: years late, costs ballooning. Berlin BER airport: 9 years late, 3× budget. Causes: (1) Strategic misrepresentation (low-ball estimates to win approval). (2) Optimism bias. (3) Planning fallacy. (4) Genuine unknowns (geological, market, technology). (5) Decision-maker turnover. (6) Inadequate front-end planning.\n\nSuccessful mega-projects (some Australian highway P3s, some Norwegian fjord tunnels, Hong Kong airport): better planning, qualified contractors, risk sharing, governance. Reference-class forecasting (compare to similar past projects) reduces bias. Industry slowly maturing on lessons."
+      },
+      "hints": [
+        "Why systemic overruns?",
+        "How to reduce?"
+      ],
+      "workedSolution": "Strategic misrepresentation + optimism bias + planning fallacy + genuine unknowns. Documented systematically (Flyvbjerg). Improvements: reference-class forecasting (similar past projects), risk-sharing contracts, qualified P3 partners, governance, front-end planning. Slowly improving but pervasive. Modern AI may help estimating + risk analysis.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_cm_evm",
+        "kind": "math_expression",
+        "question": "Project: PV = $1M, EV = $0.9M, AC = $1.1M. CPI?",
+        "acceptedAnswers": [
+          "0.82",
+          "~0.82"
+        ],
+        "hint": "$CPI = EV/AC = 0.9/1.1 = 0.82$. Over budget."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_cm_dbb",
+        "kind": "scenario",
+        "question": "Design-Build vs Design-Bid-Build",
+        "prompt": "A municipality considers Design-Build for a new fire station to accelerate schedule. Walk through trade-offs."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cm",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why construction management is increasingly important as projects grow in scale + complexity.",
+        "rubric": "Mentions that megaprojects (\\$1B+) involve thousands of stakeholders + activities + risks; without rigorous management (CPM, EVM, BIM, risk register, change control), they spiral out of control; modern tools (digital twins, AI-augmented planning, BIM coordination) are reshaping the discipline. Industry productivity has lagged manufacturing for decades; modernization is the focus."
+      }
+    }
+  ]
+}

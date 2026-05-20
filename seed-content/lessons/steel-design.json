@@ -1,0 +1,174 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Outline structural-steel shapes + grades.",
+      "Reason about column buckling + slenderness.",
+      "Apply LRFD design for tension + compression + bending."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Structural steel: workhorse of modern construction",
+      "body": "**Structural steel**: hot-rolled or fabricated from steel plate. Used for buildings, bridges, towers, industrial structures.\n\n**Grades** (USA):\n- **A36**: yield 36 ksi (250 MPa), tensile 58 ksi. Older standard. Still used for misc.\n- **A992**: yield 50 ksi (345 MPa), tensile 65 ksi. Standard for wide-flange shapes since 2000.\n- **A572 Gr. 50, 60, 65**: high-strength low-alloy. Used for built-up sections.\n- **A588 (Cor-Ten)**: weathering steel. Forms protective rust patina. Used for outdoor exposed structures (Picasso sculpture, Chicago Tribune Tower, many bridges).\n- **A514 / A709 Gr. HPS70W**: quenched + tempered. Used in highway bridges.\n- **A53, A500, A1085**: HSS (Hollow Structural Sections) — square, round, rectangular tubes.\n\n**Standard shapes** (AISC Manual):\n- **W-shapes (wide flange)**: most common. Letters + numbers like W14×26 (14\" deep, 26 lb/ft).\n- **HP-shapes**: bearing piles.\n- **S-shapes**: older I-beams. Less common.\n- **C-shapes**: channels.\n- **L-shapes**: angles.\n- **HSS**: hollow square/rectangular/round.\n- **MC, T, WT**: misc. channels + tees.\n\n**Why I-shapes**: cross-section concentrates material in flanges (away from neutral axis) where bending stress is highest. ~6-10× more efficient than a solid rectangle for bending.\n\n**Properties of section** (tabulated in manuals):\n- $A$ = area.\n- $I_x, I_y$ = moments of inertia about strong + weak axes.\n- $S_x, S_y$ = section moduli ($I/c$).\n- $r_x, r_y$ = radii of gyration.\n- $Z_x$ = plastic section modulus.\n- Properties for thousands of shapes in AISC tables.\n\n**Connections** are critical:\n- **Bolted**: high-strength bolts (A325, A490). Slip-critical or bearing. Used widely + reliable.\n- **Welded**: complete joint penetration (CJP) or partial (PJP). Fillet welds for less-critical.\n- Connection design often governs.\n\n**Design philosophy** (LRFD — Load + Resistance Factor Design):\n- Factored applied load $L_u$ ≤ design strength $\\phi R_n$.\n- $\\phi$ < 1 (resistance factor: 0.9 for tension yielding, 0.75 for tension rupture, 0.9 for compression).\n- $L_u$ uses load factors > 1 (e.g., 1.2 dead + 1.6 live for typical buildings).\n- Probabilistic basis: ensures < 1 in 10,000 failure probability.\n\n**ASD (Allowable Stress Design)** alternative: $L \\le R_n / \\Omega$ where $\\Omega > 1$. Older but still in some codes."
+    },
+    {
+      "kind": "text",
+      "title": "Compression + buckling",
+      "body": "**Column buckling**: at SLENDER member can fail by buckling (lateral instability) at stress WELL BELOW yield.\n\n**Euler buckling load** (pin-pin column):\n$$P_E = \\frac{\\pi^2 E I}{L^2}$$\n\nFor other end conditions:\n- Fixed-fixed: $P_E = 4 \\pi^2 EI / L^2$ (4× pin-pin).\n- Fixed-free (cantilever): $P_E = \\pi^2 EI / (4L^2)$ (1/4 pin-pin).\n- Fixed-pinned: $P_E = 2.046 \\pi^2 EI / L^2$ (~2× pin-pin).\n\n**Effective length** $KL$: equivalent pin-pin length for buckling.\n- Pin-pin: $K = 1$.\n- Fixed-fixed: $K = 0.5$.\n- Fixed-free: $K = 2$.\n- Fixed-pinned: $K = 0.7$.\n\n**Slenderness ratio**: $\\lambda = KL/r$ where $r = \\sqrt{I/A}$.\n- Short (compact): $\\lambda < 50$. Yields, no buckling.\n- Intermediate: $50 < \\lambda < 200$. Inelastic buckling.\n- Long: $\\lambda > 200$. Elastic Euler buckling.\n\n**AISC column curve**: combines yielding + Euler + inelastic in a single design equation.\n\n**Real columns** never reach Euler — initial imperfections + residual stresses reduce capacity. Design accounts via reduction factors.\n\n**Plate buckling**: thin plates (webs, flanges) buckle locally before whole column. Compactness + slenderness limits for each element.\n- **Compact sections**: full plastic moment.\n- **Non-compact**: partial yielding.\n- **Slender**: local buckling. Capacity reduced.\n\n**Lateral-torsional buckling (LTB)**: beam can buckle laterally + twist when loaded. Critical for long-span unbraced beams. Lateral bracing required.\n\n**Practical design**:\n- Brace columns laterally to reduce $KL$.\n- Use compact shapes (W14×, W12×, W10× for columns; deep W30+, W40+ for beams).\n- Web stiffeners for plate buckling.\n- AISC Steel Manual: tabulated shapes + capacities for common configurations.\n\n**P-delta effects**: second-order analysis for slender systems. Lateral deflection amplifies moments. Modern software (SAP, ETABS, RAM) does this automatically."
+    },
+    {
+      "kind": "text",
+      "title": "Connections + the system view",
+      "body": "**Connection design**: critical + often governs. Beam-column joints, splices, base plates, brackets.\n\n**Beam-to-column connections**:\n- **Shear connections**: transfer shear only. Web angle, single-plate (shear tab), seated. Use bolts.\n- **Moment connections**: transfer shear + moment. Used in moment frames. Welded flange + bolted web typical.\n- **Pre-qualified moment connections**: AISC 358 lists tested designs. Used after Northridge earthquake (1994) showed weld brittleness.\n\n**Lateral force resisting systems**:\n- **Moment frames**: rigid joints, columns + beams resist lateral loads via bending. Used in earthquake-prone regions, mid-rise.\n- **Braced frames**: diagonal braces (X, K, V, inverted-V). More efficient than moment frames; common in low-rise + with deep braces.\n- **Shear walls (reinforced concrete or steel-plate)**: solid walls. Stiff + strong. Used in tall buildings.\n- **Dual systems**: combined moment frame + shear wall or braced frame.\n- **Outrigger systems**: very tall buildings. Connect core to perimeter columns via deep trusses.\n\n**Seismic design**:\n- Strong-column-weak-beam philosophy: ensure beams yield before columns. Prevents story collapse.\n- Ductile detailing: extra reinforcement, special connections.\n- Capacity design: protect critical elements by ensuring others yield first.\n- Performance-based design: design for specific seismic events (e.g., 'no collapse at 2475-year return event').\n\n**Wind design**:\n- ASCE 7 specifies wind speeds + pressures by location.\n- Building shape affects loading (rectangular, tall, slender).\n- Wind tunnel testing for tall + unusual shapes.\n\n**Fire protection**:\n- Steel loses strength above ~500°C. Requires fire protection (spray-on cementitious, intumescent paint, gypsum board enclosure).\n- Code fire-rating: 1-4 hours depending on occupancy.\n- Composite + protected systems extend to 4+ hours.\n\n**Modern construction**:\n- **Prefabrication**: factory-built steel modules, faster site work.\n- **BIM (Building Information Modeling)**: integrated 3D model with everything (structure, MEP, finishes). Tekla Structures, Revit Structure dominant.\n- **Construction technology**: cranes, lifts, GPS, drones for survey + monitoring.\n- **Sustainability**: structural steel ~97% recyclable. New steel from EAF (electric arc furnace) uses recycled scrap. Modern steel has 30-90% recycled content."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_steel_column",
+        "kind": "guided_derivation",
+        "question": "Check a steel column",
+        "goal": "W14×90 column, 6 m long, fixed-pinned ends. Steel A992 ($F_y = 50$ ksi = 345 MPa). Applied factored load 1500 kN. Check capacity.",
+        "steps": [
+          {
+            "prompt": "Section properties (look up W14×90): $A = 17,100$ mm², $r_y = 95$ mm (minor axis). Effective length: $K = 0.7$ (fixed-pinned). $L = 6000$ mm. Compute $KL/r_y$.",
+            "motivation": "Slenderness.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~44",
+                "44.2",
+                "~44"
+              ]
+            },
+            "hints": [
+              "0.7 × 6000 / 95."
+            ],
+            "reveal": "$KL/r_y = 44.2$. Compact-intermediate range."
+          },
+          {
+            "prompt": "Compute Euler buckling stress: $F_e = \\pi^2 E / (KL/r)^2$. $E = 200,000$ MPa.",
+            "motivation": "Plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~1010 MPa",
+                "1010",
+                "~1011"
+              ]
+            },
+            "hints": [
+              "$\\pi^2 \\times 200000 / 44.2^2 = 1011$."
+            ],
+            "reveal": "$F_e \\approx 1010$ MPa. WAY above yield (350) → inelastic buckling governs."
+          },
+          {
+            "prompt": "Since $F_y / F_e = 350/1010 = 0.34 < 2.25$: AISC inelastic formula. $F_{cr} = (0.658)^{F_y/F_e} F_y \\approx 0.658^{0.347} \\times 345$.",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~300 MPa",
+                "300",
+                "~298"
+              ]
+            },
+            "hints": [
+              "$0.658^{0.347} \\approx 0.870$, then × 345 = 300."
+            ],
+            "reveal": "$F_{cr} \\approx 300$ MPa. Reduced from yield due to slenderness."
+          },
+          {
+            "prompt": "Design strength: $\\phi P_n = \\phi F_{cr} A_g = 0.9 \\times 300 \\times 17100$.",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~4617 kN",
+                "~4600 kN",
+                "4617"
+              ]
+            },
+            "hints": [
+              "0.9 × 300 × 17100 = 4,617,000 N."
+            ],
+            "reveal": "$\\phi P_n \\approx 4617$ kN. Applied 1500 kN. Adequate."
+          },
+          {
+            "prompt": "Demand/capacity ratio?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~0.32",
+                "~0.33",
+                "1500/4617"
+              ]
+            },
+            "hints": [
+              "1500/4617."
+            ],
+            "reveal": "0.32. Column has ~3× the needed capacity. Overdesigned for this load — could use smaller W-shape (W12×45 or similar)."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\phi P_n = \\phi F_{cr} A_g; F_{cr} \\text{ from AISC inelastic + Euler curves}}$$ Column design balances slenderness + cross-section + load. Long slender columns governed by Euler; short stocky by yield. Real members add reduction for imperfections + residual stresses. Modern: AISC tables list capacity vs $KL$ for every shape. Designers pick shape from tables + verify; software automates whole-building analysis."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_steel_eul",
+        "kind": "multiple_choice",
+        "question": "Why are I-shape (wide-flange) columns more efficient than solid square columns for buckling?",
+        "options": [
+          "Random.",
+          "Moment of inertia is concentrated AWAY from the centroid (flanges far from neutral axis). For same area, I-shape has much higher $r = \\sqrt{I/A}$ + higher Euler buckling load. Solid square has uniform $I$ in all directions → lower buckling resistance.",
+          "Cheaper.",
+          "Decoration."
+        ],
+        "correctIndex": 1,
+        "explanation": "Euler buckling: $P_E \\propto I/L^2$. Higher $I$ for given $A$ = more efficient. I-shapes (WF, HSS) place material far from centroid = high $I_x$ AND high $I_y$. Square solid: $I = a^4/12$; WF: $I_x \\approx 30-50 \\times$ solid for same area. Similar for $r$. WF columns are 5-10× more efficient by weight than equivalent solid cross-section. This is THE reason structural steel dominates: cross-section shape optimized for bending + axial loading.\n\nWhy not just use a thin tube? Tubes are best for combined bending + torsion but expensive to fabricate. WF is the optimal balance for typical building members."
+      },
+      "hints": [
+        "What makes a shape efficient?",
+        "Why I-shape?"
+      ],
+      "workedSolution": "Efficient = high I for given area. WF concentrates material at flanges (far from neutral axis) = high $I_x$ + $I_y$. Square solid: uniform distribution = low $I$. For same weight, WF column buckles at much higher load. The reason 90%+ of building columns are WF. Round HSS even more efficient for buckling but harder to connect. WF wins the trade-off.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_steel_kl",
+        "kind": "math_expression",
+        "question": "Pin-pin column, L = 4 m, r = 50 mm. Slenderness?",
+        "acceptedAnswers": [
+          "80",
+          "KL/r = 4000/50"
+        ],
+        "hint": "$KL/r = 80$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_steel_tall",
+        "kind": "scenario",
+        "question": "Designing a 50-story building's lateral system",
+        "prompt": "Walk through the lateral system choices: moment frame, braced frame, shear wall, dual, outrigger. Trade-offs."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_steel",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why structural steel is the dominant material for tall buildings + long-span structures.",
+        "rubric": "Mentions that steel has high strength-to-weight (3-5× concrete), is ductile (good for earthquake design), comes in standardized shapes optimized for structural use, can be precisely fabricated + erected quickly, + is easy to connect via bolts + welds. Steel-frame structures go up faster + reach higher than concrete. Composite (steel + concrete) systems combine advantages."
+      }
+    }
+  ]
+}

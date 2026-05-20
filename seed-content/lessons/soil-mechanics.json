@@ -1,0 +1,158 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "core",
+    "objectives": [
+      "Classify soil types.",
+      "Apply effective stress + Terzaghi's principle.",
+      "Reason about consolidation + settlement."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Soil: nature's complicated structural material",
+      "body": "**Soil**: weathered + transported rock + organic matter. The foundation material for almost everything built.\n\n**Soil classification** (Unified Soil Classification System, USCS):\n- **Coarse-grained** (> 50% retained on 75-μm sieve):\n  - **Gravel (G)**: > 4.75 mm. Strong, free-draining.\n  - **Sand (S)**: 75 μm - 4.75 mm. Good support if confined.\n- **Fine-grained** (> 50% passing 75-μm sieve):\n  - **Silt (M)**: 2-75 μm. Behaves like fine sand or fine clay depending on water.\n  - **Clay (C)**: < 2 μm. Plate-shaped particles. Cohesive, low permeability.\n- **Organic (O)**: peat. Compressible + decomposes; not used for support.\n\n**Atterberg limits** (clay): water content where clay transitions phase.\n- **Liquid limit (LL)**: liquid → plastic.\n- **Plastic limit (PL)**: plastic → semi-solid.\n- **Shrinkage limit (SL)**: semi-solid → solid.\n- **Plasticity index (PI = LL - PL)**: range of plastic behavior. Higher PI = more clay-like.\n\n**Density / unit weight**:\n- Dry unit weight $\\gamma_d$.\n- Saturated unit weight $\\gamma_{sat}$.\n- Submerged $\\gamma' = \\gamma_{sat} - \\gamma_w$.\n- Water unit weight $\\gamma_w = 9.81$ kN/m³.\n- Typical: sand 17-21 kN/m³, clay 15-19 kN/m³.\n\n**Void ratio + porosity**:\n- Void ratio $e = V_v / V_s$ (volume of voids / volume of solids).\n- Porosity $n = V_v / V$.\n- Relation: $e = n/(1-n)$.\n\n**Saturation $S$**: fraction of voids filled with water.\n- Dry: S = 0.\n- Saturated: S = 1.\n- Partially saturated: 0 < S < 1.\n\n**Permeability** $k$: ability to transmit water (m/s). Darcy's law: $v = k i$ where $i$ = hydraulic gradient.\n- Gravel: $k$ ~ 10⁻¹ m/s. Highly permeable.\n- Sand: 10⁻⁵ to 10⁻³ m/s.\n- Silt: 10⁻⁸ to 10⁻⁶ m/s.\n- Clay: 10⁻¹¹ to 10⁻⁹ m/s. Essentially impermeable.\n\nMatters for: drainage, groundwater flow, consolidation rate, slope stability."
+    },
+    {
+      "kind": "text",
+      "title": "Effective stress + Terzaghi's principle",
+      "body": "**Effective stress principle** (Karl Terzaghi 1925, father of soil mechanics): \n$$\\sigma' = \\sigma - u$$\n\nWhere $\\sigma$ = total stress (overburden weight), $u$ = pore water pressure, $\\sigma'$ = EFFECTIVE stress (carried by soil skeleton).\n\n**Why this matters**: soil strength + deformation depend on $\\sigma'$, NOT $\\sigma$.\n\n**Implications**:\n- **Submerged soil**: total stress includes water weight but pore pressure increases by same amount → effective stress unchanged below water table. Confined sand below water level just as strong as above.\n- **Liquefaction**: in saturated loose sand, dynamic loading (earthquake) raises pore pressure → reduces $\\sigma'$ → soil loses strength → behaves like liquid. Famous in Niigata 1964, Loma Prieta 1989, Christchurch 2011. Buildings sink/tilt.\n- **Slope stability**: rainfall raises pore pressure → reduces $\\sigma'$ → slope can fail. Many landslides triggered by storms.\n- **Excavation**: removing soil reduces overburden + pore pressure. Effects on adjacent structures.\n\n**Vertical effective stress** at depth $z$ (homogeneous soil, water table at surface):\n$$\\sigma'_v = (\\gamma_{sat} - \\gamma_w) z = \\gamma' z$$\n\n**Mohr-Coulomb failure criterion**: shear strength.\n$$\\tau_f = c' + \\sigma' \\tan\\phi'$$\n\nWhere $c'$ = effective cohesion, $\\phi'$ = effective friction angle.\n\n**Typical values**:\n- **Sand**: $c' \\approx 0$, $\\phi' = 30-40°$.\n- **Soft clay**: $c' = 5-25$ kPa, $\\phi' = 20-25°$.\n- **Stiff clay (overconsolidated)**: $c' = 25-100$ kPa, $\\phi' = 25-30°$.\n- **Loose sand**: $\\phi' \\approx 28-32°$. Dense sand: 38-45°.\n\n**Drained vs undrained**:\n- **Drained**: pore water has time to drain. Long-term loading. Use $c'$, $\\phi'$.\n- **Undrained**: rapid loading; pore water can't drain. Saturated clay short-term. Use undrained shear strength $s_u$ (or $c_u$).\n\nClay's $s_u$ depends on consolidation history. Undrained tests (UU, CU) measure.\n\n**Geotechnical investigation**:\n- **Boreholes + samples**: SPT (Standard Penetration Test): standard hammer + sampler; N-value (blow count) correlates with density + strength.\n- **CPT (Cone Penetration Test)**: push instrumented cone; measures resistance + friction + pore pressure continuously.\n- **Laboratory tests**: triaxial, direct shear, consolidation.\n- **In-situ tests**: vane shear, pressuremeter, dilatometer.\n- Cost: \\$50K-\\$500K for typical project. Critical for foundation design."
+    },
+    {
+      "kind": "text",
+      "title": "Consolidation + settlement + seepage",
+      "body": "**Consolidation**: clay settling under load as water slowly drains.\n\nFor a load $\\Delta\\sigma'$ applied to clay:\n- Initial: water carries the load (excess pore pressure).\n- Water slowly drains (low permeability of clay = slow).\n- As water drains, load transfers to soil skeleton.\n- Skeleton compresses → settlement.\n- Final equilibrium: all load on skeleton, no excess pore pressure.\n\n**Terzaghi's 1D consolidation theory**:\n$$\\frac{\\partial u}{\\partial t} = c_v \\frac{\\partial^2 u}{\\partial z^2}$$\n\nWhere $u$ = excess pore pressure, $c_v$ = coefficient of consolidation.\n\nSolution: time to dissipate 50% of excess pore pressure = $t_{50} = T_{50} H^2 / c_v$ where $T_{50} = 0.197$ + $H$ = drainage path.\n\n**Time scales**:\n- Sand: minutes to days.\n- Silt: weeks to months.\n- Clay: months to years.\n- Deep clay deposits: decades.\n\n**Settlement components**:\n- **Immediate (elastic)**: instantaneous on loading. Distortion without volume change.\n- **Primary consolidation**: pore-water dissipation. Time-dependent.\n- **Secondary compression (creep)**: slow continued settlement after primary. Some clays settle for decades.\n\n**Settlement magnitudes**:\n- Allowable for buildings: 25-50 mm total, 1/300-1/500 differential.\n- Tilt: 1/1000.\n- Excessive settlement: foundation failure (Leaning Tower of Pisa: ~5° tilt).\n\n**Causes of settlement problems**:\n- Compressible soils (soft clay, peat, fill).\n- Settling fill (fresh embankment).\n- Lowering of water table (densification of overlying soils).\n- Pumping of groundwater.\n- Tunneling.\n- Vibration (sand densification).\n\n**Mitigations**:\n- **Pre-loading**: surcharge fill to pre-compress clay; remove after settlement.\n- **Vertical drains (PVD, wick drains)**: shorten drainage path; speed consolidation.\n- **Vibro-compaction**: densify loose sand.\n- **Deep mixing / soil cement**: stabilize in place.\n- **Pile foundations**: bypass weak layer.\n- **Lightweight fills (EPS, lightweight aggregate)**: reduce load.\n\n**Seepage**: groundwater flow.\n- Darcy's law: $v = k i$ (k = permeability, i = hydraulic gradient).\n- **Flow nets**: graphical solution for 2D seepage (under dams, around sheet piles, into excavations).\n- **Critical hydraulic gradient**: when seepage upward pressure equals submerged unit weight → 'quick condition' or piping. Causes failures (canal dikes, sand boils).\n- **Cutoff walls + drainage** systems control seepage.\n\nGeotechnical engineering = complex + site-specific. No two sites identical. Empirical correlations + judgment combined with theory."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_soil_stress",
+        "kind": "guided_derivation",
+        "question": "Compute effective stress",
+        "goal": "10 m of saturated clay ($\\gamma_{sat} = 18$ kN/m³) below water table. Find effective vertical stress at 10 m depth.",
+        "steps": [
+          {
+            "prompt": "Total vertical stress: $\\sigma = \\gamma_{sat} \\times z = 18 \\times 10$.",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "180 kPa",
+                "180"
+              ]
+            },
+            "hints": [
+              "18 × 10."
+            ],
+            "reveal": "$\\sigma = 180$ kPa."
+          },
+          {
+            "prompt": "Pore water pressure (assuming hydrostatic): $u = \\gamma_w z = 9.81 \\times 10 = ?$",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~98 kPa",
+                "98",
+                "98.1"
+              ]
+            },
+            "hints": [
+              "9.81 × 10."
+            ],
+            "reveal": "$u \\approx 98$ kPa."
+          },
+          {
+            "prompt": "Effective stress: $\\sigma' = \\sigma - u$.",
+            "motivation": "Subtract.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~82 kPa",
+                "82",
+                "81.9"
+              ]
+            },
+            "hints": [
+              "180 - 98."
+            ],
+            "reveal": "$\\sigma' \\approx 82$ kPa. Soil skeleton carries this."
+          },
+          {
+            "prompt": "If a pump lowers water table by 5 m (so only 5 m of saturated soil + 5 m unsaturated), pore pressure at 10 m drops by 5 × 9.81 ≈ 49 kPa. New $\\sigma'$?",
+            "motivation": "Recompute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~131 kPa",
+                "131",
+                "82+49"
+              ]
+            },
+            "hints": [
+              "82 + 49."
+            ],
+            "reveal": "$\\sigma' \\approx 131$ kPa. Effective stress INCREASED. The soil now feels 50% more load → ADDITIONAL CONSOLIDATION → settlement. Common problem: groundwater pumping causes land subsidence (Mexico City, Bangkok, Jakarta have sunk meters from pumping)."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\sigma' = \\sigma - u; \\text{ soil strength depends on } \\sigma'}$$ Terzaghi's effective stress principle (1925) is foundational. Without it, soil mechanics is just empiricism. Implications everywhere: liquefaction during earthquakes, landslides during rain, settlement from groundwater pumping, slope stability, foundation bearing. The single most-important concept in geotechnical engineering."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_soil_liq",
+        "kind": "multiple_choice",
+        "question": "Liquefaction during earthquakes: a saturated sand layer loses strength + behaves like liquid. Why?",
+        "options": [
+          "Magic.",
+          "Earthquake shaking causes loose sand to densify (try to). But saturated voids can't drain quickly → excess pore pressure builds. Effective stress $\\sigma' = \\sigma - u \\to 0$. Strength $\\tau = \\sigma' \\tan\\phi' \\to 0$. Sand behaves as liquid. Famous: Niigata 1964 (buildings sank), Loma Prieta 1989, Christchurch 2011, Tohoku 2011.",
+          "Random.",
+          "Magnetic effects."
+        ],
+        "correctIndex": 1,
+        "explanation": "Liquefaction: classic effective-stress failure. Loose saturated sand has tendency to contract under shaking. In undrained (saturated) conditions, contraction transfers to pore pressure → u rises to total stress → effective stress to zero → strength to zero. Sand behaves like liquid: buildings sink/tilt; sand boils erupt; underground tanks float. Niigata 1964: spectacular building tilts. Christchurch 2011: huge urban liquefaction. Tohoku 2011: massive coastal liquefaction.\n\nMitigations: ground improvement (densification, deep mixing), drainage (gravel drains), foundations to dense layer below. Site-specific liquefaction assessment is standard in seismic areas."
+      },
+      "hints": [
+        "What happens during shaking?",
+        "Why does it fail?"
+      ],
+      "workedSolution": "Loose sand contracts under shaking. Saturated → can't drain → pore pressure builds. $\\sigma' = \\sigma - u \\to 0$. Strength → 0. Sand → liquid. Buildings sink, underground tanks float, sand boils erupt. Christchurch 2011 caused huge urban damage. Mitigations: densify ground, install drains, deep foundations. Site-specific assessment standard.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_soil_phi",
+        "kind": "math_expression",
+        "question": "Sand with friction angle 35° at $\\sigma' = 100$ kPa. Shear strength?",
+        "acceptedAnswers": [
+          "~70 kPa",
+          "70",
+          "100 × tan(35)"
+        ],
+        "hint": "$\\tau = \\sigma' \\tan\\phi' = 100 \\times 0.700 = 70$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_soil_sett",
+        "kind": "scenario",
+        "question": "Predicting building settlement",
+        "prompt": "A 10-story building will be built on 8 m of soft clay over rock. Walk through the analysis: how much settlement, how to mitigate."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_soil",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why Terzaghi's effective stress principle is considered the foundation of modern soil mechanics.",
+        "rubric": "Mentions that effective stress (not total stress) governs soil strength + deformation; the simple formula $\\sigma' = \\sigma - u$ explains liquefaction, slope failures during rain, settlement from groundwater pumping, etc.; without this principle, soil mechanics is empiricism. Karl Terzaghi formulated it in 1925; remains foundational a century later. Modern numerical methods (FEM in geotech) build on this base."
+      }
+    }
+  ]
+}

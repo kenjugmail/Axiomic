@@ -1952,6 +1952,26 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P23 — Civil / Structural Engineer path. Structural analysis +
+  // concrete + steel + soils + foundations + water + transport +
+  // construction management. Uses new beam-deflection viz.
+  seedMasteryPath({
+    slug: "civil-engineer",
+    title: "Civil Engineer",
+    description:
+      "From structural analysis + shear-moment diagrams (interactive beam-deflection viz) through reinforced concrete + structural steel, soil mechanics + foundations, water resources, transportation, and construction management. The civil + structural engineering stack end-to-end.",
+    nodes: [
+      { slug: "structural-analysis", title: "Structural Analysis", level: "apprentice", order: 1, pages: ["beams-reactions", "shear-moment", "trusses-frames"], prereqs: [], description: "Reactions + internal forces, shear + moment diagrams (interactive beam viz), trusses + frames + indeterminate." },
+      { slug: "concrete-and-rebar", title: "Reinforced Concrete", level: "practitioner", order: 2, pages: ["concrete-mix", "rebar-composite", "prestressed-durability"], prereqs: [], description: "Concrete chemistry + low-carbon, rebar + composite action, pre-stressed + durability." },
+      { slug: "steel-design", title: "Structural Steel Design", level: "practitioner", order: 3, pages: ["steel-shapes", "buckling-slenderness", "connections-systems"], prereqs: [], description: "Steel grades + shapes, column buckling + slenderness, connections + lateral systems." },
+      { slug: "soil-mechanics", title: "Soil Mechanics", level: "practitioner", order: 4, pages: ["soil-classification", "effective-stress", "consolidation"], prereqs: [], description: "Soil classification + properties, Terzaghi effective stress + liquefaction, consolidation + settlement." },
+      { slug: "foundations", title: "Foundations", level: "specialist", order: 5, pages: ["shallow-deep", "bearing-capacity", "pile-design"], prereqs: ["soil-mechanics"], description: "Shallow vs deep, bearing capacity, pile types + group effects + load testing." },
+      { slug: "water-resources", title: "Water Resources", level: "practitioner", order: 6, pages: ["hydro-cycle", "manning-channels", "treatment-distribution"], prereqs: [], description: "Hydrologic cycle + budgets, pipe + open-channel + Manning, water treatment + distribution + aging." },
+      { slug: "transportation-engineering", title: "Transportation Engineering", level: "specialist", order: 7, pages: ["geometric-design", "pavement-traffic-flow", "transit-av"], prereqs: [], description: "Highway geometric design, pavement + traffic flow, transit + AV + urban transformation." },
+      { slug: "construction-management", title: "Construction Management", level: "expert", order: 8, pages: ["delivery-lifecycle", "cpm-evm", "cost-risk"], prereqs: [], description: "Project delivery methods, CPM + earned value, cost estimation + risk + megaprojects." },
+    ],
+  });
+
   // P22 — Mechanical Engineer path. Statics, dynamics, thermo,
   // fluids, heat transfer, machine design, manufacturing,
   // mechatronics. Thermo lesson uses new carnot-cycle viz.

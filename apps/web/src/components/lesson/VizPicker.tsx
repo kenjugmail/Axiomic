@@ -110,6 +110,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🔥",
     tags: ["thermodynamics", "carnot", "physics", "engineering"],
   },
+  {
+    name: "beam-deflection",
+    label: "Beam deflection",
+    description: "Simply supported beam with movable load; shear + moment diagrams.",
+    thumb: "🏗️",
+    tags: ["structural", "civil", "mechanics", "engineering"],
+  },
 ];
 
 interface Props {
