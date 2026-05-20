@@ -62,6 +62,61 @@
       "kind": "text",
       "title": "What's next",
       "body": "Audio is the third modality. The remaining lessons cover how multimodal systems combine these modalities (fusion) and how to evaluate them.\n\nNext: [[multimodal-fusion]] — early vs late vs attention-based fusion.\n\nKey takeaways:\n- Audio represented as log-mel spectrogram: 2D, manageable size, perceptually meaningful\n- Whisper: encoder-decoder transformer, 680k hours of multilingual data, robust ASR\n- TTS: text encoder → acoustic model → vocoder. Modern systems (VITS, XTTS) are near-human\n- CLAP and audio-language models bring audio into multimodal reasoning\n- GPT-4o style: discrete audio tokens via neural codecs, native audio in unified transformers"
+    },
+    {
+      "kind": "text",
+      "title": "Mel spectrograms + Whisper",
+      "body": "Audio at 16 kHz: 1 second = 16,000 samples. Modeling raw waveforms is hard — convolution kernels need to span long contexts.\n\n**Mel spectrogram**: compute a short-time Fourier transform, then warp the frequency axis to mel (psychophysical) scale. Result: a 2D image, time × frequency, dimension ~$T \\times 80$ for typical configurations. Now audio is an image — feed it to a CNN or transformer.\n\n**Whisper** (OpenAI 2022): trains an encoder-decoder transformer on mel-spectrogram input + text output. Trained on 680,000 hours of diverse speech-text pairs scraped from the web. Multi-task tokens condition the decoder: '<|transcribe|>' for transcription, '<|translate|>' for translation, '<|en|>' for language. One model, multiple tasks.\n\nThe ASR (automatic speech recognition) field used to be a stack of specialized components (acoustic model + language model + lexicon). Whisper showed that a vanilla transformer + scaled data beats the specialized pipeline on most benchmarks. The same story across ML: less domain-specific structure + more data + bigger backbone = state of the art."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_audio_mel",
+        "kind": "multiple_choice",
+        "question": "Mel spectrograms are preferred over raw waveform input because:",
+        "options": [
+          "They're more compact and align with psychophysical hearing — much smaller input, more efficient training.",
+          "They have higher resolution.",
+          "They're the only way to do ASR.",
+          "Waveform input causes numerical instability."
+        ],
+        "correctIndex": 0,
+        "explanation": "Mel spectrograms: ~80 frequency bins × ~25 ms time frames, so a 30s clip is ~3000 frames × 80. That's vastly more compact than the 480k waveform samples. The mel-frequency warping matches human perception (we hear log-frequency, not linear), giving the model a perceptually-meaningful representation. Waveform-direct models exist (HuBERT, wav2vec 2.0) but require larger compute budgets to compete."
+      },
+      "hints": [
+        "Raw waveform is 16k samples/second; spectrograms are much smaller.",
+        "Mel-frequency warping isn't arbitrary; it matches perceptual scales."
+      ],
+      "workedSolution": "Mel spectrograms compress raw audio into a 2D representation (~10× smaller) that aligns with human hearing's logarithmic frequency response. Models can use standard CNN/transformer architectures rather than 1D-conv backbones spanning thousands of samples. wav2vec/HuBERT do model waveforms directly but require more compute to match spectrogram-fed performance.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_audio_whisper",
+        "kind": "scenario",
+        "question": "Whisper for streaming?",
+        "prompt": "A teammate wants to use Whisper for real-time captioning (low-latency streaming). Whisper is non-streaming by design (sees the full 30s clip at once). Why is this a barrier, and what architectural variants address it?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_audio",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why Whisper's multi-task token design (transcribe / translate / language) is more powerful than training separate models.",
+        "rubric": "Mentions that a single multi-task model amortizes pretraining compute, shares an encoder across tasks, and lets the decoder leverage cross-task signal; specific cases like low-resource translation benefit from the encoder's broad pretraining."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish waveform from spectrogram representations.",
+      "Explain Whisper's task-conditioned design.",
+      "Recognize the data-vs-architecture story in modern speech."
+    ],
+    "prereqs": []
+  }
 }

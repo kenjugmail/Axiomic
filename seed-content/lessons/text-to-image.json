@@ -62,6 +62,64 @@
       "kind": "text",
       "title": "What's next",
       "body": "Text-to-image is the high-profile application. The next lesson moves to a different modality: audio + speech.\n\nNext: [[audio-and-speech]] — spectrograms, Whisper, modern TTS.\n\nKey takeaways:\n- Text-to-image: diffusion U-Net + cross-attention with a text encoder\n- Classifier-free guidance: extrapolate between conditional and unconditional. Scale 7-12 typical\n- Stable Diffusion: latent diffusion + CLIP text encoder + 860M U-Net\n- Modern variants: SDXL (3.5B + dual text encoders), FLUX (12B + rectified flow)\n- Ecosystem: img2img, inpainting, ControlNet, LoRA. Mostly more useful than the base model alone"
+    },
+    {
+      "kind": "text",
+      "title": "Latent diffusion + classifier-free guidance",
+      "body": "**Latent diffusion**: rather than diffusing in pixel space ($256 \\times 256 \\times 3 = 196{,}608$ dim), use a VAE to encode images to a compact latent ($64 \\times 64 \\times 4 = 16{,}384$ dim), diffuse there, decode back at the end. ~10× speedup in both training and inference. This is Stable Diffusion's main architectural choice over prior pixel-space diffusion.\n\n**Conditioning**: the text prompt is encoded by a frozen CLIP text encoder; the resulting embeddings are injected into the U-Net via cross-attention layers. At each denoising step, every spatial location of the latent attends to every text token.\n\n**Classifier-free guidance (CFG)**: train two model heads — conditional $\\epsilon_\\theta(x_t, t, c)$ and unconditional $\\epsilon_\\theta(x_t, t, \\emptyset)$ — by randomly dropping the conditioning during training ($p \\approx 10\\%$). At inference, extrapolate:\n$$\\hat\\epsilon = (1 + w)\\,\\epsilon_\\theta(x_t, t, c) - w\\,\\epsilon_\\theta(x_t, t, \\emptyset).$$\nThe guidance scale $w$ trades off diversity (low $w$) for prompt-adherence (high $w$). Typical values: $w \\in [3, 12]$ for SDXL-era models.\n\nWithout CFG, diffusion models follow prompts loosely. With $w = 7$ or so, they follow them tightly — but extreme $w$ produces saturated, weird-looking outputs as the model extrapolates past the training distribution. Most text-to-image quality work since 2022 has been about better encoders, better backbones, and tweaks to the CFG recipe."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_t2i_cfg",
+        "kind": "multiple_choice",
+        "question": "Classifier-free guidance with $w = 0$ means:",
+        "options": [
+          "No guidance — model produces unconditional samples.",
+          "Maximum guidance — model produces highly prompt-adherent samples.",
+          "Equivalent to setting the prompt to empty.",
+          "Mathematically undefined."
+        ],
+        "correctIndex": 0,
+        "explanation": "$w = 0$ → $\\hat\\epsilon = \\epsilon_\\theta(x_t, t, c)$. No extrapolation; just the conditional prediction. Equivalent to standard conditional sampling without guidance. Higher $w$ extrapolates further in the direction of (conditional - unconditional), pulling samples toward better prompt adherence at the cost of diversity."
+      },
+      "hints": [
+        "Plug $w=0$ into the CFG formula.",
+        "Higher $w$ = more guidance, lower $w$ = less."
+      ],
+      "workedSolution": "$\\hat\\epsilon = (1+w)\\epsilon_c - w\\epsilon_u$. At $w = 0$: $\\hat\\epsilon = \\epsilon_c$ — pure conditional, no extrapolation. At $w = 1$: $\\hat\\epsilon = 2\\epsilon_c - \\epsilon_u$. Higher $w$ pulls samples further away from the unconditional and toward better prompt adherence. Typical $w \\sim 7$ for SDXL-era inference.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_t2i_fail",
+        "kind": "scenario",
+        "question": "Failure modes",
+        "prompt": "A user prompts 'a horse riding an astronaut' and the model returns a normal astronaut riding a horse. What kind of compositional failure is this, and what's the current SOTA mitigation?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_t2i",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why latent diffusion was the breakthrough that made open-weights text-to-image viable on consumer hardware.",
+        "rubric": "Mentions that pixel-space diffusion was prohibitively expensive at the resolutions users want; the VAE compression to a 4-channel 64x64 latent reduced both training and inference cost by ~10x, putting Stable Diffusion within reach of a single GPU."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Sketch Stable Diffusion's latent-space architecture.",
+      "Apply classifier-free guidance.",
+      "Recognize the conditioning bottleneck."
+    ],
+    "prereqs": [
+      "diffusion-models",
+      "clip-and-vlms"
+    ]
+  }
 }

@@ -62,6 +62,64 @@
       "kind": "text",
       "title": "What's next",
       "body": "CLIP + VLMs are vision-meets-language. The next lesson covers the other major direction in modern multimodal: image generation via diffusion.\n\nNext: [[diffusion-models]] — forward + reverse processes, DDPM, score matching.\n\nKey takeaways:\n- CLIP: image + text encoders trained contrastively on 400M (image, caption) pairs\n- Zero-shot classification by ranking text prompts against image embedding\n- Modern VLMs: CLIP vision tower + LLM + adapter\n- Architecture choices: cross-attention, token concat, Q-Former. Concat is the open-source default\n- VLM training is multi-stage: vision pretrain → adapter pretrain → instruction tune → optional RLHF"
+    },
+    {
+      "kind": "text",
+      "title": "Zero-shot classification with CLIP",
+      "body": "Setup: an image, a list of candidate labels.\n\n1. Run the image through CLIP's image encoder → image embedding $\\mathbf{v}_{\\text{img}}$.\n2. For each label $\\ell$, build a prompt: 'a photo of a {label}'. Run through CLIP's text encoder → text embedding $\\mathbf{v}_\\ell$.\n3. Compute cosine similarities $s_\\ell = \\cos(\\mathbf{v}_{\\text{img}}, \\mathbf{v}_\\ell)$ for each label.\n4. Apply softmax over labels with CLIP's learned temperature → probability distribution.\n5. Pick the most-similar label.\n\nNotice: no fine-tuning. No training data for the specific classification task. CLIP's joint embedding space lets you do zero-shot classification, retrieval, even zero-shot detection (via region proposals) — purely from the pretrained encoders.\n\n**Limitations of CLIP**: it doesn't ground language to image regions; doesn't do compositional reasoning well; can be fooled by typographic attacks (write 'iPod' on an apple → CLIP labels it iPod).\n\n**Modern VLMs** (LLaVA, GPT-4V, Gemini, Claude 3 vision): combine a vision encoder (often CLIP-like) with an LLM via a learned projection. The LLM consumes image tokens and text tokens jointly. Capabilities: VQA, image description, OCR, document understanding, visual reasoning. The CLIP-as-encoder + LLM-as-reasoner pattern dominates 2024-2025."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_clip_zs",
+        "kind": "multiple_choice",
+        "question": "CLIP zero-shot classification with $K$ candidate labels requires which steps?",
+        "options": [
+          "Fine-tune CLIP on each candidate label.",
+          "Run text encoder $K$ times on label-prompts; run image encoder once; pick max cosine similarity.",
+          "Train a new classifier head on top of CLIP.",
+          "Use CLIP's image encoder + a separately-trained linear classifier."
+        ],
+        "correctIndex": 1,
+        "explanation": "Pure zero-shot: text encoder once per candidate, image encoder once, similarity max. No training. The other options describe linear-probing or fine-tuning — they require labeled data and aren't zero-shot."
+      },
+      "hints": [
+        "Pure zero-shot = no training data for the target task.",
+        "The labels enter via the text encoder.\n"
+      ],
+      "workedSolution": "Zero-shot CLIP: encode each candidate label as 'a photo of a {label}' via the text encoder, encode the image via the image encoder, compute cosine similarities, pick the highest. No training data for the classification task is needed — only the candidate label vocabulary. The text encoder runs $K$ times (cacheable) and image encoder once per query image.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_clip_typo",
+        "kind": "scenario",
+        "question": "Typographic attack",
+        "prompt": "A teammate shows that CLIP misclassifies an apple labeled 'iPod' (handwriting on the apple) as an iPod. Why is this a failure mode of the contrastive-pretraining recipe, and what mitigations are deployed?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_clip",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why CLIP's image embeddings are still useful even though CLIP itself has been surpassed by modern VLMs on most benchmarks.",
+        "rubric": "Mentions that CLIP's encoder is a strong, cheap, general-purpose feature extractor; modern VLMs typically use CLIP-style encoders feeding into an LLM rather than replacing them."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Sketch CLIP's dual-encoder architecture.",
+      "Compute zero-shot classification with CLIP.",
+      "Distinguish CLIP from modern VLMs (LLaVA, GPT-4V)."
+    ],
+    "prereqs": [
+      "vision-transformers",
+      "contrastive-learning"
+    ]
+  }
 }

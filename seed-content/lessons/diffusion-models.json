@@ -62,6 +62,77 @@
       "kind": "text",
       "title": "What's next",
       "body": "Diffusion is the engine. The next lesson covers how to condition it on text: classifier-free guidance and Stable Diffusion's full recipe.\n\nNext: [[text-to-image]] — Stable Diffusion, classifier-free guidance.\n\nKey takeaways:\n- Diffusion: forward = add noise; reverse = learn to denoise\n- Closed-form jump x_0 → x_t enables tractable training\n- Loss is simple MSE on the predicted noise\n- Score matching and noise prediction are equivalent under the hood\n- Sampling: DDPM (1000 steps) → DDIM (50) → DPM-Solver (10) → distillation (1-4)\n- Latent diffusion: VAE-compressed latent space; the architectural unlock for consumer deployment"
+    },
+    {
+      "kind": "text",
+      "title": "Diffusion, in one paragraph",
+      "body": "**Forward process**: gradually add Gaussian noise to a real image over $T$ steps. After enough steps, the image is indistinguishable from pure noise. This process is fixed — not learned.\n\n**Reverse process**: train a neural network to undo one step of noising. Given a noisy image at step $t$, predict the slightly-less-noisy image at step $t-1$. Equivalently, predict the noise that was added.\n\nMath: the network learns $\\epsilon_\\theta(x_t, t)$, the noise injected. Loss is simply $\\|\\epsilon - \\epsilon_\\theta(x_t, t)\\|^2$ — predict the noise, train with MSE. That's it.\n\n**Sampling**: start from pure Gaussian noise, run the reverse process for $T$ steps. Each step subtracts the predicted noise. After $T = 50$ to 1000 steps, you get a sample from the data distribution.\n\n**Score-matching connection** (Song et al.): the noise-prediction objective is mathematically equivalent to score matching — learning $\\nabla_x \\log p(x)$, the gradient of the log-density. Once you have the score, Langevin dynamics (gradient ascent on log-density + noise) samples from $p$. This connects diffusion to the broader theory of generative modeling.\n\nDiffusion models dominate generative imaging in 2024-2025 (Stable Diffusion, DALL-E 3, Imagen, Midjourney, Flux). The same recipe extends to video (Sora-like models) and protein structures (RFdiffusion)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_diff_train",
+        "kind": "multiple_choice",
+        "question": "DDPM training:",
+        "options": [
+          "Maximize log-likelihood of the full image at each step.",
+          "Sample a noisy version $x_t$ and predict the noise that was added; MSE loss.",
+          "Train a discriminator to distinguish real from fake.",
+          "Use cross-entropy on pixel values."
+        ],
+        "correctIndex": 1,
+        "explanation": "DDPM training: at each step, sample a random $t$, noise the clean image $x_0$ to $x_t = \\sqrt{\\bar\\alpha_t}\\,x_0 + \\sqrt{1-\\bar\\alpha_t}\\,\\epsilon$ where $\\epsilon \\sim \\mathcal{N}(0, I)$. Predict $\\epsilon$ from $x_t, t$. Loss: $\\|\\epsilon - \\epsilon_\\theta(x_t, t)\\|^2$. Simple, stable, no adversarial dynamics."
+      },
+      "hints": [
+        "DDPMs are not GANs (no discriminator).",
+        "The training objective is reconstruction of the noise, not reconstruction of the image."
+      ],
+      "workedSolution": "Forward process is fixed and known; only the reverse process needs learning. Given $x_t$ and $t$, predict the noise $\\epsilon$ that produced it from $x_0$. The network is a noise-predictor. MSE loss makes training stable and likelihood-based, avoiding GAN-style mode collapse.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_diff_speed",
+        "kind": "scenario",
+        "question": "Diffusion is slow at inference",
+        "prompt": "Stable Diffusion at full quality takes 50 sampling steps per image. A teammate proposes reducing to 5 steps. Why does naive reduction hurt quality, and what techniques (DDIM, distillation, flow matching) accelerate sampling?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_diff_steps",
+        "kind": "math_expression",
+        "question": "If $\\bar\\alpha_T \\approx 0.001$ (so almost pure noise at $T$), what's the variance of $x_T$ given $x_0$? Use $\\text{Var}(x_T) \\approx 1 - \\bar\\alpha_T$.",
+        "acceptedAnswers": [
+          "0.999",
+          ".999",
+          "1-0.001"
+        ],
+        "hint": "Variance = $1 - \\bar\\alpha_T$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_diff",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why diffusion models have largely displaced GANs in image generation since ~2022.",
+        "rubric": "Mentions: stable likelihood-based training (no adversarial collapse), better diversity, simpler engineering, and easier conditioning via classifier-free guidance."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish forward (noising) from reverse (denoising) process.",
+      "Explain the score-matching interpretation.",
+      "Reason about why DDPMs work."
+    ],
+    "prereqs": [
+      "image-foundations"
+    ]
+  }
 }

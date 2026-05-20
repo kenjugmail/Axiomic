@@ -62,6 +62,75 @@
       "kind": "text",
       "title": "What's next",
       "body": "Contrastive learning is the foundation. Apply it to (image, text) pairs and you get CLIP — the canonical multimodal model.\n\nNext: [[clip-and-vlms]] — joint embedding spaces and modern vision-language models.\n\nKey takeaways:\n- Contrastive learning: pull positive pairs together, push negatives apart\n- InfoNCE: softmax-style loss with N negatives. Tighter MI bound with larger N\n- SimCLR: large batches for negatives. MoCo: momentum-encoder queue\n- Augmentations are doing most of the conceptual work\n- Projection head: trained on; discarded for downstream. Encoder features generalize better\n- Foundation for CLIP, CLAP, and most modern multimodal pretraining"
+    },
+    {
+      "kind": "text",
+      "title": "InfoNCE, the contrastive loss",
+      "body": "Given a positive pair $(x, x^+)$ and $N$ negatives $\\{x_i^-\\}$:\n$$\\mathcal{L}_{\\text{InfoNCE}} = -\\log \\frac{\\exp(s(x, x^+)/\\tau)}{\\exp(s(x, x^+)/\\tau) + \\sum_i \\exp(s(x, x_i^-)/\\tau)}$$\nwhere $s(\\cdot, \\cdot)$ is a similarity (usually cosine), and $\\tau$ is a temperature hyperparameter.\n\nThis is just cross-entropy treating 'is $x^+$ the right match?' as an $(N+1)$-way classification.\n\n**Temperature matters a lot**: low $\\tau$ → softmax is sharp; gradients focus on hardest negatives → faster learning + better representations, but training instability if $\\tau$ is too small. High $\\tau$ → softmax is diffuse; learning slows but is more stable. Typical $\\tau \\sim 0.05$–$0.2$ in modern setups.\n\n**Hard negatives**: random negatives are easy; informative negatives are 'almost-positive'. Hard-negative mining is the standard way to improve contrastive representations. CLIP uses other images in the batch as negatives; MoCo maintains a queue of historical negatives; SimCLR uses 'all other in-batch examples'.\n\nThis loss family underlies CLIP, MoCo, SimCLR, DINO, BYOL — every major self-supervised vision representation since 2020."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cl_temp",
+        "kind": "multiple_choice",
+        "question": "Lowering the temperature $\\tau$ in InfoNCE has what effect?",
+        "options": [
+          "Slows learning by softening the softmax.",
+          "Makes the softmax sharper, concentrating gradient on hardest negatives — faster learning but risk of training instability.",
+          "Increases the variance of the gradient.",
+          "Has no effect; $\\tau$ is just a constant.\n"
+        ],
+        "correctIndex": 1,
+        "explanation": "Lower $\\tau$ ↔ sharper softmax ↔ gradients focus on the hardest negative (the one closest to the anchor). Speeds up learning, often improves representation quality, but can become unstable if too low (gradient explodes when one negative dominates). The sweet spot is empirical; typical CLIP runs use $\\tau = 0.07$."
+      },
+      "hints": [
+        "Softmax with low temperature behaves more like an argmax.",
+        "What does an argmax-like gradient look like?"
+      ],
+      "workedSolution": "Low $\\tau$ → softmax($s/\\tau$) is approximately one-hot at the maximum-$s$ negative. Almost all gradient flows toward distinguishing the anchor from that single hardest negative. Faster representation learning, but if $\\tau$ is too low, the hardest negative dominates so much that other useful signal is ignored — and gradients can blow up.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_cl_batch",
+        "kind": "scenario",
+        "question": "Batch size matters",
+        "prompt": "Your contrastive-learning run with batch size 256 plateaus at a mediocre validation metric. A colleague suggests increasing batch size to 8192. Walk through why this is likely to help and what infrastructural cost it brings."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_cl_neg",
+        "kind": "math_expression",
+        "question": "InfoNCE with one positive and 8 negatives. The denominator has how many terms?",
+        "acceptedAnswers": [
+          "9",
+          "9 terms",
+          "8+1"
+        ],
+        "hint": "1 positive + 8 negatives."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cl",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why contrastive pretraining produces better embeddings for retrieval than supervised classification pretraining.",
+        "rubric": "Mentions contrastive losses explicitly push apart different examples and pull together similar ones, optimizing the embedding geometry for distance/similarity; classification just needs class boundaries, not geometric structure within classes."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "State the InfoNCE loss in one line.",
+      "Explain why temperature matters.",
+      "Recognize when hard-negative mining is essential."
+    ],
+    "prereqs": []
+  }
 }

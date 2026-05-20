@@ -40,6 +40,63 @@
       "kind": "text",
       "title": "The end of the path",
       "body": "Multimodal models are the natural extension of LLMs to other modalities. The architecture story is largely settled (transformers + attention + appropriate encoders); the eval story is much messier.\n\nFor a team deploying multimodal: **measure your specific use case**. Public benchmarks are useful for tracking the field, but they're not your evaluation. Build a custom held-out set, log online eval, probe for hallucination explicitly, and treat reported leaderboard scores with skepticism.\n\nThe full multimodal toolkit you've built in this path:\n\n- **Image foundations** + **Vision Transformers**: the substrate.\n- **Contrastive learning** + **CLIP**: the joint embedding space.\n- **Diffusion** + **text-to-image**: image generation.\n- **Audio + speech**: the third modality.\n- **Multimodal fusion**: how to combine modalities in different architectures.\n- **Multimodal evaluation**: how to measure all of this.\n\nThis was the last lesson in the multimodal-engineer path. From [[image-foundations]] through evaluation, you've covered the full multimodal stack of modern ML.\n\nKey takeaways:\n- Standard benchmarks (VQAv2, COCO, MMMU) are useful but contaminated\n- Hallucination is the dominant practical failure mode; measure with POPE/CHAIR\n- Production needs: custom held-out + online eval + adversarial probing\n- Decompose capabilities; don't trust aggregate scores\n- The field is converging architecturally; eval is where the pain is"
+    },
+    {
+      "kind": "text",
+      "title": "Why VQA accuracy lies",
+      "body": "Standard VQA benchmarks report accuracy on multiple-choice questions. Three pitfalls:\n\n**Language bias**: VQA datasets have notorious language-only baselines that achieve 50% accuracy without seeing the image (just guessing from the question wording). 'What color is the sky?' → blue. A model that only reads the question can game the benchmark.\n\n**Hallucination**: model produces a confident-sounding answer that isn't grounded in the image. 'How many people are in this empty image?' → 'Two'. Detect with: VQAv2-style consistency tests, CHAIR (Caption Hallucination Assessment with Image Relevance), POPE benchmark.\n\n**Misalignment**: model identifies the right object but for the wrong reason — e.g., 'cat' on every image because the test set is cat-heavy. Diagnose with bias-decomposed eval (per-class accuracy, conditional on counterfactual swaps).\n\nThe state of the art has moved to multi-axis evaluation: VQAv2 + MMMU + MMVet + POPE + GQA, each catching different failure modes. Single-number reporting is increasingly seen as untrustworthy for capability claims."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_me_lang",
+        "kind": "multiple_choice",
+        "question": "Language bias in VQA is detected by:",
+        "options": [
+          "Running the QA model on questions without the image input and measuring accuracy.",
+          "Computing the BLEU score.",
+          "Training a larger model and comparing.",
+          "Checking the number of parameters."
+        ],
+        "correctIndex": 0,
+        "explanation": "The standard diagnostic: feed only the question (blank image / random image) and report accuracy. If language-only accuracy is high, the benchmark is gameable by language priors and headline accuracy doesn't track 'understanding the image'. VQAv2 was constructed precisely to balance against this — every question has two images with opposite answers — but residual language bias still leaks through."
+      },
+      "hints": [
+        "What's the simplest test for 'is the model using the image at all'?",
+        "Just remove the image and see what happens."
+      ],
+      "workedSolution": "Run the QA model with no image (or with a noise image) on the same questions. If accuracy stays high, the model is using language priors — not understanding the image. Difference between 'with-image' and 'without-image' accuracy is the headline number for actual visual contribution. VQAv2 reduces but doesn't eliminate language bias by construction.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_me_hallucinate",
+        "kind": "scenario",
+        "question": "Detecting hallucinations",
+        "prompt": "A new VLM scores 88% on VQAv2 but generates captions full of objects that aren't in the image. Why is benchmark accuracy not a sufficient proxy for caption quality, and what evaluation would catch the gap?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_me",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why multimodal evaluation has moved from single-number to multi-axis reporting.",
+        "rubric": "Mentions that no single number captures the diversity of multimodal failure modes (hallucination, grounding, language bias, fairness); multi-axis evaluation surfaces tradeoffs single-metric evaluation hides; consumers (users, regulators) need to see the per-axis numbers to make informed deployment decisions."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "advanced",
+    "objectives": [
+      "Recognize three failure modes of single-metric VQA evaluation.",
+      "Distinguish hallucination from incorrect grounding.",
+      "Apply a held-out probe to detect dataset bias."
+    ],
+    "prereqs": [
+      "multimodal-fusion"
+    ]
+  }
 }
