@@ -1,0 +1,81 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish offline from online feature serving.",
+      "Recognize train/serve skew + its mitigations.",
+      "Reason about feature-store benefits."
+    ],
+    "prereqs": [
+      "batch-processing-spark",
+      "data-quality-testing"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Train/serve skew, the dominant failure mode",
+      "body": "An ML model is trained on **offline features** computed in batch (often days-old data from the warehouse). At serving time, it needs **online features** — fresh, low-latency, computed on demand.\n\nIf the offline pipeline (batch SQL in dbt) and online pipeline (Python service code) compute features differently — different time windows, different null handling, different rounding — you get **train/serve skew**: the model's inputs at training don't match its inputs at serving.\n\nSymptom: the offline-evaluation metric is great; the online A/B is much worse. Diagnosing this is hard because you need to capture and compare actual features served vs features used in training, on the same examples. The fix is structural: use the *same* feature-computation code for both paths, or use a feature store that owns both paths.\n\nThis is the #1 reason 'I trained a model that looked great but flopped in production'. Every ML team eventually pays the cost of getting feature pipelines right."
+    },
+    {
+      "kind": "text",
+      "title": "Feature stores: same code, both worlds",
+      "body": "A **feature store** is a system that:\n\n1. **Defines features** in one place (a feature definition file). Same definition serves both training and inference.\n2. **Offline store**: historical feature values, joined to labels for training data. Built from warehouse data.\n3. **Online store**: low-latency key-value store (Redis, DynamoDB, Cassandra). Holds latest feature values, refreshed by the same logic.\n4. **Materialization**: scheduled jobs that compute features and write them to both online + offline stores.\n5. **Serving API**: at inference time, query the online store with a user_id or session_id and get back the feature vector.\n\nProduction feature stores: Tecton (commercial), Feast (open source), built-in ones at Uber (Michelangelo), Airbnb (Zipline), Lyft (Dryft).\n\nThe big win is eliminating train/serve skew structurally: features come from a single source of truth. Cost: feature stores add operational complexity. Teams without an ML platform team often try one and abandon it; the threshold to justify a feature store is usually ~10 production models or ~3 ML teams.\n\nMinimum-viable alternative: rigorously share Python feature-computation code between training and serving paths; capture serving features and compare against training features in offline reconciliation jobs. Less elegant, much cheaper."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fp_skew",
+        "kind": "multiple_choice",
+        "question": "An ML model's offline AUC is 0.92 but online AUC (on the same population) is 0.78. The most common root cause is:",
+        "options": [
+          "Different test sets.",
+          "Train/serve skew: features computed differently in batch vs at serving time.",
+          "Concept drift over the last week.",
+          "A bug in the metric calculation."
+        ],
+        "correctIndex": 1,
+        "explanation": "Train/serve skew is the dominant cause of 'great-offline, bad-online' for production ML systems. Different time windows, different null handling, different aggregation logic between the batch training pipeline and the online serving pipeline produce inputs the model wasn't trained on. The fix: same feature-computation code for both paths (or a feature store that enforces it)."
+      },
+      "hints": [
+        "What's the most common cause of 'numbers good offline, numbers bad online'?",
+        "If the model is the same but the inputs are subtly different, what gives?"
+      ],
+      "workedSolution": "Train/serve skew. The model's offline evaluation uses features computed by the batch pipeline; the online prediction uses features computed by the serving pipeline. Differences in time windows, null handling, casting, ordering, or aggregation produce inputs the model wasn't trained on. AUC drops because the model encounters slightly-out-of-distribution inputs. The structural fix is shared feature-computation code (feature store, or shared library).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fp_capture",
+        "kind": "scenario",
+        "question": "Diagnose without a feature store",
+        "prompt": "Your team has no feature store; offline features come from dbt, online features from a Python serving service. Your model's online performance is mysteriously worse. Walk through a lightweight diagnostic — what would you log to detect train/serve skew without buying a feature store?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fp_window",
+        "kind": "math_expression",
+        "question": "An 'average purchase amount over last 30 days' feature. If the training pipeline computes this as 'sum over 30 days / max(count, 1)' and the serving pipeline computes it as 'sum over 28 days / count'. Two sources of skew. Number of differences:",
+        "acceptedAnswers": [
+          "2",
+          "two",
+          "2 differences"
+        ],
+        "hint": "Window length + denominator handling."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fp",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences when a team should adopt a feature store vs continue with shared-library Python.",
+        "rubric": "Mentions that feature stores have meaningful operational cost; teams with <5 production models and one team don't usually justify them; the threshold to adopt is roughly when train/serve skew becomes a recurring incident or multiple teams need to share features."
+      }
+    }
+  ]
+}

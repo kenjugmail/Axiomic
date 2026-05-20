@@ -1,0 +1,81 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish row-store from column-store.",
+      "Recognize the warehouse-vs-lake tradeoff.",
+      "Reason about query cost in cloud warehouses."
+    ],
+    "prereqs": [
+      "data-modeling"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why columnar storage wins for analytics",
+      "body": "OLTP databases (Postgres, MySQL) store data **row-oriented**: each row's columns are stored contiguously on disk. Fetch one row = one disk read. Optimal for transactional workloads (read 1 row, update it, write back).\n\nWarehouses (Snowflake, BigQuery, Redshift, Databricks SQL) store data **column-oriented**: each column's values are stored contiguously. Fetch one row = one disk read per column (slow). But fetching ONE column across millions of rows = one contiguous scan (fast).\n\nAnalytics queries typically scan many rows but few columns ('SELECT revenue, country FROM sales WHERE year = 2024'). Column-store reads only the three needed columns; row-store would read every row's every column. The win at scale: 10-100× faster on typical analytical queries.\n\nBonus: columnar data compresses much better (similar values within a column compress well). Snowflake routinely achieves 5-10× compression vs raw CSV. Storage cost + I/O cost both drop substantially."
+    },
+    {
+      "kind": "text",
+      "title": "Warehouse vs lake vs lakehouse",
+      "body": "**Data warehouse** (Snowflake, BigQuery, Redshift): managed SQL engine + storage. Optimized for analytics. Strong SQL, decent ML support, expensive per-query compute.\n\n**Data lake** (S3 + Parquet + Spark + Hive): raw files in object storage, queried by ad-hoc tools. Cheap storage, flexible (multiple engines can read the same files), but no built-in catalog, governance, or transactional updates.\n\n**Lakehouse** (Delta Lake, Iceberg, Hudi): lake's storage flexibility + warehouse's transactional guarantees. Open-source table formats sitting on top of Parquet files in object storage. Provides ACID transactions, time travel, schema evolution. Databricks pushes Delta Lake; Snowflake / Iceberg / open standards are the alternative.\n\nThe industry is converging on the lakehouse pattern. Storage is open (Parquet + Iceberg/Delta); engines are interchangeable (Spark, Trino, Snowflake-on-Iceberg, DuckDB). The walled-garden warehouse (Snowflake's proprietary storage) gives ground each year to open lakehouse architectures."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dw_columnar",
+        "kind": "multiple_choice",
+        "question": "A query `SELECT SUM(revenue) FROM sales WHERE year = 2024` on a 1TB table. Why does Snowflake (columnar) crush Postgres (row-store) on this query?",
+        "options": [
+          "Snowflake has more CPUs.",
+          "Snowflake scans only the `revenue` and `year` columns, not the dozen other columns; row-store reads every row's every column.",
+          "Snowflake's network is faster.",
+          "Snowflake uses GPUs."
+        ],
+        "correctIndex": 1,
+        "explanation": "Columnar storage lets the engine scan only the columns needed for the query. For this query, that's `revenue` and `year` — maybe 5% of the table's volume. A row-store reads every row's every column (because rows are stored together) — 100% of the table's volume. At 1TB, that's 950GB of unnecessary disk I/O avoided by columnar. Compression (column-wise) further amplifies the win — typically 5-10× compression on real data."
+      },
+      "hints": [
+        "What fraction of the table does each storage layout actually read for this query?",
+        "Compare bytes read: column-store fetches only used columns; row-store fetches every column.\n"
+      ],
+      "workedSolution": "Columnar storage stores values of the same column contiguously. The query reads only `revenue` + `year` (2 columns out of N). Row-store stores rows contiguously, so reading even just the values of two columns requires reading every full row (all columns). For 1TB data with 20 columns the column-store reads ~100GB; row-store reads 1TB. Plus columnar compresses 5-10× — making the effective scan even smaller.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_dw_scan",
+        "kind": "math_expression",
+        "question": "Table with 100 columns × 1TB total. Query reads 4 of those columns. Approximate bytes scanned on a column-store (assuming uniform column sizes):",
+        "acceptedAnswers": [
+          "40GB",
+          "40 GB",
+          "0.04 TB",
+          "40000000000 bytes"
+        ],
+        "hint": "$1\\text{ TB} \\times (4/100)$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_dw_cost",
+        "kind": "scenario",
+        "question": "Surprise query cost",
+        "prompt": "Your team's Snowflake bill jumped 3× last month. A teammate's hypothesis is 'we have more data'. Walk through the most likely actual cause and what query patterns produce this kind of surprise."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dw",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why the lakehouse pattern is displacing the proprietary warehouse for many new deployments.",
+        "rubric": "Mentions that open table formats (Iceberg, Delta) on cheap object storage + multiple engine support give the same ACID + query benefits without vendor lock-in or per-query proprietary compute pricing."
+      }
+    }
+  ]
+}

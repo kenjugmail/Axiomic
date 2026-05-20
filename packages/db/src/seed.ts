@@ -1952,6 +1952,27 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P2 — Data Engineer path. The data-plumbing discipline every
+  // ML / analytics team eventually needs: modeling, ETL/ELT, batch +
+  // streaming, warehousing, orchestration, quality, ML feature
+  // pipelines.
+  seedMasteryPath({
+    slug: "data-engineer",
+    title: "Data Engineer",
+    description:
+      "From data modeling through ETL/ELT, batch + streaming, warehousing, orchestration, data quality, and ML feature pipelines. The plumbing discipline every data-using team eventually needs.",
+    nodes: [
+      { slug: "data-modeling", title: "Data Modeling", level: "apprentice", order: 1, pages: ["data-modeling", "star-schema"], prereqs: [], description: "OLTP vs OLAP, 3NF, star schema. The structural choices that decide whether your queries scale." },
+      { slug: "etl-fundamentals", title: "ETL & ELT Fundamentals", level: "apprentice", order: 2, pages: ["etl-elt", "idempotency"], prereqs: ["data-modeling"], description: "Extract / Load / Transform, idempotency, late data. The modern data stack's ground rules." },
+      { slug: "batch-processing-spark", title: "Batch Processing & Spark", level: "practitioner", order: 3, pages: ["spark", "shuffles"], prereqs: ["etl-fundamentals"], description: "Narrow vs wide transformations, shuffles, when warehouse-SQL beats Spark." },
+      { slug: "streaming-kafka", title: "Streaming & Kafka", level: "practitioner", order: 4, pages: ["kafka", "stream-processing"], prereqs: ["etl-fundamentals"], description: "Log-based architecture, at-least-once vs exactly-once, when streaming beats batch." },
+      { slug: "data-warehousing", title: "Data Warehousing", level: "practitioner", order: 5, pages: ["warehouse", "columnar-storage", "lakehouse"], prereqs: ["data-modeling"], description: "Columnar storage, warehouse vs lake vs lakehouse, cloud-warehouse cost reasoning." },
+      { slug: "orchestration-airflow", title: "Orchestration with Airflow", level: "practitioner", order: 6, pages: ["airflow", "dags"], prereqs: ["etl-fundamentals"], description: "DAGs, operators, sensors, the common anti-patterns. The orchestrator everyone uses." },
+      { slug: "data-quality-testing", title: "Data Quality & Testing", level: "specialist", order: 7, pages: ["data-quality", "data-contracts"], prereqs: ["etl-fundamentals"], description: "Schema tests, anomaly tests, contract tests. Catching silent corruption before it costs you." },
+      { slug: "ml-feature-pipelines", title: "ML Feature Pipelines", level: "expert", order: 8, pages: ["feature-store", "train-serve-skew"], prereqs: ["batch-processing-spark", "data-quality-testing"], description: "Online vs offline serving, train/serve skew, feature stores. Where data engineering meets ML in production." },
+    ],
+  });
+
   // P1 — Security Engineer path. The defensive-engineering half of
   // every shipping system: threat modeling, crypto, web security,
   // identity, plus the security-on-ML frontier (adversarial ML,

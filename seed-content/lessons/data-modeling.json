@@ -1,0 +1,78 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Distinguish OLTP from OLAP schemas.",
+      "Apply 3NF to a small example.",
+      "Recognize the star-schema dimensional model."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "OLTP vs OLAP, the structural choice",
+      "body": "**OLTP** (Online Transaction Processing): row-oriented, normalized, optimized for many small transactions. Example: an e-commerce orders database. Schema is *highly normalized* (3NF) — minimize redundancy, separate concerns into tables. Reads + writes are typically single-row, indexed lookups.\n\n**OLAP** (Online Analytical Processing): column-oriented, denormalized, optimized for analytical queries that scan large fractions of large tables. Example: a data warehouse's revenue-analytics layer. Schema is *dimensional* — fact tables (events: orders, sessions, sales) + dimension tables (entities: customer, product, time). Queries: 'sum revenue by product category by month'.\n\nThe schemas reflect the workloads. OLTP normalizes because update anomalies hurt; OLAP denormalizes because joining a billion-row fact to a small dimension is cheap when stored column-wise. Trying to run analytics on an OLTP schema is the classic 'why is my dashboard slow' story; the fix is usually 'build an OLAP layer downstream'."
+    },
+    {
+      "kind": "text",
+      "title": "3NF, in one paragraph",
+      "body": "**3NF (Third Normal Form)** is the practical normalization target for OLTP schemas. A table is in 3NF when:\n\n1. Every column is atomic (1NF — no repeating groups or lists in a single field).\n2. Every non-key column depends on the entire primary key (2NF — no partial dependency).\n3. No transitive dependencies — every non-key column depends on the key, not on another non-key column (3NF).\n\nThe 3NF win: each fact is stored in one place. Updating a customer's address updates one row of one table; in a denormalized schema the same address might appear in thousands of orders, all of which need updating.\n\nThe 3NF cost: querying often requires joins across multiple tables. Analytics queries especially suffer — joining ten 3NF tables to answer one question gets slow at scale. That's why the OLAP side denormalizes.\n\n**Star schema**: an OLAP pattern. One large fact table (events with foreign keys to dimensions) + several smaller dimension tables. Query patterns become 'join fact to a few dimensions, group by dimension attributes, aggregate'. The structure is visualized as a star with the fact in the center."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dm_norm",
+        "kind": "multiple_choice",
+        "question": "An e-commerce database has an `orders` table where the customer's address is duplicated on every order. To normalize toward 3NF, the right move is:",
+        "options": [
+          "Index the address column.",
+          "Move address into a separate `customers` table and reference by customer_id.",
+          "Delete the address column.",
+          "Switch to JSON storage."
+        ],
+        "correctIndex": 1,
+        "explanation": "Address is a customer attribute, not an order attribute. Storing it on every order violates 3NF (orders.address transitively depends on orders.customer_id → customers.address). The fix is to factor address into the customers table; orders reference customers. Updates become single-row."
+      },
+      "hints": [
+        "Where does address logically belong — to the order, or to the customer?",
+        "If a customer changes address, how many rows should you have to update?"
+      ],
+      "workedSolution": "Address is a customer attribute, not an order attribute. The 3NF violation: orders.address depends on orders.customer_id (transitive). Factor address into a `customers` table; orders references customers.id. Now updating an address touches one row, not thousands. Analytics queries can join when they need to — that's fine; the OLAP layer can denormalize later.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_dm_star",
+        "kind": "math_expression",
+        "question": "A star schema has 1 fact table with 50M rows and 4 dimension tables. The fact's primary join key is the fact row's id; each dimension joins to the fact via a foreign key. Roughly how many indexes does a minimally-indexed star schema need to support typical aggregation queries?",
+        "acceptedAnswers": [
+          "5",
+          "4 + 1",
+          "5 indexes"
+        ],
+        "hint": "One per dimension's foreign key + the fact's primary key."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_dm_choose",
+        "kind": "scenario",
+        "question": "OLTP or OLAP?",
+        "prompt": "A team is designing the data layer for a real-time fraud detector. Each transaction needs sub-100ms response. Same data also needs to support nightly analytics queries over the last 90 days of transactions. Walk through how you'd structure this in two sentences."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dm",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why 'denormalize for read performance' is the dominant pattern in OLAP but a code-smell in OLTP.",
+        "rubric": "Mentions that OLAP workloads are read-dominated + scan-heavy and denormalization eliminates joins; OLTP is write-dominated and duplicate data leads to update anomalies."
+      }
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Distinguish ETL from ELT.",
+      "Recognize idempotency as the foundational requirement.",
+      "Plan for late-arriving data."
+    ],
+    "prereqs": [
+      "data-modeling"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "ETL → ELT, the modern flip",
+      "body": "**ETL** (Extract, Transform, Load): pull data from source, transform in flight, load into the warehouse. Standard pre-2015. Transformations happen in dedicated middleware (Informatica, Talend) before data lands.\n\n**ELT** (Extract, Load, Transform): pull data from source, load raw, transform inside the warehouse using SQL (dbt). Standard since ~2018. The warehouse's parallel compute (Snowflake, BigQuery, Redshift) is cheap enough to run transformations there, and ELT preserves the raw data for re-derivation.\n\nThe operational difference: ELT lets you version your transformations as SQL files in git, run them via dbt, test them with assertions, and re-derive the entire warehouse from the raw layer if you find a bug. The transformation logic lives in your repo, not in a vendor's GUI.\n\nThe modern stack: Fivetran/Airbyte (extract + load) → warehouse (Snowflake/BigQuery/Redshift/Databricks) → dbt (transform) → BI tool (Looker, Mode, Hex). 'Modern data stack' is the canonical name."
+    },
+    {
+      "kind": "text",
+      "title": "Idempotency, the load-bearing property",
+      "body": "An ETL job is **idempotent** if running it twice produces the same result as running it once. This is the foundational requirement for production pipelines because:\n\n- **Retries**: jobs fail (transient errors, network blips, OOMs). Idempotent jobs are safe to retry; non-idempotent jobs need careful per-step recovery.\n- **Backfills**: 'rerun last week's pipeline' should produce the same warehouse state regardless of whether it was run last week or now.\n- **Multi-region replicas**: same job executes in multiple regions; outputs must converge.\n\n**The patterns**:\n1. *MERGE / UPSERT* on a deterministic primary key, NOT INSERT-only. INSERT-only pipelines double-insert on retry.\n2. *Idempotent file naming*: `s3://bucket/raw/event_date=2024-05-01/*` — partition by event date, overwrite the partition on rerun.\n3. *Transactional load*: the load step is atomic — either all rows for the batch land, or none. Avoids partial-load races on retry.\n\nNon-idempotent pipelines turn every retry into a manual recovery. Idempotent pipelines turn every retry into 'just rerun it'. Worth the architectural cost."
+    },
+    {
+      "kind": "text",
+      "title": "Late-arriving data, the universal headache",
+      "body": "Real data arrives late. A user's session that started at 11:58pm yesterday produces events that arrive at 12:02am today. A mobile client's offline data syncs hours later. A vendor's nightly file is sometimes 6 hours late.\n\nPipelines must handle this. The common patterns:\n\n**Event time vs processing time**: distinguish 'when the event happened' (event_time) from 'when we processed it' (processing_time). Aggregations should usually key on event_time.\n\n**Watermarks**: in streaming systems, 'we've now seen all events with event_time ≤ T' — emit aggregates for T and earlier. The watermark advances based on event-time clock + grace period (how late we're willing to wait).\n\n**Late updates / backfills**: if data arrives 3 days late, rerun the pipeline for that partition. Idempotency makes this safe.\n\nAggregations + dashboards that ignore event-time and just use 'when we processed it' produce subtly wrong numbers that surface on Monday after weekend events. The discipline of event-time accounting starts at design time, not bug-fix time."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_etl_idem",
+        "kind": "multiple_choice",
+        "question": "A pipeline INSERTs rows into a table on every run. To make it idempotent, the cleanest refactor is to:",
+        "options": [
+          "Add a retry timeout.",
+          "Use MERGE/UPSERT keyed on a deterministic primary key (e.g., event_id), so re-runs no-op for already-loaded rows.",
+          "Run the pipeline only once.",
+          "Use a different database."
+        ],
+        "correctIndex": 1,
+        "explanation": "Idempotency via deterministic upsert: the primary key is computable from the event data (e.g., event_id, or hash of natural keys); MERGE/UPSERT is a no-op when the row already exists. Retries are safe; backfills are safe; multi-region writes converge. INSERT-only pipelines double-insert on retry, requiring manual cleanup."
+      },
+      "hints": [
+        "Idempotency = same outcome regardless of how many times you run.",
+        "INSERT-only is the obvious problem; what's the standard fix?"
+      ],
+      "workedSolution": "MERGE/UPSERT keyed on a deterministic primary key (event_id, or a deterministic hash of natural keys) is the standard pattern. Re-running the job re-attempts to insert each row, but the MERGE finds existing rows and either no-ops or updates them. Result: same warehouse state regardless of how many times the job ran. Without this, every retry doubles your data.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_etl_late",
+        "kind": "scenario",
+        "question": "Late data discipline",
+        "prompt": "Your analytics dashboard shows last week's daily revenue. On Monday morning, the team notices the Saturday number jumped overnight. Walk through the most likely cause + what design choices would have prevented the surprise."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_etl",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why dbt + SQL has dominated the transformation layer of the modern data stack, displacing GUI-based ETL tools.",
+        "rubric": "Mentions that SQL transformations live in git, are reviewable + testable, the warehouse provides parallel compute cheaply, and the team can re-derive any state from raw — none of which GUI ETL tools provided."
+      }
+    }
+  ]
+}

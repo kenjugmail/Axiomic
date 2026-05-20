@@ -1,0 +1,66 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish schema tests from anomaly tests.",
+      "Apply a contract-test pattern.",
+      "Recognize the cost of silent data corruption."
+    ],
+    "prereqs": [
+      "etl-fundamentals"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Test categories, in one paragraph",
+      "body": "**Schema tests** (cheap, catch the obvious): column exists, type is correct, nullability matches the contract. Run on every load. Most-common failure: an upstream API changes a field type from int to string overnight; without schema tests, this propagates silently for days.\n\n**Uniqueness / referential tests**: primary keys are unique, foreign keys point to existing rows, IDs are well-formed. Catches the next layer of upstream weirdness.\n\n**Anomaly tests**: row count is within historical range (e.g., today's count is 0.7x to 1.3x the trailing 28-day median); distribution of a key column hasn't shifted dramatically. Catches 'pipeline ran but produced 90% empty data' — the silent-corruption mode that schema tests miss.\n\n**Business-logic tests**: revenue is non-negative; status is one of {active, churned, paused}; the join of orders to customers produces no orphans. Encodes domain knowledge.\n\n**Tools**: dbt has built-in tests (`unique`, `not_null`, `accepted_values`, custom SQL). Great Expectations is the more elaborate framework with statistical anomaly tests. Soda Core is the lighter modern alternative."
+    },
+    {
+      "kind": "text",
+      "title": "Contract tests, the upstream-downstream handshake",
+      "body": "A **data contract** is a versioned schema + SLA between a producer and consumer of data:\n\n```\nentity: customer_event\nversion: 2.0\nproducer: payments-service\nconsumer: analytics-warehouse\nfields:\n  - name: event_id, type: string, required: true, unique: true\n  - name: user_id, type: string, required: true\n  - name: amount_cents, type: int64, required: true, range: [0, 1e8]\n  - name: occurred_at, type: timestamp_utc, required: true\nsla:\n  freshness: 15min\n  completeness: 99.5%\n```\n\nThe contract is *tested* both sides:\n- **Producer**: 'we publish events matching this contract; CI fails if we change a field's type or remove it without a version bump'.\n- **Consumer**: 'we read events expecting this contract; CI fails our pipeline if the producer's published contract version doesn't match what we coded against'.\n\nWith contracts in place, breaking changes are caught at CI of either side, before they hit production. Without contracts, the consumer discovers the change as a runtime failure or, worse, silent corruption.\n\nThis pattern (data contracts) emerged ~2022 in response to a decade of 'silent breakage' incidents. It's gaining adoption; dbt Cloud + Snowflake + Databricks all have native contract support now."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dq_anomaly",
+        "kind": "multiple_choice",
+        "question": "Your nightly pipeline normally produces ~50K rows. Today it produced 4 rows. Schema tests all pass. The contract test version matches. The 4 rows look well-formed. The most likely root cause:",
+        "options": [
+          "Schema drift.",
+          "An upstream filter has tightened (or an outage is silently dropping events) — the data is 'shaped right' but volume is wrong.",
+          "A datatype mismatch.",
+          "Network latency."
+        ],
+        "correctIndex": 1,
+        "explanation": "Anomaly tests on row count would have caught this. The pipeline produced well-formed but vastly-fewer rows — classic upstream-tightening symptom (a filter changed, an outage dropped traffic, a feature flag was flipped). Schema + contract tests pass because each row is fine in isolation; only a statistical check on volume catches the issue. Mitigation: row-count assertions in dbt or Great Expectations with historical-range checks."
+      },
+      "hints": [
+        "What's the difference between 'shape is right' and 'volume is right'?",
+        "Schema tests pass, contract passes, but the count is wrong. Which test category catches that?"
+      ],
+      "workedSolution": "Row-count anomaly. Schema tests check 'every row is well-formed'; contract tests check 'schema version matches'. Neither catches 'volume dropped to 1% of normal'. Anomaly tests with historical-range bounds (e.g., 0.7x to 1.3x of trailing-28d median) are the canonical fix. Always pair schema tests with volume / distribution anomaly tests.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_dq_silent",
+        "kind": "scenario",
+        "question": "Silent corruption",
+        "prompt": "A teammate notices that the LTV (lifetime value) metric for cohort 2024-Q1 quietly changed from $342 to $389 between Friday and Monday. The pipeline ran nightly all weekend, with no failures. Walk through how you'd investigate, and what monitoring would have caught this in real time."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dq",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why 'monitoring uptime' isn't enough; data pipelines also need 'data-quality monitoring'.",
+        "rubric": "Mentions that pipelines can succeed (no errors, all tasks green) while producing garbage data; uptime monitoring catches infra failures; data-quality monitoring catches the silent-corruption modes that uptime checks can't see."
+      }
+    }
+  ]
+}
