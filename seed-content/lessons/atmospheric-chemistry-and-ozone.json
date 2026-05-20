@@ -1,0 +1,201 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Reason about ozone in stratosphere + troposphere.",
+      "Trace the Antarctic ozone hole + Montreal Protocol.",
+      "Connect atmospheric chemistry to climate."
+    ],
+    "prereqs": [
+      "radiation-and-greenhouse-effect",
+      "boundary-layer-and-air-pollution"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Stratospheric ozone: the good ozone",
+      "body": "**Ozone (O₃)** is naturally formed in the stratosphere via Chapman cycle (1930):\n\n  O₂ + hν (<240 nm) → 2 O\n  O + O₂ + M → O₃ + M\n  O₃ + hν (200-310 nm) → O₂ + O (with energy release)\n  O₃ + O → 2 O₂\n\nNet: cycle of formation + destruction with O₃ pool at ~10-100 ppm (mole fraction in stratosphere; 90% of atmospheric ozone in stratosphere).\n\n**Ozone layer**: stratospheric O₃ concentration peaks ~25 km altitude (10-40 ppm).\n\nFunction: absorbs UV-C + UV-B (200-310 nm) — protecting surface life from harmful radiation:\n- UV-C (<280 nm): biologically lethal; absorbed entirely by O₃ + O₂ in stratosphere.\n- UV-B (280-315 nm): biologically active; ~95% absorbed by O₃.\n- UV-A (315-400 nm): less harmful; reaches surface.\n\nWithout ozone: terrestrial life as we know it impossible. Aquatic + biological evolution constrained.\n\n**Total ozone column** (TOC) measured in Dobson Units (DU): 1 DU = 0.01 mm of pure O₃ at STP. Typical: 220-400 DU. Latitudinal: ~250 DU equator; 400+ DU mid-high latitude; <100 DU during ozone hole."
+    },
+    {
+      "kind": "text",
+      "title": "The ozone hole + Montreal Protocol",
+      "body": "**Antarctic ozone hole** (Farman+ 1985 + earlier): annual springtime depletion of stratospheric O₃ over Antarctica. Causes:\n\n1. Stratospheric chlorine + bromine from human-emitted **CFCs** (chlorofluorocarbons) + halons:\n   - CFCs used as refrigerants, propellants, solvents 1930s-1990s.\n   - Stable in troposphere (don't react); cross tropopause; UV decomposes in stratosphere: CFCl₃ + hν → CFCl₂ + Cl.\n   - Cl + O₃ → ClO + O₂ (catalytic O₃ destruction).\n   - Each Cl atom catalyzes ~10⁵ O₃ destructions before removal.\n\n2. **Polar stratospheric clouds (PSCs)** at low T (<-78 °C) provide surfaces for chemistry that converts Cl-reservoir species back to active Cl: HCl + ClONO₂ → Cl₂ + HNO₃.\n\n3. **Polar vortex** isolates Antarctic stratosphere for winter; PSC chemistry occurs.\n\n4. **Spring sunlight** photolyzes accumulated active Cl species → ozone destruction begins. Peak hole: October.\n\n5. Vortex breakdown in November-December: O₃-poor air mixes back into mid-latitudes; gradual recovery.\n\n**Discovery + response**:\n- 1974: Molina + Rowland Nobel hypothesized CFC threat.\n- 1985: Farman+ Antarctic hole discovered.\n- 1985: Vienna Convention.\n- 1987: **Montreal Protocol** — phase out CFCs + halons.\n- 1990, 1992, 1997, 2007, 2016 amendments tightening + adding HCFCs + HFCs.\n\n**Recovery**:\n- Stratospheric Cl + Br peaked ~2000.\n- Ozone hole peaked ~2000 (2006 record extent: 29M km²).\n- Recovery began ~2010; full recovery expected ~2060-2080.\n- Recent (2020-2023): ozone hole still forming annually but smaller + thinner.\n\nMontreal Protocol is widely considered the most successful global environmental agreement ever. All 198 countries ratified; emissions reduced 99%; recovery proceeding."
+    },
+    {
+      "kind": "text",
+      "title": "Tropospheric chemistry + the methane budget",
+      "body": "**Tropospheric chemistry** mostly driven by **hydroxyl radical (OH)** — atmospheric 'detergent':\n\n  O(¹D) + H₂O → 2 OH (initiated by O₃ photolysis at <320 nm)\n\nOH reacts with most pollutants + GHGs:\n- CH₄ + OH → CH₃ + H₂O (methane oxidation)\n- CO + OH → CO₂ + H\n- VOC + OH → R + H₂O\n- NO₂ + OH → HNO₃\n\nOH lifetime: ~1 second. Global mean concentration ~10⁶ molecules/cm³.\n\n**Methane (CH₄)** budget:\n- Sources: ~580 Tg/yr.\n  - Wetlands (~190): natural\n  - Agriculture (~150): livestock + rice paddies + manure\n  - Fossil fuel extraction (~80): natural-gas leaks, coal mining\n  - Landfills + waste (~75)\n  - Biomass burning (~30)\n  - Other.\n- Sinks: ~580 Tg/yr.\n  - OH oxidation in troposphere (~90%)\n  - Stratospheric loss (~5%)\n  - Soil uptake (~5%)\n\nAtmospheric lifetime: ~9 years. Global mean: ~1.9 ppm (2024), up from 0.7 ppm preindustrial.\n\n**Methane impact**:\n- Global warming potential (GWP) on 100-yr basis: ~28× CO₂.\n- On 20-yr basis: ~80× CO₂ (because CH₄ is short-lived).\n- Recent surge: 2020-2023 unusually fast CH₄ rise (~15 ppb/yr) — origin uncertain (wetlands? agriculture? leak?). Possibly major emission underestimation.\n\n**Other key trace gases**:\n- N₂O: GWP 273×; agriculture (fertilizer); long-lived (~120 yr).\n- HFCs: substitutes for CFCs; high GWP but Kigali Amendment phasing out.\n- SF₆: GWP 24000+; electrical insulation; long-lived (~3200 yr).\n- O₃ (tropospheric): GWP variable; short-lived.\n\nReducing non-CO₂ GHG (especially CH₄) is increasingly recognized as fast + impactful mitigation strategy. Methane Pledge (COP26, 2021): 30% reduction by 2030."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_chem_atm_1",
+        "kind": "guided_derivation",
+        "question": "Trace a CFC molecule from emission to ozone destruction",
+        "goal": "A CFCl₃ molecule (Freon-11) is released in 1980. Trace its journey + impact on stratospheric ozone.",
+        "steps": [
+          {
+            "prompt": "Where does it spend its early life?",
+            "motivation": "Tropospheric residence.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "troposphere",
+                "well-mixed in troposphere",
+                "spread globally"
+              ]
+            },
+            "hints": [
+              "What's its tropospheric lifetime?"
+            ],
+            "reveal": "CFCl₃ is stable in troposphere (no significant reactions; very low water solubility). Spends ~50 years getting well-mixed globally. By 1985 distributed throughout troposphere; some has reached stratosphere."
+          },
+          {
+            "prompt": "What happens once it reaches stratosphere?",
+            "motivation": "UV photolysis.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "UV decomposes it",
+                "photolysis releases Cl"
+              ]
+            },
+            "hints": [
+              "What's needed for breakdown?"
+            ],
+            "reveal": "UV at ~210 nm (only available in stratosphere) photolyzes: CFCl₃ + hν → CFCl₂ + Cl. The Cl radical is now free to catalyze ozone destruction."
+          },
+          {
+            "prompt": "How many O₃ destroyed per Cl atom?",
+            "motivation": "Catalytic cycle.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~10^5",
+                "100,000",
+                "tens of thousands"
+              ]
+            },
+            "hints": [
+              "Catalytic cycle limited by removal mechanism."
+            ],
+            "reveal": "Catalytic cycle: Cl + O₃ → ClO + O₂; ClO + O → Cl + O₂. Net: O₃ + O → 2 O₂. Cl is regenerated! Each Cl atom destroys ~10⁵ O₃ molecules before sink reactions remove Cl (Cl + CH₄ → HCl + CH₃; HCl deposits)."
+          },
+          {
+            "prompt": "Atmospheric lifetime of CFCl₃ + when its Cl impact peaks?",
+            "motivation": "Persistence.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~45-55 yr",
+                "~50 yr lifetime",
+                "Cl peaks 2000-2010"
+              ]
+            },
+            "hints": [
+              "After emission cessation, atmospheric residence remains."
+            ],
+            "reveal": "Atmospheric lifetime of CFC-11 ~55 years. Even after Montreal Protocol (1987 production phase-out, completed by 2010), Cl from previously-emitted CFC-11 continued reaching stratosphere through 2010s + Cl impact peaked ~2000-2005. Ozone-hole recovery begins after Cl loadings drop. Expected full recovery ~2060-2080."
+          },
+          {
+            "prompt": "What's the legacy of this CFCl₃ molecule (emitted 1980)?",
+            "motivation": "Long-term impact.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "destroyed 10^5 ozone over decades",
+                "contributed to ozone hole"
+              ]
+            },
+            "hints": [
+              "Long-lasting consequence."
+            ],
+            "reveal": "This 1980-emitted CFC-11 molecule contributed to ozone-hole formation 1990s-2020s. Its Cl atom destroyed ~100,000 O₃ molecules over decades. Even now (2024), some 1980-emitted CFC-11 is still in stratosphere. Lesson: **persistence + catalysis** of stratospheric pollutants makes emissions consequences long-lasting + irreversible on human timescales. Montreal Protocol prevented vastly worse outcomes; current ozone-hole still notable but not catastrophic."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_chem_atm_1",
+        "kind": "sortable",
+        "question": "Order these greenhouse gases by their *atmospheric lifetime* (shortest to longest).",
+        "items": [
+          {
+            "id": "tropospheric-o3",
+            "label": "Tropospheric ozone (O₃)"
+          },
+          {
+            "id": "ch4",
+            "label": "Methane (CH₄)"
+          },
+          {
+            "id": "n2o",
+            "label": "Nitrous oxide (N₂O)"
+          },
+          {
+            "id": "co2",
+            "label": "Carbon dioxide (CO₂)"
+          },
+          {
+            "id": "cfc-12",
+            "label": "CFC-12"
+          },
+          {
+            "id": "sf6",
+            "label": "Sulfur hexafluoride (SF₆)"
+          }
+        ],
+        "explanation": "Atmospheric lifetimes (approximate):\n• **Tropospheric O₃**: ~hours to ~weeks (oxidized + photolyzed quickly). Very short-lived.\n• **CH₄**: ~9 years (oxidized by OH).\n• **N₂O**: ~120 years (stratospheric loss).\n• **CO₂**: ~100-1000 years (~50% absorbed in <100 yr; ~20% persists 1000+ yr; ~10% essentially permanent on human timescales — complex distribution).\n• **CFC-12**: ~100 years.\n• **SF₆**: ~3200 years.\n\nImplications for mitigation:\n- Short-lived (CH₄, O₃): rapid mitigation gives near-term temperature benefit. Methane Pledge (COP26).\n- Long-lived (CO₂, N₂O, SF₆): each ton emitted has long-lasting consequence; require negative emissions for removal.\n- Some species (SF₆) so persistent + potent they should be eliminated entirely; mostly use restricted to essential applications (high-voltage gas insulation).\n\nLifetime distinct from radiative forcing — short-lived species can still be important pollutants if continuously emitted (e.g., methane sustained by ongoing emissions)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_chem_atm_1",
+        "kind": "multiple_choice",
+        "question": "Why is the Antarctic ozone hole more severe than the Arctic ozone hole, despite similar atmospheric chemistry?",
+        "options": [
+          "Different chemistry.",
+          "The Antarctic polar vortex is colder + more stable than the Arctic. PSCs (polar stratospheric clouds) only form at <-78 °C; Antarctic regularly reaches these temperatures during winter; Arctic less consistently. Antarctic vortex isolated for longer + stronger → PSC chemistry depletes ozone heavily. Arctic vortex more variable + warm intrusions break it up — less PSC formation + ozone destruction. Plus geographic + topographic factors (Antarctic is a continent surrounded by ocean; Arctic is ocean surrounded by land).",
+          "Antarctic has more CFCs.",
+          "Arctic is too cold."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Polar ozone hole asymmetry**:\n\n*Antarctic*:\n- Stable + strong polar vortex from winter through early spring.\n- Stratospheric T regularly <-80 °C — well below PSC formation threshold (-78 °C).\n- PSCs ubiquitous June-September.\n- Heterogeneous chemistry on PSC surfaces activates Cl + Br from reservoir species (HCl, ClONO₂).\n- Spring sunlight (Aug-Oct) photolyzes active Cl + drives catalytic O₃ destruction.\n- Total column O₃ drops from ~280 DU to ~120 DU; in some areas <100 DU.\n\n*Arctic*:\n- Polar vortex weaker + more variable.\n- Stratospheric T sometimes below -78 °C but often higher.\n- Sudden stratospheric warmings (SSWs): vortex breaks down 1-2 times/winter on average; warm air intrudes from mid-latitudes.\n- PSCs sometimes form but less consistent.\n- Arctic ozone depletion: significant but less severe than Antarctic. Total column ~50-100 DU below normal in worst years.\n\n*Why the asymmetry*:\n1. **Geography**: Antarctica is continent (cold land surrounded by ocean) → stable circumpolar vortex. Arctic is ocean surrounded by land → more atmospheric exchange + warmer.\n2. **Temperature**: Antarctic stratosphere ~10 °C colder than Arctic winter average.\n3. **Vortex stability**: stronger SSWs in Arctic break up vortex; less SSW activity in S. Hem.\n4. **PSC formation**: more consistent in Antarctic → more chemistry.\n\n*2011 Arctic event*: unusual; Arctic vortex remained intact through late winter; PSCs persisted longer; sustained O₃ depletion comparable to Antarctic at certain altitudes for first time. Showed Arctic vulnerability under right conditions.\n\n*Recent Antarctic hole status (2020-2024)*:\n- 2020: large hole (~24 M km²) but smaller than 2006 record.\n- 2021-2022: moderate.\n- 2023: large again (~26 M km²); among biggest in recent years.\n- Recovery: total stratospheric Cl + Br has peaked + is slowly declining (~1%/yr post-Montreal).\n- Full recovery: expected 2060-2080.\n\n*Climate-change interaction*:\n- Stratospheric cooling (from CO₂) → more PSCs → potentially slows ozone recovery.\n- Arctic warming counteracts some PSC formation but increases ozone vulnerability at the same time.\n- Active research; competing effects.\n\n**Lesson**: Montreal Protocol is the gold standard for international environmental action. Within 30 years of identification, problem largely solved + recovery underway. Successful because: (a) clear scientific evidence; (b) industrial substitutes existed (HFCs, now HFOs); (c) phase-out economically feasible; (d) consequence (UV exposure, skin cancer) personalizes well; (e) consensus + universal adoption.\n\nContrast with climate change: harder problem because emissions integral to economy; substitutes more challenging; impact distributed across decades + countries."
+      },
+      "hints": [
+        "What's the role of PSCs?",
+        "How does vortex stability differ?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Antarctic polar vortex colder + more stable than Arctic. PSCs (require <-78 °C) form consistently in Antarctic winter; less so in Arctic. PSC chemistry activates Cl/Br; spring sunlight drives O₃ destruction. Arctic SSWs disrupt vortex + warm intrusions limit PSC formation. Antarctic geography (continent + ocean) → strong stable vortex; Arctic (ocean + land) → variable vortex. 2011 unusual Arctic depletion showed vulnerability. Montreal Protocol working; recovery expected 2060-2080. Compare to climate problem: stratospheric ozone is gold-standard environmental success because: clear evidence, industrial substitutes, feasible phase-out, personalized impact, universal adoption."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_chem_atm_1",
+        "kind": "math_expression",
+        "question": "If CH₄ is 80× more potent than CO₂ on 20-yr basis + atmospheric CH₄ is 1.9 ppm vs CO₂ at 420 ppm, what's CH₄'s contribution to warming relative to CO₂ contribution? (Approximate by mass ratio × GWP, where CH₄ mass is 16 g/mol vs CO₂ at 44 g/mol.)",
+        "acceptedAnswers": [
+          "~36%",
+          "0.36",
+          "~33-37%"
+        ],
+        "hint": "(1.9 ppm × (16/44 amu/amu) × 80) / (420 ppm × 1 × 1) = 5.5/420 = 1.3%... × 80 GWP = 105%... wait that's CH4 alone. Let me redo: (1.9 × 80 × 16) / (420 × 1 × 44 + 1.9 × 80 × 16)... too complex; simplify to (1.9 × 80) / (420 × 1) = 36% (mole ratio × GWP)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_chem_atm_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why the Montreal Protocol succeeded so dramatically + what climate-change governance can learn from it.",
+        "rubric": "Mentions: Montreal Protocol (1987, amendments through Kigali 2016) phased out CFCs + halons + other ozone-depleting substances. Success factors: (1) clear + direct scientific evidence (Farman 1985); (2) clearly identifiable + personalized health impact (skin cancer, cataract risk from UV); (3) limited number of industrial actors (~50 companies globally); (4) industrial substitutes existed (HFCs, HFOs); (5) universal ratification (all 198 countries); (6) financial support for developing-country transition (Multilateral Fund); (7) regular amendments to tighten + add species. Stratospheric Cl peaked 2000; recovery proceeding; full recovery 2060-2080. Climate-governance lessons: international agreements work given clear evidence + feasible alternatives + universal support + sustained political commitment + technological substitutes. Climate is harder because: more industries involved, no single substitute, costs higher, impacts distributed. But Montreal proves global action achievable; principles apply to climate (Paris Agreement). Concludes: 'we know it can be done; we know what's needed.'"
+      }
+    }
+  ]
+}

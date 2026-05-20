@@ -180,6 +180,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🌊",
     tags: ["oceanography", "physics", "water-masses", "climate", "earth-science"],
   },
+  {
+    name: "atmospheric-sounding",
+    label: "Atmospheric sounding",
+    description: "Drag surface T + dew point; lift a parcel; see LCL/LFC/EL + CAPE for storm energetics.",
+    thumb: "☁️",
+    tags: ["atmosphere", "meteorology", "weather", "climate", "physics"],
+  },
 ];
 
 interface Props {

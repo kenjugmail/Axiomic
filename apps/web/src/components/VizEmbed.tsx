@@ -25,6 +25,7 @@ const SIRModel = lazy(() => import("../../../../packages/viz/src/components/SIRM
 const ReactorComparator = lazy(() => import("../../../../packages/viz/src/components/ReactorComparator").then(m => ({ default: m.ReactorComparator })));
 const PointKinetics = lazy(() => import("../../../../packages/viz/src/components/PointKinetics").then(m => ({ default: m.PointKinetics })));
 const OceanTSDiagram = lazy(() => import("../../../../packages/viz/src/components/OceanTSDiagram").then(m => ({ default: m.OceanTSDiagram })));
+const AtmosphericSounding = lazy(() => import("../../../../packages/viz/src/components/AtmosphericSounding").then(m => ({ default: m.AtmosphericSounding })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -54,6 +55,7 @@ export const VIZ_NAMES = [
   "reactor-comparator",
   "point-kinetics",
   "ocean-ts-diagram",
+  "atmospheric-sounding",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -81,6 +83,7 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "reactor-comparator": ReactorComparator,
   "point-kinetics": PointKinetics,
   "ocean-ts-diagram": OceanTSDiagram,
+  "atmospheric-sounding": AtmosphericSounding,
 };
 
 interface VizEmbedProps {

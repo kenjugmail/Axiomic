@@ -1,0 +1,187 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Apply geostrophic + thermal-wind balance.",
+      "Reason about Hadley + Ferrel + Polar cells.",
+      "Explain jet streams + Rossby waves."
+    ],
+    "prereqs": [
+      "atmospheric-structure-and-composition"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Geostrophic balance + the wind field",
+      "body": "Atmospheric motion away from boundaries + on synoptic scales (>1000 km, 1+ day) is **geostrophic**: pressure gradient force balances Coriolis force.\n\n  f × v_g = -(1/ρ) ∇P\n\nIn NH, wind blows with **low pressure to its left** (Buys-Ballot law). Around lows: counterclockwise (NH). Around highs: clockwise (NH). Reversed in SH.\n\n**Coriolis parameter** f = 2 Ω sin(φ); zero at equator, max at poles.\n\nGeostrophic wind speed: v_g = |∇P| / (ρ f). Strong gradients + low f (low latitudes) → strong winds, but at equator geostrophic approximation breaks down.\n\n**Thermal wind** balance (combined geostrophic + hydrostatic): \n\n  ∂v_g/∂z = (g/f T_avg) × ∇T \n\nVertical wind shear is proportional to horizontal T gradient. Implies: jet streams form at the top of the troposphere where T gradients (equator-to-pole) are maximized; rotational winds intensify with height.\n\n**Polar + subtropical jet streams**: narrow bands of 100-300 km/h winds in the upper troposphere (~10-12 km altitude), girding the planet. Wave-like patterns; meander; eddy-driven mid-latitude weather."
+    },
+    {
+      "kind": "text",
+      "title": "Global circulation: Hadley + Ferrel + Polar cells",
+      "body": "**Hadley circulation** (~30°N to 30°S):\n- Rising air at equator (ITCZ — Intertropical Convergence Zone). High humidity, heavy precipitation. Tropical rainforests.\n- Upper-level poleward flow.\n- Descending air at ~30°: subtropical highs. Deserts (Sahara, Sahel, Kalahari, Atacama, Australian outback).\n- Surface return flow toward equator: trade winds (NE in NH, SE in SH; Coriolis deflects equator-bound flow westward).\n\nHadley cell circulation expanded ~1° poleward since 1979 + projected to continue under warming → drier subtropics.\n\n**Ferrel cell** (30°-60°):\n- Indirect thermodynamically — driven primarily by eddies (cyclones) rather than direct convection.\n- Surface westerlies + storms.\n- Mid-latitude jet stream.\n\n**Polar cell** (60°-pole):\n- Sinking air at pole; surface easterlies.\n- Weaker circulation.\n\n**Walker circulation** (zonal, equatorial Pacific):\n- Rising over western Pacific (warm pool, Indonesia).\n- Sinking over eastern Pacific (cold tongue, equatorial Pacific).\n- Surface trade winds (easterly).\n- Modulated by ENSO — weakens during El Niño.\n\nGlobal circulation transports heat + moisture: tropics receive net solar input; poles net deficit. Circulation closes the gap. Without it, equator-to-pole T gradient would be much steeper."
+    },
+    {
+      "kind": "text",
+      "title": "Jet streams + Rossby waves",
+      "body": "**Jet streams**: narrow, high-speed (100-300 km/h) currents at the tropopause (~10-12 km). Form due to thermal wind balance + the equator-to-pole T gradient.\n\n• **Polar-front jet** (~55-65°): along the polar front where polar + mid-latitude air masses meet. Wavy + variable.\n• **Subtropical jet** (~25-35°): along Hadley-Ferrel boundary. Less wavy + more zonal.\n• **Tropical easterly jet** (summer monsoon, ~10-15°N).\n\nWinter jets stronger; summer jets weaker + further poleward.\n\n**Rossby waves**: large-scale wave patterns in jet streams + global flow. Wavelength ~5,000-10,000 km. Cause winds to meander.\n\n• Caused by Earth's rotation (β = ∂f/∂y) acting on vorticity.\n• Travel westward in absolute frame (eastward in atmosphere's mean flow).\n• Wavelength λ_R = 2π × √(U/β) — typically ~7000 km in midlat.\n\nRossby-wave dynamics drive mid-latitude weather:\n- Troughs + ridges in jet stream.\n- Cold-air outbreaks under troughs (cold-air blocking equatorward).\n- Warm-air intrusions under ridges.\n- Cyclones develop on troughs (baroclinic instability).\n\n**Wavenumber 3-5** dominant in atmosphere; affects storm tracks, blocking patterns, atmospheric rivers, heat waves. Recent observations: jet stream becoming wavier under Arctic amplification → more persistent extremes (heat domes, cold snaps).\n\n**Quasi-resonant amplification (QRA)**: when jet wave-number matches preferred mode, persistent patterns develop. Linked to 2003 Europe heatwave, 2010 Russia heatwave, 2018 + 2023 NA heat domes.",
+      "viz": "atmospheric-sounding",
+      "vizProps": {
+        "surfaceT": 25,
+        "surfaceTd": 18
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dyn_1",
+        "kind": "guided_derivation",
+        "question": "Compute geostrophic wind from a pressure-gradient",
+        "goal": "A surface map shows P contours: 1020 hPa at 40°N + 1000 hPa at 50°N, with smooth gradient between (1000 km separation). Compute the geostrophic wind speed + direction.",
+        "steps": [
+          {
+            "prompt": "Pressure gradient magnitude in Pa/m?",
+            "motivation": "Convert.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2 Pa/km",
+                "2×10⁻³ Pa/m",
+                "0.002"
+              ]
+            },
+            "hints": [
+              "20 hPa / 1000 km = 2 hPa / 100 km = 2×10⁻³ Pa/m."
+            ],
+            "reveal": "|∇P| = 2000 Pa / 10⁶ m = 2×10⁻³ Pa/m."
+          },
+          {
+            "prompt": "Coriolis at 45°N (midpoint).",
+            "motivation": "f = 2 Ω sin φ.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1.03e-4 1/s",
+                "1.03×10⁻⁴",
+                "~1×10⁻⁴"
+              ]
+            },
+            "hints": [
+              "2 × 7.27×10⁻⁵ × sin 45° = 1.454×10⁻⁴ × 0.707 = 1.03×10⁻⁴."
+            ],
+            "reveal": "f = 1.03×10⁻⁴ 1/s."
+          },
+          {
+            "prompt": "Geostrophic wind speed v_g (m/s)? Use v_g = |∇P| / (ρ f). ρ ≈ 1.225 kg/m³.",
+            "motivation": "Plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~15.8 m/s",
+                "15.8",
+                "v_g ~ 16 m/s"
+              ]
+            },
+            "hints": [
+              "2×10⁻³ / (1.225 × 1.03×10⁻⁴) = 2×10⁻³ / 1.26×10⁻⁴ = 15.9."
+            ],
+            "reveal": "v_g = 2×10⁻³ / (1.225 × 1.03×10⁻⁴) ≈ 15.9 m/s ≈ 57 km/h. Moderate-to-strong wind."
+          },
+          {
+            "prompt": "Direction?",
+            "motivation": "Geostrophic with high P to the right in NH.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "west to east",
+                "westerly",
+                "eastward"
+              ]
+            },
+            "hints": [
+              "NH, high pressure south, low pressure north → flow has high P to the right."
+            ],
+            "reveal": "Wind flows along isobars with high pressure on the right (NH). High at 40°N south; low at 50°N north → wind flows eastward (westerly). Classic mid-latitude westerly flow."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_dyn_1",
+        "kind": "sortable",
+        "question": "Order these atmospheric phenomena by their *typical horizontal length scale* (smallest to largest).",
+        "items": [
+          {
+            "id": "thunderstorm",
+            "label": "Single thunderstorm cell"
+          },
+          {
+            "id": "tornado-supercell",
+            "label": "Tornadic supercell"
+          },
+          {
+            "id": "mesoscale-convective",
+            "label": "Mesoscale convective system (squall line, MCS)"
+          },
+          {
+            "id": "cyclone",
+            "label": "Mid-latitude cyclone (low-pressure system)"
+          },
+          {
+            "id": "rossby-wave",
+            "label": "Rossby wave (planetary wave)"
+          }
+        ],
+        "explanation": "Atmospheric phenomena span a wide range of scales:\n• **Thunderstorm cell**: ~1-10 km. Single convective cell with updraft + downdraft. Lifetime ~30 min.\n• **Tornadic supercell**: ~10-50 km. Rotating thunderstorm; mesocyclone scale. Lifetime ~hours.\n• **Mesoscale convective system (MCS)**: ~100-500 km. Squall lines, derechos, organized clusters. Lifetime ~6-12 hr.\n• **Mid-latitude cyclone**: ~1000-3000 km. Low-pressure system with fronts. Lifetime ~3-7 days.\n• **Rossby wave**: ~5000-10000 km. Planetary wave in jet stream. Lifetime ~days-weeks.\n\nThe atmospheric-scale hierarchy is fundamental for forecasting: different processes at different scales; different forecast methods. Numerical weather prediction uses nested grids — global (~10-25 km), regional (~3-5 km), high-resolution (~1 km) — to resolve the cascade."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dyn_1",
+        "kind": "multiple_choice",
+        "question": "Why do mid-latitude cyclones (e.g., Nor'easters, European winter storms) form preferentially along strong T gradients?",
+        "options": [
+          "Random formation.",
+          "Strong horizontal T gradients (typically near the polar front) make the atmosphere baroclinically UNSTABLE: stratification with temperature varying horizontally → available potential energy. Small perturbations grow via baroclinic instability → low-pressure systems. Energy conversion: APE → kinetic energy of growing eddy. The Charney + Eady models (1947-49) formalized this; cyclones form preferentially at jet-stream entrance regions where shear + thermal contrast strongest.",
+          "Cyclones only form over oceans.",
+          "Mid-latitude cyclones don't actually form along T gradients."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Baroclinic instability** (Charney 1947, Eady 1949) is the mechanism for mid-latitude cyclones:\n\n*Baroclinic atmosphere*: T varies horizontally; isobaric (constant pressure) surfaces tilted relative to isothermal surfaces; **available potential energy** (APE) stored in the system.\n\n*Perturbation growth*: small wavy perturbation in the flow; tilted vertically in the right way to extract APE from the mean state; grows exponentially. Charney + Eady solutions give growth rate ~ 1/(few days) for typical mid-lat parameters.\n\n*Energy conversion*: APE → eddy kinetic energy. The new cyclone 'feeds' on horizontal T gradient by transporting warm air poleward + cold air equatorward.\n\n**Preferred locations**:\n- East coasts of continents (Atlantic + Pacific): where T gradients strongest (cold land in winter; warm ocean current along coast).\n- Polar front / jet stream regions: ~50°N + 50°S typical.\n- Lee of mountains (Alps, Rockies): orographic forcing + baroclinic instability combine.\n\n**Cyclone lifecycle**:\n1. Initiation: perturbation along front.\n2. Development (baroclinic growth): ~24-48 hr; intensifies; pressure deepens.\n3. Maturity: warm front + cold front + occluded front structure.\n4. Decay (barotropic phase): APE exhausted; cyclone tilts vertical; warm sector cut off.\n5. Total lifetime: ~3-7 days.\n\n**Surface weather** under cyclone:\n- Warm front passage: warm sector arrives; stratiform clouds + light rain.\n- Cold front passage: cold air arrives; squall lines, thunderstorms.\n- Occlusion: deepening cyclone, central low; precipitation widespread.\n\n**Climate change effects**:\n- Pole-equator T gradient weakening (Arctic amplification): in theory, weaker baroclinicity.\n- But upper-tropospheric T gradient may strengthen (tropical upper-tropo warming faster).\n- Storm tracks shifting poleward.\n- Some evidence of stronger Atlantic cyclones; less in Pacific.\n- Wavier jet → blocking events → more persistent weather.\n\n**Forecast practice**: numerical weather prediction (NWP) routinely tracks + predicts cyclones 5-10 days ahead. Ensemble methods (ECMWF, GFS, NAEFS) quantify uncertainty. Significant skill improvements 1980s-2020s; ECMWF medium-range now ~1-day skill for 9-day forecast (vs ~5-day in 1980s)."
+      },
+      "hints": [
+        "What's baroclinic instability?",
+        "Where do strong T gradients exist?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Strong T gradients → baroclinic atmosphere → APE → unstable to wavy perturbations → cyclones form. Charney + Eady 1947-49. Energy conversion: APE → eddy kinetic energy. Cyclones preferentially form along polar front, east coasts (cold land + warm ocean), lee of mountains. Lifecycle ~3-7 days. Climate-change effects: pole-equator T gradient weakening + storm-track shifts + wavier jet. NWP forecast skill significantly improved 1980-2020."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_dyn_1",
+        "kind": "math_expression",
+        "question": "Coriolis parameter at 30°N? Use f = 2 Ω sin φ, Ω = 7.27×10⁻⁵.",
+        "acceptedAnswers": [
+          "7.27e-5",
+          "~7.3e-5",
+          "7.27×10⁻⁵ 1/s"
+        ],
+        "hint": "2 × 7.27×10⁻⁵ × 0.5 = 7.27×10⁻⁵."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dyn_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how Arctic amplification — warming 2-4× the global average — affects mid-latitude weather extremes.",
+        "rubric": "Mentions: Arctic warming faster than tropics → equator-to-pole T gradient weakening at surface; thermal wind balance implies weaker zonal jet stream. Some studies (Francis + Vavrus 2012) propose this makes jet wavier + slower-moving → more persistent weather patterns (heat domes, cold snaps, droughts, floods). Mechanism: lower meridional gradient → larger Rossby-wave amplitude + slower phase speed → 'quasi-resonant amplification' (QRA) regimes more likely. Observational evidence: increased frequency of summer blocking + persistent heat events since ~2000. But: upper-tropospheric gradient (different from surface) may strengthen; competing effects on jet dynamics. Disagreement among climate scientists about magnitude of effect; clearly some impact, exact attribution debated. Examples: 2018 + 2023 NA heat domes, 2010 Russia + Pakistan heatwaves, 2022 European drought, 2021 NW Pacific heat dome. Conclusion: Arctic + mid-latitude coupled; observed extreme weather increases consistent with Arctic amplification + jet wavering hypothesis, but full causal chain still being characterized."
+      }
+    }
+  ]
+}

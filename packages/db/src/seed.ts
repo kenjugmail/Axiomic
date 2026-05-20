@@ -1952,6 +1952,28 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P33 — Atmospheric Scientist path. From atmospheric structure +
+  // composition through radiation + greenhouse, dynamics + circulation,
+  // weather systems, boundary layer + pollution, NWP + ML weather,
+  // severe weather + extremes, and atmospheric chemistry + ozone.
+  // Uses new AtmosphericSounding viz.
+  seedMasteryPath({
+    slug: "atmospheric-scientist",
+    title: "Atmospheric Scientist",
+    description:
+      "From atmospheric layers + composition + barometric formula through Earth's radiation balance + greenhouse + climate sensitivity, geostrophic + Hadley + Ferrel circulation + jets + Rossby waves, mid-latitude + tropical cyclones with interactive atmospheric sounding + CAPE, boundary layer + Pasquill-Gifford air-pollution dispersion + ozone smog, numerical weather prediction + ML revolution (GraphCast), severe weather + attribution science + extreme events, and atmospheric chemistry + the ozone hole + Montreal Protocol. The atmospheric-science stack end-to-end.",
+    nodes: [
+      { slug: "atmospheric-structure-and-composition", title: "Atmospheric Structure + Composition", level: "apprentice", order: 1, pages: ["layers", "composition", "hydrostatic-barometric"], prereqs: [], description: "Troposphere → exosphere; dry-air + trace gases; hydrostatic balance + scale height + barometric formula." },
+      { slug: "radiation-and-greenhouse-effect", title: "Radiation + Greenhouse Effect", level: "practitioner", order: 2, pages: ["radiation-balance", "greenhouse-spectroscopy", "fingerprints"], prereqs: ["atmospheric-structure-and-composition"], description: "Solar + thermal balance, GHG spectroscopy + Revelle factor, climate sensitivity + ECS + stratospheric cooling fingerprint." },
+      { slug: "atmospheric-dynamics-and-circulation", title: "Atmospheric Dynamics + Circulation", level: "practitioner", order: 3, pages: ["geostrophic-thermal-wind", "hadley-ferrel", "jets-rossby"], prereqs: ["atmospheric-structure-and-composition"], description: "Geostrophic + thermal-wind balance, Hadley + Ferrel + Polar cells + Walker, jet streams + Rossby waves + blocking." },
+      { slug: "weather-systems-and-cyclones", title: "Weather Systems + Cyclones", level: "specialist", order: 4, pages: ["extratropical", "tropical", "forecasting"], prereqs: ["atmospheric-dynamics-and-circulation"], description: "Mid-latitude cyclones + baroclinic instability, tropical cyclones + RI + Saffir-Simpson, NWP + ML forecasting." },
+      { slug: "boundary-layer-and-air-pollution", title: "Boundary Layer + Air Pollution", level: "specialist", order: 5, pages: ["pbl-stability", "pollutants-chemistry", "dispersion-inversion"], prereqs: ["atmospheric-dynamics-and-circulation"], description: "Diurnal PBL evolution + stability; primary + secondary pollutants + chemistry; Pasquill-Gifford dispersion + inversions." },
+      { slug: "numerical-weather-prediction", title: "Numerical Weather Prediction", level: "expert", order: 6, pages: ["nwp-anatomy", "chaos-ensembles", "ml-weather"], prereqs: ["atmospheric-dynamics-and-circulation"], description: "Observations + data assimilation + integration; chaos limits + ensembles; ML revolution (GraphCast + Pangu + AIFS)." },
+      { slug: "severe-weather-and-extremes", title: "Severe Weather + Extremes", level: "expert", order: 7, pages: ["convective-severe", "storm-surge", "extremes-attribution"], prereqs: ["weather-systems-and-cyclones"], description: "Supercells + tornadoes + hail; hurricane storm surge + flooding; attribution science + 2021 PNW heat dome." },
+      { slug: "atmospheric-chemistry-and-ozone", title: "Atmospheric Chemistry + Ozone", level: "expert", order: 8, pages: ["stratospheric-ozone", "montreal-protocol", "troposphere-ch4"], prereqs: ["radiation-and-greenhouse-effect", "boundary-layer-and-air-pollution"], description: "Chapman cycle + UV protection; ozone hole + CFCs + Montreal Protocol success; OH chemistry + CH₄ budget + methane pledge." },
+    ],
+  });
+
   // P32 — Oceanographer path. From physical oceanography through
   // ocean circulation + currents (uses new OceanTSDiagram viz),
   // waves + tides, ocean chemistry + acidification, marine

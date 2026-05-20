@@ -1,0 +1,233 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Apply Stefan-Boltzmann + Planck's law.",
+      "Derive Earth's radiative-equilibrium temperature.",
+      "Reason about radiative forcing + climate sensitivity."
+    ],
+    "prereqs": [
+      "atmospheric-structure-and-composition"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Radiation balance: solar in + thermal out",
+      "body": "Earth's energy balance:\n\n  S(1-α) (π R²) = 4π R² σ T_eff⁴\n\nwhere S = solar constant (~1361 W/m²), α = albedo (~0.30), R = Earth radius, σ = Stefan-Boltzmann constant.\n\nSolve: T_eff = [S(1-α)/(4σ)]^(1/4) ≈ 254 K = -19 °C.\n\nBut Earth's surface is ~288 K = +15 °C. The **33 K greenhouse effect** comes from atmospheric GHGs that absorb outgoing IR + re-radiate downward.\n\n**Solar spectrum**: peak at ~500 nm (visible). ~50% UV-visible-IR. Most reaches surface (atmosphere transparent in visible).\n\n**Earth's thermal emission**: peak at ~10 μm (mid-IR). Atmosphere selectively transparent — 'atmospheric windows' at 8-13 μm allow much IR to escape directly; absorption bands of H₂O, CO₂, CH₄, O₃ block other wavelengths.\n\n**Top-of-atmosphere (TOA) energy budget**:\n- Solar in: 240 W/m² (after albedo)\n- Thermal out: 240 W/m² (balance)\n- Imbalance from anthropogenic GHG: +1 W/m² currently (CERES satellite measurement) — driving warming.\n\n**Surface energy budget**:\n- Net shortwave: ~165 W/m²\n- Atmospheric IR back-radiation: ~340 W/m²\n- Surface IR emission: ~400 W/m²\n- Latent + sensible heat: ~100 W/m²\n- Net: ~0 (long-term)"
+    },
+    {
+      "kind": "text",
+      "title": "The greenhouse effect: spectroscopy + radiative transfer",
+      "body": "**Why some gases are 'greenhouse'**: they have molecular vibrational + rotational modes that absorb at IR wavelengths.\n\n• **CO₂**: bending mode at 15 μm + asymmetric stretch at 4.3 μm; broad bands.\n• **H₂O**: vibrational modes at 6.3 μm + rotational lines across much of IR. Strong absorber.\n• **CH₄**: symmetric stretch + bend modes at 3.3 + 7.7 μm.\n• **N₂O**: bands at 4.5 + 7.8 + 17 μm.\n• **CFCs**: strong absorbers in atmospheric window (8-13 μm) — why each kg is ~10,000× more potent than CO₂.\n• **N₂ + O₂**: symmetric molecules; no electric dipole moment changes during vibration → no IR absorption. Why they don't matter for greenhouse.\n\n**Radiative forcing** Δ F: change in net radiation balance at the tropopause due to a perturbation. CO₂ doubling: ΔF ≈ 3.7 W/m².\n\n**Climate sensitivity** λ: ΔT_eq = λ × ΔF.\n- Planck feedback (blackbody response): -3.3 W/m²/K → λ_no-fb = 0.3 K per W/m².\n- Water vapor feedback (warming → more vapor → more warming): +1.6 W/m²/K.\n- Lapse-rate feedback: -0.5 W/m²/K.\n- Surface albedo feedback (less ice, less reflection, more warming): +0.3 W/m²/K.\n- Cloud feedback: ±0.4 W/m²/K (most uncertain; recent narrowing toward positive).\n\n**Equilibrium climate sensitivity (ECS)** to 2× CO₂: ~3 °C (IPCC AR6 best estimate; likely range 2.5-4 °C).\n\n**Saturated CO₂ bands**: 15 μm CO₂ band is already strongly absorbing at preindustrial concentrations. Why does more CO₂ still warm? **Spectral broadening + cooling above absorption levels**: bands widen with concentration; upper-tropospheric CO₂ emits less back to space at higher concentrations. The atmosphere's effective emission level rises with CO₂; cooling at altitude means more retained heat below."
+    },
+    {
+      "kind": "text",
+      "title": "Spectral fingerprints + the greenhouse signature",
+      "body": "**Stratospheric cooling** is a unique fingerprint of CO₂-induced greenhouse warming. Increased CO₂ absorbs more outgoing IR in lower atmosphere → less reaches stratosphere → less heating from below → stratosphere cools.\n\nObserved (since 1979 satellite era):\n- Surface + troposphere: warming ~0.2 °C/decade.\n- Lower stratosphere: cooling ~0.3 °C/decade.\n- Mid-stratosphere: cooling ~0.5 °C/decade.\n- Mesosphere: cooling ~0.5-1 °C/decade.\n\n**Solar forcing prediction**: warming all the way up (more energy in throughout the column).\n**GHG forcing prediction**: warming low + cooling high (energy redistributed within column).\n**Observation**: matches GHG fingerprint. Strong evidence anthropogenic.\n\nOther fingerprints:\n- Polar amplification (Arctic warming 2-4× global average): albedo feedback + atmospheric meridional heat transport.\n- Faster nighttime warming than daytime: GHGs trap IR mostly at night.\n- Stratospheric ozone depletion (separate but compounding signal).\n- Tropopause height rising: ~50 m/decade observed.\n\n**Attribution science** (D&A): formal statistical methods (multivariate regression, optimal fingerprinting) decompose observed changes into anthropogenic + natural drivers. Anthropogenic share of observed warming: ~100% (IPCC AR6). Confidence: 'unequivocal' (highest scientific term)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_rad_1",
+        "kind": "guided_derivation",
+        "question": "Compute Earth's radiative-equilibrium temperature + the greenhouse boost",
+        "goal": "Solve for Earth's effective radiating T (no atmosphere) + compute the greenhouse-effect contribution.",
+        "steps": [
+          {
+            "prompt": "Set up: solar power absorbed = thermal power emitted at TOA.",
+            "motivation": "Energy balance.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "S(1-α)π R² = 4π R² σ T⁴",
+                "balance equation"
+              ]
+            },
+            "hints": [
+              "Solar disk + Stefan-Boltzmann sphere."
+            ],
+            "reveal": "S(1-α) π R² = 4π R² σ T_eff⁴. Solar collected from disk area πR²; thermal emitted from full sphere 4πR²."
+          },
+          {
+            "prompt": "Solve for T_eff. Use S = 1361 W/m², α = 0.3, σ = 5.67×10⁻⁸ W/m²/K⁴.",
+            "motivation": "Plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~254 K",
+                "254",
+                "T_eff = 254 K"
+              ]
+            },
+            "hints": [
+              "T = [(1361 × 0.7) / (4 × 5.67×10⁻⁸)]^(1/4) = [952.7/2.27×10⁻⁷]^(1/4)."
+            ],
+            "reveal": "T_eff = [(1361)(0.7)/(4)(5.67×10⁻⁸)]^(1/4) = [4.2×10⁹]^(1/4) ≈ 254 K = -19 °C."
+          },
+          {
+            "prompt": "Actual mean surface T is ~288 K. Greenhouse boost?",
+            "motivation": "Subtraction.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~34 K",
+                "33-34 K",
+                "288-254"
+              ]
+            },
+            "hints": [
+              "288 - 254."
+            ],
+            "reveal": "Greenhouse boost ≈ 34 K = +34 °C. Without GHGs, Earth would be a frozen iceball averaging ~-19 °C. With them: livable +15 °C."
+          },
+          {
+            "prompt": "How does the greenhouse boost scale with surface emissivity in a simple gray-atmosphere model?",
+            "motivation": "Approximate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "T_s = T_eff × (1 + τ/2)^(1/4)",
+                "increases with absorption"
+              ]
+            },
+            "hints": [
+              "Single-layer gray atmosphere."
+            ],
+            "reveal": "Gray-atmosphere approximation (one fully-absorbing layer): T_s = T_eff × 2^(1/4) = 254 × 1.189 = 302 K = +29 °C — close-ish to observed (real atmosphere has spectral selectivity + multi-layer effects). Real Earth: ~33 K boost, requires ~average τ ~ 0.5-1 in IR effective."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_rad_1",
+        "kind": "drag_classify",
+        "question": "Classify each gas/aerosol by its role in Earth's radiative balance.",
+        "items": [
+          {
+            "id": "co2",
+            "label": "CO₂",
+            "bin": "greenhouse"
+          },
+          {
+            "id": "ch4",
+            "label": "CH₄ (methane)",
+            "bin": "greenhouse"
+          },
+          {
+            "id": "h2o",
+            "label": "H₂O (water vapor)",
+            "bin": "greenhouse"
+          },
+          {
+            "id": "n2o",
+            "label": "N₂O (nitrous oxide)",
+            "bin": "greenhouse"
+          },
+          {
+            "id": "cfc",
+            "label": "CFCs (e.g., CFC-12)",
+            "bin": "greenhouse"
+          },
+          {
+            "id": "sulfate",
+            "label": "Sulfate aerosol (from SO₂)",
+            "bin": "reflective"
+          },
+          {
+            "id": "sea-salt",
+            "label": "Sea-salt aerosol",
+            "bin": "reflective"
+          },
+          {
+            "id": "black-carbon",
+            "label": "Black carbon (soot)",
+            "bin": "absorbing"
+          },
+          {
+            "id": "n2",
+            "label": "N₂",
+            "bin": "inert"
+          },
+          {
+            "id": "o2",
+            "label": "O₂",
+            "bin": "inert"
+          },
+          {
+            "id": "ar",
+            "label": "Argon",
+            "bin": "inert"
+          }
+        ],
+        "bins": [
+          {
+            "id": "greenhouse",
+            "label": "Greenhouse (absorbs longwave; warms)"
+          },
+          {
+            "id": "reflective",
+            "label": "Reflective aerosol (cools)"
+          },
+          {
+            "id": "absorbing",
+            "label": "Absorbing aerosol (warms in atmosphere)"
+          },
+          {
+            "id": "inert",
+            "label": "Inert (no significant radiative role)"
+          }
+        ],
+        "explanation": "Atmospheric components fall into 4 radiative roles:\n• **Greenhouse gases**: triatomic + polyatomic with vibrational modes in IR (CO₂, H₂O, CH₄, N₂O, O₃, CFCs). Trap outgoing IR; warm surface.\n• **Reflective aerosols**: scatter solar back to space — sulfate, sea-salt, mineral dust (high-albedo). Cooling effect (~-1 W/m² globally from anthropogenic sulfate; offsets some GHG warming).\n• **Absorbing aerosols**: dark particles like black carbon (BC) absorb shortwave + heat atmosphere; on snow/ice, reduce albedo. Net warming, especially in lower atmosphere (~+0.1-0.5 W/m² uncertain).\n• **Inert gases**: N₂, O₂, Ar are diatomic homonuclear or noble — no dipole moment in vibration → no IR absorption. Make up 99% of atmosphere but don't contribute to greenhouse.\n\nThis is why the 'greenhouse effect' depends on tiny minorities (~0.1% of atmosphere); but those minorities have outsize impact via molecular spectroscopy."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_rad_1",
+        "kind": "multiple_choice",
+        "question": "Why does climate sensitivity to CO₂ doubling vary between climate models?",
+        "options": [
+          "Models all give the same answer.",
+          "Equilibrium climate sensitivity (ECS) depends on feedbacks: water vapor + lapse rate + albedo + cloud. Water vapor + albedo feedbacks well-constrained; lapse rate moderately constrained; cloud feedback is the dominant uncertainty. Different model treatments of cloud microphysics, convection, marine stratocumulus — leading to ECS range ~2.5-5 °C across CMIP6 models. Recent observational constraints (paleo records, recent warming, process studies) narrow likely range to 2.5-4 °C (IPCC AR6).",
+          "Models are wrong.",
+          "ECS is exactly 3 °C in all models."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Equilibrium climate sensitivity (ECS)** = global mean surface temperature change at equilibrium after doubling atmospheric CO₂ (effectively, after centuries of full ocean adjustment).\n\nComputed in models as ΔT = ΔF / λ, where:\n- ΔF (radiative forcing for 2×CO₂) = 3.7 W/m² (well-known, ~5% uncertainty)\n- λ (feedback parameter) — *uncertain*; depends on:\n  - **Planck**: -3.3 W/m²/K (well-known)\n  - **Water vapor**: +1.6 ± 0.2 W/m²/K (warming → more vapor → stronger greenhouse, amplifying)\n  - **Lapse rate**: -0.5 ± 0.4 W/m²/K (tropospheric warming faster than surface in tropics → enhanced cooling to space)\n  - **Surface albedo**: +0.3 ± 0.1 W/m²/K (less ice, less reflection)\n  - **Cloud**: +0.4 ± 0.4 W/m²/K — the **dominant uncertainty**.\n\n**Cloud feedback sources of uncertainty**:\n1. Low-cloud response: dominant globally. Warming → drier marine stratocumulus → fewer clouds → positive feedback. Models split on magnitude.\n2. High-cloud altitude: warming → higher cloud tops → cooler emission → less radiating to space → positive feedback ('fixed anvil temperature' theory).\n3. Tropical-cloud area: uncertain.\n4. Aerosol-cloud interactions: more aerosols → more cloud droplets, brighter clouds (Twomey effect). Net negative; magnitude poorly constrained.\n\n**ECS range across CMIP6 models**: ~2 to 5 °C. Modal value ~3 °C.\n\n**Recent narrowing** (Sherwood+ 2020 Reviews of Geophysics; IPCC AR6 2021):\n- Process studies (more constrained low-cloud feedback toward positive).\n- Paleo evidence (Pliocene + LGM): ECS likely 2.5-4 °C.\n- Recent warming trend + ocean heat uptake: ECS likely 2.5-3.5 °C.\n- Energy budget constraints (Murphy+ 2009): supports central estimate.\n\n**IPCC AR6**: ECS very likely 2-5 °C; likely 2.5-4 °C; best estimate 3 °C. Substantial narrowing from AR5's 1.5-4.5 °C range.\n\n**Implication**: if ECS is 4 °C (high end), 21st-century warming will be larger + more rapid than central projections. If ECS is 2 °C (low end), more time for mitigation but still very dangerous warming. Real-world stakes very high; ongoing research priority.\n\nCloud-resolving global models (storm-resolving with km-scale grids, e.g., DYAMOND project) approaching cloud feedback more directly + may narrow uncertainty in coming decade."
+      },
+      "hints": [
+        "What feedback drives ECS uncertainty?",
+        "Recent narrowing of range?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "ECS = ΔF/λ. ΔF (2×CO₂) ≈ 3.7 W/m² known well. λ depends on feedbacks: Planck (-3.3), water vapor (+1.6), lapse rate (-0.5), albedo (+0.3), CLOUD (+0.4 ± 0.4 dominates uncertainty). CMIP6 ECS range 2-5 °C; IPCC AR6 narrowed to likely 2.5-4 °C (best 3 °C). Recent narrowing from cloud process studies, paleo, energy budget. Cloud-resolving global models may narrow further in coming decade."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_rad_1",
+        "kind": "math_expression",
+        "question": "Earth's equilibrium temperature with albedo α = 0.5 (very ice-covered hypothetical). S=1361 W/m², σ=5.67×10⁻⁸. T_eff in K?",
+        "acceptedAnswers": [
+          "~234",
+          "234",
+          "T = [S(1-0.5)/(4σ)]^(1/4)"
+        ],
+        "hint": "T = [(1361)(0.5)/(4)(5.67e-8)]^(1/4) = [3e9]^(1/4) = 233.5 K."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_rad_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why 'CO₂ doubling' is the standard reference unit for climate sensitivity + why it matters for policy.",
+        "rubric": "Mentions: ΔF (radiative forcing) is approximately logarithmic in CO₂ concentration — each doubling adds ~3.7 W/m² regardless of starting point (280 → 560 ppm = 560 → 1120 ppm in forcing terms). Standardizes comparisons across models + scenarios. Currently CO₂ is at ~420 ppm vs 280 preindustrial — about 0.6 of one doubling complete. ECS (long-term, centuries equilibrium) ~3 °C per doubling. Transient response (TCR, immediately after a doubling) ~1.8 °C — smaller because ocean takes centuries to warm. Policy implication: target = ~Paris Accord ~1.5 °C means stabilizing CO₂ at ~430-450 ppm (well-below-doubling). Current trajectory points to ~600-800 ppm by 2100 → 2-3 °C warming. ECS uncertainty (2.5-4 °C) becomes policy uncertainty about 'how much CO₂ is safe.' Concludes: doubling is a convenient bookkeeping unit; what matters is total cumulative emissions setting peak CO₂."
+      }
+    }
+  ]
+}

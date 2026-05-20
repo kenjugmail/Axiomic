@@ -1,0 +1,220 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Distinguish tropical + extratropical cyclones.",
+      "Reason about cyclogenesis + hurricane formation.",
+      "Connect weather patterns to forecasting."
+    ],
+    "prereqs": [
+      "atmospheric-dynamics-and-circulation"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Mid-latitude (extratropical) cyclones",
+      "body": "Mid-latitude cyclones are low-pressure systems forming along polar front + driven by baroclinic instability:\n\n• **Genesis**: perturbation along front; baroclinic instability amplifies; cyclone develops.\n• **Mature structure**: central low (~970-1000 hPa); rotation counterclockwise (NH); diameter 1000-3000 km.\n• **Fronts**: warm front advances + lifts warm air over cold; cold front follows + lifts warm air abruptly. Occluded front when cold front catches warm front.\n• **Conveyor belts**: warm conveyor (ascending warm-sector air, source of heavy precip); cold conveyor (low-level cold air east of low); dry intrusion from stratosphere descending behind cold front.\n\n**Lifecycle** (Norwegian Cyclone Model, Bjerknes 1922):\n1. Initial wave on front.\n2. Open wave (developing low + frontal structure).\n3. Mature cyclone (deepest + occlusion forming).\n4. Decaying cyclone (cut-off; decoupling from front).\n5. ~3-7 day total lifetime.\n\n**Famous storms**:\n- 'Storm of the Century' Mar 1993: NA blizzard, $7B damage.\n- Great Storm of 1987 UK: 90+ mph winds; ~18 dead.\n- Lothar + Martin Dec 1999 (Europe): record-breaking; 90+ dead.\n- Sandy 2012 (hybrid tropical-extratropical): NYC + NJ devastation.\n\n**Bomb cyclones**: rapid intensification (pressure drop > 24 hPa / 24 hr at 60°N). Particularly intense.\n\n**NW Atlantic + Pacific storm tracks**: peak cyclone-genesis regions due to land-sea T contrast + Gulf Stream + Kuroshio heat."
+    },
+    {
+      "kind": "text",
+      "title": "Tropical cyclones: hurricanes + typhoons",
+      "body": "**Tropical cyclones** (hurricanes = Atlantic + E. Pacific; typhoons = W. Pacific; cyclones = Indian Ocean/Australia) are warm-core, deep-convective systems powered by latent heat of ocean evaporation.\n\n**Formation requirements** (Gray 1968):\n1. Warm SST > 26.5 °C (deep mixed layer to ~50 m).\n2. Tropical latitudes (>5° from equator for Coriolis but not too high).\n3. Pre-existing disturbance (tropical wave from Africa, monsoon trough).\n4. Low vertical wind shear (<20 kt or so).\n5. Mid-tropospheric humidity (no dry intrusion to kill convection).\n6. Conditional instability + sufficient ITCZ moisture.\n\n**Structure** (mature cyclone):\n• **Eye**: clear central calm (~30-60 km diameter). Subsiding air. Lowest pressure.\n• **Eyewall**: strongest winds (90-300+ km/h); ring of intense convection around eye.\n• **Rainbands**: spiral arms of convection, hundreds of km out.\n• **Outflow**: at upper troposphere; flows outward from cyclone top.\n\n**Saffir-Simpson scale** (Atlantic):\n- Cat 1: 119-153 km/h (74-95 mph)\n- Cat 2: 154-177 km/h\n- Cat 3: 178-208 km/h (major hurricane)\n- Cat 4: 209-251 km/h\n- Cat 5: ≥252 km/h\n\n**Recent major events**:\n- Patricia 2015: 345 km/h, lowest Atlantic pressure on record (872 hPa).\n- Yutu 2018 (W. Pacific): Cat 5, Saipan devastation.\n- Dorian 2019 Bahamas: 295 km/h, $7B damage.\n- Typhoon Goni Oct 2020: 315 km/h, strongest at landfall.\n- Ida 2021: $75B damage.\n- Ian 2022: $112B damage.\n\n**Climate change + tropical cyclones**: \n- Frequency: ambiguous trend.\n- Intensity: higher fraction of major (Cat 4-5) storms; observed + projected.\n- Rapid intensification: ~50% more rapid intensifications since 1980s.\n- Slower forward motion: more time over land → more rainfall.\n- Storm-surge + flooding worsened by SLR + heavier precipitation."
+    },
+    {
+      "kind": "text",
+      "title": "Forecasting + the prediction limits",
+      "body": "**Numerical Weather Prediction (NWP)** is the core technology:\n- Discretize atmosphere on global grid (~10-25 km horizontal, ~50-100 vertical levels).\n- Initial conditions from observations (radiosondes, satellites, aircraft, surface stations, buoys).\n- Integrate Navier-Stokes + thermodynamics + radiation + moist physics forward in time.\n- Run multiple times with perturbed initial conditions → ensemble forecasts.\n\n**Leading global models**:\n- ECMWF IFS: best medium-range skill, ~10-day useful forecast.\n- NOAA GFS: free + widely used; ~7-day skill.\n- NCEP NAEFS, Météo-France ARPEGE, UK Met UM, JMA GSM.\n\n**ML-based forecasting** (2022-onwards):\n- Google DeepMind GraphCast (2022): graph neural network. Beats ECMWF on most metrics at ~1000× less compute.\n- Microsoft ClimaX, Aurora; NVIDIA FourCastNet, GenCast (2023, diffusion-based ensemble).\n- Pangu-Weather (Huawei 2023): 3D transformer.\n- Generating realistic ensembles, calibrated probabilistic forecasts.\n\n**Forecast skill horizon**:\n- ~6-hr nowcast: very high skill (radar + satellite + ML).\n- 1-3 day: high skill (~95% useful).\n- 5-7 day: moderate skill (~70-80%).\n- 10-day: marginal skill.\n- Beyond 10-14 days: chaos limits deterministic forecasting (Lorenz 1963); only ensemble/statistical skill.\n\n**S2S (subseasonal-to-seasonal)** forecasts (2 weeks - 3 months): emerging area; ENSO + MJO + soil-moisture + sea-ice memory provide some skill.\n\n**Climate vs weather**: weather forecasts deterministic + chaos-limited. Climate prediction is statistical + boundary-condition-driven (different problem). Can predict climate decades ahead with skill; can't predict daily weather more than ~2 weeks."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_weather_1",
+        "kind": "guided_derivation",
+        "question": "Compute the warm-front advance time",
+        "goal": "A warm front extends NW-SE across the central US at 30 °C ahead + 5 °C behind. Wind component perpendicular to front ahead is 30 km/h southward. How long until the warm air mass arrives at a station 100 km north of the current front position?",
+        "steps": [
+          {
+            "prompt": "Wind speed perpendicular to front?",
+            "motivation": "Frame.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "30 km/h",
+                "30"
+              ]
+            },
+            "hints": [
+              "Given."
+            ],
+            "reveal": "30 km/h. Warm air mass advances at this speed."
+          },
+          {
+            "prompt": "Time to traverse 100 km?",
+            "motivation": "Distance / velocity.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~3.3 hr",
+                "3.33 hr",
+                "100/30"
+              ]
+            },
+            "hints": [
+              "100/30 = 3.33 hr."
+            ],
+            "reveal": "100 km / 30 km/h = 3.33 hours. Warm air arrives ~3:20 hr later. Typical mid-lat cyclone warm-front passage timescales."
+          },
+          {
+            "prompt": "Expected temperature change at the station?",
+            "motivation": "Warm air arrives.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "+25 °C",
+                "30 - 5",
+                "rise to 30 from 5"
+              ]
+            },
+            "hints": [
+              "From 5 to 30."
+            ],
+            "reveal": "Station temperature rises from 5 °C (behind front, cold) to 30 °C (ahead of front, warm) — 25 °C rise. Likely cloud cover + light rain on warm-front passage; then sunshine in warm sector."
+          },
+          {
+            "prompt": "What weather precedes a warm front?",
+            "motivation": "Typical warm-front structure.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "stratiform clouds + light rain",
+                "cirrus → stratus",
+                "advancing warm air rising"
+              ]
+            },
+            "hints": [
+              "Warm air lifts gradually over cold."
+            ],
+            "reveal": "Warm air ahead of warm front lifts gradually (gentle slope ~1/200) over cold air. Sequence: high cirrus + cirrostratus → altostratus → nimbostratus → light steady precipitation. Tens of hours of approach. Distinguishes from cold front (steep slope ~1/50; abrupt; squall lines; thunderstorms). Mid-lat winter cyclone warm-front signature is a textbook day-long progressive forecast."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_weather_1",
+        "kind": "drag_classify",
+        "question": "Classify each weather phenomenon by its formation mechanism.",
+        "items": [
+          {
+            "id": "hurricane-atlantic",
+            "label": "Atlantic hurricane",
+            "bin": "tropical"
+          },
+          {
+            "id": "typhoon-pacific",
+            "label": "Western Pacific typhoon",
+            "bin": "tropical"
+          },
+          {
+            "id": "noreaster",
+            "label": "Nor'easter (US East Coast winter)",
+            "bin": "extratropical"
+          },
+          {
+            "id": "europe-cyclone",
+            "label": "European winter cyclone",
+            "bin": "extratropical"
+          },
+          {
+            "id": "supercell",
+            "label": "Tornadic supercell (Great Plains)",
+            "bin": "mesoscale"
+          },
+          {
+            "id": "squall-line",
+            "label": "Squall line (MCS, mid-summer)",
+            "bin": "mesoscale"
+          },
+          {
+            "id": "cold-front-passage",
+            "label": "Cold front passage with thunderstorms",
+            "bin": "frontal"
+          },
+          {
+            "id": "warm-front",
+            "label": "Warm front with stratiform rain",
+            "bin": "frontal"
+          }
+        ],
+        "bins": [
+          {
+            "id": "tropical",
+            "label": "Tropical cyclone (warm-core, ocean-fueled)"
+          },
+          {
+            "id": "extratropical",
+            "label": "Extratropical cyclone (cold-core, baroclinic)"
+          },
+          {
+            "id": "mesoscale",
+            "label": "Mesoscale convective (organized thunderstorms)"
+          },
+          {
+            "id": "frontal",
+            "label": "Frontal (boundary between air masses)"
+          }
+        ],
+        "explanation": "Atmospheric phenomena fall into broad classes by formation mechanism:\n• **Tropical cyclones** (hurricanes, typhoons, cyclones): warm-core systems fueled by latent heat of ocean evaporation over warm waters (>26.5 °C). Need low vertical wind shear; tropical/subtropical latitudes.\n• **Extratropical cyclones**: cold-core systems driven by baroclinic instability along polar front. Strong horizontal T gradient → APE → eddy growth. Mid-latitudes; year-round but stronger in winter.\n• **Mesoscale convective systems (MCS)**: organized thunderstorms — supercells, squall lines, derechos. Driven by convective instability + organized dynamics on ~100-500 km scales. Summer-dominant.\n• **Frontal weather**: precipitation + wind shifts associated with passage of air-mass boundaries. Often embedded in cyclones; can occur independently. Warm-front: gradual rise + stratiform precip. Cold-front: abrupt rise + convective precip.\n\nMost severe weather involves combinations — e.g., a mid-latitude cyclone has frontal precipitation embedded + may include mesoscale convective elements."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_weather_1",
+        "kind": "multiple_choice",
+        "question": "Why has rapid intensification of tropical cyclones (rapid increase in wind speed over short time) become more frequent since 1980?",
+        "options": [
+          "Models are getting worse.",
+          "Warmer ocean surfaces provide more latent heat for storm intensification. Subsurface ocean heat (down to ~100 m) also warming, reducing 'cool-water brake' that previously slowed storms. Combined with often-low wind shear in late-season tropical conditions, storms can intensify rapidly (e.g., from Cat 1 to Cat 5 in 24-36 hr). Increases storm-surge + wind damage; complicates forecasting + evacuation planning. Observed in Atlantic + Pacific basins since 1980s.",
+          "Tropical cyclones are weakening.",
+          "Random variability."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Rapid intensification (RI)** is defined as wind-speed increase of ≥35 mph (56 km/h) in 24 hours.\n\n**Observed trends (Bhatia+ 2019, Wang+ 2022)**:\n- Probability of RI has increased ~50% since 1980s.\n- More common in late season (Aug-Oct in Atlantic).\n- More common where ocean heat content extends deeper.\n- Patricia 2015 (E. Pacific): 100 mph wind increase in 24 hr — record.\n- Ian 2022 (Gulf of Mexico): 70 mph in 24 hr; ~$112B damage in Florida.\n\n**Physical mechanism**:\n1. **Warm surface water** (>28-29 °C) provides energy via evaporation. Latent heat → eyewall convection.\n2. **Deep warm layer** (mixed layer + thermocline below): if upper ocean is uniformly warm to ~50-100 m, storm-induced upwelling doesn't cool surface much. 'Loop currents' (Gulf of Mexico) or 'rings' (Atlantic) of unusually warm + deep water are RI hotspots.\n3. **Low wind shear**: vertical shear of horizontal winds disrupts vertical cyclone structure. Calm shear allows tight, organized circulation to intensify.\n4. **High humidity**: aircraft-measured pre-storm humidity correlates with RI likelihood.\n5. **Inner-core processes**: eyewall replacement cycles, convective bursts, can trigger sudden deepening.\n\n**Climate change linkages**:\n- SST warming: tropical Atlantic SST risen ~1 °C since 1950s.\n- Ocean heat content (OHC): increasing globally, especially in subtropics.\n- 26.5 °C isotherm: pushed deeper (>50 m typical now in late-season Atlantic).\n- Combined: more RI 'fuel' available.\n\n**Forecasting challenge**:\n- RI is the hardest aspect of TC forecasting. Models systematically under-predict RI events.\n- Aircraft observations (Hurricane Hunters reconnaissance) critical.\n- Recent advances: ML-based RI prediction (NHC adopted DTOPS + SHIPS-RI models).\n- 24-hr RI prediction accuracy has improved but remains <50% in many cases.\n\n**Implications**:\n- Less time for evacuation (1-2 days less warning than historical).\n- Higher peak intensities at landfall.\n- Greater wind + surge + rainfall damage.\n- Underestimated by historical-extrapolation insurance + planning models.\n\nClimate-adapted infrastructure + evacuation planning must account for higher RI probability + faster onset of strongest storms."
+      },
+      "hints": [
+        "What's the role of ocean heat?",
+        "Why now more than 1980?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Rapid intensification: ≥35 mph wind increase in 24 hr. ~50% more frequent since 1980s. Causes: warmer SSTs (>28-29 °C), deeper warm layer (loop currents, ocean heat content), low wind shear, high humidity. Patricia 2015 (100 mph/24 hr record), Ian 2022 (70 mph/24 hr → $112B). Forecasting challenge: under-predicted by models; aircraft + ML-based methods help. Implications: less evacuation time, higher peak intensities, greater damage. Climate adaptation must account for RI."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_weather_1",
+        "kind": "math_expression",
+        "question": "A hurricane with 250 km/h wind has Cat what on Saffir-Simpson scale? (Cat 1: 119-153; Cat 2: 154-177; Cat 3: 178-208; Cat 4: 209-251; Cat 5: ≥252)",
+        "acceptedAnswers": [
+          "Cat 4",
+          "Category 4",
+          "4",
+          "Cat-4"
+        ],
+        "hint": "209-251 km/h falls in Category 4 range."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_weather_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why modern medium-range weather forecasts (~7 days ahead) are remarkably skillful, while ~14-day forecasts remain marginal.",
+        "rubric": "Mentions: medium-range forecasts (5-10 day) have benefited from: (1) better numerical models (higher resolution, better physics, improved data assimilation); (2) huge observational network (satellites, radiosondes, aircraft, surface stations); (3) ensemble approaches quantifying uncertainty; (4) recent ML-based methods (GraphCast, ECMWF AIFS). Skill: ECMWF medium-range forecast at day-9 today equals day-5 in 1980s. Beyond ~10-14 days, chaos limit (Lorenz 1963) — sensitive dependence on initial conditions means deterministic predictability vanishes. Two close initial states diverge to completely different forecast outcomes over ~weeks. Some signal remains in monthly + seasonal averaged statistics from large-scale boundary conditions (SST, snow cover, ENSO state). Subseasonal-to-seasonal (S2S) forecasts emerging area; modest skill from MJO + soil moisture + sea ice. Concludes: deterministic limit ~14 days; statistical/seasonal predictability extends much further; ML may close some gap with new methods exploiting boundary-condition memory."
+      }
+    }
+  ]
+}

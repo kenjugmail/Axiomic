@@ -1,0 +1,235 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish tornado, supercell, hailstorm, derecho.",
+      "Reason about hurricane storm surge.",
+      "Connect climate change to extreme-weather frequency."
+    ],
+    "prereqs": [
+      "weather-systems-and-cyclones"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Severe convective weather: supercells, tornadoes, hail",
+      "body": "**Severe thunderstorms**: produce one or more of: hail ≥2.5 cm, wind ≥58 mph (93 km/h), or tornado.\n\n**Supercell** = rotating thunderstorm (mesocyclone). Most produce hail; ~25% produce tornadoes.\n\nFormation requirements:\n- Conditional instability + sufficient CAPE.\n- Sufficient deep-layer (0-6 km) shear: 20+ m/s recommended; 30+ m/s for supercells.\n- Storm-relative helicity (SRH) in low levels.\n\n**Great Plains 'Tornado Alley'** + other regions (E. Argentina, Bangladesh, S. Brazil, Pakistan): unique combination of cold + dry continental air + warm moist Gulf air → strong vertical shear.\n\n**Tornado intensity** (EF scale):\n- EF0: 65-85 mph; weak damage\n- EF1: 86-110 mph; tree damage, mobile home damage\n- EF2: 111-135 mph; major damage to homes\n- EF3: 136-165 mph; severe damage\n- EF4: 166-200 mph; well-built homes leveled\n- EF5: >200 mph; total destruction\n\n**Recent record events**:\n- Joplin MO 2011: EF5; 158 dead; tornado outbreak season.\n- Moore OK 2013: EF5; 24 dead.\n- Mayfield KY Dec 2021: long-track tornado, 80+ deaths.\n- Dec 2023 Tennessee outbreak: multiple EF3+ tornadoes.\n\n**Hailstorm**: hailstones grow by cycling through updraft (-20 °C area) + downdraft. Larger updrafts → larger hail. Largest recorded: ~20 cm (Vivian SD 2010).\n\n**Derecho**: long-lived, fast-moving windstorm associated with mesoscale convective systems. Damages large regions in single event.",
+      "viz": "atmospheric-sounding",
+      "vizProps": {
+        "surfaceT": 28,
+        "surfaceTd": 24
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Hurricane storm surge + flooding",
+      "body": "**Storm surge**: rise in coastal sea level above astronomical tide, from hurricane winds + low pressure. Major cause of hurricane fatalities (~50% historically).\n\n**Drivers**:\n1. **Wind setup**: dominant. Onshore winds drive Ekman transport pile-up.\n2. **Pressure setup**: 1 hPa drop → 1 cm sea-level rise (inverse barometer).\n3. **Coastal geometry**: shallow + concave coasts amplify (Gulf Coast, Bay of Bengal, NJ/NY harbor).\n4. **Wave setup + runup**: nearshore wave action adds depth.\n\n**Typical magnitudes**:\n- Cat 1-2: 1-3 m surge.\n- Cat 3-4: 3-6 m surge.\n- Cat 5: 5-10+ m surge depending on geometry.\n\n**Historical catastrophes**:\n- Bhola Cyclone (Bangladesh 1970): 10-13 m surge, ~500,000 deaths.\n- Katrina 2005: 8.5 m at Mississippi; New Orleans flooded.\n- Sandy 2012: 4.3 m peak at NYC.\n- Haiyan 2013 (Philippines): 5-7 m, ~6300 deaths.\n- Idai 2019 (Mozambique): 4-7 m, 1300+ deaths.\n- Ian 2022 (Florida): ~5 m on SW coast.\n\n**Sea-level rise amplification**: each meter of background SLR extends inundation inland; ~50-100 cm SLR by 2100 (Paris-aligned) → significant compounding hazard. Storm surge that today is 'rare' becomes 'common.'\n\n**Inland flooding** also kills + damages:\n- Hurricane Florence 2018: extreme rainfall in NC + SC; ~$22B damage from inland flooding.\n- Hurricane Harvey 2017: 1.5 m of rain over Houston in 5 days; ~$125B damage.\n- Hurricane Ida 2021: extreme NYC area flooding; subway tunnels swamped.\n\n**Atmospheric rivers**: narrow corridors of moisture transport (~3-5× wider, 10× longer than Mississippi). Drive extreme flooding events on US West Coast, UK, NZ. ~1 in 4 winter days in Oregon/Washington has AR. Climate change: more intense + frequent ARs."
+    },
+    {
+      "kind": "text",
+      "title": "Climate-change impacts on extremes",
+      "body": "**Observed changes in extremes** (IPCC AR6 + USNCA5):\n\n• **Heat extremes**: more frequent + intense. 1-in-50-year heat event now ~5× more likely under +1.1 °C warming. Records broken every few years (2003 EU; 2010 Russia; 2021 PNW; 2022 EU; 2023 record).\n• **Heavy precipitation**: more intense. ~7% more atmospheric moisture per 1 °C warming (Clausius-Clapeyron). Extreme precip events ~10-30% more intense than 1950s.\n• **Drought**: increased in some regions (Mediterranean, SW US, Africa, Australia); not uniform globally. Compounding with heat = aridification.\n• **Wildfires**: longer + more intense seasons. Hot+dry conditions + fuel accumulation. CA + W. Canada + Mediterranean + Russia + Australia.\n• **Tropical cyclones**: total number ambiguous; higher fraction Cat 4-5; more rapid intensification; slower forward motion; more rainfall (CC); compound storm surge with SLR.\n• **Extratropical cyclones + ARs**: limited evidence of more, but intensity shifts toward more extreme.\n• **Compound extremes**: heat + drought; flood + storm surge; multi-hazard sequences increasingly common.\n\n**Attribution science** (Knutson, Hartmann, World Weather Attribution):\n- Formal statistical methods quantify how much climate change influenced specific events.\n- 'Without climate change, this heatwave would have been X% less likely / Y °C cooler.'\n- 2003 EU heatwave: ~2-4× more likely with CC.\n- 2021 PNW dome: 'virtually impossible' without CC; ~150× more likely.\n- 2022 Pakistan flood: ~50% more rainfall due to CC.\n- Methodology controversial; results conservative + peer-reviewed.\n\n**Adaptation implications**:\n- Existing infrastructure designed for past climate; many margins exceeded.\n- Building codes + flood maps + water-management rules need updating.\n- Some risks moving toward 'unmanageable' for current adaptation strategies (>3 °C scenarios).\n- Loss + damage funding (COP27 2022) addresses irreparable losses in vulnerable countries.\n- Equity: poorest countries face worst impacts despite low emissions."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_extreme_1",
+        "kind": "guided_derivation",
+        "question": "Apply Clausius-Clapeyron to extreme precipitation",
+        "goal": "Atmospheric moisture-holding capacity increases ~7% per 1 °C of warming. Earth has warmed +1.1 °C since 1850. If extreme precip events scale roughly with moisture content, how much more intense are they now?",
+        "steps": [
+          {
+            "prompt": "Moisture-holding increase from +1.1 °C?",
+            "motivation": "Apply 7%/°C rule.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~7.7%",
+                "8%",
+                "1.1 × 7"
+              ]
+            },
+            "hints": [
+              "1.07^1.1 ≈ 1.077."
+            ],
+            "reveal": "Moisture-holding ~ +7.7% (1.07^1.1)."
+          },
+          {
+            "prompt": "Why does extreme precipitation scale with moisture content?",
+            "motivation": "Connect to physics.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "available moisture limits intensity",
+                "moisture-limited",
+                "saturation"
+              ]
+            },
+            "hints": [
+              "What determines extreme rainfall rate?"
+            ],
+            "reveal": "Extreme rainfall during intense events is limited by available moisture (saturation vapor pressure) + uplift dynamics. When updraft strong + air saturated, rainfall rate ∝ moisture content. So 7%/°C warming → ~7%/°C increase in extreme rainfall."
+          },
+          {
+            "prompt": "But observations show extreme precip increasing faster — ~10-15%/°C. Why?",
+            "motivation": "Compound effects.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "super-CC scaling",
+                "additional dynamics",
+                "stronger updrafts"
+              ]
+            },
+            "hints": [
+              "More moisture → more latent heat → stronger storms → more uplift?"
+            ],
+            "reveal": "**Super-Clausius-Clapeyron scaling**: observed extreme-precipitation increases ~10-15%/°C in many regions, faster than simple thermodynamic +7%/°C. Mechanisms: (1) more moisture → more latent heat release → stronger updrafts; (2) shifts in storm types (more convective, less stratiform); (3) atmospheric-river intensification. Implication: extreme precipitation may rise faster than expected from pure thermodynamic argument. Some studies even show 2-3× moisture rate at sub-daily scales (urban flood relevance)."
+          },
+          {
+            "prompt": "What's the implication for infrastructure design?",
+            "motivation": "Engineering response.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "update IDF curves",
+                "design for higher intensity",
+                "non-stationary"
+              ]
+            },
+            "hints": [
+              "What needs updating?"
+            ],
+            "reveal": "Engineering practice historically uses **stationary statistics** (assume past climate = future). With climate change, this is invalid. **Non-stationary frequency analysis** + Climate Resilience Design Standards being adopted: assume future climate higher 100-yr precipitation; design culverts, levees, urban drainage for that. Lag time challenging: ~50-100 yr infrastructure lifetime requires forecasting climate that far out. Adaptation gap: most stormwater systems still designed for historical climate; flooding events exceed design ~10× more often than 1980s."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_extreme_1",
+        "kind": "drag_classify",
+        "question": "Classify each extreme-weather phenomenon by its primary climate-change influence (well-attributed vs uncertain).",
+        "items": [
+          {
+            "id": "heat-events",
+            "label": "Heat waves (e.g., 2021 PNW heat dome, 2003 EU)",
+            "bin": "strongly-attributed"
+          },
+          {
+            "id": "marine-heatwaves",
+            "label": "Marine heatwaves (e.g., 2014-15 Blob)",
+            "bin": "strongly-attributed"
+          },
+          {
+            "id": "extreme-precip",
+            "label": "Extreme precipitation events (rainfall > 100mm/day)",
+            "bin": "strongly-attributed"
+          },
+          {
+            "id": "tc-intensity",
+            "label": "Tropical cyclone PEAK intensity (Cat 4-5 fraction)",
+            "bin": "partially-attributed"
+          },
+          {
+            "id": "rapid-intensification",
+            "label": "Tropical cyclone rapid intensification",
+            "bin": "partially-attributed"
+          },
+          {
+            "id": "wildfires",
+            "label": "Wildfire frequency + severity",
+            "bin": "partially-attributed"
+          },
+          {
+            "id": "drought-flash",
+            "label": "Flash drought (rapid soil-moisture decline)",
+            "bin": "partially-attributed"
+          },
+          {
+            "id": "tc-frequency",
+            "label": "Tropical cyclone total frequency",
+            "bin": "ambiguous"
+          },
+          {
+            "id": "tornado-frequency",
+            "label": "Tornado frequency",
+            "bin": "ambiguous"
+          },
+          {
+            "id": "blizzards",
+            "label": "Blizzard frequency",
+            "bin": "unattributed"
+          }
+        ],
+        "bins": [
+          {
+            "id": "strongly-attributed",
+            "label": "Strongly attributed to climate change"
+          },
+          {
+            "id": "partially-attributed",
+            "label": "Partially attributed (clear influence but mixed)"
+          },
+          {
+            "id": "ambiguous",
+            "label": "Ambiguous / mixed signals"
+          },
+          {
+            "id": "unattributed",
+            "label": "Not currently attributed"
+          }
+        ],
+        "explanation": "Climate-change attribution to extreme weather (IPCC AR6, World Weather Attribution):\n• **Strongly attributed**: heatwaves (clear: warmer base + persistence); marine heatwaves (ocean warming); extreme precipitation (Clausius-Clapeyron). These are robust + multiple-line evidence.\n• **Partially attributed**: tropical cyclone peak intensity (higher fraction Cat 4-5 with warming, but total frequency ambiguous); rapid intensification (warmer SST + deeper warm layer); wildfires (warmer + drier conditions); flash drought (concurrent heat + dry events).\n• **Ambiguous**: total tropical cyclone frequency (some basins up, others down; ambiguous globally); tornado frequency (variable; smaller signal).\n• **Not currently attributed**: blizzards + extra-tropical cyclones (similar to historical climatology; some shift but limited).\n\nAttribution science is a young field. Methodology: compare observed event probability to model simulations with + without anthropogenic forcing. Statistical confidence varies. Many results conservative (require strong evidence to attribute). The field is rapidly maturing; expect more confident attributions in coming years."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_extreme_1",
+        "kind": "multiple_choice",
+        "question": "Why has the 2021 Pacific Northwest 'heat dome' been called 'virtually impossible without climate change'?",
+        "options": [
+          "It would have been impossible at any time in human history.",
+          "Statistical analysis of the event by World Weather Attribution + others found that in a pre-industrial climate, this event (3 days of 40-46 °C in normally 25 °C climate) would have been ~150× less likely; some statistical models found it essentially impossible (return period > 1000 yr). Under current +1.1 °C warming, it's a 1-in-1000 yr event; under +2 °C, ~1-in-50 yr. Combination of meteorology (blocking ridge) + climate-warming-amplified background temperatures pushed event into extremes beyond what models had predicted possible.",
+          "All heat waves are equivalent.",
+          "The event was misreported."
+        ],
+        "correctIndex": 1,
+        "explanation": "**2021 Pacific Northwest Heat Dome** (June 26-28):\n\n*Event characteristics*:\n- Lytton, BC: 49.6 °C (121.3 °F) — Canada national all-time record by 4.6 °C.\n- Portland, OR: 46.7 °C (116 °F) — all-time record.\n- Seattle, WA: 42.2 °C (108 °F) — all-time record.\n- Multiple-day 5-10 standard deviation anomaly above climatological mean.\n- Persistent 'omega-block' atmospheric pattern: ridge of high pressure with low pressure to either side.\n- ~600 excess deaths directly attributable.\n- Marine heatwave + wildfires + crop damage compounding.\n- Lytton town destroyed by wildfire 1 day after record.\n\n*World Weather Attribution analysis (Philip+ 2021)*:\n- Pre-industrial climate model probability: essentially zero in some analyses; in others 'virtually impossible' (return period > 1000 yr).\n- Current climate (+1.1 °C): return period ~1000 yr; possible but rare.\n- Future climate (+2 °C): return period ~50 yr.\n- Future climate (+3 °C): return period ~10 yr (decadal).\n- The event was so far outside historical experience that statistical models flagged it as 'statistical surprise.'\n\n*Why this matters*:\n1. **Tail of distribution**: climate change is not just shifting the mean; it's expanding the tail. Some events become possible that weren't.\n2. **Combination of forcings**: high pressure ridge + warm moist source + previously-warmed land surface + reduced cloud cover all combined.\n3. **Model under-prediction**: climate models historically under-projected heat extremes; recent events suggest 'model emergent constraint' that warming response of extremes is stronger than ensemble mean.\n4. **Compounding hazards**: heat + wildfires + drought + ecosystem stress + crop failure occurred together.\n5. **Adaptation gap**: many places had no infrastructure for >40 °C (no AC, no cooling centers, poorly insulated homes). Vulnerability concentrated in elderly + low-income + Indigenous communities.\n\n*Subsequent events*:\n- 2022 European heatwave: >40 °C across Europe; ~50,000 attributed deaths.\n- 2023 record-hot year globally.\n- 2024 record-hot year globally.\n- Each year breaking records.\n\n*Lessons*:\n- 1-in-1000-yr events now occurring; need to plan for them.\n- Adaptation: heat-action plans (Ahmedabad model), cooling centers, building retrofits, work-hour adjustments, public-health early warning.\n- Mitigation: stronger emissions cuts to limit warming below catastrophic levels.\n- Health surveillance: heat-related mortality must be tracked + reported.\n- Inequality: heat impacts concentrate on disadvantaged populations.\n\n**Attribution methodology**: applied to many recent events including 2022 Pakistan flood (+50% rainfall from CC), 2023 Lahaina fire (drought + heat amplified by CC), 2024 European floods. Producing rapid (days-weeks post-event) probabilistic attributions has become routine."
+      },
+      "hints": [
+        "What did WWA find?",
+        "How does return period change with warming?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "WWA + others found 2021 PNW heat dome (49.6 °C Lytton, 46.7 °C Portland, 42.2 °C Seattle, +5-10σ anomaly) virtually impossible pre-industrial; ~1-in-1000 yr current; 1-in-50 yr at +2 °C; 1-in-10 yr at +3 °C. ~600 excess deaths. Lessons: tail of distribution expanding; compounding hazards (heat + fire + drought); adaptation gap; inequality concentrating impacts. Attribution methodology now standard for major events."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_extreme_1",
+        "kind": "math_expression",
+        "question": "Atmospheric moisture-holding capacity rises ~7%/°C. By how much (in %) does extreme rainfall capacity increase under +2 °C of warming, assuming simple Clausius-Clapeyron scaling?",
+        "acceptedAnswers": [
+          "~14.5%",
+          "14.5",
+          "1.07² - 1 = 0.145"
+        ],
+        "hint": "1.07^2 = 1.145 → +14.5%."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_extreme_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain the difference between 'climate adaptation' + 'climate mitigation' + why both are needed simultaneously.",
+        "rubric": "Mentions: climate **mitigation** = reducing emissions of GHG + enhancing sinks (renewables, efficiency, electrification, carbon removal, forest protection). Long-term: stabilizes warming + reduces future damages. Climate **adaptation** = adjusting to actual + expected climate impacts (better building codes, flood defenses, drought-tolerant crops, heat-action plans, MPAs for fisheries, managed retreat). Short-medium term: reduces damages from warming already locked in. **Why both**: even with rapid mitigation, ~50% of GHG already emitted commits to substantial warming + impacts for centuries (committed warming + SLR). And even ambitious adaptation can't prevent damages from very-high-warming scenarios (>3 °C). Equity dimension: poor + vulnerable countries face worst impacts despite least emissions; need adaptation + loss-and-damage funding. Mitigation reduces magnitude; adaptation reduces vulnerability + exposure; together they reduce risk. IPCC framing: 'adapt to what you can't avoid; mitigate what you can't adapt to.' Both essential. Concludes: parallel + complementary tracks; neither alone is sufficient."
+      }
+    }
+  ]
+}

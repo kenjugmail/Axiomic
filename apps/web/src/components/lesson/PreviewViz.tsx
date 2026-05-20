@@ -108,6 +108,11 @@ const LazyOceanTSDiagram = lazy(() =>
     (m) => ({ default: m.OceanTSDiagram }),
   ),
 );
+const LazyAtmosphericSounding = lazy(() =>
+  import("../../../../../packages/viz/src/components/AtmosphericSounding").then(
+    (m) => ({ default: m.AtmosphericSounding }),
+  ),
+);
 const LazyDoublePendulum = lazy(() =>
   import("../../../../../packages/viz/src/components/DoublePendulum").then(
     (m) => ({ default: m.DoublePendulum }),
@@ -222,6 +227,8 @@ function VizByName({
       return <LazyPointKinetics {...(props as object)} />;
     case "ocean-ts-diagram":
       return <LazyOceanTSDiagram {...(props as object)} />;
+    case "atmospheric-sounding":
+      return <LazyAtmosphericSounding {...(props as object)} />;
     default:
       return null;
   }

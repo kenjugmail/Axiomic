@@ -1,0 +1,181 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish models, data assimilation, ensembles.",
+      "Reason about chaos + predictability limits.",
+      "Connect ML-based forecasting to traditional NWP."
+    ],
+    "prereqs": [
+      "atmospheric-dynamics-and-circulation"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Anatomy of an NWP system",
+      "body": "**Numerical weather prediction (NWP)** combines:\n\n1. **Observations**: ~30 million daily globally.\n   - Surface stations (~12,000): T, P, wind, humidity, precip.\n   - Radiosondes (~1000 launches × 2/day): profiles to ~30 km.\n   - Aircraft (~100k flights/day): mid-troposphere.\n   - Satellites (~20 operating): T + humidity profiles, surface, cloud, ozone, wind, etc.\n   - Radar (~700 globally): precipitation, doppler wind, hail.\n   - Buoys, ships, drifters.\n   - GPS-RO (radio occultation): vertical T profiles via satellite-satellite signal bending.\n\n2. **Data assimilation**: combines observations + model background (previous forecast) statistically into 'analysis' (best initial state). Methods:\n   - 3D-Var, 4D-Var (variational; ECMWF + UKMO).\n   - Ensemble Kalman Filter (EnKF; NCAR, NOAA).\n   - Hybrid (Ensemble-Var) at most centers.\n\n3. **Forecast model**: numerically integrate primitive equations forward in time.\n   - Spectral methods (ECMWF, Met Office) or grid-point (GFS, ICON, NICAM).\n   - Resolution: ~10-25 km horizontal × ~50-100 vertical levels.\n   - Time step ~5-15 minutes.\n   - 1 forecast = ~5-10 minutes wall-clock on ~10⁴-core HPC.\n\n4. **Post-processing**: regional downscaling, statistical correction (MOS), graphical output.\n\n**Operating centers**:\n- ECMWF (Reading UK): IFS model; consistently best medium-range.\n- NCEP/NOAA (College Park MD): GFS, GEFS, HRRR.\n- UK Met Office (Exeter): UM.\n- Météo-France (Toulouse): ARPEGE.\n- DWD (Offenbach Germany): ICON.\n- JMA (Tokyo): GSM.\n- China CMA: GRAPES.\n- Roshydromet (Russia): SL-AV.\n- Naval (NOGAPS in US, NRL).\n\nGlobal cost: ~$1-2B/yr public investment + comparable private sector."
+    },
+    {
+      "kind": "text",
+      "title": "Chaos + ensemble forecasting",
+      "body": "**Lorenz 1963**: simple convection ODE system has 'sensitive dependence on initial conditions' — small perturbations grow exponentially. Predictability limits.\n\nFor atmosphere: small-scale errors double in ~1.5-3 hr; large-scale errors double in 1-2 days. After ~14 days, deterministic predictability essentially gone for synoptic + planetary scales.\n\n**Ensembles** address chaos: run forecast many times with small initial-condition perturbations (or model perturbations). Spread across ensemble = uncertainty.\n\n• **ECMWF EPS**: 51 members.\n• **NOAA GEFS**: 31 members.\n• **NAEFS**: combined US + Canadian + Mexican.\n• **Multi-model superensembles** (TIGGE): combine ensembles from multiple centers.\n\n**Ensemble products**:\n- Mean forecast: more skillful than any individual.\n- Spread: uncertainty estimate; small spread = high confidence; large = uncertain.\n- Probabilistic forecasts: P(precipitation > 25 mm in next 24 hr) = fraction of members exceeding.\n- Calibration: use past performance to correct biases (statistical post-processing).\n\n**Reanalyses**: long-period (decades) reconstructions using fixed assimilation system + historical observations. ERA5 (ECMWF, 1950-present), MERRA-2 (NASA), JRA-55 (Japan), 20CR (NOAA, 1850-present). Used for climate analysis, model validation, statistics.\n\n**Limits + research frontiers**:\n- Sub-grid parameterization (clouds, convection, boundary layer, gravity waves) — major source of error.\n- Stochastic parameterization: add noise to parameterized physics for better ensembles.\n- Storm-resolving global models (km-scale): DYAMOND, IcoCart projects.\n- Beyond-14-day skill: requires capturing slow-evolving boundary forcing (SST, sea ice, soil moisture)."
+    },
+    {
+      "kind": "text",
+      "title": "ML-based weather + the AI revolution",
+      "body": "Since 2022, ML approaches have transformed NWP:\n\n• **DeepMind GraphCast** (2022, Lam+): graph neural network. 0.25° resolution. Trained on ERA5. Beats ECMWF IFS on ~90% of variables/lead times. 60-second forecast on a TPU. **Game-changer paper**.\n• **Microsoft ClimaX** (2023): foundation model approach.\n• **NVIDIA FourCastNet** (2022): Fourier neural operator.\n• **Huawei Pangu-Weather** (2023): 3D earth-specific transformer.\n• **DeepMind GenCast** (2023): diffusion-based ensemble.\n• **ECMWF AIFS** (2024): production neural-network model launched alongside IFS.\n• **NeuralGCM** (Google, 2024): hybrid ML + physical model.\n• **Aurora** (Microsoft, 2024): foundation model with capabilities across weather, ocean, ice, air quality.\n\n**Why ML works**:\n- Trained on decades of reanalysis data (ERA5: 1950-present).\n- Discovers learnable atmospheric statistics + dynamical patterns.\n- Doesn't suffer from numerical-method-specific errors.\n- Cheap inference (~minutes on GPU vs hours on HPC).\n- Easy to ensemble (run many initializations, perturbed inputs).\n\n**Limitations**:\n- Cannot extrapolate to climates outside training distribution (climate change).\n- Black-box; interpretability limited.\n- Currently lower-resolution than HPC NWP (~25 km vs 10 km).\n- Severe weather forecasting still less skillful in some cases.\n- Long-range forecasts (>10 day) and extreme events at edges of training distribution.\n\n**Hybrid future**: combining physical NWP cores + ML for parameterizations, error correction, downscaling, ensemble generation. Already deployed by some centers (e.g., GFS-AI components).\n\n**Cost + access**:\n- HPC NWP: ~$1B/yr globally for compute; barriers high.\n- ML NWP: democratized; running GraphCast costs ~$10/forecast.\n- Private sector innovation: Tomorrow.io, Climavision, AtmoAI, etc.\n- Public-private tension over data + model release."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_nwp_1",
+        "kind": "guided_derivation",
+        "question": "Estimate computational scaling of doubling NWP resolution",
+        "goal": "If grid is doubled (Δx → Δx/2), how much more compute is needed for the same forecast lead time?",
+        "steps": [
+          {
+            "prompt": "How many grid points scale with resolution?",
+            "motivation": "Horizontal grid scaling.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "4× (2D)",
+                "4x",
+                "× 4"
+              ]
+            },
+            "hints": [
+              "In 2D horizontal grid, area same → points × 4."
+            ],
+            "reveal": "Horizontal grid points scale as (Δx/2)^(-2) = 4× more grid points."
+          },
+          {
+            "prompt": "Time step (CFL stability)?",
+            "motivation": "Linear in Δx.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "½ × (smaller)",
+                "halved",
+                "Δt → Δt/2"
+              ]
+            },
+            "hints": [
+              "CFL: c × Δt < Δx; if Δx halves, Δt halves."
+            ],
+            "reveal": "Δt halves (CFL stability), so 2× more time steps."
+          },
+          {
+            "prompt": "Vertical levels (if proportionally refined)?",
+            "motivation": "Linear.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "× 2",
+                "2× more"
+              ]
+            },
+            "hints": [
+              "Vertical refined similarly."
+            ],
+            "reveal": "If vertical is proportionally refined: 2× more vertical levels."
+          },
+          {
+            "prompt": "Total compute scaling?",
+            "motivation": "Multiply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "× 16",
+                "16x",
+                "4 × 2 × 2"
+              ]
+            },
+            "hints": [
+              "4 × 2 × 2 = 16."
+            ],
+            "reveal": "Total compute scales as 4 × 2 × 2 = **16× more** for doubled resolution. This is why HPC NWP has been resolution-limited; each doubling needs exascale resources. ML methods break this scaling by skipping per-step CFL constraints + leveraging learned representations. Recent advances allow ML NWP at ~25-km resolution with similar compute to traditional ~50-km HPC."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_nwp_1",
+        "kind": "sortable",
+        "question": "Order these NWP forecast lead times by skill level (highest to lowest skill, in current operational systems).",
+        "items": [
+          {
+            "id": "nowcast",
+            "label": "0-6 hr nowcast (radar + satellite)"
+          },
+          {
+            "id": "1-3day",
+            "label": "1-3 day forecast"
+          },
+          {
+            "id": "5-7day",
+            "label": "5-7 day forecast"
+          },
+          {
+            "id": "10day",
+            "label": "10-day forecast"
+          },
+          {
+            "id": "s2s",
+            "label": "Subseasonal-to-seasonal (2 weeks - 3 months)"
+          }
+        ],
+        "explanation": "NWP skill decreases with lead time, but the decline is not uniform:\n• **Nowcast (0-6 hr)**: very high skill from radar + satellite + assimilation; some ML methods (e.g., DeepMind's MetNet) excel.\n• **1-3 day**: high skill from physical NWP; ML methods now competitive.\n• **5-7 day**: moderate skill; ECMWF day-7 forecasts roughly equal day-3 in 1980s. ML methods (GraphCast) competitive or better at most variables.\n• **10-day**: marginal but useful for synoptic patterns; ensembles essential.\n• **S2S (2 weeks - 3 months)**: limited skill from MJO + ENSO + soil-moisture memory; emerging area.\n\nSkill measured by anomaly correlation, RMSE, Brier score, CRPS. Centers report skill metrics weekly. Improvement ~1 day per decade since 1980s — substantial cumulative progress."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_nwp_1",
+        "kind": "multiple_choice",
+        "question": "Why has Google DeepMind's GraphCast (2022) outperformed ECMWF's traditional NWP system at ~90% of lead times?",
+        "options": [
+          "ECMWF is broken.",
+          "GraphCast is a graph neural network trained on 40 years of ERA5 reanalysis data. It learns atmospheric dynamics statistically — capturing patterns the physical model parameterizations may approximate poorly. Doesn't suffer from numerical method errors (CFL, dispersion, advection inaccuracies) of NWP. Cheap inference (seconds vs hours). Doesn't replace ECMWF entirely — physical NWP still needed for climate change extrapolation + interpretability + ensemble methods — but for routine medium-range weather, ML beats physical models on most metrics.",
+          "ML can't do weather forecasting.",
+          "GraphCast cheats by using future data."
+        ],
+        "correctIndex": 1,
+        "explanation": "**DeepMind GraphCast (Nature, Lam+ 2023)** is a pivotal moment in NWP history.\n\n*Architecture*:\n- Graph neural network on icosahedral mesh of ~1 million points (0.25° resolution).\n- 6-hour forecast steps.\n- 36-million-parameter model.\n- Trained on 40 years of ERA5 reanalysis (1979-2018).\n\n*Performance*:\n- Wins on ~90% of 1380 verification metrics vs ECMWF IFS.\n- Particularly strong on humidity, wind, surface variables.\n- Strong tropical-cyclone track forecasting.\n- Lead times: 1-10 days; performance gap narrows at longest leads.\n- Inference: ~60 seconds on a TPU vs ~hours on HPC for IFS.\n\n*Why it works*:\n1. **Learned dynamics**: directly learns from data; bypasses parameterization approximations for clouds, convection, boundary layer.\n2. **No numerical errors**: doesn't suffer from spectral truncation, advection scheme errors, time-step CFL.\n3. **Optimized objective**: trained to minimize forecast error on weather statistics.\n4. **Cheap to run + ensemble**: enables thousands of perturbed-initial-condition forecasts.\n\n*Limitations / why ECMWF still matters*:\n1. **No physics interpretability**: can't extract mechanism for a forecast.\n2. **Out-of-distribution**: trained on 1979-2018 climate; how it handles climate change extremes uncertain.\n3. **Resolution**: 0.25° (≈25 km) vs ECMWF 0.07° (≈8 km).\n4. **Ensemble methods**: physical NWP has well-developed ensembles + data assimilation; ML methods still developing equivalents.\n5. **Severe weather**: very-high-impact events at tails of training distribution may be poorly forecast.\n6. **Climate runs**: cannot run for decades; only weather.\n\n*Industry response*:\n- ECMWF launched AIFS (their own ML-based system) in 2024.\n- Microsoft Aurora foundation model (2024) for multi-domain forecasting.\n- NVIDIA Earth-2 platform.\n- NeuralGCM (Google, 2024): hybrid ML + physical.\n- Pangu-Weather (Huawei, 2023): comparable performance.\n- All operating centers now have or plan ML-based components.\n\n*Future*:\n- ML for medium-range; physical NWP for nowcast (high-res), climate, research.\n- Hybrid models: ML for parameterizations within physical NWP.\n- New ML approaches: foundation models (Aurora), diffusion-based ensembles (GenCast), causal-inference methods.\n- Open question: how to handle climate change + extreme events.\n\n*Public-data democratization*: ERA5 + ML models now accessible to researchers globally. Lower barrier to entry; more innovation expected."
+      },
+      "hints": [
+        "What's the training data?",
+        "What are the limitations?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "GraphCast is graph neural network trained on 40 years ERA5. Wins ~90% of metrics vs ECMWF IFS. Cheap inference (~60 sec vs hours). Doesn't suffer numerical method errors of NWP; learns parameterizations directly. Limitations: no physics interpretability, out-of-distribution risks, lower res than ECMWF (~25 km), ensemble methods still developing. ECMWF launched AIFS in 2024; Microsoft Aurora; hybrid (NeuralGCM) emerging. ML for medium-range + physical NWP for nowcast + climate."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_nwp_1",
+        "kind": "math_expression",
+        "question": "If ECMWF day-9 forecast in 2024 has skill equal to day-5 forecast in 1980, what's the implied skill-improvement rate? (Years of skill gained per decade.)",
+        "acceptedAnswers": [
+          "~1 day/decade",
+          "1 day per decade",
+          "1"
+        ],
+        "hint": "4 days gained over 44 years = ~1 day per decade."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_nwp_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain to a climate skeptic why we can trust climate projections at 50-year horizon when weather forecasts fail beyond 2 weeks.",
+        "rubric": "Mentions: weather forecasting is **initial-value problem** — predicting evolution from current state; sensitive to small perturbations (chaos, Lorenz 1963); skill declines exponentially over days. Climate prediction is **boundary-value problem** — predicting statistical properties of long-term mean given external forcing (solar, GHG, aerosols, land use). Different problem; doesn't depend on remembering initial state. Analogy: can't predict whether 100 coin flips will give 47 vs 53 heads (initial-value), but can predict 100 flips give ~50 heads (boundary statistics). Climate models routinely verified against past 150 yr (~+1.1 °C warming, regional changes, sea-level rise — all predicted in advance). Skill comes from: (1) energy balance physics, (2) feedback mechanisms understood, (3) paleo records constrain. Concludes: weather is short-term chaos; climate is long-term statistics with predictable forcing-response. Confidence: 'unequivocal' anthropogenic causation per IPCC AR6."
+      }
+    }
+  ]
+}
