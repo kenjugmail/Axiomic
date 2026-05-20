@@ -1,0 +1,169 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Read a linker script + memory map.",
+      "Distinguish .text / .data / .bss / .heap / .stack.",
+      "Reason about stack overflow + the MSP."
+    ],
+    "prereqs": [
+      "microcontroller-architecture"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The linker script + memory regions",
+      "body": "On a desktop, the linker uses sensible defaults — code goes 'somewhere', RAM goes 'somewhere'. On an MCU, you explicitly tell the linker WHERE each section lives.\n\n**Linker script** (`.ld` file for GNU `ld`):\n```\nMEMORY {\n  FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 256K\n  SRAM  (rwx): ORIGIN = 0x20000000, LENGTH = 64K\n}\n\nSECTIONS {\n  .text :      { *(.vectors) *(.text*) } > FLASH\n  .rodata :    { *(.rodata*) } > FLASH\n  .data :      { *(.data*) } > SRAM AT > FLASH\n  .bss :       { *(.bss*) }  > SRAM\n  .heap :      { . = . + 4K; } > SRAM\n  .stack :     { . = . + 8K; _stack_top = .; } > SRAM\n}\n```\n\n- **`.text`**: program code. Read-only (RX). Lives in flash.\n- **`.rodata`**: constants, string literals. Read-only.\n- **`.data`**: initialized read-write data. Initial values stored in flash; copied to SRAM at startup.\n- **`.bss`**: zero-initialized read-write data. Allocated in SRAM; zeroed at startup.\n- **`.heap`**: dynamic allocations (if you use malloc).\n- **`.stack`**: function-call stack. SP starts at top, grows down.\n\n**The `AT > FLASH` syntax for .data**: load address in flash (where initial values live); virtual address in SRAM (where code reads/writes them). The reset handler copies from flash → SRAM.\n\n**Why this granularity matters**: power-down regions, MPU regions, dual-bank programming (run from bank A while writing bank B), DMA buffers in specific regions, etc."
+    },
+    {
+      "kind": "text",
+      "title": "Bare-metal startup sequence",
+      "body": "Without an OS, YOUR code runs directly on the hardware from boot. The startup file (often `startup.s` or `startup.c`) handles:\n\n```c\nvoid Reset_Handler(void) {\n  // 1. Copy initialized data from flash to SRAM\n  extern uint8_t _sdata, _edata, _sidata;\n  uint8_t *src = &_sidata, *dst = &_sdata;\n  while (dst < &_edata) *dst++ = *src++;\n\n  // 2. Zero out BSS\n  extern uint8_t _sbss, _ebss;\n  for (uint8_t *p = &_sbss; p < &_ebss; p++) *p = 0;\n\n  // 3. Call C++ static constructors (if any)\n  __libc_init_array();\n\n  // 4. Initialize clocks (vendor SDK)\n  SystemInit();\n\n  // 5. Call main\n  main();\n\n  // 6. If main returns, halt\n  while (1) { }\n}\n```\n\n**Symbols `_sdata`, `_edata`, etc.**: defined by the linker script. The linker emits them at section boundaries; your code uses them as pointers.\n\n**Why `main` returning is unusual**: in well-designed firmware, `main` is an infinite loop. Returning from it usually means an unhandled error condition. Some startup files trap to a fault handler.\n\n**The vector table** must also be set up before this runs. On Cortex-M, the hardware loads MSP + Reset_Handler from the vector table itself, so the table is positioned at the start of flash by the linker.\n\n**HAL / SDK alternatives**: vendors (ST's HAL, NXP MCUXpresso, Nordic SDK, ESP-IDF) provide pre-written startup files. Direct bare-metal coding is for understanding + the moments when the HAL gets in the way.\n\n**Modern alternative**: Zephyr's `_start` (Linux-like multi-stage init), Rust's `cortex-m-rt` crate, embedded HAL crates. Each is a thin wrapper around the same machinery."
+    },
+    {
+      "kind": "text",
+      "title": "Stack overflow + memory protection",
+      "body": "**Stack grows DOWN**. SP starts at the top of `.stack` region; each function call pushes its locals + return address. Deep recursion or large stack frames consume the region.\n\n**Stack overflow** happens when SP descends past `.stack` start. On a desktop, the OS detects this + raises segfault. On an MCU without MPU: SP just keeps going, overwriting `.bss` or `.data` or `.heap`. Silent corruption. The program runs, sometimes for minutes, then crashes mysteriously when corrupted data is touched.\n\n**Detecting + preventing**:\n\n1. **Stack canary**: write a known value (0xDEADBEEF) at the bottom of the stack. Periodically (in idle task) check it. If changed, stack overflow occurred. Catches AFTER the fact.\n\n2. **MPU (Memory Protection Unit)**: configure a region just below the stack as 'no access'. When SP descends into it + the next push triggers a memory access, MPU faults. Catches BEFORE corruption.\n\n3. **Stack analysis tools**: GCC's `-Wstack-usage=N` warns at compile time on any function with stack > N bytes. Static-analysis tools (StackAnalyzer, Coverity) compute worst-case stack depth per call graph.\n\n4. **RTOS task-stack monitoring**: FreeRTOS optionally fills task stacks with 0xA5 at creation; periodically scans for the lowest non-A5 byte → 'high water mark' of stack usage. Used to size stacks correctly.\n\n**Typical stack sizes**: main / idle task 1-2 KB. Interrupt handlers share the main stack (or have their own). RTOS tasks 256 bytes - 4 KB depending on complexity. Total is limited by SRAM.\n\n**Heap fragmentation**: small embedded systems often AVOID malloc entirely. Static buffers, fixed-size pools (FreeRTOS heap_4 + heap_5). The heap fragmentation that's annoying on a desktop is FATAL on a 32 KB MCU."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mem_sections",
+        "kind": "guided_derivation",
+        "question": "Categorize variables by linker section",
+        "goal": "C code snippet. Categorize each variable by linker section.",
+        "steps": [
+          {
+            "prompt": "`const int answer = 42;` (declared globally, const, initialized).",
+            "motivation": "Const + global.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "`.text`.",
+                "`.rodata` — global, initialized, read-only. Goes in flash.",
+                "`.data`.",
+                "`.bss`."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Const globals are read-only data."
+            ],
+            "reveal": "`.rodata` in flash. Never copied to RAM (read-only, accessed in-place from flash)."
+          },
+          {
+            "prompt": "`int counter = 1000;` (declared globally, mutable, initialized).",
+            "motivation": "Mutable + initialized.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "`.rodata`.",
+                "`.text`.",
+                "`.data` — global, initialized, mutable. Initial value in flash; runtime copy in SRAM.",
+                "`.bss`."
+              ],
+              "correctIndex": 2
+            },
+            "hints": [
+              "Mutable globals with non-zero initial value."
+            ],
+            "reveal": "`.data`: initial value lives in flash; reset-handler copies it to SRAM where it can be modified at runtime."
+          },
+          {
+            "prompt": "`int buffer[1024];` (declared globally, mutable, NOT initialized).",
+            "motivation": "Mutable + uninitialized.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "`.text`.",
+                "`.rodata`.",
+                "`.data`.",
+                "`.bss` — global, mutable, no explicit initializer. Zeroed at startup."
+              ],
+              "correctIndex": 3
+            },
+            "hints": [
+              "Zero-initialized globals."
+            ],
+            "reveal": "`.bss`: 1024 ints = 4 KB. No initial value in flash (saving flash). Reset-handler zeros this region."
+          },
+          {
+            "prompt": "Local: `void f() { int x = 5; }`. Where does `x` live?",
+            "motivation": "Local variables.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "`.text`.",
+                "`.rodata`.",
+                "On the STACK (allocated/freed each function call).",
+                "`.bss`."
+              ],
+              "correctIndex": 2
+            },
+            "hints": [
+              "Local variables aren't in linker sections."
+            ],
+            "reveal": "Stack. Pushed when `f` is called; popped on return. The compiler computes the offset from SP for each local + emits load/store instructions."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Globals in .data/.bss/.rodata; locals on stack}}$$ Understanding the section layout is the foundation of debugging linker errors (`undefined reference`, section overflow), flash usage analysis (large .data = wasted flash for storing init values that get copied to SRAM), and stack-vs-heap memory tuning. The startup-time copy of .data from flash to SRAM is a hidden cost: large initialized buffers double-count toward your total memory budget."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mem_static",
+        "kind": "multiple_choice",
+        "question": "A senior embedded engineer says 'we don't use malloc' on this MCU project. Why?",
+        "options": [
+          "malloc is slow.",
+          "Heap fragmentation in long-running systems is non-deterministic + can lead to failures hours into operation; bounded-WCET analysis becomes impossible. Static allocation is more predictable.",
+          "malloc isn't available.",
+          "Personal preference."
+        ],
+        "correctIndex": 1,
+        "explanation": "Heap fragmentation: many alloc + free cycles eventually break the heap into small chunks; a request for a large block fails even though total free memory exceeds it. In real-time embedded, where the system must run for years without restart, this is intolerable. Static allocation (or fixed-size pools allocated once at startup) eliminates the failure mode. Standard practice in safety-critical systems (MISRA C: rule 21.3 forbids dynamic allocation)."
+      },
+      "hints": [
+        "What's the long-term effect of malloc/free cycles?",
+        "Why is it a problem for embedded?"
+      ],
+      "workedSolution": "Repeated alloc/free of varying sizes fragments the heap. Eventually a request fails despite sufficient TOTAL free memory. On an MCU running months/years without reset, this is unacceptable. Static or pool allocation is bounded + predictable. MISRA C 21.3 forbids dynamic allocation; many embedded codebases run it once at startup (long lived pools) + never again.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mem_stack",
+        "kind": "math_expression",
+        "question": "MCU has 32 KB SRAM. Allocate 4 KB to stack, 4 KB to heap, 8 KB to global .data + .bss. Available for further use?",
+        "acceptedAnswers": [
+          "16384",
+          "16 KB",
+          "16384 bytes"
+        ],
+        "hint": "32 - 4 - 4 - 8 = 16 KB free."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mem_overflow",
+        "kind": "scenario",
+        "question": "Investigating a sporadic crash",
+        "prompt": "Your device runs for 6-8 hours, then crashes. The crash always corrupts the same global structure. Walk through diagnosing it + the likely cause."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mem",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why understanding the linker script is essential for embedded engineering, but most desktop programmers never need to.",
+        "rubric": "Mentions that on a desktop, the linker uses sensible defaults + the OS manages memory; on an MCU, you control the memory map directly (where flash + SRAM live, regions for peripherals, DMA buffers, MPU regions). Bugs like flash overflow, section overlap, missing initialization data are diagnosed via the linker script + .map file output."
+      }
+    }
+  ]
+}

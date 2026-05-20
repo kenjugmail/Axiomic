@@ -1952,6 +1952,26 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P12 — Embedded Systems Engineer path. MCU architecture, RTOS +
+  // real-time constraints, bare-metal memory, peripheral drivers,
+  // interrupts, power, bootloaders + OTA, safety-critical.
+  seedMasteryPath({
+    slug: "embedded-systems-engineer",
+    title: "Embedded Systems Engineer",
+    description:
+      "From Cortex-M architecture through real-time scheduling, bare-metal memory + linker scripts, peripheral drivers (UART/SPI/I2C), interrupt design, low-power techniques, secure bootloaders + OTA, and safety-critical certification (ISO 26262, DO-178C). The MCU-engineering toolkit.",
+    nodes: [
+      { slug: "microcontroller-architecture", title: "Microcontroller Architecture", level: "apprentice", order: 1, pages: ["cortex-m", "registers-vector-table"], prereqs: [], description: "ARM Cortex-M family, register file (R0-R15, MSP/PSP), memory map, vector table + reset sequence." },
+      { slug: "real-time-constraints", title: "Real-Time Constraints + Scheduling", level: "practitioner", order: 2, pages: ["hard-firm-soft", "rms-edf", "priority-inversion"], prereqs: ["microcontroller-architecture"], description: "Hard/firm/soft real-time, rate-monotonic scheduling + Liu-Layland bound, priority inversion + the Mars Pathfinder fix." },
+      { slug: "memory-and-bare-metal", title: "Memory + Bare-Metal Startup", level: "practitioner", order: 3, pages: ["linker-scripts", "startup", "stack-mpu"], prereqs: ["microcontroller-architecture"], description: "Linker scripts, .text/.data/.bss/.heap/.stack, reset handler, stack overflow + MPU protection." },
+      { slug: "peripheral-drivers", title: "Peripheral Drivers (UART/SPI/I2C)", level: "practitioner", order: 4, pages: ["serial-protocols", "memory-mapped-io", "polling-irq-dma"], prereqs: ["microcontroller-architecture"], description: "Serial-protocol comparison, memory-mapped register interfaces, polling vs interrupt-driven vs DMA." },
+      { slug: "interrupts-and-isr", title: "Interrupts + ISR Design", level: "specialist", order: 5, pages: ["irq-entry-exit", "nvic-priority", "isr-discipline"], prereqs: ["peripheral-drivers"], description: "Hardware-stacked context, NVIC priority + preemption, worst-case latency analysis, ISR-discipline + producer-consumer pattern." },
+      { slug: "power-management", title: "Power Management", level: "specialist", order: 6, pages: ["sleep-modes", "wake-sources", "battery-budget"], prereqs: ["peripheral-drivers"], description: "Cortex-M sleep modes, wake sources + latency, peripheral clock gating + DVFS, battery-budget math." },
+      { slug: "bootloaders-and-ota", title: "Bootloaders + OTA Updates", level: "specialist", order: 7, pages: ["bootloader-basics", "ota-protocol", "a-b-partitions"], prereqs: ["memory-and-bare-metal"], description: "Bootloader role + secure boot, OTA download/verify/install protocol, A/B partitioning for fail-safe updates." },
+      { slug: "safety-critical-systems", title: "Safety-Critical Systems", level: "expert", order: 8, pages: ["iec-iso-do", "lockstep-redundancy", "misra-static-analysis"], prereqs: ["real-time-constraints", "memory-and-bare-metal"], description: "IEC 61508 / ISO 26262 / DO-178C, lockstep cores + diversity-of-redundancy, MISRA C + qualified toolchains." },
+    ],
+  });
+
   // P11 — NLP Linguist path. Linguistics-grounded NLP: tokenization,
   // morphology, syntax, semantics, statistical + neural LMs,
   // translation, multilingual + low-resource. Complements ml-engineer

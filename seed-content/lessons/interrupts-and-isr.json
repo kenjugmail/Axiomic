@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "specialist",
+    "objectives": [
+      "Outline interrupt entry/exit + register stacking.",
+      "Reason about ISR latency + priority.",
+      "Apply the 'don't do too much in an ISR' discipline."
+    ],
+    "prereqs": [
+      "peripheral-drivers"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Interrupt entry: what the hardware does for you",
+      "body": "When an interrupt fires on Cortex-M:\n\n1. **Stack the caller's context** (hardware does this automatically):\n   - Push 8 registers onto current stack (MSP or PSP): R0, R1, R2, R3, R12, LR, PC (return address), xPSR.\n   - This is called the 'exception frame'. ~12 cycles total.\n2. **Look up the handler**: read the appropriate slot in the vector table → load PC.\n3. **Switch to handler mode** (privileged, MSP).\n4. **Set EXC_RETURN value** in LR — a magic number that tells the CPU 'return from interrupt' instead of normal return.\n\n**Total entry latency**: ~12 cycles on M3/M4, ~6 cycles on M7 (with tail-chaining), with deterministic worst case. This is much better than software-saved contexts on older architectures.\n\n**Inside the ISR**: write a normal C function. The compiler may optionally use the `__attribute__((interrupt))` annotation, but on Cortex-M the standard C ABI is the exception-handler ABI. R4-R11 must be saved-by-callee if used. The compiler handles this.\n\n**Exit**: write the magic EXC_RETURN value to PC. Hardware pops the exception frame from the stack + resumes the interrupted task.\n\n**Tail-chaining**: if another interrupt is pending when one finishes, the hardware DOESN'T re-pop + re-push. It jumps directly to the next ISR. Saves cycles.\n\n**Late arrival**: if a higher-priority interrupt arrives during the stacking phase of a lower one, the lower's stacking is reused for the higher's ISR. Another optimization."
+    },
+    {
+      "kind": "text",
+      "title": "Priority + the nested vectored interrupt controller",
+      "body": "**NVIC** manages up to 240 peripheral interrupt sources + 16 system exceptions. Each has a configurable **priority** (0-255 typically, but most chips expose 4-7 priority bits).\n\n**Lower number = higher priority**. Priority 0 is highest. Priority 255 is lowest.\n\n**Priority grouping**: priority bits split into **preemption priority** + **subpriority**:\n- Preemption priority: an active interrupt can be preempted by a higher-preemption-priority interrupt.\n- Subpriority: within the same preemption level, breaks ties (no preemption, only ordering).\n\n**Configuration** (STM32 example):\n```c\nNVIC_SetPriority(USART1_IRQn, 5);  // priority 5\nNVIC_EnableIRQ(USART1_IRQn);       // enable\n```\n\n**Priority discipline**:\n- Critical real-time tasks (motor control, safety): high priority (low number).\n- Communication / sensor inputs: medium.\n- Logging, status updates: low.\n\n**Common pitfalls**:\n- Setting all interrupts to priority 0 → no preemption hierarchy; first-come-first-serve.\n- Putting a slow ISR at high priority → blocks all other ISRs.\n- Using `__disable_irq()` for long sections → masks ALL interrupts, can break real-time guarantees.\n\n**BASEPRI register**: mask interrupts of priority $\\ge$ BASEPRI but let higher-priority ones through. The right tool for short critical sections in RTOS code.\n\n**The Cortex-M priority model is one of its biggest wins**: every vendor uses the same NVIC. The behavior is predictable across STM32, NXP, Nordic, etc."
+    },
+    {
+      "kind": "text",
+      "title": "ISR design discipline",
+      "body": "**Cardinal rule**: ISRs should be SHORT. Microseconds, not milliseconds.\n\nWhy?\n- An ISR blocks any lower- or equal-priority interrupts. Long ISRs cause priority inversion + missed events.\n- Real-time analysis (WCET) becomes harder when ISRs can run for variable amounts of time.\n- Stack usage in interrupt-stacked context grows.\n\n**The pattern**: ISR is a **thunk**. It:\n1. Acknowledges the interrupt (clear the interrupt flag in the peripheral register).\n2. Captures critical data (read peripheral data register, save it).\n3. Posts to a queue / sets a flag / triggers a task.\n4. Returns.\n\nProcessing happens in the **main loop** or in a dedicated **task** at lower priority.\n\n**Producer-consumer pattern**:\n```c\nvolatile circular_buffer_t uart_rx_buf;\n\nvoid USART1_IRQHandler(void) {\n  if (USART1->SR & USART_SR_RXNE) {\n    char c = USART1->DR;                    // clears RXNE automatically\n    cb_push(&uart_rx_buf, c);               // queue\n  }\n}\n\nvoid main(void) {\n  while (1) {\n    char c;\n    while (cb_pop(&uart_rx_buf, &c)) {\n      process_byte(c);                      // long, in main context\n    }\n  }\n}\n```\n\n**Reentrancy + ISR-safe code**: shared data structures need either:\n- Atomicity (single 32-bit read/write).\n- ISR disabling around the modification (`__disable_irq(); ... __enable_irq();`).\n- Lock-free patterns (CAS instructions, ring buffers with separate read/write indices).\n\n**FreeRTOS / Zephyr**: provides FromISR variants — `xQueueSendFromISR()`, `k_msgq_put()`. These are ISR-safe + integrate with the scheduler (a higher-priority task waking up will preempt on ISR exit). Use these always; never call non-FromISR functions from an ISR.\n\n**Common bugs**:\n- ISR holds a mutex used by main loop → deadlock.\n- ISR calls printf → printf is not reentrant → corrupted output or crash.\n- ISR uses floating-point (Cortex-M4F: extra context-save cost; need to enable in CONTROL register).\n- Forgetting to clear the interrupt flag → ISR fires forever."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_isr_latency",
+        "kind": "guided_derivation",
+        "question": "Compute worst-case interrupt latency",
+        "goal": "MCU has 3 interrupts. ISR1 (priority 0, WCET 50 μs), ISR2 (priority 1, WCET 20 μs), ISR3 (priority 2, WCET 100 μs). What is the worst-case latency for ISR3 to start once its event occurs?",
+        "steps": [
+          {
+            "prompt": "ISR3 is LOWEST priority (2). Higher-priority ISRs preempt or run first. In the worst case, both ISR1 + ISR2 fire while ISR3 is waiting. Time spent on ISR1 + ISR2?",
+            "motivation": "Sum.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "70",
+                "70 us",
+                "70 microseconds"
+              ]
+            },
+            "hints": [
+              "50 + 20."
+            ],
+            "reveal": "70 μs on ISR1 + ISR2."
+          },
+          {
+            "prompt": "Plus, ISR3 may be blocked by another active ISR that was running when ISR3's event fired. Worst case adds another ISR1 or ISR2 already in progress (up to its WCET). If ISR1 (50 μs) was already running, ISR3 waits at least 50 μs more for that to finish. Then ISR2 + ISR1 (if they fire) take 70 μs. Total worst-case ISR3 wait?",
+            "motivation": "Pile up.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "50 μs.",
+                "70 μs.",
+                "Up to 50 + 70 = 120 μs.",
+                "100 μs."
+              ],
+              "correctIndex": 2
+            },
+            "hints": [
+              "Already-running + queued."
+            ],
+            "reveal": "Up to 120 μs. (Plus hardware interrupt-entry latency ~12 cycles ≈ 0.17 μs at 72 MHz, negligible.)"
+          },
+          {
+            "prompt": "Adding ISR3's own WCET of 100 μs gives total worst-case 'event-to-completion' latency for ISR3 of 220 μs. If ISR3 must complete in 200 μs (deadline), system is NOT schedulable. Fix?",
+            "motivation": "Reduce blocking.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Add more cores.",
+                "Lower ISR3's priority.",
+                "Reduce ISR1 + ISR2 WCETs OR raise ISR3's priority. The blocking-by-higher-priority is what kills us.",
+                "Disable other ISRs."
+              ],
+              "correctIndex": 2
+            },
+            "hints": [
+              "What's the bottleneck?"
+            ],
+            "reveal": "Either reduce higher-priority ISRs' WCETs (move work out of ISRs to tasks) or promote ISR3. Worst-case latency analysis is standard for real-time embedded."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Worst-case latency = ongoing ISR + sum of higher-priority ISR WCETs}}$$ Real-time interrupt analysis is computing this for every ISR. Tools like RTLab, ChronVAL, or the open-source SymTA/S do this systematically. The unifying principle: keep all ISRs short. Move long work to lower-priority tasks. Use priority inheritance for shared resources. Profile WCETs empirically + add margin."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_isr_busy",
+        "kind": "multiple_choice",
+        "question": "Your team finds their UART driver loses bytes when receiving high-throughput data. The UART ISR reads one byte per fire + does some CRC processing. What's the most likely fix?",
+        "options": [
+          "Add a faster CPU.",
+          "Move CRC processing OUT of the ISR. The ISR should just capture the byte + enqueue it; CRC happens in a task. Currently the ISR's WCET exceeds the UART's byte interval, missing follow-on bytes.",
+          "Disable interrupts.",
+          "Use polling instead."
+        ],
+        "correctIndex": 1,
+        "explanation": "If ISR takes ~50 μs (CRC + bookkeeping) but UART receives a byte every 8 μs at 1 Mbaud, you miss bytes. ISR must complete within the byte interval. Fix: ISR reads byte + enqueues (~5 μs). CRC happens in a lower-priority task or in the main loop. The producer-consumer pattern. Sometimes DMA is the right answer (transfer N bytes in hardware before ISR fires)."
+      },
+      "hints": [
+        "What's the per-byte interval?",
+        "Is the ISR finishing in time?"
+      ],
+      "workedSolution": "ISR WCET must be shorter than the inter-byte interval. At 1 Mbaud × 8N1, intervals are ~10 μs. CRC processing in ISR easily takes 50+ μs. Fix: ISR ONLY captures + enqueues. CRC in task. Or: enable UART RX FIFO (multi-byte buffer in hardware) + use DMA — ISR fires once per N bytes. Both pattern + tool — the trick is recognizing the per-byte-interval constraint.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_isr_freq",
+        "kind": "math_expression",
+        "question": "ISR runs at 1 kHz; each takes 30 μs. CPU utilization from this ISR alone?",
+        "acceptedAnswers": [
+          "3%",
+          "0.03",
+          "3"
+        ],
+        "hint": "30 μs × 1000 / 1,000,000 μs = 3%."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_isr_priority",
+        "kind": "scenario",
+        "question": "Critical motor-control timing",
+        "prompt": "A drone's motor-control loop runs in an ISR every 100 μs. Battery monitoring runs in an ISR every 1 ms. Walk through prioritization + what could go wrong if mis-prioritized."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_isr",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why the 'don't do too much in an ISR' rule is universal in embedded engineering.",
+        "rubric": "Mentions that long ISRs block lower-priority interrupts + tasks; worst-case interrupt latency grows; real-time analysis becomes infeasible; bugs become harder to debug (ISRs can race with everything). The producer-consumer split (ISR captures, task processes) is the canonical pattern for any ISR more complex than a register copy."
+      }
+    }
+  ]
+}

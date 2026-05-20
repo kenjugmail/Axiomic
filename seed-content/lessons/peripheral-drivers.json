@@ -1,0 +1,151 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "core",
+    "objectives": [
+      "State the protocol differences between UART, SPI, I2C.",
+      "Configure a peripheral via memory-mapped registers.",
+      "Distinguish polling, interrupt-driven, and DMA I/O."
+    ],
+    "prereqs": [
+      "microcontroller-architecture"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "UART, SPI, I2C — the basic serial protocols",
+      "body": "**UART (Universal Asynchronous Receiver/Transmitter)**:\n- 2 wires: TX, RX (no clock — both ends agree on baud rate).\n- Frame: 1 start bit + 8 data bits + optional parity + 1-2 stop bits.\n- Common baud rates: 9600, 115200, 1M. (Bps roughly = baud / 10.)\n- Use: debug consoles, GPS modules, modems, Arduino-to-PC.\n- Pros: simple, ubiquitous. Cons: short range; needs both ends to agree on baud.\n\n**SPI (Serial Peripheral Interface)**:\n- 4 wires: SCK (clock from master), MOSI (master out, slave in), MISO (master in, slave out), CS (chip select).\n- Synchronous: master drives the clock; data shifts on each clock edge.\n- Speed: up to ~50 MHz on modern MCUs.\n- Use: SD cards, displays, sensors, FRAM, external ADCs.\n- Pros: fast, full duplex, simple. Cons: many wires for many devices (1 CS per slave).\n\n**I2C (Inter-Integrated Circuit)**:\n- 2 wires: SDA (data), SCL (clock). Both open-drain with pull-ups.\n- Multi-master multi-slave: addressing by 7-bit (or 10-bit) slave address.\n- Speed: 100 kHz (standard), 400 kHz (fast), 1 MHz (fast+), 3.4 MHz (high speed). 5 MHz with I3C.\n- Use: sensors (temp, accel, gyro), EEPROMs, RTCs, port expanders.\n- Pros: 2 wires for many devices. Cons: slower, more complex protocol (ACK/NACK, repeated starts), can lock up if a slave fails.\n\n**The choice**:\n- Need fastest? SPI.\n- Need fewest wires + multiple slaves? I2C.\n- Long cable to PC / debug console? UART.\n- High-speed + long-distance? RS-485 (industrial), CAN (automotive), Ethernet."
+    },
+    {
+      "kind": "text",
+      "title": "Memory-mapped peripherals + register interfaces",
+      "body": "Peripherals on an MCU live in the **peripheral address region** (0x4000_0000+). Each peripheral exposes a set of **registers** at known addresses. Configuration + control = writing to these addresses.\n\n**Example**: STM32F4 GPIO Port A. The base address is 0x4002_0000. Registers within:\n```\nGPIOA_MODER:   0x4002_0000 — mode (input/output/AF/analog) per pin\nGPIOA_OTYPER:  0x4002_0004 — output type (push-pull/open-drain)\nGPIOA_OSPEEDR: 0x4002_0008 — speed (low/medium/high/very-high)\nGPIOA_PUPDR:   0x4002_000C — pull-up/pull-down\nGPIOA_IDR:     0x4002_0010 — input data (read pin state)\nGPIOA_ODR:     0x4002_0014 — output data (set pin state)\nGPIOA_BSRR:    0x4002_0018 — bit set/reset (atomic set/clear)\n...\n```\n\nIn C: declare a struct mirroring the layout + cast the base address:\n```c\ntypedef struct {\n  volatile uint32_t MODER;\n  volatile uint32_t OTYPER;\n  // ...\n} GPIO_TypeDef;\n#define GPIOA ((GPIO_TypeDef*)0x40020000)\n\n// Use:\nGPIOA->MODER |= (1 << 10);  // pin 5 as output (MODER bits 10-11)\nGPIOA->BSRR = (1 << 5);      // set pin 5 high (atomic)\n```\n\n**`volatile` is essential**: tells the compiler 'this memory may change without my code touching it'. Without `volatile`, the compiler might cache the read in a register + miss updates from hardware.\n\n**Bit-set/reset register (BSRR)**: writing 1 to bit N sets pin N; writing 1 to bit (N+16) resets pin N. ATOMIC — no read-modify-write race. Critical for ISR-safe code.\n\n**Vendor SDK / HAL**: instead of raw register pokes, vendor libraries provide `HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET)`. More portable across MCU variants but bloats code + adds layers. Many production codebases use a hybrid: HAL for setup, raw registers in hot ISRs."
+    },
+    {
+      "kind": "text",
+      "title": "Polling vs interrupt vs DMA",
+      "body": "**Polling**: CPU repeatedly checks a status register until ready.\n```c\nwhile (!(USART1->SR & USART_SR_RXNE));  // wait for byte\nchar c = USART1->DR;                     // read it\n```\nPros: simple, immediate. Cons: CPU 100% busy waiting. Useless if other work needs to happen.\n\n**Interrupt-driven**: peripheral raises an interrupt when ready. ISR handles it. CPU is free meanwhile.\n```c\nvoid USART1_IRQHandler(void) {\n  if (USART1->SR & USART_SR_RXNE) {\n    char c = USART1->DR;\n    enqueue(c);  // buffer for main loop\n  }\n}\n```\nPros: CPU usable during waits. Cons: ISR overhead (~50 cycles entry+exit on Cortex-M); high-frequency events cause CPU thrashing.\n\n**DMA (Direct Memory Access)**: hardware peripheral does memory transfers WITHOUT CPU. Configure source, destination, length; start DMA; CPU runs other code; DMA fires interrupt on completion.\n```c\n// Configure DMA stream to move from UART RX to a buffer\nDMA1_Stream5->PAR = (uint32_t)&USART1->DR;  // source: UART data reg\nDMA1_Stream5->M0AR = (uint32_t)rx_buffer;    // dest: RAM buffer\nDMA1_Stream5->NDTR = 256;                    // 256 bytes\nDMA1_Stream5->CR |= DMA_SxCR_EN;             // enable\n// CPU now free to do other work while DMA fills the buffer\n```\nPros: CPU completely free during transfer; high-throughput streams (SD card, ADC at MHz rates, audio). Cons: more setup; coherency considerations (DMA buffer must be in DMA-accessible SRAM, not cache-coherent without barriers on higher-end MCUs).\n\n**The rule**: polling for one-shot ops; interrupts for moderate events; DMA for streams + high-throughput.\n\n**Real example**: a UART receiving GPS data at 10 Hz × 100 bytes = 1 KB/s. Polling wastes CPU. Interrupts work but fire 1000×/sec — 50K cycles of overhead. DMA transfers each NMEA sentence + fires one interrupt per sentence — minimal CPU overhead."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_periph_init",
+        "kind": "guided_derivation",
+        "question": "Initialize an STM32 GPIO output pin",
+        "goal": "Configure STM32F4 PA5 (LED on the Nucleo board) as a push-pull output, low speed, no pull-up.",
+        "steps": [
+          {
+            "prompt": "First, enable the clock to GPIOA. The RCC->AHB1ENR register has clock-enable bits; bit 0 = GPIOA. Code?",
+            "motivation": "Always enable peripheral clock first.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "`RCC->AHB1ENR |= (1 << 0);`.",
+                "`RCC->AHB1ENR = 0;`.",
+                "`GPIOA->MODER = 0;`.",
+                "No clock needed."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "You always need to enable the clock."
+            ],
+            "reveal": "`RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;` (or `(1 << 0)`). Without this, writes to GPIOA registers have no effect — a common gotcha for beginners."
+          },
+          {
+            "prompt": "GPIOA->MODER is 2 bits per pin. For pin 5, bits 10-11. Mode 01 = output. Code?",
+            "motivation": "Set the mode.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "`GPIOA->MODER |= (0b01 << 10);`.",
+                "`GPIOA->MODER = (1 << 5);`.",
+                "`GPIOA->MODER |= (0b10 << 10);`.",
+                "`GPIOA->ODR = (1 << 5);`."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "2 bits per pin; pin 5 at bits 10-11; value 01."
+            ],
+            "reveal": "`GPIOA->MODER &= ~(0b11 << 10); GPIOA->MODER |= (0b01 << 10);` — first clear, then set, to avoid clobbering other pins' bits."
+          },
+          {
+            "prompt": "OTYPER is 1 bit per pin; 0 = push-pull (default). PUPDR is 2 bits; 00 = no pull (default). So those don't need explicit setting. Now turn pin 5 high. Code?",
+            "motivation": "Use BSRR for atomic set.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "`GPIOA->BSRR = (1 << 5);` — atomic set bit 5.",
+                "`GPIOA->ODR |= (1 << 5);` — read-modify-write (works but not atomic, can race with ISR).",
+                "Both work; BSRR is preferred in ISR-safe code.",
+                "Neither works."
+              ],
+              "correctIndex": 2
+            },
+            "hints": [
+              "BSRR is atomic + ISR-safe; ODR-RMW is not."
+            ],
+            "reveal": "`GPIOA->BSRR = (1 << 5);` is preferred. ODR-RMW works but has a race window if an ISR also modifies ODR."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Peripheral setup: enable clock → configure mode → use}}$$ The pattern is universal: clock-enable, mode-config, then use. Forgetting the clock-enable is the #1 STM32-newbie bug. BSRR vs ODR is the #1 race-condition source. Once you've internalized this pattern, you can read any vendor datasheet's GPIO chapter + write a driver in minutes."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_periph_dma",
+        "kind": "multiple_choice",
+        "question": "Your audio application captures 96 kHz stereo 24-bit audio from an external ADC over SPI + writes it to an SD card over SDIO. What I/O strategy is appropriate?",
+        "options": [
+          "Polling everywhere.",
+          "Interrupt-driven for both.",
+          "DMA for both — SPI-RX DMA fills a buffer; when half-full, start SDIO-write DMA on the first half while SPI continues filling the second (double-buffering).",
+          "Pure CPU memcpy."
+        ],
+        "correctIndex": 2,
+        "explanation": "96k × 2 channels × 3 bytes = 576 KB/s sustained throughput. Polling = 100% CPU. Interrupts = ~50k interrupts/sec from SPI alone (assuming 16-bit FIFO depth) — overhead destroys throughput. DMA with double-buffering: SPI-DMA fills one half while SDIO-DMA writes the other. Mid-buffer interrupt fires to swap. CPU has slack for other work. This is THE canonical embedded streaming pattern (audio, video, sensor capture)."
+      },
+      "hints": [
+        "What's the data rate?",
+        "Can interrupts keep up?"
+      ],
+      "workedSolution": "576 KB/s is too fast for interrupts at the byte level. DMA does the transfer in HARDWARE. The mid-buffer interrupt at ~1 kHz (when half-buffer fills) is manageable. Pattern: dual buffers, swap on each half. SPI-DMA + SDIO-DMA run independently; CPU just coordinates the swap. Used in audio codecs, camera capture, EthernetMAC, etc.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_periph_baud",
+        "kind": "math_expression",
+        "question": "UART at 115200 baud, 8N1 framing (8 data + 1 start + 1 stop, no parity). Approximate byte throughput?",
+        "acceptedAnswers": [
+          "11520",
+          "11520 bytes/s",
+          "~11.5 KB/s"
+        ],
+        "hint": "115200 / 10 = 11520 bytes/sec."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_periph_i2c_lock",
+        "kind": "scenario",
+        "question": "I2C bus lockup",
+        "prompt": "A team uses I2C for many sensors. Occasionally the bus 'locks up' — SCL stays low. Walk through the cause + the standard 'bit-bang the recovery sequence' fix."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_periph",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why `volatile` is essential when accessing memory-mapped peripheral registers.",
+        "rubric": "Mentions that the compiler optimizes away repeated reads of the same memory address (since it 'can't change'); for peripheral registers (which DO change asynchronously from hardware), this caching is wrong; `volatile` tells the compiler to always read/write the actual memory each time. Without volatile: missed updates, infinite loops on status bits, drivers that work by accident."
+      }
+    }
+  ]
+}

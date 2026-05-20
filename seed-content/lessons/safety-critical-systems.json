@@ -1,0 +1,152 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "expert",
+    "objectives": [
+      "Outline the major safety-critical standards (IEC 61508, ISO 26262, DO-178C).",
+      "Describe lockstep cores + dual-redundant computation.",
+      "Reason about MISRA C + static analysis."
+    ],
+    "prereqs": [
+      "real-time-constraints",
+      "memory-and-bare-metal"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Safety standards: IEC 61508, ISO 26262, DO-178C",
+      "body": "Industries with high consequence of failure have **functional-safety standards** prescribing engineering processes + verification.\n\n**IEC 61508** (general functional safety): the parent standard. Defines **Safety Integrity Levels (SIL 1-4)**, each corresponding to a target rate of dangerous failures:\n- SIL 1: $\\le 10^{-5}$ failures/hr\n- SIL 4: $\\le 10^{-9}$ failures/hr (1 per ~100,000 years of operation)\n\n**ISO 26262** (automotive): adapts IEC 61508 to road vehicles. **Automotive Safety Integrity Levels (ASIL A-D)**. ASIL D applies to systems whose failure could kill (airbags, brakes, steering, accelerator). Mandates:\n- Hazard analysis + risk assessment.\n- Safety requirements traceable through design, implementation, test.\n- Specific coding standards (MISRA C, MISRA C++).\n- Architecture: redundancy, lockstep, watchdog, dual-channel for ASIL D.\n- Tool qualification — even your compiler must be certified for use.\n\n**DO-178C** (avionics): aerospace standard. **Design Assurance Levels DAL A-E**. DAL A = catastrophic (lost aircraft); DAL E = no effect. The most stringent — entirely new processes required.\n\n**IEC 62304** (medical): medical-device software. Three classes (A, B, C). Software-of-unknown-pedigree (SOUP) tracking, residual-risk acceptance criteria.\n\n**EN 50128** (railway): trains + signaling.\n\n**The common pattern**: requirements → design → implementation → test → traceability across all stages. Every requirement linked to its tests. Every code change linked to a requirement. Comprehensive review + audit trails.\n\n**Cost**: certification adds 2-5× engineering cost vs ordinary software. Justified by the consequence of failure. Cars, medical devices, aircraft would not be possible without these processes."
+    },
+    {
+      "kind": "text",
+      "title": "Lockstep + dual-redundant computation",
+      "body": "Hardware fault tolerance is essential for safety-critical real-time:\n\n**Lockstep cores**: two identical CPU cores run the SAME code in parallel, comparing outputs every cycle. If they disagree → fault detected → safe state. Catches transient bit-flips, design errors that should be deterministic.\n\nExamples: NXP S32K3 (Cortex-M7 lockstep), Renesas RH850 (automotive lockstep), TI Hercules (Cortex-R5 lockstep). Used in ABS controllers, EV motor inverters, airbag controllers.\n\n**Diversity-of-redundancy**: use TWO DIFFERENT processors (e.g., a Cortex-M + a PowerPC) running INDEPENDENTLY developed firmware. If they agree on the safety-critical output, proceed; if not, fault state. Catches DESIGN errors (bug in one firmware) that lockstep doesn't.\n\nExamples: Airbus A380 flight control (5 different chips running 5 independently-developed implementations), nuclear-reactor safety systems.\n\n**N-version programming**: extreme variant — N different implementations, vote on output. Used in space + critical-infrastructure.\n\n**Watchdog timers**: simpler. A hardware timer that resets the MCU unless 'kicked' periodically by software. If software hangs / loops infinitely, watchdog fires → reset. Common in all embedded; required by safety standards.\n\n**Memory protection**: MPU restricts each task to its assigned memory regions. Stack-overflow in one task can't corrupt another. ASIL B+ typically mandates MPU.\n\n**ECC memory**: error-correcting codes catch + correct single-bit memory errors; detect double-bit. Common in safety-critical SRAM.\n\nThe overall pattern: defense in depth. Each layer catches a different class of fault."
+    },
+    {
+      "kind": "text",
+      "title": "MISRA C, static analysis, and certified toolchains",
+      "body": "**MISRA C** (Motor Industry Software Reliability Association): a coding standard for safety-critical C. ~200 rules forbidding error-prone constructs.\n\nExample rules:\n- 8.4: 'A compatible declaration shall be visible when an object or function with external linkage is defined.' (Forces matching declarations.)\n- 11.3: 'A cast shall not be performed between a pointer to object type + a pointer to a different object type.' (Prevents type-punning.)\n- 17.1: 'The features of `<stdarg.h>` shall not be used.' (Variadic functions are unsafe.)\n- 21.3: 'The memory allocation + deallocation functions of `<stdlib.h>` shall not be used.' (No malloc.)\n- 21.7: 'The Standard Library functions `atof`, `atoi`, ... shall not be used.' (Undefined behavior on malformed input.)\n\nAdherence is checked by **static analyzers**: PCLint Plus, Coverity, Klocwork, Polyspace, CodeSonar. Production code is held to 99%+ MISRA compliance with documented deviations for the rest.\n\n**Beyond MISRA**:\n- **Cert-C** (SEI): similar safe-coding standard.\n- **JSF AV C++** (Joint Strike Fighter): for safety-critical C++.\n- **AUTOSAR C++14**: automotive C++ subset.\n\n**Tool qualification**: under ISO 26262, your compiler must be QUALIFIED — proven (or rationalized) to not introduce bugs. GCC's evidence package qualifies it for certain configurations. Commercial compilers (IAR, Green Hills, Wind River, ARM Keil) sell certified versions at premium prices.\n\n**Formal methods + proof**: the strictest projects use formal-methods tools (Frama-C, Astrée, Polyspace Code Prover) to PROVE absence of certain bug classes (runtime errors, buffer overflows). Airbus famously uses Astrée on A380 fly-by-wire. Computationally expensive + requires expertise; reserved for the highest-criticality components.\n\n**The big picture**: safety-critical engineering is a process discipline as much as a technical one. The processes feel heavy on the first project; they're load-bearing across decades of fielded products."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sc_arch",
+        "kind": "guided_derivation",
+        "question": "Derive a watchdog + safe-state architecture",
+        "goal": "Safety-critical motor controller. Must enter 'safe' state (motor off) on any fault.",
+        "steps": [
+          {
+            "prompt": "Cardinal rule: 'safe' state must be DEFAULT — failure modes default to safe, not hazardous. What is the default state of an unpowered motor controller?",
+            "motivation": "Fail-safe.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Motor running.",
+                "Motor stopped (no current = no torque). This is fail-safe.",
+                "Random.",
+                "Maximum speed."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "No power = no motor torque."
+            ],
+            "reveal": "Unpowered = motor stopped = safe. Good — we don't need to do anything to enter safe state; just stop driving the motor."
+          },
+          {
+            "prompt": "Watchdog: hardware timer that fires reset if not kicked. What is its role here?",
+            "motivation": "Detect hangs.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Speeds up the CPU.",
+                "Detects when software hangs (stuck loop, deadlock). Reset puts CPU back to known state; default state of motor (no drive) is safe.",
+                "Replaces the bootloader.",
+                "Encrypts memory."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Software hang → no motor command updates → watchdog fires."
+            ],
+            "reveal": "Watchdog detects stuck software. Reset returns to known state. Combined with fail-safe default, system stays safe through software bugs."
+          },
+          {
+            "prompt": "Add: dual MCU with comparator. CPU1 + CPU2 run motor-control software independently. Both must signal 'OK to drive' for the motor power stage to enable. Otherwise gate-driver is disabled. Why two CPUs?",
+            "motivation": "Redundancy.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Performance.",
+                "Single CPU could have undetected fault → wrong command → unsafe state. Two independent CPUs make a coordinated failure much less likely; the AND-gate enforces 'both must agree'.",
+                "Cheaper.",
+                "Backwards compatibility."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Defense in depth."
+            ],
+            "reveal": "Single-point-of-failure tolerance. The probability of both CPUs failing identically + simultaneously is much lower than one. Combined with watchdog + fail-safe default, the system meets high SIL/ASIL targets."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Fail-safe default + watchdog + redundancy = safety-critical architecture}}$$ This pattern appears everywhere in safety engineering: medical infusion pumps (default = no infusion), train brakes (default = brakes applied), nuclear control rods (default = inserted). Layered defenses against each failure class: hangs (watchdog), random faults (redundancy), design errors (diversity), incorrect outputs (cross-comparison). Each layer adds expense + complexity but is required by the standards."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sc_recall",
+        "kind": "multiple_choice",
+        "question": "An automotive controller passes all tests for 2 years of deployment, then a fleet-wide fault is detected: rarely, the controller outputs wrong commands. Root cause: undefined behavior in C (signed integer overflow). What process failure made this possible?",
+        "options": [
+          "Bad luck.",
+          "Code review failed to catch UB. Static analysis (Coverity / Polyspace) would have flagged it. MISRA-C would have prohibited the construct. ISO 26262 mandates these process steps for ASIL B+, so the failure represents process non-compliance.",
+          "C is unfixable.",
+          "Hardware bug."
+        ],
+        "correctIndex": 1,
+        "explanation": "ASIL-mandated process: static analysis, MISRA-C compliance, code reviews, traceability. UB bugs are caught by Polyspace / Astrée. If the bug shipped, either the tool was not run, or its warnings were dismissed without justification, or MISRA was waived. Each is a process violation. Real-world example: Toyota's 2009-2011 unintended-acceleration cases involved similar process gaps. Modern OEMs invest heavily in static-analysis + cert pipelines to prevent recurrence."
+      },
+      "hints": [
+        "What does the process REQUIRE?",
+        "What would have caught UB?"
+      ],
+      "workedSolution": "Process for ASIL B+ requires: MISRA-C (rules against UB), static analysis (Polyspace etc.), code reviews + traceability, full test coverage. Bugs slipping through usually indicate process gaps: tool warnings dismissed, MISRA waivers without justification, missing tests for boundary conditions. The process IS the product in safety-critical engineering.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sc_sil4",
+        "kind": "math_expression",
+        "question": "SIL 4 demands failure rate ≤ 10^-9 per hour. How many years of operation between failures (in expectation)?",
+        "acceptedAnswers": [
+          "~114000",
+          "approximately 114000 years",
+          "~100000"
+        ],
+        "hint": "1 / (10^-9 × 8760) ≈ 114155 years."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sc_med",
+        "kind": "scenario",
+        "question": "Designing a medical infusion pump",
+        "prompt": "Your team designs an insulin pump. Walk through the architecture choices that ensure the pump never overdoses a patient — from hardware to firmware to UI."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sc",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why safety-critical engineering is 2-5× more expensive than ordinary embedded engineering.",
+        "rubric": "Mentions the certification process (requirements → design → implementation → test traceability, qualified tools, static analysis, formal methods, redundant architectures, extensive documentation). The cost is justified by consequence of failure: cars, planes, medical devices CANNOT afford the failure modes of ordinary software. The standards (ISO 26262, DO-178C, IEC 62304) codify decades of lessons-learned + are mandatory for shipped products in regulated industries."
+      }
+    }
+  ]
+}

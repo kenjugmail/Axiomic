@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intro",
+    "objectives": [
+      "Identify the major blocks of an ARM Cortex-M MCU.",
+      "Distinguish the register banks + memory map.",
+      "Reason about the vector table + reset behavior."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Anatomy of an ARM Cortex-M MCU",
+      "body": "An **MCU (microcontroller unit)** is a single chip containing CPU + memory + peripherals. Unlike a desktop CPU (which needs DRAM + chipset + I/O cards), an MCU is self-contained. STM32, NXP Kinetis, Nordic nRF52, ESP32, RP2040 — all variations on the theme.\n\n**ARM Cortex-M** is the dominant 32-bit architecture for MCUs. Variants:\n- **Cortex-M0/M0+**: 1-2 mW/MHz, minimal feature set. The cheap+small choice (sub-\\$1 MCUs).\n- **Cortex-M3**: workhorse 32-bit MCU. Used in millions of products.\n- **Cortex-M4(F)**: M3 + DSP instructions + optional FPU. The default for sensor/signal processing.\n- **Cortex-M7**: 2× IPC over M4, dual-issue, branch prediction. Higher-end.\n- **Cortex-M33**: ARMv8-M with TrustZone for security partitioning.\n- **Cortex-M85**: Helium vector extensions for ML inference on MCU.\n\n**Major blocks**:\n- **CPU core**: 32-bit, RISC-style. 16 general-purpose registers (R0-R15), some with special roles (R13=SP, R14=LR, R15=PC).\n- **Flash memory**: 16KB to 4MB of on-chip flash for code + immutable data.\n- **SRAM**: 8KB to 1MB for runtime data + stack.\n- **NVIC (Nested Vectored Interrupt Controller)**: tightly integrated, ~16-240 interrupt vectors.\n- **Peripherals**: GPIO, UART, SPI, I2C, ADC, DAC, timers, PWM, USB, CAN, Ethernet, etc.\n\n**Clock speeds**: 8 MHz (low-power) to 600 MHz (high-end M7). Compare to PC CPUs at 3-5 GHz. The trade-off: power + cost vs throughput."
+    },
+    {
+      "kind": "text",
+      "title": "Register banks + the special registers",
+      "body": "The Cortex-M register file:\n\n- **R0-R12**: general-purpose. Used freely by code + compiler.\n- **R13 (SP, Stack Pointer)**: top of the current stack. ARM has TWO stacks: MSP (Main Stack Pointer, used by handler mode) + PSP (Process Stack Pointer, used by thread mode in RTOS).\n- **R14 (LR, Link Register)**: holds the return address on a function call (`bl func` puts return address into LR). On nested calls, LR is pushed to the stack.\n- **R15 (PC, Program Counter)**: address of next instruction. Directly writable (used for branches).\n\n**Special registers**:\n- **xPSR** = APSR + IPSR + EPSR. The status register. APSR holds N (negative), Z (zero), C (carry), V (overflow) flags from ALU. IPSR holds current interrupt number.\n- **CONTROL**: 2 bits. Bit 0 = privileged vs unprivileged thread mode. Bit 1 = use MSP vs PSP.\n- **PRIMASK / FAULTMASK / BASEPRI**: interrupt masking registers.\n\n**Mode + privilege**:\n- **Thread mode**: normal code execution. Can be privileged or unprivileged.\n- **Handler mode**: interrupt / exception handler. Always privileged.\n- The OS / RTOS uses CONTROL to drop user tasks to unprivileged thread mode → memory protection enforced by MPU (Memory Protection Unit).\n\n**Why this matters in practice**: when writing an RTOS port or a fault handler, you read these registers directly. The xPSR's IPSR tells your fault handler 'I was interrupted while servicing interrupt #25'. The CONTROL bit lets you decide if a fault was in a user task or in a privileged context."
+    },
+    {
+      "kind": "text",
+      "title": "Memory map + the vector table",
+      "body": "Cortex-M has a FIXED memory map. Regardless of vendor, the same address ranges are dedicated to the same purposes:\n\n- **0x0000_0000 - 0x1FFF_FFFF (Code region)**: flash memory. Code + read-only data.\n- **0x2000_0000 - 0x3FFF_FFFF (SRAM region)**: RAM. Stack + heap + read-write data.\n- **0x4000_0000 - 0x5FFF_FFFF (Peripheral region)**: memory-mapped peripherals.\n- **0xE000_0000 - 0xE00F_FFFF (Private Peripheral Bus, PPB)**: system peripherals like NVIC + SysTick.\n\nAccess to peripheral region is via WRITE/READ to specific addresses. e.g., `GPIOA->ODR = 0x1` writes 1 to the GPIO A Output Data Register, turning on Pin 0.\n\n**The vector table** (at the start of flash, address 0x0000_0000):\n- Word 0: initial value of MSP (Main Stack Pointer).\n- Word 1: reset vector — address of the function that runs when CPU starts.\n- Word 2: NMI vector.\n- Word 3: HardFault vector.\n- ... (15 system vectors + up to 240 peripheral interrupt vectors).\n\nOn reset:\n1. CPU loads MSP from address 0x0000_0000.\n2. CPU loads PC from address 0x0000_0004 (the reset vector).\n3. CPU starts executing at PC.\n\nThe **Reset_Handler** (linked at the reset vector) is your code's entry point. Typical responsibilities:\n1. Copy initialized data from flash → SRAM (`.data` section).\n2. Zero out `.bss` (uninitialized data section).\n3. Set up clocks (PLL configuration).\n4. Call `main()`.\n5. If main returns, infinite loop (well-behaved firmware never returns).\n\nWritten in assembly (or `__attribute__((naked))` C). The classic Cortex-M startup file."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mcu_vector",
+        "kind": "guided_derivation",
+        "question": "Trace the reset sequence",
+        "goal": "A Cortex-M MCU is powered on. SRAM is at 0x2000_0000-0x2002_0000 (128KB). Vector table at 0x0800_0000 (flash). What sequence does the CPU execute?",
+        "steps": [
+          {
+            "prompt": "First, the CPU loads MSP from the vector table. What address does it read?",
+            "motivation": "Vector table layout.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "0x0800_0000.",
+                "0x0800_0004.",
+                "0x2000_0000.",
+                "0x0000_0000."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "MSP value is the FIRST word of the vector table."
+            ],
+            "reveal": "MSP loaded from 0x0800_0000 (or 0x0000_0000 if VTOR=0 — many MCUs alias)."
+          },
+          {
+            "prompt": "If MSP is initialized to 0x2002_0000 (top of SRAM), and the stack grows DOWN, where does the first push go?",
+            "motivation": "Stack convention.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "0x2002_0000.",
+                "0x2001_FFFC (subtract 4 first).",
+                "0x2000_0000.",
+                "Any address."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "ARM uses full-descending stack: SP first decremented, then store."
+            ],
+            "reveal": "First push: SP decrements to 0x2001_FFFC, then stores at that address."
+          },
+          {
+            "prompt": "Then CPU loads PC from 0x0800_0004 + starts executing. The address there is the Reset_Handler. It's typically marked with which attribute in C?",
+            "motivation": "Naked function pattern.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "`static`.",
+                "`__attribute__((interrupt))`.",
+                "`__attribute__((naked))` — no compiler prologue/epilogue, full control over registers + stack.",
+                "`__attribute__((weak))`."
+              ],
+              "correctIndex": 2
+            },
+            "hints": [
+              "The handler runs before stack is verified safe + before .data is copied — can't use normal C ABI."
+            ],
+            "reveal": "`__attribute__((naked))` for full control. Or pure assembly. Inside, it copies .data, zeroes .bss, then calls `main()`."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Reset: load MSP, load PC, run Reset\\_Handler, init data, call main}}$$ This minimal startup sequence is identical across all Cortex-M vendors. The Reset_Handler is provided by the SDK / HAL or written by the user. The first 5 sequence steps (MSP, PC, copy .data, zero .bss, call main) happen in every embedded program ever written for Cortex-M. Understanding it is the gateway to debugging bare-metal startup bugs."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mcu_size",
+        "kind": "multiple_choice",
+        "question": "An MCU spec sheet says '128 KB flash, 32 KB SRAM'. Compared to a desktop CPU (16 GB RAM, 1 TB SSD), the MCU has ~125,000× less RAM. What does this mean for software design?",
+        "options": [
+          "MCUs run the same software as desktops.",
+          "Every byte counts: static allocation preferred over heap; data structures sized to exact needs; no big strings or images in RAM; minimal C runtime (no malloc by default).",
+          "MCUs use compressed RAM.",
+          "MCUs run slower so it doesn't matter."
+        ],
+        "correctIndex": 1,
+        "explanation": "32 KB of RAM is tiny — a single uncompressed VGA image (640×480×24bit) is 900 KB, far too big. Embedded software is engineered around tight memory: static buffers sized precisely, no malloc (or a tiny statically-allocated pool), no STL/std-vector growth, careful stack-depth analysis. Tools: -Wstack-usage warning, static-analysis (PCLint, Coverity), heap profilers in RTOS."
+      },
+      "hints": [
+        "32 KB of RAM is how big?",
+        "What can't fit?"
+      ],
+      "workedSolution": "32 KB ≈ 8000 32-bit integers, ~1 second of 16-bit audio at 16 kHz, less than 1 raw image at any usable resolution. Forces: (1) static allocation; (2) ring buffers for streaming data; (3) processing data in-place; (4) split big tasks into chunks that fit. Heap is often avoided entirely or limited to bootup-only allocations to prevent fragmentation.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mcu_addr",
+        "kind": "math_expression",
+        "question": "On Cortex-M, what address holds the reset vector (assuming VTOR=0)?",
+        "acceptedAnswers": [
+          "0x00000004",
+          "0x4",
+          "4"
+        ],
+        "hint": "Second word in the vector table."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mcu_choice",
+        "kind": "scenario",
+        "question": "Picking an MCU for an IoT sensor",
+        "prompt": "Your team designs a battery-powered temperature sensor. Walk through choosing between a Cortex-M0+ (cheap, low power) and a Cortex-M4F (DSP capability) — for what kinds of workloads each is right."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mcu",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why ARM Cortex-M architecture dominates the MCU market.",
+        "rubric": "Mentions that Cortex-M offers a consistent 32-bit ISA across vendors (NXP, ST, Nordic, etc.) so software ports easily; the licensing model lets many semiconductor companies ship Cortex-M-based chips; the ecosystem (toolchains, RTOSes, debug probes) is mature. Competing architectures (PIC, AVR, RX) survive in niches but Cortex-M is the default modern choice."
+      }
+    }
+  ]
+}

@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "core",
+    "objectives": [
+      "State the difference between hard, firm, soft real-time.",
+      "Apply rate-monotonic scheduling to a periodic task set.",
+      "Reason about priority inversion + the priority-inheritance fix."
+    ],
+    "prereqs": [
+      "microcontroller-architecture"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Hard / firm / soft real-time",
+      "body": "A **real-time system** must respond to inputs within a guaranteed time bound. Three categories:\n\n- **Hard real-time**: missing a deadline is a system FAILURE. Examples: anti-lock brake controller, pacemaker, aircraft flight control, nuclear-reactor safety system. Missing deadlines causes physical harm. Verified with formal methods; bounded-WCET analysis; safety-critical certification.\n\n- **Firm real-time**: missing a deadline yields useless output BUT doesn't crash the system. Example: streaming video frame — if a frame is late, drop it; the next frame may still be on time. Skipped output is acceptable; persistent delays degrade UX.\n\n- **Soft real-time**: missing a deadline degrades quality of service but is tolerable. Example: web server response, audio mixing, user-interface event handling. Best-effort.\n\n**'Real-time' ≠ 'fast'**. A controller running at 1 Hz that ALWAYS responds within 100 ms is real-time. A web server replying in 10 ms but sometimes spiking to 5 s is NOT real-time (no worst-case bound).\n\n**Implications for the OS / RTOS**:\n- **Hard RT**: preemptive scheduler with priorities; bounded interrupt latency; no garbage collection; no dynamic memory after init; carefully audited drivers.\n- **Firm RT**: priorities help; can tolerate occasional misses; some general-purpose OSes (Linux PREEMPT_RT, FreeRTOS, Zephyr) are good enough.\n- **Soft RT**: a desktop OS suffices.\n\n**Common embedded RTOSes**: FreeRTOS (most popular by far, AWS-acquired), Zephyr (Linux Foundation), VxWorks (Wind River, defense + aerospace), QNX (BlackBerry, automotive), Azure RTOS / ThreadX (Microsoft), RTEMS (NASA + aerospace heritage)."
+    },
+    {
+      "kind": "text",
+      "title": "Rate-monotonic scheduling (RMS)",
+      "body": "**RMS** (Liu + Layland 1973): the canonical scheduling algorithm for periodic real-time tasks. Assigns priorities by period: SHORTER PERIOD = HIGHER PRIORITY.\n\nGiven $n$ periodic tasks $\\tau_i$ with period $T_i$ + worst-case execution time $C_i$ + deadline = period:\n- **Utilization**: $U = \\sum_i C_i / T_i$.\n- **Schedulability bound (Liu-Layland)**: if $U \\le n(2^{1/n} - 1)$, RMS schedules all tasks meeting deadlines. As $n \\to \\infty$, bound → $\\ln 2 \\approx 0.693$.\n\nSo RMS guarantees schedulability up to ~69% utilization. Above that, may or may not work (need exact response-time analysis).\n\n**Example**: 3 tasks with $(C, T)$: $(1, 4), (2, 6), (1, 10)$. Utilization = $0.25 + 0.333 + 0.1 = 0.683$. Below the 3-task bound of $3(2^{1/3} - 1) = 0.779$. RMS will schedule them.\n\n**Earliest-Deadline-First (EDF)**: alternative scheduling. Assigns priority dynamically based on which task has the closest deadline. Achieves $U \\le 1$ for schedulability (optimal). But more complex; less common in MCUs.\n\n**Why RMS dominates in practice**:\n- Fixed priorities are simple. Set once at design; OS scheduler is trivial.\n- Predictable. Easier to reason about + debug than EDF.\n- The 69% utilization 'overhead' is fine for safety-critical systems where margin is desired.\n\n**Aperiodic tasks** (event-driven): handle via sporadic-server / deferrable-server / sporadic tasks. Modeled with worst-case inter-arrival times."
+    },
+    {
+      "kind": "text",
+      "title": "Priority inversion + the Mars Pathfinder lesson",
+      "body": "**Priority inversion**: a HIGH-priority task is BLOCKED by a LOW-priority task holding a shared resource, while a MEDIUM-priority task preempts the low-priority one indefinitely.\n\nExample:\n- Task H (high): periodically reads sensor.\n- Task L (low): logs data; takes shared mutex M.\n- Task M (medium): doesn't share M; just runs.\n\nSequence:\n1. L starts; takes M.\n2. H becomes ready; preempts L. Tries to take M; blocks.\n3. M becomes ready; preempts L (since L is still 'in middle of execution'). H is still blocked on M.\n4. M runs and runs — L can't make progress to release M. H is held hostage.\n\n**The Mars Pathfinder bug (1997)**: a high-priority data-collection task shared a mutex with a low-priority meteorological task. A medium-priority comms task would preempt the meteorological task, indefinitely starving the data-collection task. The watchdog fired + reset the system. Diagnosed remotely + fixed via uploaded software patch. The fix: enable VxWorks's **priority inheritance**.\n\n**Priority Inheritance Protocol (PIP)**: when high-priority task blocks on a mutex, the mutex-holding task temporarily INHERITS the high priority. The low-priority task gets boosted, runs (un-preempted by medium-priority tasks) until it releases the mutex, then returns to its original priority.\n\n**Priority Ceiling Protocol (PCP)**: each mutex has a 'ceiling' priority = max priority of any task that uses it. When a task takes the mutex, it immediately inherits the ceiling. Stronger guarantee: prevents deadlock + chained blocking. Used in Ada Ravenscar profile + most certifiable RTOSes.\n\n**Modern RTOSes** (FreeRTOS, Zephyr, ThreadX): expose priority-inheritance mutexes as the default. Plain semaphores (no PI) are explicitly opt-in. The default does the right thing."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_rt_rms",
+        "kind": "guided_derivation",
+        "question": "Apply RMS to a task set",
+        "goal": "Tasks: $\\tau_1$ = (C=2, T=10), $\\tau_2$ = (C=1, T=4), $\\tau_3$ = (C=2, T=8). All deadlines equal periods.",
+        "steps": [
+          {
+            "prompt": "Total utilization $U = \\sum_i C_i/T_i$?",
+            "motivation": "Compute U.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.825",
+                "0.825 ",
+                "33/40"
+              ]
+            },
+            "hints": [
+              "$2/10 + 1/4 + 2/8 = 0.2 + 0.25 + 0.25$."
+            ],
+            "reveal": "$U = 0.2 + 0.25 + 0.25 = 0.7$. Hmm wait: $2/8 = 0.25$, $0.2+0.25+0.25=0.7$."
+          },
+          {
+            "prompt": "Liu-Layland bound for n=3 tasks: $3(2^{1/3} - 1) \\approx 0.779$. Compare U to bound.",
+            "motivation": "Apply.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "U > bound, RMS may not schedule.",
+                "U < bound, RMS DEFINITELY schedules.",
+                "U = bound, undetermined.",
+                "Cannot apply."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "0.7 < 0.779."
+            ],
+            "reveal": "$U = 0.7 < 0.779$. RMS guarantees schedulability. (For higher U, need to do exact response-time analysis.)"
+          },
+          {
+            "prompt": "RMS priority order: shortest period = highest priority. Rank the tasks.",
+            "motivation": "Apply the rule.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$\\tau_1$ > $\\tau_2$ > $\\tau_3$.",
+                "$\\tau_3$ > $\\tau_2$ > $\\tau_1$.",
+                "$\\tau_2$ > $\\tau_3$ > $\\tau_1$.",
+                "All equal."
+              ],
+              "correctIndex": 2
+            },
+            "hints": [
+              "Periods: 10, 4, 8. Shortest = 4 = highest priority."
+            ],
+            "reveal": "$\\tau_2$ (T=4) > $\\tau_3$ (T=8) > $\\tau_1$ (T=10)."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{RMS: shortest period → highest priority, scheduled if } U < n(2^{1/n} - 1)}$$ Even modest utilization ($U=0.7$) is safe with 3 tasks; with many tasks the bound approaches $\\ln 2 = 0.693$. EDF can achieve U=1 but is more complex. RMS is the default choice for hard real-time MCU work. When U is high, do exact response-time analysis: $R_i = C_i + \\sum_{j \\in HP(i)} \\lceil R_i/T_j \\rceil C_j$ iteratively for worst-case response time."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_rt_inv",
+        "kind": "multiple_choice",
+        "question": "A safety-critical embedded system experiences mysterious task starvation under load. Profiling shows a low-priority task holds a mutex needed by the high-priority task, and a medium-priority task is using all CPU. Most likely diagnosis + fix?",
+        "options": [
+          "Defective hardware.",
+          "Priority inversion. Switch to priority-inheritance or priority-ceiling mutexes.",
+          "Add more cores.",
+          "Reduce CPU clock."
+        ],
+        "correctIndex": 1,
+        "explanation": "Classic priority inversion (Mars Pathfinder pattern). High priority blocks on mutex held by low; medium-priority task starves the low → high indefinitely waits. Fix: priority inheritance (mutex-holder temporarily inherits highest waiter's priority). All modern RTOSes have priority-inheritance mutexes; just enable them."
+      },
+      "hints": [
+        "High-priority task waiting + low-priority task holds the resource.",
+        "What promotes the low-priority task?"
+      ],
+      "workedSolution": "The starvation pattern is diagnostic: high-priority blocked on a resource held by low-priority. Medium-priority tasks preempt the low → low can't finish → high stays blocked. Priority inheritance: high-priority task's priority is temporarily TRANSFERRED to the resource-holder. Low gets boosted; medium can't preempt; low finishes + releases. Standard fix; trace the Mars Pathfinder writeup if you want the famous story.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_rt_util",
+        "kind": "math_expression",
+        "question": "Task: WCET = 2 ms, period = 10 ms. Utilization?",
+        "acceptedAnswers": [
+          "0.2",
+          "20%",
+          "0.20"
+        ],
+        "hint": "C/T = 2/10."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_rt_audio",
+        "kind": "scenario",
+        "question": "Audio dropouts in a streaming device",
+        "prompt": "A Bluetooth audio receiver is dropping audio every few seconds. The audio DAC must be fed every 5 ms. Walk through the diagnosis + likely fix."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_rt",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why 'real-time' is about predictability, not speed.",
+        "rubric": "Mentions that a real-time system guarantees a worst-case response time within its deadlines; a fast-on-average system that occasionally jitters is NOT real-time. Real-time engineering is about bounded worst-case execution time, bounded interrupt latency, no garbage collection or other unbounded operations, careful concurrency design (no priority inversion). Predictability is the deliverable."
+      }
+    }
+  ]
+}
