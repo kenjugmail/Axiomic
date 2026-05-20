@@ -1952,6 +1952,26 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P16 — Game Developer path. Real-time interactive systems:
+  // loop, rendering, shaders, physics, AI, networking, animation,
+  // engines + build.
+  seedMasteryPath({
+    slug: "game-developer",
+    title: "Game Developer",
+    description:
+      "From game loops + ECS architecture through GPU rendering, PBR shaders, rigid-body physics, FSM/BT/GOAP game AI, rollback multiplayer netcode, skeletal animation, and engine + build pipelines. Real-time interactive systems end-to-end.",
+    nodes: [
+      { slug: "game-loop-and-architecture", title: "Game Loop + Architecture", level: "apprentice", order: 1, pages: ["frame-budget", "fixed-variable-timestep", "ecs"], prereqs: [], description: "Fixed vs variable timestep, frame-time budgeting, ECS + data-oriented design." },
+      { slug: "rendering-pipeline", title: "GPU Rendering Pipeline", level: "practitioner", order: 2, pages: ["pipeline-stages", "forward-deferred", "culling-batching"], prereqs: ["game-loop-and-architecture"], description: "Vertex/fragment pipeline, MVP transformations, forward vs deferred, culling + draw-call batching." },
+      { slug: "shaders-and-glsl", title: "Shaders + GLSL", level: "practitioner", order: 3, pages: ["shader-languages", "pbr-microfacet", "shader-optimization"], prereqs: ["rendering-pipeline"], description: "Vertex/fragment shaders in GLSL/HLSL, PBR Cook-Torrance microfacet, GPU warp divergence + optimization." },
+      { slug: "physics-and-collision", title: "Physics + Collision", level: "practitioner", order: 4, pages: ["rigid-integration", "collision-detection", "constraint-solvers"], prereqs: ["game-loop-and-architecture"], description: "Symplectic Euler / Verlet integration, broad-phase + narrow-phase collision (SAT/GJK), iterative impulse solvers." },
+      { slug: "game-ai-and-fsm", title: "Game AI (FSM, BT, GOAP)", level: "specialist", order: 5, pages: ["fsm-bt", "astar-navmesh", "goap-utility"], prereqs: ["game-loop-and-architecture"], description: "Finite-state machines + behavior trees, A* + navigation meshes, GOAP planning + utility AI." },
+      { slug: "networking-and-multiplayer", title: "Networking + Multiplayer", level: "specialist", order: 6, pages: ["client-server-p2p", "rollback-lockstep", "lag-compensation"], prereqs: ["game-loop-and-architecture"], description: "Client-server vs P2P, lockstep + rollback netcode (GGPO), client-side prediction + lag compensation." },
+      { slug: "animation-and-skeletal", title: "Skeletal Animation", level: "specialist", order: 7, pages: ["lbs-skinning", "fk-ik", "state-machines-blending"], prereqs: ["rendering-pipeline"], description: "Linear blend skinning, forward + inverse kinematics, animation state machines + blend trees, motion matching." },
+      { slug: "game-engines-and-build", title: "Game Engines + Build Pipeline", level: "expert", order: 8, pages: ["unreal-unity-godot", "asset-pipeline", "live-ops"], prereqs: ["game-loop-and-architecture", "rendering-pipeline"], description: "Unity/Unreal/Godot/custom engines, asset cooking + multi-platform builds, live-service operations + monetization." },
+    ],
+  });
+
   // P15 — Hardware Engineer path. Digital logic, RTL/HDL, CPU
   // microarchitecture, memory + interconnect, FPGA, ASIC flow,
   // ML accelerators. Complements compiler-engineer + systems-

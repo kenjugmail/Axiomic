@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "specialist",
+    "objectives": [
+      "Outline skeletal animation + skinning.",
+      "Distinguish forward from inverse kinematics.",
+      "Reason about animation state machines + blending."
+    ],
+    "prereqs": [
+      "rendering-pipeline"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Skeletal animation + linear blend skinning",
+      "body": "A character is animated as a **skeleton** of bones + a **mesh** bound to it.\n\n**Skeleton**: hierarchy of bones (transforms). Root → pelvis → spine → chest → neck → head, with arms + legs branching. Each bone has a transform (translation + rotation) relative to its parent.\n\n**Pose**: a snapshot of all bone transforms. An animation = a sequence of poses (keyframes).\n\n**Mesh skinning**: each vertex is bound to one or more bones with weights. When bones move, vertices follow.\n\n**Linear Blend Skinning (LBS)**:\n$$\\mathbf{p}_{\\text{world}} = \\sum_i w_i \\mathbf{M}_i \\mathbf{p}_{\\text{bind}}$$\nwhere $w_i$ are weights (sum to 1), $\\mathbf{M}_i$ is bone $i$'s transform.\n\nFast (just matrix multiplies in vertex shader). Standard for real-time games.\n\n**LBS problem**: 'candy wrapper' artifact at extreme joint rotations (shoulder, elbow). Volumes collapse.\n\n**Solutions**:\n- **Dual quaternion skinning**: better at extreme rotations; preserves volume. Slightly slower; standard in modern engines for hero characters.\n- **Position-based skinning**: helps with cloth + soft body.\n- **Corrective shapes**: blend shapes activate at extreme joint poses to fix LBS artifacts. Common for face + character art.\n\n**Animation data**: 24-60 keyframes per second of animation, per bone. Compression (curve fitting, quantization) reduces storage. Modern games ship 100MB-1GB of animation data."
+    },
+    {
+      "kind": "text",
+      "title": "Forward + inverse kinematics",
+      "body": "**Forward Kinematics (FK)**: given joint angles, compute end-effector position. Standard for animator-authored animation.\n\nE.g., shoulder angle = θ₁, elbow = θ₂ → hand position = forward chain.\n\n**Inverse Kinematics (IK)**: given DESIRED end-effector position (or pose), solve for joint angles.\n\nCommon use: foot placement on uneven ground, hand reaching to a specific point, looking at a moving target.\n\n**Algorithms**:\n- **Analytical IK**: closed-form for simple chains (2-bone arm with known length). Fast.\n- **Cyclic Coordinate Descent (CCD)**: iteratively adjust each joint to reduce error. Simple, robust.\n- **FABRIK (Forward And Backward Reaching IK)**: rapidly converges with few iterations. Used in Unreal.\n- **Jacobian-based**: Jacobian transpose, pseudo-inverse, damped-least-squares. Used in robotics + advanced game IK.\n\n**Hybrid FK+IK**: 'IK rig' lets animator pose key end-effectors (hands, feet); IK solver fills in joint angles. Animator gets best of both worlds.\n\n**Foot IK** + **physical animation**: characters' feet should plant on ground (no floating; no penetrating). At runtime, raycast from foot's expected position; if ground is at different height, use IK to bend leg + place foot correctly. Standard for natural-looking traversal of uneven terrain.\n\n**Look-at IK**: head tracks a target. Spine + neck + head bones rotated by IK to face target.\n\n**Aim offsets**: blend FK animations with IK adjustments for aimed weapons. The character holds rifle (FK animation) + aims it (IK to target). Hybrid is critical for shooters."
+    },
+    {
+      "kind": "text",
+      "title": "Animation state machines + blending",
+      "body": "**Animation State Machine (ASM)**: state machine of animation states with transitions.\n```\nIdle → Walk (when speed > 0)\nWalk → Run (when speed > threshold)\nRun → Jump (when jumpPressed)\n...\n```\n\nEach state is an animation clip (or a sub-blend tree).\n\n**Animation blend trees**: blend multiple clips by parameters.\n- **1D blend tree**: speed parameter blends Idle (0%) → Walk (50%) → Run (100%) → Sprint.\n- **2D blend tree**: speed × direction. 8 directional walks blended by velocity vector. Used for free-roaming locomotion.\n- **Additive blends**: layer animations on top of base. e.g., 'aim' is additive on top of 'walk'. Walking-and-aiming = walk + additive aim.\n\n**Transitions**: when switching states, animations should not POP. Cross-fade (blend out old, blend in new over 0.1-0.3 sec).\n\n**Root motion**: animation moves the character's position itself (instead of separate motion code). Used for context-sensitive animations (climbing ledges, vaulting). Engine extracts position delta from animation + applies to character controller.\n\n**Modern systems**:\n- **Unity Mecanim**: ASM + blend trees + IK + state notes.\n- **Unreal Anim Blueprint**: visual state machine + blend graphs.\n- **Motion Matching** (Ubisoft, Naughty Dog, etc.): runtime search of large motion database. Pick the animation snippet that best matches desired action. Produces highly natural movement at the cost of large data + CPU.\n- **Learned animation** (ML-based, recent): neural networks generate animation from controls. Phase-functioned NNs, MotionVAE, motion-matching enhanced with neural search. Active research.\n\n**Procedural animation**:\n- **Ragdoll physics**: dead/stunned characters become physics-driven. Bones become rigid bodies, joints become constraints.\n- **Active ragdoll / inverse-dynamics**: control physics-driven character to track desired pose. Used in Just Cause, Far Cry for natural-looking interactions.\n- **Procedural footstep**: spawn dust + sound when foot lands (via IK or animation event).\n\nAnimation is one of the largest art + tech investments in modern games. Naughty Dog's Last of Us 2 has 50+ animators + ~10,000 unique animation clips."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_anim_lbs",
+        "kind": "guided_derivation",
+        "question": "Compute linear blend skinning for a vertex",
+        "goal": "Vertex v is bound to two bones. Bone 1 weight = 0.7, Bone 2 weight = 0.3. After animation: Bone 1 transform M1 moves vertex to position P1 = (1, 0, 0). Bone 2 transform M2 moves vertex to position P2 = (0, 1, 0).",
+        "steps": [
+          {
+            "prompt": "Final blended position by LBS?",
+            "motivation": "Weighted sum.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "P1 only.",
+                "P2 only.",
+                "(0.7×1 + 0.3×0, 0.7×0 + 0.3×1, 0) = (0.7, 0.3, 0).",
+                "Average."
+              ],
+              "correctIndex": 2
+            },
+            "hints": [
+              "Weighted sum of bone-transformed positions."
+            ],
+            "reveal": "(0.7, 0.3, 0). Linear blend of bone-deformed positions."
+          },
+          {
+            "prompt": "What if both weights were equal (0.5, 0.5)?",
+            "motivation": "Equal weights.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "P1 only.",
+                "Average: (0.5, 0.5, 0).",
+                "(1, 1, 0).",
+                "(0, 0, 0)."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "50-50 mix."
+            ],
+            "reveal": "(0.5, 0.5, 0). Equally influenced by both bones."
+          },
+          {
+            "prompt": "Why are weights chosen this way (in modeling tools)?",
+            "motivation": "Capture deformation behavior.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Painted by artists or auto-computed based on bone-vertex distance. Closer bones get higher weights. Captures realistic skin deformation: vertices near a joint blend between both bones; far from joint follow one bone fully.",
+                "All equal.",
+                "Always 1.0."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Per-vertex skin influence."
+            ],
+            "reveal": "Painted (or auto-skinned). Near joint → split weight; far from joint → unitary weight to one bone. Artists tune for smooth deformation. Tools like Maya, Blender, ZBrush have skin weight painting. Auto-skinning algorithms (heat diffusion, voxelization) provide good defaults."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{LBS: } \\mathbf{p}_{\\text{world}} = \\sum_i w_i \\mathbf{M}_i \\mathbf{p}_{\\text{bind}}}$$ The workhorse of real-time character animation. Implemented in vertex shader (matrix lookup + weighted sum). 4-8 bones per vertex typical (game requires limited to keep math fast). 'Candy wrap' artifact at extreme rotations (shoulder) is the cost; dual-quaternion skinning fixes the worst cases for hero characters."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_anim_ik",
+        "kind": "multiple_choice",
+        "question": "Why do shooters apply IK to a character's hands when aiming?",
+        "options": [
+          "Decoration.",
+          "To make the character's hands point precisely AT the target (not at some pre-baked direction). Animation provides 'holding rifle' pose; IK adjusts hand position to match where the player aims. Without IK, weapon could point at a different angle than the camera.",
+          "For speed.",
+          "Because IK is required."
+        ],
+        "correctIndex": 1,
+        "explanation": "Aim direction varies continuously with the camera (or mouse / stick). Pre-baked animations can't cover every angle. IK lets the character's arm + weapon align with the actual aim direction. Standard in FPS + TPS shooters. Without it, the visible weapon would not match where the bullet goes, breaking immersion + creating UI confusion."
+      },
+      "hints": [
+        "What does aiming require?",
+        "What does IK provide?"
+      ],
+      "workedSolution": "Aim direction varies continuously. Animation only covers discrete poses. IK lets the spine + arms align to aim direction. Hybrid: locomotion animation drives lower body via FK; upper body uses IK to point weapon. Aim offsets blend the two smoothly. Standard in shooters since ~2007 (Gears of War, Call of Duty).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_anim_keyframes",
+        "kind": "math_expression",
+        "question": "30-second animation at 30 fps. How many keyframes?",
+        "acceptedAnswers": [
+          "900"
+        ],
+        "hint": "30×30."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_anim_mm",
+        "kind": "scenario",
+        "question": "Motion matching for natural locomotion",
+        "prompt": "Naughty Dog's Uncharted uses motion-matching. Walk through what this is + why it produces more natural movement than blend trees."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_anim",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why skeletal animation + linear blend skinning is the universal foundation of real-time character animation, despite known artifacts.",
+        "rubric": "Mentions that LBS is extremely cheap (just matrix-multiply per vertex), runs on GPU in vertex shader, supports rigging by artists with tools (Maya, Blender). The 'candy wrap' artifacts at extreme rotations are addressed by dual-quaternion or corrective blendshapes. Alternative techniques (free-form deformation, physics-based) are too expensive for real-time character counts."
+      }
+    }
+  ]
+}

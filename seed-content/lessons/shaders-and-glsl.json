@@ -1,0 +1,151 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish vertex from fragment shaders.",
+      "Outline the PBR (physically-based rendering) lighting model.",
+      "Reason about shader optimization + bottlenecks."
+    ],
+    "prereqs": [
+      "rendering-pipeline"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Shader languages + the rendering pipeline",
+      "body": "**Shaders** are GPU programs. Written in C-like languages, compiled to GPU-specific bytecode.\n\n**Languages**:\n- **GLSL** (OpenGL Shading Language): for OpenGL + Vulkan (via SPIR-V).\n- **HLSL** (High-Level Shading Language): Microsoft, for DirectX.\n- **Metal Shading Language**: Apple, Metal API.\n- **WGSL**: WebGPU's shading language (recent).\n- **SPIR-V**: portable bytecode, target of all the above for Vulkan.\n\nAll share C-syntax with vector types (vec2, vec3, vec4), matrix types, swizzling (`vec.xy`, `vec.xyz`), built-in functions (dot, cross, length, normalize).\n\n**Vertex shader**:\n```glsl\n#version 450\nlayout(location = 0) in vec3 inPosition;\nlayout(location = 1) in vec3 inNormal;\nuniform mat4 mvp;\nout vec3 worldNormal;\nvoid main() {\n  gl_Position = mvp * vec4(inPosition, 1.0);\n  worldNormal = inNormal;\n}\n```\nRuns once per VERTEX. Outputs clip-space position + per-vertex data.\n\n**Fragment shader**:\n```glsl\n#version 450\nin vec3 worldNormal;\nout vec4 fragColor;\nuniform vec3 lightDir;\nvoid main() {\n  float diff = max(dot(normalize(worldNormal), -lightDir), 0.0);\n  fragColor = vec4(vec3(diff), 1.0);\n}\n```\nRuns once per FRAGMENT (potential pixel). Outputs final color.\n\n**Other shader types**:\n- **Compute shaders**: arbitrary GPU compute, not tied to graphics pipeline. Used for physics, AI, image processing, ML.\n- **Tessellation shaders**: subdivide patches.\n- **Geometry shaders**: emit/discard primitives. Largely deprecated for performance reasons.\n- **Mesh shaders / Task shaders**: newer (Turing, RDNA2+), replace vertex + tessellation + geometry for more flexible workloads.\n\n**Shader compilation pipeline**: source → high-level compiler (glslang, dxc) → SPIR-V / DXBC → GPU driver compiles to vendor-specific machine code → runtime executes."
+    },
+    {
+      "kind": "text",
+      "title": "Physically-Based Rendering (PBR)",
+      "body": "Modern realistic graphics use **physically-based rendering**: shading models derived from light + material physics.\n\n**The microfacet BRDF**: surface modeled as a collection of tiny mirrors (microfacets), each reflecting light. The aggregate behavior gives the macroscopic appearance.\n\n**The Cook-Torrance specular BRDF**:\n$$f_r = \\frac{D F G}{4 (\\mathbf{n} \\cdot \\mathbf{v})(\\mathbf{n} \\cdot \\mathbf{l})}$$\n- **D (Normal Distribution Function)**: GGX (Trowbridge-Reitz) is standard. Parameterized by roughness $\\alpha$. Wide spread for rough surfaces, sharp for mirrors.\n- **F (Fresnel)**: how much light reflects vs refracts at a given angle. Schlick approximation: $F = F_0 + (1 - F_0)(1 - \\mathbf{v} \\cdot \\mathbf{h})^5$. $F_0$ = base reflectance (~0.04 for non-metals, 0.7-1.0 for metals).\n- **G (Geometry)**: self-shadowing of microfacets. Smith approximation.\n\n**Diffuse**: Lambertian (constant) or Disney's diffuse for added realism.\n\n**Material parameters (PBR workflow)**:\n- **Albedo / base color**: surface color (sRGB texture).\n- **Metallic**: 0 = non-metal, 1 = metal. (Often binary; partial mainly for blends.)\n- **Roughness**: 0 = smooth mirror, 1 = matte.\n- **Normal map**: per-pixel surface normal perturbation for detail.\n- **Ambient occlusion**: pre-baked self-shadowing.\n- **Emissive**: self-glow.\n\n**Image-based lighting (IBL)**: pre-filter environment maps for diffuse + specular reflections at varying roughness. Cheap to evaluate; provides realistic ambient lighting.\n\n**Modern improvements**:\n- Multi-scattering BRDFs (energy-conserving at high roughness).\n- Sheen / clear coat (cars, fabric).\n- Subsurface scattering (skin, wax, marble).\n- Anisotropy (brushed metal).\n\n**Standard in modern engines**: Unreal, Unity HDRP, Godot, Frostbite — all PBR. Look + lighting are physically consistent across artists + scenes."
+    },
+    {
+      "kind": "text",
+      "title": "Shader optimization + GPU performance",
+      "body": "GPUs are massively parallel: 1000s of cores running SIMD-style. Performance considerations:\n\n**Warps / wavefronts**: groups of 32 (NVIDIA) or 64 (AMD) threads executing in lock-step. Divergent branches in a warp serialize → all threads pay for the slow path.\n\n**ALU vs Memory**:\n- **ALU-bound**: arithmetic operations dominate. Optimize: vectorize, use built-ins.\n- **Memory-bound**: texture fetches, buffer loads dominate. Optimize: reduce textures, use lower precision, cache locally.\n- **Latency-bound**: waiting for memory; need more in-flight work.\n\n**Texture sampling**: GPUs have dedicated texture units + caches. Free up to a point. Excessive texture lookups (anisotropic filtering, many channels) get expensive.\n\n**Mipmaps**: pre-computed pyramid of texture resolutions. GPU samples appropriate mip based on screen size — saves bandwidth + avoids aliasing. Standard practice.\n\n**Optimization checklist**:\n- Minimize branches; if needed, ensure branch is consistent within a warp.\n- Use `lowp` / `mediump` precision on mobile.\n- Move work from fragment to vertex shader where possible (fewer invocations).\n- Discard fragments early (alpha test + early-Z).\n- Avoid texture-dependent texture lookups.\n- Bake what you can (pre-compute baked lighting, AO maps).\n\n**Profiling**: NVIDIA Nsight, RenderDoc, AMD Radeon GPU Profiler, Apple Metal System Trace. Show per-draw GPU time, register usage, occupancy, memory bandwidth.\n\n**Modern shader complexity**: 200-1000 instructions per fragment shader in AAA games. Cinematic-quality shaders 1000-10000+ (skin, hair, ocean, volumetric clouds). Mobile budget 50-200.\n\n**Compute shaders** for non-rendering work: physics solvers (cloth, fluid), image post-processing (bloom, tone mapping, motion blur, DLSS / FSR upscaling), particle systems, AI batch evaluation. Increasingly important; many engines run more compute than graphics."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_shader_lambert",
+        "kind": "guided_derivation",
+        "question": "Implement a Lambertian shader",
+        "goal": "Compute diffuse color: $C = \\text{albedo} \\cdot \\max(\\mathbf{n} \\cdot \\mathbf{l}, 0)$ where $\\mathbf{n}$ is normal, $\\mathbf{l}$ is light direction. Write the GLSL fragment shader.",
+        "steps": [
+          {
+            "prompt": "Inputs: per-vertex normal (interpolated to fragment), uniform light direction, uniform albedo. The fragment-shader body computes:",
+            "motivation": "Translate to GLSL.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "`fragColor = albedo;`",
+                "```glsl\nvec3 n = normalize(worldNormal);\nfloat ndotl = max(dot(n, -lightDir), 0.0);\nfragColor = vec4(albedo * ndotl, 1.0);\n```",
+                "`fragColor = vec4(0);`",
+                "`fragColor = lightDir;`"
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Normalize, dot, max with 0, multiply albedo."
+            ],
+            "reveal": "Standard Lambert shader. Note: -lightDir because convention has lightDir pointing FROM light, so we negate to get direction TO light from surface."
+          },
+          {
+            "prompt": "Why normalize the interpolated normal in the fragment shader?",
+            "motivation": "Interpolation degrades unit length.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Not needed.",
+                "Linear interpolation between vertex normals doesn't preserve unit length. Renormalizing in the fragment ensures correct dot-product magnitudes. Standard practice.",
+                "For speed.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Linear interp + unit vector."
+            ],
+            "reveal": "Linear interpolation breaks unit length. The rasterizer interpolates linearly between vertex normals; mid-triangle the result has length <1. Renormalize for correct Lambert."
+          },
+          {
+            "prompt": "Add specular highlight? (Cook-Torrance is complex; simpler Blinn-Phong: spec ∝ (n · h)^shininess where h = halfway between view + light.) Code sketch?",
+            "motivation": "Add spec.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Nothing.",
+                "```\nvec3 h = normalize(viewDir + -lightDir);\nfloat ndoth = max(dot(n, h), 0.0);\nfloat spec = pow(ndoth, 64.0);\nfragColor = vec4(albedo * (ndotl + 0.5 * spec), 1.0);\n```",
+                "Subtract.",
+                "Multiply."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Half-vector."
+            ],
+            "reveal": "Blinn-Phong: half-vector h between view + light; (n·h)^shininess gives specular peak. Cheaper than full Cook-Torrance. Adequate for stylized games. AAA uses PBR Cook-Torrance for realism."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Lambert: } C = \\text{albedo} \\cdot \\max(\\mathbf{n} \\cdot \\mathbf{l}, 0)}$$ The simplest physically-motivated diffuse model. Every more-complex BRDF (Oren-Nayar, Disney diffuse, PBR microfacet) extends or replaces it. Real-time games used Lambert+specular (Blinn-Phong) for years. Modern games use PBR microfacet for realism. Mobile + stylized games still use simpler Lambert variants."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_shader_branch",
+        "kind": "multiple_choice",
+        "question": "A shader has `if (uv.x > 0.5) { expensive_path(); } else { cheap_path(); }`. Why is this slow on GPUs?",
+        "options": [
+          "GPUs can't branch.",
+          "Threads in a warp execute in lock-step. If neighboring threads take different branches (UV varies across pixels), ALL threads in the warp execute BOTH paths + mask out the wrong result. Effectively pays for both branches.",
+          "Compiler bug.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "GPU SIMT: warps of 32-64 threads execute identical instructions in lock-step. Divergent branches force ALL paths to execute, with unused threads masked. So an `if/else` with divergence within a warp costs the SUM of both paths. Optimization: keep branches consistent within warps (e.g., coarse spatial regions), use `mix()` for small differences, or simply do both + blend."
+      },
+      "hints": [
+        "What's SIMT execution?",
+        "What happens on divergence?"
+      ],
+      "workedSolution": "All threads in a warp execute the same instruction at once. Branch divergence → executes BOTH paths, masks the wrong threads' writes. Net: cost = sum of both branches × all threads. Avoid divergent branches in hot paths. Acceptable: coherent branches (whole warp goes same way). Tools: NVIDIA Nsight shows warp-divergence stats.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_shader_inv",
+        "kind": "math_expression",
+        "question": "A 1080p screen with 4 pixel shader invocations per pixel (MSAA-4). Total invocations per frame?",
+        "acceptedAnswers": [
+          "~8.3M",
+          "8294400",
+          "~8 million"
+        ],
+        "hint": "1920×1080×4."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_shader_skin",
+        "kind": "scenario",
+        "question": "PBR skin shader",
+        "prompt": "An artist needs realistic skin (subsurface scattering, sweat highlights). Walk through the shader features beyond standard PBR."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_shader",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why physically-based rendering (PBR) became the industry standard, despite being more complex than simpler shading models like Phong.",
+        "rubric": "Mentions that PBR produces CONSISTENT material appearance under varying lighting (artist creates one material that works in any scene); the physically-grounded parameterization (albedo, metallic, roughness) is intuitive + transfers between engines; PBR + image-based lighting gives realistic AAA-quality results. The complexity is hidden in shader libraries; artists only set parameters."
+      }
+    }
+  ]
+}

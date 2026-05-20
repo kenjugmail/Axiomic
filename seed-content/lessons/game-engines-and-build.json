@@ -1,0 +1,152 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "expert",
+    "objectives": [
+      "Compare Unity / Unreal / Godot / custom engines.",
+      "Outline the asset pipeline.",
+      "Reason about build + deployment for multiple platforms."
+    ],
+    "prereqs": [
+      "game-loop-and-architecture",
+      "rendering-pipeline"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Major game engines + their niches",
+      "body": "**Unreal Engine** (Epic Games, free below \\$1M):\n- Industry workhorse for AAA + cinematics. C++ + Blueprint visual scripting.\n- Strengths: graphics (Lumen real-time GI, Nanite virtualized geometry), MetaHuman face tech, MetaSounds audio.\n- Used by: Fortnite, Cyberpunk 2077 (now), Black Myth Wukong, many AAA.\n- 5% royalty above \\$1M revenue.\n\n**Unity** (Unity Technologies):\n- C# scripting; ECS (DOTS) + traditional MonoBehaviour.\n- Strengths: mobile + AR/VR; large indie community; large asset store.\n- Used by: ~50% of mobile games, Pokemon GO, Among Us, Beat Saber, Genshin Impact (Unity build).\n- Free up to \\$200K revenue + then paid tiers.\n\n**Godot** (open-source, MIT):\n- GDScript (Python-like), C#, or C++. Lightweight.\n- Strengths: open-source, no royalty, small download, integrated editor.\n- Used by: indie games (Brotato, Cassette Beasts). 2024 explosion in adoption after Unity pricing controversies.\n\n**CryEngine, Lumberyard** (Amazon's CryEngine fork): less popular than past.\n\n**Custom engines** (in-house):\n- **id Tech** (id Software): Doom Eternal, Doom 2016, Rage.\n- **REDengine** (CD Projekt): Witcher 3, Cyberpunk 2077 (now moving to Unreal).\n- **Decima** (Guerrilla Games): Horizon Zero Dawn, Death Stranding.\n- **Anvil** (Ubisoft): Assassin's Creed series.\n- **Frostbite** (EA / DICE): Battlefield, Star Wars Battlefront, FIFA, Madden.\n- **RAGE** (Rockstar): GTA V, Red Dead Redemption 2.\n\n**Custom engines** advantages: tuned for the studio's games, IP-controllable, performance-optimized. Disadvantages: maintenance cost, dev-onboarding burden, third-party-tool integration challenges.\n\n**Trend**: more studios move to Unreal for shared tech (CD Projekt's switch in 2022). Custom engines for the largest studios with long-term franchises (Rockstar, Ubisoft) still preferred."
+    },
+    {
+      "kind": "text",
+      "title": "Asset pipeline",
+      "body": "Games have huge asset budgets — models, textures, audio, animations, levels. The **asset pipeline** processes them from artist DCC (Digital Content Creation tool) to optimized runtime format.\n\n**Typical pipeline**:\n1. **Source**: artist creates in DCC (Maya, Blender, ZBrush for models; Photoshop, Substance for textures; FMOD / Wwise for audio).\n2. **Export**: source format (FBX, OBJ, PNG, WAV) saved to source-control (Git LFS, Perforce, SVN).\n3. **Cooking / building**: engine converts to platform-specific optimized format (compressed textures, mesh LOD, baked lighting). Hours-to-days for AAA build.\n4. **Packaging**: bundle into IPA / APK / pak files for platform distribution.\n5. **Distribution**: Steam, PlayStation Store, Xbox Live, App Store, Google Play.\n\n**Texture compression**:\n- **BC1/BC3 (S3TC / DXTn)**: PC desktop. Lossy block compression, 4-8 bits/pixel.\n- **ASTC**: mobile + modern desktop. Adaptive block size. Better quality/size.\n- **ETC2**: Android default. Decent quality.\n- **PVRTC**: legacy iOS.\n- Each platform has its preferred format; assets often built into multiple variants.\n\n**Mesh formats**: vertex buffers + index buffers. Vertex attributes (position, normal, UV, tangent, bone weights). LOD levels for distance-based detail reduction.\n\n**Audio**: streamed (music, dialogue) vs cached (SFX). Compressed (OGG Vorbis, Opus). Spatial audio for VR.\n\n**Build sizes**: AAA console games are 30-150 GB. Includes uncompressed dialogue for cinematic quality, 4K textures, multiplatform variants. Mobile games typically 100 MB - 5 GB.\n\n**Streaming**: load assets ON DEMAND as the player moves through the world. Open-world games (GTA V, Cyberpunk) stream entire worlds. Async loading + memory management is engineering-heavy."
+    },
+    {
+      "kind": "text",
+      "title": "Build + deployment + live ops",
+      "body": "**Multi-platform builds**: PC (Win/Linux/Mac), PlayStation 4/5, Xbox One/Series X|S, Switch, iOS, Android, Steam Deck. Each has different APIs (DX12, Metal, Vulkan, PS5 GNM, Xbox D3D12).\n\n**CI/CD for games**:\n- **Trunk-based development**: monorepo with feature branches.\n- **Build farm**: per-platform builders (often Windows/Mac VMs for Apple, dedicated PS / Xbox dev kits).\n- **Nightly + per-commit builds**: tested by QA + automated tests.\n- **Build size**: AAA console build can take 4-8 hours; PC 1-2 hours.\n- **Cooking**: convert assets to platform-specific format (Unreal: 'cook for X'). Hours-long process.\n\n**Distribution platforms**:\n- **Steam**: PC dominant. SteamWorks SDK. ~30% revenue share (or 25% above \\$10M, 20% above \\$50M).\n- **Epic Games Store**: lower 12% cut.\n- **PlayStation / Xbox / Switch**: console certification ('cert'). Strict requirements (no crashes, performance targets, language localization). Days-to-weeks of cert testing.\n- **App Store / Google Play**: mobile. 30% (or 15% after first year).\n\n**Live ops**: post-launch operations.\n- **Patches**: bug fixes, balance changes, new features.\n- **Content updates**: seasonal events, new characters, maps.\n- **Anti-cheat**: BattlEye, EAC, Vanguard. Kernel-level (controversial) or user-space (Riot Vanguard, Valorant).\n- **Telemetry + analytics**: in-game events recorded for balance + bug analysis. Privacy compliance (GDPR, CCPA).\n- **Community management**: Discord, Reddit, forums. Communication channels.\n- **Crash reporting + telemetry**: backtrace.io, Sentry, custom systems.\n\n**Live-service economics**: games as services (Fortnite, Apex, Valorant) earn through cosmetics + battle passes. \\$100M+ monthly revenue achievable. Requires sustained engineering investment after launch.\n\n**Modding + community content**: Skyrim's Creation Engine, GTA V's third-party modding (RP servers), Minecraft. Mod ecosystems extend game life by years."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_engine_pick",
+        "kind": "guided_derivation",
+        "question": "Choose an engine for a project",
+        "goal": "Project: 3D third-person action-adventure for PC + console + mobile. Team: 30 developers, including 20 with C++ experience + 10 with C#.",
+        "steps": [
+          {
+            "prompt": "Engine candidates: Unreal (C++), Unity (C#), Godot (GDScript/C#/C++). Team strengths align with which?",
+            "motivation": "Match team.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Godot — open source.",
+                "Unreal: leans on C++ majority, multi-platform mature, AAA-quality graphics. Unity could work for the C# side but less mature for AAA on console.",
+                "Custom engine.",
+                "Pick randomly."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "AAA console + C++ team."
+            ],
+            "reveal": "Unreal: strong fit for C++ team + multi-platform AAA. C# team could work in Blueprint (visual scripting) or learn C++."
+          },
+          {
+            "prompt": "Mobile target is also required. Unreal's mobile support is good but heavier than Unity. Implications?",
+            "motivation": "Trade-off.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Drop mobile.",
+                "Either: (1) Accept Unreal's mobile compromises (larger app size, more constrained graphics); or (2) Build mobile version in Unity, share game logic via libraries — operationally complex but possible.",
+                "Drop console.",
+                "Use Godot for everything."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Unreal mobile vs Unity mobile."
+            ],
+            "reveal": "Unreal mobile is viable but app sizes typically 200MB+ vs Unity's possible 50-100MB. For AAA-style mobile (Genshin-quality), Unreal's overhead may be acceptable. For lighter mobile, Unity's better fit. Major decision; affects build pipeline + monetization."
+          },
+          {
+            "prompt": "Royalty: Unreal 5% above \\$1M; Unity tiered. For a \\$50M-revenue game, royalty cost?",
+            "motivation": "Money.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Same.",
+                "Unreal: ~\\$2.5M (5% of \\$49M above threshold). Unity Personal: free below \\$200K, then licensed seats + Pro fees. Pricing comparable at high revenue but Unity has had pricing controversies (Sept 2023 'install fee' debacle).",
+                "Free.",
+                "Same as Unity."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Run the numbers."
+            ],
+            "reveal": "Royalty math + business considerations factor in. Unreal's 5% royalty is well-known. Unity's recent (now-reversed) pricing changes drove some studios to evaluate alternatives. Godot has zero royalty (MIT)."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Engine choice = team skills + targets + economics + roadmap}}$$ Each engine has its niche. Unreal for AAA + photorealistic. Unity for mobile + AR/VR + many indies. Godot for open-source + small projects. Custom for large studios with long-term franchises. The decision affects 5+ years of dev cost + risk; switching mid-project (CD Projekt's 2022 announcement) is rare + expensive."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_engine_live",
+        "kind": "multiple_choice",
+        "question": "Why are 'live-service' games (Fortnite, Apex, Valorant) so dominant economically despite being 'free'?",
+        "options": [
+          "They're not.",
+          "Free + cosmetic monetization: huge player base (no purchase barrier); cosmetic items + battle passes monetize 5-10% of users at ~\\$50-200/year/user; constant content updates retain users; network effects (friends play) drive retention. \\$1B+ annual revenue possible.",
+          "Random.",
+          "Just lucky."
+        ],
+        "correctIndex": 1,
+        "explanation": "Live-service model: cheap (or free) entry + ongoing monetization via cosmetics, battle passes, character unlocks. Fortnite: \\$5B+ revenue in 2018. Apex: \\$1B+ annually. Valorant: similar. Combines retention engineering (events, seasons, social features) + cosmetic monetization that doesn't pay-to-win. Requires sustained engineering investment (post-launch dev team often larger than launch team). Many studios pivoted from pure-product games to live services (Destiny, Diablo, MMO)."
+      },
+      "hints": [
+        "What's the monetization model?",
+        "Why does it scale?"
+      ],
+      "workedSolution": "Free + cosmetic monetization removes purchase barrier → massive player base. ~5-10% of players spend, average \\$50-200/year. Network effects: 'my friends play' is the strongest retention factor. Constant content = retention + monetization opportunity. Engineering investment: post-launch dev team often equals or exceeds launch team. Risks: live-ops fatigue, content treadmills, monetization controversies. But the economics dominate when it works.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_engine_cook",
+        "kind": "math_expression",
+        "question": "AAA build with 100 GB assets, asset processing at 1 GB/sec. Build time?",
+        "acceptedAnswers": [
+          "100 sec",
+          "~100",
+          "~2 min"
+        ],
+        "hint": "100 / 1 = 100 sec."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_engine_custom",
+        "kind": "scenario",
+        "question": "When to build a custom engine",
+        "prompt": "A new studio is starting an action-adventure series intended to span 10+ years + multiple titles. Walk through whether to use Unreal or build a custom engine."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_engine",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why most studios use a third-party engine (Unreal, Unity) rather than building custom.",
+        "rubric": "Mentions that custom engines require dedicated graphics + tools + platform engineering teams (cost millions/year); Unreal + Unity provide world-class graphics + extensive tooling for free (or royalty); time-to-market + risk reduction are massive; only the largest studios with long-running franchises (Rockstar, EA, Ubisoft) justify custom. The pattern has accelerated since Unreal 5's release."
+      }
+    }
+  ]
+}

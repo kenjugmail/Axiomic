@@ -1,0 +1,148 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "specialist",
+    "objectives": [
+      "Distinguish client-server from peer-to-peer architectures.",
+      "Outline lockstep + rollback netcode.",
+      "Reason about latency hiding (prediction + interpolation)."
+    ],
+    "prereqs": [
+      "game-loop-and-architecture"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Network architectures: client-server vs peer-to-peer",
+      "body": "**Client-server**:\n- Authoritative server runs game simulation.\n- Clients send INPUTS to server; receive game state from server.\n- Server resolves all gameplay (collision, damage, spawning).\n- Pros: cheat-resistant; consistent state for all players.\n- Cons: latency hurts (round-trip to server); server hosting cost; geographic disadvantage for distant players.\n- Used by: most modern multiplayer (Fortnite, CS, Valorant, Overwatch).\n\n**Peer-to-peer (P2P)**:\n- Each player runs simulation; broadcast inputs to all others.\n- Lockstep: all peers execute same simulation, advance together.\n- Pros: low cost (no server); near-LAN latency on good networks.\n- Cons: trust everyone; one cheating peer corrupts all. Vulnerable to NAT issues. Doesn't scale beyond ~8 players.\n- Used by: RTS games (StarCraft, AoE), some fighting games, peer-to-peer co-op.\n\n**Hybrid (relay-server)**:\n- Server routes packets between peers (no game logic on server).\n- Better NAT + bandwidth handling.\n- Examples: Steam relay, AWS GameLift Relay.\n\n**Latency**:\n- LAN: 1-5 ms.\n- Same-continent server: 30-80 ms.\n- Trans-continental: 100-200 ms.\n- Mobile / satellite: 100-1000 ms.\n\nGames need to hide latency. Fast-paced FPS / fighting needs <100 ms 'feels responsive'. RTS / turn-based: 200-500 ms acceptable.\n\n**Bandwidth**: tens of KB/s per player typical. Don't send full game state; send DELTAS (just what changed) + use prediction (next slide). Quake (1996) pioneered delta-compression at ~5 KB/s per player."
+    },
+    {
+      "kind": "text",
+      "title": "Lockstep + rollback netcode",
+      "body": "**Lockstep**: all peers run identical simulation, advance together. Inputs are exchanged each frame.\n```\nfor each frame f:\n  collect own input\n  send input(f) to all peers\n  wait for inputs from all peers for frame f\n  advance simulation by 1 step using all inputs\n```\n\nWorks if simulation is DETERMINISTIC: same inputs → same state on every machine. Requires fixed timestep + reproducible math (no float drift). RTS games (StarCraft, AoE) use this. Bandwidth low: just inputs.\n\nProblem: must WAIT for the slowest peer's input. 200 ms ping → 5 frames of input lag (at 25 Hz). Input lag is THE fighting-game enemy.\n\n**Rollback netcode** (GGPO, modern fighting games):\n1. Send your own input immediately.\n2. PREDICT the opponent's input (e.g., 'same as last frame' or 'idle').\n3. Run simulation forward using predictions.\n4. When real opponent input arrives (delayed): ROLLBACK to that frame; replay with real input + your own; arrive at corrected state.\n\nResult: you feel responsive (no input delay on your actions); rollbacks invisible if prediction was correct or correction is small.\n\n**Requirements**:\n- Deterministic simulation (same inputs → same state).\n- Fast save/restore (save state every frame to roll back to).\n- Robust to small corrections (animation snapping is jarring).\n\n**Used in**: Street Fighter 6, Tekken 8, Skullgirls, Killer Instinct, Mortal Kombat 11, Guilty Gear Strive. Has revolutionized online fighting games (previously dominated by delay-based netcode which felt sluggish).\n\n**Frame data**: fighting games operate at 60 Hz with FRAME-PERFECT input requirements. Rollback netcode preserves frame accuracy. Massively reduces 'this game is unplayable online' complaints.\n\n**Open-source**: GGPO (now relaunched as 'rollback') is open-source rollback library; many indie fighting games use it."
+    },
+    {
+      "kind": "text",
+      "title": "Latency hiding: prediction + interpolation",
+      "body": "**Client-side prediction**: don't wait for server response to move your character. Apply movement locally immediately. When server confirms, reconcile.\n```\nplayer presses 'W':\n  immediately move forward locally\n  send 'pressed W at time T' to server\n  server processes, sends back authoritative position\n  if local position matches server: nothing to do\n  if doesn't match: snap to server (or smoothly correct)\n```\nResult: input feels responsive. Mispredictions cause occasional snaps (mostly visible when colliding with new players or obstacles).\n\n**Entity interpolation**: for OTHER players (remote entities), DON'T predict their movement. Instead:\n1. Buffer their position updates (rendered with ~100 ms delay).\n2. Interpolate between buffered positions for smooth motion.\n3. Renders 'old' but smooth.\n\nWhy: predicting other players' actions is unreliable; you'd need to redraw on every correction (jarring). Better to delay them slightly + show smooth interpolated motion.\n\n**Lag compensation** (Valve's Counter-Strike model 1999+):\n- Server REMEMBERS each player's position for the last N ms.\n- When a player shoots, server rewinds OTHER players to their position at the shoot time (as the shooter saw them).\n- Hit detection runs in this rewound state.\n- Result: 'shoot what you see' (no leading needed).\n\n**Trade-off**: a player with 200 ms ping can shoot 'around corners' from the perspective of a low-ping player. Compromise the game has long accepted.\n\n**Snapshot interpolation** (Quake / Source engine):\n- Server sends snapshots ~20 times per second.\n- Clients interpolate between snapshots for rendering.\n- Combine with prediction for own player.\n\n**Tickrate**: server's simulation frequency. Higher = less latency + more bandwidth + more CPU. CS:GO 64-tick (default) vs 128-tick (premium servers). 60 tick standard for many games.\n\n**Hit registration**: 'Why didn't my shot count?' Common complaint. Caused by combination of: ping, lag compensation limits, hit-box vs visual mismatch, server reconciliation. Tools (Spectate cam, kill cam) help diagnose."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_net_predict",
+        "kind": "guided_derivation",
+        "question": "Apply client-side prediction",
+        "goal": "Player has 100 ms round-trip ping. Server runs at 60 Hz (16.7 ms per tick). Player presses 'fire' at local time T.",
+        "steps": [
+          {
+            "prompt": "Without prediction, the player sees nothing happen until server response arrives. After how long?",
+            "motivation": "Round trip.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "100 ms",
+                "100",
+                "~100 ms"
+              ]
+            },
+            "hints": [
+              "RTT."
+            ],
+            "reveal": "100 ms delay between press + visible effect. Feels sluggish."
+          },
+          {
+            "prompt": "With client-side prediction: player sees firing animation immediately (locally). Meanwhile send 'fire at T' to server. Server processes at ~T+50 ms (one-way trip), confirms or corrects. Net effect on perceived input latency?",
+            "motivation": "Instant local.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Same as without prediction.",
+                "Essentially 0 (immediate local response). Server confirms within 100 ms; if confirmed, no correction needed. If shot didn't actually hit (server says miss), correction snap.",
+                "Slower.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Immediate local response."
+            ],
+            "reveal": "Effectively 0 latency for input feedback. Server confirms within 100 ms; if disagreement, local state snaps. Most actions don't have disagreements. Used universally in modern multiplayer."
+          },
+          {
+            "prompt": "Sometimes prediction is wrong (player thought they hit, server says no). How is the correction shown?",
+            "motivation": "Reconciliation.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Hard snap.",
+                "Smoothly interpolate to server's state over a few frames, or just accept the snap (small enough to be unnoticeable). Hit-effect cleanup (remove faked impact). For fast-paced games, snapping is acceptable as long as it's rare.",
+                "Crash the game.",
+                "Ignore server."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Smooth or snap."
+            ],
+            "reveal": "Smooth correction over 100-300 ms or snap if difference is small (<10 cm). Hit-effects cleaned up if predicted hit was wrong. 'Lag spike' visible as the snap; players have learned to recognize it."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Prediction + lag compensation: hide network latency from player}}$$ Modern multiplayer is built on these techniques. Quake (1996) pioneered prediction; Counter-Strike formalized lag compensation; League of Legends + Overwatch + Fortnite all use refined versions. Without prediction, online games would feel as bad as they did in the dial-up era. Players have come to expect responsive controls regardless of ping."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_net_rollback",
+        "kind": "multiple_choice",
+        "question": "Why do modern fighting games (Street Fighter 6, Tekken 8) use ROLLBACK netcode instead of traditional delay-based?",
+        "options": [
+          "Marketing.",
+          "Rollback preserves frame-accurate input responsiveness regardless of opponent's ping; delay-based makes inputs sluggish (waits for all peers). Fighting games are frame-perfect by design — rollback is the only viable netcode for the competitive scene.",
+          "Random.",
+          "Cheaper."
+        ],
+        "correctIndex": 1,
+        "explanation": "Fighting games operate at 60 Hz with frame-perfect input timing (a 1-frame parry, a 3-frame jab). Delay-based netcode forces the WHOLE simulation to wait for the slowest peer's input — adding input lag for everyone. 200 ms ping = 12 frames of lag = game becomes unplayable competitively. Rollback runs your inputs immediately, predicts opponent, rolls back when corrected. Massively superior UX. Tekken 7 stayed delay-based for years + the community complained; SF6 + Tekken 8 went rollback + the online scene revitalized."
+      },
+      "hints": [
+        "What's the player experience difference?",
+        "Why is rollback hard?"
+      ],
+      "workedSolution": "Delay-based: all peers wait for slowest, ~ping-of-frames of input lag for everyone. Rollback: your inputs are instant; opponent inputs predicted + rolled-back if wrong. Player feels responsive even at 100 ms ping. Hard: requires deterministic sim + fast save/restore. GGPO library + modern engine support made it tractable. Now industry standard for fighting games.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_net_lag",
+        "kind": "math_expression",
+        "question": "200 ms ping at 60 FPS. How many frames of input lag in delay-based netcode?",
+        "acceptedAnswers": [
+          "12",
+          "12 frames"
+        ],
+        "hint": "200 ms / 16.67 ms/frame."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_net_arch",
+        "kind": "scenario",
+        "question": "Choosing netcode for a co-op game",
+        "prompt": "A team builds a 4-player co-op survival game. Walk through the netcode architecture decision (client-server, P2P, lockstep, prediction)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_net",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why client-side prediction is essential for any responsive multiplayer game beyond LAN-only.",
+        "rubric": "Mentions that any network ping >50 ms makes inputs feel sluggish without prediction; prediction lets the player see immediate response to inputs (locally) while the server confirms; lag compensation lets the server reconcile despite ping differences; without these techniques, online games are unplayable at typical internet latencies."
+      }
+    }
+  ]
+}
