@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "core",
+    "objectives": [
+      "Outline major imaging modalities + their physics.",
+      "Apply CNN/transformer architectures to medical images.",
+      "Reason about labels + transfer learning + FDA pathway."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Imaging modalities + the physics",
+      "body": "**Modalities** + characteristic uses:\n\n**X-ray** (radiograph):\n- Photons through tissue; differential absorption by density.\n- Bone bright (high absorption), air dark.\n- Cheap, fast, low radiation (~0.1 mSv).\n- Uses: fractures, pneumonia, dental.\n- 2D projection; overlapping anatomy.\n\n**CT (Computed Tomography)**:\n- X-ray with rotational source-detector; reconstruct 3D from projections.\n- ~5-15 mSv per scan.\n- Resolution: ~0.5-1 mm.\n- Uses: trauma, stroke (non-contrast head), cancer staging, pulmonary embolism (CTPA), coronary artery disease.\n- Slices reconstructed in axial, coronal, sagittal.\n\n**MRI (Magnetic Resonance Imaging)**:\n- Strong magnetic field (1.5-7T) aligns hydrogen nuclei; RF pulse excites; relaxation signals detected.\n- No ionizing radiation.\n- Excellent soft-tissue contrast.\n- Slower than CT (~30-60 min).\n- Multiple sequences: T1, T2, FLAIR, DWI, contrast-enhanced.\n- Uses: neuro, MSK, cardiac, abdominal, breast.\n\n**Ultrasound**:\n- High-frequency sound waves; reflected at tissue interfaces.\n- Real-time, portable, no radiation, cheap.\n- Operator-dependent.\n- Uses: obstetrics, cardiac (echocardiography), abdominal, vascular, point-of-care (POCUS).\n\n**Nuclear medicine (PET, SPECT)**:\n- Radioactive tracer; gamma cameras detect emissions.\n- Functional imaging (metabolic, perfusion, receptor binding).\n- Fused with CT or MRI for anatomical context (PET-CT, PET-MRI).\n- Uses: oncology (FDG-PET), cardiology (perfusion), neuro (amyloid, dopamine).\n\n**Pathology**:\n- **H&E (hematoxylin + eosin)**: standard histology stain.\n- **IHC (immunohistochemistry)**: antibody-targeted staining.\n- **Digital pathology**: whole-slide imaging (WSI) at ~0.25 μm/pixel; gigapixel files (>1 GB per slide).\n- Increasingly: AI-augmented diagnosis.\n\n**Ophthalmology**:\n- **Fundus photography**: retinal images.\n- **OCT (Optical Coherence Tomography)**: cross-section retinal layers.\n- Diabetic retinopathy + glaucoma + macular degeneration screening.\n\n**Dermatology**:\n- **Dermoscopy**: handheld microscope with polarized light.\n- Smartphone images: increasingly used for AI screening.\n\n**Cardiology**:\n- ECG (1D waveform, deep history of ML).\n- Echocardiogram (ultrasound).\n- Coronary CT angiography.\n\n**File formats**:\n- **DICOM**: medical imaging standard. Embeds image + patient + acquisition metadata.\n- **NIfTI**: neuroscience research.\n- **NDPI, SVS**: WSI for pathology.\n- Data volumes: huge. CT ~500 MB, MRI brain ~200 MB, WSI ~1-10 GB per slide."
+    },
+    {
+      "kind": "text",
+      "title": "CNNs + transformers for medical imaging",
+      "body": "**Why CNNs work for medical imaging**:\n- Translation invariance (lesion can be anywhere).\n- Hierarchical features (textures → patterns → objects).\n- Parameter efficiency vs fully-connected.\n\n**Common architectures**:\n- **U-Net** (Ronneberger 2015): encoder-decoder with skip connections. Workhorse for SEGMENTATION. Endless variants (Attention U-Net, nnU-Net, TransUNet).\n- **ResNet**, **DenseNet**, **EfficientNet**: classification backbones.\n- **Mask R-CNN**: instance segmentation.\n- **3D CNNs**: for volumetric (CT, MRI). Expensive.\n- **Vision Transformers (ViT)**: increasingly used.\n- **Swin Transformer**: hierarchical, efficient.\n- **SAM (Segment Anything Model, Meta 2023)**: foundation model for segmentation. MedSAM, SAM-Med2D adaptations.\n- **Foundation models**: BiomedCLIP, MedSigLIP, ChEX, RAD-DINO. Pretrained on millions of medical image-text pairs.\n\n**Tasks**:\n- **Classification**: image-level label (e.g., normal vs pneumonia chest X-ray).\n- **Detection**: bounding box around finding (e.g., nodule detection on CT).\n- **Segmentation**: pixel/voxel-level masks (e.g., tumor boundary on MRI).\n- **Registration**: align images (e.g., longitudinal MRI for change detection).\n- **Generation/synthesis**: denoising, super-resolution, modality translation (CT → MRI), missing-data imputation.\n- **Report generation**: image → text findings (CheXagent, RaDialog).\n\n**Transfer learning**:\n- ImageNet pretraining works surprisingly well even for medical (Raghu et al 2019).\n- Medical-specific pretraining (RadImageNet, MedCLIP) increasingly competitive.\n- Self-supervised pretraining: SimCLR, MoCo, MAE → label-efficient.\n\n**Self-supervised + contrastive**: when labels expensive. Pre-train on huge unlabeled image set, fine-tune on small labeled set. Common in pathology + radiology.\n\n**Annotation challenges**:\n- **Expert time**: only specialists can label (radiologists, pathologists). Expensive (~\\$200/hr).\n- **Inter-annotator variability**: even experts disagree. Multi-annotator consensus.\n- **Pixel-level labels**: very time-consuming. ~1 hour for a CT scan segmentation.\n- **Weakly-supervised**: image-level labels (from reports), bounding boxes; multiple-instance learning.\n- **Active learning**: model selects uncertain cases for labeling.\n- **Pseudo-labels**: use a strong model to label, then train another model.\n\n**Pre-processing**:\n- Intensity normalization (CT HU windowing, MRI N4 bias correction).\n- Skull stripping (brain MRI).\n- Resampling to common voxel spacing.\n- Cropping/padding to fixed input size.\n- Augmentation: rotation, flip, elastic deformation (preserves anatomy), intensity jitter, MixUp."
+    },
+    {
+      "kind": "text",
+      "title": "Deployment + regulation + the SaMD pathway",
+      "body": "**Software as a Medical Device (SaMD)**: regulated by FDA + EU (MDR) + others.\n\n**FDA pathways** for AI/ML medical devices:\n- **510(k) clearance**: substantially equivalent to predicate device. Most common (~90%).\n- **De Novo classification**: novel device, low-moderate risk.\n- **PMA (Premarket Approval)**: high-risk; rigorous trial data.\n- **Breakthrough Designation**: priority review for unmet need.\n\n**FDA AI/ML approvals**:\n- ~1000+ approved AI/ML medical devices (FDA list updated 2024).\n- Most: radiology (~75%), cardiology, ophthalmology, pathology.\n- Examples: IDx-DR (diabetic retinopathy, 2018 first autonomous), Caption Guidance (echo), Aidoc (radiology triage), Viz.ai (stroke triage), Paige Prostate (pathology).\n\n**Locked vs adaptive algorithms**:\n- **Locked**: fixed model post-clearance. Standard.\n- **Adaptive (predetermined change control plan, PCCP)**: model can be retrained per protocol. New 2023+ FDA framework.\n\n**Performance requirements**:\n- Demonstrate clinical performance on representative population.\n- Stratified analysis (age, sex, race, ethnicity, imaging device, site).\n- Compare to standard of care.\n- Post-market surveillance.\n\n**Regulatory considerations beyond FDA**:\n- **CE Mark (EU)**: MDR (Medical Device Regulation) — stricter than old MDD.\n- **MHRA (UK)**: post-Brexit; mostly aligned with EU.\n- **PMDA (Japan), NMPA (China), TGA (Australia), Health Canada**.\n\n**Bias + equity**:\n- Training data often biased toward majority populations.\n- Performance gaps across race, age, geography common.\n- Sources: data imbalance, label bias, label definition, deployment context.\n- Mitigations: diverse training data, fairness-aware training, stratified evaluation, ongoing monitoring.\n- High-profile examples: dermatology models with poor performance on dark skin, sepsis prediction models with race disparities (Obermeyer 2019).\n\n**Real-world deployment challenges**:\n- **Distribution shift**: test population differs from training. Hospitals, scanners, populations.\n- **Workflow integration**: model must fit clinician workflow. Worklist priorities, EHR integration, time per case.\n- **Adoption**: clinicians + administrators need to trust + use the tool.\n- **Liability**: who's responsible for AI errors? Open legal questions.\n- **Reimbursement**: CMS gradually adding codes for AI services.\n- **Monitoring**: drift detection, performance tracking.\n\n**Major use cases by modality**:\n- **Radiology**: triage (Viz.ai stroke), nodule detection (CT lung), measurement (cardiac function), report generation, prioritization.\n- **Pathology**: prostate Gleason grading, breast IHC quantification, search/retrieval.\n- **Cardiology**: ECG (Apple Watch AFib, Eko stethoscope murmurs).\n- **Ophthalmology**: diabetic retinopathy, glaucoma, macular degeneration.\n- **Dermatology**: lesion classification.\n- **Surgery**: AI-assisted endoscopy, surgical guidance.\n\n**Foundation models in radiology** (2023+):\n- BiomedCLIP, MedCLIP, BiomedGPT.\n- CheXagent, RaDialog, MAIRA.\n- Goal: chatbot-style image interpretation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_imaging_unet",
+        "kind": "guided_derivation",
+        "question": "Why U-Net for segmentation",
+        "goal": "U-Net (Ronneberger 2015) is THE workhorse architecture for medical image segmentation. Why does it work so well?",
+        "steps": [
+          {
+            "prompt": "U-Net has an encoder (downsampling) + decoder (upsampling) with SKIP CONNECTIONS between corresponding levels. Why are skip connections critical?",
+            "motivation": "Architecture rationale.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Skip connections preserve SPATIAL DETAIL: encoder loses resolution (downsampling) but gains semantic context. Skip connections feed high-resolution low-level features into decoder upsampling → output retains pixel-precise boundaries needed for segmentation.",
+                "Computational efficiency.",
+                "Easier training."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Spatial detail."
+            ],
+            "reveal": "Skip connections preserve high-res features. Without them, output is semantically aware but blurry. Segmentation needs pixel-precise boundaries; skip connections bridge encoder semantics + decoder spatial detail."
+          },
+          {
+            "prompt": "U-Net was originally designed for biomedical (cell + neuron) segmentation. What made medical-image segmentation specifically suited to U-Net?",
+            "motivation": "Domain match.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Medical images: limited data (so parameter-efficient architecture matters); precise boundaries critical (clinical decisions hinge on exact tumor edge, vessel lumen); structured anatomy (skip connections leverage anatomical consistency). U-Net's small parameter count + boundary-preserving design fit perfectly.",
+                "Big data.",
+                "Bigger models."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Small data + precise boundaries."
+            ],
+            "reveal": "Medical segmentation: small labeled sets (expert annotation expensive), need precise boundaries, structured anatomy. U-Net's parameter efficiency + boundary preservation fit. Larger models without these properties (early ViTs) underperformed until adaptations."
+          },
+          {
+            "prompt": "Modern: nnU-Net (Isensee 2021) automates U-Net configuration for any medical-image segmentation task. Why has this 'just configure U-Net well' approach often beat fancier architectures?",
+            "motivation": "Pragmatic.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Most medical segmentation benchmarks: nnU-Net wins. Key insight: careful preprocessing + appropriate input size + training schedule + ensembling matters more than architecture novelty. nnU-Net auto-configures these. Lesson: in narrow domains with limited data, mature simple architectures + tuning > fancy new models.",
+                "Decoration.",
+                "Marketing."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Engineering > architecture."
+            ],
+            "reveal": "nnU-Net showed: careful engineering (preprocessing, input size, training schedule, ensemble) > novel architectures for medical segmentation. Wins ~80% of medical-segmentation challenges. Lesson applies broadly: in data-limited domains, mature architectures + thorough engineering often outperform new arch ideas."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{U-Net: encoder-decoder + skip connections; nnU-Net auto-configures + ensembles}}$$ U-Net's enduring relevance + nnU-Net's dominance demonstrate that ARCHITECTURE plus ENGINEERING > architecture alone in data-limited domains. Modern medical-segmentation foundation models (MedSAM, SAM-Med2D) are improving but nnU-Net remains a strong baseline. The bitter lesson cuts both ways: scale wins eventually, but for many specific clinical tasks careful tuning still leads."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_imaging_bias",
+        "kind": "multiple_choice",
+        "question": "An FDA-approved chest X-ray model performs 5 percentage points worse on darker-skinned patients in deployment. Likely cause + fix?",
+        "options": [
+          "Random.",
+          "Training data underrepresented darker-skinned populations OR label biases (whose chest X-rays get labeled how). Fixes: enrich training data, fairness-aware training, stratified evaluation + monitoring. FDA increasingly asks about demographic performance + post-market surveillance.",
+          "Marketing.",
+          "Hardware."
+        ],
+        "correctIndex": 1,
+        "explanation": "Common bias source in medical AI: training data reflects historical care patterns (who got imaged, who got labeled, by whom). Darker-skinned patients underrepresented in many training sets. Labels may be biased (different documentation patterns). Result: model accuracy varies across demographics.\n\nFamous examples: dermatology models trained mostly on lighter skin perform poorly on darker; pulse oximeters less accurate on darker skin (hardware issue, but parallel); Obermeyer et al 2019 found a sepsis prediction tool underestimated risk for Black patients because it used healthcare costs as a proxy.\n\nMitigations: (1) Enrich training data with diverse populations. (2) Stratified evaluation across demographics. (3) Fairness-aware training. (4) Post-deployment monitoring + drift detection. FDA increasingly mandates demographic subgroup analysis + post-market surveillance. The shift to 'algorithmic fairness in healthcare' is active research + policy area."
+      },
+      "hints": [
+        "Why might performance vary?",
+        "How to fix?"
+      ],
+      "workedSolution": "Training data + labels reflect historical care patterns; underrepresented populations get worse predictions. Fixes: diverse training data, fairness-aware training, stratified eval, monitoring. FDA increasingly mandates demographic analysis. Famous: dermatology models on darker skin; Obermeyer 2019 sepsis model. The field is actively responding.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_imaging_size",
+        "kind": "math_expression",
+        "question": "Chest X-ray 2500×3000 pixels at 8 bits. Uncompressed size?",
+        "acceptedAnswers": [
+          "7.5 MB",
+          "7500000 bytes",
+          "~7.5 MB"
+        ],
+        "hint": "$2500 \\times 3000 \\times 1$ byte = 7.5e6 bytes."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_imaging_path",
+        "kind": "scenario",
+        "question": "FDA pathway for an AI radiology tool",
+        "prompt": "Your startup developed a chest X-ray AI for triaging pneumonia. Walk through the FDA 510(k) pathway."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_imaging",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why medical-imaging AI is the most-approved category of FDA AI/ML medical devices.",
+        "rubric": "Mentions that medical imaging has well-defined input (image), clear clinical task (detection/classification/segmentation), abundant existing ML methods (CNNs), and clear deployment workflow (PACS integration). Other modalities (clinical notes, decision support) face workflow + interpretability + liability challenges that make regulatory + commercial path harder. ~75% of FDA AI/ML approvals are radiology + cardiology imaging."
+      }
+    }
+  ]
+}

@@ -1,0 +1,147 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intro",
+    "objectives": [
+      "Distinguish ICD/CPT/SNOMED/LOINC.",
+      "Outline EHR data structures + interoperability.",
+      "Reason about clinical data quality + bias."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Electronic Health Records: the raw substrate",
+      "body": "**EHR (Electronic Health Record)**: comprehensive digital record of a patient's care. The data substrate for healthcare ML.\n\nMajor systems (USA): **Epic** (~40% of hospital beds), **Cerner / Oracle Health** (~25%), **Meditech**, **Allscripts**, **athenahealth**. Each with proprietary schemas, but interoperability improving.\n\n**EHR data types**:\n- **Structured**: lab values, vital signs, medications, problem list, allergies, demographics.\n- **Semi-structured**: orders, billing codes (ICD, CPT).\n- **Unstructured**: clinical notes (free text), discharge summaries, radiology reports.\n- **Imaging**: DICOM (X-ray, CT, MRI, pathology).\n- **Waveforms**: ECG, EEG, continuous monitoring.\n- **Genomic**: increasingly in EHR (VCF, BAM).\n\n**Adoption**: USA Meaningful Use incentives (2009 HITECH Act) drove ~90%+ EHR adoption. Other countries: NHS Spine (UK), KOLA (Korea), SUS DigiSUS (Brazil).\n\n**Why EHRs matter for ML**:\n- Largest source of patient longitudinal data.\n- Real-world evidence vs RCT-only.\n- Decision support point-of-care.\n- Population health analytics.\n- Predictive modeling (sepsis, readmission, mortality).\n\n**Data quality challenges**:\n- **Missing data**: not collected ≠ not present. (Absence-of-evidence not evidence-of-absence.) Missing-at-random rarely holds.\n- **Documentation bias**: clinicians document what bills + what they remember.\n- **Inconsistent capture**: same condition coded differently across sites.\n- **Selection bias**: sicker patients have more data.\n- **Temporal validity**: codes added at billing, not when condition observed.\n- **Free-text rich, structured-fields sparse**: most clinical reasoning in narrative.\n\n**Privacy + regulation**:\n- **HIPAA** (USA): Privacy Rule + Security Rule. De-identification standards (Safe Harbor: remove 18 identifiers; Expert Determination: statistical).\n- **GDPR** (EU): broader, stricter, with rights of erasure + portability.\n- **PIPEDA** (Canada), **PIPL** (China), regional laws.\n- **De-identification ≠ anonymization**: re-identification risk through quasi-identifiers + linkage."
+    },
+    {
+      "kind": "text",
+      "title": "Medical coding systems",
+      "body": "**Standardized terminologies** allow interoperability + analytics.\n\n**ICD (International Classification of Diseases)** — WHO:\n- **ICD-10-CM** (USA, diagnoses): ~70,000 codes. e.g., E11.9 = Type 2 diabetes without complications.\n- **ICD-10-PCS** (USA, procedures): ~80,000 codes (inpatient procedures).\n- **ICD-11**: released 2018, slowly adopting. Knowledge-graph based.\n- Used primarily for billing + epidemiology.\n\n**CPT (Current Procedural Terminology)** — AMA:\n- ~10,000 codes for procedures + services (outpatient + most clinic).\n- Drives professional reimbursement (E&M codes for visits).\n- Proprietary (AMA licensing).\n\n**HCPCS** — CMS:\n- Level II codes for products, supplies, services not in CPT.\n\n**SNOMED CT (Systematized Nomenclature of Medicine — Clinical Terms)**:\n- ~350,000 concepts. Hierarchical + multiaxial.\n- The most comprehensive clinical terminology.\n- Used for documentation + decision support.\n- Maps to ICD + CPT for billing.\n- Free for some uses; licensing in some jurisdictions.\n\n**LOINC (Logical Observation Identifiers Names and Codes)**:\n- ~95,000 codes for lab tests + clinical observations.\n- e.g., 2345-7 = Glucose [Mass/volume] in Serum or Plasma.\n- The standard for lab + diagnostic results.\n\n**RxNorm**: medications.\n- US National Library of Medicine.\n- Normalizes brand names + generics across systems.\n- e.g., 197698 = atorvastatin 10 MG Oral Tablet.\n\n**NDC (National Drug Code)**: 11-digit product codes for specific medications.\n\n**HL7 + FHIR** (interoperability standards):\n- **HL7 v2**: legacy messaging (ADT, ORM, ORU, etc.). 'Pipe + hat' format.\n- **HL7 v3** + CDA (Clinical Document Architecture): XML-based, complex.\n- **FHIR (Fast Healthcare Interoperability Resources)**: REST-based, modern. The future of interop. Resources: Patient, Encounter, Observation, Condition, MedicationRequest, etc.\n- **SMART on FHIR**: app platform on top of FHIR.\n\n**21st Century Cures Act (USA)** + ONC Information-Blocking rule: makes EHR data accessible via FHIR APIs. Drives modern healthcare app ecosystem.\n\n**OMOP (Observational Medical Outcomes Partnership) Common Data Model**: research-oriented. OHDSI consortium. Normalize across EHRs for federated analytics.\n\n**Vocab mapping**: real-world data engineering. ICD → SNOMED, CPT → SNOMED, lab codes → LOINC. Bridging local + standard. Automated + manual."
+    },
+    {
+      "kind": "text",
+      "title": "Working with EHR data + analytics-ready tables",
+      "body": "**Typical analytics pipeline**:\n1. **Extract**: ETL or FHIR APIs.\n2. **Transform**: normalize codes, derive features.\n3. **Common Data Model**: OMOP, PCORnet, Sentinel.\n4. **Quality checks**: missingness, distribution, plausibility.\n5. **Cohort identification**: patients meeting criteria.\n6. **Feature engineering**: clinically-meaningful aggregations.\n7. **Modeling + evaluation**.\n8. **Deployment**: API or EHR-integrated.\n\n**Feature engineering for clinical ML**:\n- **Demographics**: age, sex, race, insurance, area deprivation.\n- **Diagnoses**: ICD codes, Charlson + Elixhauser comorbidity indices.\n- **Medications**: classes (ATC, RxNorm therapeutic class), counts, polypharmacy.\n- **Labs**: latest, trends (slope, area-under-curve), abnormal flags.\n- **Vitals**: latest, trends, ranges.\n- **Healthcare utilization**: visits, admissions, ED visits.\n- **Time since events**: last hospitalization, last test.\n- **Notes**: extract concepts via NLP (cTAKES, Apache UIMA, MetaMap, modern LLMs).\n\n**Time considerations**:\n- **Index date**: when prediction is made.\n- **Look-back window**: history considered (typically 1-5 years).\n- **Look-forward window**: outcome assessment period.\n- **Censoring**: patients lost to follow-up.\n- **Avoid data leakage**: don't use post-index data.\n\n**Common cohort definitions**:\n- **Diabetes**: ICD codes E10*, E11* + HbA1c ≥ 6.5% + diabetes medication. Triangulated.\n- **Sepsis**: SIRS criteria + suspected infection (legacy); Sepsis-3 (SOFA + infection).\n- **Hypertension**: ICD I10-I15 + BP readings + antihypertensive medication.\n\n**Coding biases**:\n- **Underdiagnosis** in underserved populations.\n- **Coding completeness**: depends on physician + biller habits.\n- **Phenotype validation**: clinical chart review to confirm algorithm-identified cases. Often 70-90% PPV.\n\n**Synthetic data for development**:\n- **Synthea**: open-source synthetic patient generator. Realistic-looking longitudinal data.\n- **MIMIC** (ICU data, beth Israel Boston): de-identified, freely accessible after credentialing. Workhorse for academic healthcare ML.\n- **eICU Collaborative Research Database**: multi-center ICU.\n- **MIMIC-CXR**: chest X-rays. Open imaging.\n\n**Data marketplaces + research consortia**: TriNetX, Optum, Truveta, Aetion, Atropos. Multi-site clinical data for research. Differential privacy + federated learning increasingly important.\n\n**Modern healthcare AI infrastructure**:\n- Cloud-native (HIPAA-compliant): AWS HealthLake, Google Cloud Healthcare, Azure Health Data Services.\n- FHIR-first.\n- MLOps for clinical models: monitoring, drift detection, retraining.\n- Foundation models on clinical text (BioGPT, GatorTron, Med-PaLM 2)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ehr_phenotype",
+        "kind": "guided_derivation",
+        "question": "Define a hypertension cohort",
+        "goal": "Goal: identify hypertension patients in EHR for an ML study on cardiovascular outcomes.",
+        "steps": [
+          {
+            "prompt": "Which signals would you combine?",
+            "motivation": "Phenotype.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "ICD code alone.",
+                "Triangulate: (1) ICD-10 codes I10-I15 (diagnosis). (2) ≥2 BP readings ≥140/90 on separate days. (3) Active antihypertensive prescription (ACE inhibitor, ARB, CCB, thiazide, β-blocker). Higher PPV from combining sources.",
+                "BP alone.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Each source biased + noisy."
+            ],
+            "reveal": "Triangulate diagnosis codes + vital signs + medications. Each ALONE has issues (ICD: undercoded; BP: white-coat HTN, single reading; meds: used for other indications). Combined: higher sensitivity + PPV."
+          },
+          {
+            "prompt": "Should you require ALL three (high PPV) or ANY (high sensitivity)?",
+            "motivation": "Cohort definition trade-off.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "ALL — for high-quality study.",
+                "Depends on study goal. PHENOTYPING study or clinical-trial enrollment: high PPV (all 3) to ensure real cases. EPIDEMIOLOGY or POPULATION-LEVEL study: high sensitivity (any 1) to capture undocumented cases. Many real algorithms target PPV ~95%, sensitivity ~80%.",
+                "Always all.",
+                "Always any."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Study goal drives."
+            ],
+            "reveal": "Depends on study. For ML training: typically aim for high PPV (~95%) — train on clear cases; accept missing some borderline. Validate algorithm via chart review on a sample. PheKB has many published phenotype algorithms."
+          },
+          {
+            "prompt": "How to validate the algorithm?",
+            "motivation": "Chart review.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Sample N=100-200 algorithm-identified cases. Two independent reviewers manually review charts for true status. Compute PPV. Sensitivity harder (need true negatives — sample population, review).",
+                "Trust the algorithm.",
+                "Use ICD alone."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Manual chart review on samples."
+            ],
+            "reveal": "Manual chart review of samples → estimate PPV (algorithm-positive that are TRUE positive) + sensitivity (true positives the algorithm catches). 2 reviewers + adjudicator for disagreements. Standard practice. PheKB phenotypes published with validation stats."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Cohort definition triangulates: ICD + labs/vitals + medications; validate via chart review}}$$ Clinical-data phenotyping is the foundation of EHR-based research. PheKB hosts community-validated algorithms. eMERGE Network advanced standardization. Modern: increasingly use NLP to extract concepts from clinical notes (CodeBERT, ClinicalBERT, modern LLMs). FHIR + OMOP normalize across sites. Federated analytics enables multi-site studies without data sharing."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ehr_coding",
+        "kind": "multiple_choice",
+        "question": "Why might a Medicare-claims-only diabetes algorithm DRAMATICALLY underestimate prevalence vs an EHR-based one with labs?",
+        "options": [
+          "Random.",
+          "Many diabetics not yet diagnosed (~25% undiagnosed). Even DIAGNOSED ones may not have it coded EVERY visit. Claims rely on coded diagnoses; EHRs can use HbA1c ≥ 6.5% to capture undiagnosed + uncoded. The gap is real + meaningful for population health.",
+          "Decoration.",
+          "Marketing."
+        ],
+        "correctIndex": 1,
+        "explanation": "Claims data captures BILLED diagnoses. Many diabetics undiagnosed (~25% USA prevalence) — not in claims. Even diagnosed patients may not have diabetes coded every visit (clinicians code most-relevant condition). HbA1c ≥ 6.5% is a clinical definition; appears in lab data but not claims. EHR can use labs + meds + ICD; claims only ICD.\n\nResult: EHR diabetes estimate ~30-40% higher than claims-only. Important for: population estimates, denominator for outcomes research, resource planning. Standard practice: phenotype using multiple sources when available."
+      },
+      "hints": [
+        "Why might claims undercount?",
+        "What does EHR capture?"
+      ],
+      "workedSolution": "Claims = billed diagnoses. Undiagnosed (~25%) invisible. Diagnosed but uncoded at visit invisible. EHR has labs (HbA1c) + meds + ICD — broader signal. Estimates differ ~30-40%. Important for population estimates + resource planning. Combined phenotypes (PheKB-style) most accurate.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ehr_hpv",
+        "kind": "math_expression",
+        "question": "ICD-only diabetes algorithm has 95% PPV on N=200 chart review. Number of true positives confirmed?",
+        "acceptedAnswers": [
+          "190"
+        ],
+        "hint": "0.95 × 200."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ehr_fhir",
+        "kind": "scenario",
+        "question": "Building a FHIR-integrated app",
+        "prompt": "Your team builds an EHR-integrated app for clinical decision support. Walk through the architecture: SMART on FHIR, resource queries, write-back, security."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ehr",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why standardized coding (ICD, SNOMED, LOINC) is foundational to healthcare ML.",
+        "rubric": "Mentions that ML requires structured + comparable data across patients + sites; standardized codes enable cohort identification, feature engineering, and cross-institution research; without standards, every EHR's local coding becomes a barrier. FHIR + OMOP take the next step by harmonizing schemas. The transition from billing-driven coding to research-grade phenotyping is ongoing."
+      }
+    }
+  ]
+}

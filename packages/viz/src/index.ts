@@ -15,6 +15,7 @@ export { SolarPVCurve } from "./components/SolarPVCurve";
 export { CarnotCycle } from "./components/CarnotCycle";
 export { BeamDeflection } from "./components/BeamDeflection";
 export { PKCurve } from "./components/PKCurve";
+export { ROCCurve } from "./components/ROCCurve";
 export { SoftmaxTemperatureSlider } from "./quiz/SoftmaxTemperatureSlider";
 export { AttentionHeatmapExplorer } from "./quiz/AttentionHeatmapExplorer";
 export { GradientDescent2D } from "./quiz/GradientDescent2D";

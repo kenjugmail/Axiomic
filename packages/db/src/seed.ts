@@ -1952,6 +1952,27 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P25 — Healthcare ML Engineer path. EHR + coding, medical imaging
+  // AI, clinical decision support (uses ROC viz), clinical NLP +
+  // ambient scribes, predictive modeling, clinical genomics,
+  // trials + RWE, fairness + equity.
+  seedMasteryPath({
+    slug: "healthcare-ml-engineer",
+    title: "Healthcare ML Engineer",
+    description:
+      "From EHR data + coding standards (ICD/SNOMED/LOINC/FHIR) through medical imaging deep learning, ROC-based clinical decision support (interactive viz), clinical NLP + AI scribes, predictive modeling + drift, clinical genomics + pharmacogenomics, RCT + adaptive trials + RWE, and AI fairness + health equity. The clinical-ML stack end-to-end.",
+    nodes: [
+      { slug: "ehr-and-medical-coding", title: "EHR + Medical Coding", level: "apprentice", order: 1, pages: ["ehr-systems", "icd-snomed-loinc", "fhir-omop"], prereqs: [], description: "EHR systems + data types, ICD/CPT/SNOMED/LOINC + RxNorm, HL7/FHIR + OMOP CDM, phenotyping + biases." },
+      { slug: "medical-imaging-ai", title: "Medical Imaging AI", level: "practitioner", order: 2, pages: ["modalities", "cnn-transformer-medical", "fda-samd"], prereqs: [], description: "X-ray/CT/MRI/US/PET/pathology, U-Net + nnU-Net + foundation models, FDA SaMD pathway + bias considerations." },
+      { slug: "clinical-decision-support", title: "Clinical Decision Support", level: "practitioner", order: 3, pages: ["confusion-bayes", "roc-auc-calibration", "nnt-utility"], prereqs: ["ehr-and-medical-coding"], description: "Sensitivity + specificity + PPV + Bayes (interactive ROC viz), AUC + calibration, NNT + decision-curve analysis." },
+      { slug: "clinical-nlp", title: "Clinical NLP + AI Scribes", level: "practitioner", order: 4, pages: ["clinical-text", "deid-llm", "scribes-deployment"], prereqs: ["ehr-and-medical-coding"], description: "Clinical text tasks (NER, negation, normalization), de-identification + LLM challenges, ambient AI scribes (Nuance DAX, Abridge)." },
+      { slug: "predictive-modeling-clinical", title: "Clinical Predictive Modeling", level: "specialist", order: 5, pages: ["model-types", "internal-external-validation", "deployment-mlops"], prereqs: ["clinical-decision-support"], description: "Diagnostic vs prognostic vs treatment effect, internal + external + temporal validation, deployment + drift + Epic Sepsis lessons." },
+      { slug: "genomics-clinical", title: "Clinical Genomics + PGx", level: "specialist", order: 6, pages: ["clinical-testing", "pharmacogenomics-precision-onc", "gwas-prs-alphamissense"], prereqs: [], description: "Genomic testing modalities, pharmacogenomics + precision oncology + companion diagnostics, GWAS + polygenic risk scores + AlphaMissense." },
+      { slug: "trial-design-and-rwe", title: "Clinical Trials + RWE", level: "specialist", order: 7, pages: ["rct-fundamentals", "adaptive-platform-bayesian", "rwe-rwd"], prereqs: [], description: "RCT design + endpoints + bias, adaptive + platform (RECOVERY) + Bayesian trials, real-world evidence + target trial emulation." },
+      { slug: "health-equity-and-bias-in-ml", title: "Health Equity + ML Fairness", level: "expert", order: 8, pages: ["bias-sources", "fairness-metrics-impossibility", "mitigations-governance"], prereqs: ["clinical-decision-support", "predictive-modeling-clinical"], description: "Sources of bias (Obermeyer 2019), fairness metrics + Kleinberg impossibility, mitigations + governance + regulation." },
+    ],
+  });
+
   // P24 — Pharmacologist path. PK + PD + drug targets + medicinal
   // chemistry + pipeline + clinical pharm + tox + modern modalities.
   // Uses new pk-curve viz in pharmacokinetics lesson.

@@ -1,0 +1,152 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "expert",
+    "objectives": [
+      "State sources of bias in healthcare ML.",
+      "Outline fairness metrics + their trade-offs.",
+      "Reason about mitigations + governance."
+    ],
+    "prereqs": [
+      "clinical-decision-support",
+      "predictive-modeling-clinical"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Sources of bias in healthcare ML",
+      "body": "**Bias** in healthcare ML can amplify health disparities. Understanding sources is the first step.\n\n**Data biases**:\n- **Sample bias**: training data not representative. Hospitals, insurance, geography, race, age, sex. Most clinical ML training data skews white, urban, English-speaking, middle-income.\n- **Label bias**: outcome labels reflect biased clinical decisions. Diagnostic codes, prescribing patterns, referrals — all reflect biases of clinicians + systems.\n- **Measurement bias**: same condition measured differently across groups. Pulse oximetry over-reads SpO₂ in darker-skinned patients. Spirometry uses race-corrected reference values (recently challenged).\n- **Missingness bias**: missing-not-at-random. Sicker patients, those with insurance, those who return for follow-up — different missingness patterns.\n- **Selection bias**: who enters dataset. RCTs exclude many populations; EHRs reflect access to care.\n\n**Algorithmic biases**:\n- **Objective function**: optimizing wrong metric. Obermeyer 2019: a sepsis algorithm optimized for healthcare COST as proxy for need — but Black patients have lower historical spending (due to access barriers) → algorithm underestimated their need.\n- **Proxy features**: features correlated with protected attributes (race, sex, age). Even without explicit demographics, ZIP code + income + insurance can proxy.\n- **Performance gaps**: model accuracy varies by subgroup.\n- **Calibration gaps**: same predicted risk = different actual outcomes by subgroup.\n\n**Deployment biases**:\n- **Different uptake**: some hospitals/clinicians use AI tools more. Effects vary by population they serve.\n- **Differential trust/override**: clinicians may trust/override differently across patient groups.\n- **Workflow integration**: AI alerts may be timed differently across populations.\n- **Resource allocation**: AI for resource allocation amplifies disparities if poorly designed.\n\n**Historical examples of healthcare bias**:\n- **Tuskegee syphilis study** (1932-1972): unethical study on Black men.\n- **Race-corrected eGFR**: kidney function adjusted by race based on flawed studies. Removed in 2021.\n- **Pulse oximetry**: over-reads SpO₂ in darker-skinned patients. Documented decades; mass attention 2020.\n- **Algorithmic risk scores in pain management**: lower pain ratings for Black patients in clinical studies.\n- **Maternal mortality**: 3-4× higher for Black women in USA, even after adjusting for socioeconomic factors.\n- **Obermeyer 2019 (Optum algorithm)**: used cost as health-need proxy → underestimated Black patients' need.\n\n**Equity-relevant healthcare ML applications**:\n- **Sepsis prediction**: missed cases vary by race in some implementations.\n- **Mortality + LOS prediction**: biased data → biased models.\n- **Triage algorithms**: bias amplification.\n- **Risk-adjusted comparisons**: hospital quality benchmarking; risk adjustment can hide disparities if not carefully designed."
+    },
+    {
+      "kind": "text",
+      "title": "Fairness metrics + the impossibility theorem",
+      "body": "**Different fairness metrics exist + can be MUTUALLY INCOMPATIBLE**.\n\n**Group fairness metrics**:\n\n**Demographic parity (statistical parity)**: same positive prediction rate across groups.\n$P(\\hat{Y}=1 | A=a) = P(\\hat{Y}=1 | A=b)$\n\nE.g., same fraction of black + white patients flagged for follow-up.\n\n**Equalized odds**: same TPR + FPR across groups.\n$P(\\hat{Y}=1 | Y=y, A=a) = P(\\hat{Y}=1 | Y=y, A=b)$\n\n**Equal opportunity**: same TPR (relax to focus on those with positive outcome).\n\n**Predictive parity (calibration within groups)**: same PPV across groups; same predicted risk → same actual rate.\n$P(Y=1 | \\hat{Y}=1, A=a) = P(Y=1 | \\hat{Y}=1, A=b)$\n\n**Chouldechova / Kleinberg-Mullainathan-Raghavan impossibility theorem** (2016): if base rates differ between groups, you CANNOT simultaneously achieve calibration + balance for both positive predictions AND negative predictions.\n\nMust CHOOSE which fairness criterion matters most for the application.\n\n**Individual fairness**: similar individuals get similar predictions. Hard to operationalize.\n\n**Counterfactual fairness**: prediction would be the same in a counterfactual world where the individual's race/sex/etc were different. Causal framework.\n\n**Fairness vs accuracy trade-offs**: enforcing fairness constraints can reduce accuracy. Often modest in well-engineered systems.\n\n**The challenge**: 'fairness' isn't one thing. Stakeholder values determine which to prioritize.\n\n**Real-world examples**:\n- **COMPAS (criminal recidivism)**: ProPublica found different FPR + FNR by race. NorthPoint countered: model was calibrated. Both true. Demonstrates impossibility theorem.\n- **Healthcare risk scoring**: similar tensions.\n- **Lending, hiring, admissions**: same family of questions across domains.\n\n**Bias detection toolkits**:\n- **AIF360** (IBM): comprehensive bias metrics + mitigations.\n- **Fairlearn** (Microsoft): fairness assessment + mitigation.\n- **What-If Tool** (Google): interactive bias exploration.\n- **Aequitas**: bias audits for ML.\n- **Healthcare-specific**: HEAL framework (Google), MIMIC + datasets with stratified analyses."
+    },
+    {
+      "kind": "text",
+      "title": "Mitigations + governance + the long view",
+      "body": "**Mitigation strategies**:\n\n**Pre-processing**:\n- Re-weighting under-represented groups.\n- Re-sampling (over/under).\n- Removing or transforming biased features.\n- Synthetic data generation for underrepresented groups.\n- Better data collection.\n\n**In-processing**:\n- Fairness constraints in training (e.g., adversarial debiasing).\n- Multi-objective optimization (accuracy + fairness).\n- Fairness-aware loss functions.\n- Group-specific models (with caution: can hide problems).\n\n**Post-processing**:\n- Threshold adjustment per group.\n- Calibration per group.\n- Output re-weighting.\n\n**Trade-offs**:\n- All have costs (accuracy, fairness metric vs fairness metric, group fairness vs individual fairness).\n- No single 'fair' algorithm; depends on context + values.\n- Mitigation often modest improvement; root causes (biased data, biased clinical decisions) require systemic changes.\n\n**Organizational practices**:\n- **Diverse teams**: building AI.\n- **Patient + community engagement**: in design + evaluation.\n- **Stratified evaluation**: by race, sex, age, geography, insurance, language, etc.\n- **Post-deployment monitoring**: drift + disparity.\n- **Algorithmic auditing**: internal + external.\n- **Algorithmic impact assessments**: predictively analyze fairness.\n- **AI governance committees**: in hospitals.\n- **Transparency**: model documentation (model cards), datasheets for datasets.\n- **Accountability**: clear responsibility for outcomes.\n\n**Regulatory landscape**:\n- **FDA**: increasing emphasis on demographic subgroup analysis + post-market surveillance for equity.\n- **HHS Office of Civil Rights**: enforces non-discrimination in healthcare.\n- **State laws**: California, New York, others have AI disclosure requirements.\n- **EU AI Act**: high-risk AI in healthcare requires bias assessment + monitoring.\n- **NIST AI Risk Management Framework**: voluntary but influential.\n\n**Beyond technical fixes**:\n- **Data collection equity**: invest in data from underrepresented populations.\n- **Workforce diversity**: in AI + clinical leadership.\n- **Healthcare-system equity**: address upstream determinants (access, social factors).\n- **Patient autonomy + voice**: in AI deployment.\n- **Equitable benefit sharing**: who benefits from AI advances?\n\n**Long-term considerations**:\n- Healthcare AI will dramatically reshape care. Equity must be foundational, not afterthought.\n- Underrepresented populations risk being left behind OR being amplified harm.\n- Active engagement vs passive equality of opportunity.\n- Ongoing monitoring + correction; not one-time fix.\n- Build with affected communities, not just for them.\n\n**Resources**:\n- AMA + AAMC commitments on AI equity.\n- Coalition for Health AI (CHAI).\n- All of Us (NIH): diverse genomic + clinical data.\n- HEAL (Google), HAI (Stanford), AI4Health (Penn) initiatives.\n- Patient + community advocacy groups."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_eq_obermeyer",
+        "kind": "guided_derivation",
+        "question": "Obermeyer 2019 — the proxy-bias case",
+        "goal": "Optum/UnitedHealth algorithm used HEALTHCARE COSTS as a proxy for HEALTH NEED in care management. Obermeyer et al 2019 (Science) found this produced racial disparity. Walk through.",
+        "steps": [
+          {
+            "prompt": "Why was the algorithm built using costs as proxy?",
+            "motivation": "Original intent.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Costs are widely available + reasonably correlate with sicker patients (who need more care). Costs more easily computable than direct measures of health need. The algorithm intended to identify high-need patients for proactive intervention.",
+                "Marketing.",
+                "Mistake."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Cost as proxy for need."
+            ],
+            "reveal": "Cost-as-proxy: easy to compute, widely available, correlated with need. Reasonable on its face. The algorithm aimed to find high-need patients for care management. ~50M people affected."
+          },
+          {
+            "prompt": "Why did this proxy fail for Black patients?",
+            "motivation": "Bias mechanism.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Black patients had LOWER healthcare COSTS even when SICKER, due to access barriers, mistrust, underdiagnosis, fewer specialist referrals, less care intensity. Cost-as-proxy treated low cost as = low need. Black patients with equal disease severity were CLASSIFIED AS LOWER PRIORITY for additional care.",
+                "Worse health.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Costs ≠ need across groups."
+            ],
+            "reveal": "Access barriers + underdiagnosis + lower-intensity care meant Black patients SPENT LESS for same disease severity. Algorithm interpreted lower spending as lower need → ranked them as needing less help. Bias amplified historical access inequities. ~80% of Black patients meeting the algorithm's threshold for high-risk had similar morbidity to lower-ranked white patients."
+          },
+          {
+            "prompt": "Mitigation strategy?",
+            "motivation": "Fix.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Switch proxy from cost to ACTUAL HEALTH METRICS (chronic conditions, biomarkers). Obermeyer's team worked with Optum to refit; reduced racial bias substantially. General principle: scrutinize objective functions + their proxies for fairness implications.",
+                "Add more data.",
+                "Just train on white patients."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Better objective function."
+            ],
+            "reveal": "Replace cost proxy with direct measures of disease + need. Optum + others updated. Lesson: scrutinize OBJECTIVE FUNCTIONS not just data. ML can amplify bias in objectives even with 'fair' data. Pre-deployment audit + stakeholder review essential."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Proxy bias: 'reasonable' proxies can encode + amplify structural inequities}}$$ Obermeyer 2019 became the landmark case study for healthcare AI bias. The algorithm was technically working as designed; the design itself encoded bias via the proxy choice. Lesson: AUDIT objectives + features + deployment context for fairness implications. Not just 'does the model work' but 'does it work equitably + does the WAY it works embed acceptable values'. Algorithmic auditing now standard at major hospitals + insurers."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_eq_impossibility",
+        "kind": "multiple_choice",
+        "question": "Why is it sometimes IMPOSSIBLE to satisfy multiple fairness metrics simultaneously?",
+        "options": [
+          "Marketing.",
+          "Kleinberg-Chouldechova impossibility: if base rates differ between groups (which they often do due to structural reasons), you CANNOT simultaneously achieve calibration (PPV equal across groups) AND balance for negative class (FNR equal across groups) AND balance for positive class (FPR equal). Forced to choose.",
+          "Random.",
+          "Always possible."
+        ],
+        "correctIndex": 1,
+        "explanation": "Kleinberg-Mullainathan-Raghavan + Chouldechova 2016: mathematically proved that calibration + balance for both classes cannot all hold simultaneously when base rates differ between groups. Forced trade-off.\n\nImplications:\n- Cannot pick a 'fair' algorithm in absolute sense.\n- Choice of fairness criterion matters + reflects values.\n- COMPAS controversy (2016): ProPublica claimed bias; NorthPoint defended via calibration; both correct mathematically but choosing different criteria.\n- Healthcare context: must engage stakeholders on which criterion matters for this application.\n\nResolution: pick criterion most aligned with intended use + stakeholder values. Disclose choice + trade-offs. Monitor multiple metrics. Recognize: fairness is normative, not purely technical.\n\nActive research on individual + counterfactual fairness as alternative frameworks."
+      },
+      "hints": [
+        "What's the impossibility theorem?",
+        "Implications?"
+      ],
+      "workedSolution": "Kleinberg-Chouldechova: when base rates differ between groups, can't satisfy calibration + class-balance simultaneously. Forced trade-off. Choice of fairness criterion is normative, not purely technical. Engage stakeholders. Disclose choices + trade-offs. Monitor multiple metrics. Active research on alternative frameworks (individual fairness, counterfactual fairness).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_eq_dem",
+        "kind": "math_expression",
+        "question": "Demographic parity: positive rate 30% for group A, 20% for group B. Demographic parity ratio (smaller/larger)?",
+        "acceptedAnswers": [
+          "0.667",
+          "2/3",
+          "~0.67"
+        ],
+        "hint": "0.20/0.30 = 0.667."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_eq_governance",
+        "kind": "scenario",
+        "question": "Designing AI governance",
+        "prompt": "Your hospital is deploying multiple AI tools. Walk through an AI governance committee structure + responsibilities."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_eq",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why healthcare AI fairness is increasingly a regulatory + practical priority alongside accuracy.",
+        "rubric": "Mentions that healthcare AI can amplify health disparities; FDA + HHS + EU + state regulations increasingly require demographic subgroup analysis + monitoring; ethical + legal liability for unfair AI is rising; public trust depends on equity. Technical mitigations are part of solution; broader practices (data collection, governance, stakeholder engagement, transparency) are essential."
+      }
+    }
+  ]
+}

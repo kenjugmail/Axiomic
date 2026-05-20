@@ -124,6 +124,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "💊",
     tags: ["pharmacology", "pk", "biology", "medicine"],
   },
+  {
+    name: "roc-curve",
+    label: "ROC curve + confusion matrix",
+    description: "Interactive class separation, prevalence, threshold; sensitivity/specificity tracking.",
+    thumb: "📈",
+    tags: ["statistics", "ml", "medicine", "evaluation", "classification"],
+  },
 ];
 
 interface Props {

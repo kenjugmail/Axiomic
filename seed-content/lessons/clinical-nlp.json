@@ -1,0 +1,150 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "core",
+    "objectives": [
+      "Outline NLP tasks on clinical text.",
+      "Reason about clinical LLMs + de-identification.",
+      "Distinguish concept extraction from summarization."
+    ],
+    "prereqs": [
+      "ehr-and-medical-coding"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Clinical text: the rich substrate",
+      "body": "**80%+ of EHR information is in free text**: progress notes, discharge summaries, radiology + pathology reports, operative notes, consultations.\n\nStructured fields are sparse + biased; the real clinical reasoning lives in narrative.\n\n**Clinical NLP tasks**:\n- **Named-entity recognition (NER)**: identify mentions of diseases, drugs, anatomy, labs, etc.\n- **Concept normalization**: map mentions to standard terminologies (UMLS, SNOMED). E.g., 'high blood pressure' → C0020538 (UMLS CUI for Hypertension).\n- **Negation + uncertainty + family-history detection**: 'no chest pain' ≠ 'chest pain'. 'Mother had MI' ≠ patient. NegEx, ConText algorithms.\n- **Relation extraction**: drug-dose, drug-route, anatomy-finding, temporal relationships.\n- **Coreference resolution**: 'the patient', 'she', 'this 65-year-old female'.\n- **Section identification**: HPI, Past Medical, Medications, Labs, Assessment + Plan.\n- **De-identification**: remove PHI (names, dates, addresses, MRNs, etc.).\n- **Summarization**: long notes → key findings + plan.\n- **Question answering**: 'What was the patient's most recent ejection fraction?'\n- **Report generation**: image → text. Discharge → patient letter.\n\n**Historical NLP tools**:\n- **MetaMap** (NLM): UMLS concept extraction. Rule-based.\n- **cTAKES** (Apache UIMA): clinical NLP pipeline.\n- **CLAMP** (UTHealth): de-id + NER.\n- **MedSpaCy**: clinical extensions to spaCy.\n- **NegEx, ConText, pyConText**: negation/uncertainty.\n\n**Embeddings + BERT-era**:\n- **BioBERT** (2019): PubMed-pretrained BERT.\n- **ClinicalBERT, Bio_ClinicalBERT**: MIMIC-pretrained.\n- **PubMedBERT**: from-scratch on biomedical text.\n- **GatorTron** (UF + NVIDIA): trained on hospital notes.\n- **SciFive, BioGPT**: T5 + GPT variants.\n\n**LLM era (2022+)**:\n- **Med-PaLM 2, Med-PaLM M**: Google. Strong medical QA.\n- **GPT-4, Claude, Gemini**: general LLMs achieving high scores on USMLE + medical benchmarks.\n- **Open clinical LLMs**: Meditron, BioMistral, OpenBioLLM. Fine-tuned from Llama/Mistral.\n- **Domain-specific apps**: Doximity (note summarization), Abridge + Augmedix + Suki + Nuance DAX (ambient scribing), Glass Health.\n\n**Ambient AI scribes**: transcribe doctor-patient conversation → generate clinical note. Major active deployment in 2024. Nuance DAX, Abridge, Augmedix, Suki, Heidi Health, Microsoft's recent integrations.\n\nClinician time savings: ~1-2 hours/day. Major workflow + burnout reduction. Adoption growing rapidly."
+    },
+    {
+      "kind": "text",
+      "title": "De-identification + privacy + LLM challenges",
+      "body": "**De-identification (de-ID)**: remove or replace PHI to enable research + AI.\n\n**HIPAA Safe Harbor** (USA): 18 identifiers must be removed.\n- Names, geographic subdivisions smaller than state, dates (except year if not narrow age), phones, emails, SSNs, MRNs, account #s, vehicle IDs, devices, URLs, IPs, biometric IDs, photos, etc.\n- Ages > 89 must be aggregated.\n- After removal: considered de-identified.\n\n**Expert Determination**: alternative statistical method. Confirm low re-identification risk. Allows retaining more useful info (e.g., specific dates).\n\n**Synthetic identifiers**: replace real names/dates with consistent fake ones (preserve longitudinal structure).\n\n**Automatic de-ID**:\n- Tools: NLM Scrubber, Philter, Microsoft Presidio (general), MIST.\n- LLM-based: GPT/Claude can de-ID well; concerns about accuracy + sending PHI to APIs.\n- Performance: ~95-98% recall for major identifiers. Residual risk.\n- Variability: rare names + creative writing harder.\n\n**Re-identification risks**:\n- Quasi-identifiers (rare diagnosis + zip code + age) can be linked to public data.\n- Sweeney 2000: 87% of USA population uniquely identifiable by zip + DOB + sex.\n- ML models can MEMORIZE training data (extraction attacks). Mitigation: differential privacy.\n\n**Differential privacy in clinical ML**: noise added during training to bound re-identification. Trade-off: more privacy = less utility. Active research.\n\n**Federated learning**: train across hospitals without sharing raw data. Models aggregated; local data stays local. NVIDIA FLARE, OpenFL frameworks. Used in EXAM consortium (COVID), MELLODDY (drug discovery).\n\n**LLMs + clinical data challenges**:\n- **API services + PHI**: sending PHI to OpenAI / Anthropic requires BAA (Business Associate Agreement) — available but legally + technically careful.\n- **On-premise deployment**: open-weights models (Llama-3, Mistral, Qwen) deployed in hospital infrastructure.\n- **Hallucination in medical text**: critical safety issue. LLM confidently invents lab values or drug doses.\n- **Bias**: training data may underrepresent minorities or specific conditions.\n- **Validation**: clinical use requires rigorous evaluation, ideally prospective.\n- **Regulation**: FDA hasn't yet approved an LLM as a SaMD; pathways evolving.\n\n**Modern clinical NLP applications**:\n- **Note generation**: ambient + structured. The biggest 2023-2024 deployment.\n- **Clinical decision support**: chat with patient chart.\n- **Coding + billing**: automate ICD/CPT coding from notes.\n- **Prior authorization**: automate insurance approval workflows.\n- **Phenotype extraction**: identify cohorts for research.\n- **Adverse event detection**: from notes for pharmacovigilance.\n- **Patient communication**: simplify discharge instructions, translate.\n- **Trial matching**: identify candidates for clinical trials."
+    },
+    {
+      "kind": "text",
+      "title": "Validation + deployment + the modern clinical LLM stack",
+      "body": "**Evaluating clinical LLMs**:\n\n**Knowledge benchmarks**:\n- USMLE (USA medical licensing): GPT-4 surpassed passing threshold in 2023; Med-PaLM 2 + others approaching human expert.\n- MultiMedQA: composite QA benchmark (MedQA, PubMedQA, etc.).\n- MedMCQA: India medical entrance exam.\n- HealthBench (OpenAI 2024): rubric-based real-world clinical conversations.\n\n**Real-world tasks**:\n- Summarization quality vs reference summaries.\n- Clinical accuracy (hallucination rate).\n- Helpfulness (clinician ratings).\n- Safety (avoid dangerous advice).\n\n**Limitations of benchmarks**:\n- Knowledge != judgment. Passing USMLE ≠ being good doctor.\n- Doesn't capture interpersonal, longitudinal, multimodal aspects.\n- Benchmarks may be in training data (contamination).\n- Real clinical work is ambiguous + requires action.\n\n**Clinical LLM evaluation frameworks** (active research):\n- **TRIPOD-LLM, CONSORT-AI**: extensions of reporting standards for AI.\n- **HEAL framework** (Google): equity-focused.\n- **AHRQ Common Formats** for AE reporting.\n\n**Deployment patterns**:\n- **Embedded in EHR**: tool launches in Epic/Cerner; clinician interacts within workflow.\n- **Sidecar tools**: separate UI consulting EHR via FHIR.\n- **Mobile scribes**: phone-based ambient recording + note generation.\n- **Patient-facing**: chatbot for triage, education, symptom checker. (Mostly outside FDA oversight at present.)\n\n**Liability + medico-legal**:\n- AI as 'decision-support': clinician retains responsibility.\n- AI as 'autonomous': much higher bar (FDA approval, malpractice insurance).\n- Recent FDA + state guidance evolving.\n- Common practice: AI suggests, human approves.\n\n**Implementation science**:\n- Adoption requires more than 'good model': workflow fit, training, support, incentives.\n- Champions, governance, change management.\n- 'AI scribes' have rapid adoption because they SAVE TIME without changing clinical decisions.\n- Decision support tools have slower adoption — clinicians wary of liability + workflow disruption.\n\n**Modern clinical LLM stack** (typical 2024 deployment):\n- Foundation model: GPT-4o/Claude/Gemini (API) or Llama/Mistral (on-prem).\n- RAG (Retrieval-Augmented Generation): pull from patient chart + medical knowledge bases.\n- Guardrails: hallucination detection, safety filters.\n- Audit logs: every interaction.\n- Feedback loop: clinician corrections refine prompts/fine-tunes.\n\n**Ethical considerations**:\n- Informed consent: patients aware that AI is involved.\n- Transparency about AI capabilities + limitations.\n- Accountability: who's responsible for outcomes?\n- Equity: AI must not amplify health disparities.\n- Privacy: PHI handling.\n\n**Future trajectories**:\n- Multimodal clinical AI (image + text + audio + structured).\n- Longitudinal patient digital twins.\n- Clinician-AI collaboration patterns.\n- Patient-facing AI for triage + education.\n- Drug discovery via clinical AI."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_nlp_extract",
+        "kind": "guided_derivation",
+        "question": "Extract concepts from a clinical note",
+        "goal": "Note: '67M with HTN, T2DM on metformin presents with SOB for 2 days. Denies chest pain. PMHx CAD s/p PCI 2019.'",
+        "steps": [
+          {
+            "prompt": "List all clinical entities mentioned.",
+            "motivation": "NER.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "HTN (hypertension), T2DM (type 2 diabetes), metformin (medication), SOB (shortness of breath), chest pain (NEGATED), CAD (coronary artery disease), PCI (percutaneous coronary intervention, dated 2019).",
+                "Just diagnoses.",
+                "Just medications."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Abbreviations + drugs + procedures + negations."
+            ],
+            "reveal": "Entities: HTN, T2DM, metformin, SOB, chest pain (negated!), CAD, PCI 2019. Each maps to UMLS/SNOMED. Key: 'denies chest pain' must be NEGATED — not flagged as a positive finding."
+          },
+          {
+            "prompt": "Why is negation detection critical clinically?",
+            "motivation": "Importance.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Failing to recognize negation causes false-positive findings. 'Denies chest pain' wrongly extracted as 'chest pain present' would change AI risk score + alert workflows. NegEx + ConText algorithms (Chapman 2001) detect negation, uncertainty, family history.",
+                "Decoration.",
+                "Easy."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "False positives from missed negation."
+            ],
+            "reveal": "Negation detection critical: 'denies chest pain' ≠ chest pain. Missing negation = false positive findings = wrong clinical conclusions. NegEx + ConText algorithms + modern transformer-based negation classifiers achieve ~95% accuracy."
+          },
+          {
+            "prompt": "Modern LLM-based extraction (GPT-4, Claude) vs rule-based (cTAKES). Trade-offs?",
+            "motivation": "Compare.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "LLMs always better.",
+                "LLMs: higher accuracy on complex/ambiguous text, handles abbreviations + jargon + grammar variations, generalizable to new entity types. Rule-based: predictable, explainable, fast, no PHI to external API needed. Hybrid often best.",
+                "Rule-based always better.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Trade-offs."
+            ],
+            "reveal": "LLMs more accurate but: PHI to API or expensive on-prem; less explainable; hallucination risk. Rule-based: deterministic + auditable + free + local. Hybrid: rules for structured/critical fields, LLMs for messy free text. Modern stacks combine."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Clinical NLP: NER + normalization + negation + temporality + sectioning}}$$ The pipeline is mature but ever-evolving. Foundation models (Med-PaLM 2, GPT-4, Claude) achieve high accuracy on most tasks but require careful evaluation + PHI handling. Hybrid systems (rules + LLMs) common in production. 2024 hot topic: AI scribes generating notes from doctor-patient conversations — the largest active deployment of clinical NLP."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_nlp_scribe",
+        "kind": "multiple_choice",
+        "question": "AI medical scribes (Nuance DAX, Abridge, Augmedix, Suki, Heidi Health) are rapidly deploying in 2024. Why such fast adoption?",
+        "options": [
+          "Marketing.",
+          "Save clinicians 1-2 hours/day of documentation work. Reduce burnout. Don't change clinical decisions (so lower regulatory + medico-legal risk). Clinicians experience direct benefit. Hospitals see throughput + retention gains. Aligned incentives → rapid adoption.",
+          "Random.",
+          "Decoration."
+        ],
+        "correctIndex": 1,
+        "explanation": "AI scribes capture doctor-patient conversation + draft a clinical note. Clinician reviews + signs. Saves ~1-2 hours/day documentation. Burnout is a major industry problem; this directly addresses it.\n\nWhy fast adoption:\n- Direct clinician benefit (time savings + cognitive relief).\n- Hospital benefit (throughput + retention).\n- Low regulatory risk (AI suggests; human signs; not decision-support).\n- Low medico-legal risk (final note is clinician's).\n- Patient-experience benefits (clinician makes eye contact, not typing).\n\nCompare to clinical decision support: clinicians wary of being told what to do; liability unclear; workflow disruption. Hence slower adoption.\n\nAmbient scribes ~one of the most successful clinical AI deployments. Multi-million dollar Series-B/C funding rounds (Abridge, Heidi Health, etc.). Major EHR partnerships (Epic AI, Microsoft Nuance)."
+      },
+      "hints": [
+        "Why fast adoption?",
+        "Compare to decision support?"
+      ],
+      "workedSolution": "AI scribes save clinician 1-2 hr/day documentation. Address burnout directly. Don't change clinical decisions (regulatory + liability friendly). Clinicians experience direct value. Compare to decision support: liability + workflow friction = slower adoption. Scribes 2024 = largest active deployment of clinical AI. Major funding + EHR partnerships.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_nlp_token",
+        "kind": "math_expression",
+        "question": "Average clinical note 500 words ≈ how many GPT-style tokens (1.3 tokens/word)?",
+        "acceptedAnswers": [
+          "650",
+          "~650"
+        ],
+        "hint": "500 × 1.3."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_nlp_phi",
+        "kind": "scenario",
+        "question": "De-identifying notes for research",
+        "prompt": "Your team wants to use 1M clinical notes for ML training. Walk through the de-identification + privacy compliance pipeline."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_nlp",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why clinical NLP is unusually difficult vs general-domain NLP.",
+        "rubric": "Mentions that clinical text uses specialized vocabulary (abbreviations, jargon), heavy negation + temporality + uncertainty (must be detected correctly), high stakes (errors hurt patients), PHI requires de-identification + secure handling, regulatory + medico-legal context. Plus: clinical text is incomplete by design (clinicians document selectively). Foundation models help but require careful adaptation + evaluation."
+      }
+    }
+  ]
+}

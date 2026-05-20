@@ -68,6 +68,11 @@ const LazyPKCurve = lazy(() =>
     (m) => ({ default: m.PKCurve }),
   ),
 );
+const LazyROCCurve = lazy(() =>
+  import("../../../../../packages/viz/src/components/ROCCurve").then(
+    (m) => ({ default: m.ROCCurve }),
+  ),
+);
 const LazyDoublePendulum = lazy(() =>
   import("../../../../../packages/viz/src/components/DoublePendulum").then(
     (m) => ({ default: m.DoublePendulum }),
@@ -166,6 +171,8 @@ function VizByName({
       return <LazyBeamDeflection {...(props as object)} />;
     case "pk-curve":
       return <LazyPKCurve {...(props as object)} />;
+    case "roc-curve":
+      return <LazyROCCurve {...(props as object)} />;
     default:
       return null;
   }

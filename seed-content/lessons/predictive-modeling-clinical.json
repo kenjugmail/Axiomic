@@ -1,0 +1,167 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "specialist",
+    "objectives": [
+      "Outline clinical prediction-model development.",
+      "Distinguish prognostic from diagnostic from treatment-effect models.",
+      "Reason about validation + recalibration + drift."
+    ],
+    "prereqs": [
+      "clinical-decision-support"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Types of clinical prediction models",
+      "body": "**Three main types** of clinical prediction models:\n\n**Diagnostic**: probability that disease is currently present given observed features.\n- Inputs: symptoms, exam, lab results, imaging.\n- Output: probability of disease.\n- Examples: Framingham (cardiovascular risk), Wells score (PE), CHADS₂-VASc (stroke risk in afib).\n\n**Prognostic**: probability of future outcome (death, recurrence, readmission, complication).\n- Inputs: current patient state + history.\n- Output: probability of outcome by time T.\n- Examples: SAPS-II (ICU mortality), Killip class (post-MI), MELD score (liver transplant priority).\n\n**Treatment effect (causal)**: how a treatment changes outcome for THIS patient.\n- Heterogeneous treatment effect (HTE) estimation.\n- Counterfactual ('what would happen if we treated vs didn't').\n- Examples: targeted oncology (which drug for which mutation), heart-failure trials with HTE analysis.\n- Methods: causal forests, Bayesian causal models, double ML.\n- Much harder than diagnostic/prognostic — requires careful causal inference + ideally RCT data.\n\n**TRIPOD reporting standard**: Transparent Reporting of a multivariable prediction model for Individual Prognosis or Diagnosis. Defines minimum reporting elements.\n\n**TRIPOD-AI / TRIPOD-LLM**: extensions for ML + LLM models.\n\n**Model development steps**:\n1. **Define the question**: outcome, population, prediction horizon, intended use.\n2. **Data collection**: training + validation cohorts.\n3. **Feature engineering**: predictors selected/transformed.\n4. **Model training**: logistic regression, gradient boosting, deep learning, etc.\n5. **Internal validation**: cross-validation, bootstrap.\n6. **External validation**: independent cohort, different site/time.\n7. **Calibration assessment** + recalibration.\n8. **Clinical impact study**: ideally prospective.\n9. **Deployment + monitoring**.\n\n**Common pitfalls**:\n- **Overfitting**: too many features relative to events. Rule of thumb: ≥10 events per predictor (now considered too low; new EPV ratios suggest 20-30+).\n- **Leakage**: post-outcome data in predictors. Subtle in EHR (lab ordered BECAUSE physician suspected outcome).\n- **Selection bias**: training cohort not representative.\n- **Immortal time bias**: classification ambiguity around time-windows.\n- **Missing data handling**: complete case (often biased), imputation (single, multiple).\n- **Class imbalance**: rare outcomes; need careful eval (PPV, PR curves, NRI)."
+    },
+    {
+      "kind": "text",
+      "title": "Validation + the external validity problem",
+      "body": "**Internal validation**:\n- **Apparent**: performance on training data. Overoptimistic.\n- **Cross-validation**: k-fold (5, 10). Reduces optimism.\n- **Bootstrap**: sample with replacement; .632 rule for bias correction.\n- **Train-test split**: simplest; introduces variance.\n\n**External validation**: data from DIFFERENT site, time, population. The TRUE test of generalization.\n\n**Common findings on external validation**:\n- AUC drops 0.05-0.15 vs internal.\n- Calibration WORSE (often miscalibrated by 2-5× in low/high probability ranges).\n- Some predictors lose significance.\n- Effect sizes shrink.\n\n**Why external validation is hard**:\n- Hospitals differ in: case mix, severity, coding practices, lab assays, demographics, workflows.\n- Distribution shift between sites, times, populations.\n- Each new site = potential recalibration needed.\n\n**Recalibration**:\n- **Intercept-only** (recalibration in the large): shift all predictions.\n- **Slope + intercept**: fit logistic regression of outcome on logit(prediction).\n- **Refitting some/all coefficients**: more complete update.\n- Modern: Platt scaling, isotonic regression, temperature scaling.\n\n**Temporal validation**:\n- Performance often degrades over time as practice changes, populations shift.\n- COVID disrupted many models trained pre-pandemic.\n- Sepsis models lost performance during COVID.\n- Routine retraining or monitoring → trigger.\n\n**Drift detection**:\n- **Input drift**: features change over time (e.g., new lab assay).\n- **Label drift**: outcome rates change.\n- **Concept drift**: relationship between features + outcome changes.\n- Tools: Aequitas, Evidently AI, Fiddler, Arize.\n\n**Federated + multi-site models**: train across sites without sharing raw data. Address external validity proactively. NVIDIA FLARE, OpenFL, Owkin.\n\n**Reporting + transparency (TRIPOD checklist)**:\n- Source of data, predictors, outcome definitions.\n- Population characteristics (training + validation).\n- Sample size justification.\n- Missing data + handling.\n- Final model equation or code.\n- Discrimination, calibration, clinical utility metrics.\n- Limitations + intended use.\n\n**Common reproducibility issues**: many published clinical models can't be reproduced. Models locked in proprietary EHRs. Code/data unavailable. Increasingly, journals require sharing."
+    },
+    {
+      "kind": "text",
+      "title": "Modern clinical ML deployment + monitoring",
+      "body": "**Deployment patterns**:\n\n**Real-time scoring**: model runs at point of care (e.g., new lab result triggers sepsis prediction).\n\n**Batch scoring**: nightly run produces risk scores; populate dashboards.\n\n**On-demand**: clinician initiates query.\n\n**Asynchronous notification**: alerts critical risks.\n\n**EHR integration**:\n- **CDS Hooks**: standardized FHIR-based hooks for invoking decision support.\n- **SMART on FHIR**: app launching with patient context.\n- **Custom integrations**: REST APIs, Kafka events, polling.\n- **Direct widget**: shown in clinician's view.\n\n**Workflow integration challenges**:\n- **Alert fatigue**: clinicians override most alerts. Need precision + actionability.\n- **Workflow disruption**: alert at right moment, not constantly.\n- **Right people**: alerts to the wrong staff are ignored.\n- **Right action**: alert must enable a clear next step.\n\n**Monitoring + observability**:\n- **Performance metrics**: AUC, sens, spec, calibration over time.\n- **Drift detection**: input distributions, prediction distributions.\n- **Alert metrics**: false-positive rate, override rate.\n- **Clinical outcomes**: ultimate test.\n- **Equity metrics**: stratified by demographics.\n- **User feedback**: clinician comments.\n\n**MLOps for healthcare**:\n- Model registry, versioning, reproducibility.\n- A/B testing within ethical constraints.\n- Rollback procedures.\n- Audit trails (often regulatory).\n- Privacy-preserving training + inference.\n\n**Tools**: MLflow, Weights & Biases, Comet, AWS SageMaker, Azure ML, Google Vertex AI. Some healthcare-specific (BiomedAI, Atropos Evidence Network).\n\n**FDA's Predetermined Change Control Plan (PCCP)**: 2023+ framework allowing locked-then-updated models per pre-specified protocol. Enables continuous learning models in regulated environments.\n\n**Liability + governance**:\n- Hospital AI governance committees common.\n- IRB review for research uses.\n- Privacy + security review.\n- Clinical AI committees evaluating tools.\n\n**Case studies of clinical ML deployment**:\n- **Epic Sepsis Model**: widely deployed; later studies (Wong 2021) found poor performance + alert fatigue. Forced re-evaluation industry-wide.\n- **Viz.ai (LVO stroke)**: shown clinical benefit in RCT-grade studies; reduced time to thrombectomy.\n- **IDx-DR (diabetic retinopathy)**: first autonomous AI (2018). Used in primary care + screening programs.\n- **Aidoc (radiology triage)**: deployed across many health systems for ICH, PE, LVO detection.\n- **Cleerly / HeartFlow (coronary CT)**: established AI in cardiology.\n\n**Future**: large multimodal models, more outcomes-based evidence, broader equity emphasis, FDA Continual Learning frameworks, increasing patient-facing AI."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_pred_dev",
+        "kind": "guided_derivation",
+        "question": "Design a 30-day readmission model",
+        "goal": "Hospital wants ML model predicting 30-day readmission to target post-discharge interventions. Walk through design.",
+        "steps": [
+          {
+            "prompt": "Outcome definition + population?",
+            "motivation": "Define question.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Outcome: unplanned hospital readmission within 30 days of index discharge. Population: adult inpatients with index admission. Exclude: planned readmissions, deaths, discharges to hospice, against-medical-advice.",
+                "All patients.",
+                "Marketing."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Define precisely."
+            ],
+            "reveal": "Outcome: unplanned 30-day readmission. Population: adult inpatients excluding planned/hospice/AMA. Standard CMS approach."
+          },
+          {
+            "prompt": "Predictors?",
+            "motivation": "Feature engineering.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Demographics, comorbidities (Charlson/Elixhauser), prior admissions, length of stay, discharge disposition (home, SNF, etc.), medications, lab results at discharge, social factors (insurance, language, area deprivation), specific diagnoses (CHF, COPD, sepsis high-risk).",
+                "Just diagnoses.",
+                "Random labs."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Multi-domain features."
+            ],
+            "reveal": "Combine: demographics, comorbidities, utilization history, hospitalization details, labs, social factors. Models like LACE, HOSPITAL, CMS Hospital-Wide use these classes."
+          },
+          {
+            "prompt": "Validation approach?",
+            "motivation": "Internal + external.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Just train-test.",
+                "Internal: temporal split (train on years 1-3, validate year 4). External: ideally different hospital + system. Subgroup analyses by race, age, insurance, primary diagnosis. Recalibrate as needed.",
+                "Just AUC.",
+                "Skip validation."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Temporal + external + subgroup."
+            ],
+            "reveal": "Temporal split internally + external validation if possible + subgroup analyses. CMS readmission models have been criticized for stratifying by hospital characteristics inadequately."
+          },
+          {
+            "prompt": "Deployment + clinical action?",
+            "motivation": "Implementation.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Just predict.",
+                "Score patients at discharge. Stratify (low/medium/high risk). Trigger targeted interventions: medication review, follow-up call, home health visit, telehealth follow-up. Measure: actual readmission rate, intervention engagement, cost-effectiveness.",
+                "Random.",
+                "Predict only."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Action + measurement."
+            ],
+            "reveal": "Risk-stratified intervention. Measure: readmission rate over time, intervention uptake, cost-per-readmission-prevented. Without intervention + outcome measurement, model is just dashboard decoration."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Define question → develop → validate (internal + external + subgroup) → deploy + measure}}$$ Real clinical ML is a deployment + measurement problem more than an algorithm problem. CMS Hospital-Wide Readmissions Reduction Program + similar policy programs have driven ML adoption + studied outcomes. Reality: many readmission models have modest performance (AUC 0.65-0.75) + uncertain clinical impact. Active research on how to actually reduce readmissions."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_pred_epic",
+        "kind": "multiple_choice",
+        "question": "Epic's widely-deployed Sepsis Model was found in 2021 study (Wong et al, JAMA Intern Med) to perform much worse than initially reported. What happened?",
+        "options": [
+          "Random.",
+          "External validation in 27,697 patients: sensitivity ~33% at the recommended threshold (much lower than vendor's claim ~95%). Alert fatigue, low PPV, complex interaction with care patterns. Highlighted: vendor performance claims must be validated locally before clinical deployment.",
+          "Marketing.",
+          "Decoration."
+        ],
+        "correctIndex": 1,
+        "explanation": "The Epic Sepsis Model (ESM) was widely deployed in USA hospitals using Epic EHRs. Vendor reported AUC ~0.83. Wong et al 2021 JAMA Internal Medicine evaluated on 27,697 patients: sensitivity ~33% at recommended threshold (much lower than vendor's claim). High false-alert rate caused alert fatigue.\n\nLessons:\n- Vendor performance claims must be locally validated.\n- Models deployed without local validation can be inferior.\n- Calibration drift across institutions is real.\n- Alert fatigue is a serious deployment harm, not just inconvenience.\n- Pre-deployment, ongoing monitoring + recalibration essential.\n\nEpic subsequently retrained + improved. The case became a landmark for clinical AI validation requirements. Drove increased emphasis on external + ongoing validation + the FDA's evolving frameworks for predictive models."
+      },
+      "hints": [
+        "What did Wong et al find?",
+        "Lessons?"
+      ],
+      "workedSolution": "Vendor claimed AUC 0.83; external validation showed sensitivity ~33%, high false-positive + alert fatigue. Lessons: validate locally, monitor + recalibrate, alert fatigue is real harm, vendor claims need scrutiny. Drove changes in industry practice + FDA frameworks. Epic updated model. Case study in clinical AI deployment + validation requirements.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_pred_epv",
+        "kind": "math_expression",
+        "question": "Logistic regression with 15 predictors. Min number of events for stable model (10 EPV rule)?",
+        "acceptedAnswers": [
+          "150"
+        ],
+        "hint": "15 × 10."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_pred_drift",
+        "kind": "scenario",
+        "question": "Detecting model drift",
+        "prompt": "Your hospital's pneumonia-prediction model performance dropped during COVID + hasn't recovered. Walk through drift diagnosis + recalibration strategy."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_pred",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why external validation almost always shows worse performance than internal validation.",
+        "rubric": "Mentions that hospitals differ in case mix, demographics, coding, labs, workflows, populations; models overfit to training-population specifics; distribution shift between sites + times is common; AUC drops 0.05-0.15 typical + calibration worsens. External validation is essential before clinical deployment; recalibration often needed. The bigger the network of validation sites, the more reliable the deployment."
+      }
+    }
+  ]
+}
