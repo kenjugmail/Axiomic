@@ -1952,6 +1952,29 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P34 — Biomedical Engineer path. Biomechanics + tissue, cardio
+  // hemodynamics, electrophysiology + ECG with new interactive
+  // ECGSimulator viz, medical imaging modalities, biomaterials +
+  // implants, drug-delivery, prosthetics + BMI, regulatory + clinical
+  // translation. Introduces the 'slider' question type (numeric
+  // estimation in a range).
+  seedMasteryPath({
+    slug: "biomedical-engineer",
+    title: "Biomedical Engineer",
+    description:
+      "From biomechanics + tissue properties through cardiovascular hemodynamics + Poiseuille, electrophysiology + the 12-lead ECG with an interactive ECG simulator + clinical-arrhythmia detection, medical imaging (X-ray/CT/MRI/PET/US) + modality selection, biomaterials + implants + the metal-on-metal recall story, controlled-release + LNP/mRNA drug delivery, prosthetics + brain-machine interfaces + Neuralink/Synchron, and FDA pathways + clinical translation + reimbursement. The biomedical-engineering stack end-to-end.",
+    nodes: [
+      { slug: "biomechanics-and-tissue", title: "Biomechanics + Tissue", level: "apprentice", order: 1, pages: ["stress-strain", "tissue-moduli", "stress-shielding"], prereqs: [], description: "Stress + strain in biological tissue, Hooke's law + viscoelasticity, bone + tendon + cartilage, stress-shielding around orthopedic implants." },
+      { slug: "cardiovascular-hemodynamics", title: "Cardiovascular Hemodynamics", level: "practitioner", order: 2, pages: ["poiseuille", "cardiac-cycle-pv-loops", "interventions"], prereqs: ["biomechanics-and-tissue"], description: "Blood flow + Poiseuille 1/r⁴ scaling, P-V loops + ejection fraction + heart failure, stents + TAVR + LVADs." },
+      { slug: "electrophysiology-and-ecg", title: "Electrophysiology + ECG", level: "specialist", order: 3, pages: ["cardiac-action-potential", "12-lead-ecg", "arrhythmias"], prereqs: ["cardiovascular-hemodynamics"], description: "Cardiac action-potential phases + Nernst, the 12-lead ECG with interactive viz, AV block + AFib + STEMI localization." },
+      { slug: "medical-imaging-modalities", title: "Medical Imaging Modalities", level: "specialist", order: 4, pages: ["xray-ct-mri-pet", "resolution-contrast", "modality-selection"], prereqs: [], description: "X-ray + CT + MRI + ultrasound + PET physics, contrast vs resolution vs dose tradeoffs, clinical scenario-to-modality mapping." },
+      { slug: "biomaterials-and-implants", title: "Biomaterials + Implants", level: "specialist", order: 5, pages: ["material-classes", "foreign-body-response", "implant-lifecycle"], prereqs: ["biomechanics-and-tissue"], description: "Metals + polymers + ceramics + composites, foreign-body response + biocompatibility, hip + knee + stents + the MoM recall." },
+      { slug: "drug-delivery-and-controlled-release", title: "Drug Delivery + Controlled Release", level: "specialist", order: 6, pages: ["release-kinetics", "targeting-strategies", "lnp-mrna"], prereqs: [], description: "Controlled-release kinetics (Higuchi + Korsmeyer-Peppas), passive (EPR) + active (ADC) targeting, LNP-mRNA platform success." },
+      { slug: "prosthetics-and-bmi", title: "Prosthetics + Brain-Machine Interfaces", level: "expert", order: 7, pages: ["limb-prosthetics", "bmi-signal-acquisition", "ethics"], prereqs: ["biomechanics-and-tissue", "electrophysiology-and-ecg"], description: "Myoelectric + powered + neural prosthetics, EEG + ECoG + Utah + Neuralink BMI, foreign-body response + ethics." },
+      { slug: "regulatory-and-clinical-translation", title: "Regulatory + Clinical Translation", level: "expert", order: 8, pages: ["fda-pathways", "clinical-trials", "reimbursement"], prereqs: ["biomaterials-and-implants"], description: "Class I/II/III + 510(k) / De Novo / PMA pathways, device trials + RWE, CMS + payer reimbursement + SaMD/AI regulation." },
+    ],
+  });
+
   // P33 — Atmospheric Scientist path. From atmospheric structure +
   // composition through radiation + greenhouse, dynamics + circulation,
   // weather systems, boundary layer + pollution, NWP + ML weather,

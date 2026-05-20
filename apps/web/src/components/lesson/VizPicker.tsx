@@ -187,6 +187,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "☁️",
     tags: ["atmosphere", "meteorology", "weather", "climate", "physics"],
   },
+  {
+    name: "ecg-simulator",
+    label: "ECG simulator",
+    description: "Drag heart rate + PR + ST + T-inversion + AV block; see clinical ECG signatures live.",
+    thumb: "🫀",
+    tags: ["biomedical", "cardiology", "medicine", "ecg", "physiology"],
+  },
 ];
 
 interface Props {

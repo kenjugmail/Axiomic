@@ -1,0 +1,230 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish FDA pathways for medical devices.",
+      "Reason about device classification + risk.",
+      "Connect clinical evidence to regulatory approval."
+    ],
+    "prereqs": [
+      "biomaterials-and-implants"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "FDA device classification + pathways",
+      "body": "**Medical-device regulation** in US (FDA Center for Devices + Radiological Health, CDRH):\n\n**Risk-based classification** (1976 Medical Device Amendments):\n• **Class I** (low risk): general controls only. Examples: bandages, elastic bandages, examination gloves. ~47% of devices. Most exempt from premarket review.\n• **Class II** (moderate risk): general controls + special controls (performance standards, post-market surveillance, labeling). Most common pathway: **510(k)**. Examples: powered wheelchairs, infusion pumps, surgical drapes, X-ray machines, MRI. ~43% of devices.\n• **Class III** (high risk): premarket approval (**PMA**) required. Examples: pacemakers, heart valves, breast implants, drug-eluting stents, implantable defibrillators. ~10% of devices.\n\n**Premarket pathways**:\n\n1. **510(k)** (Premarket Notification, Class II): demonstrate 'substantial equivalence' to a legally marketed predicate device. Faster (avg 3-6 months); ~3000 cleared/yr; modest pre-market clinical evidence. Most common pathway.\n   - **Criticism**: predicate-equivalence can chain back to pre-1976 devices with weak evidence; MoM hip recall illustrated risks.\n\n2. **PMA** (Premarket Approval, Class III): rigorous demonstration of safety + effectiveness. Phased clinical trials similar to drugs. Average 1-3 years review + cost $100M+. ~50 PMA approvals/yr.\n\n3. **De Novo classification**: novel low-to-moderate risk devices without predicate. Direct submission to FDA; may lead to creating new device category. ~150-200/yr.\n\n4. **Humanitarian Device Exemption (HDE)**: rare diseases (<8000 US patients); reduced clinical evidence; specific to use.\n\n5. **Breakthrough Devices Program** (2015): expedited review for life-threatening / debilitating conditions. ~600+ designations through 2024. NeuroPace RNS, Watchman, BARDA-funded ventilators, BCI candidates.\n\n6. **Emergency Use Authorization (EUA)**: COVID-19 tests + ventilators + PPE; expedited review during public-health emergency."
+    },
+    {
+      "kind": "text",
+      "title": "Clinical-trial design for devices",
+      "body": "**Phases for high-risk devices** (PMA pathway):\n\n• **Preclinical**: bench testing (mechanical, biocompatibility, sterilization, packaging) + animal studies (rat, rabbit, sheep, dog, pig depending on device).\n• **First-in-human (FIH) / Pilot**: small (n=5-20) feasibility + safety study at 1-3 centers. Goals: confirm proof-of-concept, identify dose/protocol/training.\n• **Pivotal trial**: larger (n=100-500+) multicenter randomized or single-arm with objective performance criteria (OPC). FDA submission basis.\n• **Post-approval study (PAS)**: continued monitoring (1-5+ yr) for late events.\n\n**Trial design considerations**:\n- **Randomization**: gold standard but ethically + practically challenging for implants. Sham-control surgeries debated.\n- **Blinding**: difficult for surgical devices; subjective endpoints biased.\n- **Endpoints**: clinical (mortality, repeat intervention, functional outcomes) + objective (radiographic, lab).\n- **Sample size**: powered for effect on primary endpoint; usually larger than drug trials.\n- **Control selection**: predicate device, sham, or historical control (last resort).\n- **Sponsor + investigators**: financial conflicts; reporting requirements.\n\n**Real-world evidence (RWE)**:\n- Post-market data from registries, EHR, claims.\n- FDA increasing use for supplemental indications + post-market.\n- Examples: National Cardiovascular Data Registry (NCDR), American Joint Replacement Registry (AJRR), Society of Thoracic Surgeons (STS) registry.\n- 21st Century Cures Act (2016) + 2018 FDA RWE Framework formalize use.\n\n**Software as a Medical Device (SaMD)** + AI/ML:\n- FDA action plan (2021): predetermined change control plans (PCCP) for adaptive AI.\n- ~600+ AI/ML devices cleared by 2024.\n- Pathway varies: 510(k) for most; De Novo for novel; PMA for high-risk diagnostic.\n- Emerging: GMLP (Good Machine Learning Practice) guidelines."
+    },
+    {
+      "kind": "text",
+      "title": "Reimbursement + adoption: the second hurdle",
+      "body": "FDA approval is necessary but not sufficient. Commercialization requires:\n\n**Reimbursement decisions**:\n- **CMS (Medicare + Medicaid)**: National Coverage Determination (NCD) or Local Coverage Determination (LCD).\n- **CPT (Current Procedural Terminology) codes**: needed for billing; AMA committee assigns.\n- **MS-DRG (Medicare Severity Diagnosis-Related Group)**: hospital payment classification.\n- **Outpatient codes**: APC, ASC.\n- **Coverage with Evidence Development (CED)**: conditional coverage requiring continued data collection (e.g., TAVR initial coverage).\n\n**Private payer policies**:\n- BCBS, UnitedHealth, Aetna, Humana, Cigna each have their own policies.\n- May require additional evidence beyond FDA clearance.\n- Variable reimbursement rates (often less than CMS).\n\n**Health Technology Assessment (HTA)**:\n- UK NICE: cost-effectiveness threshold ~£30K/QALY.\n- Germany G-BA + IQWiG.\n- Canada CADTH.\n- Australia MSAC.\n\n**Adoption challenges**:\n- Surgeon learning curve + training.\n- Hospital capital purchase decisions.\n- Patient awareness + demand.\n- Insurance coverage variability.\n- Competing devices (within + cross-class).\n\n**Successful examples**:\n- TAVR: approved 2011; CMS coverage 2012; rapid uptake to ~80,000/yr US by 2023.\n- LVAD: established in heart-failure niche; ~5000/yr US.\n- Apple Watch ECG: FDA cleared as wellness, not medical-grade ECG; widespread consumer adoption.\n\n**Failed/delayed examples**:\n- Second Sight Argus II retinal implant: FDA approved but limited reimbursement + bankruptcy.\n- Various continuous glucose monitors: years of reimbursement battles.\n- Many AI diagnostic devices: cleared but limited adoption due to workflow + reimbursement issues.\n\n**Global access**:\n- EU CE mark: different + sometimes faster path; MDR/IVDR replaced MDD in 2021.\n- EMA approvals.\n- China NMPA: Chinese-specific evidence + clinical-trial requirements.\n- LMICs: limited regulatory infrastructure + economic capacity for high-cost devices."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_reg_1",
+        "kind": "guided_derivation",
+        "question": "Choose the appropriate FDA pathway for a novel device",
+        "goal": "You've developed a wearable continuous blood-glucose monitor that uses a novel optical method (no skin penetration). What's the regulatory pathway?",
+        "steps": [
+          {
+            "prompt": "What's the device class?",
+            "motivation": "Risk-based classification.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Class II likely",
+                "Class II if similar to existing",
+                "depends on claims"
+              ]
+            },
+            "hints": [
+              "Existing CGMs (Dexcom, Libre) are Class II/III."
+            ],
+            "reveal": "Existing CGMs (Dexcom, Libre, Medtronic) are Class III for some configurations + Class II for others. Novel optical method without precedent: likely **De Novo** classification request, possibly becoming Class II for non-implanted. Risk-based assessment: noninvasive lowers risk vs implanted."
+          },
+          {
+            "prompt": "Predicate question: is there a substantially-equivalent predicate device?",
+            "motivation": "510(k) eligibility.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "likely no for novel optical method",
+                "depends",
+                "novel method may not have predicate"
+              ]
+            },
+            "hints": [
+              "Novel method = no direct predicate."
+            ],
+            "reveal": "Novel non-invasive optical CGM probably lacks substantially-equivalent predicate (existing CGMs use enzymatic glucose oxidase, fluorescent, etc., or implanted). Lacking predicate → 510(k) not appropriate → must use **De Novo** pathway."
+          },
+          {
+            "prompt": "Clinical evidence required?",
+            "motivation": "FDA expectations.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "accuracy vs standard CGM or fingerstick",
+                "MARD comparison",
+                "real-world accuracy"
+              ]
+            },
+            "hints": [
+              "Compare to existing gold standard."
+            ],
+            "reveal": "Required:\n1. **Accuracy study**: Mean Absolute Relative Difference (MARD) vs reference (lab plasma or YSI glucose). Existing CGMs have MARD ~8-10%; new device must demonstrate similar or better.\n2. **Multi-patient study** (~100-200 patients) across glycemic ranges (hypoglycemia <70 mg/dL especially), demographics, conditions.\n3. **Hypoglycemia detection**: critical safety endpoint.\n4. **Interference studies**: drugs, foods, hematocrit, motion.\n5. **Real-world wear** for ~2 weeks.\n6. **Cybersecurity** (connected device).\n7. **Usability + human factors**."
+          },
+          {
+            "prompt": "After FDA approval, what's needed for adoption?",
+            "motivation": "Reimbursement.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "CMS + private coverage",
+                "reimbursement",
+                "CPT codes"
+              ]
+            },
+            "hints": [
+              "CMS + private insurance."
+            ],
+            "reveal": "Post-FDA: \n1. **CMS coverage** + **CPT codes** for billing (Type 1 diabetics: covered well; Type 2 + prediabetes: variable). \n2. **Private insurer coverage**: BCBS, Cigna, etc. policies. \n3. **Cost-effectiveness analysis**: $/QALY vs existing methods. \n4. **Real-world evidence**: continued post-market data. \n5. **HCP adoption**: endocrinology + primary care familiarity + training. \n6. **DTC marketing**: patient demand. \n7. **Reimbursement battles**: years of work; many CGMs took 5-10 yr to achieve broad coverage."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_reg_1",
+        "kind": "slider",
+        "question": "Drag the slider to estimate the typical time from FDA PMA submission to approval (in months).",
+        "target": {
+          "min": 12,
+          "max": 36
+        },
+        "default": 6,
+        "explanation": "FDA PMA review: typical 12-36 months (average ~24 months). Breakthrough Devices Program reduces to ~12-18 months. Generic 510(k): 3-6 months. De Novo: 10-12 months typical. Add: pre-submission meetings, manufacturing inspections, post-approval studies. Total drug-device innovation cycle: 5-15 years from concept to deployment + $50M-$500M development cost."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_reg_1",
+        "kind": "drag_classify",
+        "question": "Classify each device by its likely FDA regulatory pathway.",
+        "items": [
+          {
+            "id": "bandage",
+            "label": "Adhesive bandages",
+            "bin": "class-1-exempt"
+          },
+          {
+            "id": "stent",
+            "label": "Drug-eluting coronary stent",
+            "bin": "pma"
+          },
+          {
+            "id": "blood-pressure-cuff",
+            "label": "Manual blood-pressure cuff",
+            "bin": "class-1-exempt"
+          },
+          {
+            "id": "knee-implant",
+            "label": "Total knee replacement",
+            "bin": "510k"
+          },
+          {
+            "id": "pacemaker",
+            "label": "Implantable pacemaker",
+            "bin": "pma"
+          },
+          {
+            "id": "ct-machine",
+            "label": "CT scanner",
+            "bin": "510k"
+          },
+          {
+            "id": "novel-ai-diagnostic",
+            "label": "First-of-kind AI diagnostic for novel condition",
+            "bin": "denovo"
+          },
+          {
+            "id": "breast-implant",
+            "label": "Silicone breast implant",
+            "bin": "pma"
+          },
+          {
+            "id": "mri-machine",
+            "label": "MRI scanner",
+            "bin": "510k"
+          },
+          {
+            "id": "watch-ekg",
+            "label": "Apple Watch ECG (wellness)",
+            "bin": "denovo"
+          }
+        ],
+        "bins": [
+          {
+            "id": "class-1-exempt",
+            "label": "Class I exempt (general controls only)"
+          },
+          {
+            "id": "510k",
+            "label": "510(k) (Class II; predicate equivalence)"
+          },
+          {
+            "id": "denovo",
+            "label": "De Novo (novel low-moderate risk)"
+          },
+          {
+            "id": "pma",
+            "label": "PMA (Class III, high risk)"
+          }
+        ],
+        "explanation": "FDA pathway determined by risk-based classification + predicate equivalence:\n• **Class I exempt**: low-risk basics like bandages + manual BP cuffs.\n• **510(k)**: most Class II devices via substantial equivalence to predicate. Includes most imaging (CT, MRI, ultrasound), orthopedic implants (joint replacements), surgical instruments.\n• **De Novo**: novel low-to-moderate-risk devices without predicate. Apple Watch ECG (initial Class II via De Novo); first-of-kind AI diagnostics; novel medical algorithms.\n• **PMA**: high-risk Class III devices. Implantable cardiovascular (pacemakers, defibrillators, drug-eluting stents, heart valves, ventricular assist devices); breast implants; some neurostimulators.\n\nPathway choice has major consequences for cost + time + post-market obligations. Innovation cost differences (510(k) ~$100K-$1M; PMA $50M-$500M) shape industry strategy. Critics argue 510(k) chain to predicates may not preserve safety adequately for novel articulations + materials."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_reg_1",
+        "kind": "multiple_choice",
+        "question": "Why has 'Software as a Medical Device' (SaMD) + AI/ML medical devices been a regulatory challenge for FDA?",
+        "options": [
+          "Software is unregulatable.",
+          "Traditional device regulation assumes static products approved at a point in time. AI/ML algorithms learn + adapt continuously — every retraining could be a 'new device' requiring new approval. FDA's 2021 AI/ML Action Plan introduced Predetermined Change Control Plans (PCCP) — pre-specifying allowable algorithm changes that don't require new approval. ~600+ AI/ML devices cleared by 2024; most via 510(k); pathway evolving rapidly. Open challenges: validation across diverse populations, performance drift detection, bias auditing, post-market monitoring, transparency.",
+          "AI doesn't work in medicine.",
+          "All SaMD is exempt from regulation."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Software as a Medical Device (SaMD)** regulation evolution:\n\n*Traditional model*: device approved as static product at specific configuration. Changes require new submission.\n\n*AI/ML challenge*: algorithms designed to learn + improve over time. Each retraining is technically a new device.\n\n**FDA AI/ML Action Plan (2021)**:\n1. **Predetermined Change Control Plan (PCCP)**: sponsor specifies pre-approved modifications. Allowed changes include retraining on updated data, threshold adjustments, performance improvements. Out-of-scope changes still require new submission.\n2. **GMLP (Good Machine Learning Practice)** guidelines.\n3. **Real-world performance monitoring**.\n4. **Patient-focused transparency**.\n\n**Major AI/ML devices cleared** (samples by 2024):\n- **Radiology**: IDx-DR (diabetic retinopathy), Aidoc + Viz.ai (stroke + PE detection), Paige + Ibex (pathology).\n- **Cardiology**: Eko + Cardio AI (heart-sound analysis), AliveCor (AFib detection).\n- **Critical care**: Sepsis-detection algorithms (Epic, Vorra).\n- **Mental health**: Limited deployment.\n- **Ophthalmology**: IDx-DR.\n\n**Challenges**:\n\n1. **Generalization across populations**: AI trained on one cohort may underperform on others (different demographics, equipment, comorbidities). Skin-tone bias in dermatology AI; racial differences in pulse oximetry. FDA increasingly requires diverse validation.\n\n2. **Performance drift detection**: as patient populations or equipment shifts, algorithm performance may degrade. Continuous monitoring + alerting needed.\n\n3. **Explainability + transparency**: 'black box' algorithms vs clinical reasoning. SHAP, LIME, attention maps help but not mandated.\n\n4. **Post-market surveillance**: real-world adverse events tracking; MAUDE database; tracking false-positives/negatives in clinical care.\n\n5. **Bias auditing**: required + emerging standards (e.g., 'fairness through awareness').\n\n6. **Workflow integration**: many cleared AI tools struggle to integrate with EHR + radiology workflow → low adoption despite clearance.\n\n7. **Reimbursement**: CPT codes + insurance coverage often lag behind FDA clearance.\n\n**Recent developments**:\n- White House Executive Order on AI (2023).\n- FDA SaMD Action Plan updates (annual).\n- International harmonization (IMDRF) discussions.\n- 21st Century Cures Act + FDA Modernization Act (2022) updates.\n\n**Open question**: how to regulate truly continuous-learning systems (online learning) — beyond PCCP scope.\n\nThe regulatory science is co-evolving with the technology + still settling."
+      },
+      "hints": [
+        "What's the static-product assumption?",
+        "What's PCCP?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Traditional device regulation assumes static product approved at specific config; changes require new submission. AI/ML algorithms learn continuously; each retraining is technically a 'new device.' FDA AI/ML Action Plan (2021): Predetermined Change Control Plan (PCCP) pre-specifies allowable changes. GMLP guidelines + real-world monitoring + patient-focused transparency. ~600+ AI/ML devices cleared by 2024. Open: population generalization, drift detection, bias auditing, transparency, workflow integration."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_reg_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why a brilliant medical device can fail to reach patients despite FDA approval.",
+        "rubric": "Mentions: FDA approval is necessary but not sufficient. Failure modes after approval: (1) CMS + private payer coverage decisions (years of additional work; HTA cost-effectiveness analysis); (2) CPT codes for billing; (3) hospital procurement + capital purchase decisions; (4) physician training + adoption curve; (5) competition with existing predicate devices + standard-of-care; (6) workflow integration (especially for AI); (7) cost vs perceived benefit (incremental improvements often not reimbursed at premium); (8) marketing + sales infrastructure; (9) patient awareness + demand; (10) long-term reliability + post-market issues. Examples: Second Sight Argus II (FDA approved retinal implant; company bankruptcy from reimbursement struggles); various AI diagnostics cleared but underutilized. Successful path requires aligned: clinical evidence + reimbursement + adoption + workflow + financing. Concludes: medical-device commercialization is at least as hard as FDA approval; full ecosystem alignment critical."
+      }
+    }
+  ]
+}

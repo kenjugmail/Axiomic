@@ -26,6 +26,7 @@ const ReactorComparator = lazy(() => import("../../../../packages/viz/src/compon
 const PointKinetics = lazy(() => import("../../../../packages/viz/src/components/PointKinetics").then(m => ({ default: m.PointKinetics })));
 const OceanTSDiagram = lazy(() => import("../../../../packages/viz/src/components/OceanTSDiagram").then(m => ({ default: m.OceanTSDiagram })));
 const AtmosphericSounding = lazy(() => import("../../../../packages/viz/src/components/AtmosphericSounding").then(m => ({ default: m.AtmosphericSounding })));
+const ECGSimulator = lazy(() => import("../../../../packages/viz/src/components/ECGSimulator").then(m => ({ default: m.ECGSimulator })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -56,6 +57,7 @@ export const VIZ_NAMES = [
   "point-kinetics",
   "ocean-ts-diagram",
   "atmospheric-sounding",
+  "ecg-simulator",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -84,6 +86,7 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "point-kinetics": PointKinetics,
   "ocean-ts-diagram": OceanTSDiagram,
   "atmospheric-sounding": AtmosphericSounding,
+  "ecg-simulator": ECGSimulator,
 };
 
 interface VizEmbedProps {

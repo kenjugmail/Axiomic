@@ -113,6 +113,11 @@ const LazyAtmosphericSounding = lazy(() =>
     (m) => ({ default: m.AtmosphericSounding }),
   ),
 );
+const LazyECGSimulator = lazy(() =>
+  import("../../../../../packages/viz/src/components/ECGSimulator").then(
+    (m) => ({ default: m.ECGSimulator }),
+  ),
+);
 const LazyDoublePendulum = lazy(() =>
   import("../../../../../packages/viz/src/components/DoublePendulum").then(
     (m) => ({ default: m.DoublePendulum }),
@@ -229,6 +234,8 @@ function VizByName({
       return <LazyOceanTSDiagram {...(props as object)} />;
     case "atmospheric-sounding":
       return <LazyAtmosphericSounding {...(props as object)} />;
+    case "ecg-simulator":
+      return <LazyECGSimulator {...(props as object)} />;
     default:
       return null;
   }

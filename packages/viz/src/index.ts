@@ -24,6 +24,7 @@ export { ReactorComparator } from "./components/ReactorComparator";
 export { PointKinetics } from "./components/PointKinetics";
 export { OceanTSDiagram } from "./components/OceanTSDiagram";
 export { AtmosphericSounding } from "./components/AtmosphericSounding";
+export { ECGSimulator } from "./components/ECGSimulator";
 export { SoftmaxTemperatureSlider } from "./quiz/SoftmaxTemperatureSlider";
 export { AttentionHeatmapExplorer } from "./quiz/AttentionHeatmapExplorer";
 export { GradientDescent2D } from "./quiz/GradientDescent2D";

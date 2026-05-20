@@ -1,0 +1,216 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Distinguish X-ray/CT, MRI, ultrasound, PET physics.",
+      "Reason about contrast + dose + resolution tradeoffs.",
+      "Connect modality choice to clinical questions."
+    ],
+    "prereqs": [
+      "radiation-fundamentals-or-equivalent-skip"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "X-ray, CT, MRI, ultrasound, PET: fundamentals",
+      "body": "**X-ray** (Röntgen 1895): photons (~30-150 keV) attenuated by tissue. Bone absorbs more (high-Z Ca); air least. 2D projection. Dose: ~0.1 mSv chest X-ray. Cheap, fast, widely available. Limited soft-tissue contrast.\n\n**CT (computed tomography)**: rotating X-ray source + detectors; 3D reconstruction via Radon transform (Hounsfield 1972). Sub-mm resolution. Dose: 5-10 mSv abdomen-pelvis CT (~3 yr background equivalent). Excellent for trauma (bleeding, fractures), lung (nodules), abdominal pathology. CT angiography for coronary + vascular.\n\n**MRI (magnetic resonance imaging)**: strong magnetic field (1.5T, 3T, 7T+) + RF pulses excite ¹H nuclei in water; precessional signal decay (T1 + T2) reconstructed via Fourier inversion in k-space. No ionizing radiation. Excellent soft-tissue contrast. Slow (~30-60 min). Expensive. Contraindications: pacemakers (newer ones MR-conditional), metal implants. Functional MRI (fMRI) for brain mapping via BOLD signal.\n\n**Ultrasound**: high-frequency sound waves (~2-15 MHz) reflected from tissue interfaces. Echo timing + intensity → image. Real-time. Cheap. No radiation. Operator-dependent. Limited by gas (can't image lung) + bone (acoustic-shadow). Doppler ultrasound measures blood velocity. Echocardiography for cardiac structure + function.\n\n**PET (positron emission tomography)**: radiolabeled tracer (¹⁸F-FDG glucose analog most common; T½ = 110 min) administered IV. β⁺ decay + annihilation produces back-to-back 511-keV photons; coincidence-detection 3D image. Functional imaging — metabolism, receptors. Oncology (tumor detection + staging), neurology (Alzheimer's). High dose (~7 mSv FDG-PET) + expensive. Combined PET-CT or PET-MRI for anatomical + functional fusion."
+    },
+    {
+      "kind": "text",
+      "title": "Resolution + contrast + SNR tradeoffs",
+      "body": "Image quality dimensions:\n• **Spatial resolution**: smallest distinguishable feature. CT ~0.5 mm; MRI ~1 mm clinical (sub-mm research); ultrasound ~0.1-1 mm (frequency-dependent); PET ~3-5 mm.\n• **Temporal resolution**: how fast images acquired. Ultrasound 30+ fps; fMRI ~1-2 sec/volume; MRI minutes/volume traditionally.\n• **Contrast resolution**: ability to distinguish similar tissues. MRI > CT > ultrasound for soft-tissue contrast.\n• **SNR (signal-to-noise ratio)**: contrast / standard deviation of noise. Higher SNR = clearer image.\n• **Dose** (ionizing modalities): mSv equivalent. ALARA principle.\n\n**Tradeoffs are fundamental**:\n- Higher resolution → smaller voxels → fewer signal photons → lower SNR. To maintain SNR, increase dose or scan time.\n- Faster scan → less averaging → lower SNR.\n- Larger field of view → coarser resolution at fixed pixel count.\n\n**MRI k-space + contrast**: image acquired in spatial-frequency (k-space) domain via gradient encoding. Center of k-space = low frequencies = contrast; edges = high frequencies = detail. Partial k-space sampling (parallel imaging GRAPPA, SENSE; compressed sensing) accelerates by 2-8×.\n\n**Deep learning in imaging**:\n- Reconstruction: AUTOMAP, MoDL, Variational Networks for accelerated MRI.\n- Segmentation: nnU-Net + variants for tissue + tumor.\n- Detection: chest X-ray pneumonia, CT lung nodule, mammography mass.\n- Multi-modal fusion: PET-CT joint analysis.\n- FDA SaMD pathway: ~600+ AI/ML medical devices cleared by 2024."
+    },
+    {
+      "kind": "text",
+      "title": "Modality selection + clinical scenarios",
+      "body": "**Clinical questions drive modality choice**:\n• **Trauma + acute bleeding**: CT (whole-body trauma CT; angio for vascular).\n• **Fractures**: X-ray first; CT for complex; MRI for stress fractures + soft-tissue injury.\n• **Stroke**:\n  - Acute (<4.5 hr from onset): non-contrast CT to exclude bleeding before thrombolytics.\n  - CT perfusion / CT angiography or MRI for penumbra + occluded vessel; informs mechanical thrombectomy decision (within 6-24 hr).\n• **MI (cardiac)**: ECG + troponin; echocardiogram for function; coronary CT angiography (CCTA) for anatomy; SPECT/PET for myocardial perfusion.\n• **Lung pathology**: chest X-ray (TB, pneumonia screening); CT for nodule (lung cancer screening LDCT every 1-2 yr in high-risk).\n• **Abdominal pain**: ultrasound first (gallbladder, kidney, appendix in children); CT if uncertain.\n• **Cancer staging**: CT + PET-CT for most solid tumors; MRI for liver, brain, prostate, soft tissue.\n• **Brain**:\n  - CT for trauma + hemorrhage + bone.\n  - MRI for stroke, tumor, MS, dementia, epilepsy.\n  - fMRI for surgical planning + research.\n• **Joint + spine**: MRI for ligament, disc, cartilage, marrow.\n• **Obstetrics**: ultrasound mainstay; MRI for fetal anatomy in select cases.\n\n**Cost + access**:\n- X-ray: ~$50-200; ubiquitous.\n- CT: ~$300-1000; widely available.\n- MRI: ~$500-2500; common in hospitals.\n- PET-CT: ~$2000-5000; tertiary centers.\n- Ultrasound: ~$100-500; portable + bedside.\n\n**Equity**: imaging access varies vastly globally. Many LMICs lack MRI/PET. AI + portable ultrasound (Butterfly iQ, GE Vscan) increasing access.\n\n**Radiation dose stewardship**: cumulative dose tracking; pediatric protocols (lower dose); avoid unnecessary CTs (lifetime cancer risk from medical radiation: ~1.5-2% of US cancer in 2020 attributed)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_image_1",
+        "kind": "guided_derivation",
+        "question": "Pick the right imaging modality for each scenario",
+        "goal": "Match clinical scenario to optimal imaging modality.",
+        "steps": [
+          {
+            "prompt": "60-yo with sudden-onset hemiparesis. Time = 90 min from onset. First imaging?",
+            "motivation": "Acute stroke protocol.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "non-contrast CT",
+                "CT head",
+                "CT to exclude bleed"
+              ]
+            },
+            "hints": [
+              "Need to exclude hemorrhage before thrombolytics."
+            ],
+            "reveal": "**Non-contrast CT head** — must exclude hemorrhagic stroke before considering tPA. Sensitive to acute bleed; less so to early ischemia (may look normal early in ischemic stroke, but exclusion of bleed is the priority within 4.5 hr window). Then CT angiography + perfusion or MRI DWI/PWI to characterize ischemic core + penumbra; informs mechanical thrombectomy decision (window 6-24 hr if mismatch favorable)."
+          },
+          {
+            "prompt": "Pregnant patient with right-lower-quadrant pain, suspected appendicitis. Imaging?",
+            "motivation": "Avoid radiation in pregnancy.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ultrasound",
+                "US",
+                "ultrasound first"
+              ]
+            },
+            "hints": [
+              "No ionizing radiation in pregnancy."
+            ],
+            "reveal": "**Ultrasound** is first-line for suspected appendicitis in pregnancy — no ionizing radiation, sensitive when appendix visualized. If non-diagnostic: **MRI without contrast** (gadolinium contraindicated in pregnancy) is next step. CT only as last resort with informed consent for radiation risk."
+          },
+          {
+            "prompt": "70-yo with chronic back pain + suspected vertebral compression fracture. Imaging?",
+            "motivation": "Multiple options.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "MRI to differentiate acute from chronic + tumor",
+                "MRI",
+                "X-ray first then MRI"
+              ]
+            },
+            "hints": [
+              "Soft tissue + marrow contrast helps."
+            ],
+            "reveal": "**X-ray initially** to confirm fracture; **MRI** to distinguish acute from chronic (acute fractures show marrow edema = high T2 / STIR signal) + to exclude tumor (metastases — pathological fractures common in elderly + cancer patients). Decision affects treatment: kyphoplasty for acute; biopsy + oncology workup for malignant cause."
+          },
+          {
+            "prompt": "Patient with newly-diagnosed lung adenocarcinoma. Staging?",
+            "motivation": "Comprehensive cancer staging.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "PET-CT",
+                "FDG-PET-CT",
+                "PET-CT for staging"
+              ]
+            },
+            "hints": [
+              "Whole-body functional + anatomical."
+            ],
+            "reveal": "**FDG PET-CT** — combined whole-body PET (functional, FDG uptake correlates with tumor metabolism) + CT (anatomical). Stages primary tumor (T), regional + distant nodes (N), metastases (M). Particularly good for distant metastases (bone, adrenal, contralateral lung) that change treatment. Brain MRI added for adenocarcinoma (frequent brain mets). Modern lung-cancer staging: PET-CT + brain MRI + EBUS-TBNA biopsy of suspicious nodes."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_image_1",
+        "kind": "slider",
+        "question": "Drag the slider to estimate the radiation dose (in mSv) of a typical abdomen-pelvis CT scan.",
+        "target": {
+          "min": 7,
+          "max": 11
+        },
+        "default": 3,
+        "explanation": "Abdomen-pelvis CT: ~8-10 mSv (varies with technique + body size). For comparison: background ~3 mSv/yr; chest X-ray ~0.1 mSv; mammogram ~0.4 mSv; head CT ~2 mSv; PET-CT ~7 mSv; nuclear cardiac stress ~10-15 mSv. Cumulative dose from multiple imaging is a growing concern; ALARA principle + appropriate-use criteria + low-dose protocols (iterative reconstruction) reduce."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_image_1",
+        "kind": "drag_classify",
+        "question": "Classify each imaging finding by the modality that best demonstrates it.",
+        "items": [
+          {
+            "id": "rib-fracture",
+            "label": "Rib fracture (acute)",
+            "bin": "xray"
+          },
+          {
+            "id": "intracranial-bleed",
+            "label": "Intracranial hemorrhage (acute)",
+            "bin": "ct"
+          },
+          {
+            "id": "appendicitis-pregnant",
+            "label": "Suspected appendicitis (pregnant patient)",
+            "bin": "ultrasound"
+          },
+          {
+            "id": "multiple-sclerosis",
+            "label": "Multiple sclerosis plaques",
+            "bin": "mri"
+          },
+          {
+            "id": "deep-vein-thrombosis",
+            "label": "Deep vein thrombosis (calf)",
+            "bin": "ultrasound"
+          },
+          {
+            "id": "cancer-staging-distant-mets",
+            "label": "Distant metastases for cancer staging",
+            "bin": "pet"
+          },
+          {
+            "id": "ms-active-vs-chronic",
+            "label": "Active vs old MS lesions (enhancement)",
+            "bin": "mri"
+          },
+          {
+            "id": "lung-nodule-low-dose-screening",
+            "label": "Low-dose lung cancer screening (annual)",
+            "bin": "ct"
+          }
+        ],
+        "bins": [
+          {
+            "id": "xray",
+            "label": "Plain X-ray"
+          },
+          {
+            "id": "ct",
+            "label": "CT"
+          },
+          {
+            "id": "mri",
+            "label": "MRI"
+          },
+          {
+            "id": "ultrasound",
+            "label": "Ultrasound"
+          },
+          {
+            "id": "pet",
+            "label": "PET"
+          }
+        ],
+        "explanation": "Each modality has clinical strengths:\n• **Plain X-ray**: bony structures, gross thoracic + abdominal pathology, post-procedure check. Cheap, fast.\n• **CT**: detailed cross-section; bone, lung, abdomen, vascular, trauma, acute hemorrhage. Higher dose.\n• **MRI**: soft tissue, brain, spine, joints, MS, prostate, breast (problem cases), fetal anatomy. No radiation; slow + contraindicated for some implants.\n• **Ultrasound**: heart + abdomen + obstetrics + vascular (DVT, carotid) + pregnancy + bedside (FAST exam, lung sliding). Real-time; cheap; no radiation; operator-dependent.\n• **PET**: functional/metabolic; oncology staging + restaging; neurology (dementia); cardiac viability. Combined PET-CT or PET-MRI for fusion.\n\nClinical decision-making integrates: question being asked, prior probability of disease, urgency, cost + access, contraindications, patient preference. Multiple imaging studies are often needed; complementary information matters."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_image_1",
+        "kind": "math_expression",
+        "question": "If an MRI scanner has B₀ = 3 T, what's the ¹H Larmor frequency (in MHz)? Use γ/2π = 42.58 MHz/T.",
+        "acceptedAnswers": [
+          "127.7",
+          "~128 MHz",
+          "127.74"
+        ],
+        "hint": "f = (γ/2π) × B₀ = 42.58 × 3."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_image_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why MRI gives much better soft-tissue contrast than CT, even though both produce 3D images.",
+        "rubric": "Mentions: CT contrast based on electron density (X-ray attenuation): bone > soft tissue > air. Soft tissues all similar density → poor differentiation. MRI contrast based on tissue water content + relaxation times (T1, T2) + chemical environment. T1: longitudinal relaxation; T2: transverse. Sequences (T1w, T2w, FLAIR, DWI, susceptibility-weighted) emphasize different mechanisms. Result: muscle/fat/bone/CSF/gray/white matter all have distinct signal intensities. Pathology (edema, tumor, demyelination, hemorrhage) modifies T1/T2 → clear visualization. CT advantages: faster, less expensive, fewer contraindications, better for bone + acute bleed + lung. Choice depends on question: 'is there bleeding?' → CT; 'what's the soft-tissue lesion?' → MRI; both for complex problems. Modern hybrid PET-MRI captures functional + structural information together."
+      }
+    }
+  ]
+}
