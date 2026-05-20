@@ -64,12 +64,89 @@
         "kind": "explain_back",
         "prompt": "In your own words, describe a situation in your own work (or a hypothetical you'd find plausible) where treating an ML prediction as causal would lead to a wrong decision. Walk through what's confounded.",
         "rubricCriteria": [
-          { "id": "concrete-example", "description": "Names a specific decision where the prediction would be acted on" },
-          { "id": "names-confound", "description": "Identifies the confounder explicitly + how it inflates/deflates the apparent association" },
-          { "id": "consequence", "description": "Explains why the wrong decision matters in practice" }
+          {
+            "id": "concrete-example",
+            "description": "Names a specific decision where the prediction would be acted on"
+          },
+          {
+            "id": "names-confound",
+            "description": "Identifies the confounder explicitly + how it inflates/deflates the apparent association"
+          },
+          {
+            "id": "consequence",
+            "description": "Explains why the wrong decision matters in practice"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "Simpson's paradox, the smallest example",
+      "body": "Two treatments for a disease, tested on a population split by severity:\n\n| | Mild patients | Severe patients | Overall |\n|---|---|---|---|\n| Treatment A | 81/87 = 93% | 192/263 = 73% | 78% |\n| Treatment B | 234/270 = 87% | 55/80 = 69% | 83% |\n\nWithin mild patients: A beats B (93% vs 87%).\nWithin severe patients: A beats B (73% vs 69%).\nOverall: B beats A (83% vs 78%).\n\nReason: B was given to a population skewed toward mild cases (where everyone does well); A was given to a population skewed toward severe cases. The aggregate hides the per-subgroup effect.\n\nThis is the textbook reason 'control for confounders' is non-negotiable. If you didn't randomize and you don't control, the aggregate number is meaningless."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cv_simpson",
+        "kind": "multiple_choice",
+        "question": "Simpson's paradox can be resolved by:",
+        "options": [
+          "Collecting more data.",
+          "Stratifying on the confounder and averaging within strata, weighted appropriately.",
+          "Using a more sophisticated regression model.",
+          "Ignoring the within-subgroup numbers as outliers."
+        ],
+        "correctIndex": 1,
+        "explanation": "The paradox is structural — caused by a confounder that differs in distribution between treatment groups. Stratification (computing within-subgroup effects and combining them) eliminates the confound. Larger samples just make the paradox more reliable, not less. Regression captures it iff it explicitly includes the confounder."
+      },
+      "hints": [
+        "The paradox comes from confounded subgroup distributions, not from sample size.",
+        "Which technique computes effects WITHIN levels of the confounder?"
+      ],
+      "workedSolution": "Simpson's is a structural problem from confounding, not a sampling issue. Stratifying on the confounder removes the confound: compute the effect within each stratum, then aggregate weighted by stratum sizes (or by some causally-defensible scheme). More data alone reinforces the paradox; only modeling-the-confounder fixes it.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_cv_simpson",
+        "kind": "math_expression",
+        "question": "Treatment A: 8/10 mild (80%) + 2/40 severe (5%) = 10/50 overall = 20%. Treatment B: 1/40 mild (2.5%) + 9/10 severe (90%) = 10/50 overall = 20%. In both subgroups, which treatment wins (enter 'A' or 'B')?",
+        "acceptedAnswers": [
+          "A",
+          "a"
+        ],
+        "hint": "Compare 80% vs 2.5% in mild, and 5% vs 90% in severe."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_cv_kidney",
+        "kind": "scenario",
+        "question": "A real-world version",
+        "prompt": "The classic kidney-stone study: Treatment A vs Treatment B. Aggregate success rates favor B (83% vs 78%). When stratified by stone size, A wins for both small AND large stones. What does this imply about how patients were assigned to treatments?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cv",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why 'correlation does not imply causation' is not just a slogan but a precise statistical fact.",
+        "rubric": "Mentions that correlation has three sources (direct causation, common cause / confounder, selection effects) and the data alone can't distinguish them; identifying causation requires either randomization or structural assumptions."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Distinguish the three sources of correlation: causation, confounding, selection.",
+      "Compute Simpson's paradox on a small example.",
+      "Recognize spurious correlations in real data."
+    ],
+    "prereqs": []
+  }
 }

@@ -64,12 +64,78 @@
         "kind": "explain_back",
         "prompt": "Why is observational causal discovery fundamentally limited compared to learning from interventional data? Reference the role of v-structures and Markov equivalence in your answer.",
         "rubricCriteria": [
-          { "id": "v-structure-role", "description": "Names that v-structures are uniquely identifiable from observation but chains/forks aren't" },
-          { "id": "markov-equivalence", "description": "Articulates that observational data identifies up to Markov-equivalence class, not unique DAG" },
-          { "id": "intervention-fix", "description": "Explains why interventions break this — they directly distinguish cause vs effect by perturbation" }
+          {
+            "id": "v-structure-role",
+            "description": "Names that v-structures are uniquely identifiable from observation but chains/forks aren't"
+          },
+          {
+            "id": "markov-equivalence",
+            "description": "Articulates that observational data identifies up to Markov-equivalence class, not unique DAG"
+          },
+          {
+            "id": "intervention-fix",
+            "description": "Explains why interventions break this — they directly distinguish cause vs effect by perturbation"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "Why causal discovery is hard",
+      "body": "Causal discovery: given a dataset $X_1, \\dots, X_n$, infer the DAG that generated it.\n\nProblem 1: **observationally equivalent DAGs**. The same set of conditional independencies can be produced by multiple DAGs. Best you can do without interventions is recover the **Markov equivalence class** — a set of DAGs that share all observable patterns. Often this class is huge.\n\nProblem 2: **faithfulness**. Algorithms assume the data's conditional independencies are exactly the ones encoded in the DAG. Reality: parameters can cancel by chance, hiding true dependencies. Faithfulness is unfalsifiable but usually holds.\n\nProblem 3: **hidden confounders**. PC assumes no hidden variables. FCI (Fast Causal Inference) allows them but returns a PAG (Partially-Ancestral Graph) — more general than a DAG, with some edges left ambiguous.\n\nProblem 4: **finite-sample noise**. Real conditional-independence tests have type I/II errors that compound across the algorithm. Discovery on $n = 1000$ samples + 20 variables is brittle.\n\nThe field is making real progress (score-based methods, NOTEARS, gradient-based DAG learning) but observational causal discovery is fundamentally constrained: you can't fully infer causation from correlations alone, no matter how clever the algorithm."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cd_markov",
+        "kind": "multiple_choice",
+        "question": "Two DAGs are 'Markov equivalent' if:",
+        "options": [
+          "They have the same number of edges.",
+          "They imply exactly the same set of conditional independencies.",
+          "They have the same topological ordering.",
+          "They share at least one v-structure."
+        ],
+        "correctIndex": 1,
+        "explanation": "Markov equivalence is defined by observational indistinguishability. Two DAGs are equivalent iff they share the same skeleton AND the same v-structures (unshielded colliders). Any observational data — no matter how much — can at best identify which equivalence class generated it, not the specific DAG within the class."
+      },
+      "hints": [
+        "The defining feature of Markov equivalence is what observational data can and can't distinguish.",
+        "Same conditional-independence structure = same Markov-equivalence-class membership."
+      ],
+      "workedSolution": "Markov equivalence = observational indistinguishability. Two DAGs are Markov-equivalent iff they entail the same set of conditional independencies. By a classical result (Verma-Pearl), this is equivalent to sharing the same skeleton (underlying undirected graph) AND the same v-structures (unshielded colliders $A \\to B \\leftarrow C$ where $A$ and $C$ are non-adjacent).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_cd_intervene",
+        "kind": "scenario",
+        "question": "Interventions break ties",
+        "prompt": "A pharma researcher has observational data on 50 biomarkers and finds two Markov-equivalent DAGs that both explain it. Why are interventions (knockouts, drugs) the only way to disambiguate, and what's the practical research strategy?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cd",
+        "kind": "explain_back",
+        "prompt": "Explain in three sentences why 'we can never prove causation from data' is too strong, but 'we can never prove a specific DAG from observational data alone' is essentially correct.",
+        "rubric": "Mentions that experiments can prove causation (randomization breaks confounding); observational discovery can only identify Markov-equivalence classes, leaving edge directions ambiguous in general."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish PC and FCI by what assumptions they need.",
+      "Recognize the limits of causal discovery from observational data.",
+      "Articulate why CD is harder than parameter estimation."
+    ],
+    "prereqs": [
+      "dags-and-d-separation"
+    ]
+  }
 }

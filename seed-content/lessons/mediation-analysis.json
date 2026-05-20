@@ -64,12 +64,78 @@
         "kind": "explain_back",
         "prompt": "Pick a hypothetical intervention (a job-training program, a medical drug, a UI change, etc.) and explain: (1) what mediator you'd want to investigate, (2) why decomposing direct vs indirect effects would be useful, (3) what M-Y confounder you'd worry about.",
         "rubricCriteria": [
-          { "id": "concrete-setup", "description": "Names a specific T, Y, M" },
-          { "id": "decomposition-value", "description": "Explains why decomposing direct vs indirect matters in this context" },
-          { "id": "confounder-named", "description": "Names a plausible M-Y confounder and acknowledges the identifiability concern" }
+          {
+            "id": "concrete-setup",
+            "description": "Names a specific T, Y, M"
+          },
+          {
+            "id": "decomposition-value",
+            "description": "Explains why decomposing direct vs indirect matters in this context"
+          },
+          {
+            "id": "confounder-named",
+            "description": "Names a plausible M-Y confounder and acknowledges the identifiability concern"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "Direct vs indirect, formally",
+      "body": "Treatment T affects outcome Y both directly and through a mediator M. We want to decompose the total effect.\n\n**Natural Direct Effect (NDE)**: the effect of T on Y if we somehow fix M at the value it would naturally take without treatment. $E[Y(1, M(0)) - Y(0, M(0))]$.\n\n**Natural Indirect Effect (NIE)**: the effect on Y of changing M from $M(0)$ to $M(1)$ while keeping T = 1. $E[Y(1, M(1)) - Y(1, M(0))]$.\n\nNDE + NIE = total effect (under standard assumptions). The decomposition tells you how much of the treatment's impact flows through the mediator vs. bypasses it.\n\nPolicy use: if NIE >> NDE for an education policy on lifetime income via degree attainment, the policy works *because* it boosts degree attainment. Cutting the policy would harm income only insofar as you also cut degree attainment. If instead NDE >> NIE, the mechanism is something other than degrees and the policy could be redesigned to skip that mediator entirely.\n\nValidity: requires no unmeasured T-M confounder AND no unmeasured M-Y confounder (post-T). Conditioning on M without accounting for these breaks identifiability — a famous trap."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_med_bias",
+        "kind": "multiple_choice",
+        "question": "A teammate 'controls for' the mediator M in a regression to estimate the direct effect of T on Y. They get a precise, statistically-significant estimate. What's the central risk?",
+        "options": [
+          "Their estimate is biased if there are unmeasured confounders between M and Y, even with randomized T.",
+          "Bayesian methods would have given a different point estimate.",
+          "M-conditioning always biases the estimate toward zero.",
+          "The estimate is too high because of measurement error."
+        ],
+        "correctIndex": 0,
+        "explanation": "Mediation analysis assumes no unmeasured confounders on the M-Y path. Even if T was randomized, conditioning on M (a collider w.r.t. T and post-T M-Y confounders) opens a backdoor and biases the direct-effect estimate. This is one of the most-missed causal-inference traps in empirical work."
+      },
+      "hints": [
+        "Conditioning on a mediator can open backdoor paths.",
+        "Even with randomized T, post-T confounders of (M, Y) can bias the estimate."
+      ],
+      "workedSolution": "Even in a randomized experiment, the path T → M ← U_M → Y (where $U_M$ is an unmeasured M-Y confounder) is opened when you condition on M. The 'direct effect' estimate becomes a biased mixture of true direct effect + the spurious correlation introduced by collider conditioning. Mitigations: sensitivity analyses, formal mediation estimators (g-formula, IPTW), or measure the M-Y confounders.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_med_policy",
+        "kind": "scenario",
+        "question": "A policy decomposition",
+        "prompt": "A randomized job-training program raises future earnings by $4{,}000/year. Mediation analysis attributes $3{,}000 to higher degree attainment (NIE) and $1{,}000 to a direct skills effect (NDE). What does this mean for redesigning the program if degree attainment is expensive?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_med",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why mediation analysis requires assumptions BEYOND randomization of T.",
+        "rubric": "Mentions that randomizing T doesn't randomize M; unmeasured confounders between M and Y can bias the mediation estimates even in an RCT for T."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish direct from indirect (mediated) effects.",
+      "Apply the natural-direct-effect / natural-indirect-effect decomposition.",
+      "Recognize when mediation analysis is invalid (collider bias on mediator)."
+    ],
+    "prereqs": [
+      "do-calculus"
+    ]
+  }
 }

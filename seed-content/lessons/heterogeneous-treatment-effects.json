@@ -64,12 +64,78 @@
         "kind": "explain_back",
         "prompt": "Describe a real-world case where you'd care about HTE more than ATE. Walk through: what's the treatment? What subgroup might respond differently? What action would HTE estimates inform that ATE wouldn't?",
         "rubricCriteria": [
-          { "id": "concrete-case", "description": "Names a specific intervention with plausible HTE" },
-          { "id": "subgroup-reasoning", "description": "Names a subgroup that might respond differently and why" },
-          { "id": "action-relevance", "description": "Explains the action HTE estimates enable that ATE wouldn't" }
+          {
+            "id": "concrete-case",
+            "description": "Names a specific intervention with plausible HTE"
+          },
+          {
+            "id": "subgroup-reasoning",
+            "description": "Names a subgroup that might respond differently and why"
+          },
+          {
+            "id": "action-relevance",
+            "description": "Explains the action HTE estimates enable that ATE wouldn't"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "CATE: when the average isn't enough",
+      "body": "ATE answers 'does this work on average?'. **CATE** (Conditional Average Treatment Effect) answers 'who does it work for?'.\n\n$\\tau(x) = E[Y(1) - Y(0) | X = x]$\n\nFamous CATEs in practice:\n- Medical treatments that help some genotypes and harm others.\n- Marketing campaigns that lift conversion among new users but cannibalize loyal-user revenue.\n- Welfare interventions that boost outcomes for households below the median but not above.\n\n**Causal forests** (Athey-Wager): random-forest-style honest splits to estimate $\\tau(x)$ pointwise. **S-, T-, X-learners**: meta-learners that wrap any base ML method to estimate CATEs. **Uplift modeling**: ranking units by their predicted lift, used by online retailers to target promotional offers at the segment most moved by them.\n\nThe research lesson: averages average over winners and losers. The applied lesson: if you have heterogeneous effects, ATE-guided policy is leaving value on the table — or actively harming some recipients."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hte_uplift",
+        "kind": "multiple_choice",
+        "question": "Uplift modeling targets which subgroup?",
+        "options": [
+          "Units with the highest predicted outcome regardless of treatment.",
+          "Units whose predicted outcome under treatment is highest.",
+          "Units for whom the predicted treatment EFFECT (under T=1 minus under T=0) is highest.",
+          "Units with the lowest baseline outcome."
+        ],
+        "correctIndex": 2,
+        "explanation": "Uplift = predicted CATE. Targeting by predicted outcome under treatment confuses 'who responds' with 'who'd have done well anyway'. The whole point of uplift is to spend marketing budget on units who would NOT have converted without the campaign — i.e., who have positive CATE."
+      },
+      "hints": [
+        "The point of uplift is to find people whose behavior CHANGES because of the intervention.",
+        "High predicted outcome under treatment is not the same as high lift."
+      ],
+      "workedSolution": "Uplift modeling estimates CATE and targets units with high $\\tau(x)$. A unit who'd convert no matter what (high outcome under both T and not-T) has CATE near zero, so targeting them is wasted money. The win is targeting compliers — units whose behavior moves with the intervention.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_hte_genome",
+        "kind": "scenario",
+        "question": "Heterogeneous medical effects",
+        "prompt": "A drug shows 25% efficacy on average in trials. A teammate proposes using a tree-based model to estimate per-patient effects. Why is naive ML (without causal structure) likely to confuse 'predicting who recovers' with 'predicting who benefits from the drug', and what's the fix?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_hte",
+        "kind": "explain_back",
+        "prompt": "Explain in three sentences why estimating CATEs is harder than estimating ATEs even in randomized experiments.",
+        "rubric": "Mentions that ATE averages out noise; CATE asks for a function of x and so demands more samples per stratum of x; the bias-variance tradeoff in CATE estimation is more delicate."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish CATE from ATE.",
+      "Apply causal forests / meta-learners conceptually.",
+      "Recognize the uplift-modeling problem."
+    ],
+    "prereqs": [
+      "potential-outcomes"
+    ]
+  }
 }

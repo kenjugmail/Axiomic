@@ -64,12 +64,78 @@
         "kind": "explain_back",
         "prompt": "Explain why conditioning on a collider creates spurious correlation. Use a concrete example (it can be one from this lesson or your own).",
         "rubricCriteria": [
-          { "id": "collider-mechanism", "description": "Names that conditioning opens a path that was unconditionally blocked" },
-          { "id": "concrete-example", "description": "Walks through a specific example showing the spurious correlation" },
-          { "id": "implication", "description": "Notes a practical consequence (e.g., selection bias in observational studies)" }
+          {
+            "id": "collider-mechanism",
+            "description": "Names that conditioning opens a path that was unconditionally blocked"
+          },
+          {
+            "id": "concrete-example",
+            "description": "Walks through a specific example showing the spurious correlation"
+          },
+          {
+            "id": "implication",
+            "description": "Notes a practical consequence (e.g., selection bias in observational studies)"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "d-separation rules of thumb",
+      "body": "A path between two nodes in a DAG is *blocked* by a conditioning set $Z$ if at least one of these holds for some node on the path:\n\n1. **Chain** $A \\to B \\to C$: blocked if $B \\in Z$.\n2. **Fork** $A \\leftarrow B \\to C$: blocked if $B \\in Z$.\n3. **Collider** $A \\to B \\leftarrow C$: blocked if $B \\notin Z$ AND no descendant of $B$ in $Z$.\n\nTwo nodes are **d-separated** by $Z$ if every path between them is blocked. d-separation implies conditional independence under the DAG.\n\nThe collider rule is the counterintuitive one: conditioning on a collider OPENS a path that was originally blocked. Classic example: birth weight (B) is a collider between maternal smoking (S) and birth defects (D). Conditioning on low birth weight introduces a non-causal correlation between S and D — the 'low birth weight paradox' in epidemiology.\n\nBackdoor criterion: to identify $P(Y | do(T))$ via adjustment, find a set $Z$ that blocks all 'backdoor' paths from $T$ to $Y$ (paths arriving at $T$ via an incoming arrow) without conditioning on any descendant of $T$. Then $P(Y | do(T)) = \\sum_z P(Y | T, Z=z) P(Z=z)$."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ds_collider",
+        "kind": "multiple_choice",
+        "question": "$A \\to B \\leftarrow C$ (B is a collider). What conditional independencies hold?",
+        "options": [
+          "$A \\perp C$ unconditionally; $A \\not\\perp C \\,|\\, B$.",
+          "$A \\perp C \\,|\\, B$; $A \\not\\perp C$ unconditionally.",
+          "$A \\perp C$ both unconditionally and conditional on $B$.",
+          "$A \\not\\perp C$ unconditionally and conditional on $B$."
+        ],
+        "correctIndex": 0,
+        "explanation": "Pure colliders: $A$ and $C$ are unconditionally independent (no chain or fork between them), but conditioning on the collider $B$ opens a path and induces dependence. This is the 'selection bias' generator — many famous biases (low-birth-weight paradox, Berkson's bias) are collider-conditioning in disguise."
+      },
+      "hints": [
+        "Apply the three d-separation rules.",
+        "Pure collider: starts blocked, conditioning UN-blocks."
+      ],
+      "workedSolution": "Without conditioning: path A→B←C is blocked because B is a collider not in conditioning set. So $A \\perp C$. Conditioning on $B$: the collider rule says conditioning on the collider OPENS the path. So $A \\not\\perp C \\,|\\, B$.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ds_backdoor",
+        "kind": "scenario",
+        "question": "Choose an adjustment set",
+        "prompt": "You have a DAG: Treatment T ← Confounder C → Outcome Y, plus T → Y. There's also a downstream variable M with T → M ← C (so M is a collider). A teammate proposes adjusting for {C, M} to estimate the effect of T on Y. Why is this wrong, and what should they adjust for?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ds",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why DAGs are more useful than path diagrams or regression equations for causal reasoning.",
+        "rubric": "Mentions that DAGs let you read off d-separation systematically, identify backdoor and frontdoor paths, and distinguish confounders from mediators from colliders — all without parametric assumptions."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "core",
+    "objectives": [
+      "Draw a DAG that encodes a causal story.",
+      "Apply d-separation to read off conditional independencies.",
+      "Use the backdoor criterion to identify a valid adjustment set."
+    ],
+    "prereqs": [
+      "correlation-vs-causation"
+    ]
+  }
 }

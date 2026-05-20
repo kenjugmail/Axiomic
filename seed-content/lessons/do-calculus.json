@@ -64,12 +64,78 @@
         "kind": "explain_back",
         "prompt": "Explain the difference between P(Y | X) and P(Y | do(X)) using a concrete example. Why does it matter to be explicit about the difference in causal-inference papers?",
         "rubricCriteria": [
-          { "id": "concrete-example", "description": "Names a specific X, Y, and confounder where the two probabilities differ" },
-          { "id": "explains-mechanism", "description": "Walks through why one includes confounding paths and the other doesn't" },
-          { "id": "consequence", "description": "Names what goes wrong if a paper claims P(Y | X) when it meant P(Y | do(X)) (or vice versa)" }
+          {
+            "id": "concrete-example",
+            "description": "Names a specific X, Y, and confounder where the two probabilities differ"
+          },
+          {
+            "id": "explains-mechanism",
+            "description": "Walks through why one includes confounding paths and the other doesn't"
+          },
+          {
+            "id": "consequence",
+            "description": "Names what goes wrong if a paper claims P(Y | X) when it meant P(Y | do(X)) (or vice versa)"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "Backdoor vs frontdoor, in 90 seconds",
+      "body": "**Backdoor adjustment**: when you have a set $Z$ blocking all backdoor paths from $T$ to $Y$ (and no element of $Z$ is a descendant of $T$),\n$$P(Y | do(T = t)) = \\sum_z P(Y | T=t, Z=z)\\, P(Z=z).$$\n\n**Frontdoor adjustment**: when no observable backdoor adjustment set exists, but there's a mediator $M$ on every path from $T$ to $Y$ (and certain other conditions),\n$$P(Y | do(T = t)) = \\sum_m P(M = m | T = t) \\sum_{t'} P(Y | M = m, T = t')\\, P(T = t').$$\n\nFrontdoor was Pearl's killer demonstration: identifies causal effects even when unobserved confounders make backdoor impossible. Smoking → tar → cancer is the canonical example.\n\n**Identifiability**: a causal query is identifiable from observational data iff do-calculus rules can transform it into a do-free expression. Tian-Pearl algorithm (2003) gives a complete, mechanical test. So 'can we estimate this from data alone?' is a decidable question — given the DAG."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dc_frontdoor",
+        "kind": "multiple_choice",
+        "question": "Frontdoor adjustment is useful when:",
+        "options": [
+          "The backdoor adjustment set is small (≤ 3 variables).",
+          "There's an unobserved confounder making backdoor adjustment impossible, but a fully observable mediator chain exists from T to Y.",
+          "The treatment is binary.",
+          "There's no mediator."
+        ],
+        "correctIndex": 1,
+        "explanation": "Frontdoor's distinctive power: it bypasses the unobserved confounder by going through an observable mediator. Requires (a) the mediator intercepts ALL effect of T on Y, (b) no unobserved confounders between T and the mediator, (c) all backdoor paths from mediator to Y are blocked by T. When those three hold, do-calculus identifies the effect from observational data alone."
+      },
+      "hints": [
+        "Frontdoor exploits a mediator chain; backdoor adjustment can't bypass unobserved confounders.",
+        "What's the structural difference that makes frontdoor special?"
+      ],
+      "workedSolution": "Frontdoor's value is identifying causal effects in the presence of unobserved confounders between T and Y — a situation where no backdoor adjustment is possible. It works by routing the estimand through an observable mediator that intercepts the entire causal pathway from T to Y, while assuming the mediator-Y path has no further unobserved confounding.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_dc_id",
+        "kind": "scenario",
+        "question": "Identifiability",
+        "prompt": "You're given a DAG with a treatment T, outcome Y, observed variable Z, and unobserved variable U with T←U→Y and T→Z→Y. Walk through whether $P(Y | do(T))$ is identifiable, and via which adjustment."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dc",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why 'doing' is different from 'seeing', formally — what does the do-operator do to the joint distribution?",
+        "rubric": "Mentions that the do-operator removes all incoming arrows to T in the DAG, severing T from its parents; the resulting distribution on (T, Y, ...) is the interventional one, generally different from the observational conditional."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "core",
+    "objectives": [
+      "State the three rules of do-calculus.",
+      "Recognize when a causal query is identifiable from observational data.",
+      "Apply backdoor and frontdoor adjustment."
+    ],
+    "prereqs": [
+      "dags-and-d-separation"
+    ]
+  }
 }
