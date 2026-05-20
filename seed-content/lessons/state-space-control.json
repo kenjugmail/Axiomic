@@ -64,12 +64,92 @@
         "kind": "explain_back",
         "prompt": "Explain why a robot arm with N joints typically needs 2N state variables. Use the relationship between Newton's laws and state-space representation.",
         "rubricCriteria": [
-          { "id": "newton-second-order", "description": "Names that Newton's laws are second-order (F = ma) and state-space requires first-order ODEs" },
-          { "id": "two-states-per-dof", "description": "Concludes that each DOF needs position + velocity" },
-          { "id": "concrete-example", "description": "Applies to the arm or another concrete case" }
+          {
+            "id": "newton-second-order",
+            "description": "Names that Newton's laws are second-order (F = ma) and state-space requires first-order ODEs"
+          },
+          {
+            "id": "two-states-per-dof",
+            "description": "Concludes that each DOF needs position + velocity"
+          },
+          {
+            "id": "concrete-example",
+            "description": "Applies to the arm or another concrete case"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "LQR, the optimal-control workhorse",
+      "body": "State-space linear system: $\\dot x = Ax + Bu$, $y = Cx$.\n\n**LQR (Linear Quadratic Regulator)**: choose $u = -Kx$ to minimize $J = \\int_0^\\infty (x^T Q x + u^T R u) \\, dt$, where $Q$ penalizes state deviation and $R$ penalizes control effort.\n\nSolution: $K = R^{-1} B^T P$, where $P$ solves the **algebraic Riccati equation** $A^T P + PA - PBR^{-1}B^T P + Q = 0$.\n\nWhy this matters: LQR gives you an *optimal* state-feedback controller in closed form (no iterative tuning) for a wide class of linear systems. The Q/R matrices encode the engineer's preferences (how much state error costs vs. how much control effort costs); the math then produces the best gain $K$.\n\nThe direct extension to nonlinear systems: iLQR / DDP (Differential Dynamic Programming), where you linearize around a trajectory and apply LQR iteratively. Used heavily in robotics for trajectory optimization.\n\nNonlinear control more broadly: feedback linearization (cancel out the nonlinearity), sliding-mode control (force the state onto a 'sliding surface'), model-predictive control (re-optimize a finite-horizon plan every step). MPC has become the dominant non-PID controller in industrial systems."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ss_ctrl",
+        "kind": "multiple_choice",
+        "question": "A linear state-space system is 'controllable' iff:",
+        "options": [
+          "The state matrix $A$ is invertible.",
+          "The controllability matrix $[B \\, AB \\, A^2B \\, \\ldots]$ has full row rank.",
+          "All eigenvalues of $A$ are stable.",
+          "The system has more inputs than states."
+        ],
+        "correctIndex": 1,
+        "explanation": "Kalman's controllability criterion: the system is controllable iff the controllability matrix $\\mathcal{C} = [B, AB, A^2B, \\ldots, A^{n-1}B]$ has full row rank. Geometrically: the span of the column vectors of $\\mathcal{C}$ covers the entire state space, so any state is reachable with some input sequence. Observability has the dual criterion with $C, CA, \\ldots$."
+      },
+      "hints": [
+        "The criterion is about whether *any* state is reachable from any other via the input.",
+        "Look at the structure $B, AB, A^2B, \\ldots$ — what does it mean for those to span the state space?"
+      ],
+      "workedSolution": "Kalman's PBH-rank-style criterion: stack $[B, AB, A^2B, \\ldots, A^{n-1}B]$ as a single matrix $\\mathcal{C}$. If $\\text{rank}(\\mathcal{C}) = n$ (the state dimension), the system is controllable. If not, the uncontrollable modes are the eigenvectors orthogonal to $\\text{range}(\\mathcal{C})$ — they can't be moved by any input.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ss_lqr",
+        "kind": "math_expression",
+        "question": "$Q = I$ (identity), $R = 0.1 I$. Heavier penalty on what?",
+        "acceptedAnswers": [
+          "state",
+          "state error",
+          "x"
+        ],
+        "hint": "Compare relative magnitudes."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ss_uncontroll",
+        "kind": "scenario",
+        "question": "An uncontrollable mode",
+        "prompt": "Your wheeled robot model has a state vector including the chassis temperature, but no input affects temperature. The system is technically uncontrollable. Why is this still a useful model, and what does the controller do about the uncontrollable mode?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ss",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why LQR is the 'first thing to try' for a linear MIMO system.",
+        "rubric": "Mentions that LQR gives an optimal feedback gain in closed form with no iterative tuning, handles MIMO directly (unlike PID), and the Q/R weighting encodes design preferences in a natural way."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Write a state-space model from physical dynamics.",
+      "Distinguish controllability and observability.",
+      "Recognize when LQR is the right tool."
+    ],
+    "prereqs": [
+      "control-foundations"
+    ]
+  }
 }

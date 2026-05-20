@@ -64,12 +64,90 @@
         "kind": "explain_back",
         "prompt": "Explain in your own words why integrating the error (the I term in PID) eliminates steady-state error. Use a concrete example.",
         "rubricCriteria": [
-          { "id": "names-mechanism", "description": "Names that integration accumulates persistent error" },
-          { "id": "concrete-example", "description": "Walks through a specific case (heater, drone, motor) showing the I term's effect" },
-          { "id": "tradeoff", "description": "Acknowledges a downside (integrator windup, slower response)" }
+          {
+            "id": "names-mechanism",
+            "description": "Names that integration accumulates persistent error"
+          },
+          {
+            "id": "concrete-example",
+            "description": "Walks through a specific case (heater, drone, motor) showing the I term's effect"
+          },
+          {
+            "id": "tradeoff",
+            "description": "Acknowledges a downside (integrator windup, slower response)"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "PID, what each term does",
+      "body": "**P (proportional)** — output is proportional to error. Big P = aggressive correction, fast response, but oscillation if too big.\n\n**I (integral)** — output accumulates the integral of error over time. Eliminates **steady-state error** (the residual offset after P-only control settles). Too much I → overshoot, sluggish response.\n\n**D (derivative)** — output is proportional to the derivative of error. Anticipates: if error is decreasing fast, ease off the gas. Damps oscillation. Noisy in practice — derivative of measurement noise is huge — so most real PIDs use low-pass-filtered D.\n\n**Ziegler-Nichols** is the classic tuning recipe: turn off I + D, find the critical gain $K_u$ at which the system oscillates with constant amplitude. Then $K_p = 0.6 K_u$, $T_i = T_u/2$, $T_d = T_u/8$. Not optimal but a fast starting point.\n\nWhen PID isn't enough: nonlinear systems (use feedback linearization), multivariable systems (use LQR or MPC), highly-uncertain systems (use adaptive or robust control). But for a single-input single-output linear system, PID handles 80% of real-world cases."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ctl_iterm",
+        "kind": "multiple_choice",
+        "question": "A PID-controlled temperature system settles at 38°C when the setpoint is 40°C. The error is steady at 2°C. Which term is most likely missing or undersized?",
+        "options": [
+          "Proportional",
+          "Integral",
+          "Derivative",
+          "No term — the system is well-tuned."
+        ],
+        "correctIndex": 1,
+        "explanation": "Steady-state error is the textbook signature of insufficient integral action. P-only control needs nonzero error to produce nonzero output; integral term accumulates error and produces output independent of current error, eliminating steady-state offset. Increasing $K_i$ (or adding the I term if it was 0) eliminates the gap."
+      },
+      "hints": [
+        "Steady-state error is the textbook signature of one missing PID term.",
+        "The integral term integrates error and produces output even when current error is small."
+      ],
+      "workedSolution": "Steady-state error is the textbook fingerprint of P-only control: the controller's output is proportional to error, and at the new steady state there must be some error to produce the output to maintain the setpoint. Adding integral action eliminates this offset because the integral keeps growing until error is exactly zero — producing output without requiring error to be nonzero.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ctl_pid",
+        "kind": "math_expression",
+        "question": "PID output is $u = K_p e + K_i \\int e \\, dt + K_d \\frac{de}{dt}$. With $K_p = 2$, $e = 3$, $\\int e = 1.5$, $K_i = 0.5$, $K_d = 0$, $de/dt$ anything. Compute the P+I contribution.",
+        "acceptedAnswers": [
+          "6.75",
+          "6 + 0.75",
+          "6.750"
+        ],
+        "hint": "Just $K_p e + K_i \\int e$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ctl_dnoisy",
+        "kind": "scenario",
+        "question": "Why D is dangerous",
+        "prompt": "A motor control loop is tuned with all three PID terms, working well in simulation. Deployed on real hardware, the D term causes violent oscillations. Why does derivative behave so badly with real sensors, and what's the standard mitigation?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ctl",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why a P-only controller can't eliminate steady-state error but P+I can.",
+        "rubric": "Mentions P needs nonzero error to produce nonzero output (the steady state); I accumulates error over time and produces output independent of current error, so the only steady state is error = 0."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Tune a PID controller intuitively.",
+      "Distinguish P / I / D contributions to behavior.",
+      "Recognize when a system needs more than PID."
+    ],
+    "prereqs": []
+  }
 }

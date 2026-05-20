@@ -69,12 +69,78 @@
         "kind": "explain_back",
         "prompt": "Pick a manipulation task (pick-and-place, insertion, in-hand rotation, tool use). Walk through what makes it hard from the robotics perspective. Address: kinematics, dynamics, sensing, modeling.",
         "rubricCriteria": [
-          { "id": "specific-task", "description": "Names a specific manipulation task" },
-          { "id": "challenges", "description": "Identifies 2-3 specific challenges (contact uncertainty, occlusion, dynamics, kinematic redundancy)" },
-          { "id": "modern-approach", "description": "Names how modern systems address it (vision-based grasp learning, force feedback, sim-to-real)" }
+          {
+            "id": "specific-task",
+            "description": "Names a specific manipulation task"
+          },
+          {
+            "id": "challenges",
+            "description": "Identifies 2-3 specific challenges (contact uncertainty, occlusion, dynamics, kinematic redundancy)"
+          },
+          {
+            "id": "modern-approach",
+            "description": "Names how modern systems address it (vision-based grasp learning, force feedback, sim-to-real)"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "Why IK is harder than FK",
+      "body": "**Forward kinematics (FK)**: given joint angles $\\theta$, compute end-effector pose $T = f(\\theta)$. Always solvable; just composition of joint transformations.\n\n**Inverse kinematics (IK)**: given desired end-effector pose $T$, find joint angles $\\theta = f^{-1}(T)$. Hard for several reasons:\n\n1. **Multiple solutions**: a 6-DOF arm typically has up to 16 distinct IK solutions for a generic pose. Which one to use? Depends on joint-limit feasibility, current configuration (smallest motion from where we are), singularities to avoid.\n2. **Redundancy**: a 7-DOF arm has a 1-DOF nullspace — infinitely many IK solutions. Free dimension can be used for secondary tasks (avoid obstacles, stay away from joint limits).\n3. **Singularities**: configurations where the Jacobian loses rank. The arm is mechanically valid but the local linearization is degenerate — moving the end-effector in one direction requires infinite joint velocities. Standard robot configurations (e.g., elbow fully extended) are singular.\n\n**Solving IK**: closed-form for simple geometries (Pieper's solution for 6-DOF with three concurrent axes); numerical (Jacobian-pseudoinverse, damped least-squares) for the general case; learned (DNN-based IK) for problems with constraints that defy closed form.\n\n**Force control**: instead of commanding joint angles, command end-effector forces. Used for assembly tasks (insertion, polishing) where contact dynamics matter. Hybrid position/force control (Khatib): position-control in some directions, force-control in others — the standard for sensitive assembly."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_man_ik",
+        "kind": "multiple_choice",
+        "question": "A 6-DOF robot arm at a near-singular configuration:",
+        "options": [
+          "Has fewer IK solutions than usual.",
+          "Has high joint velocities required to move the end-effector — small motions become numerically unstable.",
+          "Cannot be controlled.",
+          "Has more IK solutions than usual."
+        ],
+        "correctIndex": 1,
+        "explanation": "Near a singularity, the Jacobian becomes ill-conditioned. Small end-effector motions require large joint velocities; the system is hard to control reliably. Standard mitigation: damped least-squares IK (Levenberg-Marquardt-style damping) handles near-singular Jacobian gracefully but at the cost of less-direct tracking near the singularity. Path planners avoid singularities entirely."
+      },
+      "hints": [
+        "What's special about the Jacobian at a singularity?",
+        "If small Cartesian motions require huge joint motions, what does that imply for control?"
+      ],
+      "workedSolution": "Near a singularity the Jacobian $J(\\theta)$ has a small singular value. $\\theta' = J^+(\\theta) v$ for end-effector velocity $v$ — small singular values of $J$ become large in $J^+$, so $\\theta'$ explodes for finite $v$. In practice the arm's motion becomes jerky / unstable, and the control system can saturate joint velocities. Damped least-squares IK regularizes by adding $\\lambda I$ to $J^T J$, sacrificing tracking accuracy for stability.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_man_force",
+        "kind": "scenario",
+        "question": "When to use force control",
+        "prompt": "You're programming a robot to insert a peg into a hole. Position control (move to programmed coordinates) keeps jamming the peg. Why is this a force-control problem, and what's the standard solution?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_man",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why learning-based IK (a neural network mapping pose to joint angles) is appealing despite closed-form / numerical solutions existing.",
+        "rubric": "Mentions that learning can incorporate task-specific preferences (avoid certain configurations, satisfy redundancy in a learned way) and handle complex constraints that defy closed form."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish forward from inverse kinematics.",
+      "Recognize the IK redundancy problem.",
+      "Explain force/torque control vs position control."
+    ],
+    "prereqs": [
+      "motion-planning"
+    ]
+  }
 }

@@ -64,12 +64,78 @@
         "kind": "explain_back",
         "prompt": "Explain why SLAM is hard. Pick one of the central challenges (drift, loop closure, data association, scaling) and walk through the difficulty + how modern systems address it.",
         "rubricCriteria": [
-          { "id": "names-challenge", "description": "Identifies a specific SLAM challenge" },
-          { "id": "explains-difficulty", "description": "Explains why the challenge is hard from first principles" },
-          { "id": "modern-approach", "description": "Names a modern technique that addresses it (factor graphs, deep features, sparse solvers)" }
+          {
+            "id": "names-challenge",
+            "description": "Identifies a specific SLAM challenge"
+          },
+          {
+            "id": "explains-difficulty",
+            "description": "Explains why the challenge is hard from first principles"
+          },
+          {
+            "id": "modern-approach",
+            "description": "Names a modern technique that addresses it (factor graphs, deep features, sparse solvers)"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "Loop closure: the SLAM workhorse",
+      "body": "**SLAM (Simultaneous Localization and Mapping)**: estimate the robot's pose AND build a map of the environment, both unknown a priori.\n\n**Why hard**: pose errors accumulate over time (odometric drift). A 10-meter walk that introduces 1% error per step produces noticeable map drift after 100 meters. Without correction, the map gets warped.\n\n**Loop closure**: when the robot revisits a previously-seen place, recognize it ('this scan matches a stored scan from 10 minutes ago'). The constraint 'these two timestamps observed the same place' lets the optimizer correct the accumulated drift between them.\n\n**Graph-SLAM** (modern dominant approach): build a pose graph — nodes are robot poses, edges are odometric or loop-closure constraints. Solve a nonlinear least-squares problem to find poses that best satisfy all constraints. Toolkits: g2o, GTSAM, ceres-solver.\n\n**Place recognition**: how to detect loop closure. Classical: BoW (bag of visual words). Modern: deep-learning descriptors (NetVLAD), or visual+language (CLIP-style embeddings of scenes).\n\n**Visual-inertial SLAM**: combine cameras + IMU. ORB-SLAM3, VINS-Mono. The IMU provides high-rate odometry; cameras provide loop closure. Tightly-coupled fusion of both is the modern recipe for AR/VR + robot navigation.\n\nFor ML researchers: SLAM is a constrained-optimization + recognition problem that overlaps heavily with self-supervised representation learning and graph neural networks. Active research direction."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_slam_loop",
+        "kind": "multiple_choice",
+        "question": "A robot's SLAM map drifts because:",
+        "options": [
+          "The map is too big to store.",
+          "Odometric errors accumulate; without external corrections, integrated pose estimates diverge from truth.",
+          "The compute is too slow.",
+          "Cameras can't see in the dark."
+        ],
+        "correctIndex": 1,
+        "explanation": "Odometric errors accumulate by integration: each step contributes a small error, which compounds. Over many steps the trajectory estimate drifts from reality. Loop closure provides an external constraint that breaks the integration cycle and lets the optimizer correct accumulated drift in one shot. Without loop closure, SLAM maps warp."
+      },
+      "hints": [
+        "What happens when you integrate noisy velocity estimates?",
+        "Loop closure provides what mathematical structure that pure integration lacks?"
+      ],
+      "workedSolution": "Pure odometric integration: each velocity estimate carries a small error; summing many of them over time produces unbounded drift. Loop closure provides a *constraint* ('I am back at the place I was at time $t_0$') that lets the optimizer redistribute errors globally — yielding a much more accurate map than integration alone.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_slam_dynamic",
+        "kind": "scenario",
+        "question": "Dynamic environments",
+        "prompt": "A SLAM system works well in a static lab but fails when deployed in a crowded warehouse with moving forklifts. Why does standard SLAM struggle with moving objects, and what variants address it?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_slam",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why graph-SLAM has displaced filter-based SLAM (EKF-SLAM) over the last 15 years.",
+        "rubric": "Mentions that graph-based methods handle large maps efficiently (sparse linear algebra), support batch re-optimization with loop closure, and avoid the EKF's accumulating linearization error; computational improvements made the harder-to-implement but better-quality graph approach feasible."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "State the SLAM problem.",
+      "Distinguish filter-based from graph-based SLAM.",
+      "Recognize the loop-closure problem."
+    ],
+    "prereqs": [
+      "estimation-and-filtering"
+    ]
+  }
 }

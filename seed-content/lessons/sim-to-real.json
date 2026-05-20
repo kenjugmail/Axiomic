@@ -69,12 +69,78 @@
         "kind": "explain_back",
         "prompt": "Explain why domain randomization is a popular sim-to-real technique. Walk through: what's randomized, why, and the tradeoff between wide and narrow randomization.",
         "rubricCriteria": [
-          { "id": "what-randomized", "description": "Names what's randomized (physics, visuals, sensor noise)" },
-          { "id": "robustness-rationale", "description": "Explains that DR makes the policy robust to a distribution that hopefully includes reality" },
-          { "id": "wide-vs-narrow-tradeoff", "description": "Names the tradeoff (wide = robust but hard to learn; narrow = easy but fragile)" }
+          {
+            "id": "what-randomized",
+            "description": "Names what's randomized (physics, visuals, sensor noise)"
+          },
+          {
+            "id": "robustness-rationale",
+            "description": "Explains that DR makes the policy robust to a distribution that hopefully includes reality"
+          },
+          {
+            "id": "wide-vs-narrow-tradeoff",
+            "description": "Names the tradeoff (wide = robust but hard to learn; narrow = easy but fragile)"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "Reality gap, in one paragraph",
+      "body": "**Sim-to-real**: train a policy in simulation (cheap, parallelizable, infinite data), deploy on physical hardware (expensive, irreversible, slow). The gap between sim and real is the 'reality gap' — the source of every sim-to-real failure.\n\nCommon causes:\n- **Friction**: simulators idealize contact friction; real surfaces are weird.\n- **Motor dynamics**: real motors have backlash, deadband, and torque limits the sim ignores.\n- **Sensor noise**: cameras have rolling shutter, exposure variation, lens distortion the sim doesn't replicate.\n- **Latency**: real control loops have communication + processing delays; sim assumes instantaneous.\n\nApproaches:\n\n**Domain randomization**: randomize physical parameters (friction, mass, motor delay) at training time, forcing the policy to be robust to any value in the distribution. Powerful and simple; Tobin et al. 2017 showed it could close the gap for some manipulation tasks.\n\n**System identification**: measure the real system's parameters and configure the sim to match. Better when feasible; impractical for large parameter spaces or hard-to-measure dynamics.\n\n**Real-world fine-tuning**: train in sim, fine-tune on real-world rollouts. Sample-efficient relative to learning from scratch but requires real-world interaction.\n\n**Differentiable simulators** (MJX, Brax, Drake): combine simulation with gradient-based optimization for system identification + policy improvement.\n\nThe upshot: 'just train more' in sim alone doesn't work — the policy overfits to sim physics. Sim-to-real success requires either (a) heavy domain randomization, (b) careful sim calibration, or (c) real-world data."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_s2r_dr",
+        "kind": "multiple_choice",
+        "question": "Domain randomization trains a policy by:",
+        "options": [
+          "Randomizing the policy weights.",
+          "Randomizing simulator parameters (friction, mass, motor delay, lighting) at training time — forcing the policy to be robust to any value in the distribution.",
+          "Adding noise to the reward.",
+          "Using a different physics engine each episode."
+        ],
+        "correctIndex": 1,
+        "explanation": "Domain randomization: instead of training on one set of physical parameters, randomize them every episode. The policy must work across the entire distribution, which includes the unknown real-world parameters. If real-world physics fall within the randomization range, the policy transfers. Powerful, simple, dominant approach in 2018-2022 sim-to-real work."
+      },
+      "hints": [
+        "The 'domain' being randomized is the physical environment.",
+        "Force the policy to handle any parameter value within a range.\n"
+      ],
+      "workedSolution": "Domain randomization randomizes physical parameters (friction, mass, motor delay, lighting) at each training episode. The policy must be robust to any parameter value in the range. If real-world physics fall within that range, the policy transfers (without ever having seen the exact real values). Trade-off: too-wide ranges make the policy timid; too-narrow ranges fail to cover real-world variability.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_s2r_camera",
+        "kind": "scenario",
+        "question": "Vision sim-to-real",
+        "prompt": "A vision-based grasping policy trained in MuJoCo with realistic textures works perfectly in sim but fails on the real robot because real cameras introduce subtle distortions. What two domain-randomization knobs would you turn first, and what's the limit of this approach?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_s2r",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why sim-to-real is the central bottleneck in deploying learned robot policies.",
+        "rubric": "Mentions that simulation is the only way to get enough data for modern RL/IL training; real-world data is too expensive/slow; the gap between sim and real determines whether the sim-trained policy actually works in the real world."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Recognize the reality-gap problem.",
+      "Distinguish domain randomization from system identification.",
+      "Explain why sim-to-real isn't 'just train more'."
+    ],
+    "prereqs": [
+      "motion-planning"
+    ]
+  }
 }

@@ -69,12 +69,78 @@
         "kind": "explain_back",
         "prompt": "What's the most important difference between a 2018-era manipulation policy and a 2024-era VLA policy? Walk through specific differences in architecture, data, and capability.",
         "rubricCriteria": [
-          { "id": "architecture-diff", "description": "Names specific architectural differences (transformer backbone, vision-language conditioning)" },
-          { "id": "data-diff", "description": "Names data scale + diversity differences" },
-          { "id": "capability-diff", "description": "Names specific capabilities VLAs have that prior systems didn't (instruction following, generalization, multi-task)" }
+          {
+            "id": "architecture-diff",
+            "description": "Names specific architectural differences (transformer backbone, vision-language conditioning)"
+          },
+          {
+            "id": "data-diff",
+            "description": "Names data scale + diversity differences"
+          },
+          {
+            "id": "capability-diff",
+            "description": "Names specific capabilities VLAs have that prior systems didn't (instruction following, generalization, multi-task)"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "Foundation models for robotics, in one paragraph",
+      "body": "The 2023-2025 vision: just as GPT became one model for many text tasks, train one big model for many robot tasks. Inputs: camera image + natural-language instruction + proprioception. Output: action sequence. Train on diverse demonstrations across many robot embodiments and tasks.\n\n**RT-2** (Google DeepMind 2023): co-train an LLM on text + robot trajectories. Demonstrate that VLM pretraining + robot-trajectory fine-tuning produces useful policies that generalize across novel tasks.\n\n**OpenVLA** (Stanford + others 2024): open-source 7B VLA model trained on the RT-X dataset. Comparable performance to RT-2 with open weights.\n\n**$\\pi_0$** (Physical Intelligence 2024): the 'one model, many robots' bet. Trained on diverse demonstrations across multiple embodiments. Zero-shot transfer to new robots via prompt + few demos.\n\n**Why cross-embodiment is hard**: different robots have different action spaces, different sensors, different physical capabilities. A 7-DOF arm doesn't share action geometry with a wheeled mobile robot. Action-space normalization and morphology-conditioning are active research areas.\n\n**The big debate**: how much robot-specific structure to bake in vs. how much to let the model learn from data. Optimists (Physical Intelligence, others): just like GPT, structure is overrated; data + scale wins. Skeptics: robots are mechanical, the physics structure matters, and pure data won't yield safe policies. The next 2 years will likely resolve this empirically."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_eai_vla",
+        "kind": "multiple_choice",
+        "question": "VLA (vision-language-action) models like RT-2 / OpenVLA / $\\pi_0$ predict:",
+        "options": [
+          "Only language outputs.",
+          "An action sequence given an image + instruction.",
+          "Only the next image.",
+          "The reward function."
+        ],
+        "correctIndex": 1,
+        "explanation": "VLA models are conditional policies: input the current visual context + a language instruction, output an action sequence. The 'language' input lets users specify tasks naturally; the 'action' output drives the robot. This contrasts with classical policies (which take only state inputs and produce actions) — VLAs leverage VLM pretraining + language instruction as a generalization tool."
+      },
+      "hints": [
+        "Read the acronym: V = vision input, L = language input, A = action output.",
+        "Inputs are images + text instructions; the output is the policy's action."
+      ],
+      "workedSolution": "VLA = Vision-Language-Action. Vision and language enter as inputs (current scene + natural-language task); action is the output (joint commands, end-effector targets, or token-level discretized commands). The win is that language conditioning generalizes the policy across tasks — 'pick up the red block' is a different instruction from 'pick up the blue block' but uses the same model.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_eai_morphology",
+        "kind": "scenario",
+        "question": "Cross-embodiment",
+        "prompt": "Your team trained $\\pi_0$ on a Franka arm + a Stretch mobile base, achieving SOTA on both. Now you want to deploy on a Spot quadruped. Why might transfer fail even though all three are in the training set, and what's the principled mitigation?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_eai",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why robotics' 'foundation model moment' has been slower to arrive than language's.",
+        "rubric": "Mentions that robot demonstration data is scarcer than text by ~6 orders of magnitude; physical hardware is expensive and slow to collect data on; embodiment diversity makes cross-task transfer harder than text's single 'modality'."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish foundation-model-for-robotics from task-specific policies.",
+      "Recognize VLA (vision-language-action) as the dominant 2024-2025 paradigm.",
+      "Articulate why cross-embodiment is hard."
+    ],
+    "prereqs": [
+      "learning-based-control"
+    ]
+  }
 }

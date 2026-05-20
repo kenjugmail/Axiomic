@@ -69,12 +69,78 @@
         "kind": "explain_back",
         "prompt": "Pick one: imitation learning, model-based RL, or transformer policies. Walk through what makes the approach attractive AND what its current limits are for production deployment.",
         "rubricCriteria": [
-          { "id": "method-overview", "description": "Cleanly describes how the method works" },
-          { "id": "strengths", "description": "Names 1-2 specific strengths" },
-          { "id": "limits", "description": "Names 1-2 specific deployment limits" }
+          {
+            "id": "method-overview",
+            "description": "Cleanly describes how the method works"
+          },
+          {
+            "id": "strengths",
+            "description": "Names 1-2 specific strengths"
+          },
+          {
+            "id": "limits",
+            "description": "Names 1-2 specific deployment limits"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "BC vs RL vs diffusion policies",
+      "body": "**Behavior cloning (BC)**: train a policy via supervised learning on demonstrations. Simple, sample-efficient, no exploration needed. Fails when the policy enters states the demonstrations didn't visit (covariate shift).\n\n**Reinforcement learning (RL)**: train by interacting with the environment, optimizing a reward. Robust to covariate shift; but sample-hungry and reward-hacking-prone.\n\n**Diffusion policies** (Chi et al. 2023): generative model the policy as 'next action sequence given state and history'. Trained on demonstrations with diffusion-style noising/denoising. Handles multimodal action distributions (where multiple valid actions exist — e.g., grasping a cup from different angles) that unimodal BC fails on.\n\n**Transformer policies** (RT-2, OpenVLA, $\\pi_0$): treat robot control as sequence prediction, just like language. Big transformer trained on action+image+language tokens. Benefits from web-scale pretraining (vision-language model warm-start) and unifies multiple tasks under one architecture.\n\n**Trade-offs**:\n- BC needs lots of demos but trains fast.\n- RL needs lots of env interaction but recovers from mistakes.\n- Diffusion policies handle multimodality at the cost of inference complexity.\n- Transformer policies are big and slow to train but transfer broadly.\n\nThe field is in flux. 2024-2025 saw transformer policies (especially $\\pi_0$ + variants) dominate VLA (vision-language-action) benchmarks. RT-X dataset (millions of robot trajectories across 22 institutions) made foundation-model-style training feasible. The next big wave is likely cross-embodiment policies — one model, many robots."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_lbc_dp",
+        "kind": "multiple_choice",
+        "question": "Diffusion policies are useful when:",
+        "options": [
+          "Demonstrations are sparse.",
+          "Action distributions are multimodal — multiple valid actions in the same state (e.g., grasping from any of several angles).",
+          "Cameras are noisy.",
+          "Reward signals are dense."
+        ],
+        "correctIndex": 1,
+        "explanation": "Diffusion policies' main advantage: they can represent multimodal distributions naturally. BC with MSE loss collapses to the mean of multimodal demonstrations (which is often a bad action — the average of 'left grasp' and 'right grasp' is 'no grasp'). Diffusion policies generate from the actual conditional distribution, picking one of the valid modes per inference."
+      },
+      "hints": [
+        "What's the failure mode of unimodal BC on diverse demonstrations?",
+        "Where would 'predicting the average' produce a bad action?"
+      ],
+      "workedSolution": "If demonstrations show multiple valid actions at the same state (grasping from left, from right, from above), unimodal regression (BC with MSE) returns the average — which is often the worst answer. Diffusion policies model the full action distribution via denoising; they can sample any of the modes. Useful any time demonstrations are diverse in approach but consistent in outcome.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_lbc_data",
+        "kind": "scenario",
+        "question": "Robot data scarcity",
+        "prompt": "You have 100 high-quality demonstrations of a manipulation task. A teammate proposes training a 1B-parameter transformer policy on it. Why is this likely to fail, and what alternative architecture is better-suited?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_lbc",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why imitation learning + RL fine-tuning is a common recipe for production robot policies.",
+        "rubric": "Mentions that imitation gives a good starting policy from demos (avoiding bad initial exploration); RL fine-tuning then refines policy beyond demo quality by optimizing for the task reward."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish behavior cloning from RL.",
+      "Recognize diffusion policies + transformer policies as recent advances.",
+      "Articulate the data-efficiency tradeoff in robot learning."
+    ],
+    "prereqs": [
+      "sim-to-real"
+    ]
+  }
 }

@@ -64,12 +64,93 @@
         "kind": "explain_back",
         "prompt": "Pick a concrete robot example (manipulator, drone, autonomous vehicle, mobile robot). Walk through what motion planner you'd choose and why. Address: dimensionality, dynamic vs static obstacles, real-time constraints.",
         "rubricCriteria": [
-          { "id": "specific-example", "description": "Names a specific robot type with concrete planning needs" },
-          { "id": "method-rationale", "description": "Justifies the planner choice (RRT-family, A*, MPC, hybrid) based on the system's properties" },
-          { "id": "tradeoffs", "description": "Names trade-offs (computational cost, optimality, real-time)" }
+          {
+            "id": "specific-example",
+            "description": "Names a specific robot type with concrete planning needs"
+          },
+          {
+            "id": "method-rationale",
+            "description": "Justifies the planner choice (RRT-family, A*, MPC, hybrid) based on the system's properties"
+          },
+          {
+            "id": "tradeoffs",
+            "description": "Names trade-offs (computational cost, optimality, real-time)"
+          }
         ],
         "passingScore": 0.6
       }
+    },
+    {
+      "kind": "text",
+      "title": "RRT vs A*: when to use which",
+      "body": "**Search-based planning** (A*, D*, $A^*$ on grid): expand outward from start until you reach goal. Optimal (with admissible heuristic), discrete. Scales as $O(b^d)$ in branching factor and depth.\n\n**Sampling-based planning** (RRT, RRT*, PRM): build a tree by sampling random configurations, extending toward each sample from the closest tree node. Probabilistically complete. Scales as $O(n \\log n)$ in samples — handles high-dim configuration spaces (think 7-DOF arm) that grid-search can't touch.\n\n**Trajectory optimization** (CHOMP, TrajOpt): treat the path as a continuous function (B-spline of waypoints, say), optimize a cost function balancing path length + smoothness + clearance, subject to constraints. Returns smooth, optimal trajectories — but needs a good initial guess (often from sampling planning).\n\nMatchup:\n- 2D/3D grid world: A*.\n- 7-DOF arm motion: RRT-Connect (a fast bidirectional RRT) → trajectory optimization to smooth.\n- Self-driving car: search-based for path topology + trajectory optimization for the actual trajectory.\n- Fully-known model + small state: optimal control directly.\n\nThe ML angle: trajectory optimization is a continuous-control RL problem in disguise. Differentiable physics (e.g., Mujoco MJX, Brax) lets gradient-based optimizers compete with sampling. Learned dynamics models (world models) + planning at test time are how DeepMind's MuZero-style methods work; the boundary between 'planning' and 'RL' is increasingly blurred."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mp_rrt",
+        "kind": "multiple_choice",
+        "question": "RRT's advantage over $A^*$ for 7-DOF arm motion planning:",
+        "options": [
+          "RRT is always faster.",
+          "RRT explores the high-dimensional configuration space via random sampling — avoiding the exponential blow-up of grid-based search.",
+          "RRT is optimal; $A^*$ isn't.",
+          "RRT requires a known goal.\n"
+        ],
+        "correctIndex": 1,
+        "explanation": "RRT's $O(n \\log n)$ in samples (n) handles the high-dim CSpace; grid-based $A^*$ would need $O(b^d) = O((\\text{grid size})^7)$ which is computationally prohibitive at any useful grid resolution. RRT trades optimality for tractability; RRT* (an asymptotic-optimal variant) recovers optimality in the limit. Optimal control + trajectory optimization can smooth RRT's output post-hoc."
+      },
+      "hints": [
+        "What's the dimensionality of the configuration space, and how does each algorithm scale with it?",
+        "$A^*$'s grid blows up exponentially in dim; RRT samples and doesn't have that issue."
+      ],
+      "workedSolution": "$A^*$ over an explicit grid has exponential complexity in configuration-space dimension. For a 7-DOF arm, even a coarse grid is unaffordable. RRT samples random configurations and extends toward them; complexity scales with samples (not grid cells), making high-dim planning tractable. The trade-off is optimality — RRT finds *a* path, not necessarily the shortest one. RRT* fixes this asymptotically.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mp_narrowpassage",
+        "kind": "scenario",
+        "question": "Narrow passages",
+        "prompt": "Standard RRT struggles in 'narrow passage' planning problems (e.g., threading an arm through a small opening). Why is sampling hostile to narrow passages, and what variant (Bridge-test, RRT-Connect) addresses it?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mp_grid",
+        "kind": "math_expression",
+        "question": "A 7-DOF arm with each joint discretized to 10 positions. Number of grid cells: $10^d$. For d = 7, that's:",
+        "acceptedAnswers": [
+          "10000000",
+          "10^7",
+          "10 million",
+          "10000000 cells"
+        ],
+        "hint": "Just compute $10^7$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mp",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why trajectory optimization is usually run on top of a planner's output, not from scratch.",
+        "rubric": "Mentions that trajectory optimization is local — converges to the nearest minimum from its initial seed; without a planner's globally-feasible seed, local optimization can get stuck in infeasible regions or local minima."
+      }
     }
-  ]
+  ],
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish sampling-based from search-based motion planning.",
+      "Explain why RRT scales to high-dim configuration spaces.",
+      "Recognize the trajectory-optimization alternative."
+    ],
+    "prereqs": [
+      "state-space-control"
+    ]
+  }
 }
