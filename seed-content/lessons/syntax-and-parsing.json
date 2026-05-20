@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish phrase-structure from dependency grammar.",
+      "Outline transition-based + graph-based dependency parsing.",
+      "Reason about parsing-as-tagging in transformers."
+    ],
+    "prereqs": [
+      "tokenization-and-bpe"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Phrase structure vs dependency grammar",
+      "body": "Two major formal traditions for syntactic structure:\n\n**Phrase-structure (constituency) grammar**: Chomsky 1957. Sentence is a TREE of NESTED phrases. 'The cat sat' has structure `[S [NP The cat] [VP sat]]` — a Sentence containing a Noun Phrase and a Verb Phrase. Used in classical English grammar + the Penn Treebank.\n\n**Dependency grammar**: Tesnière 1959. Sentence is a tree of DEPENDENCIES between words. The main verb is the root; each word has one head; arrows from head to dependent labeled with grammatical relation. 'The cat sat' has `sat ←ROOT, cat ←nsubj sat, The ←det cat`. Used in Universal Dependencies (UD), the modern de-facto standard.\n\n**Dependency wins for NLP** because:\n- Direct: each word has one head, easy to extract semantic relations.\n- Cross-lingual: UD has consistent annotations for 200+ languages. Phrase-structure trees vary wildly by language.\n- Useful for downstream: dependency relations directly encode subject/object/modifier/etc.\n\n**Phrase-structure persists** for English grammar education + some parsing research (CCG, formal semantics with composition). But for engineering NLP, dependencies dominate.\n\n**Pure-dependency formalism limitations**: doesn't natively encode coordination, ellipsis, or some semantic phenomena. Enhanced UD adds extra dependencies for these cases."
+    },
+    {
+      "kind": "text",
+      "title": "Transition-based + graph-based parsers",
+      "body": "Two algorithmic approaches to dependency parsing:\n\n**Transition-based (shift-reduce)**: process left-to-right via a stack + buffer. At each step, classify what to do:\n- SHIFT: push next token to stack.\n- LEFT-ARC: top-of-stack-2 is dependent of top-of-stack-1; pop; add arc.\n- RIGHT-ARC: vice versa.\n- REDUCE: pop the stack.\n\nThe classifier (originally SVM, now neural) maps `(stack, buffer)` state to action. $O(n)$ time. Classic algorithm: **arc-standard** (Nivre 2003) or **arc-eager**.\n\n**Graph-based**: score every possible head-dependent pair $(i, j)$. Find the maximum-spanning-arborescence (MST in a directed graph). $O(n^2)$ time with Chu-Liu-Edmonds.\n\n**Quality vs speed**:\n- Transition-based: faster, sequential. Locally-greedy decisions accumulate error (but beam search + dynamic oracle help). State of the art ~92% UAS on English with neural models.\n- Graph-based: slower, but globally optimal. State of the art ~94% UAS. The classical CRF parser + modern biaffine attention parsers (Dozat-Manning 2017) live here.\n\n**Biaffine attention** (the modern default): two MLPs produce head + dependent embeddings; biaffine scorer $h_i^T U h_j$ gives the score of arc $i \\to j$. Run MST on the score matrix. Trained end-to-end. 94% UAS on English UD; state of the art for years.\n\n**Transformer parsing**: BERT/RoBERTa with a parsing head. Either as a tagging task (predict each word's head + relation) or biaffine over hidden states. Most modern dependency parsers are BERT-based."
+    },
+    {
+      "kind": "text",
+      "title": "Parsing as tagging + the LLM era",
+      "body": "**Parsing as sequence tagging**: instead of explicit tree algorithms, predict tags that ENCODE the tree. E.g., for each word, predict 'head distance' (the relative position of its head) + relation label. Decode the tag sequence to a tree.\n\nThis turns parsing into a tagging task, allowing BERT/RoBERTa to be used directly. Pros: simple. Cons: doesn't guarantee a valid tree (single root, connected). Post-processing repairs.\n\n**Strzyz et al 2019** popularized this approach. Modern UD-parsing pipelines (Trankit, Stanza) include tagging-based parsers.\n\n**LLM era**: do we still need parsers? Two views:\n\n1. **Implicit parsing**: large LLMs encode syntactic information in their hidden states (BERT probing 2019 showed dependency-like features). For most downstream tasks, explicit parses aren't needed — fine-tune end-to-end.\n\n2. **Structured generation**: some tasks need EXPLICIT structure. Knowledge graph construction, semantic parsing (text → SQL), formal-spec generation. These benefit from a parsed tree as scaffolding. Recent LLM-based work generates linearized trees as text.\n\n**Where explicit parsing still matters**:\n- Low-resource languages (no LLM pretrained data; classical parsers transfer better).\n- Information extraction pipelines (relation extraction often uses dependency paths).\n- Interpretability / linguistic analysis (need named relations, not opaque attention patterns).\n- Compositional semantics (CCG parsers feed lambda-calc semantic builders).\n\nThe field is bifurcating: pure-NLP-task pipelines move LLM-end-to-end; linguistic + structured-knowledge applications keep explicit parsers."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_parse_arc_standard",
+        "kind": "guided_derivation",
+        "question": "Trace arc-standard parsing for 'I love cats'",
+        "goal": "Stack starts with [ROOT]; buffer = [I, love, cats]. Goal: dependency tree (love is root; I = nsubj of love; cats = dobj of love).",
+        "steps": [
+          {
+            "prompt": "Initial state: stack=[ROOT], buffer=[I,love,cats]. Action: SHIFT. New state?",
+            "motivation": "Standard first move.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "stack=[ROOT,I], buffer=[love,cats]",
+                "stack=[ROOT], buffer=[I,love,cats]",
+                "stack=[I,ROOT], buffer=[love,cats]",
+                "stack=[I], buffer=[ROOT,love,cats]"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "SHIFT pushes the first buffer token to the stack."
+            ],
+            "reveal": "stack=[ROOT,I], buffer=[love,cats]."
+          },
+          {
+            "prompt": "SHIFT again: stack=[ROOT,I,love], buffer=[cats]. Now we want `I` to be the subject (nsubj) of `love`. Which arc-action?",
+            "motivation": "Arc-standard.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "LEFT-ARC(nsubj): top-2 (I) becomes dependent of top-1 (love), pop top-2.",
+                "RIGHT-ARC(nsubj): top-1 becomes dependent of top-2.",
+                "REDUCE.",
+                "SHIFT."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "I is to the LEFT of love; love is the head."
+            ],
+            "reveal": "LEFT-ARC(nsubj): adds arc love → I (labeled nsubj), pops I. New stack: [ROOT, love]."
+          },
+          {
+            "prompt": "SHIFT: stack=[ROOT,love,cats], buffer=[]. Now `cats` should be the direct object (dobj) of `love`. Action?",
+            "motivation": "Arc to the right.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "LEFT-ARC(dobj).",
+                "RIGHT-ARC(dobj): top-1 (cats) becomes dependent of top-2 (love), pop top-1.",
+                "SHIFT.",
+                "REDUCE."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "love is to the LEFT of cats; love is the head."
+            ],
+            "reveal": "RIGHT-ARC(dobj): adds love → cats, pops cats. Stack: [ROOT, love]. Final RIGHT-ARC(root): love is dependent of ROOT. Tree complete."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Transition-based parsing: O(n) actions on a stack+buffer}}$$ Each step is a classification on a small state (stack top + buffer front). With neural features (BERT embeddings of nearby tokens), the classifier is ~98%+ accurate per step. The classical Nivre 2003 arc-standard algorithm remains the canonical reference even in the deep-learning era."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_parse_attention",
+        "kind": "multiple_choice",
+        "question": "BERT probing studies (Hewitt-Manning 2019) found that dependency tree structure is encoded in BERT's hidden states even though it's never explicitly trained for parsing. How is this measured?",
+        "options": [
+          "By inspecting the attention weights directly.",
+          "By training a linear/MLP probe to recover tree structure from hidden states + finding that distance between tree-neighbors is preserved as Euclidean distance in a learned subspace.",
+          "By directly visualizing the activations.",
+          "By comparing to LSTMs."
+        ],
+        "correctIndex": 1,
+        "explanation": "Hewitt-Manning showed that a learned linear transformation $B$ maps BERT hidden states to a space where Euclidean distance equals tree distance in the dependency parse. The 'syntactic subspace' is a real, recoverable structure. This sparked the probing literature: what other linguistic structures are implicit in pretrained transformers?"
+      },
+      "hints": [
+        "What's a probe?",
+        "What does it recover?"
+      ],
+      "workedSolution": "A probe is a small supervised classifier/regressor trained on top of frozen hidden states. If it can predict structure X with high accuracy, X is 'encoded' in the hidden states. Hewitt-Manning's structural probe found a linear subspace where tree distances are preserved as squared L2 distances. The model learns syntax implicitly because syntax helps language modeling (good predictions of the next token rely on syntactic relations to past tokens).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_parse_uas",
+        "kind": "math_expression",
+        "question": "A parser achieves 92% UAS (unlabeled attachment score) on a 1000-token corpus. How many tokens have correct head assignments?",
+        "acceptedAnswers": [
+          "920"
+        ],
+        "hint": "92% of 1000."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_parse_lowres",
+        "kind": "scenario",
+        "question": "Parsing a low-resource language",
+        "prompt": "Your team needs a dependency parser for Swahili (limited training data). Walk through whether to train from scratch, fine-tune mBERT, or use a UD-treebank cross-lingual transfer."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_parse",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why dependency grammar (rather than phrase-structure grammar) dominates modern NLP.",
+        "rubric": "Mentions that dependency trees are flatter (each word has one head), directly encode semantic relations (subject, object, modifier), are easier to cross-lingually annotate (Universal Dependencies has 200+ languages), and feed naturally into downstream tasks like relation extraction. Phrase-structure trees are deeper + less directly useful for engineering NLP."
+      }
+    }
+  ]
+}

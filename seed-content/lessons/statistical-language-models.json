@@ -1,0 +1,148 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "core",
+    "objectives": [
+      "State the chain rule + n-gram approximation.",
+      "Apply Laplace + Kneser-Ney smoothing.",
+      "Define perplexity + cross-entropy."
+    ],
+    "prereqs": [
+      "tokenization-and-bpe"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Probabilistic language models: chain rule + n-grams",
+      "body": "A **language model** assigns probability to sequences. By the chain rule:\n$$P(w_1, w_2, \\dots, w_n) = \\prod_{i=1}^n P(w_i \\mid w_1, \\dots, w_{i-1})$$\n\nEach factor is the conditional probability of the next word given the history.\n\n**The data problem**: history $w_1 \\dots w_{i-1}$ grows linearly. Direct estimation is impossible (the exact full history is unique most of the time).\n\n**N-gram approximation**: limit history to the last $n-1$ tokens.\n$$P(w_i \\mid w_1, \\dots, w_{i-1}) \\approx P(w_i \\mid w_{i-n+1}, \\dots, w_{i-1})$$\n\n- **Unigram** ($n=1$): $P(w_i)$. Each word independent. Atomically primitive.\n- **Bigram** ($n=2$): $P(w_i \\mid w_{i-1})$. The classic.\n- **Trigram** ($n=3$): $P(w_i \\mid w_{i-2}, w_{i-1})$. Long the workhorse of speech recognition.\n- **5-gram** ($n=5$): Google's web-scale LM (2006) was a 5-gram. Storage scaled to TB.\n\n**Maximum-likelihood estimation**:\n$$P_{MLE}(w_i \\mid w_{i-1}) = \\frac{c(w_{i-1}, w_i)}{c(w_{i-1})}$$\nwhere $c$ is count in the training corpus.\n\n**The sparsity problem**: most n-grams of moderate $n$ NEVER appear in training. So MLE gives them probability 0 — the model's probability for any unseen text is 0 (under the product). Must SMOOTH."
+    },
+    {
+      "kind": "text",
+      "title": "Smoothing: Laplace, Good-Turing, Kneser-Ney",
+      "body": "**Laplace smoothing (add-one)**:\n$$P_{Laplace}(w_i \\mid w_{i-1}) = \\frac{c(w_{i-1}, w_i) + 1}{c(w_{i-1}) + V}$$\nwhere $V$ = vocab size. Adds 1 fake count to every bigram. Smoothes but heavily overestimates rare events when $V$ is large.\n\n**Good-Turing**: estimate the probability of unseen events from the frequency-of-frequencies. Adjusts the MLE counts so the total mass redistributes from seen → unseen.\n\n**Kneser-Ney** (1995, the classic before neural LMs): adjusts based on **continuation count** — how many DIFFERENT contexts a word appears in. The intuition: a word like 'Francisco' has high unigram count but appears almost exclusively after 'San'; it should have LOW marginal probability in novel contexts. Standard MLE overestimates 'Francisco' standalone.\n$$P_{KN}(w_i \\mid w_{i-1}) = \\frac{\\max(c(w_{i-1}, w_i) - D, 0)}{c(w_{i-1})} + \\lambda(w_{i-1}) P_{KN-cont}(w_i)$$\nwhere $D$ is a discount, $\\lambda$ a normalization, $P_{KN-cont}$ the continuation distribution.\n\nKneser-Ney was the SOTA for ~15 years. Modified Kneser-Ney + interpolated KN improvements pushed n-gram LM perplexity as low as it would go.\n\n**Neural LMs supplanted KN around 2015**. Recurrent LMs (RNN-LM, LSTM) handled long-context naturally; transformer LMs (GPT, BERT) handled it even better. n-gram LMs survive in: KenLM library (used as a feature for ASR + MT decoding), federated mobile next-word prediction (resource-constrained), and as a teaching example."
+    },
+    {
+      "kind": "text",
+      "title": "Perplexity + cross-entropy",
+      "body": "**Cross-entropy** of model $Q$ relative to true distribution $P$:\n$$H(P, Q) = -\\mathbb{E}_{P}[\\log Q]$$\n\nIn practice, estimated as the average negative log-likelihood on held-out data:\n$$H = -\\frac{1}{N} \\sum_i \\log Q(w_i \\mid \\text{context})$$\n\n**Perplexity** = $2^H$ (binary log) or $e^H$ (natural log). Intuitive interpretation: 'on average, the model thinks the next word has 1 out of PPL equally-likely choices'.\n\n- PPL = 1: perfect prediction.\n- PPL = $V$: random (uniform over vocab).\n- PPL = 50: model treats next word as if there were 50 plausible options. Strong LM territory.\n- PPL = 10: very strong. Modern LLMs.\n\n**Perplexity benchmarks**:\n- 1990s n-gram on WSJ: ~200.\n- 2010s LSTM on Penn Treebank: ~60.\n- 2018 transformer-XL on enwik8: 0.99 bits-per-character (BPC), equivalent to PPL ~2 per char.\n- GPT-3 on common LM benchmarks: PPL 10-20.\n\n**Caveats**:\n- Perplexity is tokenizer-dependent. PPL with 50K vocab and 100K vocab not directly comparable.\n- Held-out data must come from a comparable distribution. Wikipedia-trained LM tested on legal text: very high PPL.\n- PPL ≠ task performance. Sometimes a higher-PPL model better generates / understands / answers.\n\nStill, perplexity remains THE standard intrinsic metric for autoregressive LMs."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_lm_bigram",
+        "kind": "guided_derivation",
+        "question": "Derive bigram MLE from a tiny corpus",
+        "goal": "Corpus: 'the cat sat on the mat'. Compute $P(\\text{sat} \\mid \\text{cat})$ + $P(\\text{the} \\mid \\text{on})$.",
+        "steps": [
+          {
+            "prompt": "Count $c(\\text{cat, sat})$ (occurrences of bigram 'cat sat'). Count $c(\\text{cat})$ (occurrences of 'cat'). MLE: $P(\\text{sat} \\mid \\text{cat}) = c(\\text{cat, sat}) / c(\\text{cat})$. What are these counts?",
+            "motivation": "Apply MLE.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "c(cat,sat)=1, c(cat)=1.",
+                "c(cat,sat)=1, c(cat)=2.",
+                "c(cat,sat)=2, c(cat)=1.",
+                "c(cat,sat)=0, c(cat)=1."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Walk through the corpus."
+            ],
+            "reveal": "'cat' appears 1×; 'cat sat' appears 1×."
+          },
+          {
+            "prompt": "$P(\\text{sat} \\mid \\text{cat}) = ?$",
+            "motivation": "Divide.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1",
+                "1.0",
+                "100%"
+              ]
+            },
+            "hints": [
+              "c(cat,sat)/c(cat)."
+            ],
+            "reveal": "$P(\\text{sat} \\mid \\text{cat}) = 1/1 = 1$. With only 1 occurrence in tiny corpus, MLE is degenerate."
+          },
+          {
+            "prompt": "Now $P(\\text{the} \\mid \\text{on})$. Counts: $c(\\text{on, the}) = ?$ and $c(\\text{on}) = ?$",
+            "motivation": "Walk corpus.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "c(on,the)=1, c(on)=1.",
+                "c(on,the)=2, c(on)=2.",
+                "c(on,the)=0, c(on)=1.",
+                "c(on,the)=1, c(on)=2."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "'on' appears once, followed by 'the'."
+            ],
+            "reveal": "$P(\\text{the} \\mid \\text{on}) = 1/1 = 1$. Tiny corpus gives all 'rare' probabilities = 1."
+          }
+        ],
+        "finalResult": "$$\\boxed{P_{MLE}(w_i \\mid w_{i-1}) = c(w_{i-1}, w_i) / c(w_{i-1})}$$ MLE is the bigram estimator. Tiny corpora give degenerate counts: most events are 0/1. On Wikipedia-scale corpora, MLE gives sensible relative frequencies for common bigrams + still requires smoothing for rare ones. The vast majority of possible bigrams in any natural language have count 0; smoothing redistributes mass to them."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_lm_ppl",
+        "kind": "multiple_choice",
+        "question": "A unigram model trained on 100B tokens has PPL 800 on a held-out set. A trigram model has PPL 120. A neural transformer LM has PPL 15. What does the rapid improvement tell us?",
+        "options": [
+          "The neural LM is better designed.",
+          "Each step (unigram → trigram → neural) uses MORE context information. Unigram ignores context entirely (PPL near vocab size). Trigram uses 2 previous tokens. Neural uses many tokens + learns nonlinear patterns. Each unlocks a different part of language predictability.",
+          "Perplexity is unreliable.",
+          "Vocabularies are different."
+        ],
+        "correctIndex": 1,
+        "explanation": "Unigram only models marginal word frequency; perplexity scales with vocabulary size (~800 for 50K vocab is reasonable). Trigram adds bigram context (~120 captures common collocations). Neural LMs capture long-range dependencies, semantics, syntax. The PPL drops are real + reflect the model's ability to use more context. The transformer is using effectively unlimited context window (up to 32K-1M tokens in modern LLMs)."
+      },
+      "hints": [
+        "How much context does each model use?",
+        "What predictability comes from each context size?"
+      ],
+      "workedSolution": "Unigram: 0 context → PPL bounded below by entropy of word distribution (~6-8 nats for English ≈ PPL 400-1500). Trigram: 2 tokens → captures common phrases. Neural: full context → captures topic, syntax, semantics, world knowledge. Each level of context unlocks more predictability. Modern LLMs operate at PPL ~10 — close to the irreducible entropy of natural language.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_lm_ppl",
+        "kind": "math_expression",
+        "question": "Model assigns probability $P(\\text{sequence}) = 0.001$. Sequence length 10 tokens. Per-token perplexity?",
+        "acceptedAnswers": [
+          "2",
+          "2.0"
+        ],
+        "hint": "PPL = (1/0.001)^(1/10) = 1000^0.1 ≈ 2"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_lm_decode",
+        "kind": "scenario",
+        "question": "Choosing a decoder for a translation system",
+        "prompt": "Your machine translation system gives high-perplexity outputs in greedy decoding. Walk through beam-search, sampling, + nucleus sampling — when each is right + the cost trade-offs."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_lm",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why perplexity is the universal intrinsic metric for language models, despite its limitations.",
+        "rubric": "Mentions that perplexity directly measures the model's average prediction confidence on held-out data, requires no task-specific labels, scales across architectures (n-gram, RNN, transformer), and has clear theoretical grounding in cross-entropy. The limitations (tokenizer-dependence, doesn't always predict downstream-task performance) don't undermine its core utility as a comparative metric for LMs trained with the same tokenizer."
+      }
+    }
+  ]
+}

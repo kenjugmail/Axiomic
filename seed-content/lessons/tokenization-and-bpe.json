@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intro",
+    "objectives": [
+      "Distinguish character-, word-, and subword-level tokenization.",
+      "Apply the BPE algorithm to a small corpus.",
+      "Reason about vocabulary size + out-of-vocabulary handling."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Tokenization: splitting text into model inputs",
+      "body": "**Tokenization** = splitting text into the discrete units a model operates on. The model sees not 'cats' but a token ID like `4316`.\n\nThree historical approaches:\n1. **Character-level**: vocab ~128 (ASCII) or ~150K (Unicode). Every character is a token. Robust to typos + new words; long sequences (a sentence = 100+ tokens).\n2. **Word-level**: split on whitespace + punctuation. Short sequences but huge vocabs (English: 100K+ common words) + brittle to OOV (out-of-vocabulary) words.\n3. **Subword**: middle ground. Common words stay whole (`the`, `dog`); rare words split into common pieces (`cryptocurrency → crypt + ocurr + ency`). 30K-50K vocab + handles OOV gracefully.\n\nThe modern standard is subword. Used by BERT (WordPiece), GPT (BPE), T5 (SentencePiece), LLaMA (SentencePiece-BPE).\n\n**Why subword wins**:\n- Constant vocab regardless of input language richness.\n- No OOV — any string decomposes to known pieces.\n- Captures morphology (English `-ing`, `-ed`, German compounds, Turkish agglutination).\n- Compression ratio: ~4 characters per token in English (so 1 token ≈ 0.75 words).\n\n**Tokenizer choice matters for cost**: GPT-4's tokenizer encodes Chinese characters at ~2 chars/token; English at ~4 chars/token. Same content costs ~2× more in Chinese. tiktoken's library lets you count tokens before paying."
+    },
+    {
+      "kind": "text",
+      "title": "Byte Pair Encoding (BPE) — the algorithm",
+      "body": "**BPE** (Gage 1994 for compression; Sennrich 2016 for NMT). Greedy bottom-up merging of common pairs.\n\nInput: a corpus of words with frequencies. Goal: vocab of $V$ tokens.\n\nAlgorithm:\n1. Initialize vocab = set of all individual characters (~128 for ASCII).\n2. Represent each word as a sequence of character tokens (e.g., `low → l, o, w, </w>` where `</w>` marks word-end).\n3. Count all adjacent token-pairs across the corpus.\n4. Find the most-frequent pair, say `(e, s)`. Add `es` to vocab. Merge all `e s` → `es` in the corpus.\n5. Repeat until vocab reaches target size $V$.\n\nResult: a list of merges $(a_1, b_1) \\to c_1, (a_2, b_2) \\to c_2, \\dots$\n\n**At encoding time** (new text → tokens):\n1. Start with characters.\n2. Apply merges in order. Each merge replaces matching pairs.\n3. Done — output is the final token sequence.\n\nLinear-time encoding with the right data structure.\n\n**Variants**:\n- **WordPiece** (BERT): score pairs by likelihood ratio $P(a,b)/(P(a)P(b))$ instead of raw count. Slightly different vocabs, similar quality.\n- **SentencePiece** (T5, LLaMA): operates on raw text (no whitespace-pretokenization). Treats whitespace as a regular character. Handles non-whitespace-separated languages (Chinese, Japanese, Thai) uniformly.\n- **BPE on bytes** (GPT-2+): operate on UTF-8 bytes (vocab 256) instead of Unicode chars. Robust to all Unicode without vocab explosion."
+    },
+    {
+      "kind": "text",
+      "title": "Vocabulary size + the trade-offs",
+      "body": "**Vocab size $V$** is a hyperparameter. Trade-offs:\n\n- **Large $V$** (50K-200K): more tokens stay whole; shorter sequences for the same text; better contextual representation per token. But: more embedding parameters ($V \\times d_{\\text{model}}$ for embedding + LM head; can dominate parameter count in small models); rare tokens see little training signal.\n- **Small $V$** (5K-10K): fewer parameters; every token well-trained; but longer sequences (more compute per pass); model has to relearn 'unhappy' from 'un + happy' each time.\n\nThe sweet spot for current LLMs is ~30K-100K. LLaMA: 32K. GPT-4: 100K. PaLM: 256K.\n\n**Multilingual vocab**: more languages → more characters + words to encode. A 30K vocab for monolingual English compresses to ~4 chars/token. For 100 languages, the same 30K compresses to ~1.5 chars/token (much worse). Multilingual models need bigger vocabs OR use byte-level BPE.\n\n**Out-of-vocab handling**: with subword tokenizers, OOV doesn't really exist — any string decomposes to known pieces. Even the model's first time seeing 'antidisestablishmentarianism' parses to a few morphemes. Compare to word-level: a single OOV becomes `<UNK>`, losing all info.\n\n**Pitfalls**:\n- **Tokenizer drift**: if you swap tokenizers, you can't reuse the model. Tokenizer must match training.\n- **Trailing whitespace**: ' dog' vs 'dog' often become different tokens; surprises in prompt engineering.\n- **Numbers**: tokenizers split numbers oddly. '1234567' might be `123` + `456` + `7`. Hurts arithmetic skill of base models. Solved by retraining tokenizers with digit-level splits, or by chain-of-thought reasoning."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bpe_apply",
+        "kind": "guided_derivation",
+        "question": "Apply BPE to a tiny corpus",
+        "goal": "Corpus: 'low low low low low lower newer newer newest'. Apply 3 BPE merges. (Use space as word-boundary marker.)",
+        "steps": [
+          {
+            "prompt": "Initialize as character sequences. Count all adjacent pairs. The most-frequent pair across all words is (e, r) — appears in 'lower' (1×), 'newer' (2×), 'newest' (1×). Count: 4. After merging (e, r) → er, what does 'newer' look like?",
+            "motivation": "Apply the merge.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "n e w e r",
+                "n e w er",
+                "ne w er",
+                "n ew er"
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Replace the adjacent 'e r' with the new token 'er'."
+            ],
+            "reveal": "After merge: n, e, w, er (4 tokens)."
+          },
+          {
+            "prompt": "Re-count pairs. New most-frequent pair: (n, e) appears in 'newer' (2×) + 'newest' (1×) = 3 times. Merge (n, e) → ne. After this, 'newer' tokenizes as?",
+            "motivation": "Apply the merge.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "ne w er",
+                "n e w er",
+                "new er",
+                "n ew er"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Replace 'n e' with 'ne'."
+            ],
+            "reveal": "'newer' = ne, w, er."
+          },
+          {
+            "prompt": "Re-count. Most-frequent pair now is (ne, w) — appearing in 'newer' (2×) + 'newest' (1×) = 3. Merge (ne, w) → new. Final tokenization of 'newer' is?",
+            "motivation": "Apply the merge.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "new er",
+                "n ew er",
+                "ne w er",
+                "new e r"
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Replace 'ne w' with 'new'."
+            ],
+            "reveal": "'newer' = new, er — 2 tokens. 'newest' = new, e, s, t (4 tokens). The morpheme structure has emerged from frequency statistics."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{BPE finds morphemes through compression}}$$ With more merges, you'd discover `low`, `est`, etc. The algorithm has NO linguistic knowledge — it just counts adjacent-pair frequency. Yet it converges to (approximately) morphological units because they are the high-frequency reusable pieces of language. This is a beautiful instance of structure emerging from optimization. Used by every modern LLM tokenizer."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_tok_chinese",
+        "kind": "multiple_choice",
+        "question": "Why does GPT-4 encode the same Chinese sentence using MORE tokens than the English equivalent?",
+        "options": [
+          "Chinese characters are bigger.",
+          "The tokenizer was trained predominantly on English; Chinese characters fall back to multi-byte UTF-8 encodings + the BPE merges learned for English don't compress Chinese well.",
+          "Chinese requires more processing per character.",
+          "OpenAI deliberately overcharges Chinese."
+        ],
+        "correctIndex": 1,
+        "explanation": "BPE merges learned from a mostly-English corpus capture English subwords + a few common Chinese chars. Less common Chinese characters fall through to 2-3 UTF-8 bytes each. Result: Chinese gets ~2 chars/token vs English's ~4 chars/token → ~2× the tokens for the same meaning. The fix: train tokenizers with more diverse data (which newer models like GPT-4o do, getting better Chinese compression)."
+      },
+      "hints": [
+        "What was the training corpus?",
+        "What happens to under-represented scripts?"
+      ],
+      "workedSolution": "Tokenizer training is itself supervised — the merges that get learned reflect what frequencies occurred in training data. English-biased training → BPE merges capture English subwords. Underrepresented scripts get poor compression: their bytes don't form frequent pairs in the training corpus. Solution: multilingual tokenizer training (mBART, BLOOMZ) OR byte-pair-encoding with explicit language-balanced sampling.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_tok_ratio",
+        "kind": "math_expression",
+        "question": "GPT tokenizer compresses English at ~4 chars/token. A 10,000-character English document is roughly how many tokens?",
+        "acceptedAnswers": [
+          "2500",
+          "approximately 2500",
+          "~2500"
+        ],
+        "hint": "10000/4 = 2500."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_tok_arithmetic",
+        "kind": "scenario",
+        "question": "Why GPT can't add numbers",
+        "prompt": "A user finds that GPT-3.5 makes arithmetic errors on multi-digit numbers. Walk through how tokenization contributes + what the model has to learn around the tokenizer."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_tok",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why every modern LLM uses subword tokenization rather than character-level or word-level.",
+        "rubric": "Mentions that subword is a middle ground: constant vocab size regardless of language, no OOV (everything decomposes to known subwords), captures morphology (especially helpful for agglutinative languages), and shorter sequences than character-level. Word-level tokenizers can't handle OOV; character-level pays compute cost on long sequences."
+      }
+    }
+  ]
+}

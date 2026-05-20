@@ -1952,6 +1952,27 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P11 — NLP Linguist path. Linguistics-grounded NLP: tokenization,
+  // morphology, syntax, semantics, statistical + neural LMs,
+  // translation, multilingual + low-resource. Complements ml-engineer
+  // / ai-researcher / multimodal-engineer with a language-aware angle.
+  seedMasteryPath({
+    slug: "nlp-linguist",
+    title: "NLP Linguist",
+    description:
+      "From subword tokenization through morphological typology, dependency parsing, lexical + distributional semantics, statistical + neural language models, neural translation, and multilingual + low-resource NLP. The linguistics-grounded view of modern NLP.",
+    nodes: [
+      { slug: "tokenization-and-bpe", title: "Tokenization + BPE", level: "apprentice", order: 1, pages: ["tokenization", "bpe-algorithm"], prereqs: [], description: "Character / word / subword tokenization, BPE + WordPiece + SentencePiece, vocab-size trade-offs." },
+      { slug: "morphology-and-typology", title: "Morphology + Language Typology", level: "apprentice", order: 2, pages: ["typology", "morphological-analysis"], prereqs: ["tokenization-and-bpe"], description: "Isolating / fusional / agglutinative / polysynthetic, stemming + lemmatization, why BPE wins for agglutinative languages." },
+      { slug: "syntax-and-parsing", title: "Syntax + Dependency Parsing", level: "practitioner", order: 3, pages: ["dependency-grammar", "biaffine-parsing"], prereqs: ["tokenization-and-bpe"], description: "Phrase-structure vs dependency grammar, transition-based + biaffine graph-based parsers, parsing-as-tagging in transformers." },
+      { slug: "semantic-representations", title: "Semantic Representations", level: "practitioner", order: 4, pages: ["wordnet", "framenet-srl", "distributional"], prereqs: ["tokenization-and-bpe"], description: "WordNet + FrameNet + semantic-role labeling, distributional semantics, why contextual embeddings won." },
+      { slug: "statistical-language-models", title: "Statistical Language Models", level: "practitioner", order: 5, pages: ["n-grams", "smoothing-kn", "perplexity"], prereqs: ["tokenization-and-bpe"], description: "N-gram chain-rule, MLE + smoothing (Laplace, Kneser-Ney), perplexity + cross-entropy." },
+      { slug: "neural-embeddings", title: "Neural Word + Sentence Embeddings", level: "specialist", order: 6, pages: ["word2vec", "glove", "elmo-bert"], prereqs: ["statistical-language-models"], description: "Word2Vec skip-gram + negative sampling, GloVe co-occurrence factorization, ELMo + BERT contextual embeddings." },
+      { slug: "translation-and-alignment", title: "Machine Translation + Alignment", level: "specialist", order: 7, pages: ["ibm-models", "attention-seq2seq", "bleu-comet"], prereqs: ["neural-embeddings"], description: "IBM word-alignment models, attention as soft alignment, BLEU + COMET evaluation." },
+      { slug: "multilingual-and-low-resource", title: "Multilingual + Low-Resource NLP", level: "expert", order: 8, pages: ["mbert-xlmr", "adapters-lora", "long-tail-languages"], prereqs: ["neural-embeddings", "translation-and-alignment"], description: "Multilingual transfer, mBERT + XLM-R + the curse of multilinguality, adapters + LoRA, the long tail of ~7000 languages." },
+    ],
+  });
+
   // P10 — Financial Engineer (quant finance) path. Time value of
   // money, no-arb pricing, Black-Scholes, Greeks, Monte Carlo,
   // fixed income, market microstructure, portfolio theory.

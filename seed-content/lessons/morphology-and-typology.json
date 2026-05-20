@@ -1,0 +1,131 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intro",
+    "objectives": [
+      "State the major morphological typology categories.",
+      "Compare NLP difficulty across language types.",
+      "Reason about why subword tokenization helps morphologically-rich languages."
+    ],
+    "prereqs": [
+      "tokenization-and-bpe"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Morphology: how languages build words",
+      "body": "**Morphology** = the study of word structure. Languages cluster into typological types based on how they handle word-formation:\n\n1. **Isolating** (Mandarin, Vietnamese): one morpheme per word. Grammar is conveyed by separate words + word order, not affixes. 'I yesterday eat rice' is fine — no past-tense morphology.\n\n2. **Fusional / Inflecting** (Latin, Spanish, Russian): a single suffix bundles multiple grammatical features. Spanish `hablo` = first-person-singular + present + indicative all fused into `-o`.\n\n3. **Agglutinative** (Turkish, Finnish, Japanese, Quechua): one feature per morpheme; morphemes glue transparently. Turkish `evlerimizde` = `ev` (house) + `ler` (plural) + `imiz` (our) + `de` (locative) = 'in our houses'.\n\n4. **Polysynthetic** (Inuktitut, Mohawk): entire sentence-meanings in one word. Inuktitut `tusaatsiarunnanngittualuujunga` = 'I can't hear very well'.\n\n**NLP implications**:\n- Isolating languages: short words, big vocab. Mandarin LLMs need ~40K vocab for chars.\n- Fusional languages: medium vocab. Each surface form is a unique word.\n- Agglutinative languages: HUGE vocabs if you treat each form as a word. Turkish has ~50,000 forms per verb (in theory). Subword tokenization is essential.\n- Polysynthetic languages: even harder. Each sentence is essentially unique.\n\n**The data problem**: most NLP research + data is on English + a few other isolating/fusional languages. Modeling agglutinative/polysynthetic languages requires different priors + more morphological awareness."
+    },
+    {
+      "kind": "text",
+      "title": "Morphological analysis in NLP",
+      "body": "Traditional NLP had explicit **morphological analyzers**:\n- **Stemmer** (Porter stemmer 1980): strips suffixes via rules. 'running' → 'run', 'flies' → 'fli'. Crude, language-specific, English-centric.\n- **Lemmatizer**: maps a word form to its canonical lemma. 'mice' → 'mouse', 'better' → 'good'. Needs a dictionary; output is linguistically informed.\n- **Morphological parser**: outputs full feature structure. Turkish `evlerimizde` → `[noun, root=ev, number=plural, possessor=1pl, case=locative]`. Implemented with finite-state transducers (FST).\n\n**Finite-state morphology**: model morphology as a finite-state transducer composing a sequence of FSTs (root lexicon, prefix rules, phonological alternations). HFST + Foma are the open-source toolchains. Used in Helsinki's projects + Apertium MT system.\n\n**The neural era shift**: BERT-class models LEARN morphology implicitly from subword tokenization + context. No explicit analyzer needed.\n\nE.g., Turkish BERT (BERTurk) sees `evlerimizde` tokenized as something like `ev + leri + miz + de` (via SentencePiece). The model internally clusters embeddings + figures out grammatical features for downstream tasks (POS tagging, parsing).\n\n**When you still need explicit morphology**:\n- Low-resource languages (no big corpus, can't train BERT from scratch).\n- High-precision tasks (legal text in morphologically-complex language).\n- Linguistic research (cross-lingual typological studies).\n\nThe Universal Dependencies project (now 200+ languages with consistent annotation) is the modern reference for cross-lingual morphology.\n\n**Modern research**: explicit + implicit hybrids. Inject morphological features into BERT inputs (Turkish, Finnish) for ~5% gains on parsing + NER. Useful where the language has rich morphology + the dataset is small."
+    },
+    {
+      "kind": "text",
+      "title": "Cross-lingual NLP + the morphology gap",
+      "body": "**Cross-lingual transfer**: train on resource-rich language (English), apply to resource-poor language. Two main approaches:\n\n1. **Multilingual pretraining**: mBERT, XLM-R, mT5 train on hundreds of languages jointly. The model implicitly aligns embeddings across languages. Strong transfer to morphologically-similar languages; weaker for distant ones.\n\n2. **Translation pivots**: translate target-language data to English, run English model, translate back. Costs the translation model's error.\n\n**The morphology gap**: cross-lingual transfer is great between fusional languages (English → Spanish → Italian) but degrades for agglutinative + polysynthetic languages. The shared embeddings can't capture morpheme-level patterns the source language doesn't have.\n\n**Why XLM-R is partial fix**: trains a single subword tokenizer on 100 languages with sentence-piece. Agglutinative languages get more subword merges → can represent suffixes as separate tokens → model can pattern-match.\n\n**Low-resource specific tricks**:\n- **Adapter modules** (Pfeiffer 2020): add per-language adapter layers; freeze the multilingual backbone. Trains efficiently with little target-language data.\n- **Cross-lingual data augmentation**: backtranslate, machine-translate-then-paraphrase, code-switching synthesis.\n- **Universal Dependencies** parsing: pretrain on UD treebanks from many languages; zero-shot transfer.\n\n**The frontier challenge**: ~7000 languages exist, ~250 have meaningful NLP data, ~50 have strong NLP models. The 'long tail' problem in language tech. Recent efforts (Masakhane for African languages, AmericasNLP for indigenous American languages) are community-driven curation + benchmarking. Foundation models + instruction tuning move the gap, but morphologically-distant low-resource languages remain hard."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_morph_turkish",
+        "kind": "guided_derivation",
+        "question": "Apply BPE to a Turkish word",
+        "goal": "Turkish 'evlerimizden' (= 'from our houses') = `ev` (house) + `ler` (plural) + `imiz` (our) + `den` (ablative). Suppose BPE has learned `ev, ler, imiz, den` as tokens. How is it tokenized?",
+        "steps": [
+          {
+            "prompt": "If BPE has those 4 tokens, the word splits into 4 tokens. The model's embedding for each suffix encodes a grammatical feature: `ler` = plural marker, etc. What grammatical info does the model see?",
+            "motivation": "Information per token.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Just the word identity.",
+                "The root + plural + possessor + case — each as a separate, reusable token. The model can leverage what it learned about `ler` (plural) across MANY nouns.",
+                "Nothing.",
+                "Only the case."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Each suffix has independent meaning."
+            ],
+            "reveal": "4 tokens = root + 3 suffixes. The model learns suffix meanings reusable across thousands of words."
+          },
+          {
+            "prompt": "Compare to a word-level tokenizer that treats `evlerimizden` as a SINGLE token. How many parameters does it need to learn for each Turkish noun in all possible cases + numbers + possessors?",
+            "motivation": "Combinatorial blowup.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "1 parameter.",
+                "Roughly 10-1000 (small).",
+                "Tens of thousands per noun — combinatorial in cases × numbers × possessors. Each form is treated as a separate word; no sharing.",
+                "Same as English."
+              ],
+              "correctIndex": 2
+            },
+            "hints": [
+              "Multiply the inflectional dimensions."
+            ],
+            "reveal": "Turkish has 6 cases × 2 numbers × 6 possessors × tenses = thousands of forms per noun. Word-level: each form is a separate embedding. BPE-level: shared subword embeddings encode the systematic structure."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Subword tokenization is morphology-aware (implicitly)}}$$ For agglutinative languages, subword tokenization gives huge sample efficiency: each suffix is one reusable token, and the model learns its meaning ONCE across millions of word forms. Without BPE, Turkish, Finnish, Quechua NLP would need orders of magnitude more data. This is why BPE was a quiet revolution beyond just compression — it brought morphologically-aware modeling for free."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_morph_lang",
+        "kind": "multiple_choice",
+        "question": "A team builds an NER system for Finnish (agglutinative). Their first attempt uses an English-trained model + word-level features. The result is poor. Why?",
+        "options": [
+          "Finnish is too different from English; transfer is impossible.",
+          "Word-level features see each Finnish word form as unique; the model can't generalize from 'Helsinki' to 'Helsinkiin' (Helsinki + illative case) — they look like different words.",
+          "Finnish doesn't have entities.",
+          "Finnish text is encoded wrong."
+        ],
+        "correctIndex": 1,
+        "explanation": "Finnish has 15 cases. Each entity name appears in many surface forms (Helsinki, Helsinkiin, Helsinkiä, Helsingissä, ...). Word-level features treat these as unrelated tokens. The model can't see them as the same entity. Fix: subword tokenization (so the root shares), morphological pre-analysis (strip cases), or multilingual transfer (mBERT-style)."
+      },
+      "hints": [
+        "What happens to each entity name in 15 cases?",
+        "Can word-level features connect them?"
+      ],
+      "workedSolution": "Each entity in Finnish appears in ~15 surface forms across cases. Word-level features see them as 15 separate words; no generalization. Standard fixes: (1) Subword tokenization — the root token shared; (2) Morphological analysis as preprocessing — strip suffixes, normalize to lemma; (3) Use Finnish-trained model (FinBERT). Choice (1) is the modern default.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_morph_turkish",
+        "kind": "math_expression",
+        "question": "Turkish nouns have ~6 cases, 2 numbers, 6 possessive forms. How many surface forms (ignoring tense)?",
+        "acceptedAnswers": [
+          "72"
+        ],
+        "hint": "6 × 2 × 6 = 72."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_morph_lr",
+        "kind": "scenario",
+        "question": "NLP for low-resource agglutinative",
+        "prompt": "Your team is asked to build a sentiment classifier for Quechua (Andean language, polysynthetic, ~10M speakers, very limited annotated data). Walk through the pipeline choices."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_morph",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why morphologically-rich languages (Turkish, Finnish, Quechua) historically underperformed in NLP benchmarks until subword tokenization became standard.",
+        "rubric": "Mentions that word-level features treated each surface form as unique, blowing up vocab + preventing generalization. Subword tokenization (BPE, SentencePiece) decomposes morphologically-rich forms into reusable subword tokens that the model can learn meaning for. Combined with multilingual pretraining, the gap to English performance has narrowed substantially."
+      }
+    }
+  ]
+}

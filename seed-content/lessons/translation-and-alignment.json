@@ -1,0 +1,151 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "specialist",
+    "objectives": [
+      "Outline the IBM Model 1 alignment.",
+      "Describe attention as soft alignment.",
+      "Distinguish BLEU from semantic-similarity metrics."
+    ],
+    "prereqs": [
+      "neural-embeddings"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Statistical machine translation: IBM models",
+      "body": "**The historical path**: rule-based MT (1950s-80s) → statistical MT (1990s-2014) → neural MT (2014+).\n\n**IBM Models** (Brown et al 1993): the first quantitatively-successful statistical MT, at IBM Research. The framework: given source sentence $\\mathbf{f}$ + target $\\mathbf{e}$, find $\\arg\\max_{\\mathbf{e}} P(\\mathbf{e} \\mid \\mathbf{f}) = \\arg\\max_{\\mathbf{e}} P(\\mathbf{f} \\mid \\mathbf{e}) P(\\mathbf{e})$ (Bayes; the **noisy-channel model**). Translation model $P(\\mathbf{f} \\mid \\mathbf{e})$ + LM $P(\\mathbf{e})$.\n\n**IBM Model 1** introduces alignments. Each source word $f_j$ aligns to one target word $e_{a_j}$ (or NULL). $P(\\mathbf{f} \\mid \\mathbf{e}) = \\sum_{\\mathbf{a}} P(\\mathbf{f}, \\mathbf{a} \\mid \\mathbf{e})$. Trained with EM (expectation-maximization): alternate inferring alignments + estimating word-translation probs.\n\n**Phrase-based SMT** (mid-2000s, Koehn): translate PHRASES (multi-word units) instead of single words. The MOSES system was the dominant open-source SMT for years. Captured non-compositional translations ('kick the bucket' → 'die').\n\n**Decoder**: beam search over hypotheses, scored by translation model + LM. Highly engineered. Linguists + engineers tuned features for decades.\n\n**Strengths**: interpretable (you can inspect why a translation was chosen), works with little training data (low-resource MT), modular.\n\n**Weaknesses**: rigid phrasal structure; struggles with long-distance reordering; hard to learn rich syntactic/semantic patterns."
+    },
+    {
+      "kind": "text",
+      "title": "Neural MT + the attention mechanism",
+      "body": "**Sequence-to-sequence with attention** (Bahdanau-Cho-Bengio 2014) changed everything.\n\nEncoder: bidirectional RNN reads source $\\mathbf{f}$, produces hidden states $\\mathbf{h}_1, \\dots, \\mathbf{h}_n$.\n\nDecoder: another RNN generates target $\\mathbf{e}$, one token at a time. At each step:\n1. Compute attention weights $\\alpha_{ij}$ over source positions — 'which source words am I translating now?'\n2. Context $\\mathbf{c}_i = \\sum_j \\alpha_{ij} \\mathbf{h}_j$ — weighted sum of source states.\n3. Predict $e_i$ from decoder state + $\\mathbf{c}_i$.\n\nAttention is a SOFT, DIFFERENTIABLE alignment. The model LEARNS where to look. Visualized attention heatmaps showed it captured word reorderings ('the cat → le chat' adjacent; subject-verb inversions handled naturally).\n\n**Transformer** (Vaswani 2017): attention is ALL you need. Drop the RNN. Self-attention + cross-attention. Massively parallelizable. State of the art in MT for years.\n\n**Modern NMT**:\n- **mBART** (mBARTcc25): encoder-decoder pretrained on 25 languages.\n- **NLLB** (No Language Left Behind, Meta 2022): 200 languages, 54B parameters.\n- **GPT-4 / Claude / Gemini**: instruction-tuned LLMs do MT zero-shot or with simple prompting.\n\nFor common language pairs (en↔es, en↔de, en↔zh), NMT quality is approaching or exceeding human translators (in specialized domains, given pre-/post-editing workflow). Low-resource pairs lag substantially; data scarcity dominates."
+    },
+    {
+      "kind": "text",
+      "title": "BLEU + the evaluation problem",
+      "body": "**BLEU** (Bilingual Evaluation Understudy, Papineni 2002): n-gram precision-based MT evaluation. The de-facto standard for 20+ years.\n\nProcedure:\n1. For $n = 1, 2, 3, 4$: count how many n-grams in the model's output appear in the reference translation. Compute precision.\n2. Geometric mean of $n=1$ through $n=4$ precisions.\n3. Brevity penalty: penalize outputs shorter than reference.\n\nBLEU scores: 0 (no match) to 1 (perfect). Multiplied by 100 for readability. Modern MT systems on common pairs: BLEU 30-50.\n\n**Strengths**: fast, deterministic, no model needed, comparable across systems.\n\n**Weaknesses**:\n- Surface-level. Synonyms count as wrong ('start' vs 'begin').\n- No semantics. Reordered-but-correct → low BLEU.\n- Single reference is harsh; multiple references help but rare.\n- High BLEU ≠ human-quality translation (gaming the metric is easy).\n\n**Better metrics**:\n- **METEOR** (Banerjee 2005): adds synonym matching + stemming.\n- **TER (Translation Edit Rate)**: number of edits to match reference.\n- **chrF**: character-level n-gram F-score. Better for morphologically-rich languages.\n- **BERTScore** (Zhang 2019): uses BERT embeddings to score similarity. Captures semantics. Now widely used.\n- **COMET** (Rei 2020): trained on human ratings of MT quality. Best-correlated metric to human judgment in WMT shared tasks.\n\n**The modern position**: BLEU survives as a quick comparable benchmark. Real evaluation uses COMET + targeted human studies. For LLM-based MT, judging models by BLEU undersells them — they often pick correct but non-reference-matching translations."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_attn_align",
+        "kind": "guided_derivation",
+        "question": "Compute attention weights for a tiny example",
+        "goal": "Source: 'le chat' (encoder hidden states $\\mathbf{h}_1, \\mathbf{h}_2$). Decoder at the second step, computing $\\alpha_{2,j}$ for source positions $j=1,2$. Decoder query $\\mathbf{q}_2$. Dot-product scores: $\\mathbf{q}_2^T \\mathbf{h}_1 = 1.0$, $\\mathbf{q}_2^T \\mathbf{h}_2 = 3.0$.",
+        "steps": [
+          {
+            "prompt": "Apply softmax over scores. $\\alpha_{2,1} = e^{1.0}/(e^{1.0} + e^{3.0}) = ?$ (Use $e^1 \\approx 2.72$, $e^3 \\approx 20.09$.)",
+            "motivation": "Softmax computation.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$\\approx 0.12$.",
+                "$\\approx 0.88$.",
+                "$\\approx 0.50$.",
+                "$\\approx 1.0$."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "$2.72/(2.72+20.09) = 2.72/22.81$."
+            ],
+            "reveal": "$\\alpha_{2,1} \\approx 0.12$ (12% weight on 'le')."
+          },
+          {
+            "prompt": "$\\alpha_{2,2} = ?$",
+            "motivation": "Complement.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "$\\approx 0.12$.",
+                "$\\approx 0.88$.",
+                "$\\approx 0.50$.",
+                "$\\approx 1.0$."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Softmax weights sum to 1."
+            ],
+            "reveal": "$\\alpha_{2,2} \\approx 0.88$ (88% weight on 'chat'). Translator focused on 'chat' for this output step."
+          },
+          {
+            "prompt": "Context vector $\\mathbf{c}_2 = \\alpha_{2,1} \\mathbf{h}_1 + \\alpha_{2,2} \\mathbf{h}_2$. Interpret what the decoder sees at this step.",
+            "motivation": "Soft alignment.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "A combination weighted 88% to 'chat' + 12% to 'le' — effectively, the decoder is translating 'chat' now while keeping awareness of 'le'.",
+                "Only 'chat'.",
+                "Only 'le'.",
+                "Random combination."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Soft = partial focus."
+            ],
+            "reveal": "Decoder receives 88% of 'chat's representation + 12% of 'le's. Translating 'chat' (cat) now; the 'le' signal might help with article agreement upstream."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Attention = differentiable soft alignment}}$$ The attention weights $\\alpha$ are computed via softmax of scores, summing to 1. They're learned end-to-end alongside the rest of the model. Visualized heatmaps showed dramatic alignment of source-target words (subject-verb inversion in EN→DE; reordering in EN→JA). The 2014-2017 sequence of attention papers + the 2017 Transformer paper collectively reshaped NLP."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mt_bleu_gpt",
+        "kind": "multiple_choice",
+        "question": "GPT-4 zero-shot translation often scores LOWER on BLEU than specialized NMT systems but is rated HIGHER by human evaluators. Why?",
+        "options": [
+          "Bug in evaluation tooling.",
+          "GPT-4 produces fluent, varied, paraphrased translations that don't exactly match a single reference. BLEU's n-gram-overlap metric penalizes paraphrase. Humans judge meaning + fluency, not surface match.",
+          "Humans are wrong.",
+          "GPT-4 is overhyped."
+        ],
+        "correctIndex": 1,
+        "explanation": "BLEU rewards lexical similarity to a single reference. LLMs paraphrase — different word choices, different ordering — even when MORE accurate / natural. So they score lower on BLEU but higher on COMET (which models human judgment) + in side-by-side human evals. This was a known limitation of BLEU for a decade; the LLM era made it impossible to ignore."
+      },
+      "hints": [
+        "What does BLEU reward?",
+        "What do humans judge?"
+      ],
+      "workedSolution": "BLEU rewards EXACT n-gram match with reference. LLMs paraphrase fluently — different word choices that may be equally or more accurate, but don't match the reference verbatim. BLEU sees diff = wrong. Humans see paraphrase + judge meaning. The disconnect was always there but the LLM era amplified it. Modern MT competitions (WMT 2023+) report COMET + DA (Direct Assessment) scores as the primary metric, with BLEU as a secondary reference.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mt_bleu",
+        "kind": "math_expression",
+        "question": "Model output has 10 unigrams; 7 appear in reference. Unigram precision?",
+        "acceptedAnswers": [
+          "0.7",
+          "70%",
+          "7/10"
+        ],
+        "hint": "7/10 = 0.7."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mt_lowres",
+        "kind": "scenario",
+        "question": "MT for a low-resource pair",
+        "prompt": "Your team needs MT for English ↔ Tigrinya (Eritrean language, ~7M speakers, limited parallel data). Walk through whether to use NLLB, fine-tune a multilingual model, or use GPT-4 with few-shot prompts."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mt",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why attention was the unlock that enabled neural machine translation to surpass statistical machine translation.",
+        "rubric": "Mentions that attention provides differentiable soft alignment between source + target positions, letting the model focus on relevant source words at each output step + handle long-distance reordering naturally. Pre-attention seq2seq compressed the whole source to a single vector — a bottleneck that hurt long sentences. Attention removed the bottleneck + enabled the Transformer architecture that dominates today."
+      }
+    }
+  ]
+}
