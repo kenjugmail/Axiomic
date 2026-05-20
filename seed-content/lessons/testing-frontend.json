@@ -1,0 +1,115 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish unit / integration / e2e tests by what they cover.",
+      "Apply the testing-trophy heuristic for frontend.",
+      "Recognize accessibility tests."
+    ],
+    "prereqs": [
+      "react-and-state"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The testing trophy (Kent C. Dodds)",
+      "body": "The classical 'testing pyramid' (lots of unit, few integration, fewer e2e) doesn't fit modern frontend. The 'testing trophy':\n\n```\n         /\\\n        /  \\        e2e\n       /----\\\n      /      \\      integration  ← most tests here\n     /--------\\\n    /          \\    unit\n   /------------\\\n  /              \\  static (TypeScript, ESLint)\n /----------------\\\n```\n\nThe trophy says: most of your value comes from integration tests — tests that render real components, interact like a user would, and check the result. Pure unit tests for individual functions are valuable but limited; e2e is slow + flaky.\n\nLibraries: **Testing Library** (`@testing-library/react`) drives this philosophy — query by accessible role + name, not by implementation details. Tests survive refactors because they test behavior, not structure."
+    },
+    {
+      "kind": "text",
+      "title": "What to test, what not to test",
+      "body": "**Test**:\n- Component behavior (user interactions → expected UI state).\n- Critical-path flows (login, checkout, signup).\n- Accessibility (Tab navigation, focus, screen-reader output).\n- Edge cases that have bitten you before.\n\n**Don't test**:\n- Implementation details (internal state, exact class names, prop names of children).\n- Third-party libraries (they have their own tests).\n- Generated code (boilerplate that's already type-safe).\n- Trivial pure functions (they're better verified by reading).\n\nThe 'don't test implementation details' rule: when a test breaks, you should learn that something *user-visible* changed. If a test breaks because you renamed a private state variable, it was testing the wrong thing.\n\n**End-to-end** (Playwright, Cypress): for full-user-journey verification. Run a subset in CI; full suite nightly. Slow (~1s per test minimum); brittle to UI changes."
+    },
+    {
+      "kind": "text",
+      "title": "Component testing with Testing Library",
+      "body": "The canonical pattern:\n\n```tsx\ntest('clicking Increment increases the count', async () => {\n  render(<Counter initialCount={5} />);\n  expect(screen.getByText('Count: 5')).toBeInTheDocument();\n  await userEvent.click(screen.getByRole('button', { name: 'Increment' }));\n  expect(screen.getByText('Count: 6')).toBeInTheDocument();\n});\n```\n\nKey moves:\n- `getByRole` queries elements as a screen reader would. If the test passes, the UI is accessible (because the assertion uses the same query a screen reader uses).\n- `userEvent.click()` simulates a real user click (not just dispatching an event); handles all the keyboard/focus/etc. that would naturally happen.\n- Assertions are about visible UI state, not internal implementation.\n\nProduction frontend repos run hundreds to thousands of these tests in CI. Jest/Vitest as the runner; Testing Library as the rendering + querying. Plus Storybook for visual regression testing (each component's stories double as test fixtures)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_test_query",
+        "kind": "guided_derivation",
+        "question": "Why Testing Library prefers `getByRole` over `getByTestId`",
+        "goal": "Test asserts a clickable button works. Two query styles: `getByRole('button', { name: 'Submit' })` vs `getByTestId('submit-btn')`. Argue which is preferred + why.",
+        "steps": [
+          {
+            "prompt": "`getByRole` queries the element by its accessible role + name — what a screen reader sees. `getByTestId` queries an arbitrary attribute the test author added. Which one verifies accessibility incidentally?",
+            "motivation": "Coupling tests to UX.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "`getByRole`: if the role / name match, the element is accessible to screen readers (good); if test breaks, the element is no longer accessible (early warning).",
+                "`getByTestId`: simpler.",
+                "They're equivalent.",
+                "Neither."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Tests should reflect user-visible properties."
+            ],
+            "reveal": "`getByRole` doubles as an accessibility check. If the test passes, the element is screen-reader-accessible; if it fails after a refactor, you've also broken accessibility — caught at test time, not in production."
+          }
+        ],
+        "finalResult": "Testing Library's `getByRole` aligns tests with accessibility. `getByTestId` (which you sometimes need) is a last resort — it tests an implementation detail (the test-id attribute) rather than user-visible structure."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_test_e2e",
+        "kind": "multiple_choice",
+        "question": "Where should you put a 'user can log in' test?",
+        "options": [
+          "In the unit-test suite alongside form-validation tests.",
+          "In an end-to-end (e2e) suite — it covers a full cross-page flow with auth, network calls, and navigation.",
+          "Don't test login.",
+          "In a snapshot test."
+        ],
+        "correctIndex": 1,
+        "explanation": "Login is a multi-page flow involving form submission, network call to auth service, cookie/JWT handling, redirect to authenticated page. E2e tools (Playwright, Cypress) drive a real browser through these steps + verify the post-login state. Critical path that breaks regularly + is hard to mock; e2e is worth the slowness here."
+      },
+      "hints": [
+        "Login spans multiple pages, network, cookies. What level of test covers cross-page flows?",
+        "Unit tests mock everything; e2e drives real browser."
+      ],
+      "workedSolution": "Login is multi-page + cross-cutting (form, auth service, cookies, redirect, post-login state). Unit tests can verify the form-validation logic, but the full flow needs e2e (Playwright, Cypress). Critical-path e2e tests run on every deploy in mature pipelines; non-critical e2e nightly.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_test_pyramid",
+        "kind": "math_expression",
+        "question": "10000 unit tests at 5ms each. Total suite time (seconds)?",
+        "acceptedAnswers": [
+          "50",
+          "50 s",
+          "10000*0.005"
+        ],
+        "hint": "Multiply."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_test_flaky",
+        "kind": "scenario",
+        "question": "Fixing a flaky test",
+        "prompt": "A teammate adds a Playwright test that passes locally but flakes in CI 1 in 5 runs. Walk through the most common cause of test flakiness + the standard mitigations."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_test",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why the testing trophy (lots of integration tests) fits frontend better than the testing pyramid (lots of unit tests).",
+        "rubric": "Mentions that frontend bugs are usually integration bugs (components don't compose right, state flows wrong); unit-testing pure functions adds little value beyond TypeScript; integration tests with real DOM + user-events catch the bugs that actually ship."
+      }
+    }
+  ]
+}

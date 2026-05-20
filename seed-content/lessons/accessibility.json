@@ -1,0 +1,97 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Apply WCAG conformance levels.",
+      "Use semantic HTML to convey meaning.",
+      "Recognize when ARIA helps vs hurts."
+    ],
+    "prereqs": [
+      "dom-and-rendering"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "WCAG: the working baseline",
+      "body": "WCAG (Web Content Accessibility Guidelines) is the standard. Levels:\n- **A**: minimum — meets law in most jurisdictions but barely usable for many.\n- **AA**: standard — the default expectation for any serious web product. Most legal requirements specify AA.\n- **AAA**: highest — aspirational; not always achievable per-criterion.\n\nThe four POUR principles:\n- **Perceivable**: content can be seen/heard. Color contrast, alt text, captions.\n- **Operable**: navigable + interactable via keyboard, screen reader, switch.\n- **Understandable**: clear language, predictable interactions, error recovery.\n- **Robust**: parseable by current + future assistive tech.\n\nProduction reality: most teams target WCAG 2.1 AA + run automated tools (axe-core, Lighthouse) in CI. Automated tools catch ~30-40% of issues; manual review + screen-reader testing catches the rest. Plus user testing with disabled users when available."
+    },
+    {
+      "kind": "text",
+      "title": "Semantic HTML over ARIA",
+      "body": "ARIA (Accessible Rich Internet Applications) lets you add accessibility metadata to any element. But the first rule of ARIA is: **don't use ARIA when semantic HTML will do**.\n\nExamples:\n- `<button>` already exposes a button role, keyboard handling, focus behavior. No need for `<div role='button' tabindex='0'>`.\n- `<a href='...'>` is a link; navigation behavior is built in.\n- `<nav>`, `<main>`, `<aside>`, `<header>`, `<footer>` give screen readers landmarks for navigation.\n- `<label for='...'>` connects label text to form input for screen-reader announcement.\n\nThe ARIA you should use:\n- `aria-label` when visible text can't describe the element.\n- `aria-describedby` to connect supporting text to interactive elements.\n- `aria-live` for dynamic content updates (\"3 new messages\").\n- `aria-expanded`, `aria-current` for stateful widgets.\n\nMisuse: `aria-hidden=true` on a visible element (a footgun — hides it from screen readers).\n\nDevTools: Chrome's accessibility tree view shows what screen readers see. Test there before shipping."
+    },
+    {
+      "kind": "text",
+      "title": "Keyboard navigation: the canonical test",
+      "body": "Most accessibility issues become visible immediately with keyboard-only testing: try to use your site with no mouse.\n\nCommon failures:\n- **Tab order**: doesn't follow visual order. Fix with logical DOM order; rarely use `tabindex` > 0 (creates a weird global tab order).\n- **Focus visible**: `outline: none` removes the focus indicator. Don't! Or replace with a visible alternative (`:focus-visible` for keyboard-only focus rings).\n- **Click-only handlers**: `onClick` without `onKeyDown` blocks Space/Enter activation. Use `<button>` or add proper key handling.\n- **Trapped focus**: a modal opens but Tab keeps moving outside it. Fix with focus-trap libraries.\n- **Lost focus**: closing a modal returns focus to the document body, not the trigger. Manually restore focus to the opener.\n\nProduction discipline: every interactive component has a keyboard test alongside its visual test. The keyboard test catches most a11y bugs cheaply."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_a11y_contrast",
+        "kind": "guided_derivation",
+        "question": "Compute WCAG color contrast ratio",
+        "goal": "WCAG AA requires 4.5:1 contrast for normal text. Black text $L = 0$ on background $L_b$. What's required $L_b$?",
+        "steps": [
+          {
+            "prompt": "Contrast ratio formula: $(L_1 + 0.05) / (L_2 + 0.05)$ where $L_1 > L_2$ are relative luminances in $[0, 1]$. With $L_2 = 0$ (black text), we need $(L_b + 0.05) / 0.05 \\geq 4.5$. Solve.",
+            "motivation": "Plug into the formula.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.175"
+              ]
+            },
+            "hints": [
+              "$(L_b + 0.05) \\geq 4.5 \\cdot 0.05 = 0.225$, so $L_b \\geq 0.175$."
+            ],
+            "reveal": "$L_b \\geq 0.175$. So the background's relative luminance must be at least 17.5% — i.e., medium-light gray or lighter for black text."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Contrast} = (L_1 + 0.05)/(L_2 + 0.05) \\geq 4.5 \\text{ for AA normal text}}$$ AAA requires 7:1. Large text (18pt+ or 14pt bold) has a relaxed AA requirement of 3:1. Use a contrast checker (Chrome DevTools, contrastchecker.com); don't eyeball."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_a11y_button",
+        "kind": "multiple_choice",
+        "question": "You're building a custom dropdown trigger. The semantic, accessible base element is:",
+        "options": [
+          "`<div onClick={...}>` with a CSS arrow.",
+          "`<button>` (then style it however you want).",
+          "`<a href='#'>` for navigation feel.",
+          "`<span tabindex='0'>` for inline display."
+        ],
+        "correctIndex": 1,
+        "explanation": "`<button>` is the right semantic for a non-navigation interactive trigger. It comes with: button role, focus handling, Space/Enter activation, keyboard accessibility. Styling: `button { all: unset; ... }` strips defaults. Using `<div>` requires re-implementing role + tabindex + keyboard handlers, easily missed."
+      },
+      "hints": [
+        "The HTML element you choose comes with built-in accessibility behavior.",
+        "Re-implementing button semantics on a div is bug-prone."
+      ],
+      "workedSolution": "`<button>` is the right semantic base for interactive triggers. Reset CSS via `button { all: unset; cursor: pointer; }` and style freely. Using `<div>` requires reimplementing tab order, focus, Space/Enter activation — all of which `<button>` provides for free.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_a11y_modal",
+        "kind": "scenario",
+        "question": "Building an accessible modal",
+        "prompt": "Your team adds a modal dialog to the app. Walk through the four accessibility requirements you'd implement: focus-trapping, escape-to-close, focus-restore, and the right ARIA role."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_a11y",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why semantic HTML beats ARIA whenever both can solve the same problem.",
+        "rubric": "Mentions that semantic HTML provides accessibility behavior for free + consistently across browsers/screen readers; ARIA is a metadata layer that's easy to misuse + must be paired with manual keyboard handling; the rule 'no ARIA is better than bad ARIA' captures this."
+      }
+    }
+  ]
+}

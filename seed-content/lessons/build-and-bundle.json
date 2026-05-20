@@ -1,0 +1,113 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish bundlers (Webpack, Vite, esbuild) by their core architecture.",
+      "Apply tree-shaking + code-splitting principles.",
+      "Reason about source maps in production."
+    ],
+    "prereqs": [
+      "javascript-runtime",
+      "typescript-types"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The bundler landscape, 2024-2025",
+      "body": "Frontend bundlers in production:\n\n- **Webpack**: the historical dominant bundler. Mature, plugin-rich, slow. Still widely used in legacy + complex setups.\n- **Vite**: ESM-native, fast dev server (no bundling in dev), Rollup for production builds. Become the default for new Vue, React, Svelte projects.\n- **esbuild**: Go-based bundler, ~100x faster than Webpack. Used in dev / for type-checking; less plugin ecosystem.\n- **Rollup**: tree-shaking-friendly. Used by Vite for production. Library bundlers (npm packages) lean toward Rollup.\n- **Turbopack** (Vercel, 2022-2025): Webpack successor. Rust-based. Used in Next.js.\n- **Rspack** (ByteDance, 2023): Webpack-compatible API but Rust-based. Used in some companies migrating from Webpack.\n\nThe trend: Rust + Go natively-compiled bundlers replacing Node.js-based ones. Dev-server cold-start times dropped from 30s → 200ms across the industry."
+    },
+    {
+      "kind": "text",
+      "title": "Tree-shaking: dead code elimination",
+      "body": "Tree-shaking removes code that's imported but never called. Relies on ESM's static analyzability — `import { foo } from './lib'` is statically resolvable; `require('./lib').foo` is not.\n\nThe modern setup:\n```js\n// lib.ts\nexport function foo() {}\nexport function bar() {}\n\n// app.ts\nimport { foo } from './lib';\nfoo();\n```\n\nProduction bundle: only `foo`, not `bar`. Tree-shaking eliminated the unused export.\n\n**Common pitfalls**:\n- **Side-effectful imports** (CSS imports, polyfills) prevent shaking. Solution: package.json `\"sideEffects\": false` (or selective array).\n- **CommonJS** (require) breaks tree-shaking. Libraries that ship only CJS can't be shaken.\n- **Re-exports through index files** (`export * from './a'`) often defeat tree-shaking depending on the bundler.\n\nProduction: measure with `webpack-bundle-analyzer` / `rollup-plugin-visualizer`. Big chunks → investigate what's actually included."
+    },
+    {
+      "kind": "text",
+      "title": "Source maps in production",
+      "body": "Source maps map minified production code back to original source for debugging. The two production strategies:\n\n1. **Public source maps**: serve `.map` files alongside `.js`. Pros: anyone can debug. Cons: exposes your original (likely TypeScript) source.\n2. **Private source maps**: upload to your error tracker (Sentry, Datadog) at deploy time; don't serve them publicly. Errors get unminified stack traces in your dashboard.\n\nFor SaaS products: private source maps are standard. The bundler emits source maps; CI uploads them to Sentry; production HTML serves only minified JS without the source-map directive.\n\nFor open-source libraries: public source maps are common (the source is already public).\n\nProduction discipline: never ship source maps publicly for proprietary code. Verify your build output (no `.map` files in the public directory) before deploys."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bundle_split",
+        "kind": "guided_derivation",
+        "question": "Derive code-splitting savings",
+        "goal": "App has 5 routes, total 1MB bundled. Per-route page weights: 200KB each. Without splitting: every user downloads 1MB. With route-based splitting: how much per user?",
+        "steps": [
+          {
+            "prompt": "Per-route splitting: user only downloads the initial route's bundle. Shared dependencies (React, common UI) bundle separately. If 100KB is shared + 100KB per route, what does a single visitor download?",
+            "motivation": "Initial-load vs lazy-load.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "200",
+                "200 KB"
+              ]
+            },
+            "hints": [
+              "Shared chunk + initial route's chunk."
+            ],
+            "reveal": "200KB: shared + initial route. Savings: 1MB → 200KB (5×)."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Route splitting cuts initial load to } 1 + 1/N \\text{ chunks}}$$ Modern frameworks (Next.js, Remix, Astro) split per-route by default. The user pays only for what they see. Combined with lazy `import()` for off-screen components, single-page-app shouldn't ship megabytes of JS upfront."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bundle_treeshake",
+        "kind": "multiple_choice",
+        "question": "Your bundler ships 800KB despite an aggressive tree-shaking config. You import only 3 functions from `lodash`. Most likely cause:",
+        "options": [
+          "Lodash is huge.",
+          "You imported `lodash` (CJS), not `lodash-es` (ESM); CJS isn't tree-shakable.",
+          "Bundler is broken.",
+          "Tree-shaking is impossible."
+        ],
+        "correctIndex": 1,
+        "explanation": "`lodash` ships as CommonJS by default. CJS `require` is dynamic at runtime, so bundlers can't statically determine which functions are used. Result: the entire library gets included. Fix: import from `lodash-es` (ESM build) instead. Or use individual subpath imports (`import isEqual from 'lodash/isEqual'`)."
+      },
+      "hints": [
+        "Tree-shaking requires static analysis of imports.",
+        "CJS vs ESM matters."
+      ],
+      "workedSolution": "Tree-shaking depends on static (compile-time) import resolution. CommonJS `require('lodash').isEqual` is dynamic — bundler can't know if other properties get accessed later. ESM `import { isEqual } from 'lodash-es'` is static, shakable. Most modern libraries ship both; check `package.json`'s `module` field for the ESM entry point.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_bundle_size",
+        "kind": "math_expression",
+        "question": "Initial bundle 500KB at 1 Mbps. Download time (seconds)?",
+        "acceptedAnswers": [
+          "4",
+          "4.0",
+          "0.5/0.125"
+        ],
+        "hint": "500KB / (1Mbps/8) = 500/125."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_bundle_audit",
+        "kind": "scenario",
+        "question": "Auditing a slow build",
+        "prompt": "Your Webpack production build takes 45 seconds and ships 2MB. The team wants both faster and smaller. Walk through three concrete changes you'd investigate."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bundle",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why ESM (ES Modules) is the technical foundation that makes modern frontend tooling fast.",
+        "rubric": "Mentions that ESM is statically analyzable (imports + exports resolved at parse time); enables tree-shaking, top-level await, native browser imports; the move from CJS to ESM is what enables Vite's no-bundle dev server + esbuild's speed; static analysis = parallel processing."
+      }
+    }
+  ]
+}

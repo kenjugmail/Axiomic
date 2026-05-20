@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intro",
+    "objectives": [
+      "Distinguish layout from paint from composite.",
+      "Reason about when DOM updates trigger reflow.",
+      "Recognize the cost of layout-thrashing patterns."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The browser rendering pipeline",
+      "body": "When the browser renders a page, it runs a multi-stage pipeline:\n\n1. **Parse**: HTML → DOM tree. CSS → CSSOM.\n2. **Style**: combine DOM + CSSOM → render tree (only visible elements with styles applied).\n3. **Layout** (a.k.a. reflow): compute geometry — size, position of every box. Cost: $O(n)$ over visible elements, but cascades across siblings + ancestors.\n4. **Paint**: fill pixels for each layer (text, backgrounds, borders, shadows). Cost: roughly proportional to painted area.\n5. **Composite**: stack layers on the GPU. Cheap.\n\nNot every change runs the full pipeline. Changing a `transform` or `opacity` typically skips layout + paint (composite-only) — that's why CSS animations on those properties are smooth at 60fps.\n\nChanging a `width` or `top` triggers layout (potentially cascading). Changing a `background-color` triggers paint but not layout. Knowing which is which is the foundation of front-end performance work."
+    },
+    {
+      "kind": "text",
+      "title": "Layout thrashing — the canonical bug",
+      "body": "JavaScript that reads + writes the DOM in a tight loop can trigger layout multiple times per frame:\n\n```js\nfor (const el of items) {\n  el.style.width = el.offsetWidth + 10 + 'px';\n}\n```\n\nThe trap: `offsetWidth` is a *read* that forces layout (it needs current geometry). `style.width = …` is a *write* that invalidates layout. Inside the loop: write → next-iteration read forces layout immediately → write again → repeat. $N$ items → $N$ layouts, not 1.\n\nThe fix: batch reads + writes:\n```js\nconst widths = items.map((el) => el.offsetWidth + 10);\nitems.forEach((el, i) => { el.style.width = widths[i] + 'px'; });\n```\n\nOne layout instead of $N$. The pattern is so common that React, Vue, and Solid all batch DOM mutations through a single 'commit phase' — preventing this class of bug by construction."
+    },
+    {
+      "kind": "text",
+      "title": "Composite-friendly animations",
+      "body": "On a 60Hz display, the browser has ~16ms per frame to render. 120Hz: ~8ms. Anything that exceeds this budget drops frames.\n\nProperties that hit composite only:\n- `transform` (translate, scale, rotate)\n- `opacity`\n- `filter`\n\nProperties that hit layout + paint + composite:\n- `top`, `left`, `width`, `height`\n- `margin`, `padding`\n- `font-size`\n\nFor a 'slide-in' animation, prefer `transform: translateX(...)` over `left: ...`. Same visual effect, but the former runs on the GPU compositor without touching layout. The difference at 60fps with 100 elements: jank vs smooth.\n\nDevTools' Performance panel labels each frame's work — green = composite, purple = layout, red = paint. Look for animations that are entirely green."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dom_thrash",
+        "kind": "guided_derivation",
+        "question": "Quantify layout thrashing cost",
+        "goal": "Loop over $N$ elements, each does one read + one write. Without batching: cost?",
+        "steps": [
+          {
+            "prompt": "Each read after a write forces a layout. So $N$ iterations → $N$ layouts. Cost of one layout?",
+            "motivation": "Layout is $O(\\text{visible elements})$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "O(N)",
+                "linear in N"
+              ]
+            },
+            "hints": [
+              "Layout walks the visible-element tree."
+            ],
+            "reveal": "Layout is roughly $O(N)$ over visible elements."
+          },
+          {
+            "prompt": "Total cost unbatched?",
+            "motivation": "Multiply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "O(N^2)"
+              ]
+            },
+            "hints": [
+              "$N$ layouts × $O(N)$ per layout."
+            ],
+            "reveal": "$O(N^2)$ unbatched. Batched: 1 layout = $O(N)$."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Unbatched: } O(N^2),\\ \\text{Batched: } O(N)}$$ For $N = 100$: $10^4$ vs $10^2$ — 100× slowdown. Modern frameworks batch DOM updates exactly to avoid this trap."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dom_anim",
+        "kind": "multiple_choice",
+        "question": "You want to animate a panel sliding in from the right at 60fps. Which CSS approach is most performant?",
+        "options": [
+          "`right: 0` → `right: 100%` transition.",
+          "`transform: translateX(0)` → `translateX(100%)` transition.",
+          "Update `style.left` in a setInterval.",
+          "Resize the parent in JavaScript."
+        ],
+        "correctIndex": 1,
+        "explanation": "`transform` is composite-only on modern browsers — runs on the GPU without triggering layout/paint. The animation stays at 60fps even with many elements. `right`/`left` properties trigger layout on every frame (because they change box geometry), which can drop frames as elements multiply."
+      },
+      "hints": [
+        "Layout-triggering properties drop frames; composite-only properties don't.",
+        "Which CSS properties skip the layout pipeline?"
+      ],
+      "workedSolution": "`transform: translateX(...)` is composite-only on every modern browser. The animation runs on the GPU compositor, decoupled from layout + paint. Changing `right` or `left` triggers full pipeline including layout — at 60fps with many animated elements, the layout cost adds up and frames drop.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_dom_budget",
+        "kind": "math_expression",
+        "question": "60Hz display. Time budget per frame (ms)?",
+        "acceptedAnswers": [
+          "16.67",
+          "1000/60",
+          "16.6"
+        ],
+        "hint": "1000ms / 60 frames."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_dom_jank",
+        "kind": "scenario",
+        "question": "Diagnosing a janky scroll",
+        "prompt": "A teammate complains the page is janky when scrolling. DevTools Performance shows long layout tasks (~50ms) during scroll. Walk through the most likely cause + how you'd narrow it down."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dom",
+        "kind": "explain_back",
+        "prompt": "Explain in two sentences why React + Vue + Solid all batch DOM mutations rather than apply them eagerly.",
+        "rubric": "Mentions that eager DOM mutations would trigger many layouts per render; batching collects all changes into one commit phase that flushes once; reducing layout cost from O(N²) to O(N) in the worst case."
+      }
+    }
+  ]
+}

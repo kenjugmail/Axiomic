@@ -1952,6 +1952,27 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P6 — Frontend Engineer path. Modern web stack: DOM rendering,
+  // JS runtime, React, accessibility, performance budgets,
+  // TypeScript, testing, build tooling. Complements security,
+  // networking, and data-engineer paths.
+  seedMasteryPath({
+    slug: "frontend-engineer",
+    title: "Frontend Engineer",
+    description:
+      "From browser rendering through React, accessibility, performance budgets, TypeScript, testing, and build tooling. The modern web stack as practiced in 2024-2025.",
+    nodes: [
+      { slug: "dom-and-rendering", title: "DOM & Rendering Pipeline", level: "apprentice", order: 1, pages: ["dom", "render-pipeline"], prereqs: [], description: "Layout vs paint vs composite. Why transform animations are smooth + others aren't." },
+      { slug: "javascript-runtime", title: "JavaScript Runtime", level: "practitioner", order: 2, pages: ["event-loop", "v8-tiers"], prereqs: ["dom-and-rendering"], description: "Event loop, microtasks vs macrotasks, V8's optimization tiers, hidden-class deopts." },
+      { slug: "react-and-state", title: "React + State Management", level: "practitioner", order: 3, pages: ["react", "state-colocation"], prereqs: ["javascript-runtime"], description: "UI = f(state), memoization, state colocation, when to use Context vs Zustand." },
+      { slug: "accessibility", title: "Accessibility (WCAG)", level: "practitioner", order: 4, pages: ["wcag", "aria"], prereqs: ["dom-and-rendering"], description: "WCAG AA, semantic HTML over ARIA, keyboard navigation, color contrast." },
+      { slug: "performance-budgets", title: "Performance Budgets", level: "specialist", order: 5, pages: ["core-web-vitals", "lazy-loading"], prereqs: ["dom-and-rendering", "javascript-runtime"], description: "Core Web Vitals, LCP optimization, code splitting, mobile-first budgets." },
+      { slug: "typescript-types", title: "TypeScript Type System", level: "specialist", order: 6, pages: ["structural-typing", "generics"], prereqs: ["javascript-runtime"], description: "Structural typing, generics + inference, narrowing, branded types, intentional unsoundness." },
+      { slug: "testing-frontend", title: "Frontend Testing", level: "specialist", order: 7, pages: ["testing-trophy", "testing-library"], prereqs: ["react-and-state"], description: "The testing trophy (integration > unit), Testing Library, Playwright e2e, accessibility-as-tests." },
+      { slug: "build-and-bundle", title: "Build & Bundle", level: "expert", order: 8, pages: ["vite", "tree-shaking", "code-splitting"], prereqs: ["javascript-runtime", "typescript-types"], description: "Modern bundlers (Vite, esbuild, Turbopack), tree-shaking, code-splitting, source maps in production." },
+    ],
+  });
+
   // P5 — Networking path. The network-stack foundation:
   // IP/TCP/UDP, HTTP/REST, TLS, DNS, CDNs, load balancers,
   // QUIC/HTTP3, network failure modes. Sits beneath every

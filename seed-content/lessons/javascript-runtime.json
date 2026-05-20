@@ -1,0 +1,119 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish microtasks from macrotasks.",
+      "Reason about V8's JIT optimization tiers.",
+      "Recognize hidden-class deoptimization patterns."
+    ],
+    "prereqs": [
+      "dom-and-rendering"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The event loop, precisely",
+      "body": "Browser + Node's event loop has this structure (simplified):\n\n```\nwhile (true) {\n  task = dequeue(macrotask_queue); // 1 macrotask per turn\n  task.run();\n  while (microtask_queue.length > 0) {\n    microtask_queue.dequeue().run(); // ALL pending microtasks\n  }\n  render(); // only on browser, only if needed + frame budget allows\n}\n```\n\n**Macrotasks**: I/O completion, setTimeout / setInterval, UI events (click, keyup), MessageChannel.\n**Microtasks**: `Promise.then()` callbacks, `queueMicrotask()`, MutationObserver.\n\nKey property: microtasks run TO COMPLETION before the next macrotask. A promise chain that's still pending when its first `.then` runs will queue another microtask + run synchronously-ish before returning to the loop.\n\nConsequence: a tight loop of promise resolutions can starve macrotasks (UI events) — the browser appears frozen even though it's busy."
+    },
+    {
+      "kind": "text",
+      "title": "V8's optimization tiers",
+      "body": "V8 (Chrome's + Node's JS engine) compiles JS in tiers:\n1. **Ignition**: bytecode interpreter. First-pass compilation; fast startup.\n2. **Sparkplug**: lightly-optimized baseline compiler.\n3. **Maglev**: mid-tier JIT, since 2023.\n4. **TurboFan**: heavy-optimizing JIT. Specializes based on runtime types observed.\n\nFunctions get promoted up the tiers based on call frequency + 'heat'. Hot functions can be inlined, specialized to observed types, and run at near-C speed.\n\n**Deoptimization**: if a hot function suddenly receives an unexpected type (e.g., a number where strings were expected), V8 bails to the lower tier. The deopt-recompile cycle is expensive — a single misshape can throw away minutes of optimization work.\n\nThis is why monomorphic code (same types, same shapes consistently) is much faster than polymorphic code. Production hot paths in serious JS systems (Node servers, V8 isolates) chase monomorphism."
+    },
+    {
+      "kind": "text",
+      "title": "Hidden classes + the property order trap",
+      "body": "V8 tracks each object's 'hidden class' (Shape in SpiderMonkey, HiddenClass in V8). Two objects with the same property keys in the same insertion order share a hidden class. V8 generates inline-cached code that's fast for one hidden class, falls back to slow generic code for many hidden classes.\n\nClassic gotcha:\n```js\nconst a = { x: 1, y: 2 }; // hidden class A\nconst b = { y: 2, x: 1 }; // hidden class B (different property order)\n```\n\nThese look identical but V8 treats them as different shapes. Code that reads `.x` from both is polymorphic; runs slower.\n\nFix: always initialize objects with properties in the same order. Use class constructors. Avoid adding properties dynamically after construction (changes the hidden class)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_js_microtask",
+        "kind": "guided_derivation",
+        "question": "Trace a mixed micro/macro task sequence",
+        "goal": "Code: `setTimeout(() => console.log('A'), 0); Promise.resolve().then(() => console.log('B')); console.log('C');` — what's the output order?",
+        "steps": [
+          {
+            "prompt": "First, the synchronous code runs to completion. What's logged synchronously?",
+            "motivation": "Synchronous first.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "A",
+                "B",
+                "C",
+                "Nothing yet"
+              ],
+              "correctIndex": 2
+            },
+            "hints": [
+              "console.log('C') is the only synchronous log."
+            ],
+            "reveal": "C — the synchronous log."
+          },
+          {
+            "prompt": "After synchronous code: process microtasks first (the Promise.then). Then macrotasks (setTimeout). Order?",
+            "motivation": "Microtasks before macrotasks.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "A then B",
+                "B then A",
+                "Both simultaneously",
+                "A only"
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Microtask queue is drained between macrotasks."
+            ],
+            "reveal": "B (microtask) before A (macrotask). Output: C, B, A."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Order: C, B, A}}$$ Synchronous → all microtasks → next macrotask. This subtle ordering is at the heart of many 'why didn't my code run when I expected' bugs."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_js_deopt",
+        "kind": "multiple_choice",
+        "question": "Your hot function processes thousands of objects per second. Suddenly it gets 10× slower. The most likely cause:",
+        "options": [
+          "The CPU is throttled.",
+          "The function deoptimized: it started receiving objects with a different shape (hidden class) than V8 optimized for.",
+          "Garbage collection is slow.",
+          "Network is slow."
+        ],
+        "correctIndex": 1,
+        "explanation": "V8 specializes hot functions to the types/shapes it observes during warmup. When the shape changes (a property added/removed/reordered), V8 deoptimizes — falls back to the slow generic implementation. Common triggers: adding optional fields after construction, mixing object shapes in arrays, dynamic property assignment."
+      },
+      "hints": [
+        "What would change a hot function's runtime characteristics without any code change?",
+        "V8 specializes per observed shape; what if the shape changes?"
+      ],
+      "workedSolution": "Hot V8 functions are specialized to observed object shapes. When new objects arrive with a different shape, V8 deopts to generic dispatch. Diagnose with `node --trace-deopt` or Chrome DevTools Performance panel. Fix: enforce shape consistency (class constructors, property-order-preserving initialization, no dynamic property addition).",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_js_starve",
+        "kind": "scenario",
+        "question": "UI freeze from microtasks",
+        "prompt": "Your React app freezes for 2 seconds when a user clicks a button. The button handler kicks off a Promise chain that resolves rapidly in a loop. Walk through why the UI freezes + how you'd unfreeze it."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_js",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why monomorphic code is faster than polymorphic code in V8.",
+        "rubric": "Mentions that V8 generates type-specialized machine code in inline caches; when a callsite sees only one type/shape (monomorphic), the cache hits a single fast path; polymorphic callsites bounce through a slower dispatch table or fall back to generic code; the speed gap is often 10-100x for hot loops."
+      }
+    }
+  ]
+}

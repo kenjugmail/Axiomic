@@ -1,0 +1,133 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "State React's mental model (UI = f(state)).",
+      "Reason about render bailouts via memo.",
+      "Recognize state-colocation principles."
+    ],
+    "prereqs": [
+      "javascript-runtime"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "React's mental model: UI = f(state)",
+      "body": "React's core conceptual move: treat the UI as a pure function of state. State changes → re-render → diff against previous virtual DOM → patch the real DOM.\n\nConsequences:\n- Components are functions returning JSX (declarative UI, not imperative).\n- State lives in `useState` / `useReducer` / `Context` / external stores; lifting/lowering decides where.\n- Side effects live in `useEffect`. Rendering is pure; effects are the escape hatch to the outside world.\n\nThe model has limits: identity (refs), animations (raf), and DOM-specific operations escape it. But for ~95% of UI work, 'compute what should be on screen given the state' is the right framing.\n\nMost 'why is my React app slow' debugging traces back to: re-rendering too much because state lives too high, or doing too much work per render."
+    },
+    {
+      "kind": "text",
+      "title": "Memoization + render bailouts",
+      "body": "React's default behavior: when a parent re-renders, all children re-render. Often that's fine (cheap renders); sometimes it tanks performance.\n\nThree memoization escape hatches:\n- **`React.memo(Component)`**: bails out of re-render if props are shallow-equal to last render. Use for expensive children whose props don't change often.\n- **`useMemo(() => compute(), [deps])`**: memoize an expensive computation across renders.\n- **`useCallback(() => fn, [deps])`**: memoize a callback's identity so `React.memo` children don't unnecessarily re-render.\n\nBeware: memoization has overhead (storing previous values + dependency comparisons). Profile first. The default 'just re-render' path is usually fine. Common anti-pattern: wrapping every component in `React.memo` 'for performance' — often makes things slower."
+    },
+    {
+      "kind": "text",
+      "title": "State colocation",
+      "body": "Where to put state? The rule:\n\n**Put state at the lowest common ancestor of all components that need it.**\n\nIf only one component reads + writes a piece of state, keep it inside that component (`useState`). If two siblings need it, lift to their common parent. If many distant components need it, use Context or an external store (Zustand, Redux, Valtio).\n\nWhy lowest-common-ancestor: state changes re-render that component + descendants. State at the root → every change re-renders the whole tree. State at a leaf → only that leaf re-renders.\n\nProduction anti-pattern: global Redux store with every UI state in it. Every action re-renders the whole tree. Fix: colocate UI state with the components that use it; reserve global state for actually-global stuff (auth, app config, current user).\n\nThe rise of Zustand/Jotai/Valtio in 2022+ reflects this shift: granular subscriptions instead of single global store."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_react_eq",
+        "kind": "guided_derivation",
+        "question": "Derive React's prop-comparison shortcut",
+        "goal": "`React.memo` does shallow equality on prop objects. What does shallow equality mean + when does it fail?",
+        "steps": [
+          {
+            "prompt": "Shallow equality: $\\text{prev}.k === \\text{next}.k$ for every key $k$. Object identity, not deep equality. What happens with a freshly-created object literal as a prop?",
+            "motivation": "Reference identity matters.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Even if its contents are unchanged, the new identity makes shallow-equal return false → child re-renders.",
+                "Shallow equality treats them as equal.",
+                "React deep-compares.",
+                "Components don't re-render."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "Object identity: $\\{a: 1\\} === \\{a: 1\\}$ is `false`."
+            ],
+            "reveal": "Each render creates a new object; `===` compares references; identity check fails → memo bails."
+          },
+          {
+            "prompt": "Workaround: stabilize the object identity with `useMemo`. Sketch.",
+            "motivation": "Stable reference across renders.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "`const obj = useMemo(() => ({a: 1}), []);` — same identity across renders.",
+                "Use deep equality instead.",
+                "Don't pass objects.",
+                "Use class components."
+              ],
+              "correctIndex": 0
+            },
+            "hints": [
+              "`useMemo` with stable dependencies preserves identity."
+            ],
+            "reveal": "Stabilize with `useMemo(() => obj, [deps])`. Now the child's prop has stable identity across renders + `React.memo` bails out correctly."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{React.memo: shallow-equal on prop identity}}$$ Pass primitives or memoized objects; freshly-created object/array/function literals as props defeat `React.memo`. Common cause of 'why is memo not working' — usually a non-stable callback or object literal somewhere up the chain."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_react_state",
+        "kind": "multiple_choice",
+        "question": "Where should state for 'currently selected tab in a Settings page' live?",
+        "options": [
+          "In the Redux root store, for global access.",
+          "In the SettingsPage component, since only it + its descendants need it.",
+          "In the root App component.",
+          "In localStorage only."
+        ],
+        "correctIndex": 1,
+        "explanation": "Lowest-common-ancestor principle: state lives at the lowest level that all consumers can reach. The tab selection is consumed by the SettingsPage's children only — keep it local. Putting it in a global store creates needless re-renders elsewhere + couples the SettingsPage to a global concept it shouldn't care about."
+      },
+      "hints": [
+        "Which components actually need to read the selected tab?",
+        "If only SettingsPage's descendants need it, do other parts of the app need to know?"
+      ],
+      "workedSolution": "State colocation: keep state at the lowest level where all consumers can reach it. Tab selection in SettingsPage → consumed only by SettingsPage's children → put it in SettingsPage. Global stores should hold genuinely global state (auth, theme, current user). Putting local state globally creates over-rendering + couples unrelated pieces of the app.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_react_renders",
+        "kind": "math_expression",
+        "question": "Component tree depth 5, parent re-renders. Without memo, how many child re-renders cascade (assume branching factor 1)?",
+        "acceptedAnswers": [
+          "4",
+          "4 children",
+          "5-1"
+        ],
+        "hint": "All descendants re-render."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_react_slow",
+        "kind": "scenario",
+        "question": "A slow React list",
+        "prompt": "A list of 10,000 items in your React app is sluggish to scroll. Each item is a memoized component. Walk through the most likely causes + the standard mitigation (virtualization)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_react",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why the default 'just re-render' is usually fine in React, despite the apparent inefficiency of re-rendering on every state change.",
+        "rubric": "Mentions that virtual-DOM diffing is fast (O(n) over rendered nodes); most renders are cheap; React's commit phase is the actual cost; premature memoization adds overhead + complexity for marginal gain; profile before optimizing."
+      }
+    }
+  ]
+}

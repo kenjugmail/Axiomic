@@ -1,0 +1,128 @@
+{
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "core",
+    "objectives": [
+      "State the Core Web Vitals + their thresholds.",
+      "Reason about which bottleneck dominates each metric.",
+      "Apply lazy-loading + code-splitting."
+    ],
+    "prereqs": [
+      "dom-and-rendering",
+      "javascript-runtime"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Core Web Vitals, the production metrics",
+      "body": "Google's Core Web Vitals (CWV) — the three metrics that matter for both UX + SEO:\n\n1. **LCP (Largest Contentful Paint)**: time to render the largest visible element. Target: ≤ 2.5s. Driven by: server response, render-blocking resources, image load time.\n2. **FID/INP (First Input Delay → Interaction to Next Paint)**: time from user interaction to visual response. Target: ≤ 200ms INP. Driven by: main-thread blocking, JS execution time, layout work after interaction.\n3. **CLS (Cumulative Layout Shift)**: how much content moves around after initial render. Target: ≤ 0.1. Driven by: late-loading images without dimensions, fonts swapping, ad insertions.\n\nGoogle uses these in search ranking signals + reports them via PageSpeed Insights, CrUX (Chrome User Experience Report — real-user data), Search Console.\n\nProduction tracking: instrument via the `web-vitals` library; report to your analytics. Watch p75 across real users, not lab numbers."
+    },
+    {
+      "kind": "text",
+      "title": "LCP optimization checklist",
+      "body": "**LCP target**: ≤ 2.5s on p75 real-user. Top contributors:\n\n1. **Server response time (TTFB)**: anything above ~500ms is too much. Fix via CDN, faster origin, edge caching.\n2. **Render-blocking resources**: synchronous `<script>` and `<link rel=stylesheet>` block render. Defer scripts (`async`, `defer`, `type='module'`). Inline critical CSS; defer non-critical.\n3. **LCP image**: if largest element is an image, preload it with `<link rel='preload' as='image' fetchpriority='high'>`. Use modern formats (AVIF, WebP). Serve responsive sizes via `srcset`.\n4. **Font-loading strategy**: `font-display: swap` shows fallback immediately + swaps when the web font loads. Avoids waiting on font download to paint LCP.\n5. **No render-blocking JS for above-the-fold**: hydrate progressively if SSR.\n\nProduction-tier sites consistently hit LCP < 1s by combining all of these. The marginal improvement past 2.5s correlates with conversion-rate improvement."
+    },
+    {
+      "kind": "text",
+      "title": "Lazy loading + code splitting",
+      "body": "Code splitting: ship only the JS/CSS needed for the current page, not your whole app. Modern bundlers (Vite, esbuild, webpack 5+, Next.js) do this automatically per-route.\n\n```js\n// Dynamic import: a separate chunk\nconst Settings = lazy(() => import('./Settings'));\n\n<Suspense fallback={<Spinner/>}>\n  <Settings />\n</Suspense>\n```\n\nFor images:\n- `<img loading='lazy'>` — defer load until near-viewport.\n- For above-fold images: don't lazy-load (delays LCP); preload instead.\n\nFor CSS: inline critical (above-fold) CSS, defer the rest.\n\nFor third-party scripts (analytics, ads, chat widgets): defer or lazy-load. They're usually the #1 cause of slow INP because they load + execute on the main thread.\n\nProduction rule: every kilobyte of JS shipped is a kilobyte of work the main thread does. Cut bytes, cut latency."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_perf_budget",
+        "kind": "guided_derivation",
+        "question": "Derive a JS budget from device + network specs",
+        "goal": "Target: LCP < 2.5s on median mobile (3G, low-end Android). What's the JS budget?",
+        "steps": [
+          {
+            "prompt": "Median mobile: ~1.6 Mbps effective bandwidth = 200 KB/s. Plus per-chunk processing time on a low-end Android CPU: ~1 KB/ms. JS lifecycle: download → parse → compile → execute. Total time for $X$ KB?",
+            "motivation": "Network + CPU combined.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "X/200 + X/1000 seconds",
+                "(approx) X / 167 s"
+              ]
+            },
+            "hints": [
+              "Download time + execution time. Combined cost per KB is roughly 1/167 seconds."
+            ],
+            "reveal": "Roughly $X/167$ seconds per KB on median mobile (download + execute)."
+          },
+          {
+            "prompt": "Budget: 2.5s LCP, with say 1s reserved for non-JS work. So JS has ~1.5s. Max $X$?",
+            "motivation": "Solve.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~250 KB",
+                "250"
+              ]
+            },
+            "hints": [
+              "$1.5 \\cdot 167 \\approx 250$ KB."
+            ],
+            "reveal": "~250 KB total JS budget. Many sites ship 2-5 MB; that's why mobile is slow."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{JS budget: } \\sim 250\\text{ KB to hit LCP < 2.5s on median mobile}}$$ Brutal but real. Code-split aggressively, defer non-critical, audit third-party scripts. The web isn't ImageMagick on a 10-year-old laptop — but median user devices are similar."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_perf_cls",
+        "kind": "multiple_choice",
+        "question": "Your site's CLS is 0.4 (target: ≤ 0.1). Most likely cause:",
+        "options": [
+          "Images load slowly.",
+          "Images are loaded without explicit dimensions, so the layout shifts when they finally arrive.",
+          "Font is too small.",
+          "Server is slow."
+        ],
+        "correctIndex": 1,
+        "explanation": "CLS is about layout shift — content moving around after initial render. The classic cause: `<img>` without `width` + `height` attributes, so the layout reserves no space; when the image arrives, content below jumps. Fix: always include width + height on images (or `aspect-ratio` CSS). Same applies to ads + late-injected widgets."
+      },
+      "hints": [
+        "What's the difference between 'slow' and 'shifting'?",
+        "Images without dimensions don't reserve space; when they arrive, layout reflows."
+      ],
+      "workedSolution": "CLS = layout shift. Loading images without `width`+`height` (or CSS `aspect-ratio`) means the layout reserves 0 height for them; when they arrive, content below jumps down. Fix: always specify dimensions. Same for embedded media, ads, late-injected components. Modern frameworks (Next.js Image, Astro `<Image/>`) enforce dimensions by default.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_perf_lcp",
+        "kind": "math_expression",
+        "question": "Server TTFB 800ms. Critical CSS 50KB at 1 Mbps. CSS download time (ms)?",
+        "acceptedAnswers": [
+          "400",
+          "0.4 s",
+          "400 ms"
+        ],
+        "hint": "50 KB / 1 Mbps = 50/125 = 0.4 s."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_perf_slow",
+        "kind": "scenario",
+        "question": "Pinpointing a slow LCP",
+        "prompt": "Lighthouse reports LCP = 4.5s on your homepage (way above target). Walk through your debug + remediation plan."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_perf",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why mobile-first performance budgets are far stricter than desktop budgets in 2025.",
+        "rubric": "Mentions that median global users are on cheap Android with intermittent 3G/4G; CPU is ~5× slower than mid-range desktop; bandwidth often <2 Mbps; the same code that runs at 60fps on a Mac runs at 5fps on a $100 phone in rural India."
+      }
+    }
+  ]
+}
