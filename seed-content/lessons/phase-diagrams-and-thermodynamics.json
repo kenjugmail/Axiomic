@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "State the Gibbs phase rule.",
+      "Read a binary phase diagram.",
+      "Reason about eutectic + solid-solution alloys."
+    ],
+    "prereqs": [
+      "crystal-structure-and-symmetry"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Gibbs free energy + phase stability",
+      "body": "**Phase**: region of uniform composition + structure. Solid, liquid, gas. Within solids: different crystal structures = different phases.\n\n**Gibbs free energy** at temperature T + pressure P:\n$$G = H - T S$$\nWhere H = enthalpy (binding energy + work content), S = entropy (disorder).\n\nAt equilibrium, system minimizes G. The phase with LOWEST G at given (T, P, composition) is stable.\n\n**Phase transitions**: at the transition T, two phases have equal G. Below → one phase stable; above → other.\n\nExamples:\n- Water freezing at 0°C: G(liquid) = G(solid) at 273 K, 1 atm. Below, ice; above, liquid.\n- Iron BCC ↔ FCC at 910°C: pure-iron phase change.\n\n**Gibbs phase rule**:\n$$F = C - P + 2$$\nF = degrees of freedom (number of intensive variables you can change without changing # of phases). C = components. P = number of phases coexisting.\n\nExamples:\n- Pure water (C=1) at melting point (P=2: ice + liquid): F = 1 - 2 + 2 = 1. Can change either T or P (not both).\n- Triple point (C=1, P=3: ice + liquid + vapor): F = 0. Fixed at 0.01°C + 4.6 mmHg.\n- Binary alloy (C=2) with solid + liquid (P=2): F = 2 - 2 + 2 = 2. Can change T + composition.\n\n**Driving force** for phase transformations: $\\Delta G = -RT \\ln K$ for chemical reactions; $\\Delta G = G_2 - G_1$ for transformations. Negative = favorable.\n\n**Nucleation + growth**: most phase transformations involve nucleation of new phase + growth.\n- **Homogeneous nucleation**: in bulk of parent phase. Hard (high energy barrier).\n- **Heterogeneous nucleation**: on defects (grain boundaries, dislocations, particles). Easier. Common in practice.\n\nUnder-cooling: amount below equilibrium T needed for nucleation. Glass: cool quickly enough + crystallization is bypassed (kinetic glass formation)."
+    },
+    {
+      "kind": "text",
+      "title": "Binary phase diagrams + the lever rule",
+      "body": "**Binary phase diagram**: shows equilibrium phases as function of composition + temperature for a 2-component system.\n\nAxes:\n- X-axis: composition (% B in A-B alloy).\n- Y-axis: temperature.\n\nRegions show which phase(s) are stable. Boundaries are phase-equilibrium lines.\n\n**Eutectic system** (Pb-Sn, Al-Si, Au-Si):\n- Two solid phases mostly insoluble in each other.\n- Liquid solidifies at the EUTECTIC point (composition + temperature where liquid → 2 solids simultaneously).\n- At eutectic composition: lowest melting point.\n- Below eutectic T: lamellar microstructure of alternating α + β phases.\n\nFamous: Pb-Sn solder, eutectic at 61.9% Sn, 183°C. Lowest-melting Pb-Sn alloy. (Modern lead-free: Sn-Ag-Cu eutectic, ~217°C.)\n\n**Isomorphous (complete solid solubility)**: Cu-Ni, Mo-W, Au-Ag.\n- Single solid phase across all compositions.\n- Liquid + solid coexistence region (between solidus + liquidus curves).\n\n**Peritectic** (Fe-C, Pt-Ag at high Pt):\n- Reaction: liquid + α → β on cooling.\n- Complex microstructure.\n\n**Lever rule**: in a two-phase region, computes the FRACTIONS of each phase.\n$$f_\\alpha = \\frac{C_\\beta - C_0}{C_\\beta - C_\\alpha}$$\nWhere $C_0$ = overall composition, $C_\\alpha$ + $C_\\beta$ = equilibrium phase compositions at that T.\n\nE.g., Pb-50% Sn at 200°C: equilibrium $\\alpha \\approx 15\\%$ Sn, liquid $\\approx 80\\%$ Sn. $f_\\alpha = (80 - 50)/(80 - 15) = 30/65 \\approx 46\\%$.\n\n**Iron-carbon (Fe-Fe₃C) diagram**: the most-studied phase diagram in engineering. Forms basis of all steel + cast-iron metallurgy.\n- Austenite (γ, FCC): high-T stable, high carbon solubility (max 2.1% at 1147°C).\n- Ferrite (α, BCC): low-T stable, very low carbon solubility (~0.02% max).\n- Cementite (Fe₃C): hard ceramic, 6.67% C.\n- Eutectoid at 0.76% C, 727°C: γ → α + Fe₃C (pearlite microstructure).\n- Eutectic at 4.3% C, 1147°C: liquid → γ + Fe₃C.\n\nAll the rules of steel heat treatment derive from this diagram."
+    },
+    {
+      "kind": "text",
+      "title": "Heat treatment + non-equilibrium phases",
+      "body": "Phase diagrams show EQUILIBRIUM. Real heat treatment exploits NON-EQUILIBRIUM:\n\n**Quenching**: cool rapidly to bypass slow diffusional transformations. Trap atoms in non-equilibrium positions.\n\n**Steel quench → martensite**:\n- Austenitize at >900°C (γ-FCC, dissolves carbon).\n- Quench rapidly (water, oil, brine).\n- γ → α transformation can't occur at slow rate due to lack of diffusion time.\n- Distorted BCT (body-centered tetragonal) phase forms with carbon trapped → **martensite**. Very hard, very brittle.\n- Subsequent tempering at ~200-600°C precipitates carbides + reduces brittleness while maintaining hardness.\n\n**TTT diagram (Time-Temperature-Transformation)**: kinetics of phase transformation. C-shape curve shows that at intermediate T, transformation is fastest (compromise of driving force + diffusion).\n- Hold above C-nose: transformation happens.\n- Quench past C-nose: bypass; martensite forms.\n- Step up to bainite: bainitic transformation (intermediate hardness).\n\n**Age hardening / precipitation hardening** (Al-Cu, Al-Mg-Si, Ni-superalloy):\n1. **Solutionize**: heat above solvus to dissolve precipitates.\n2. **Quench**: rapid cool to retain supersaturated solid solution.\n3. **Age**: hold at intermediate T → precipitates nucleate + grow.\n4. **Peak**: at optimum precipitate size + spacing, max strength.\n5. **Overage**: precipitates coarsen → strength drops.\n\nUsed in: 2xxx + 7xxx aluminum aerospace alloys. Nickel superalloys (γ' precipitates in γ matrix). Critical to many engineering alloys.\n\n**Microstructure → properties**: choose process to achieve target microstructure (grain size, phases, precipitate distribution). Optimize for application:\n- High strength: martensite, fine precipitates, refined grains.\n- High ductility: equiaxed grains, less precipitation.\n- High temperature: superalloys with γ' / γ'' / carbides.\n- Wear resistance: hard surface + tough core (case hardening).\n\n**CALPHAD (Calculation of Phase Diagrams)**: software (Thermo-Calc, FactSage, Pandat) predicts multi-component phase diagrams from databases. Used for alloy design + processing simulation. Closes loop between theory + experiment."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_phase_lever",
+        "kind": "guided_derivation",
+        "question": "Apply the lever rule",
+        "goal": "Cu-Ni alloy at 70 wt% Cu, 30 wt% Ni, held at 1250°C. From phase diagram: liquidus 70 wt% Cu means liquid is 80 wt% Cu, solid is 60 wt% Cu (estimated equilibrium compositions at 1250°C).",
+        "steps": [
+          {
+            "prompt": "Lever rule: $f_{\\text{liquid}} = (C_{\\text{solid}} - C_0) / (C_{\\text{solid}} - C_{\\text{liquid}})$. With $C_0 = 70$, $C_{\\text{solid}} = 60$, $C_{\\text{liquid}} = 80$: $f_{\\text{liquid}} = ?$",
+            "motivation": "Apply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.5",
+                "50%",
+                "1/2"
+              ]
+            },
+            "hints": [
+              "(60 - 70) / (60 - 80) = -10/-20 = 0.5."
+            ],
+            "reveal": "50% liquid + 50% solid by mass."
+          },
+          {
+            "prompt": "Is this useful for casting?",
+            "motivation": "Apply.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Yes: tells you what fraction is solidifying at each temperature → predicts shrinkage, micro-porosity, segregation. Real castings of Cu-Ni alloy use this to plan cooling rates + feeding.",
+                "Just academic.",
+                "Doesn't matter."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Practical implications."
+            ],
+            "reveal": "Lever rule is THE practical tool for casting design. At each T during solidification, fraction solid is known. Helps plan feeding (replace shrinkage), avoid hot spots, predict segregation. Modern CFD simulations (ProCAST, MAGMASoft) use phase-diagram data + heat transfer."
+          },
+          {
+            "prompt": "What's the COMPOSITION of the first solid that forms when liquid Cu-Ni 70% cools from above liquidus?",
+            "motivation": "Lever ratio.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Same as liquid.",
+                "RICHER in Ni than the liquid (higher-melting). As cooling continues, both compositions shift along solidus + liquidus toward the bulk composition. Eventually all solid at 70%.",
+                "Pure Cu.",
+                "Pure Ni."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Higher Ni first."
+            ],
+            "reveal": "First solid is RICHER in higher-melting element (Ni). 'Coring' results: dendrite arms have Ni-rich centers + Cu-rich outsides. Causes inhomogeneity unless homogenized (annealing at high T to diffuse out)."
+          }
+        ],
+        "finalResult": "$$\\boxed{f_\\alpha = (C_\\beta - C_0) / (C_\\beta - C_\\alpha)}$$ Lever rule applied across binary phase diagrams gives phase fractions in 2-phase regions. Critical for casting design, alloy formulation, microstructure prediction. Combined with kinetic models (TTT, CCT), it lets engineers design heat treatments + alloy compositions for target properties. CALPHAD software extends this to multi-component systems used in real alloys (5-15 elements)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_phase_steel_temp",
+        "kind": "multiple_choice",
+        "question": "Why is steel hardness controllable via heat treatment over 5-10× range?",
+        "options": [
+          "Magic.",
+          "Different cooling rates from austenite give different microstructures: slow → pearlite (soft, ductile); medium → bainite; fast quench → martensite (very hard, brittle). Tempering of martensite relieves brittleness while maintaining hardness. The TTT/CCT diagrams + iron-carbon diagram dictate the choices.",
+          "Carbon changes.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Heat treatment is THE central skill of metallurgy. From the SAME steel chemistry, vary cooling rate to get pearlite, bainite, or martensite, with hardness varying from ~150 HB (annealed) to ~700 HV (martensite). Tempering optimizes the strength-toughness balance. Used in: tools (high hardness for cutting), gears (case-hardened: hard surface, tough core), springs (medium hardness + toughness), structural beams (ductile + tough). Same steel, different processing → wildly different applications."
+      },
+      "hints": [
+        "How can same composition give different properties?",
+        "What's the lever?"
+      ],
+      "workedSolution": "Cooling rate from austenite controls phase + microstructure. Slow → diffusion-controlled pearlite. Fast → diffusionless martensite. Intermediate → bainite. Tempering of martensite gives controllable balance. All from one composition; the lever is processing. The Iron-Carbon diagram + TTT/CCT curves are the playbook. Modern integrated computational materials engineering (ICME) optimizes alloy + processing jointly.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_phase_gibbs",
+        "kind": "math_expression",
+        "question": "Gibbs phase rule for binary system, 1 phase, 1 atm pressure (P fixed)?",
+        "acceptedAnswers": [
+          "2",
+          "F=2",
+          "F=C-P+1 = 2"
+        ],
+        "hint": "F = C - P + 1 with P fixed = 2 - 1 + 1 = 2 (T + composition)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_phase_solder",
+        "kind": "scenario",
+        "question": "Designing lead-free solder",
+        "prompt": "Walk through the engineering trade-offs in choosing a lead-free solder (Sn-Ag-Cu typical) vs traditional Sn-Pb."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_phase",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why phase diagrams are the central tool of metallurgical engineering.",
+        "rubric": "Mentions that phase diagrams encode equilibrium phase composition + amount as functions of composition + temperature; combined with kinetic data (TTT, CCT), they predict microstructures from processing routes; microstructure governs properties; therefore phase diagrams + processing recipes are the engineering knobs to dial in target performance. CALPHAD software extends to multi-component industrial alloys."
+      }
+    }
+  ]
+}

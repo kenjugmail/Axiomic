@@ -1952,6 +1952,26 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P20 — Materials Scientist path. Crystal structure + defects
+  // + mechanical properties + phase diagrams + electronic +
+  // polymers + composites + characterization.
+  seedMasteryPath({
+    slug: "materials-scientist",
+    title: "Materials Scientist",
+    description:
+      "From crystal structure + Bravais lattices through defects + dislocations, mechanical properties + fracture, phase diagrams + heat treatment, band theory + semiconductors, polymer architecture, composites + metamaterials, and XRD / SEM / TEM characterization. The materials-science stack end-to-end.",
+    nodes: [
+      { slug: "crystal-structure-and-symmetry", title: "Crystal Structure + Symmetry", level: "apprentice", order: 1, pages: ["bravais-lattices", "miller-indices", "close-packing"], prereqs: [], description: "7 crystal systems + 14 Bravais lattices, Miller indices for planes + directions, FCC/BCC/HCP + close packing." },
+      { slug: "defects-and-microstructure", title: "Defects + Microstructure", level: "practitioner", order: 2, pages: ["point-defects", "dislocations", "grain-boundaries"], prereqs: ["crystal-structure-and-symmetry"], description: "Point + line + planar defects, dislocation glide + Burgers vectors, grain boundaries + Hall-Petch." },
+      { slug: "mechanical-properties", title: "Mechanical Properties + Fracture", level: "practitioner", order: 3, pages: ["stress-strain", "ductile-brittle", "fatigue-griffith"], prereqs: ["defects-and-microstructure"], description: "Stress-strain + Young's modulus, ductile vs brittle (DBTT, Liberty Ships), fatigue + Griffith fracture toughness." },
+      { slug: "phase-diagrams-and-thermodynamics", title: "Phase Diagrams + Thermo", level: "practitioner", order: 4, pages: ["gibbs-free-energy", "binary-eutectic", "heat-treatment"], prereqs: ["crystal-structure-and-symmetry"], description: "Gibbs free energy + phase rule, binary phase diagrams + lever rule, heat treatment + martensite + precipitation." },
+      { slug: "electronic-properties", title: "Electronic Properties + Semiconductors", level: "specialist", order: 5, pages: ["band-theory", "doping-pn", "solar-leds"], prereqs: ["crystal-structure-and-symmetry"], description: "Band theory + Fermi level, n/p doping + transistors, solar cells + LEDs + wide-bandgap power devices." },
+      { slug: "polymers-and-soft-matter", title: "Polymers + Soft Matter", level: "practitioner", order: 6, pages: ["polymer-structure", "tg-crystallinity", "thermosets"], prereqs: [], description: "Polymer architecture + synthesis, glass transition + crystallinity, thermoplastics vs thermosets vs elastomers." },
+      { slug: "composites-and-engineered-materials", title: "Composites + Engineered Materials", level: "practitioner", order: 7, pages: ["composite-types", "rule-of-mixtures", "metamaterials"], prereqs: ["mechanical-properties", "polymers-and-soft-matter"], description: "PMC/MMC/CMC, rule of mixtures + anisotropy, foams + auxetics + metamaterials + 3D-printed lattices." },
+      { slug: "characterization-techniques", title: "Characterization Techniques", level: "specialist", order: 8, pages: ["xrd-bragg", "sem-tem-afm", "spectroscopy"], prereqs: ["crystal-structure-and-symmetry"], description: "XRD + Bragg's law, SEM + TEM + AFM electron microscopy, XPS + FTIR + NMR spectroscopy." },
+    ],
+  });
+
   // P19 — Aerospace Engineer path. Orbital mechanics, aero,
   // propulsion, structures, flight dynamics + control,
   // re-entry, spacecraft, GNC. The full aerospace stack.

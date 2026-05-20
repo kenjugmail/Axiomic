@@ -1,0 +1,147 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "specialist",
+    "objectives": [
+      "Outline electronic band theory.",
+      "Distinguish conductors, semiconductors, insulators.",
+      "Reason about doping + n/p-type."
+    ],
+    "prereqs": [
+      "crystal-structure-and-symmetry"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Band theory: electrons in solids",
+      "body": "**Free electron**: in vacuum, can have any energy. Wave function $e^{ikx}$, energy $\\hbar^2 k^2 / 2m$.\n\n**Electron in a periodic potential** (Bloch's theorem 1928): wave functions are $\\psi_k(x) = u_k(x) e^{ikx}$ where $u_k$ has the periodicity of the lattice. Allowed energies form BANDS.\n\n**Energy bands**:\n- Allowed energy ranges where electrons can exist (bands).\n- Forbidden ranges (band gaps).\n- Each band can hold limited number of electrons (per unit cell).\n\n**Fermi level** $E_F$: highest occupied energy state at T = 0 K.\n\n**Three classes of solids** based on band structure:\n\n**Conductor (metal)**: $E_F$ inside a band. Electrons can move into nearby empty states with minimal energy. Easy current flow.\n- Examples: Cu, Al, Au, Ag, Na, Fe (with overlap of bands).\n\n**Insulator**: $E_F$ in a gap between filled valence + empty conduction band. Large gap (~5-10 eV). Electrons can't easily reach conduction band.\n- Examples: diamond (5.5 eV), SiO₂ (8.9 eV), Al₂O₃ (8 eV).\n\n**Semiconductor**: $E_F$ in a gap but gap is SMALL (~0.5-3 eV). At finite T, thermal energy can promote some electrons → conduction.\n- **Si**: 1.12 eV.\n- **Ge**: 0.67 eV.\n- **GaAs**: 1.42 eV.\n- **GaN**: 3.4 eV (wide-bandgap, used in LEDs + power electronics).\n- **SiC**: 2.4-3.3 eV.\n- **Diamond**: 5.5 eV (technically insulator but emerging semiconductor for high-power).\n\n**Direct vs indirect bandgap**:\n- **Direct** (GaAs, GaN, CdTe): conduction-band minimum + valence-band maximum at same k. Photon emission/absorption efficient → LEDs + lasers + photodetectors.\n- **Indirect** (Si, Ge): different k. Phonon involved in photon transition → much weaker. Silicon NEVER an efficient LED material; needs GaN or other direct-gap.\n\n**Density of states (DOS)**: number of states per energy interval. Determines electron + thermal properties. Free electrons: $D(E) \\propto \\sqrt{E}$. Real materials: more complex, computed via DFT."
+    },
+    {
+      "kind": "text",
+      "title": "Semiconductors + doping",
+      "body": "**Intrinsic semiconductors**: pure, low conductivity at room T (Si: ~1.5e10 electrons/cm³ at 300 K vs 1e22 in metals).\n\n**Doping**: add impurities to control carrier type + density.\n\n**n-type doping**: substitute pentavalent atom (P, As, Sb in Si). 4 electrons bond, 5th is loosely bound → easily ionized to conduction band → **DONOR**. Carrier = electron. Negative.\n\n**p-type doping**: substitute trivalent (B, Al, Ga in Si). 3 electrons bond, missing one creates a **hole** in valence band → can accept electron from neighbor. Acceptor. Carrier = hole. Positive (effective charge).\n\nDoping levels: typical $10^{14}$ - $10^{18}$ atoms/cm³ (1 part per million to 1 part per ten thousand). Heavily-doped > $10^{19}$.\n\n**p-n junction**: interface between p-type + n-type semiconductor. Electrons + holes diffuse, leaving charged dopants → built-in electric field. Forms a DIODE (one-way current).\n\nForward bias: external field reduces built-in field → current flows easily.\nReverse bias: external field reinforces built-in field → current blocked.\n\n**Transistor** = two back-to-back p-n junctions with control terminal.\n- **MOSFET (Metal-Oxide-Semiconductor FET)**: gate insulated by oxide controls channel. Dominant in modern ICs.\n- **BJT (Bipolar Junction Transistor)**: 3 layers (NPN or PNP). Older but still used in analog.\n\n**Modern silicon**:\n- 3nm + 5nm process nodes. Tens of millions of transistors per mm².\n- FinFET (3D fin) replaced planar MOSFET ~2011.\n- Gate-all-around (GAA) replacing FinFET at 3nm + below.\n- Materials: Si + SiGe + III-V (for high-mobility) + 2D materials (MoS₂, graphene, research).\n\n**Wide-bandgap power semiconductors** (SiC, GaN):\n- High voltage tolerance.\n- High switching frequency.\n- Used in EV inverters (Tesla used SiC since 2017), solar inverters, fast chargers.\n- Replacing Si IGBTs in high-power applications.\n\n**Compound semiconductors** (III-V, II-VI):\n- GaAs, GaN, GaP, InP, CdTe, etc.\n- Different bandgaps → tailored for LEDs (visible) + lasers + IR detectors.\n- Direct bandgaps → efficient light emission.\n- Used in: LEDs, displays, lasers, solar cells (multijunction), high-speed transistors (RF amplifiers)."
+    },
+    {
+      "kind": "text",
+      "title": "Solar cells + LEDs + the photovoltaic effect",
+      "body": "**Photovoltaic effect**: photons absorbed in semiconductor create electron-hole pairs. If p-n junction is present, field separates them → current flows.\n\n**Photon energy**: $E = h\\nu = hc/\\lambda$. For visible light: 1.7-3.1 eV. For IR-NIR: 0.8-1.5 eV.\n\nFor photon to create an electron-hole pair: photon energy ≥ bandgap. So a Si solar cell (1.12 eV gap) absorbs visible + near-IR; doesn't absorb IR (wasted heat); IR > gap waste energy as heat ('thermalization').\n\n**Shockley-Queisser limit**: maximum efficiency of single-junction solar cell. ~33% at optimum bandgap ~1.4 eV. Si cell theoretical limit ~31%; real Si cells ~22-26% (close to theoretical, after decades of optimization).\n\n**Multi-junction solar**: stack multiple p-n junctions of different bandgaps. Each absorbs a different range. Tandem efficiency ~40%+. Used in concentrating PV + spacecraft (cost-justifies III-V semiconductors).\n\n**Modern PV**:\n- **Crystalline silicon (c-Si)**: dominant ~95% of market. 22-26% efficiency.\n- **CdTe**: thin-film. First Solar's tech. ~22% cell efficiency.\n- **Perovskite**: newer. Rapid efficiency gains (25%+ in lab). Stability + scaling challenges.\n- **Tandem perovskite-Si**: world record efficiency ~33%. Commercial production starting.\n\n**LEDs** (Light-Emitting Diode): forward-biased p-n junction. Electrons + holes recombine, emit photons.\n- **GaN-based**: blue, green LEDs. Bandgap ~3.4 eV.\n- **GaAlInP**: red, yellow.\n- **White LED**: blue LED + yellow phosphor.\n- 2014 Nobel Prize (Akasaki, Amano, Nakamura): blue LEDs.\n\n**Solid-state lasers**:\n- Diode lasers: similar to LEDs but with optical feedback. Used everywhere from BluRay to fiber communications.\n- VCSELs (Vertical-Cavity Surface-Emitting Lasers): array on chip. Used in iPhone Face ID, mouse sensors, datacom.\n\n**Quantum dots**:\n- Nanocrystal semiconductors. Bandgap depends on SIZE (quantum confinement).\n- 2-10 nm CdSe dots: red. Smaller → blue.\n- Used in displays (Samsung QLED), bio-imaging, future solar cells.\n- 2023 Nobel Prize for quantum dot discovery.\n\nThe field of semiconductor materials + devices is among the most economically important in materials science: ~$500B+ industry."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_elec_doping",
+        "kind": "guided_derivation",
+        "question": "Apply doping calculations",
+        "goal": "Silicon doped with phosphorus at $10^{16}$ atoms/cm³. Assume full ionization at room temperature. Compute carrier density + estimate conductivity. Use $\\mu_e = 1350$ cm²/V·s for Si.",
+        "steps": [
+          {
+            "prompt": "Electron density?",
+            "motivation": "Direct.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1e16 cm^-3",
+                "10^16",
+                "10^16 per cm^3"
+              ]
+            },
+            "hints": [
+              "Each P atom → 1 electron."
+            ],
+            "reveal": "$n = 10^{16}$ electrons/cm³. (Intrinsic Si has $n_i \\approx 1.5 \\times 10^{10}$. So doping increases 6 orders of magnitude.)"
+          },
+          {
+            "prompt": "Conductivity: $\\sigma = n e \\mu$. Compute.",
+            "motivation": "Multiply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~2.16 S/cm",
+                "~2.2 S/cm",
+                "approximately 2.2"
+              ]
+            },
+            "hints": [
+              "10^16 × 1.6e-19 × 1350."
+            ],
+            "reveal": "$\\sigma \\approx 2.2$ S/cm. Resistivity ~0.46 Ω·cm."
+          },
+          {
+            "prompt": "Compare to intrinsic Si (~10^-5 S/cm) + copper (~6e7 S/cm).",
+            "motivation": "Bracket.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Same as copper.",
+                "Doped Si is much higher than intrinsic but still much lower than metal: ~7 orders below copper. Engineering Si conductivity by ~10 orders of magnitude (intrinsic → heavily doped) is what enables semiconductors devices.",
+                "Higher than copper.",
+                "Lower than intrinsic."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Compare orders of magnitude."
+            ],
+            "reveal": "Doped Si is 5+ orders above intrinsic, 7 orders below Cu. Doping engineers conductivity over 10 decades! Lightly doped 'channel' regions of MOSFETs are intrinsic-like; heavily doped source/drain regions are nearly metallic. This contrast is the basis of switching."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\sigma = n e \\mu, n \\text{ controlled by doping}}$$ Semiconductor device design is the art of controlling electron + hole densities locally via doping. Photolithography defines doped regions with sub-micron precision. The result: transistors that switch at GHz, store memory, amplify signals — the foundation of digital electronics + computing. From this physics flows the silicon revolution + the modern world."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_elec_widegap",
+        "kind": "multiple_choice",
+        "question": "Why are wide-bandgap semiconductors (SiC, GaN) replacing silicon in EV power electronics?",
+        "options": [
+          "Marketing.",
+          "Wide bandgap → higher breakdown voltage, higher operating temperature, faster switching. EV inverters convert battery DC to motor AC at high power; SiC switches 10× faster + with 2-3× less loss than Si. Tesla switched to SiC inverters in 2017; now industry-wide.",
+          "Cheaper.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Wide-bandgap (Eg > 2 eV) advantages: higher critical electric field (smaller devices for same voltage), higher thermal conductivity (less cooling), faster switching (lower switching loss). At high power (>kW), SiC + GaN dramatically outperform Si. Tesla, Lucid, BYD all use SiC in modern EV inverters. GaN dominates fast-charging (phone chargers, laptops). Trade-off: substrate cost, manufacturing maturity. Costs falling fast; market share growing rapidly."
+      },
+      "hints": [
+        "What does wide bandgap enable?",
+        "Why important for EV?"
+      ],
+      "workedSolution": "Wide bandgap → higher breakdown field, higher max temperature, faster switching. For EV inverter (kW-MW, high frequency switching): SiC vs Si means smaller, lighter, more efficient. Tesla pioneered SiC inverters; range + efficiency improvements measurable. GaN dominates kW-class chargers (smaller power bricks). Mature Si still used for many less-demanding apps; wide-bandgap for high-performance.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_elec_bg",
+        "kind": "math_expression",
+        "question": "Si bandgap 1.12 eV. Wavelength of photon at this energy (in nm)?",
+        "acceptedAnswers": [
+          "~1107 nm",
+          "~1100 nm",
+          "1240/1.12"
+        ],
+        "hint": "$\\lambda = hc/E = 1240/1.12 \\approx 1107$ nm."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_elec_solar",
+        "kind": "scenario",
+        "question": "Choosing solar PV technology",
+        "prompt": "Walk through a comparison of c-Si vs CdTe vs perovskite for a utility-scale solar farm. Consider efficiency, cost, lifespan, manufacturing scale."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_elec",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why band theory + doping made modern electronics possible.",
+        "rubric": "Mentions that band theory explains conductors / semiconductors / insulators; doping lets us engineer carrier type + density precisely over 10+ orders of magnitude; combining n + p regions creates diodes + transistors; this controllability is the foundation of every digital + analog circuit. Modern silicon ICs pack billions of doped regions with sub-nanometer precision."
+      }
+    }
+  ]
+}

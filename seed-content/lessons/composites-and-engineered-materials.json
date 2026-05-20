@@ -1,0 +1,147 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "core",
+    "objectives": [
+      "Outline composite material classifications.",
+      "Apply rule of mixtures.",
+      "Distinguish metamaterials + auxetics + foams."
+    ],
+    "prereqs": [
+      "mechanical-properties",
+      "polymers-and-soft-matter"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Composite materials: combining the best of two",
+      "body": "**Composite**: material made of two or more constituents with distinct properties, combining for desired performance.\n\n**Components**:\n- **Matrix**: continuous phase. Transfers load, protects fibers, defines shape.\n- **Reinforcement**: dispersed phase. Carries primary loads.\n- **Interface**: bond between them. Often the weakest link.\n\n**Classification by matrix**:\n- **PMC (Polymer Matrix Composite)**: epoxy/polyester + glass/carbon/aramid fibers. CFRP, fiberglass. Lightweight + strong. Aerospace, automotive.\n- **MMC (Metal Matrix Composite)**: aluminum + SiC particles, titanium + boron fibers. High temperature, wear resistance. Engines.\n- **CMC (Ceramic Matrix Composite)**: SiC/SiC, C/C (carbon-carbon). Very high temperature. Brake disks, hot sections of jet engines, rocket nozzles.\n- **C-C (carbon-carbon)**: extreme high-T (>2000°C). Space Shuttle nose + leading edges.\n\n**Classification by reinforcement**:\n- **Fibers** (1D): continuous (aligned) or chopped (random). Carbon, glass, aramid (Kevlar), boron, basalt. High strength + stiffness along fiber.\n- **Particulates** (0D): SiC, alumina, glass beads. Modulus + wear improvement.\n- **Whiskers**: single-crystal fibers. Very high strength but expensive + brittle.\n- **Layered** (2D): plywood, laminates, GLARE (glass-reinforced aluminum laminate).\n\n**Rule of mixtures** (parallel loading):\n$$E_{composite} = V_f E_f + V_m E_m$$\nWhere $V_f$ + $V_m$ are volume fractions, $E_f$ + $E_m$ are moduli. UPPER bound on modulus.\n\n**Inverse rule of mixtures** (series loading):\n$$1/E_{composite} = V_f/E_f + V_m/E_m$$\nLOWER bound. Real composites between these, depending on geometry + orientation.\n\n**Anisotropy**: aligned-fiber composites strong in fiber direction, weak transverse. Quasi-isotropic layups (0°/+45°/90°/-45°) balance across directions.\n\n**Notable composites in engineering**:\n- **Carbon fiber-epoxy**: aerospace (787 50% by mass), Formula 1, premium sporting goods, satellite structures.\n- **Glass fiber-epoxy/polyester**: wind turbine blades, boats, water tanks, building panels.\n- **Aramid (Kevlar)**: ballistic vests, fire-resistant suits.\n- **C/C composites**: rocket nozzles, brake disks (F1, military jets).\n- **GLARE**: Airbus A380 fuselage panels. Glass + aluminum laminate.\n- **Reinforced concrete**: ubiquitous. Steel rebar in concrete matrix. The most-used composite by mass."
+    },
+    {
+      "kind": "text",
+      "title": "Foams + porous + cellular structures",
+      "body": "**Cellular materials**: porous structures with mostly air. Density ~5-50% of dense parent material.\n\n**Foams**:\n- **Polymer foams**: PU (polyurethane), PS (expanded EPS, extruded XPS), PE, PP, PVC. Cushioning, insulation, packaging.\n- **Metallic foams**: Al, Ni. Impact absorption, lightweight panels.\n- **Ceramic foams**: filters, catalyst supports.\n- **Bio foams**: bone (trabecular), cork, wood.\n\n**Cellular geometry**:\n- **Closed cell**: pockets of trapped gas. Low water absorption. Buoyancy. EPS.\n- **Open cell**: connected. Higher permeability. Sound absorption. Reticulated PU.\n\n**Density-property relationships** (Ashby-Gibson scaling):\n- Modulus: $E_{foam}/E_{solid} \\sim (\\rho_{foam}/\\rho_{solid})^2$ (open cell) or $\\sim (\\rho_{foam}/\\rho_{solid})$ (closed cell, dominated by membrane stretching).\n- Strength: similar power-law scalings.\n- Foams: weaker than parent but lighter → specific properties (per unit weight) sometimes excellent.\n\n**Bones + scaffolds**:\n- Trabecular (spongy) bone is a foam-like structure optimized by evolution.\n- Engineering scaffolds mimic bone for tissue engineering.\n- 3D printing enables complex porous designs.\n\n**Lattice / truss structures**: 3D printed, sub-millimeter to centimeter scale.\n- **Octet truss**: stretch-dominated. Strong + stiff for weight.\n- **Gyroid + diamond**: triply-periodic minimal surfaces. Used in modern AM.\n- Mass + property tuning: density + properties controllable by lattice geometry, independent of base material.\n\n**Sandwich panels**: thin strong skins (CFRP, Al) + lightweight core (foam, honeycomb). High bending stiffness for weight.\n- Used in aerospace (fuselage panels, control surfaces), boats, building panels.\n- Honeycomb core: Nomex (aramid paper), aluminum, carbon. Optimized for shear in plane + compression normal to plane."
+    },
+    {
+      "kind": "text",
+      "title": "Metamaterials + auxetics + topology",
+      "body": "**Metamaterials**: engineered materials with properties not found in nature. Property emerges from STRUCTURE, not chemistry.\n\n**Examples**:\n\n**Negative-Poisson-ratio (auxetic) materials**: contract laterally when compressed (opposite of normal). Polymer foams with re-entrant honeycomb structure, 3D-printed lattices.\n- Applications: better impact absorption, conformal protection.\n\n**Negative-index optical metamaterials**: refract light in wrong direction. Theoretical 'invisibility cloak' uses these. Practical implementations in microwave to IR.\n\n**Acoustic metamaterials**: control sound. Sub-wavelength resonators block specific frequencies. Used in sound dampening + medical ultrasound.\n\n**Electromagnetic metamaterials**: control radio waves. Used in stealth coatings (RAM), miniature antennas, radio-frequency absorbers.\n\n**Topological metamaterials**: properties protected by topology (like electronic topological insulators). Robust against defects.\n\n**Mechanical metamaterials**: tuned stiffness, multiple stable states, programmable response. Origami-inspired (Miura-ori, Kresling).\n\n**3D printing enabled metamaterials**: many designs unmanufacturable until additive manufacturing.\n- Voxel-level control over geometry.\n- Multi-material 3D printing for composite-metamaterials.\n- Mass customization.\n\n**ML-driven materials discovery**:\n- **Active learning**: ML model proposes promising compositions/structures → experiments validate → model refines.\n- **Inverse design**: 'I want property X' → ML proposes structure.\n- **Materials Project + Open Catalyst Project**: open databases for ML training.\n- **Generative materials models**: like generative AI for images, but for crystal structures + properties. Active research.\n\n**Industry impact**:\n- Aerospace: lightweight + multi-functional structures (composite + integrated electronics).\n- Automotive: crash structures, NVH (noise-vibration-harshness) tuned.\n- Sports: tennis rackets with auxetic strings, foams with tuned response.\n- Defense: stealth + ballistic + multi-functional armor.\n- Medical: bone scaffolds with tuned mechanics, drug-delivery foams.\n\n**Limit of metamaterials**: structural sizes + manufacturing precision. Higher-frequency (smaller wavelength) metamaterials harder to make. Visible-light metamaterials remain a research challenge."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_comp_rule",
+        "kind": "guided_derivation",
+        "question": "Apply rule of mixtures",
+        "goal": "Glass-fiber composite: 60% glass fiber by volume, 40% epoxy resin. Glass fiber $E_f = 70$ GPa, epoxy $E_m = 3.5$ GPa. Compute longitudinal modulus.",
+        "steps": [
+          {
+            "prompt": "Rule of mixtures: $E = V_f E_f + V_m E_m = 0.6 \\times 70 + 0.4 \\times 3.5$.",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "43.4 GPa",
+                "43.4",
+                "~43"
+              ]
+            },
+            "hints": [
+              "42 + 1.4 = 43.4."
+            ],
+            "reveal": "$E_{||} \\approx 43.4$ GPa. Strong in fiber direction."
+          },
+          {
+            "prompt": "Transverse modulus (inverse rule of mixtures): $1/E_\\perp = V_f/E_f + V_m/E_m$. Compute.",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~8.27 GPa",
+                "8.3",
+                "~8"
+              ]
+            },
+            "hints": [
+              "0.6/70 + 0.4/3.5 = 0.00857 + 0.114 = 0.1228. 1/0.1228 ≈ 8.14."
+            ],
+            "reveal": "$E_\\perp \\approx 8.14$ GPa. Much LOWER than longitudinal. Anisotropy ratio ~5×."
+          },
+          {
+            "prompt": "Quasi-isotropic layup [0/+45/90/-45]: how does modulus average?",
+            "motivation": "Average.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Same as longitudinal.",
+                "Lower than longitudinal but more isotropic. Approximate: ~30% of longitudinal. Combines axes for balanced in-plane stiffness.",
+                "Same as transverse.",
+                "Zero."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Compromise."
+            ],
+            "reveal": "~30% of longitudinal. Trade-off: isotropy vs peak performance. Aerospace structures use quasi-iso for general areas, unidirectional for high-load directions."
+          }
+        ],
+        "finalResult": "$$\\boxed{E_{||} = V_f E_f + V_m E_m, E_\\perp = (V_f/E_f + V_m/E_m)^{-1}}$$ Rule of mixtures gives upper + lower bounds. Real composites depend on geometry + orientation. For aerospace structures: optimize fiber orientation per location. Quasi-isotropic for general; unidirectional in high-stress zones. CFRP layups can deliver 50%+ weight savings vs metal at equal stiffness — but design + manufacturing complexity is significant."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_comp_kevlar",
+        "kind": "multiple_choice",
+        "question": "Why is Kevlar (aramid fiber) used in ballistic vests + body armor?",
+        "options": [
+          "Random.",
+          "Aramid fibers have very high tensile strength + toughness. They absorb impact energy by stretching + breaking many fibers. Light weight per protection level. Combined with ceramic plates for hard-armor + soft Kevlar for general protection.",
+          "Heavy.",
+          "Cheap."
+        ],
+        "correctIndex": 1,
+        "explanation": "Aramid (Kevlar™ DuPont) fibers: high tensile strength (~3 GPa), excellent toughness (~50 MJ/m³), low density (~1.4 g/cm³), high specific energy absorption. Ballistic vest: multiple layers (~50+) of woven Kevlar. Energy of bullet impact spread + absorbed by fiber breakage + matrix deformation. Combined with ceramic plates for rifle-rated protection. Body armor is a high-stakes composites engineering problem; aramid + UHMWPE (Dyneema/Spectra) + ceramic + steel combinations balance protection + weight + cost."
+      },
+      "hints": [
+        "What makes a good ballistic fiber?",
+        "Why aramid specifically?"
+      ],
+      "workedSolution": "Ballistic fiber: high tensile strength + toughness (energy absorbed per unit volume) + light weight. Aramid (Kevlar): all three. Alternative: UHMWPE (Dyneema/Spectra) — even higher specific strength. Combined: Kevlar for general protection, UHMWPE for high-end, ceramic plates for rifle-rated. Each technology has trade-offs (Kevlar UV-sensitive, UHMWPE temperature-limited). Multi-layered composite vests.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_comp_vol",
+        "kind": "math_expression",
+        "question": "60% fiber × 70 GPa + 40% epoxy × 3 GPa = ?",
+        "acceptedAnswers": [
+          "43.2 GPa",
+          "43.2"
+        ],
+        "hint": "Rule of mixtures."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_comp_blade",
+        "kind": "scenario",
+        "question": "Wind turbine blade design",
+        "prompt": "Modern wind turbine blades are 80+ m long composite structures. Walk through the material + design choices (fiber + matrix + layup)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_comp",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why composites enable performance that no single material can match.",
+        "rubric": "Mentions that composites combine complementary properties (fiber strength + matrix toughness; high E + low density); rule-of-mixtures gives upper bounds; anisotropy can be designed for + against (fibers oriented per load direction); specific properties (per density) often exceed any monolithic material. Modern aerospace + EV + renewable energy increasingly depend on composites."
+      }
+    }
+  ]
+}

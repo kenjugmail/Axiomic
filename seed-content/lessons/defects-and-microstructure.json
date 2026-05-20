@@ -1,0 +1,145 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Classify point + line + planar defects.",
+      "Outline dislocation motion + slip.",
+      "Reason about grain boundaries + grain size."
+    ],
+    "prereqs": [
+      "crystal-structure-and-symmetry"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Real crystals: defects everywhere",
+      "body": "Perfect crystals exist only in textbooks. Real materials have **defects** at all length scales. Defects are NOT failures — they're features that determine most material properties.\n\n**Point defects** (0-dimensional):\n- **Vacancy**: empty lattice site. Equilibrium concentration depends on temperature: $n_v/N \\approx \\exp(-E_v/kT)$ where $E_v \\sim 1$ eV.\n- **Interstitial**: atom in a non-lattice site (small atoms like H, C, N).\n- **Substitutional impurity**: foreign atom replacing a host atom.\n- **Frenkel pair**: vacancy + interstitial (atom displaced).\n- **Schottky defect**: vacancy pair in ionic crystals (preserves charge neutrality).\n\nVacancies enable atomic diffusion (atoms hop into them). Critical for diffusion-controlled phenomena: oxidation, creep, sintering, heat treatment.\n\n**Line defects (1D): dislocations**:\n- **Edge dislocation**: extra half-plane of atoms inserted into the crystal. Visualized as a 'wedge'.\n- **Screw dislocation**: lattice planes spiraled around an axis like a ramp.\n- **Mixed**: most real dislocations.\n\nDislocations are characterized by **Burgers vector** $\\mathbf{b}$: the closure failure of a circuit around the dislocation.\n\n**Why dislocations matter**: plastic deformation in metals occurs by DISLOCATION MOTION, not by simultaneous bond breaking. A wave of dislocations crosses the crystal; net result is shear.\n\n**Theoretical vs actual yield strength**:\n- Theoretical (slip entire planes at once): $\\tau_{\\text{th}} \\sim G/10$ where $G$ is shear modulus.\n- Actual (dislocation glide): $\\tau \\sim G/1000$. Three orders of magnitude lower.\n- Difference: dislocations let crystals deform incrementally.\n\n**Strengthening**: HINDER dislocations.\n- **Solid-solution**: solute atoms pin dislocations.\n- **Precipitation**: precipitates of second phase block dislocations (Al-Cu age hardening; superalloys).\n- **Work hardening**: dislocations tangle into denser dislocation forests.\n- **Grain boundaries**: dislocations can't easily cross grains.\n- **Particle reinforcement**: hard particles obstruct.\n\nAll real engineering metals work via combinations of these strengthening mechanisms."
+    },
+    {
+      "kind": "text",
+      "title": "Dislocations + slip systems",
+      "body": "**Dislocation glide**: dislocation moves through crystal under applied stress, leaving net plastic deformation. Burgers vector = magnitude of slip per dislocation.\n\n**Critical resolved shear stress (CRSS)**: applied stress, resolved onto slip plane + slip direction. Must exceed CRSS for dislocations to glide. CRSS varies by metal + temperature.\n\n**Schmid's law**: $\\tau = \\sigma \\cos\\phi \\cos\\lambda$ where $\\phi$ = angle to slip-plane normal, $\\lambda$ = angle to slip direction.\n\n**Slip systems**:\n- **FCC**: {111} planes × <110> directions. 12 independent slip systems → high ductility.\n- **BCC**: {110}, {112}, {123} × <111>. ~48 slip systems but higher Peierls stress at low T (BCC iron brittle below ~-40°C — Liberty Ships catastrophe).\n- **HCP**: (0001) basal + <11̄20> directions. Only 3 slip systems. Low ductility at room T (Mg, Zn, Ti).\n\nVon Mises criterion: need ≥5 INDEPENDENT slip systems for polycrystal ductility. FCC has 5; HCP doesn't → polycrystalline HCP metals are brittle unless engineered (Ti alloys with α+β microstructure).\n\n**Dislocation interactions**:\n- **Tangling**: parallel dislocations attract/repel; high density → forests → strong material.\n- **Cross-slip**: screw dislocations switch planes. Allows recovery + ductility.\n- **Climb**: edge dislocations move out-of-plane via vacancy diffusion. Requires high T → CREEP.\n\n**Recovery + recrystallization**: heating an deformed metal:\n1. **Recovery** (~0.3 $T_m$ in K): dislocations annihilate + rearrange into cells.\n2. **Recrystallization** (~0.4-0.5 $T_m$): new strain-free grains nucleate + grow.\n3. **Grain growth**: above recrystallization T, grains coarsen.\n\nUsed in industrial processing: cold-roll → anneal cycle → control microstructure + properties."
+    },
+    {
+      "kind": "text",
+      "title": "Planar defects: grain boundaries + interfaces",
+      "body": "**Grain boundary**: interface between two crystals of different orientation.\n\nReal polycrystalline metals are made of MANY small crystals (grains), each ~µm-mm in size. Grain boundaries are 2D defects between them.\n\n**Hall-Petch relation**: yield strength inversely proportional to square root of grain size.\n$$\\sigma_y = \\sigma_0 + k / \\sqrt{d}$$\n\nWhere $d$ = average grain diameter. Smaller grains = stronger. (Limit: nanocrystalline regime has inverse Hall-Petch behavior).\n\n**Why**: grain boundaries impede dislocation motion. Each grain must accommodate plastic strain independently → harder for dislocations to flow.\n\n**Grain refinement strategies**:\n- **Solidification rate**: faster cooling → finer grains.\n- **Mechanical work + recrystallization**: deformation + anneal → equiaxed fine grains.\n- **Inoculants**: in casting, add particles that nucleate many small grains (Al-Ti-B in Al alloys).\n- **Severe plastic deformation** (ECAP, HPT): produces submicron grains.\n\n**Grain boundary character**:\n- **Low-angle** (<15° misorientation): array of dislocations.\n- **High-angle**: discrete interface, harder to characterize.\n- **Twin boundary**: special case, mirror symmetry across boundary. Often coherent + low-energy. Common in FCC (annealing twins in copper) + Mg.\n- **Coincidence Site Lattice (CSL)**: special boundaries with periodic atomic match. Lower energy + properties (corrosion resistance, crack propagation).\n\n**Texture (preferred orientation)**: not all grains have random orientation. Rolled, drawn, extruded metals develop preferred orientations.\n- **Sheet texture**: e.g., (200) in copper sheet.\n- **Fiber texture**: e.g., <100> drawn wire.\n- Affects formability, anisotropy, magnetic properties.\n\n**3D defects**: voids, inclusions, precipitates.\n- **Inclusions**: foreign particles (oxides, sulfides). Stress concentrators; often crack initiation sites.\n- **Precipitates**: deliberate second-phase particles (Al₃Sc in aerospace Al; γ' in nickel superalloys). Strengthening.\n- **Voids**: pores from solidification or accumulated vacancies under creep. Failure sites.\n\n**Engineering microstructure**: the central concept. Choose alloy + process to get target microstructure (grain size, phases, precipitate distribution, texture). Properties FOLLOW from microstructure."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_def_hallpetch",
+        "kind": "guided_derivation",
+        "question": "Apply Hall-Petch",
+        "goal": "Steel: $\\sigma_0 = 50$ MPa, $k = 0.7$ MPa·m^{1/2}. Yield strength at $d = 100$ μm vs $d = 1$ μm.",
+        "steps": [
+          {
+            "prompt": "At $d = 100$ μm = $10^{-4}$ m: $\\sigma_y = 50 + 0.7 / \\sqrt{10^{-4}} = 50 + 0.7/0.01 = ?$",
+            "motivation": "Plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "120 MPa",
+                "120"
+              ]
+            },
+            "hints": [
+              "$0.7 / \\sqrt{10^{-4}} = 0.7 / 0.01 = 70$. $50 + 70 = 120$."
+            ],
+            "reveal": "$\\sigma_y = 120$ MPa."
+          },
+          {
+            "prompt": "At $d = 1$ μm = $10^{-6}$ m: $\\sigma_y = 50 + 0.7 / \\sqrt{10^{-6}}$?",
+            "motivation": "Plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "750 MPa",
+                "750"
+              ]
+            },
+            "hints": [
+              "$0.7 / 0.001 = 700$. $50 + 700 = 750$."
+            ],
+            "reveal": "$\\sigma_y = 750$ MPa. 6× stronger than the 100 μm steel."
+          },
+          {
+            "prompt": "How to achieve sub-micron grain size in practice?",
+            "motivation": "Process.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Severe plastic deformation (Equal-Channel Angular Pressing, High-Pressure Torsion) imposes huge shear strain → ultra-fine grain microstructures. Or controlled thermomechanical processing (rolling + annealing cycles).",
+                "Add lots of carbon.",
+                "Anneal forever."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Special processing."
+            ],
+            "reveal": "Severe plastic deformation + controlled thermomechanical processing. Standard heat treatment can't reach sub-μm. ECAP, HPT, accumulative roll bonding etc. produce ultra-fine-grain (UFG) materials with dramatically higher strength."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\sigma_y = \\sigma_0 + k / \\sqrt{d}}$$ Hall-Petch is one of the most-used relations in metallurgy. Refining grain size from mm to μm to submicron grants huge strength gains. The strategy is universal across steels, aluminum, copper, titanium, magnesium. There IS a limit: at nm-scale, grain boundary sliding kicks in + materials get WEAKER (inverse Hall-Petch). Optimal grain size ~100 nm - 1 μm for many alloys."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_def_steel_strength",
+        "kind": "multiple_choice",
+        "question": "Why is theoretical strength of metals (~G/10) ~1000× higher than what we measure?",
+        "options": [
+          "Random.",
+          "Plastic deformation in metals occurs via DISLOCATION MOTION, not simultaneous breaking of all bonds in a plane. Dislocations let crystals deform incrementally at far lower stress. The gap between theoretical + actual yield is the fundamental observation that led to dislocation theory (1930s).",
+          "Bad measurement.",
+          "Materials are stronger than we think."
+        ],
+        "correctIndex": 1,
+        "explanation": "Pure shear of an entire atomic plane requires breaking many bonds at once → very high stress (~G/10 theoretically). Real crystals deform via dislocations: shear propagates as a wave through the lattice, breaking only a few bonds at a time. The gap between G/10 (theoretical) + measured G/1000 led Taylor, Orowan, Polanyi (1934 independently) to propose dislocations. Modern EM imaging directly visualizes them. All metal forming + strengthening engineering builds on this physics."
+      },
+      "hints": [
+        "Why is theoretical strength so high?",
+        "What's actually happening?"
+      ],
+      "workedSolution": "Theoretical: shear an entire plane simultaneously → break all bonds across plane → very high stress (G/10). Actual: dislocations propagate, breaking bonds sequentially → far lower stress (G/1000). The discovery of dislocations in 1934 explained this. All metallurgical strengthening (cold-work, alloying, precipitates) operates by hindering dislocations. Theoretical strength is approached only in defect-free whiskers (single-crystal fibers) — relevant to whisker-reinforced composites.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_def_burgers",
+        "kind": "math_expression",
+        "question": "Aluminum FCC: lattice parameter a = 0.405 nm. Burgers vector magnitude for full slip on {111}<110>?",
+        "acceptedAnswers": [
+          "~0.286 nm",
+          "a/sqrt(2)",
+          "0.286"
+        ],
+        "hint": "b = a/√2 for FCC."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_def_creep",
+        "kind": "scenario",
+        "question": "Creep in turbine blades",
+        "prompt": "Jet-engine turbine blades operate near material melting point + slowly elongate (creep). Walk through how dislocations + grain boundaries + precipitates + single-crystal casting all contribute to creep resistance."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_def",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why understanding defects is more important than understanding perfect crystals in real materials engineering.",
+        "rubric": "Mentions that perfect crystals would be 1000× stronger but couldn't be processed/formed; properties like strength, ductility, conductivity, diffusion are DEFECT-CONTROLLED; engineering tunes defect populations (work hardening, precipitates, grain refinement) to achieve target properties; the entire metallurgy + ceramic + semiconductor industries rest on defect manipulation."
+      }
+    }
+  ]
+}

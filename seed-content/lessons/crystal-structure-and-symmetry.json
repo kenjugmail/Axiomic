@@ -1,0 +1,158 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intro",
+    "objectives": [
+      "State the 7 crystal systems + 14 Bravais lattices.",
+      "Apply Miller indices to identify planes + directions.",
+      "Reason about close-packed structures (FCC, BCC, HCP)."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Crystals: periodic atomic arrangements",
+      "body": "A **crystal** is a solid whose atoms are arranged in a periodic 3D pattern — a **lattice**. The basic repeating unit is the **unit cell**.\n\n**7 crystal systems** (defined by lattice parameters $a$, $b$, $c$ + angles $\\alpha$, $\\beta$, $\\gamma$):\n1. **Cubic**: $a = b = c$, all 90° angles. (Salt, copper, iron-α.)\n2. **Tetragonal**: $a = b \\neq c$, 90°. (Tin, TiO₂ rutile.)\n3. **Orthorhombic**: $a \\neq b \\neq c$, 90°. (Sulfur, gallium, BaSO₄.)\n4. **Hexagonal**: $a = b \\neq c$, 90°/90°/120°. (Magnesium, zinc, graphite.)\n5. **Trigonal / rhombohedral**: all equal sides, all equal angles ≠ 90°. (Calcite, quartz-α.)\n6. **Monoclinic**: $a \\neq b \\neq c$, two 90° + one ≠. (Selenium-α, gypsum.)\n7. **Triclinic**: no constraints. (Microcline feldspar.)\n\n**14 Bravais lattices**: combinations of the 7 systems with primitive (P), body-centered (I), face-centered (F), base-centered (C) variants. Auguste Bravais (1850) enumerated.\n\n**Common metallic structures**:\n- **FCC (Face-Centered Cubic)**: atoms at corners + face centers. Close-packed. Aluminum, copper, gold, silver, nickel, austenitic stainless steel. Coordination # = 12. Packing fraction = 74%.\n- **BCC (Body-Centered Cubic)**: atoms at corners + center. Iron-α (below 910°C), tungsten, chromium, vanadium. Coordination # = 8. Packing fraction = 68%.\n- **HCP (Hexagonal Close-Packed)**: alternating layers ABAB. Magnesium, zinc, titanium-α, cobalt. Coordination # = 12. Packing fraction = 74%.\n\n**Why packing fraction matters**: denser = stronger interatomic forces typically (FCC + HCP metals tend to be ductile; BCC harder + more brittle). Drives mechanical properties + diffusion behavior.\n\n**Polymorphism**: same element/compound, multiple crystal structures depending on T/P.\n- Iron: BCC at room T (α), FCC at 910-1394°C (γ-austenite), BCC again above 1394°C (δ).\n- Carbon: diamond (cubic), graphite (hex), graphene (2D), nanotubes, fullerenes — same element, vastly different properties.\n- This is the basis of heat treatment of steel (heating into austenite, quenching for martensitic transformation)."
+    },
+    {
+      "kind": "text",
+      "title": "Miller indices: labeling planes + directions",
+      "body": "**Miller indices**: notation for identifying crystal planes + directions.\n\n**Procedure for a plane**:\n1. Find intercepts of the plane with the crystal axes (in units of lattice parameter).\n2. Take reciprocals.\n3. Clear fractions to smallest integers $(h k l)$.\n\n**Examples**:\n- Plane parallel to YZ, intercepting X at 1: intercepts (1, ∞, ∞). Reciprocals (1, 0, 0). Miller indices (100).\n- Plane intercepting at (1, 1, 1): Miller indices (111). The 'cube diagonal plane'.\n- Plane intercepting at (1, 2, 3): reciprocals (1, 1/2, 1/3). × 6 → (6, 3, 2). Miller indices (632).\n- Negative intercepts: bar notation, e.g., (1̄ 0 0) = (-1, 0, 0).\n\n**Common planes**:\n- {100}: 6 equivalent faces of a cube.\n- {110}: face diagonals.\n- {111}: cube diagonals; the close-packed plane in FCC.\n\n**Family of planes**: curly braces {hkl} = all symmetrically-equivalent planes.\n\n**Directions**: square brackets [hkl]. From origin to point (h, k, l).\n- Family: angle brackets <hkl> = all symmetrically equivalent directions.\n\n**Crystallographic notation matters**:\n- **Slip systems** in metals: dislocations move on specific planes + directions. FCC slips on {111} <110> — 12 slip systems → ductile. BCC has multiple slip planes → also ductile, BUT higher resistance. HCP slips on basal (0001) — only 3 slip systems → low ductility (Mg, Zn are brittle vs FCC metals).\n- **Texture**: rolled metals develop preferred orientations (e.g., copper sheets with {001}<100> 'cube texture'). Affects forming + properties.\n- **Surface chemistry**: catalysts (e.g., Pt) have different activity on different facets. (111) vs (100) vs (110) react differently.\n- **Semiconductor wafers**: Si wafers cut along {100} or {111}. Affects MOS device behavior.\n\n**X-ray diffraction (Bragg's law)**: $n \\lambda = 2 d \\sin\\theta$. Specific (hkl) planes diffract at specific angles. The basis of crystallography by XRD (next lesson covers characterization)."
+    },
+    {
+      "kind": "text",
+      "title": "Close packing + the atomic-radius view",
+      "body": "**Close-packed planes**: arrange equal spheres in a 2D hexagonal pattern. Each sphere touches 6 others. Pack densely with packing fraction $\\pi/(2\\sqrt{3}) \\approx 90\\%$.\n\n**3D stacking**:\n- **ABAB stacking**: layer C goes above A, etc. → HCP (hexagonal close-packed).\n- **ABCABC stacking**: each layer shifts → FCC (face-centered cubic).\n- Both have 74% packing fraction. Maximum possible for spheres.\n\n**Implications**:\n- FCC + HCP metals have similar density + mechanical behavior at first order.\n- They differ in slip systems (FCC's {111} planes give 12 slip systems; HCP's basal plane gives only 3) → very different ductility.\n- Phase transitions: tin (white tin = tetragonal, gray tin = diamond cubic); cobalt (HCP below 422°C, FCC above).\n\n**Interstitial sites**: gaps between atoms. Two types in FCC:\n- **Octahedral**: at center of each face's 6-atom cage. Larger.\n- **Tetrahedral**: between 4 atoms. Smaller.\n\nInterstitial atoms (small, like H, C, N) fit in these. Carbon in iron-FCC (austenite) sits in octahedral holes — basis of steel.\n\n**Substitutional solid solutions**: solvent atoms replace solute (e.g., Cu in Au, Ni in Fe). Hume-Rothery rules predict miscibility:\n- Atomic-size difference < 15%.\n- Same crystal structure.\n- Similar electronegativity.\n- Same valence (or solute higher).\n\nIf these hold → wide solid solubility. If not → limited solubility, secondary phases form. The basis of alloy design.\n\n**Examples**:\n- **Brass** (Cu + Zn): substitutional FCC solid solution. Ductile, corrosion-resistant.\n- **Steel** (Fe + C interstitial + Mn, Ni, Cr substitutional + microstructure control): the workhorse engineering material.\n- **Bronze** (Cu + Sn): older alloy; tougher than copper.\n- **Aluminum alloys** (Al + Cu/Mg/Zn): age-hardening via Cu₂Al precipitation.\n\n**Computational view**: density functional theory (DFT) computes electron + atomic structure from first principles. Used to predict properties, design new alloys, study defects. Tools: VASP, Quantum ESPRESSO, ABINIT."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_crys_fcc_density",
+        "kind": "guided_derivation",
+        "question": "Compute density of FCC metal",
+        "goal": "Aluminum: FCC structure, lattice parameter $a = 0.4046$ nm, atomic mass 26.98 g/mol. Compute density.",
+        "steps": [
+          {
+            "prompt": "FCC unit cell contains how many atoms?",
+            "motivation": "Count.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "1.",
+                "4: 8 corner atoms × 1/8 (shared with 8 cells) + 6 face atoms × 1/2 (shared with 2 cells) = 1 + 3 = 4.",
+                "8.",
+                "12."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "8 × 1/8 + 6 × 1/2."
+            ],
+            "reveal": "4 atoms per FCC unit cell."
+          },
+          {
+            "prompt": "Volume of unit cell?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "6.62e-23 cm^3",
+                "~6.6e-23",
+                "a^3"
+              ]
+            },
+            "hints": [
+              "(0.4046e-7 cm)^3 = (4.046e-8)^3 ≈ 6.62e-23 cm³."
+            ],
+            "reveal": "$V \\approx 6.62 \\times 10^{-23}$ cm³."
+          },
+          {
+            "prompt": "Mass of 4 Al atoms? (Avogadro = 6.022e23 atoms/mol.)",
+            "motivation": "Convert.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1.79e-22 g",
+                "~1.8e-22"
+              ]
+            },
+            "hints": [
+              "4 × 26.98 / 6.022e23 = 1.79e-22 g."
+            ],
+            "reveal": "~$1.79 \\times 10^{-22}$ g."
+          },
+          {
+            "prompt": "Density = mass / volume?",
+            "motivation": "Divide.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2.70 g/cm^3",
+                "~2.70",
+                "2.7 g/cm³"
+              ]
+            },
+            "hints": [
+              "1.79e-22 / 6.62e-23."
+            ],
+            "reveal": "$\\rho \\approx 2.70$ g/cm³. Matches measured density of aluminum (2.70 g/cm³). Crystallographic density calculation works."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\rho = \\frac{n \\cdot M}{N_A \\cdot V_{cell}}}$$ For aluminum: $n = 4$ atoms/cell, $M = 27$ g/mol, $V_{cell} = 6.6e{-23}$ cm³ → $\\rho = 2.70$ g/cm³ (matches measurement). Crystal structure + lattice parameter + atomic mass = density. The same formula reveals copper (FCC, 8.96 g/cm³), iron-α (BCC, 7.87), gold (FCC, 19.3). Useful sanity check + foundation for property predictions."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_crys_steel",
+        "kind": "multiple_choice",
+        "question": "Steel is an alloy of iron + carbon. The carbon goes into INTERSTITIAL sites of iron's crystal structure. Why is this critical for steel's properties?",
+        "options": [
+          "Random.",
+          "Interstitial carbon distorts the iron lattice + interferes with dislocation motion → strengthens iron dramatically. The transformation from FCC (austenite, more interstitial space) to BCC (ferrite, less) during quenching traps carbon → hard martensite. The basis of heat treatment.",
+          "Decoration.",
+          "Doesn't matter."
+        ],
+        "correctIndex": 1,
+        "explanation": "Pure iron is soft. Adding 0.1-2% carbon as interstitials hardens dramatically. Heat treatment: austenitize at high T (FCC, high carbon solubility), then quench rapidly. Carbon trapped in BCC → distorted body-centered tetragonal structure = martensite. Hard but brittle. Subsequent tempering precipitates carbides + softens controlled amount → optimal toughness. The entire field of ferrous metallurgy is about controlling crystal-structure + carbon distribution. Steel's billion-ton-per-year production rests on this physics."
+      },
+      "hints": [
+        "What does C do in Fe?",
+        "Why is heat treatment important?"
+      ],
+      "workedSolution": "Carbon (small atom) fits in interstitial sites of Fe lattice. Distorts crystal, pins dislocations → hardens. FCC (austenite) holds more C; BCC (ferrite) less. Quenching from austenite traps C in BCC distorted form → martensite (very hard). Tempering precipitates carbides + relieves stress. This metallurgy controls billions of tons of steel — bridges, cars, rebar.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_crys_bcc",
+        "kind": "math_expression",
+        "question": "BCC unit cell contains how many atoms?",
+        "acceptedAnswers": [
+          "2"
+        ],
+        "hint": "8 corners × 1/8 + 1 body center = 2."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_crys_polym",
+        "kind": "scenario",
+        "question": "Steel grade selection",
+        "prompt": "Mechanical engineer needs a steel for a high-stress bolt. Walk through how crystal structure + carbon content + heat treatment choices shape the final properties (yield, tensile, toughness)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_crys",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why crystal structure is the foundation of materials science.",
+        "rubric": "Mentions that crystal structure determines mechanical properties (slip systems, ductility), thermal expansion + transport, electronic structure (semiconductors, conductors, insulators), optical + magnetic + chemical reactivity; modifying crystal structure (alloying, heat treatment, polymorphic transitions) is the lever for tuning properties; from this foundation flow nearly all material-engineering decisions."
+      }
+    }
+  ]
+}
