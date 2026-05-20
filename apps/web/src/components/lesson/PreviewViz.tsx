@@ -53,6 +53,11 @@ const LazySolarPVCurve = lazy(() =>
     (m) => ({ default: m.SolarPVCurve }),
   ),
 );
+const LazyCarnotCycle = lazy(() =>
+  import("../../../../../packages/viz/src/components/CarnotCycle").then(
+    (m) => ({ default: m.CarnotCycle }),
+  ),
+);
 const LazyDoublePendulum = lazy(() =>
   import("../../../../../packages/viz/src/components/DoublePendulum").then(
     (m) => ({ default: m.DoublePendulum }),
@@ -145,6 +150,8 @@ function VizByName({
       return <LazyPhasePortrait1D {...(props as object)} />;
     case "solar-pv-curve":
       return <LazySolarPVCurve {...(props as object)} />;
+    case "carnot-cycle":
+      return <LazyCarnotCycle {...(props as object)} />;
     default:
       return null;
   }

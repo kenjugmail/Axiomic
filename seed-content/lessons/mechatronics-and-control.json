@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "specialist",
+    "objectives": [
+      "Outline feedback control + PID.",
+      "Distinguish actuator + sensor types.",
+      "Reason about real-time embedded control."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Mechatronics: mechanical + electronic + computer",
+      "body": "**Mechatronics**: integration of mechanical + electrical + computer engineering. Modern complex products are inherently mechatronic — every car, robot, drone, appliance, factory automation.\n\nKey disciplines:\n- **Mechanical**: kinematics, dynamics, structures.\n- **Electrical**: sensors, actuators, power electronics.\n- **Embedded software**: real-time control algorithms.\n- **Systems engineering**: requirements + integration + testing.\n\n**Examples**:\n- **Car**: chassis (mech) + electric motors + ECUs + sensors (radar, camera, IMU) + software.\n- **Industrial robot**: mechanical arm + servo motors + drivers + controller + force/vision sensors + path planner.\n- **CNC machine**: spindle + axes + drives + encoders + CNC controller + CAM.\n- **Drone**: propellers + motors + ESCs + IMU + GPS + flight controller + telemetry.\n- **Surgical robot**: 4-7 DOF arms + tactile sensors + haptic feedback + control software.\n\n**Sensors + actuators**: the mechatronic interfaces.\n\n**Sensors**: measure physical quantities.\n- **Position**: encoders (incremental, absolute), LVDT, potentiometer, resolver.\n- **Velocity**: tachometer, derived from position.\n- **Acceleration**: IMU (MEMS accelerometer), piezo.\n- **Force**: load cells, strain gauges.\n- **Torque**: torque sensors, current-based estimation.\n- **Temperature**: thermocouple, RTD, thermistor.\n- **Pressure**: piezo, MEMS, strain-gauge based.\n- **Vision**: cameras (RGB, depth, IR, thermal).\n- **Range**: LIDAR, ultrasonic, radar, time-of-flight.\n- **Voltage/current**: shunts, Hall-effect, transformers.\n\n**Actuators**: convert electrical to mechanical.\n- **DC motors**: brushed (cheap, simple); brushless (BLDC, more efficient, longer life).\n- **AC motors**: induction (industrial); synchronous (servo).\n- **Stepper motors**: open-loop position. Used in 3D printers, CNC.\n- **Servomotors**: closed-loop position + speed + torque. Robotics, machine tools.\n- **Linear motors**: direct linear motion. Maglev, semiconductor steppers.\n- **Pneumatic/hydraulic actuators**: high force/density. Heavy machinery.\n- **Solenoids**: simple on/off motion. Valves, latches.\n- **Piezoelectric**: high precision, low displacement. Atomic-force microscopes, fuel injectors.\n- **Shape-memory alloys, MEMS**: specialized.\n\n**Power electronics**: convert + control electrical power.\n- Motor drivers (H-bridge, 3-phase inverter).\n- DC-DC converters.\n- AC-DC + DC-AC.\n- SiC + GaN devices for high efficiency."
+    },
+    {
+      "kind": "text",
+      "title": "Feedback control + PID",
+      "body": "**Feedback control**: measure output, compare to setpoint, adjust input.\n\nLoop:\n```\nsetpoint → [error = sp - measured] → controller → actuator → plant → output → measurement → (feedback)\n```\n\n**Open-loop**: no feedback. Simple but poor tracking + disturbance rejection.\n\n**Closed-loop**: feedback. Better tracking, robust to disturbances + parameter changes.\n\n**PID controller**: most-used industrial controller. Output:\n$$u(t) = K_p e(t) + K_i \\int e \\, dt + K_d \\frac{de}{dt}$$\n\nWhere $e(t) = r(t) - y(t)$ = error.\n\n- **P (proportional)**: respond to current error. Stronger response = larger $K_p$. Too high = oscillation.\n- **I (integral)**: respond to accumulated error. Eliminates steady-state offset. Too high = instability.\n- **D (derivative)**: respond to RATE of error change. Damps oscillation. Sensitive to noise.\n\n**Tuning PID**:\n- **Ziegler-Nichols**: classical method. Set $K_i = K_d = 0$; raise $K_p$ until oscillation; back off + add I + D.\n- **Manual tuning**: by trial + observation.\n- **Auto-tuning**: many modern controllers do this.\n- **Adaptive tuning**: continuously adjust gains.\n- **Model-based**: identify plant model, design controller via control theory.\n\n**Beyond PID**:\n- **State-space control**: model plant as state equations $\\dot{x} = Ax + Bu$; design controller via pole placement, LQR.\n- **Model predictive control (MPC)**: optimize over future trajectory at each step. Excellent for multi-input + constraints. Used in process control + autonomous driving.\n- **Adaptive control**: estimate plant parameters online + adjust controller.\n- **Robust control**: account for plant uncertainty (H-infinity, etc.).\n- **Optimal control**: minimize cost function (Pontryagin's principle).\n- **Nonlinear control**: sliding mode, backstepping, feedback linearization.\n- **Reinforcement learning** (modern): learn controller from data.\n\n**Stability analysis**:\n- **Bode plot**: frequency response. Margin of stability.\n- **Nyquist criterion**: stability from open-loop response.\n- **Root locus**: pole movement as gain changes.\n- All taught in undergrad control theory.\n\n**Practical implementation**:\n- Sampling time: must be fast vs system dynamics (typically 10-100× faster).\n- Anti-windup: integral term capping.\n- Noise filtering on D term.\n- Feed-forward + reference shaping for tracking.\n- Saturation handling."
+    },
+    {
+      "kind": "text",
+      "title": "Real-time embedded control + the modern stack",
+      "body": "**Real-time control**: deterministic execution. Late = bad. Discussed in embedded-systems path; here for application.\n\n**Control loops** at various rates:\n- **Current/torque** (innermost): 10-100 kHz (motor PWM).\n- **Velocity**: 1-10 kHz.\n- **Position**: 100 Hz - 1 kHz.\n- **Path/trajectory**: 10-100 Hz.\n- **Mission/supervisory**: 1-10 Hz.\n\n**Hardware**:\n- Microcontroller (Cortex-M, ESP32, AVR).\n- FPGA for fastest loops (sub-microsecond).\n- DSP for signal processing.\n- Industrial: PLC (Programmable Logic Controller). Real-time + reliable. Allen-Bradley, Siemens, Schneider.\n- Safety-rated: redundant + diagnostic for safety-critical (robotics, automotive).\n\n**Communication**:\n- **CAN bus**: automotive + industrial. Robust + simple.\n- **EtherCAT**: real-time Ethernet. Industrial automation.\n- **PROFINET, EtherNet/IP**: factory automation.\n- **Modbus**: legacy industrial. Still widespread.\n- **MQTT, OPC-UA**: higher-level + cloud-connected.\n\n**Modern trends**:\n- **Drive integrated**: motor + driver + controller in one package. Easy plug-and-play.\n- **Industrial Ethernet**: replacing fieldbus. Better bandwidth + integration.\n- **Edge computing**: ML inference on factory floor. NVIDIA Jetson, Intel NUC, Coral.\n- **Digital twins**: virtual replicas for simulation, training, optimization.\n- **MTConnect, OPC-UA**: standardized data exchange.\n- **Predictive maintenance**: ML on sensor data → predict failures before they happen.\n- **Cobots (collaborative robots)**: human-safe without cages. Universal Robots, ABB YuMi, Fanuc CRX.\n\n**Software stacks**:\n- **Real-time OS**: FreeRTOS, Zephyr, vxWorks, QNX. Determinism.\n- **ROS2 (Robot Operating System)**: middleware for robotics. DDS-based messaging.\n- **PLC ladder + structured text**: industrial automation.\n- **Simulink + Embedded Coder**: model-based control development.\n\n**Industry 4.0 / Industrial IoT**: factory floor → cloud. Data-driven optimization, predictive maintenance, distributed manufacturing. Continuing growth.\n\n**Autonomous systems**: cars (Waymo, Cruise, Tesla), drones, ships (Sea-Kit, Saildrone), space (Mars rovers, lunar landers). All deeply mechatronic. ML augmenting classical control."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mech_pid",
+        "kind": "guided_derivation",
+        "question": "Tune a PID for motor speed control",
+        "goal": "DC motor, speed setpoint 1000 RPM. Step response: with $K_p$ alone (P-only), system reaches 950 RPM steady-state (slow response, error offset). With higher $K_p$: oscillates. What to do?",
+        "steps": [
+          {
+            "prompt": "Steady-state offset (50 RPM short of setpoint) suggests need for...",
+            "motivation": "PID structure.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "More P.",
+                "INTEGRAL term: $K_i \\int e dt$. Accumulates error over time, eventually drives output to setpoint. Eliminates steady-state offset.",
+                "More D.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "What eliminates offset?"
+            ],
+            "reveal": "Add integral term. Steady-state offset = no I action. Adding I will integrate the error + drive it to zero."
+          },
+          {
+            "prompt": "With P + I, transient response may overshoot. Add D term?",
+            "motivation": "Damping.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Add derivative: $K_d de/dt$. Responds to RATE of error change → applies braking when error decreasing rapidly. Damps overshoot + oscillation. Common: PD or PID for smoother response.",
+                "More P.",
+                "More I."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "D damps."
+            ],
+            "reveal": "Add derivative for damping. PID complete. Tune: start with Ziegler-Nichols or manually adjust. Modern controllers auto-tune."
+          },
+          {
+            "prompt": "If load varies (e.g., motor drives a saw cutting wood with varying thickness), what would help?",
+            "motivation": "Beyond PID.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Same PID.",
+                "Feed-forward: anticipate load + add control effort in proportion. Or adaptive control: change gains based on operating regime. PID alone has finite disturbance rejection.",
+                "Less PID.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Anticipate disturbance."
+            ],
+            "reveal": "Feed-forward or adaptive control. For known disturbance pattern: feed-forward. For unknown but slow: adaptive gains. For fast unknown: robust control. Modern: ML-augmented PID, learning the load model from data."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{PID = current error + accumulated + rate of change}}$$ PID is the workhorse industrial controller. Decades of theory + practice. ~95% of industrial control loops are PID variants. Beyond: MPC for constrained multi-input; adaptive + ML-based for complex/uncertain plants; sliding mode + robust for safety-critical. Foundational understanding of feedback control is essential mechatronic-engineer skill."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mech_lab",
+        "kind": "multiple_choice",
+        "question": "A new industrial robot programmer notices the arm vibrates when moving fast. Likely cause + fix?",
+        "options": [
+          "Random.",
+          "Insufficient damping in control loop OR high $K_p$ relative to plant dynamics. Increase $K_d$ (damping), reduce $K_p$, OR add motion-profile shaping (smooth acceleration). Modern robots use feed-forward + reference-shaping for high-speed smooth motion.",
+          "Bad hardware.",
+          "Loose bolts."
+        ],
+        "correctIndex": 1,
+        "explanation": "Vibration at speed = under-damped control. Fixes: (1) Higher $K_d$ (damping); (2) Lower $K_p$ (less aggressive); (3) Smoother trajectory (S-curve velocity profile vs trapezoidal); (4) Feed-forward (compensate inertial torque before error feedback corrects); (5) Notch filter at vibration frequency (mechanical resonance).\n\nModern industrial robots (ABB, FANUC, KUKA, UR) use combinations: PID + feed-forward + notch filters + reference shaping for smooth high-speed motion. Mechanical resonances + flexibility limit how fast you can go before vibration."
+      },
+      "hints": [
+        "Vibration causes?",
+        "Fixes?"
+      ],
+      "workedSolution": "Vibration: under-damped, gains too high, mechanical resonance, sharp velocity transitions. Fixes: tune PID gains, smooth trajectory, feed-forward (anticipate inertia), notch filter (kill resonance frequency). All these used in modern industrial robotics. Tracking + smoothness + speed are three competing objectives the control engineer balances.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mech_pwm",
+        "kind": "math_expression",
+        "question": "PWM at 20 kHz with 60% duty cycle on 24 V supply. Average voltage?",
+        "acceptedAnswers": [
+          "14.4 V",
+          "14.4",
+          "24 × 0.6"
+        ],
+        "hint": "V_avg = V × duty."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mech_robot",
+        "kind": "scenario",
+        "question": "Designing a delivery robot",
+        "prompt": "Walk through the mechatronic stack: drive motors + battery + IMU + LIDAR + cameras + onboard computer + ROS + safety + cloud-connectivity."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mech",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why PID remains the most-used industrial controller despite advances in control theory.",
+        "rubric": "Mentions that PID is simple, well-understood, tunable + reliable; works well for most single-loop applications without requiring a plant model; many advanced controllers (MPC, adaptive, robust) require modeling + more compute + more risk. Industrial practice values reliability + maintainability; PID delivers. Advanced control finds its niche in specific high-value cases (chemical process control, satellite attitude, autonomous driving), not general factory automation."
+      }
+    }
+  ]
+}

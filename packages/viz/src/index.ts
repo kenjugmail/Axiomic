@@ -12,6 +12,7 @@ export { LorenzAttractor } from "./components/LorenzAttractor";
 export { DoublePendulum } from "./components/DoublePendulum";
 export { PhasePortrait1D } from "./components/PhasePortrait1D";
 export { SolarPVCurve } from "./components/SolarPVCurve";
+export { CarnotCycle } from "./components/CarnotCycle";
 export { SoftmaxTemperatureSlider } from "./quiz/SoftmaxTemperatureSlider";
 export { AttentionHeatmapExplorer } from "./quiz/AttentionHeatmapExplorer";
 export { GradientDescent2D } from "./quiz/GradientDescent2D";

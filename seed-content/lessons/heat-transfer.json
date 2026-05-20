@@ -1,0 +1,145 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "core",
+    "objectives": [
+      "State Fourier + Newton + Stefan-Boltzmann laws.",
+      "Outline heat exchangers.",
+      "Reason about insulation + heat sinks."
+    ],
+    "prereqs": [
+      "thermodynamics-engineering"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Three modes of heat transfer",
+      "body": "Heat moves via three mechanisms.\n\n**1. Conduction**: through solid (or stationary fluid). Fourier's law:\n$$q = -k \\nabla T$$\n\n$k$ = thermal conductivity (W/m·K).\n\n- Copper: 400 W/m·K (excellent).\n- Aluminum: 200 W/m·K.\n- Steel: 50 W/m·K.\n- Glass: 1 W/m·K.\n- Wood: 0.1-0.2 W/m·K.\n- Air (still): 0.025 W/m·K (good insulator).\n- Vacuum: 0 (no conduction).\n\n**1D steady conduction through a wall**:\n$$Q = k A \\Delta T / L$$\n\nSeries thermal resistances (multilayer walls): $R_{total} = \\sum L_i / (k_i A)$. Like electrical resistors in series.\n\n**2. Convection**: through moving fluid. Newton's law of cooling:\n$$q = h (T_s - T_\\infty)$$\n\n$h$ = convective heat-transfer coefficient (W/m²·K). Depends on:\n- Fluid (air vs water vs oil).\n- Flow regime (natural vs forced; laminar vs turbulent).\n- Geometry (flat plate, cylinder, finned surface).\n\n**Typical h values**:\n- Natural convection air: 5-25 W/m²·K.\n- Forced convection air: 25-250 W/m²·K.\n- Natural convection water: 20-100 W/m²·K.\n- Forced convection water: 100-10,000 W/m²·K.\n- Boiling/condensing: 1,000-100,000 W/m²·K.\n\nCharacterized by Nusselt number: $Nu = hL/k$, often correlated to Reynolds + Prandtl.\n\n**3. Radiation**: electromagnetic. Stefan-Boltzmann law:\n$$q = \\sigma \\epsilon T^4$$\n\nWhere $\\sigma = 5.67 \\times 10^{-8}$ W/m²·K⁴, $\\epsilon$ = emissivity (0-1).\n\n- Black body ($\\epsilon = 1$): max radiation.\n- Polished aluminum ($\\epsilon \\approx 0.04$): minimal.\n- Bricks, wood, painted surfaces: $\\epsilon \\approx 0.8-0.9$.\n\nNet between surfaces: $q = \\sigma \\epsilon (T_1^4 - T_2^4)$. STRONG temperature dependence (4th power).\n\nDominates at HIGH temperatures (furnaces, solar) + in VACUUM (spacecraft).\n\n**Combined heat transfer**: most real problems have all three modes. Heat sinks: conduction in body + convection from fins + radiation."
+    },
+    {
+      "kind": "text",
+      "title": "Heat exchangers + the engineering bread + butter",
+      "body": "**Heat exchanger**: transfer heat between two fluid streams without mixing them. Ubiquitous: car radiators, AC condensers, power-plant boilers + condensers, chemical plants.\n\n**Configurations**:\n- **Shell-and-tube**: tubes in a shell. Heat exchange across tube walls. Workhorse industrial.\n- **Plate-and-frame**: corrugated plates. Compact + efficient. Common in food, HVAC.\n- **Finned-tube (radiators)**: air-side finned. Used for air-cooled exchangers, car radiators.\n- **Compact**: brazed-plate, microchannel. Used in modern AC + heat pumps.\n- **Cross-flow vs counter-flow vs parallel-flow**: how the streams move relative to each other. Counter-flow most efficient.\n\n**Effectiveness-NTU method**: standard analysis.\n- $\\epsilon$ = effectiveness = $Q_{actual}/Q_{max}$.\n- NTU = Number of Transfer Units = $UA / C_{min}$.\n- $C^* = C_{min}/C_{max}$.\n- $\\epsilon(NTU, C^*)$ correlations.\n\n$U$ = overall heat-transfer coefficient. Series resistance: $1/UA = 1/(hA)_{hot} + 1/k A + 1/(hA)_{cold}$ + fouling resistance.\n\n**LMTD (Log Mean Temperature Difference)** alternative: $Q = U A \\Delta T_{LMTD}$.\n\n**Fouling**: deposits on heat-transfer surfaces (scale, corrosion, biological growth). Reduces $U$ over time. Major maintenance + design consideration.\n\n**Pinch analysis**: process integration. Match streams that need heating with those that need cooling. Reduces total energy consumption. Used in refineries + chemical plants.\n\n**Heat-sink design** (electronics cooling):\n- Power dissipation: $P_{chip}$.\n- Thermal resistance: junction-to-case, case-to-sink, sink-to-air.\n- Total: $T_{junction} = T_{ambient} + P \\times R_{total}$.\n- Limit: $T_{junction,max}$ (e.g., 100-125°C for silicon).\n- Bigger fins + better airflow + thermal interface material (TIM) all reduce $R$.\n- Modern: liquid cooling for high-TDP CPUs + GPUs."
+    },
+    {
+      "kind": "text",
+      "title": "Insulation + the building energy puzzle",
+      "body": "**R-value** (insulation rating): thermal resistance.\n$$R = L / k$$\n\nHigher R = better insulator. US R-values per inch:\n- Fiberglass batt: R-3.5.\n- Cellulose: R-3.6.\n- Polystyrene foam (XPS): R-5.\n- Polyurethane foam: R-6-7.\n- Aerogel: R-10+.\n- Vacuum insulated panel (VIP): R-25+.\n- Air gap (still): R-1 per inch (low; convection limits).\n\n**Building envelope**:\n- Wall: R-13 to R-30 in modern construction.\n- Attic: R-30 to R-60.\n- Windows: R-2 to R-8 (much worse than walls). Triple-pane low-E + argon-filled best.\n- Air sealing: as important as insulation. Air leakage is a huge heat loss path.\n\n**Heat-load calculation**: $Q = U A \\Delta T$. Aggregate over all building surfaces. Account for solar gain (windows), internal gains (occupants, appliances), ventilation.\n\n**Passive House (Passivhaus)**: ultra-low-energy building standard.\n- Heating demand ≤15 kWh/m²/year.\n- Achieved via: very high insulation, no thermal bridges, airtight envelope, mechanical ventilation with heat recovery (MVHR), passive solar.\n- Spreading rapidly in Europe + cold-climate North America.\n\n**Net-zero buildings**: produce as much energy as they consume (annually). Combines efficiency + on-site solar.\n\n**Industrial insulation**: process pipes + tanks + steam systems. Saves enormous energy. Calcium silicate, perlite, mineral wool, aerogel blankets for high temperatures.\n\n**Active heat-rejection systems**: cooling towers (evaporative), air-cooled chillers, dry coolers, geothermal. Datacenters: liquid cooling + immersion + free cooling outdoors. The future of large-scale industrial cooling.\n\n**Phase-change materials (PCMs)**: store heat as melting/freezing. Used in buildings (delay heating), electronics, spacecraft. Examples: paraffins, salt hydrates. Latent heat ~200-300 kJ/kg.\n\n**Heat-pipe + vapor-chamber technology**: passive 2-phase heat transfer. Very high effective thermal conductivity (~10,000 W/m·K equivalent). Used in laptops, GPUs, satellites, advanced electronics."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ht_wall",
+        "kind": "guided_derivation",
+        "question": "Compute house heat loss",
+        "goal": "House wall: 10 m × 3 m = 30 m². Insulation R-15 (US units, ft²·°F·hr/BTU). Inside 70°F, outside 30°F (cold winter). Compute heat loss.",
+        "steps": [
+          {
+            "prompt": "Heat loss: $Q = A \\Delta T / R$. Insert.",
+            "motivation": "Apply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "80 BTU/hr/ft²",
+                "~80"
+              ]
+            },
+            "hints": [
+              "Per ft²: $\\Delta T/R = 40/15 = 2.67$ BTU/hr/ft²."
+            ],
+            "reveal": "Per unit area: 2.67 BTU/hr/ft²."
+          },
+          {
+            "prompt": "Total wall: 30 m² ≈ 323 ft². Heat loss?",
+            "motivation": "Multiply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~860 BTU/hr",
+                "~252 W"
+              ]
+            },
+            "hints": [
+              "323 × 2.67 ≈ 862 BTU/hr ≈ 252 W."
+            ],
+            "reveal": "~860 BTU/hr or ~252 W per wall."
+          },
+          {
+            "prompt": "House has ~6 walls equivalent + windows + ceiling. Total heat load typical ~5-15 kW for an average house in cold climate. Heating provides ~10 kW; passive house ~1 kW.",
+            "motivation": "Scale.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Doesn't matter.",
+                "5-15 kW typical. Insulation + air sealing + window quality dominate. Passive House standard reduces by 10×.",
+                "Always 100 W.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Heating load scale."
+            ],
+            "reveal": "Typical house: 5-15 kW peak heating in cold climate. Passive House: ~1 kW. Difference: insulation + air sealing + windows + ventilation heat recovery. Major energy + emissions savings."
+          }
+        ],
+        "finalResult": "$$\\boxed{Q = U A \\Delta T \\text{ for each envelope element}}$$ Building energy analysis is multiple of these summed across envelope elements. Modern building codes drive ever-higher insulation requirements. Energy modeling software (EnergyPlus, IESVE, TRNSYS) automates whole-building analysis. The transition to electrified heating (heat pumps) makes envelope quality even more important — cheap energy makes inefficient walls tolerable; expensive electricity does not."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ht_modes",
+        "kind": "multiple_choice",
+        "question": "Why does a vacuum-insulated thermos (Stanley/Yeti) keep coffee hot for hours?",
+        "options": [
+          "Magic.",
+          "Vacuum eliminates conduction AND convection between inner + outer walls (no medium to transfer through). Only RADIATION remains; reflective silver coating minimizes it. Result: thermal conductivity ~0.001 W/m·K equivalent — 100× better than the best foam.",
+          "Random.",
+          "Magnetic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Vacuum insulation: no medium → no conduction (atoms must touch to conduct), no convection (no fluid to move). Only radiation between surfaces — silvered to minimize emissivity. Effective thermal conductivity: ~0.001 W/m·K equivalent — best practical insulator.\n\nApplications: thermos flasks, Dewar flasks for cryogenic liquids (LN2, LHe), vacuum-insulated panels (VIPs) for ultra-thin walls in refrigerators + appliances, MLI (Multi-Layer Insulation) for spacecraft. Limitation: vacuum gradually leaks → re-pumping or 'getters' to maintain."
+      },
+      "hints": [
+        "How does vacuum stop heat transfer?",
+        "What's left?"
+      ],
+      "workedSolution": "Vacuum: no conduction (atoms can't touch), no convection (no fluid). Only radiation. Silvered surfaces reduce $\\epsilon \\to 0.04$. Net heat transfer ~1/100 of bulk insulation. Used: thermoses, cryogenics, spacecraft MLI, vacuum-insulated panels. Limitation: vacuum gradually leaks; getters + materials engineering maintain.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ht_rad",
+        "kind": "math_expression",
+        "question": "Body at 300 K, surface 1 m², emissivity 0.9. Stefan-Boltzmann radiation?",
+        "acceptedAnswers": [
+          "~413 W",
+          "413",
+          "0.9 × 5.67e-8 × 300^4"
+        ],
+        "hint": "0.9 × 5.67e-8 × 8.1e9 ≈ 413 W."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ht_dcooling",
+        "kind": "scenario",
+        "question": "Datacenter cooling design",
+        "prompt": "A new datacenter has 5 MW of IT load. Walk through cooling system options + their trade-offs (air cooling, liquid cooling, immersion)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ht",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why most engineering heat-transfer problems have all three modes (conduction + convection + radiation) operating simultaneously.",
+        "rubric": "Mentions that conduction moves heat within solids, convection between solid + moving fluid, radiation between surfaces (especially at high T); real systems (heat sinks, buildings, engines) have all three; engineering analysis sums their contributions; design optimizes each mode separately + their combination. Vacuum + extreme conditions eliminate some modes, but most everyday systems have all three."
+      }
+    }
+  ]
+}

@@ -1,0 +1,157 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Apply Bernoulli's equation.",
+      "Distinguish laminar from turbulent flow.",
+      "Reason about pipe flow + pumps + drag."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Bernoulli + the energy equation",
+      "body": "**Bernoulli's equation** (steady, incompressible, inviscid flow along streamline):\n$$p + \\frac{1}{2}\\rho v^2 + \\rho g z = \\text{const}$$\n\n- $p$ = static pressure.\n- $\\frac{1}{2}\\rho v^2$ = dynamic pressure (velocity head).\n- $\\rho g z$ = elevation head.\n\nEverywhere along a streamline (for ideal flow), these sum to a constant. Energy conservation in fluid form.\n\n**Implications**:\n- Faster flow = lower pressure (constant elevation).\n- Higher elevation = lower pressure (constant velocity).\n- Used in: airfoil lift, venturi meters, jet pumps, pitot tubes.\n\n**Venturi effect**: pipe constriction increases velocity (continuity) → decreases pressure (Bernoulli). Used to measure flow rate (differential pressure measurement).\n\n**Pitot tube**: stagnation pressure - static pressure = dynamic pressure → solve for $v$. Used in aircraft airspeed measurement.\n\n**Limitations of Bernoulli**:\n- Assumes IDEAL fluid (no viscosity).\n- Steady flow only.\n- Along streamline.\n- Incompressible (good for M < 0.3; bad for high-speed flow).\n- No external work / heat added.\n\n**Extensions**:\n- **Compressible flow**: ideal-gas extension. Critical for jet engines, supersonic.\n- **Viscous flow**: pressure DROP along pipe due to friction (next slides).\n- **Unsteady flow**: includes time-derivative term.\n\n**Conservation laws in fluids**:\n- **Mass (continuity)**: $\\nabla \\cdot (\\rho \\mathbf{v}) + \\partial\\rho/\\partial t = 0$. For incompressible: $\\nabla \\cdot \\mathbf{v} = 0$.\n- **Momentum (Navier-Stokes)**: $\\rho \\frac{D\\mathbf{v}}{Dt} = -\\nabla p + \\mu \\nabla^2 \\mathbf{v} + \\rho \\mathbf{g}$.\n- **Energy**: similar form, more terms for compressible.\n\nNavier-Stokes equations are NONLINEAR (the $(\\mathbf{v} \\cdot \\nabla)\\mathbf{v}$ term). Existence + smoothness of solutions is a Millennium Prize Problem ($1M unsolved)."
+    },
+    {
+      "kind": "text",
+      "title": "Reynolds number + laminar vs turbulent",
+      "body": "**Reynolds number**: dimensionless ratio of inertial to viscous forces.\n$$\\text{Re} = \\frac{\\rho v L}{\\mu} = \\frac{v L}{\\nu}$$\n\nWhere $\\mu$ = dynamic viscosity, $\\nu = \\mu/\\rho$ = kinematic viscosity, $L$ = characteristic length.\n\n**Regimes**:\n- **Re < 10**: viscous-dominated. Microorganisms swimming. Honey flowing.\n- **Re < 2000-2300** (pipe flow): LAMINAR. Smooth, layered flow.\n- **Re > 4000**: FULLY TURBULENT. Chaotic, mixing.\n- **2300-4000**: transitional.\n\n**Examples**:\n- Capillary in body: Re ~10. Laminar.\n- Faucet flow (typical): Re ~3000-30000. Turbulent.\n- Hose water (5 m/s): Re ~$10^5$. Turbulent.\n- Aircraft over wing: Re ~$10^6-10^7$. Mostly turbulent.\n- Sun's convective interior: Re ~$10^{10}$+. Hugely turbulent.\n\n**Laminar flow** (Re < ~2300 in pipes):\n- Velocity profile is parabolic in pipe.\n- Pressure drop $\\propto v$.\n- Predictable, well-behaved.\n- Used: microfluidics, drug delivery, blood vessels.\n\n**Turbulent flow** (Re > ~4000):\n- Chaotic. Eddies + vortices at many scales.\n- Velocity profile is flatter (near-plug, with thin viscous sublayer at wall).\n- Pressure drop $\\propto v^{1.75-1.85}$ (not strictly $v^2$ due to log dependence on roughness).\n- Higher heat + mass transfer rates.\n- Most engineering flows.\n\n**Boundary layer**: thin region near wall where viscosity matters. Outside the boundary layer, treat as inviscid.\n- Laminar boundary layer: thin.\n- Turbulent boundary layer: thicker but more entrained.\n- Transition: depends on Reynolds, surface roughness, free-stream turbulence.\n\n**Drag**: parallel-to-flow force on bodies.\n- Form drag: from pressure difference around body.\n- Skin friction: viscous shear at wall.\n- Wave drag: in compressible flow (supersonic).\n- Reduce drag: streamlining, laminar boundary layer maintenance, dimples (golf balls), surface treatments."
+    },
+    {
+      "kind": "text",
+      "title": "Pipe flow + pumps + the engineering toolkit",
+      "body": "**Pipe flow analysis**: typically dominated by FRICTION LOSSES.\n\n**Darcy-Weisbach equation** for pressure drop in pipes:\n$$\\Delta P = f \\frac{L}{D} \\frac{\\rho v^2}{2}$$\n\nWhere $f$ = Darcy friction factor (dimensionless), $L$ = pipe length, $D$ = diameter.\n\n**Friction factor**:\n- **Laminar**: $f = 64/\\text{Re}$. Direct.\n- **Turbulent**: from Moody chart or Colebrook equation. Depends on Re + relative roughness $\\epsilon/D$.\n- Smooth pipes: lower friction. Old corroded pipes: much higher.\n\n**Local (minor) losses**: pipe fittings (elbows, valves, expansions, contractions). Expressed as $K \\frac{\\rho v^2}{2}$ with tabulated K-values.\n\n**Total head loss**: friction + minor losses + elevation changes.\n\n**Pumps**:\n- Power required: $P = \\dot{m} g H_{total} / \\eta_{pump}$ where $\\dot{m}$ = mass flow, $H$ = total head, $\\eta$ = efficiency.\n- Pump curve: head vs flow rate. Centrifugal pumps: head drops as flow increases.\n- Operating point: intersection of pump curve + system curve.\n- Pump types: centrifugal (most common), positive-displacement (gear, screw, piston), axial.\n\n**Drag on bodies in flow**:\n$$F_D = \\frac{1}{2} \\rho v^2 A C_D$$\n\nWhere $C_D$ = drag coefficient depending on shape + Reynolds.\n\n**$C_D$ values**:\n- Streamlined airfoil: $C_D \\approx 0.04$.\n- Sphere: $C_D \\approx 0.47$.\n- Flat plate perpendicular to flow: $C_D \\approx 1.28$.\n- Modern car: $C_D \\approx 0.25-0.32$.\n- Truck: $C_D \\approx 0.5-0.7$.\n- Cyclist (tucked): $C_D \\approx 0.7$.\n\n**CFD (Computational Fluid Dynamics)**: numerical solution of Navier-Stokes equations.\n- Direct numerical simulation (DNS): full Navier-Stokes resolved. Expensive; only low Re.\n- LES (Large Eddy Simulation): resolve large eddies, model small. Mid-Re.\n- RANS (Reynolds-Averaged Navier-Stokes): model all turbulence. Industry standard. ANSYS Fluent, OpenFOAM, STAR-CCM+.\n\nCFD has revolutionized fluid engineering since 1990s. Aircraft + cars + buildings + pipelines + ships all designed with CFD now. Combined with PIV (Particle Image Velocimetry) + LDA + wind tunnels for validation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fluid_pipe",
+        "kind": "guided_derivation",
+        "question": "Compute pump power",
+        "goal": "Water (ρ = 1000 kg/m³) flows through 50 m of 10 cm pipe at 1 m/s. Friction factor $f = 0.02$. Pump efficiency 70%. Compute pump power.",
+        "steps": [
+          {
+            "prompt": "Velocity head: $\\rho v^2/2 = 1000 \\times 1^2 / 2 = ?$",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "500 Pa",
+                "500"
+              ]
+            },
+            "hints": [
+              "1000 × 0.5."
+            ],
+            "reveal": "500 Pa dynamic pressure."
+          },
+          {
+            "prompt": "Pressure drop: $\\Delta P = f (L/D) (\\rho v^2/2) = 0.02 \\times (50/0.1) \\times 500$.",
+            "motivation": "Apply Darcy.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "5000 Pa",
+                "5 kPa",
+                "5000"
+              ]
+            },
+            "hints": [
+              "0.02 × 500 × 500 = 5000."
+            ],
+            "reveal": "$\\Delta P = 5000$ Pa = 5 kPa."
+          },
+          {
+            "prompt": "Volumetric flow rate: $Q = vA = 1 \\times \\pi (0.05)^2 = 0.00785$ m³/s. Hydraulic power: $\\Delta P \\times Q = 5000 \\times 0.00785$.",
+            "motivation": "Multiply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~39 W",
+                "39.27",
+                "39 watts"
+              ]
+            },
+            "hints": [
+              "5000 × 0.00785."
+            ],
+            "reveal": "~39 W hydraulic power."
+          },
+          {
+            "prompt": "Pump shaft power = hydraulic / efficiency = 39 / 0.7 = ?",
+            "motivation": "Divide.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~56 W",
+                "56",
+                "55.7"
+              ]
+            },
+            "hints": [
+              "39/0.7."
+            ],
+            "reveal": "~56 W pump shaft. Real systems: motors + drives add more inefficiency. Total electrical: ~70-80 W for ~40 W of fluid work."
+          }
+        ],
+        "finalResult": "$$\\boxed{P_{pump} = \\Delta P \\cdot Q / \\eta_{pump}}$$ Pump sizing is the daily work of mechanical engineers in HVAC + plumbing + chemical processes. Friction losses dominate at moderate Re. The Darcy-Weisbach + Moody chart + pump curves are the workhorse tools. Modern: CFD for complex geometries; pump-affinity laws for variable-speed drives; predictive maintenance via vibration analysis."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fluid_re",
+        "kind": "multiple_choice",
+        "question": "Why does the velocity profile change shape (parabolic → flattened) when flow transitions from laminar to turbulent?",
+        "options": [
+          "Bug.",
+          "In laminar flow, viscous shear dominates → parabolic profile (parabola from wall to center). In turbulent flow, mixing brings high-velocity fluid from center toward wall → flatter profile (near-plug with thin viscous sublayer at wall). Different physics, different shapes.",
+          "Random.",
+          "Same shape."
+        ],
+        "correctIndex": 1,
+        "explanation": "Laminar (Re < 2300): pure viscous shear. Hagen-Poiseuille parabolic profile. Friction factor $f = 64/Re$. Predictable + clean.\n\nTurbulent (Re > 4000): chaotic eddies mix momentum. Velocity profile FLATTER (near-plug). Mean velocity profile follows log law in fully-developed region. Thin viscous sublayer at wall (~10% of pipe diameter at moderate Re). Friction factor depends on Re + roughness.\n\nMixing in turbulent flow also gives MUCH higher heat + mass transfer. Pipe + duct designs trade Re for heat exchanger size."
+      },
+      "hints": [
+        "What's the velocity profile in each regime?",
+        "Why?"
+      ],
+      "workedSolution": "Laminar: parabolic (Hagen-Poiseuille). Pure viscous shear. Slow + low Re.\nTurbulent: flat near-plug. Eddies mix momentum across pipe. Thin viscous sublayer at wall.\nFlatter profile in turbulent → less area-averaged-vs-centerline mismatch. Higher mean velocity at given pressure drop. Higher heat transfer. Most engineering flows are turbulent.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fluid_re",
+        "kind": "math_expression",
+        "question": "Water (ν = 10^-6 m²/s) flowing at 0.5 m/s in 5 cm pipe. Re?",
+        "acceptedAnswers": [
+          "25000",
+          "2.5e4"
+        ],
+        "hint": "vD/ν = 0.5 × 0.05 / 10^-6 = 2.5e4."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fluid_aero",
+        "kind": "scenario",
+        "question": "Drag reduction on a vehicle",
+        "prompt": "A car designer reduces drag coefficient from 0.32 to 0.26. At highway speed, how much does this reduce fuel consumption?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fluid",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why Reynolds number is the central dimensionless parameter in fluid mechanics.",
+        "rubric": "Mentions that Re ratio of inertial to viscous forces; geometrically similar systems at the same Re have geometrically similar flows; this allows scaling (test 1:10 model in wind tunnel → predict full-scale behavior); Re also delineates laminar vs turbulent regimes with completely different physics. Most fluid-mechanics design starts with computing Re for the problem at hand."
+      }
+    }
+  ]
+}

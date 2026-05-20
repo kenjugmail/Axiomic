@@ -1,0 +1,146 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "specialist",
+    "objectives": [
+      "Outline machine-element types.",
+      "Apply gear-train ratios.",
+      "Reason about bearings + fasteners + materials selection."
+    ],
+    "prereqs": [
+      "statics-and-stress"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Machine elements + design",
+      "body": "**Machine design**: synthesizing mechanical systems from basic elements. The bridge between physics + finished product.\n\n**Major elements**:\n- **Shafts**: transmit rotary power. Subject to torsion + bending. Often the size-driver of a machine.\n- **Gears**: change speed + torque + direction. Spur, helical, bevel, worm, planetary.\n- **Bearings**: support shafts. Ball, roller, journal, magnetic, fluid.\n- **Belts + chains**: alternative power transmission. Flexible, can span distance.\n- **Couplings**: connect shafts. Rigid, flexible, universal joints.\n- **Springs**: store + release energy. Compression, extension, torsion, leaf.\n- **Fasteners**: screws, bolts, rivets, welds, adhesives.\n- **Cams**: convert rotation to specific motion profiles. Engines, machine tools.\n- **Brakes + clutches**: control rotational energy.\n\n**Design process**:\n1. **Requirements**: load + speed + life + cost + environment + safety.\n2. **Conceptual design**: sketch alternatives.\n3. **Embodiment**: select elements; layout.\n4. **Detail**: tolerances, materials, surface finish.\n5. **Analyze**: stress, fatigue, vibration, thermal.\n6. **Prototype**: validate.\n7. **Refine + manufacture**.\n\n**Codes + standards** (USA): ASME, ANSI, AGMA (gears), AFBMA (bearings), AWS (welding). Each industry has more specific (FAA, ISO, automotive SAE).\n\n**Material selection**: critical decision. Consider strength, stiffness, density, corrosion, fatigue, cost, manufacturability, life.\n\n**Common materials**:\n- **Mild steel**: cheap, strong, weldable. Default for general structures.\n- **Alloy steel (4140, 4340)**: heat-treatable. High-strength shafts + gears.\n- **Stainless steel**: corrosion resistance.\n- **Aluminum 6061 / 7075**: lightweight. Aerospace + transportation.\n- **Titanium**: high strength-to-weight + corrosion. Premium aerospace + medical.\n- **Cast iron**: cheap; good vibration damping. Machine tool bases.\n- **Plastics (Delrin, PEEK, UHMW)**: low friction; non-magnetic; medical.\n- **Composites (CFRP)**: aerospace, sporting goods, premium.\n\n**Design for X**:\n- Manufacturing: ease of production.\n- Assembly: ease of putting together.\n- Maintenance: serviceability.\n- Recycling: end-of-life.\n- Cost: total lifecycle cost."
+    },
+    {
+      "kind": "text",
+      "title": "Gears + power transmission",
+      "body": "**Gear ratios**: change speed + torque inversely.\n$$\\frac{N_2}{N_1} = \\frac{\\omega_1}{\\omega_2} = \\frac{T_2}{T_1}$$\n\nWhere $N$ = teeth count, $\\omega$ = angular velocity, $T$ = torque.\n\n**Spur gears**: straight-cut teeth on cylindrical bodies. Simple + cheap.\n\n**Helical gears**: teeth at angle. Smoother engagement, higher load capacity, but create axial thrust.\n\n**Bevel gears**: shafts at angle (typically 90°). Used in differentials, hand drills, ship propeller shafts.\n\n**Worm gears**: high gear ratio (10-100:1) in one stage. Often self-locking (can't be back-driven). Used in lifts, machine tool indexing.\n\n**Planetary (epicyclic) gears**: high power density, compact. Used in automatic transmissions, wind turbine gearboxes, hub motors.\n\n**Gear design**:\n- **Module** (metric) or **diametral pitch** (US): tooth size.\n- Mating gears must have same module.\n- Center distance: $d = (N_1 + N_2) \\cdot m / 2$.\n- Stress analysis: AGMA bending + pitting standards.\n- Surface treatment: case-hardening, nitriding, shot peening.\n\n**Gear noise**: significant in cars + appliances. Helical, hypoid, planetary geometries reduce. Active noise cancellation in luxury cars.\n\n**Power transmission system design**:\n- Input: motor + speed.\n- Required output: speed + torque.\n- Compute total ratio.\n- Split into stages (each ~3-7:1 typical for spur/helical, up to 50:1 for worm).\n- Material + heat treatment for stress requirements.\n- Lubrication system.\n- Sealing + housing.\n\n**Modern**: gearboxes everywhere. Automotive transmissions, EV reducers, wind turbines (huge planetary stages), robotics (cycloidal + harmonic drives), elevators, machinery."
+    },
+    {
+      "kind": "text",
+      "title": "Bearings + fasteners + the joint problem",
+      "body": "**Bearings**: support relative motion (usually rotation) with minimal friction.\n\n**Rolling-element bearings**: balls or rollers between races.\n- **Deep-groove ball**: most common; radial + small axial. Cheap, reliable.\n- **Angular contact**: handles thrust + radial.\n- **Tapered roller**: high thrust + radial. Car wheels.\n- **Cylindrical roller**: high radial, no thrust. Heavy machinery.\n- **Spherical roller**: self-aligning. Misalignment tolerant.\n- **Thrust bearings**: pure axial loads.\n\n**Plain (journal) bearings**: sliding contact. Used in engines, large turbines, low-speed high-load.\n- Need lubricant (oil, grease).\n- Friction higher than rolling but quieter + cheaper.\n- Specialized: fluid-film (hydrodynamic, hydrostatic), foil air bearings (high-speed turbines), magnetic bearings (no contact, used in critical applications).\n\n**Bearing life**: $L_{10}$ = hours at which 10% have failed. Function of load + speed.\n$$L_{10} = \\left(\\frac{C}{P}\\right)^p$$\n\n$C$ = dynamic load rating, $P$ = applied load, $p$ = 3 (ball) or 10/3 (roller).\n\n**Fasteners**: bolts, screws, rivets, welds, adhesives.\n\n**Threaded fasteners**:\n- **Bolts** (have nut): structural, removable.\n- **Screws** (thread into part): housings, covers.\n- **Standard sizes**: metric (M6, M8, M10...) or imperial (1/4-20, 3/8-16...).\n- **Grade**: 5, 8 (US); 8.8, 10.9 (metric). Number = strength factor.\n- **Preload**: tightening creates clamping force. Critical for joints under varying load (avoid loosening + fatigue).\n- **Torque specification**: standardized for each grade + size. Wrenches, torque limiters.\n\n**Welding**:\n- MIG/MAG: easy, fast. Default for steel structures.\n- TIG: precise, clean. Aluminum, stainless, thin sections.\n- Spot welding: automotive.\n- Friction stir: aerospace aluminum.\n- Laser + electron beam: precision.\n\n**Adhesives**: epoxy, structural acrylics. Increasingly used in transportation (lighter than bolts).\n\n**Rivets**: traditional aerospace. Replaced by adhesives in some new aircraft.\n\n**Joint design principles**:\n- Avoid stress concentrations.\n- Distribute load over multiple fasteners.\n- Allow for thermal expansion.\n- Inspectability.\n- Failure mode: prefer ductile yielding (warning) over brittle fracture.\n- Fatigue: each cycle is potential crack initiator. Pre-load important."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_design_gearbox",
+        "kind": "guided_derivation",
+        "question": "Design a 3-stage gear reducer",
+        "goal": "Motor input 1750 RPM. Required output 50 RPM. Total ratio + per-stage selection.",
+        "steps": [
+          {
+            "prompt": "Total gear ratio: input/output speed = ?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "35",
+                "35:1",
+                "1750/50"
+              ]
+            },
+            "hints": [
+              "1750/50."
+            ],
+            "reveal": "35:1 total reduction."
+          },
+          {
+            "prompt": "If 3 stages, geometric ratio per stage: $\\sqrt[3]{35} = ?$",
+            "motivation": "Cube root.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~3.27",
+                "3.27",
+                "~3.3"
+              ]
+            },
+            "hints": [
+              "35^(1/3) = 3.27."
+            ],
+            "reveal": "~3.27 per stage."
+          },
+          {
+            "prompt": "3 stages of ~3.3:1 each. Total: $3.3^3 = 35.9$. Acceptable. Each stage uses spur or helical, gear pair. Why split into 3 stages instead of 1?",
+            "motivation": "Multi-stage rationale.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Each stage practically limited to ~3-7:1 due to size + tooth-strength. Single 35:1 spur gear would need a small pinion + huge gear — interference + tooth-bending stress. Multi-stage gives manageable gear sizes + better load distribution.",
+                "Cheaper.",
+                "Worse."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Size + tooth strength."
+            ],
+            "reveal": "Each stage practically 3-7:1. Higher ratios per stage need smaller pinion (interference + tooth strength) or hugely larger gear. Multi-stage gives compact, manufacturable, durable design. The standard pattern in industrial reducers."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Multi-stage reducer: split high ratios into manageable per-stage ratios}}$$ Gearbox design is the daily work of mechanical-design engineers in automotive, robotics, industrial, wind, marine. AGMA standards govern tooth design. Modern: planetary gearboxes (high density), cycloidal + harmonic drives (precision robotics), bevel + helical hypoid (axles). Software tools (KISSsoft, Gleason CAGE) automate detailed design."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_design_bearing",
+        "kind": "multiple_choice",
+        "question": "Why do most modern washing machines + dishwashers use sealed rolling-element bearings vs plain bearings?",
+        "options": [
+          "Random.",
+          "Rolling bearings: low friction, no lubrication maintenance, predictable life. Plain bearings: higher friction + need lubrication + wear over time. For appliances expected to run 20+ years with minimal maintenance, rolling bearings are the workhorse choice. Cost has come down with mass production.",
+          "Decoration.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Rolling-element bearings dominate appliances + automotive + industrial: low friction (η = 0.001-0.005 vs plain bearings 0.01-0.10), pre-lubricated + sealed, predictable life rating, range of designs. Plain bearings still used: very-high-load (large engines), very-low-cost (toys), very-high-speed (magnetic bearings instead). The mass-produced unit cost of sealed bearings is ~\\$1-5 — cheaper than the alternative for most applications."
+      },
+      "hints": [
+        "Bearing types?",
+        "Why this choice?"
+      ],
+      "workedSolution": "Rolling bearings: low friction, sealed, predictable. Plain bearings: higher friction, need lubrication, but cheaper for very-low-cost applications. Magnetic bearings: no contact, ultra-high precision. Fluid-film: cars + turbines high-load. Modern appliance bearings are sealed + pre-greased + good for 20+ year life.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_design_torque",
+        "kind": "math_expression",
+        "question": "Motor 100 N·m torque. After gear reducer 10:1, output torque?",
+        "acceptedAnswers": [
+          "1000 N·m",
+          "1000"
+        ],
+        "hint": "Torque × ratio."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_design_drone",
+        "kind": "scenario",
+        "question": "Designing a quadcopter drone",
+        "prompt": "Walk through machine-element choices for a small quadcopter: motors, props, gearboxes (if any), bearings, frame."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_design",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why understanding machine elements is foundational for mechanical engineers.",
+        "rubric": "Mentions that complex machines are assemblies of basic elements (gears, bearings, shafts, fasteners); each element has standardized analysis + sizing methods; engineers combine elements + size them for the application; mastery enables design of anything from a doorknob to a wind turbine. Modern CAD + simulation reduce manual analysis but the concepts + sizing logic remain essential."
+      }
+    }
+  ]
+}

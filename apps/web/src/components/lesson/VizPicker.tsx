@@ -103,6 +103,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "☀️",
     tags: ["solar", "energy", "physics", "renewable"],
   },
+  {
+    name: "carnot-cycle",
+    label: "Carnot cycle (P-V)",
+    description: "P-V diagram with isotherms + adiabats. Drag temperatures; see efficiency.",
+    thumb: "🔥",
+    tags: ["thermodynamics", "carnot", "physics", "engineering"],
+  },
 ];
 
 interface Props {

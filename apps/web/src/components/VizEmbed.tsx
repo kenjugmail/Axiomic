@@ -14,6 +14,7 @@ const LorenzAttractor = lazy(() => import("../../../../packages/viz/src/componen
 const DoublePendulum = lazy(() => import("../../../../packages/viz/src/components/DoublePendulum").then(m => ({ default: m.DoublePendulum })));
 const PhasePortrait1D = lazy(() => import("../../../../packages/viz/src/components/PhasePortrait1D").then(m => ({ default: m.PhasePortrait1D })));
 const SolarPVCurve = lazy(() => import("../../../../packages/viz/src/components/SolarPVCurve").then(m => ({ default: m.SolarPVCurve })));
+const CarnotCycle = lazy(() => import("../../../../packages/viz/src/components/CarnotCycle").then(m => ({ default: m.CarnotCycle })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -32,6 +33,7 @@ export const VIZ_NAMES = [
   "double-pendulum",
   "phase-portrait-1d",
   "solar-pv-curve",
+  "carnot-cycle",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -48,6 +50,7 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "double-pendulum": DoublePendulum,
   "phase-portrait-1d": PhasePortrait1D,
   "solar-pv-curve": SolarPVCurve,
+  "carnot-cycle": CarnotCycle,
 };
 
 interface VizEmbedProps {

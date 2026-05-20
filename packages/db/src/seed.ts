@@ -1952,6 +1952,26 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P22 — Mechanical Engineer path. Statics, dynamics, thermo,
+  // fluids, heat transfer, machine design, manufacturing,
+  // mechatronics. Thermo lesson uses new carnot-cycle viz.
+  seedMasteryPath({
+    slug: "mechanical-engineer",
+    title: "Mechanical Engineer",
+    description:
+      "From statics + stress through kinematics + dynamics + Lagrangian methods, thermodynamics + the Carnot cycle (interactive viz), fluid mechanics + Reynolds, heat transfer, machine design + gears + bearings, manufacturing processes + DFM, and mechatronics + PID control. The mechanical-engineering stack end-to-end.",
+    nodes: [
+      { slug: "statics-and-stress", title: "Statics + Stress", level: "apprentice", order: 1, pages: ["equilibrium", "stress-strain", "concentrations"], prereqs: [], description: "Static equilibrium + FBDs, stress + strain + Hooke's law, beam bending + stress concentrations." },
+      { slug: "kinematics-and-dynamics", title: "Kinematics + Dynamics", level: "practitioner", order: 2, pages: ["kinematics", "newton-forces", "rotational-lagrangian"], prereqs: [], description: "Position-velocity-acceleration, Newton's laws + force analysis, rotational dynamics + Lagrangian methods." },
+      { slug: "thermodynamics-engineering", title: "Thermodynamics + Carnot", level: "practitioner", order: 3, pages: ["thermo-laws", "carnot-cycle", "refrigeration"], prereqs: [], description: "Three laws of thermodynamics, Carnot cycle (interactive P-V viz), real engine cycles + heat pumps." },
+      { slug: "fluid-mechanics", title: "Fluid Mechanics", level: "practitioner", order: 4, pages: ["bernoulli", "reynolds-laminar-turbulent", "pipe-flow"], prereqs: [], description: "Bernoulli + the energy equation, Reynolds + laminar vs turbulent, pipe flow + pumps + drag." },
+      { slug: "heat-transfer", title: "Heat Transfer", level: "practitioner", order: 5, pages: ["three-modes", "heat-exchangers", "insulation"], prereqs: ["thermodynamics-engineering"], description: "Conduction + convection + radiation, heat exchangers + effectiveness-NTU, insulation + R-values + passive house." },
+      { slug: "machine-design", title: "Machine Design", level: "specialist", order: 6, pages: ["elements", "gears", "bearings-fasteners"], prereqs: ["statics-and-stress"], description: "Machine elements + design process, gears + ratios, bearings + fasteners + joint design." },
+      { slug: "manufacturing-processes", title: "Manufacturing Processes", level: "practitioner", order: 7, pages: ["forming-machining", "cnc-modern", "dfm-additive"], prereqs: [], description: "Forming + machining + additive, CNC + Industry 4.0, Design for Manufacturing + additive revolution." },
+      { slug: "mechatronics-and-control", title: "Mechatronics + Control", level: "specialist", order: 8, pages: ["sensors-actuators", "pid-control", "embedded-real-time"], prereqs: [], description: "Sensors + actuators + power electronics, feedback control + PID tuning, real-time embedded control + Industry 4.0." },
+    ],
+  });
+
   // P21 — Renewable Energy Engineer path. Solar + wind +
   // batteries + grid + hydrogen + geothermal + nuclear +
   // economics. Includes a new solar-pv-curve interactive viz.
