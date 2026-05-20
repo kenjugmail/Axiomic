@@ -1952,6 +1952,26 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P13 — Climate Scientist path. Earth-system science:
+  // atmospheric + ocean physics, carbon cycle, climate models,
+  // paleoclimate, extreme-event attribution, mitigation, tipping.
+  seedMasteryPath({
+    slug: "climate-scientist",
+    title: "Climate Scientist",
+    description:
+      "From atmospheric radiative balance through ocean circulation, carbon cycle, GCM modeling, paleoclimate proxies, extreme-event attribution, mitigation pathways, and tipping-point adaptation. Earth-system science end-to-end.",
+    nodes: [
+      { slug: "atmospheric-physics", title: "Atmospheric Physics", level: "apprentice", order: 1, pages: ["radiative-balance", "greenhouse-effect", "vertical-structure"], prereqs: [], description: "Earth's effective temperature from radiative balance, greenhouse gases + radiative forcing, troposphere/stratosphere/lapse rates." },
+      { slug: "ocean-circulation", title: "Ocean Circulation", level: "practitioner", order: 2, pages: ["wind-thc", "amoc", "enso"], prereqs: ["atmospheric-physics"], description: "Wind-driven gyres + Ekman transport, thermohaline circulation + AMOC, El Niño / La Niña + global teleconnections." },
+      { slug: "carbon-cycle", title: "The Carbon Cycle", level: "practitioner", order: 3, pages: ["reservoirs-fluxes", "co2-lifetime", "ocean-acidification"], prereqs: ["atmospheric-physics"], description: "Atmosphere/ocean/land reservoirs + fluxes, CO₂ lifetime spectrum + the long tail, ocean acidification + biological feedbacks." },
+      { slug: "climate-models", title: "General Circulation Models", level: "specialist", order: 4, pages: ["gcm-structure", "parameterizations", "cmip-ensembles"], prereqs: ["atmospheric-physics", "ocean-circulation"], description: "GCM/AGCM/OGCM/ESM structure, sub-grid parameterizations, multi-model ensembles + uncertainty quantification." },
+      { slug: "paleoclimate-proxies", title: "Paleoclimate Proxies", level: "specialist", order: 5, pages: ["ice-cores-trees", "milankovitch", "petm-warm-worlds"], prereqs: ["atmospheric-physics", "carbon-cycle"], description: "Ice cores + tree rings + sediments + corals, Milankovitch cycles + glacial-interglacial, deep-time analogs (Pliocene, PETM)." },
+      { slug: "extreme-events-and-attribution", title: "Extreme Events + Attribution", level: "specialist", order: 6, pages: ["extreme-trends", "far-storyline", "insurance-financial"], prereqs: ["climate-models"], description: "Heat / precip / hurricane / fire / drought trends, event-attribution methodology (FAR, storyline), insurance + climate-financial risk." },
+      { slug: "mitigation-and-pathways", title: "Mitigation + Emission Pathways", level: "specialist", order: 7, pages: ["ssps", "wedges", "iam-discount-rate"], prereqs: ["carbon-cycle"], description: "RCP → SSP scenarios, carbon budget for 1.5°C/2°C, mitigation wedges, IAMs + the discount-rate debate." },
+      { slug: "adaptation-and-tipping-points", title: "Adaptation + Tipping Points", level: "expert", order: 8, pages: ["tipping-elements", "adaptation-strategies", "loss-and-damage"], prereqs: ["climate-models", "ocean-circulation"], description: "Major tipping elements (GIS / WAIS / AMOC / Amazon / corals), adaptation strategies + costs, limits + loss-and-damage." },
+    ],
+  });
+
   // P12 — Embedded Systems Engineer path. MCU architecture, RTOS +
   // real-time constraints, bare-metal memory, peripheral drivers,
   // interrupts, power, bootloaders + OTA, safety-critical.

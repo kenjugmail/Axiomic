@@ -1,0 +1,146 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "intro",
+    "objectives": [
+      "Derive Earth's equilibrium temperature from radiative balance.",
+      "Explain the greenhouse effect quantitatively.",
+      "Outline the vertical structure of the atmosphere."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Radiative balance + Earth's effective temperature",
+      "body": "Earth absorbs sunlight + radiates infrared. At equilibrium: incoming = outgoing.\n\n**Incoming**: solar constant $S_0 = 1361$ W/m² at top-of-atmosphere. Cross-section $\\pi R^2$ absorbs; the planet's surface area is $4\\pi R^2$. Per-unit-area incident: $S_0/4 = 340$ W/m². Multiply by $(1 - \\alpha)$ where $\\alpha \\approx 0.30$ is Earth's albedo (reflected back). Absorbed: $\\approx 240$ W/m².\n\n**Outgoing** (blackbody at temperature $T$): Stefan-Boltzmann $\\sigma T^4$ where $\\sigma = 5.67 \\times 10^{-8}$ W/m²/K⁴.\n\nSet incoming = outgoing:\n$$S_0 (1 - \\alpha) / 4 = \\sigma T_{\\text{eff}}^4$$\n$$T_{\\text{eff}} = \\left[\\frac{S_0 (1-\\alpha)}{4 \\sigma}\\right]^{1/4} \\approx 255 \\text{ K} = -18°C$$\n\nThis is the temperature Earth WOULD have without an atmosphere. Frozen, lifeless.\n\nActual mean surface temperature: 288 K = 15°C. The 33 K gap is the **greenhouse effect**.\n\n**Why this calculation matters**:\n- Other-planets sanity check: Venus albedo 0.77, solar constant 2600 W/m² → $T_{\\text{eff}} \\approx 232$ K. Actual surface: 735 K. Massive greenhouse from thick CO₂ atmosphere. Mars: $T_{\\text{eff}} \\approx 210$ K; actual ~210 K. Thin atmosphere, minimal greenhouse.\n- Setting context for ALL of climate: any change to $S_0$, $\\alpha$, or the greenhouse strength shifts $T$. Climate forcing is the change to this energy balance."
+    },
+    {
+      "kind": "text",
+      "title": "The greenhouse effect",
+      "body": "Atmospheric gases absorb infrared (the wavelength range Earth radiates) but pass visible sunlight. Sunlight → ground (heats it) → IR emission → atmosphere absorbs + re-emits in all directions, some back to ground.\n\n**Key greenhouse gases**:\n- **Water vapor (H₂O)**: dominant. Concentration ~1-4% (humidity-dependent). Strong IR absorber. Acts as a feedback (more warming → more evaporation → more H₂O → more warming).\n- **CO₂**: ~420 ppm (2024), up from ~280 ppm pre-industrial. The main forcing GHG due to anthropogenic emissions.\n- **CH₄ (methane)**: ~1900 ppb. Per-molecule ~30× stronger than CO₂ on 100-year timescale; shorter atmospheric lifetime (~12 years).\n- **N₂O (nitrous oxide)**: ~333 ppb. 270× stronger per molecule on 100-year basis. Mostly from agricultural fertilizer.\n- **CFCs / HFCs**: synthetic. Very strong per molecule (1000-10000×); regulated by Montreal Protocol (CFCs banned, HFCs phasing down).\n\n**Why each gas matters at its own wavelength**: each molecule has specific IR absorption bands. CO₂ is strong at 15 μm (right at Earth's peak emission). N₂ + O₂ (78% + 21% of atmosphere) DON'T absorb IR — they're diatomic + lack the symmetry to interact with IR. That's why a 99% N₂/O₂ atmosphere wouldn't be a greenhouse.\n\n**Radiative forcing**: change in net radiative flux due to a perturbation, holding everything else constant. CO₂ doubling: ~3.7 W/m² of forcing. Climate sensitivity: $T$ change per W/m² of forcing. Modern best estimate: ~3°C per CO₂-doubling (2.5-4°C IPCC range)."
+    },
+    {
+      "kind": "text",
+      "title": "Vertical structure of the atmosphere",
+      "body": "The atmosphere has distinct layers:\n\n- **Troposphere** (0-12 km): where weather happens. Temperature decreases with altitude (-6.5°C/km moist lapse rate). 80% of atmospheric mass.\n- **Stratosphere** (12-50 km): ozone layer; temperature INCREASES with altitude (ozone absorbs UV). Very stable; little vertical mixing.\n- **Mesosphere** (50-80 km): temperature decreases again. Coldest part of atmosphere.\n- **Thermosphere** (80-700 km): solar XUV heats it to 1000-2000 K (very thin, low total energy).\n\n**The lapse rate** $\\Gamma = -dT/dz$:\n- **Dry adiabatic**: 9.8 K/km. Rising air expands; conservation of energy gives this rate.\n- **Moist adiabatic**: 6 K/km. Latent-heat release as water vapor condenses keeps rising air warmer than dry.\n- **Environmental lapse rate**: actual observed; averages ~6.5 K/km. Determines atmospheric stability.\n\n**Stability**:\n- If environmental lapse > adiabatic: unstable. Rising air parcel stays warmer than surroundings, continues rising. Convection. Thunderstorms.\n- If environmental lapse < adiabatic: stable. Rising parcel becomes cooler than surroundings, sinks back. Inversions, smog, calm weather.\n\n**Tropopause** (the boundary at 12 km): temperature reaches a minimum (~-60°C in tropics, -50°C in mid-latitudes). Stratosphere's IR cooling balances the troposphere's convective heating.\n\n**Why this matters for climate**:\n- Greenhouse warming originates in troposphere; emitted to space from upper troposphere / lower stratosphere. The 'effective emission height' rises as GHGs increase → emits from colder air → less efficient cooling.\n- Stratospheric cooling is a SIGNATURE of greenhouse warming (vs solar warming, which would heat both layers).\n- Polar amplification, jet streams, Hadley cells — all driven by the vertical + meridional temperature structure."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_atm_temp",
+        "kind": "guided_derivation",
+        "question": "Derive Earth's effective temperature",
+        "goal": "Use Stefan-Boltzmann + the radiative balance equation. Given: $S_0 = 1361$ W/m², albedo $\\alpha = 0.30$, $\\sigma = 5.67\\times 10^{-8}$ W/m²/K⁴.",
+        "steps": [
+          {
+            "prompt": "Earth absorbs sunlight on a CROSS-SECTION $\\pi R^2$ but radiates from its full SURFACE $4\\pi R^2$. The absorbed flux per unit surface area is $S_0(1-\\alpha)/4$. Numerically:",
+            "motivation": "Substitute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "238",
+                "approximately 238",
+                "238 W/m^2",
+                "240"
+              ]
+            },
+            "hints": [
+              "$1361 \\times 0.7 / 4$."
+            ],
+            "reveal": "$\\approx 238$ W/m² absorbed per unit surface area."
+          },
+          {
+            "prompt": "Balance: $\\sigma T^4 = 238$. Solve for $T$.",
+            "motivation": "Algebra.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "255",
+                "255 K",
+                "approximately 255"
+              ]
+            },
+            "hints": [
+              "$T = (238 / 5.67\\times 10^{-8})^{1/4}$."
+            ],
+            "reveal": "$T \\approx (4.2 \\times 10^9)^{1/4} \\approx 255$ K."
+          },
+          {
+            "prompt": "Actual mean surface temperature is 288 K. The 33 K gap is the greenhouse effect. Express this as a percentage of the equilibrium temperature.",
+            "motivation": "Sanity check.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "~5%.",
+                "~13% (33/255).",
+                "~50%.",
+                "0%."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "33/255."
+            ],
+            "reveal": "~13%. The greenhouse effect raises Earth's mean temperature 33 K above its bare-rock equilibrium — making liquid water + life possible."
+          }
+        ],
+        "finalResult": "$$\\boxed{T_{\\text{eff}} = [S_0(1-\\alpha)/(4\\sigma)]^{1/4}}$$ This single equation underlies every estimate of planetary climate. Mercury: $T_{\\text{eff}} = 437$ K (no atmosphere; actual 440 K). Venus: $T_{\\text{eff}} = 232$ K (with high albedo); actual surface 735 K (catastrophic greenhouse). Mars: $T_{\\text{eff}} = 210$ K; actual ~210 K (thin atmosphere). Earth's 33 K greenhouse is the GOLDILOCKS gap — large enough for liquid water, small enough not to boil oceans."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_atm_strato",
+        "kind": "multiple_choice",
+        "question": "Climate models predict that anthropogenic greenhouse warming should warm the troposphere but COOL the stratosphere. Why?",
+        "options": [
+          "Random.",
+          "Greenhouse gases trap IR in the troposphere (warms it) but at the same time these gases efficiently radiate to space from the stratosphere (cools it). The cooling stratosphere is a fingerprint distinguishing greenhouse warming from solar-driven warming (which would warm both).",
+          "Stratosphere has no GHGs.",
+          "It's a measurement error."
+        ],
+        "correctIndex": 1,
+        "explanation": "Stratospheric cooling is one of the cleanest signatures distinguishing CO₂-driven warming from solar variability or natural cycles. Observed since 1979 satellite era; matches model predictions. The physical mechanism: more CO₂ → more IR emission to space from the stratosphere where it's the dominant emitter, hence net cooling. Meanwhile troposphere accumulates the trapped heat."
+      },
+      "hints": [
+        "What does CO₂ do at different altitudes?",
+        "What would solar warming do?"
+      ],
+      "workedSolution": "In the troposphere CO₂ traps outgoing IR → warming. In the stratosphere CO₂ is the dominant IR emitter to space → more CO₂ = more emission = cooling. Pure solar warming would warm both (more incoming sunlight, not differentially blocked at altitude). Observed: troposphere warming + stratosphere cooling. Match: CO₂. This is one of the strongest empirical fingerprints of anthropogenic climate change.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_atm_co2",
+        "kind": "math_expression",
+        "question": "CO₂ doubling forcing ~3.7 W/m². Climate sensitivity ~3°C/doubling. What's the temperature response per W/m² of forcing?",
+        "acceptedAnswers": [
+          "0.81",
+          "~0.8",
+          "0.8 K/(W/m^2)"
+        ],
+        "hint": "3 / 3.7 ≈ 0.81 K per W/m²."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_atm_geo",
+        "kind": "scenario",
+        "question": "Climate intervention via stratospheric aerosols",
+        "prompt": "A geo-engineering proposal: inject sulfate aerosols into the stratosphere to mimic large volcanic eruptions + cool the planet. Walk through the radiative physics + the major risks."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_atm",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why the greenhouse effect is essential for life on Earth but anthropogenic enhancement of it is a problem.",
+        "rubric": "Mentions that without the natural greenhouse Earth would be -18°C (frozen); the +33°C the atmosphere provides makes liquid water + biosphere possible; but human emissions have raised CO₂ by ~50% since pre-industrial, perturbing the energy balance + warming the planet faster than ecosystems + civilization can adapt. The same physics that enables life is making industrial-scale emissions a danger."
+      }
+    }
+  ]
+}

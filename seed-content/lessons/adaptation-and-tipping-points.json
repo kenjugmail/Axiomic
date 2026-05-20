@@ -1,0 +1,152 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "expert",
+    "objectives": [
+      "State the major climate tipping elements.",
+      "Distinguish gradual change from abrupt regime shifts.",
+      "Reason about adaptation costs + limits."
+    ],
+    "prereqs": [
+      "climate-models",
+      "ocean-circulation"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Tipping elements in the climate system",
+      "body": "A **tipping element** is a sub-system whose response to forcing can switch from gradual to abrupt + (potentially) irreversible. Lenton et al 2008, updated 2019, 2023.\n\n**Major identified tipping elements**:\n\n1. **Greenland Ice Sheet (GIS)**: complete loss commits to ~7m sea-level rise. Tipping temperature: ~1.5-2°C global warming (uncertain). Process: surface melt → ice-mass loss → elevation drop → surface temperature warmer → more melt (positive feedback).\n2. **West Antarctic Ice Sheet (WAIS)**: ~3-4m sea-level rise commitment. Marine-ice-sheet instability (grounding-line retreat). Possibly already past tipping point.\n3. **East Antarctic Ice Sheet (EAIS)**: ~50m sea-level rise commitment. Much higher temperature threshold; not at-risk this century, but very long-term.\n4. **AMOC (Atlantic Meridional Overturning Circulation)**: collapse causes Northern Hemisphere cooling + global redistribution. Threshold: ~3-5°C warming probably, but uncertain.\n5. **Amazon rainforest**: dieback to savanna. Drought + fire-positive-feedback + deforestation. Threshold: ~3-5°C global warming OR ~25-30% deforestation.\n6. **Boreal forest** (Siberia + Canada): northward expansion + southern dieback. Wildfire + permafrost-thaw amplifying.\n7. **Coral reefs**: heat-induced bleaching + ocean acidification. Already collapsing locally; 70-90% loss likely at 2°C.\n8. **Permafrost**: thaw releases CO₂ + CH₄ from frozen organic matter. Gradual now, possibly accelerating.\n9. **Monsoon systems** (West African, Indian): could shift regimes.\n\n**Cascade risk**: one tipping element can trigger others. e.g., AMOC weakening shifts tropical rainbelt → Amazon drought → forest dieback → CO₂ release → more warming → ice-sheet loss. Modeling suggests increasing cascade risk above ~2°C.\n\n**Time delays**: most tipping events take centuries to millennia to fully unfold once triggered. The COMMITMENT can be made on decadal timescales (e.g., Greenland may have already committed to ~50% loss given current warming) but the actual change unfolds slowly. Adaptation has more time than the headline numbers suggest — but the commitment is irreversible."
+    },
+    {
+      "kind": "text",
+      "title": "Adaptation strategies + costs",
+      "body": "**Adaptation** = reducing vulnerability to + recovering from climate impacts. Distinct from mitigation (reducing emissions).\n\n**Categories**:\n\n**Infrastructure hardening**:\n- Seawalls, levees, beach nourishment for coastal protection.\n- Flood-resistant building codes.\n- Wildfire-defensible space + ignition-resistant materials.\n- Power-grid weatherization.\n\n**Water + food systems**:\n- Drought-resistant crops, irrigation efficiency.\n- Water storage + interbasin transfers.\n- Aquaculture relocation as ocean warms.\n- Diversified agriculture (less single-crop dependence).\n\n**Public health**:\n- Heat action plans (cooling centers, early warning).\n- Vector-borne disease surveillance as ranges shift.\n- Worker-safety regulations under heat stress.\n\n**Ecosystem-based**:\n- Mangrove restoration for coastal storm protection (often cheaper than seawalls).\n- Urban forests for heat-island reduction.\n- Wetland restoration for flood buffering.\n\n**Managed retreat**: relocate people + infrastructure from at-risk areas. Politically + emotionally hard. Examples: Isle de Jean Charles (Louisiana), Soldiers Grove (Wisconsin), Newtok (Alaska).\n\n**Cost estimates**:\n- US adaptation needs (current to 2100): ~\\$0.5-1 trillion (NCA4 + various studies). Annualized ~\\$5-10 billion.\n- Global adaptation needs: ~\\$200-300 billion/year by 2030, \\$300-500 billion/year by 2050. (UN Environment Programme estimates.)\n- Funding gap: developing-country adaptation needs ~\\$160-340 billion/year by 2030, with only ~\\$25 billion currently flowing (UNEP 2023 report). Huge gap.\n\n**Limits**: some impacts CANNOT be adapted to. Loss of small islands, large forced migrations, mass species loss. Adaptation can reduce but not eliminate damages."
+    },
+    {
+      "kind": "text",
+      "title": "Limits of adaptation + the loss-and-damage debate",
+      "body": "**Adaptation limits**: physical, ecological, financial, social. Above some level of warming, certain regions become uninhabitable; some ecosystems cannot survive; some communities cannot afford adaptation. Key examples:\n\n- **Wet-bulb temperature**: humans cannot survive sustained wet-bulb >35°C (skin can't cool). Current projections show parts of S Asia, Persian Gulf, Sahel hitting this threshold by 2050s under high emissions. Outdoor workers at risk first.\n- **Sea-level rise + low-lying nations**: Maldives, Tuvalu, Kiribati face existential threat at 0.5-1m SLR. Even with sea walls, fresh-water lenses are destroyed.\n- **Coral reefs**: 70-90% loss at 1.5°C; near-total at 2°C. Fisheries + tourism + coastal protection lost.\n- **Permafrost infrastructure**: Russian + Canadian + Alaskan infrastructure built on permafrost is being damaged by thaw. Some can't be relocated.\n- **Glacier-fed rivers**: as glaciers retreat, water supply for billions in South Asia (Ganges, Indus, Brahmaputra) declines.\n\n**Loss and Damage (L&D)**: international climate-finance category for unavoidable impacts. The most-vulnerable countries argue that historical emitters (industrialized nations) owe compensation for damages they cannot adapt to.\n\n**COP27 (2022) + COP28 (2023)**: established a Loss and Damage Fund. Initial pledges ~\\$700 million; estimates of need ~\\$400 billion/year by 2030. Operationalizing the fund is contested.\n\n**Climate justice**: developed nations emitted most of the historical CO₂; developing nations bear disproportionate impacts. Per-capita responsibility (cumulative emissions per person) shows US, Europe, Australia at top; African nations + South Asia far below. Yet impacts are reversed: Africa + S Asia most vulnerable. The ethical case for L&D rests on this asymmetry.\n\n**The challenge**: adaptation alone is insufficient at >3-4°C; mitigation must remain priority; meanwhile, vulnerable communities need resources NOW. The framing as 'mitigation vs adaptation vs L&D' is being replaced with 'all three, urgently'. Implementation lags rhetoric."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_tip_amoc",
+        "kind": "guided_derivation",
+        "question": "AMOC tipping risk quantification",
+        "goal": "AMOC has weakened ~15% since 1950 (proxy estimates). Models suggest 10-50% weakening by 2100 under high emissions. A complete collapse would cause N European cooling 5-10°C.",
+        "steps": [
+          {
+            "prompt": "Is a 50% weakening the same as a collapse?",
+            "motivation": "Distinguish weakening from collapse.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Same.",
+                "No — weakening is gradual; collapse is a regime transition where the circulation fails to restart. Collapse temperature threshold higher than 50% weakening.",
+                "Equivalent.",
+                "Always coincide."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Weakening + collapse are different."
+            ],
+            "reveal": "Weakening is gradual + reversible; collapse is a regime change to a different stable state. Models project weakening of 10-50% by 2100; collapse is considered less likely but possible at high warming."
+          },
+          {
+            "prompt": "If AMOC collapsed in 2100, when would full impact be felt?",
+            "motivation": "Decadal-centennial timescale.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Immediately.",
+                "Within a year.",
+                "Over decades to a century — ocean thermal inertia means atmospheric/climate response unfolds over many decades. Most impact would emerge over the 22nd century.",
+                "Within minutes."
+              ],
+              "correctIndex": 2
+            },
+            "hints": [
+              "Ocean thermal inertia."
+            ],
+            "reveal": "Decades to centuries. Initial trigger → progressive cooling of NW Europe over decades → ice sheet + ecosystem responses over centuries. Adaptation has time but commitment is durable."
+          },
+          {
+            "prompt": "If a regional government must decide on infrastructure resilience given AMOC risk, what's the right framing?",
+            "motivation": "Decision under deep uncertainty.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Plan for the most likely scenario only.",
+                "Plan for a range of scenarios. Most likely: progressive weakening + colder NW European winters; small-probability: collapse + 5-10°C cooling. Robust design must work across both — typically by including redundancy + flexibility.",
+                "Ignore the risk.",
+                "Plan only for collapse."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Robust under uncertainty."
+            ],
+            "reveal": "Plan robustly: account for the most-likely AND tail-risk scenarios. Infrastructure with 100-year lifetime must consider 2-7°C-warming pathways + the small-probability AMOC-collapse scenario. Robust + flexible design + adaptive management."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Tipping risk → robust decisions under deep uncertainty}}$$ Climate decision-making is shifting from 'central-estimate planning' to 'tail-risk-aware planning'. Tipping elements add to expected damage AND to variance/uncertainty. Infrastructure built today for 50-100 year lifetimes faces the full range of futures. The right framing: robust + adaptive (flexible) plans that work under multiple scenarios + can be adjusted as more is learned."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_tip_amazon",
+        "kind": "multiple_choice",
+        "question": "The Amazon rainforest has been characterized as a 'tipping element': could shift to savanna at high warming or deforestation. What does this mean for forest conservation?",
+        "options": [
+          "Conservation is hopeless.",
+          "Beyond ~25-30% deforestation OR ~3-4°C warming, the system may flip to a self-reinforcing dry state. Below that, recovery is possible. This means deforestation reduction has high marginal value NOW (close to the tipping point) — preventing the flip preserves the entire ecosystem.",
+          "Doesn't matter.",
+          "Tipping points are theoretical."
+        ],
+        "correctIndex": 1,
+        "explanation": "Amazon is ~17% deforested. Combined with warming + drought trends, some studies suggest we're within 5-10% of the tipping point. Once past it, ecosystem flips to grassland/savanna (positive-feedback through reduced evapotranspiration). Massive carbon release, biodiversity loss, regional rainfall disruption (Amazon recycles 50% of its own rainfall). Implication: aggressive deforestation reduction is high-value mitigation + biodiversity preservation simultaneously. Brazil's 2023-2024 deforestation reduction (~60% drop year-over-year) is therefore especially valuable."
+      },
+      "hints": [
+        "What's the threshold?",
+        "Where are we now?"
+      ],
+      "workedSolution": "Tipping point: ~25-30% deforestation OR ~3-4°C global warming. Currently ~17% deforested + 1.2°C warming. Close to threshold. Crossing it locks in transition (centuries to recover). Below it, restoration is possible. High marginal value of NEAR-TERM conservation: each saved hectare keeps the system away from the flip. Brazil's recent reduction (under Lula admin) is among the most significant climate actions of 2023-2024.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_tip_slr",
+        "kind": "math_expression",
+        "question": "Greenland Ice Sheet contains ~2.9 million km³ of ice. Spread over Earth's ocean surface (~360 million km²), this is approximately how much sea-level rise?",
+        "acceptedAnswers": [
+          "7 meters",
+          "~7m",
+          "7"
+        ],
+        "hint": "2.9e6 km³ / 360e6 km² ≈ 7 m."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_tip_resign",
+        "kind": "scenario",
+        "question": "How to think about climate hope",
+        "prompt": "A college student asks if it's worth caring about climate change since 'we've already passed multiple tipping points'. Walk through what's true + what's still actionable."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_tip",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why understanding climate tipping points changes mitigation calculations from gradual to nonlinear.",
+        "rubric": "Mentions that tipping points introduce thresholds: damage scales gradually below them, catastrophically above; the value of staying below thresholds is much higher than the linearization implies; mitigation has high marginal returns near threshold-relevant temperatures; the 'precautionary principle' applies — uncertainty about exact thresholds argues for safety margins. Standard cost-benefit ignoring tipping points underestimates the true social cost of carbon."
+      }
+    }
+  ]
+}
