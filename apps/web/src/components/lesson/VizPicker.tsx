@@ -243,6 +243,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🧮",
     tags: ["operations-research", "queueing-theory", "industrial-engineering", "capacity-planning"],
   },
+  {
+    name: "lotka-volterra",
+    label: "Lotka-Volterra predator-prey",
+    description: "Drag α/β/δ/γ + initial conditions; see closed orbits, time series, and phase portrait of the classic ecology cycle.",
+    thumb: "🦈",
+    tags: ["biology", "ecology", "marine-biology", "dynamical-systems"],
+  },
 ];
 
 interface Props {

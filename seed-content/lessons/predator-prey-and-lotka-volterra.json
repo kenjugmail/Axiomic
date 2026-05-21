@@ -1,0 +1,236 @@
+{
+  "slug": "predator-prey-and-lotka-volterra",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Derive Lotka-Volterra.",
+      "Analyze fixed points.",
+      "Apply to real ecosystems."
+    ],
+    "prereqs": [
+      "marine-foundations-and-ocean-life"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Population dynamics in the ocean: cycles + booms",
+      "body": "**Marine populations rarely sit at equilibrium**. They oscillate — sometimes wildly. Famous cases:\n\n- **Sardine-anchovy regime shifts** (Pacific, Humboldt): sardines + anchovies alternate dominance on ~25-50 year cycles tied to ocean-climate variability (PDO, ENSO). Massive economic + ecological consequences.\n- **Krill in the Southern Ocean**: 80% decline in some regions since 1970s; salp competition; ice loss.\n- **Cod collapse on the Grand Banks** (1992): from 800k tonnes to near-zero; cod has not recovered after decades of moratorium — a regime shift.\n- **Jellyfish blooms**: increasing globally; debate over whether anthropogenic-driven (Brotz 2012).\n- **Lemming-like rodent cycles** in subarctic predator-prey.\n- **Lynx-hare cycles** in Hudson Bay records (~10 year period).\n- **Paramecium-didinium classic Gause 1934 experiment**: predator-prey extinction in lab.\n\nWhy do oscillations + collapses happen? **Population dynamics theory** built on differential equations + difference equations + spatial models gives insight.\n\n**Single-species models**:\n- Exponential: dN/dt = r N (unrealistic).\n- Logistic: dN/dt = r N (1 - N/K); K = carrying capacity.\n- Allee effect: dN/dt = r N (N - A)(1 - N/K); positive density dependence at low N → extinction threshold.\n- Stochastic: demographic + environmental noise → extinction risk.\n\n**Two-species + predator-prey**: Lotka-Volterra is the classical baseline.",
+      "viz": "lotka-volterra",
+      "vizProps": {
+        "alpha": 1,
+        "beta": 0.4,
+        "delta": 0.1,
+        "gamma": 0.4
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Lotka-Volterra: derivation + analysis",
+      "body": "**Lotka-Volterra model** (Lotka 1925, Volterra 1926 — independently derived):\n\n  dx/dt = α x − β x y    (prey)\n  dy/dt = δ x y − γ y    (predator)\n\nVariables:\n- x = prey population (sardines, copepods, hares, paramecia).\n- y = predator population (anchovies-eaters, fish, lynx, didinia).\n\nParameters:\n- α = prey intrinsic growth rate (births / time).\n- β = predation rate (per prey-predator encounter).\n- δ = predator growth efficiency from consuming prey (δ = ε β where ε = conversion efficiency).\n- γ = predator death rate (mortality / time).\n\n**Fixed points**:\n- (0, 0) — extinction; saddle.\n- (γ/δ, α/β) — non-trivial equilibrium; center (neutrally stable).\n\n**Trajectories**: closed orbits in phase space. Conserved quantity:\n  V(x,y) = δ x − γ ln x + β y − α ln y = const along each orbit.\n\n**Time series**: oscillations with predator lagging prey by ~quarter period.\n\n**Properties + limitations of basic LV**:\n- Cycles depend sensitively on initial conditions (not structurally stable).\n- Prey grows exponentially without predators (unrealistic).\n- Predation rate βxy is mass-action (encounter-only); ignores handling time.\n- Real systems rarely closed orbits — more often damped cycles or stable spirals.\n\n**Refinements**:\n- **Logistic prey**: dx/dt = α x (1 - x/K) - β x y; prey self-limited → stable spiral.\n- **Holling functional response**:\n  - Type I: linear (LV default).\n  - Type II: saturating; βxy/(1 + h β x) where h = handling time. Realistic.\n  - Type III: sigmoidal; learning + prey-switching predators.\n- **Rosenzweig-MacArthur**: logistic prey + Type II → paradox of enrichment (more nutrients → instability + cycles).\n- **Multiple species / food web** (Lotka-Volterra competition + cooperation).\n- **Stochastic + spatial extensions**."
+    },
+    {
+      "kind": "text",
+      "title": "Marine applications: fisheries + regime shifts",
+      "body": "**Fisheries modeling**: Lotka-Volterra-like dynamics with humans as predator.\n- **Schaefer surplus production model**: logistic prey + harvesting.\n  dx/dt = r x (1 - x/K) - F x   where F = fishing mortality.\n- **Maximum sustainable yield (MSY)** at x = K/2, F = r/2 → yield = rK/4.\n- **Bionomic equilibrium** (Gordon 1954): if fleet enters until profit = 0, fish stock plummets to where cost = revenue → tragedy of the commons.\n- **Beverton-Holt + Ricker stock-recruitment**: nonlinear recruitment functions.\n- **Age-structured models** (VPA, statistical catch-at-age): track cohorts; standard in modern stock assessment (RAM Legacy database).\n\n**Trophic cascades**: top-predator changes propagate down. Famous: removing sea otters → urchin barrens → kelp loss (Estes 1998); removing sharks → mesopredator release. Re-establishing top predators reverses cascades.\n\n**Regime shifts** (Scheffer 2009): ecosystems can flip between stable states (kelp forest ↔ urchin barren; coral reef ↔ algae-dominated; clear lake ↔ turbid lake). Lotka-Volterra with multiple stable states.\n\n**Empirical examples**:\n- **Newfoundland cod collapse** (1992): 800k tonnes → near-zero; cod has not rebuilt for 30+ years (Allee effect + competition with shrimp + crab + ecosystem state change).\n- **Sardine-anchovy alternation** off Peru: ~25-year cycles aligned with PDO.\n- **Krill-salp dynamics** (Southern Ocean): salps replace krill in warm + low-ice years.\n- **Lynx-hare** (~10 year cycle; Hudson Bay records 1845-1935; classic test of LV theory).\n\n**Modern: ecosystem-based fisheries management (EBFM)**: model + manage whole food webs (Atlantis, EwE, ROMS-CoSiNE). Beyond single-species.\n\n**Key insight**: marine ecosystems are nonlinear + multi-stable. Once a regime shift happens (cod collapse, coral-algae flip), recovery may be slow or impossible without strong intervention."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_marine_lv_1",
+        "kind": "guided_derivation",
+        "question": "Find Lotka-Volterra equilibrium + analyze its stability",
+        "goal": "For dx/dt = α x − β x y, dy/dt = δ x y − γ y with α=1, β=0.5, δ=0.1, γ=0.4, find equilibrium + linearize.",
+        "steps": [
+          {
+            "prompt": "Non-trivial equilibrium (x*, y*)?",
+            "motivation": "Set both = 0 with x,y > 0.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "x* = γ/δ = 4; y* = α/β = 2"
+              ]
+            },
+            "hints": [
+              "From dy/dt=0: δ x = γ; from dx/dt=0: α = β y."
+            ],
+            "reveal": "From dy/dt = 0 (with y>0): δ x = γ → x* = γ/δ = 0.4/0.1 = 4. From dx/dt = 0 (with x>0): α = β y → y* = α/β = 1/0.5 = 2. Equilibrium (4, 2)."
+          },
+          {
+            "prompt": "Jacobian at (x*, y*)?",
+            "motivation": "Linear stability.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "J = [[0, -βx*], [δy*, 0]] = [[0, -2], [0.2, 0]]"
+              ]
+            },
+            "hints": [
+              "Partial derivatives."
+            ],
+            "reveal": "J = [[α - βy, -βx], [δy, δx - γ]] at (x*, y*) = [[0, -βx*], [δy*, 0]] = [[0, -2], [0.2, 0]]."
+          },
+          {
+            "prompt": "Eigenvalues of J?",
+            "motivation": "Determine stability type.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "±i √(αγ)",
+                "λ = ±i √(0.4) = ±0.632i"
+              ]
+            },
+            "hints": [
+              "Trace = 0; det = αγ; characteristic eq λ² + αγ = 0."
+            ],
+            "reveal": "trace(J)=0, det(J) = α γ = 0.4 > 0. Characteristic equation: λ² + αγ = 0 → λ = ±i √(αγ) = ±i × 0.632. Purely imaginary → center (neutral stability); closed orbits around (4, 2). Period ≈ 2π/√(αγ) ≈ 9.9 time units."
+          },
+          {
+            "prompt": "Why is LV's neutral stability ecologically unrealistic?",
+            "motivation": "Structural fragility.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "any perturbation moves to different orbit; not robust",
+                "structurally unstable"
+              ]
+            },
+            "hints": [
+              "No damping or amplification."
+            ],
+            "reveal": "Neutral stability is structurally unstable: tiny model changes (logistic prey, Type-II functional response) destroy the closed orbits + replace them with stable spirals (damped oscillations) or limit cycles (Hopf bifurcation in Rosenzweig-MacArthur). Real ecological time series rarely show LV-style perpetual closed orbits; usually damped or noise-sustained. LV is a baseline + pedagogical tool, not a predictive model."
+          },
+          {
+            "prompt": "What 'paradox of enrichment' does Rosenzweig-MacArthur reveal?",
+            "motivation": "Nonlinearity surprise.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "increasing K destabilizes the system (Hopf bifurcation → cycles)"
+              ]
+            },
+            "hints": [
+              "Counterintuitive."
+            ],
+            "reveal": "Rosenzweig 1971 'paradox of enrichment': adding nutrients (raising K, prey carrying capacity) does NOT just raise predator abundance — at some threshold the stable spiral undergoes a Hopf bifurcation + becomes a limit cycle. Population swings can drive species extinct stochastically. Implication: eutrophication can destabilize ecosystems even before crashing them — vivid illustration of nonlinear ecology. Foundational to modern aquaculture + ecosystem management."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_marine_lv_1",
+        "kind": "multiple_choice",
+        "question": "Why is the cod collapse on the Grand Banks (1992) often cited as a 'regime shift' rather than just overfishing?",
+        "options": [
+          "Random.",
+          "Once cod biomass dropped below ~10% of historic, the ecosystem reorganized: shrimp + crab fisheries replaced cod (because cod ate them); seal populations grew; juvenile-cod predation by other fish increased. The new ecosystem state is locally stable. Even with a 30+ year moratorium, cod has not rebuilt — Allee effects + reduced recruitment + competition lock the system in a low-cod state. This contrasts with single-species recovery models that predict rebuilding once fishing stops. Multi-stable-state ecosystem theory (Scheffer) explains why some collapses are essentially irreversible.",
+          "Random.",
+          "False."
+        ],
+        "correctIndex": 1,
+        "explanation": "Regime shift: cod collapse drove reorganization (shrimp/crab + seal expansion) that is locally stable + resists cod recovery. Allee effects + competition + altered habitat lock in new state. Bigger insight: marine ecosystems can be multi-stable; overfishing can push past a threshold where simple recovery doesn't work. Foundational to ecosystem-based fisheries management."
+      },
+      "hints": [
+        "Multiple stable states.",
+        "Locked-in dynamics."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Cod collapse triggered ecosystem reorganization (shrimp/crab + seal expansion) locally stable + resistant to cod recovery. Allee effects + reduced recruitment + competition lock the new state. Multi-stable-state theory (Scheffer 2009) explains; foundational to ecosystem-based management + reason for precaution."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_marine_lv_1",
+        "kind": "slider",
+        "question": "Drag to the historic ~Hudson-Bay lynx-hare cycle period (in years).",
+        "target": {
+          "min": 10,
+          "max": 10
+        },
+        "default": 5,
+        "explanation": "Lynx-hare data from Hudson Bay Company fur records (1845-1935) show ~10-year cycles. One of the longest + most-studied population time series. Classic textbook example of predator-prey dynamics + early test of Lotka-Volterra (Elton 1924, MacLulich 1937)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_marine_lv_1",
+        "kind": "drag_classify",
+        "question": "Match each predator-prey insight to its source/example.",
+        "items": [
+          {
+            "id": "lynx-hare",
+            "label": "Lynx-hare Hudson Bay records",
+            "bin": "lv-pure"
+          },
+          {
+            "id": "paramecium",
+            "label": "Paramecium-didinium (Gause 1934)",
+            "bin": "lv-pure"
+          },
+          {
+            "id": "eutroph",
+            "label": "Lake eutrophication oscillations",
+            "bin": "rosenzweig"
+          },
+          {
+            "id": "rosenzweig-tut",
+            "label": "Rosenzweig-MacArthur original 1971 paper",
+            "bin": "rosenzweig"
+          },
+          {
+            "id": "msy-fish",
+            "label": "Cod fishery yield maximization",
+            "bin": "schaefer"
+          },
+          {
+            "id": "gordon",
+            "label": "Gordon's bionomic equilibrium 1954",
+            "bin": "schaefer"
+          },
+          {
+            "id": "cod-collapse",
+            "label": "Newfoundland cod collapse 1992",
+            "bin": "regime"
+          },
+          {
+            "id": "kelp-urchin",
+            "label": "Kelp forest ↔ urchin barren",
+            "bin": "regime"
+          }
+        ],
+        "bins": [
+          {
+            "id": "lv-pure",
+            "label": "Lotka-Volterra closed orbits"
+          },
+          {
+            "id": "rosenzweig",
+            "label": "Paradox of enrichment / limit cycle"
+          },
+          {
+            "id": "schaefer",
+            "label": "Schaefer / MSY (humans as predator)"
+          },
+          {
+            "id": "regime",
+            "label": "Regime shift / multi-stable state"
+          }
+        ],
+        "explanation": "Population-dynamics theory family: LV (neutral cycles); Rosenzweig-MacArthur (paradox of enrichment + limit cycles); Schaefer (logistic + harvest → MSY); regime shifts (multi-stable). Real marine systems sample all four; modern ecosystem-based management requires all of them."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_marine_lv_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why fisheries managers can't rely on simple maximum-sustainable-yield (MSY) models alone.",
+        "rubric": "Mentions: MSY (Schaefer logistic + harvesting) was the foundational model for stock assessment but oversimplifies. Issues: (1) parameters (r, K) hard to estimate + uncertain; (2) MSY = K/2 is a 'knife-edge' — small overshoot → collapse; (3) Allee effects at low biomass make recovery slow/impossible; (4) ignores age structure + spatial distribution + environmental variability; (5) ignores ecosystem effects (trophic cascades, multispecies competition); (6) regime shifts can switch the system to a low-productivity state. Modern: ecosystem-based fisheries management (EBFM) + multispecies models (Atlantis, EwE, MICE) + harvest control rules with reference points + closed-loop simulation testing. Risk-aware harvest below MSY (e.g., FMSY/0.8) + spatial management + bycatch reduction + marine protected areas (MPAs) + adaptive management. Concludes: MSY is a useful baseline but real fisheries need richer models + precaution to avoid Grand-Banks-style collapses."
+      }
+    }
+  ]
+}

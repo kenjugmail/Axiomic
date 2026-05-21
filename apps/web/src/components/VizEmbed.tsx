@@ -34,6 +34,7 @@ const PhillipsCurve = lazy(() => import("../../../../packages/viz/src/components
 const HillFunction = lazy(() => import("../../../../packages/viz/src/components/HillFunction").then(m => ({ default: m.HillFunction })));
 const DriftDiffusion = lazy(() => import("../../../../packages/viz/src/components/DriftDiffusion").then(m => ({ default: m.DriftDiffusion })));
 const MM1Queue = lazy(() => import("../../../../packages/viz/src/components/MM1Queue").then(m => ({ default: m.MM1Queue })));
+const LotkaVolterra = lazy(() => import("../../../../packages/viz/src/components/LotkaVolterra").then(m => ({ default: m.LotkaVolterra })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -72,6 +73,7 @@ export const VIZ_NAMES = [
   "hill-function",
   "drift-diffusion",
   "mm1-queue",
+  "lotka-volterra",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -108,6 +110,7 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "hill-function": HillFunction,
   "drift-diffusion": DriftDiffusion,
   "mm1-queue": MM1Queue,
+  "lotka-volterra": LotkaVolterra,
 };
 
 interface VizEmbedProps {

@@ -1952,6 +1952,29 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P42 — Marine Biologist path. Ocean life from microbial to whale
+  // through phytoplankton + primary production, predator-prey with
+  // new Lotka-Volterra viz, coral reefs + bleaching, fisheries +
+  // stock assessment, marine mammals + tetrapod return, OA +
+  // deoxygenation, and ocean conservation + blue economy. The
+  // marine-biology stack end-to-end.
+  seedMasteryPath({
+    slug: "marine-biologist",
+    title: "Marine Biologist",
+    description:
+      "From ocean zones + biodiversity + methods through phytoplankton + Redfield + biological pump + HABs, predator-prey + Lotka-Volterra (with interactive viz) + Schaefer/MSY + regime shifts, coral reefs + zoox symbiosis + bleaching/DHW + restoration, fisheries + VPA + EBFM + MPAs, marine mammals + diving physiology + acoustic culture + conservation, ocean acidification + deoxygenation + the 'deadly trio,' and ocean conservation + BBNJ + 30x30 + blue economy + nature-based solutions. The marine-biology stack end-to-end.",
+    nodes: [
+      { slug: "marine-foundations-and-ocean-life", title: "Marine Foundations + Ocean Life", level: "apprentice", order: 1, pages: ["zones-habitats", "diversity-classification", "methods-frontier"], prereqs: [], description: "Ocean zones (epipelagic → hadal) + habitats (reef/vent/ice), microbes → whales diversity + classification + DNA barcoding, methods from trawls + ROVs to eDNA + Argo + omics + AI." },
+      { slug: "phytoplankton-and-primary-production", title: "Phytoplankton + Primary Production", level: "practitioner", order: 2, pages: ["phyto-groups", "limits-mixing", "bcp-habs-climate"], prereqs: ["marine-foundations-and-ocean-life"], description: "Cyanos + diatoms + dinos + coccoliths + haptos, light + Redfield + Fe + mixing + critical depth, biological carbon pump + HABs + climate change impacts." },
+      { slug: "predator-prey-and-lotka-volterra", title: "Predator-Prey + Lotka-Volterra", level: "practitioner", order: 3, pages: ["population-dynamics", "lv-derivation", "fisheries-regimes"], prereqs: ["marine-foundations-and-ocean-life"], description: "Marine population cycles + Allee + logistic, Lotka-Volterra equations + fixed points + interactive viz + Rosenzweig-MacArthur, Schaefer/MSY + Newfoundland cod + regime shifts." },
+      { slug: "coral-reefs-and-bleaching", title: "Coral Reefs + Bleaching", level: "specialist", order: 4, pages: ["reef-symbiosis", "bleaching-stressors", "restoration-future"], prereqs: ["marine-foundations-and-ocean-life"], description: "Reef types + coral-zoox symbiosis + biodiversity, bleaching mechanism + DHW + mass events 1998-2024 + synergistic stressors, restoration + assisted evolution + IPCC projections + refugia." },
+      { slug: "fisheries-and-stock-assessment", title: "Fisheries + Stock Assessment", level: "specialist", order: 5, pages: ["global-fisheries", "vpa-models", "ebfm-aquaculture-climate"], prereqs: ["predator-prey-and-lotka-volterra"], description: "Global capture + aquaculture + IUU + bycatch, VPA + SCAA + Stock Synthesis + reference points + MSE, EBFM + MPAs + 30x30 + climate range shifts." },
+      { slug: "marine-mammals-and-tetrapod-return", title: "Marine Mammals + Tetrapod Return", level: "expert", order: 6, pages: ["lineages-convergence", "diving-physiology", "acoustics-conservation"], prereqs: ["marine-foundations-and-ocean-life"], description: "Cetaceans + pinnipeds + sirenians + turtles + birds + convergent evolution, diving physiology (O₂ storage + bradycardia + lung collapse), acoustic communication + culture + intelligence + conservation (vaquita + right whale)." },
+      { slug: "ocean-acidification-and-deoxygenation", title: "Ocean Acidification + Deoxygenation", level: "expert", order: 7, pages: ["oa-chemistry", "carbonate-revelle", "deox-deadly-trio"], prereqs: ["phytoplankton-and-primary-production"], description: "OA chemistry + saturation states + calcifier impacts, DIC/TA/Revelle factor + Cant + alkalinity enhancement, deoxygenation + OMZs + coastal dead zones + the deadly trio." },
+      { slug: "ocean-conservation-and-blue-economy", title: "Ocean Conservation + Blue Economy", level: "expert", order: 8, pages: ["anthropocene-threats", "mpas-governance", "restoration-nbs"], prereqs: ["fisheries-and-stock-assessment", "ocean-acidification-and-deoxygenation"], description: "Stacked threats (climate + fishing + pollution + plastic + noise + mining), MPAs + UNCLOS + BBNJ + RFMOs + indigenous-led, blue carbon + restoration + NbS + CDR + offshore wind + sustainable aquaculture." },
+    ],
+  });
+
   // P41 — Operations Researcher path. LP + MIP + queueing (with
   // new MM1Queue viz) + network flow + stochastic/robust +
   // simulation + scheduling/VRP. The applied-optimization stack

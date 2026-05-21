@@ -163,6 +163,11 @@ const LazyMM1Queue = lazy(() =>
     (m) => ({ default: m.MM1Queue }),
   ),
 );
+const LazyLotkaVolterra = lazy(() =>
+  import("../../../../../packages/viz/src/components/LotkaVolterra").then(
+    (m) => ({ default: m.LotkaVolterra }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -285,6 +290,8 @@ function VizByName({
       return <LazyDriftDiffusion {...(props as object)} />;
     case "mm1-queue":
       return <LazyMM1Queue {...(props as object)} />;
+    case "lotka-volterra":
+      return <LazyLotkaVolterra {...(props as object)} />;
     default:
       return null;
   }

@@ -1,0 +1,217 @@
+{
+  "slug": "fisheries-and-stock-assessment",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply MSY.",
+      "Conduct VPA.",
+      "Discuss EBFM."
+    ],
+    "prereqs": [
+      "predator-prey-and-lotka-volterra"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Global fisheries: scale, status, and stakes",
+      "body": "**Capture fisheries**: ~80 million tonnes globally; ~$160B/yr industry; ~60M people employed (FAO SOFIA reports). Plus ~120 million tonnes from aquaculture (now > capture by tonnage since 2014). Together = ~17% of animal-protein consumption globally; >50% in coastal developing nations.\n\n**Stock status** (FAO 2024):\n- **Within biologically sustainable levels**: ~62% of assessed stocks (down from 90% in 1974).\n- **Overfished** (below MSY-supporting biomass): ~38%.\n- Specific examples: Atlantic cod, Atlantic bluefin tuna, Pacific bluefin tuna, many sharks, orange roughy, several skates + rays.\n\n**Top fisheries by tonnage**:\n- Peruvian anchoveta (Engraulis ringens): ~5-10M t/yr; fishmeal + oil.\n- Alaska pollock (Theragra chalcogramma): ~3M t/yr; surimi.\n- Skipjack tuna (Katsuwonus pelamis): ~3M t/yr; canned.\n- Atlantic herring, capelin, mackerel.\n- Japanese anchovy, sardine.\n- Chub mackerel, blue whiting, gulf menhaden.\n\n**Bycatch**: ~10% of catch is discarded — many species threatened (turtles, sharks, seabirds, marine mammals). Driftnet ban (UN 1991); ongoing efforts on longlines + trawls.\n\n**IUU fishing** (illegal, unreported, unregulated): ~20% of catch in some regions; major issue in west Africa + SE Asia + high seas. Global Fishing Watch + AIS / VMS / satellite monitoring.\n\n**The 'tragedy of the commons' problem**: open-access fisheries → fleet enters until profit = 0 → stock crashes. Modern solutions: catch shares (ITQs), territorial use rights (TURFs), MPAs, community management, certification (MSC)."
+    },
+    {
+      "kind": "text",
+      "title": "Stock assessment: VPA + integrated models",
+      "body": "**Stock assessment**: estimate current biomass + fishing mortality + project future trajectories under different management.\n\n**Single-species production models**:\n- **Schaefer (1957)**: logistic with harvest. Estimates r, K, MSY. Simple but oversimplifies.\n- **Fox**: Gompertz growth (different curvature).\n- **Pella-Tomlinson**: generalized; flexibility in shape.\n\n**Age-structured models** (current state of art):\n- **Virtual population analysis (VPA / cohort analysis)**: back-calculate population at age in past years from catch-at-age. Pope's approximation.\n- **Statistical catch-at-age (SCAA)**: integrated likelihood; estimate selectivity, mortality, recruitment.\n- **Integrated Bayesian (Stock Synthesis, SS3)**: combine catch + survey + age + length + tagging data.\n\n**Reference points**:\n- **B_MSY**: biomass that gives MSY.\n- **F_MSY**: fishing mortality that gives MSY.\n- **B_lim / B_pa**: limit + precautionary biomass.\n- **F_lim / F_pa**: limit + precautionary fishing mortality.\n- Modern harvest control rules (HCRs): F as function of B (reduce F when B drops).\n\n**Surveys** (independent of fishery):\n- Bottom-trawl (NMFS surveys); acoustic (echo sounders for pelagics); ichthyoplankton; aerial; tag-recapture.\n- Tagging: traditional + electronic (PSAT, acoustic, archival).\n- eDNA + camera-based emerging.\n\n**Uncertainty + management strategy evaluation (MSE)**: simulate stock + fishery + management under different scenarios; test robustness of harvest control rules. Closed-loop simulation. Now standard at ICES + RFMOs.\n\n**Data-poor methods**: when catch is all you have, length-based methods (LBSPR, LIME), DCAC, depletion-corrected average catch.\n\n**RAM Legacy Stock Assessment Database**: publicly available time series for ~1500 stocks; ricklefs Hilborn-Branch global meta-analysis."
+    },
+    {
+      "kind": "text",
+      "title": "Beyond single species: EBFM + aquaculture + climate",
+      "body": "**Ecosystem-based fisheries management (EBFM)**: manage entire ecosystem, not just stocks one-by-one.\n\nFeatures:\n- Account for trophic interactions (predator-prey, competition).\n- Habitat conservation.\n- Bycatch minimization.\n- Spatial management (MPAs).\n- Climate adaptation.\n- Integrate fishery, biodiversity, climate goals.\n\n**Ecosystem models**:\n- **Ecopath with Ecosim (EwE)**: trophic mass-balance; widely used.\n- **Atlantis**: end-to-end (physics + biogeochem + food web + fishery + management).\n- **OSMOSE**: individual-based.\n- **Models of intermediate complexity (MICE)**: 5-10 species focus.\n- **Earth-system + DGVM integration** for climate projections.\n\n**Marine protected areas (MPAs)**:\n- ~8% of global ocean designated (target: 30% by 2030, '30x30' UN BBNJ Treaty 2023).\n- Range: no-take reserves to multi-use.\n- Evidence: well-enforced no-take MPAs increase biomass 3-5× (Lester 2009 meta-analysis).\n- Spillover benefits to surrounding fisheries.\n\n**Aquaculture**:\n- Now > capture in tonnage (since 2014). ~85M tonnes 2021.\n- Asia dominates (~90%): China, Indonesia, India, Vietnam.\n- Species: salmon, shrimp, tilapia, carp, oyster, mussel, seaweed.\n- Pros: predictable supply; lower bycatch; can offset wild-fishery pressure.\n- Cons: pollution + waste; disease + parasites (sea lice in salmon); escapes interbreeding with wild; feed (fishmeal/oil from wild — 'fish to feed fish' tension).\n- Innovations: recirculating aquaculture systems (RAS); offshore + integrated multi-trophic; insect-meal feeds; selectively bred + sterile triploid stock.\n\n**Climate change + fisheries**:\n- **Range shifts**: ~70 km/decade poleward (Pinsky 2013) → trans-boundary issues, e.g., NEAFC mackerel war.\n- **Productivity changes**: declining in tropics; mixed in temperate; complex in polar.\n- **Phenology mismatches**: zooplankton-fish timing.\n- **Acidification**: shell-forming species; pteropods + bivalves.\n- **Deoxygenation**: habitat compression for pelagics.\n- **Marine heatwaves**: e.g., 'Blob' 2013-16 → ecosystem disruption Pacific NW.\n\n**The next 25 years** will determine whether global fisheries can deliver food security under climate change + biodiversity loss. EBFM + MPAs + climate-adaptive harvest + aquaculture all need to work together."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_marine_fish_1",
+        "kind": "guided_derivation",
+        "question": "Compute MSY + sustainable harvest for a logistic stock",
+        "goal": "Stock has r = 0.4/yr, K = 100k tonnes. Compute B_MSY, MSY, F_MSY, and harvest at B = 60k tonnes.",
+        "steps": [
+          {
+            "prompt": "B_MSY for logistic?",
+            "motivation": "Half carrying capacity.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "50k tonnes",
+                "K/2"
+              ]
+            },
+            "hints": [
+              "Maximum of surplus production rB(1-B/K) at B=K/2."
+            ],
+            "reveal": "Surplus production = r B (1-B/K); max at dY/dB = r(1 - 2B/K) = 0 → B_MSY = K/2 = 50k tonnes."
+          },
+          {
+            "prompt": "MSY?",
+            "motivation": "Yield at B_MSY.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "10k tonnes/yr",
+                "rK/4"
+              ]
+            },
+            "hints": [
+              "Plug in."
+            ],
+            "reveal": "MSY = r B_MSY (1 - B_MSY/K) = 0.4 × 50 × 0.5 = 10k tonnes/yr. Equivalently rK/4 = 0.4 × 100 / 4 = 10k tonnes/yr."
+          },
+          {
+            "prompt": "F_MSY?",
+            "motivation": "MSY / B_MSY.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.2/yr",
+                "r/2"
+              ]
+            },
+            "hints": [
+              "Fishing mortality at MSY = MSY / B_MSY."
+            ],
+            "reveal": "F_MSY = MSY / B_MSY = 10/50 = 0.2/yr. Equivalently r/2 = 0.2/yr."
+          },
+          {
+            "prompt": "Sustainable yield at B = 60k tonnes?",
+            "motivation": "Apply F.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "9.6k tonnes/yr",
+                "0.4 × 60 × 0.4 = 9.6"
+              ]
+            },
+            "hints": [
+              "r B (1-B/K)."
+            ],
+            "reveal": "Surplus production at B = 60k: Y = 0.4 × 60 × (1 - 60/100) = 0.4 × 60 × 0.4 = 9.6k tonnes/yr. Slightly less than MSY (10k) because B > B_MSY. Best management: keep B above B_MSY for resilience (precaution + climate uncertainty) → harvest at FMSY/0.8 or similar."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_marine_fish_1",
+        "kind": "multiple_choice",
+        "question": "Why is the MSY paradigm increasingly augmented by precautionary harvest below B_MSY?",
+        "options": [
+          "Random.",
+          "MSY is mathematically a knife-edge: at B_MSY = K/2, any overshoot risks crashing the stock — there's no margin. Uncertainty in r + K + recruitment + climate make the true B_MSY uncertain. Allee effects + multi-stable states mean recovery is not guaranteed after collapse. Modern reference points use F < F_MSY (e.g., 80% F_MSY) + B > B_MSY (e.g., 1.5 × B_MSY) for safety margin. Pew + UN BBNJ + most modern fishery science adopts this. The Newfoundland cod collapse + Pacific anchoveta crashes + many others vindicated this precaution.",
+          "Random.",
+          "False."
+        ],
+        "correctIndex": 1,
+        "explanation": "MSY is a knife-edge; precautionary harvest (F < F_MSY, B > B_MSY) gives margin against uncertainty + Allee effects + climate. Newfoundland cod (1992) + Peruvian anchoveta (1972) + others vindicated precaution. Modern stock assessment + harvest control rules embed this."
+      },
+      "hints": [
+        "What's the risk of fishing exactly at MSY?",
+        "Uncertainty + nonlinearity."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "MSY is a mathematical knife-edge: B_MSY is unstable optimum + small overshoot risks collapse. Precaution (F < F_MSY, B > B_MSY) gives margin against uncertainty (r, K, recruitment, climate) + Allee effects (post-collapse recovery slow/impossible). Foundational to modern stock assessment; vindicated by Newfoundland cod (1992) + Peruvian anchoveta (1972) collapses."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_marine_fish_1",
+        "kind": "slider",
+        "question": "Drag to typical poleward range shift for marine species (km/decade).",
+        "target": {
+          "min": 70,
+          "max": 70
+        },
+        "default": 20,
+        "explanation": "Marine species shift ~70 km/decade poleward (Pinsky 2013; Poloczanska 2013) — about 5× faster than terrestrial species, due to ocean's high heat capacity + connectivity. Drives trans-boundary fishery disputes (e.g., Atlantic mackerel between NE-Atlantic states); food security challenges; ecosystem reorganization."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_marine_fish_1",
+        "kind": "drag_classify",
+        "question": "Classify each fisheries management tool by its primary mechanism.",
+        "items": [
+          {
+            "id": "tac-quota",
+            "label": "Total allowable catch (TAC)",
+            "bin": "tac"
+          },
+          {
+            "id": "days-at-sea",
+            "label": "Days-at-sea limits",
+            "bin": "tac"
+          },
+          {
+            "id": "mpa",
+            "label": "No-take marine reserve",
+            "bin": "spatial"
+          },
+          {
+            "id": "seasonal-closure",
+            "label": "Seasonal closure during spawning",
+            "bin": "spatial"
+          },
+          {
+            "id": "mesh-size",
+            "label": "Minimum mesh size (juvenile escape)",
+            "bin": "gear"
+          },
+          {
+            "id": "bycatch-reducer",
+            "label": "Turtle excluder device (TED)",
+            "bin": "gear"
+          },
+          {
+            "id": "itq",
+            "label": "Individual transferable quota (ITQ)",
+            "bin": "rights"
+          },
+          {
+            "id": "turf",
+            "label": "Territorial use rights (TURF, e.g., Chile's loco)",
+            "bin": "rights"
+          }
+        ],
+        "bins": [
+          {
+            "id": "tac",
+            "label": "Catch / effort limit"
+          },
+          {
+            "id": "spatial",
+            "label": "Spatial / habitat"
+          },
+          {
+            "id": "gear",
+            "label": "Gear / selectivity"
+          },
+          {
+            "id": "rights",
+            "label": "Rights-based"
+          }
+        ],
+        "explanation": "Fisheries management toolkit: catch/effort (TAC, days); spatial (MPA, closures); gear (mesh, bycatch reducers, devices); rights-based (ITQ, TURF, co-management). Modern systems blend multiple tools + adapt over time. Effectiveness depends on enforcement + monitoring + stakeholder buy-in."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_marine_fish_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why marine protected areas (MPAs) are central to '30 by 30' biodiversity targets.",
+        "rubric": "Mentions: '30x30' (protect 30% of land + ocean by 2030) emerged from CBD + UN BBNJ Treaty 2023. MPAs: well-enforced no-take reserves increase biomass 3-5× (Lester 2009 meta-analysis), spillover benefits to adjacent fisheries, biodiversity preservation, climate-refugia identification, ecosystem-service maintenance (carbon, coastal protection, tourism). Major examples: Papahanaumokuakea (Hawaii), Ross Sea, Chagos, GBR, Phoenix Islands. As of 2024, ~8% of ocean designated; ~3% actually well-protected. Challenges: distant high-seas governance (BBNJ Treaty), enforcement, paper parks, fisher displacement, climate change still affects MPA species. Co-management with local communities + indigenous-led conservation (Hawaii, NZ, Canada, Australia) shown effective. Concludes: MPAs work when well-designed + enforced + locally supported; combined with EBFM + climate mitigation, they anchor the global ocean-biodiversity agenda."
+      }
+    }
+  ]
+}

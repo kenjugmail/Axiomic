@@ -1,0 +1,214 @@
+{
+  "slug": "ocean-acidification-and-deoxygenation",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Quantify CO₂ chemistry.",
+      "Connect to calcifiers.",
+      "Track O₂ trends."
+    ],
+    "prereqs": [
+      "phytoplankton-and-primary-production"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Ocean acidification: the other CO₂ problem",
+      "body": "**Ocean acidification (OA)**: pH decline due to anthropogenic CO₂ uptake.\n\nOcean absorbs ~25% of anthropogenic CO₂ (~2.5 GtC/yr). The chemistry:\n  CO₂ + H₂O ⇌ H₂CO₃ ⇌ H⁺ + HCO₃⁻ ⇌ 2 H⁺ + CO₃²⁻\n\nAdding CO₂ shifts equilibrium → more H⁺ + HCO₃⁻; **less CO₃²⁻**. The bicarbonate-carbonate-CO₂ buffer (Revelle buffer) absorbs much but pH still drops.\n\n**Surface ocean pH**:\n- Pre-industrial: ~8.21.\n- Today: ~8.10 (drop of ~0.11 units = ~30% increase in H⁺).\n- 2100 (RCP 8.5): ~7.8 (drop ~0.4 units = ~150% increase).\n\n**Why calcifiers suffer**: shell-builders (corals, mollusks, coccolithophores, foraminifera, pteropods) use CO₃²⁻ + Ca²⁺ → CaCO₃. As CO₃²⁻ drops, saturation state Ω = [Ca²⁺][CO₃²⁻]/Ksp drops.\n- Ω > 1: solution supersaturated, calcification favorable.\n- Ω < 1: undersaturated, dissolution favored.\n\n**Aragonite (corals, pteropods)** has higher Ksp than calcite (coccolithophores, foraminifera) → aragonite-builders more vulnerable.\n\n**Saturation horizon**: depth at which Ω = 1; below is undersaturated.\n- **Aragonite saturation horizon (ASH)**: ~3000m Atlantic; ~600m Pacific; shoaling rapidly.\n- **Pteropod (Limacina helicina) shell dissolution** observed in Southern Ocean + Bering Sea.\n- **Oyster hatchery failures** Pacific NW since 2007 due to upwelled acidified water.\n\n**Polar oceans first**: cold water absorbs more CO₂ + has less buffering. Arctic + Antarctic shelf seas projected to become aragonite-undersaturated by ~2030-2050.\n\n**Other effects on biology**:\n- Fish: olfaction + behavior disrupted (clownfish navigation).\n- Calcifying plankton: reduced grazing food.\n- Compounded with warming + deoxygenation.\n\n**Monitoring**: GLODAP + GOMECC repeat hydrography; moorings (Stratus, KEO, MOSAiC); BGC-Argo floats."
+    },
+    {
+      "kind": "text",
+      "title": "Carbonate chemistry + Revelle factor",
+      "body": "**Speciation of dissolved inorganic carbon (DIC)**:\n  DIC = [CO₂*] + [HCO₃⁻] + [CO₃²⁻]\n  (CO₂* = aqueous + H₂CO₃; ~0.5% of DIC)\n  HCO₃⁻ ~90%; CO₃²⁻ ~9% at typical surface pH.\n\n**Total alkalinity (TA)**: charge-balance measure of acid-neutralizing capacity.\n  TA ≈ [HCO₃⁻] + 2[CO₃²⁻] + [B(OH)₄⁻] + minor terms.\n\nDIC + TA at given T + S + nutrients → pH + pCO₂ + Ω. Software: CO2SYS, PyCO2SYS, seacarb.\n\n**Revelle factor** = (ΔpCO₂/pCO₂) / (ΔDIC/DIC).\n- Surface ocean Revelle factor ~10 (tropical) to ~15 (polar).\n- Means: 10% rise in pCO₂ for ~1% rise in DIC.\n- High Revelle = poor buffering → pCO₂ rises fast as DIC rises.\n- Rising over time as DIC accumulates (carbonate ion pool depleted) → ocean's CO₂ uptake capacity diminishing.\n\n**Anthropogenic carbon (Cant)**: portion of DIC from human emissions.\n- Estimated via ΔC* method (Gruber 1996), MLR (Sabine 2004), TrOCA, eMLR.\n- Cumulative ocean uptake ~165 PgC (~25% of total emissions).\n- Penetration depth ~600-1000m; deep ocean still mostly natural.\n\n**Total alkalinity sources + sinks**:\n- Source: weathering (Ca, Mg silicates → carbonates).\n- Sink: CaCO₃ formation + burial.\n- TA modulates buffering; ocean alkalinity enhancement (OAE) is proposed CDR (carbon dioxide removal) approach to actively add alkalinity (olivine, limestone, electrochemistry).\n\n**Decoupling DIC from TA in modeling**: DIC tracks CO₂ flux + biological production/respiration; TA tracks carbonate cycling + weathering + ion exchange."
+    },
+    {
+      "kind": "text",
+      "title": "Deoxygenation: a hidden crisis",
+      "body": "**Ocean deoxygenation**: oxygen content of the ocean is declining.\n\n**Observed**:\n- ~2% decline in global ocean O₂ since 1960 (Schmidtko 2017 Nature).\n- Open-ocean oxygen-minimum zones (OMZs) expanding: NE Pacific, Arabian Sea, equatorial Atlantic, Bay of Bengal, Benguela.\n- Coastal dead zones: ~700 globally; Gulf of Mexico, Chesapeake, Baltic, China seas. Often eutrophication-driven (excess N from agriculture → algal bloom → respiration depletes O₂).\n\n**Mechanisms**:\n1. **Warming**: O₂ solubility decreases ~2% per °C of warming.\n2. **Stratification**: warm surface + cold deep → reduced mixing → less O₂ to deep.\n3. **Respiration**: organic matter respired in subsurface consumes O₂.\n4. **Eutrophication** (coastal): excess nutrients fuel blooms; respiration depletes O₂.\n\n**Consequences for marine life**:\n- **Habitat compression** for pelagics (tuna, billfish, sharks): they avoid hypoxic water → squeezed into shallower habitat → more vulnerable to fishing.\n- **OMZ creatures** (specialist mesopelagic fish, zooplankton, microbes) face habitat expansion (their preferred low-O₂ zone is growing).\n- **Anaerobic microbes** (denitrification, anammox) expand → loss of fixed N → reduced productivity in distant regions.\n- **Benthic dead zones**: macrofauna die; sediment becomes sulfidic + 'Beggiatoa-mat' covered.\n- **Coastal fisheries crashes**: e.g., Chesapeake Bay striped bass, lobster, crab harmed.\n\n**Polar oceans + deep**: warming → ventilation reduced → deep deoxygenation lags surface but coming.\n\n**Compound stressors**: warming + acidification + deoxygenation co-occur + interact. 'Deadly trio.' Marine heatwaves exacerbate hypoxia. Sublethal stress to corals + fish + invertebrates.\n\n**Monitoring**: Argo + BGC-Argo + moorings + cruise hydrography + autonomous gliders. Modeling: CMIP6 projects 3-4% O₂ decline by 2100 globally + larger regional declines.\n\n**Mitigation**:\n- Reduce nutrient pollution → tackle eutrophication-driven hypoxia (achievable).\n- Reduce CO₂ → tackle warming + stratification (long timescales).\n- No quick fix for open-ocean OMZ expansion."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_marine_oa_1",
+        "kind": "guided_derivation",
+        "question": "Quantify aragonite saturation state changes",
+        "goal": "Pre-industrial Ω_arag = 4.0 (surface); 2024 Ω_arag = 3.0; 2100 RCP 8.5 Ω_arag = 2.0. Compute % decline + implications.",
+        "steps": [
+          {
+            "prompt": "% decline 1750 → 2024?",
+            "motivation": "Direct ratio.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "25%",
+                "1 - 3/4 = 0.25"
+              ]
+            },
+            "hints": [
+              "(Ω_pre - Ω_now)/Ω_pre."
+            ],
+            "reveal": "(4.0 - 3.0)/4.0 = 25% decline."
+          },
+          {
+            "prompt": "% decline 1750 → 2100?",
+            "motivation": "Same calc.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "50%"
+              ]
+            },
+            "hints": [
+              "(4-2)/4."
+            ],
+            "reveal": "(4.0 - 2.0)/4.0 = 50% decline. Surface ocean Ω_arag halving by 2100 under high-emissions scenario."
+          },
+          {
+            "prompt": "Why are pteropods (Limacina) more vulnerable than oysters?",
+            "motivation": "Aragonite vs calcite + shell thickness.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "pteropods have thin aragonite shells; oysters have thicker calcite"
+              ]
+            },
+            "hints": [
+              "Material + thickness."
+            ],
+            "reveal": "Pteropods build thin (~10 µm), highly soluble aragonite shells; oysters build thicker calcite (less soluble). Pteropod shell dissolution already observed in Southern Ocean + Bering Sea (Ω_arag near 1). Pteropods are major prey for juvenile salmon + many fish; their decline propagates up the food web."
+          },
+          {
+            "prompt": "Polar oceans + their vulnerability?",
+            "motivation": "Solubility + buffering.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "cold + low-buffering → faster Ω decline; polar undersaturation soon"
+              ]
+            },
+            "hints": [
+              "Cold + Revelle factor."
+            ],
+            "reveal": "Polar oceans: (1) cold → higher CO₂ solubility; (2) lower TA + DIC → less buffering; (3) Revelle factor higher → fast pCO₂ + DIC rise. Arctic + Antarctic shelves projected aragonite-undersaturated by ~2030-2050 (Orr 2005; Steiner 2014). Ecosystem-wide implications for ice-edge food webs (Calanus copepods, krill, pelagic fish, whales)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_marine_oa_1",
+        "kind": "multiple_choice",
+        "question": "Why do oyster hatcheries on the US Pacific NW coast care about ocean acidification?",
+        "options": [
+          "Random.",
+          "Pacific NW upwelling delivers naturally CO₂-rich, low-pH water from depth to the surface; layered with anthropogenic CO₂ uptake, the result has been intermittent aragonite undersaturation (Ω_arag <1) at hatchery intakes. Larval oyster mortality spiked in 2007-08 → industry collapse. Diagnosis (Feely + Barton 2012) identified low aragonite saturation as the culprit. Industry now monitors pH + Ω at intakes + adds alkalinity buffer when water arrives undersaturated. Provides early-warning lessons for global shellfish + coral industries facing accelerating OA.",
+          "Random.",
+          "False."
+        ],
+        "correctIndex": 1,
+        "explanation": "Pacific NW hatchery failures 2007-08 due to upwelled acidified water (natural + anthropogenic). Industry adapts by monitoring + buffering intake water. Provides early-warning + adaptation lessons globally. Foundational case study of OA's economic + ecological impact."
+      },
+      "hints": [
+        "What's happening at intake?",
+        "Aragonite + larval shells."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Upwelled naturally CO₂-rich water + anthropogenic CO₂ → aragonite undersaturation at hatchery intakes. Larval oysters can't build initial aragonite shells; hatchery failures 2007-08. Diagnosis by Feely + Barton 2012; industry now monitors pH + Ω + buffers intake. Early case of OA's economic impact + adaptation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_marine_oa_1",
+        "kind": "slider",
+        "question": "Drag to the approximate pH decline of the surface ocean since 1750 (in pH units).",
+        "target": {
+          "min": 0.1,
+          "max": 0.12
+        },
+        "default": 0.5,
+        "explanation": "Surface ocean pH has dropped ~0.1-0.12 units since 1750 — from ~8.21 to ~8.10 — which is ~30% increase in H⁺ (logarithmic). Projected ~0.3-0.4 units total decline by 2100 under high-emissions scenario. Foundational metric in ocean-acidification science."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_marine_oa_1",
+        "kind": "drag_classify",
+        "question": "Match each ocean-chemistry phenomenon to its primary cause.",
+        "items": [
+          {
+            "id": "ph-drop",
+            "label": "Surface pH drop since 1750",
+            "bin": "co2"
+          },
+          {
+            "id": "ash-shoal",
+            "label": "Aragonite saturation horizon shoaling",
+            "bin": "co2"
+          },
+          {
+            "id": "open-omz",
+            "label": "Open-ocean OMZ expansion",
+            "bin": "warming"
+          },
+          {
+            "id": "stratification",
+            "label": "Reduced overturning + ventilation",
+            "bin": "warming"
+          },
+          {
+            "id": "gulf-dead",
+            "label": "Gulf of Mexico dead zone (Mississippi N)",
+            "bin": "eutroph"
+          },
+          {
+            "id": "chesapeake",
+            "label": "Chesapeake Bay anoxia",
+            "bin": "eutroph"
+          },
+          {
+            "id": "deep-sea-od",
+            "label": "Deep-sea Pacific natural OMZ",
+            "bin": "natural"
+          },
+          {
+            "id": "south-arag",
+            "label": "Southern Ocean low natural Ω_arag",
+            "bin": "natural"
+          }
+        ],
+        "bins": [
+          {
+            "id": "co2",
+            "label": "CO₂ uptake / acidification"
+          },
+          {
+            "id": "warming",
+            "label": "Warming / stratification"
+          },
+          {
+            "id": "eutroph",
+            "label": "Eutrophication"
+          },
+          {
+            "id": "natural",
+            "label": "Natural / decoupled"
+          }
+        ],
+        "explanation": "Anthropogenic stressors: CO₂ uptake (acidification, lower Ω); warming (stratification, lower O₂ solubility, expanded OMZs); eutrophication (coastal hypoxia from agricultural runoff). Natural background: deep Pacific OMZ; Southern Ocean naturally lower Ω. Disentangling anthropogenic from natural is key for attribution + management."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_marine_oa_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why ocean acidification + deoxygenation + warming together are called 'the deadly trio.'",
+        "rubric": "Mentions: warming, acidification, deoxygenation co-occur due to anthropogenic CO₂ (warming directly + via solubility/stratification reducing O₂; CO₂ uptake driving acidification). Effects compound rather than add: a coral stressed by heat is more vulnerable to acidification + bleaching + disease. A pelagic fish facing habitat compression from OMZ expansion is more vulnerable to fishing + warming + acidification effects on prey calcifiers. Marine heatwaves intensify hypoxia + ocean-acidification spikes. Species range shifts may not work if all stressors hit simultaneously across new ranges. Bjorndal 2024 reviews summarize compound stressors as the leading concern in marine climate research. Specific examples: GBR coral bleaching during heatwaves coincident with acidification + sometimes hypoxia; krill in Southern Ocean facing acidification + warming + ice loss; pteropods + foraminifera in polar oceans collapsing. Concludes: studying stressors in isolation under-estimates risk; the deadly trio framework + multi-stressor mesocosm + modeling approaches are needed to characterize Anthropocene marine ecosystems."
+      }
+    }
+  ]
+}
