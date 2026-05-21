@@ -173,6 +173,11 @@ const LazyRadiocarbonDecay = lazy(() =>
     (m) => ({ default: m.RadiocarbonDecay }),
   ),
 );
+const LazyAlignmentMatrix = lazy(() =>
+  import("../../../../../packages/viz/src/components/AlignmentMatrix").then(
+    (m) => ({ default: m.AlignmentMatrix }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -299,6 +304,8 @@ function VizByName({
       return <LazyLotkaVolterra {...(props as object)} />;
     case "radiocarbon-decay":
       return <LazyRadiocarbonDecay {...(props as object)} />;
+    case "alignment-matrix":
+      return <LazyAlignmentMatrix {...(props as object)} />;
     default:
       return null;
   }

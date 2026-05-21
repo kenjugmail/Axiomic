@@ -34,6 +34,7 @@ export { DriftDiffusion } from "./components/DriftDiffusion";
 export { MM1Queue } from "./components/MM1Queue";
 export { LotkaVolterra } from "./components/LotkaVolterra";
 export { RadiocarbonDecay } from "./components/RadiocarbonDecay";
+export { AlignmentMatrix } from "./components/AlignmentMatrix";
 export { SoftmaxTemperatureSlider } from "./quiz/SoftmaxTemperatureSlider";
 export { AttentionHeatmapExplorer } from "./quiz/AttentionHeatmapExplorer";
 export { GradientDescent2D } from "./quiz/GradientDescent2D";

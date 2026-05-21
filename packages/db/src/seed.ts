@@ -1952,6 +1952,30 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P44 — Bioinformatician path. Genome anatomy + sequencing through
+  // sequence alignment (with new AlignmentMatrix DP viz) + assembly
+  // + variant calling + transcriptomics + single-cell + structure
+  // (AlphaFold) + phylogenetics + ML in biology + reproducibility +
+  // cloud. The bioinformatics stack end-to-end. Distinct from
+  // cell-molecular-biologist (wet-lab biology) and ai-researcher
+  // (general ML).
+  seedMasteryPath({
+    slug: "bioinformatician",
+    title: "Bioinformatician",
+    description:
+      "From bioinformatics foundations + genome anatomy + sequencing tech through dynamic-programming sequence alignment + BLAST (with interactive Needleman-Wunsch / Smith-Waterman viz), assembly + variant calling + T2T + pangenomes, transcriptomics + single-cell + spatial + Human Cell Atlas, structure + AlphaFold + protein design + cryo-EM, phylogenetics + phylogenomics + population genetics, machine learning + foundation models (ESM + AlphaFold + AlphaMissense + scGPT), and reproducibility + cloud + Nextflow/Snakemake + FAIR data. The bioinformatics stack end-to-end.",
+    nodes: [
+      { slug: "bioinformatics-foundations-and-genomes", title: "Foundations + Genomes", level: "apprentice", order: 1, pages: ["field-overview", "genome-anatomy", "sequencing-tech"], prereqs: [], description: "Bioinformatics vs comp-bio vs systems; genome anatomy (coding, regulatory, repeats, 3D); short/long/single-cell sequencing + cost trajectory + file formats." },
+      { slug: "sequence-alignment-and-blast", title: "Sequence Alignment + BLAST", level: "practitioner", order: 2, pages: ["alignment-foundations", "nw-sw-dp", "blast-heuristic"], prereqs: ["bioinformatics-foundations-and-genomes"], description: "Pairwise/MSA + global/local + scoring (PAM/BLOSUM), Needleman-Wunsch + Smith-Waterman DP + affine gaps + interactive viz, BLAST + e-values + DIAMOND + minimap2." },
+      { slug: "genome-assembly-and-variant-calling", title: "Assembly + Variant Calling", level: "practitioner", order: 3, pages: ["olc-vs-debruijn", "variant-calling", "pangenomes-t2t"], prereqs: ["sequence-alignment-and-blast"], description: "OLC + de Bruijn graphs + N50 + BUSCO + long-read T2T, SNVs/indels/SVs/CNVs + GATK + DeepVariant + Strelka + truth sets, T2T-CHM13 + HPRC pangenome + clinical applications." },
+      { slug: "transcriptomics-and-single-cell", title: "Transcriptomics + Single-Cell", level: "specialist", order: 4, pages: ["bulk-rnaseq", "scrna-pipeline", "de-interpretation"], prereqs: ["genome-assembly-and-variant-calling"], description: "Bulk RNA-seq pipeline + DESeq2 + normalization, scRNA-seq + Seurat/Scanpy + Human Cell Atlas + integration, differential expression + GSEA + pathway interpretation." },
+      { slug: "structure-and-alphafold", title: "Structure + AlphaFold", level: "specialist", order: 5, pages: ["structure-methods", "alphafold-revolution", "protein-design"], prereqs: ["sequence-alignment-and-blast"], description: "X-ray + cryo-EM + NMR + PDB + Anfinsen + CASP, AlphaFold 2/3 + AFDB + Nobel 2024 + RoseTTAFold + ESMFold, RFdiffusion + ProteinMPNN + drug discovery + cryo-EM-driven design." },
+      { slug: "phylogenetics-and-evolution", title: "Phylogenetics + Evolution", level: "expert", order: 6, pages: ["tree-methods", "phylogenomics-ils", "popgen-human"], prereqs: ["sequence-alignment-and-blast"], description: "NJ/ML/Bayesian + substitution models + clocks + bootstrap, phylogenomics + ASTRAL + ILS + introgression + ancient DNA, popgen + selection scans + human migration + biobanks." },
+      { slug: "machine-learning-in-biology", title: "ML in Biology", level: "expert", order: 7, pages: ["ml-survey", "foundation-models", "clinical-ethics"], prereqs: ["transcriptomics-and-single-cell", "structure-and-alphafold"], description: "Classical + DL milestones + GNN + diffusion, ESM + AlphaFold + scGPT + Enformer + AlphaMissense, clinical + pathogen surveillance + drug discovery + ethics + privacy." },
+      { slug: "reproducibility-and-cloud-bioinformatics", title: "Reproducibility + Cloud", level: "expert", order: 8, pages: ["repro-principles", "workflow-managers", "cloud-future"], prereqs: ["genome-assembly-and-variant-calling"], description: "FAIR + Git + containers + archives, Nextflow/nf-core + Snakemake + WDL/CWL + Galaxy, AWS/GCP/Azure + Terra/DNAnexus + AnVIL + federated + foundation-model serving." },
+    ],
+  });
+
   // P43 — Archaeologist path. Stratigraphy + radiocarbon (with new
   // RadiocarbonDecay viz) + lithic technology + bioarchaeology +
   // aDNA + agriculture origins + state formation/collapse + remote

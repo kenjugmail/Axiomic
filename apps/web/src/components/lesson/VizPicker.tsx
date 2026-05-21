@@ -257,6 +257,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🏺",
     tags: ["archaeology", "geology", "physics", "dating-methods"],
   },
+  {
+    name: "alignment-matrix",
+    label: "Sequence alignment DP matrix",
+    description: "Type two sequences; see Needleman-Wunsch global or Smith-Waterman local DP matrix with optimal traceback.",
+    thumb: "🧬",
+    tags: ["bioinformatics", "computational-biology", "dynamic-programming", "sequence-analysis"],
+  },
 ];
 
 interface Props {

@@ -1,0 +1,227 @@
+{
+  "slug": "transcriptomics-and-single-cell",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Analyze RNA-seq.",
+      "Run a scRNA-seq pipeline.",
+      "Apply DE statistics."
+    ],
+    "prereqs": [
+      "genome-assembly-and-variant-calling"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Transcriptomics: from microarrays to single cells",
+      "body": "**Transcriptomics**: study of RNA expression — which genes are 'on' + how much, where + when.\n\n**History**:\n- **Northern blots + RT-qPCR** (1970s+): one gene at a time.\n- **Microarrays** (1990s-2010s): thousands of genes via hybridization to pre-printed probes (Affymetrix, Agilent, Illumina BeadChip).\n- **RNA-seq** (2008+): high-throughput sequencing of cDNA; full transcriptome; isoform-aware; replaced microarrays as standard.\n- **Single-cell RNA-seq (scRNA-seq)** (2009+; 10x Genomics 2016+): expression per cell; revealed cellular heterogeneity invisible to bulk.\n- **Spatial transcriptomics** (2016+): expression with spatial coordinates; tissue + tumor architecture preserved.\n- **Multi-omics**: combine scRNA + scATAC + protein (CITE-seq) + spatial + perturb-seq.\n\n**Bulk RNA-seq pipeline**:\n1. RNA extraction + library prep (polyA selection for mRNA; rRNA depletion for total RNA).\n2. Sequencing (typically Illumina; 30-50M paired-end reads per sample).\n3. QC (FastQC, MultiQC); adapter + quality trimming.\n4. Alignment to genome (STAR, HISAT2) or pseudoalignment to transcriptome (Salmon, kallisto).\n5. Quantification (gene-level or transcript-level).\n6. Differential expression (DESeq2, edgeR, limma-voom).\n7. Functional enrichment (GO, KEGG, GSEA, fgsea).\n8. Visualization (heatmaps, volcano plots, PCA).\n\n**Key statistical issues**:\n- **Library size normalization**: total reads vary; use TMM (edgeR), median-of-ratios (DESeq2), TPM/CPM.\n- **Overdispersion**: variance > mean (Poisson assumption broken); negative binomial model.\n- **Multiple testing**: 20000 genes → Bonferroni or FDR control (Benjamini-Hochberg).\n- **Batch effects**: ComBat, RUV, surrogate variable analysis.\n- **Replicates**: minimum 3 per condition; more for subtle effects.\n- **Power analysis**: depends on effect size + variance + replicates."
+    },
+    {
+      "kind": "text",
+      "title": "Single-cell RNA-seq: the cellular revolution",
+      "body": "**Single-cell RNA-seq (scRNA-seq)**: isolate individual cells; sequence transcriptome of each. Reveals cell types, states, transitions, communication, lineage.\n\n**Platforms**:\n- **10x Genomics Chromium** (dominant): droplet-based; 10000+ cells per sample; ~$1000-3000 per sample.\n- **Smart-seq3 + Smart-seq3xpress**: plate-based; deeper per cell but fewer cells.\n- **Drop-seq, inDrop**: academic droplet methods.\n- **sci-RNA-seq, SPLiT-seq**: combinatorial indexing; millions of cells; cheaper.\n- **CITE-seq**: simultaneous protein + RNA via antibody-DNA tags.\n- **Multiome**: RNA + ATAC in same cell (10x).\n- **Perturb-seq**: CRISPR perturbation + scRNA readout; functional genomics.\n\n**Standard scRNA-seq pipeline (Scanpy or Seurat)**:\n1. **Cell calling**: distinguish real cells from empty droplets (knee plot, EmptyDrops).\n2. **QC**: filter cells (mitochondrial % too high → dying; gene count too low → debris).\n3. **Normalization**: scaling for total counts + log-transform.\n4. **Highly variable genes**: select informative genes.\n5. **Scaling + PCA**: dimensionality reduction.\n6. **Batch correction + integration**: Harmony, BBKNN, scVI, scANVI for multi-sample.\n7. **Clustering**: Leiden / Louvain on KNN graph.\n8. **UMAP / t-SNE**: 2D embedding for visualization.\n9. **Cell-type annotation**: marker genes + reference atlases (SingleR, CellTypist).\n10. **Differential expression** between cluster pairs (Wilcoxon, MAST, scDD).\n11. **Trajectory / pseudotime**: Slingshot, Monocle, PAGA, scVelo (RNA velocity).\n12. **Cell-cell communication**: CellChat, CellPhoneDB, NicheNet.\n\n**Major findings + atlases**:\n- **Human Cell Atlas** (HCA, Regev + Teichmann 2017+): comprehensive multi-tissue.\n- **Tabula Muris + Tabula Sapiens**: mouse + human.\n- **Allen Brain Cell Atlas**: cortex + whole-brain.\n- **Heart Cell Atlas, Lung Cell Atlas, Gut, Kidney, Skin**.\n- **Cancer single-cell atlases**: tumor microenvironment, immune cell states, exhaustion, T-cell receptor diversity.\n- **Development atlases**: gastruloids, embryogenesis (E. coli to mouse to human).\n\n**Spatial transcriptomics**:\n- **Visium** (10x): ~55-μm spots; ~5000 spots per slide.\n- **Stereo-seq, Slide-seq v2**: sub-cellular resolution.\n- **MERFISH, seqFISH+, ISS**: imaging-based; targeted gene panels.\n- **Xenium, CosMx**: commercial high-throughput in situ.\n- **Combines morphology + molecular**: critical for tumor + brain biology.\n\n**Modern frontier**:\n- **Foundation models for cells**: scGPT, Geneformer, scFoundation, scELMo trained on millions of cells.\n- **Cell-state perturbation prediction**: Genentech, Insitro using ML to predict drug effects.\n- **3D + temporal atlases**: organoids, embryos, regenerating tissues."
+    },
+    {
+      "kind": "text",
+      "title": "Differential expression + interpretation",
+      "body": "**Differential expression (DE)**: which genes change between conditions?\n\n**Statistical models for bulk RNA-seq**:\n- **DESeq2** (Love + Huber 2014): negative binomial GLM; default for most.\n- **edgeR** (Robinson + Smyth 2010): NB GLM; quasi-likelihood; alternative.\n- **limma-voom** (Smyth + Law): voom transformation + linear models; fast for big designs.\n- **NOIseq, sleuth, more**.\n\n**Output**:\n- log₂ fold change (LFC; effect size).\n- p-value (significance).\n- adjusted p-value (FDR; multiple testing).\n- mean expression (baseMean, AveExpr).\n\n**Volcano plot**: -log10(p) vs LFC; identify significantly + highly changed genes.\n\n**FDR control** (Benjamini-Hochberg 1995):\n- Rank p-values; threshold FDR (e.g., 5%); declare significant.\n- More powerful than Bonferroni for genome-scale testing.\n- q-values + Storey methods alternatives.\n\n**Effect-size considerations**:\n- Significance ≠ biological importance.\n- Small LFC (e.g., <0.5 log₂) often biologically irrelevant.\n- Use both adj.p < 0.05 + |LFC| > 1 (2-fold change) commonly.\n- Effect size matters more in well-powered studies.\n\n**scRNA-seq differential expression**:\n- More complex due to zero inflation + cell-state heterogeneity.\n- **MAST**: hurdle model (zero + continuous).\n- **scDD**: differential distribution.\n- **MILO**: differential abundance over neighborhoods.\n- **DAseq, CellTypist**.\n- Pseudo-bulk methods (DESeq2, edgeR on aggregated counts per sample × cell-type) increasingly recommended for genuine inter-sample inference.\n- **Sample as unit-of-analysis**: only valid replicates are biological samples, not individual cells.\n\n**Functional interpretation**:\n- **Over-representation analysis (ORA)**: hypergeometric / Fisher exact on differentially expressed gene list vs gene-set databases (GO, KEGG, MSigDB, Reactome).\n- **GSEA (Gene Set Enrichment Analysis)**: rank all genes by effect; test whether gene set enriched at top/bottom.\n- **fgsea, clusterProfiler, GSVA, ssGSEA**: R packages.\n- **Pathway analysis**: Reactome, Wikipathways, BioCyc.\n- **Network analysis**: WGCNA, hubgenes, regulatory inference (SCENIC, GRNBoost).\n\n**Causality + perturbation**:\n- Observational transcriptomics → correlation.\n- For causality: perturb-seq (CRISPR + scRNA), drug screens, time-course.\n- **Causal inference** + Mendelian randomization in eQTLs."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bio_rna_1",
+        "kind": "guided_derivation",
+        "question": "Plan a differential-expression study",
+        "goal": "You're comparing tumor vs adjacent-normal RNA-seq from 30 paired patients. Design + statistical strategy.",
+        "steps": [
+          {
+            "prompt": "Paired vs unpaired analysis?",
+            "motivation": "Statistical power.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "paired (same patient = covariate)"
+              ]
+            },
+            "hints": [
+              "Same patient → matched."
+            ],
+            "reveal": "Paired analysis: include patient as a covariate (formula: ~ patient + condition). Patient identity absorbs inter-patient variability → much higher power to detect treatment/disease effects. Standard for matched designs."
+          },
+          {
+            "prompt": "Sample size sufficient?",
+            "motivation": "Power.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "yes, 30 pairs gives strong power for moderate effects"
+              ]
+            },
+            "hints": [
+              "DE power."
+            ],
+            "reveal": "30 pairs is well-powered for moderate (LFC > 1) effects + tens of significant genes. Smaller effects + more subtle pathway shifts may still need careful effect-size + FDR threshold tuning. Standard power-analysis tools: PROPER, ssizeRNA."
+          },
+          {
+            "prompt": "Library normalization?",
+            "motivation": "Account for sequencing depth.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "DESeq2 median-of-ratios or edgeR TMM"
+              ]
+            },
+            "hints": [
+              "Standard methods."
+            ],
+            "reveal": "DESeq2 (median-of-ratios) or edgeR (TMM) — both robust normalization methods designed for negative-binomial RNA-seq data. Don't use TPM/CPM directly for DE; they don't account for composition shifts."
+          },
+          {
+            "prompt": "Multiple testing?",
+            "motivation": "Genome-scale tests.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Benjamini-Hochberg FDR < 5% or 1%"
+              ]
+            },
+            "hints": [
+              "FDR vs Bonferroni."
+            ],
+            "reveal": "FDR (Benjamini-Hochberg 1995): control proportion of false positives among declared significant; more powerful than Bonferroni for ~20000 genes. Standard threshold: padj < 0.05 (sometimes < 0.01 for strict)."
+          },
+          {
+            "prompt": "Reporting + interpretation?",
+            "motivation": "Translate to biology.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "volcano plots; pathway enrichment (GSEA, ORA); IPA / Reactome; share data + scripts"
+              ]
+            },
+            "hints": [
+              "Communicate."
+            ],
+            "reveal": "Reporting: volcano + MA + PCA plots; heatmaps of top genes; GSEA/ORA on differentially expressed genes; pathway interpretation (Reactome, Hallmark, MSigDB); intersect with prior biology (oncogenes, tumor suppressors, drug targets). Share count matrices + DE tables + scripts (Zenodo / GitHub) for reproducibility. Submit RNA-seq raw + processed data to GEO / ENA / DDBJ + provide accession numbers."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bio_rna_1",
+        "kind": "multiple_choice",
+        "question": "Why did scRNA-seq fundamentally change how we view 'cell types'?",
+        "options": [
+          "Random.",
+          "Bulk RNA-seq averages expression across millions of cells, masking heterogeneity. scRNA-seq revealed: (1) what looked like 'one cell type' often comprises 5-50 transcriptional states; (2) continuous trajectories often more accurate than discrete types; (3) rare populations (e.g., stem cells, exhausted T cells, tumor-initiating cells) hidden in bulk become visible; (4) cell-state transitions during development, regeneration, disease are observable; (5) tissue architecture + niches matter (spatial + ligand-receptor signaling); (6) cell-cell communication networks can be inferred (CellChat, CellPhoneDB). Resulted in: Human Cell Atlas project; redefinition of cell-type taxonomy (Allen Brain Cell Atlas); new clinical biomarkers; deeper understanding of immune diversity (T-cell exhaustion + checkpoint biology) + cancer (single-cell tumor + microenvironment).",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "scRNA-seq revealed that bulk transcriptomics masks heterogeneity. What seemed like 'one cell type' often comprises many transcriptional states; cell types form continuous trajectories; rare populations visible; tissue architecture + ligand-receptor networks resolved. Reshaped immune biology (exhaustion), cancer (microenvironment), developmental biology (trajectories). Foundation of Human Cell Atlas + redefinition of cell-type taxonomy."
+      },
+      "hints": [
+        "What does bulk hide?",
+        "What scRNA-seq reveals."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "scRNA-seq revealed bulk transcriptomics averaged out cellular heterogeneity. 'One cell type' often comprises 5-50 transcriptional states; cell-state transitions are continuous; rare populations (stem cells, exhausted T cells, tumor-initiating) visible; ligand-receptor cell-cell communication inferable; tissue architecture matters. Reshaped immune biology + cancer + developmental biology; foundation of Human Cell Atlas + redefinition of cell-type taxonomy."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_bio_rna_1",
+        "kind": "slider",
+        "question": "Drag to typical number of cells per 10x Chromium 3' v3 scRNA-seq sample.",
+        "target": {
+          "min": 5000,
+          "max": 10000
+        },
+        "default": 100,
+        "explanation": "10x Chromium scRNA-seq typically yields ~5000-10000 cells per sample (chip loading + droplet rate); ~50% capture efficiency from input cell suspension. Larger atlases use multiple samples + chip loadings. Newer Flex chemistry + GEM-X yields 20000+ per channel. Combinatorial-indexing methods (sci-RNA-seq, SPLiT-seq) can do millions per experiment cheaper but with shallower depth per cell."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_bio_rna_1",
+        "kind": "drag_classify",
+        "question": "Match each RNA-seq analysis tool to its primary purpose.",
+        "items": [
+          {
+            "id": "star",
+            "label": "STAR / HISAT2",
+            "bin": "align-quant"
+          },
+          {
+            "id": "salmon",
+            "label": "Salmon / kallisto",
+            "bin": "align-quant"
+          },
+          {
+            "id": "deseq2",
+            "label": "DESeq2",
+            "bin": "de"
+          },
+          {
+            "id": "edger",
+            "label": "edgeR / limma-voom",
+            "bin": "de"
+          },
+          {
+            "id": "seurat",
+            "label": "Seurat / Scanpy",
+            "bin": "scrna"
+          },
+          {
+            "id": "scvi",
+            "label": "scVI / Harmony / BBKNN",
+            "bin": "scrna"
+          },
+          {
+            "id": "gsea",
+            "label": "GSEA / fgsea",
+            "bin": "enrich"
+          },
+          {
+            "id": "cluster-profiler",
+            "label": "clusterProfiler / Enrichr / Reactome",
+            "bin": "enrich"
+          }
+        ],
+        "bins": [
+          {
+            "id": "align-quant",
+            "label": "Alignment / quantification"
+          },
+          {
+            "id": "de",
+            "label": "Differential expression"
+          },
+          {
+            "id": "scrna",
+            "label": "scRNA-seq analysis"
+          },
+          {
+            "id": "enrich",
+            "label": "Functional enrichment"
+          }
+        ],
+        "explanation": "RNA-seq toolkit: alignment/quant (STAR, HISAT2, Salmon, kallisto); DE (DESeq2, edgeR, limma); scRNA (Seurat, Scanpy + integration scVI, Harmony, BBKNN); enrichment (GSEA, fgsea, clusterProfiler, Enrichr, Reactome). Modern pipelines: nf-core/rnaseq + nf-core/scrnaseq + Snakemake or custom Nextflow."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bio_rna_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why the Human Cell Atlas project is a landmark in modern biology.",
+        "rubric": "Mentions: Human Cell Atlas (HCA, Regev + Teichmann 2017+): international consortium aiming to map every cell type in the human body via scRNA-seq + spatial + multi-omics. As of 2024: ~50M cells profiled, tissue-specific atlases (Tabula Sapiens, Heart, Lung, Gut, Brain, Skin, Kidney, Pancreas, Liver, Eye, Reproductive, Immune), >100M cells when including cancer atlases. Provides reference for: disease-vs-healthy comparisons; identifying disease-relevant cell types; drug-target discovery (especially rare cell types); developmental biology (cell-state trajectories); cancer biology (tumor + microenvironment). Tools (CELLxGENE, scvi-tools, SingleR, CellTypist) make atlases queryable. Has driven adoption of scRNA-seq, spatial transcriptomics, multi-omics across biology. Comparable in ambition + impact to Human Genome Project. Concludes: HCA democratizes cellular reference + accelerates discovery across basic + translational biology; precedent for future organismal + ecosystem atlases."
+      }
+    }
+  ]
+}
