@@ -1,0 +1,157 @@
+{
+  "slug": "networks-stratification-and-segregation",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Master core social-network theory — weak ties, small world, scale-free, closure, structural holes.",
+      "Survey the modern stratification + mobility literature — Blau-Duncan, Wright, Goldthorpe, Chetty.",
+      "Understand Schelling's tipping-point segregation dynamics + Massey-Denton's empirical critique."
+    ],
+    "prereqs": [
+      "social-theory-classical-and-modern"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Social networks: weak ties, small worlds, scale-free, closure, structural holes",
+      "body": "**Social network analysis (SNA)**: study of patterns of ties (friendship, kinship, advice, exchange, sex, citation, email, retweet) among actors. Treats relations themselves as data — not just attributes of individuals. The toolkit blends sociology, graph theory, statistical physics, computer science.\n\n**Granovetter — strength of weak ties (1973)**. Mark Granovetter's *Strength of Weak Ties* (American Journal of Sociology 1973), drawn from his Harvard dissertation on a Boston suburb's job search: *people more often find jobs through acquaintances than close friends*. Close ties (strong) move in overlapping circles; their information is redundant. Weak ties bridge otherwise disconnected clusters + carry novel information. Formally: a *bridge* is a tie whose removal increases the graph's number of components. Strong bridges are rare (triadic closure tends to fill in around strong ties); most bridges are weak. Job leads, opinion shifts, and information cascades flow disproportionately through weak ties. Most cited paper in sociology (>70000 citations) — and the foundation of network reasoning in sociology.\n\n**Milgram — small-world (1967)**. Stanley Milgram's *small-world experiment* (Psychology Today 1967; Travers + Milgram 1969). Letters in Omaha + Wichita destined for a Boston broker; passed person-to-person; median chain length ~5-6 — 'six degrees of separation.' Methodologically flawed (low completion rates, target self-selection) but pointed to a real phenomenon.\n\n**Watts + Strogatz — small-world networks (1998)**. *Nature* 1998. A random rewiring of a regular lattice produces graphs with *high clustering* (like local social structures) + *low average path length* (like Milgram). The 'small-world' regime explains how high local clustering coexists with global connectivity — biological neural networks (C. elegans), power grids, film actor collaborations all show small-world structure.\n\n**Barabási + Albert — scale-free networks (1999)**. *Science* 1999. The WWW + many social + biological networks have *power-law degree distributions* — a few hubs with very many ties + a long tail of weakly-connected nodes. *Preferential attachment* ('rich get richer'): new nodes link to existing high-degree nodes with probability ∝ degree. Generates P(k) ~ k^(-γ) with γ ≈ 2-3. Critics (Clauset, Shalizi, Newman 2009) note that careful tests often reject pure power laws in favor of log-normal or other heavy-tailed distributions — but heavy-tailed degree is undisputed.\n\n**James Coleman — closure (1988, 1990)**. *Social Capital in the Creation of Human Capital* (AJS 1988) + *Foundations of Social Theory* (1990). **Network closure**: when ties are densely interconnected (mutual friends know each other), norms can be enforced, reputation tracked, sanctions applied — *social capital as a public good of dense networks*. Closure helps parents monitor children's schools (intergenerational closure between parents, school, peer parents). High-trust low-closure networks lose enforcement capacity.\n\n**Ronald Burt — structural holes (1992, 2004)**. *Structural Holes: The Social Structure of Competition* (1992) + *Brokerage and Closure* (2005). The *opposite* analytic move from Coleman. **Structural holes** are gaps between otherwise disconnected clusters; the actors who bridge them (*brokers*) gain information + control advantages. Burt's empirical work in firms: managers with brokered networks innovate more + are promoted faster. Closure + brokerage are *complementary* — closure secures cohesive groups; brokerage spans groups; mixed strategies often dominate.\n\n**Modeling + statistical tools**:\n- **Exponential random graph models (ERGMs)** (Wasserman + Pattison; Snijders).\n- **Stochastic actor-based models (SAOMs / RSiena)** (Snijders) for network dynamics.\n- **Latent space models** (Hoff + Raftery + Handcock 2002).\n- **Community detection** — modularity (Newman 2006), Louvain, Leiden, stochastic block models.\n- **Centrality measures** — degree, betweenness, closeness, eigenvector, PageRank.\n- **Diffusion + threshold models** — Granovetter 1978 threshold model of collective behavior; Centola's experiments on complex contagion (lesson 7).\n\nNetwork analysis is now central to organizational, political, urban, health, and computational sociology. Networks are not just topology — they carry information, resources, norms, ideas, contagions, and power. They mediate stratification (next).\n\n**Interactive Schelling viz**: this lesson embeds an interactive Schelling segregation model (see slide 3) — slide the tolerance threshold + watch the grid evolve.",
+      "viz": "schelling-segregation",
+      "vizProps": {
+        "tolerance": 0.3,
+        "gridSize": 30
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Stratification + mobility: Blau-Duncan, Wright, Goldthorpe, Chetty",
+      "body": "**Stratification** = systematic + persistent inequality in life chances structured by class + status + power. **Mobility** = movement of individuals + families across strata over time (within a generation = *intra-generational*; between parents + children = *intergenerational*).\n\n**The Blau-Duncan status-attainment model (1967)**. *The American Occupational Structure* (Peter Blau + Otis Dudley Duncan, 1967). Foundational. Path-analytic model of how *father's education + father's occupation* affect *son's education + first job + current occupation*. The seminal finding: education is the main proximate determinant of occupational attainment + a major channel of intergenerational reproduction, but a non-trivial fraction of variance is direct + ascriptive. Otis Duncan's *Socio-Economic Index (SEI)* — a continuous occupational scale combining education + income — became the standard quantitative measure. Wisconsin extension (Sewell + Hauser): added psychological mediators (aspirations, significant others). The Blau-Duncan model launched modern quantitative stratification research.\n\n**Erik Olin Wright — neo-Marxist class** (lesson 2 P63 also). *Classes* (1985), *Class Counts* (1997). Multi-dimensional class schema combining property ownership, organizational authority, and skill / credentials → 12-cell scheme. Operationalized + measured in cross-national comparative surveys. Wright's class scheme + Goldthorpe's compete + complement.\n\n**John Goldthorpe — the EGP / CASMIN tradition**. Erikson + Goldthorpe + Portocarero (EGP) class scheme — operationalized for the *Constant Flux* (Erikson + Goldthorpe 1992) comparative mobility project. Categories collapse occupations into employment relations (service relationship, labor contract, mixed) — service class (I + II), routine non-manual (III), petty bourgeoisie (IV), farmers (V + VI), skilled manual + supervisors (V + VI), semi/unskilled manual (VIIa), farm labor (VIIb). The international comparative mobility literature uses EGP / CASMIN extensively. Goldthorpe's *Social Mobility and Class Structure in Modern Britain* (1980 / 1987) + *Constant Flux* (1992) showed surprisingly *stable relative mobility* across industrial democracies + over time (the 'constant flux'). Absolute mobility rose with structural change (manufacturing → services); relative mobility (the odds ratios of moving between classes given origin) was more stubborn.\n\n**Class measurement controversies**: EGP (Goldthorpe) vs. Wright (neo-Marxist) vs. unidimensional SEI/ISEI (Duncan tradition) vs. multidimensional approaches (Bourdieu's cultural + economic capital; Savage et al. 2013 *Great British Class Survey* — 7 classes including precariat + elite). Each captures something. The bibliography is enormous.\n\n**Raj Chetty + the Opportunity Atlas era**. *Where is the Land of Opportunity?* (Chetty + Hendren + Kline + Saez 2014, QJE) used U.S. tax records (n in tens of millions) to map intergenerational income mobility by commuting zone. Key findings:\n- Strong **geographic variation** — children from low-income families in Salt Lake City reach the top quintile at ~10.8% vs. ~4.4% in Charlotte.\n- **Five strong correlates** of upward mobility: less segregation, less income inequality, better schools, higher social capital, more two-parent households.\n- **Exposure effects** (Chetty + Hendren 2018): each year a child spends in a better neighborhood improves outcomes ~3-4% per year.\n- **Opportunity Atlas** (Chetty + Friedman + Hendren + Jones + Porter 2018): interactive census-tract-level mobility maps for the U.S.\n- **Race-specific mobility** (Chetty + Hendren + Jones + Porter 2020): Black-white intergenerational mobility gaps persist controlling for parental income — pointing to neighborhood + school + labor market mechanisms.\n- **Social capital + economic connectedness** (Chetty et al. 2022 *Nature* with Facebook data): cross-class friendship ties strongly predict upward mobility; *economic connectedness* matters more than other measured network features.\nThis quantitative revolution put a number on the American Dream's geography + reshaped policy discussion.\n\n**Other recent stratification work**: Piketty's *Capital in the 21st Century* (2014) on wealth-income ratios + dynastic wealth; Saez-Zucman top-income shares; OECD + LIS comparative work; intergenerational wealth + race (Darity + Mullen on reparations); algorithmic + technological inequality (lesson 8 P63)."
+    },
+    {
+      "kind": "text",
+      "title": "Segregation: Schelling tipping, Massey-Denton, the dynamic + persistent inequality of place",
+      "body": "Why are American metropolitan areas so racially + economically segregated, generations after the legal end of de jure segregation? Two complementary literatures: the dynamic / agent-based (Schelling) + the structural / empirical (Massey-Denton).\n\n**Thomas Schelling — Models of Segregation (1971)**. *Dynamic Models of Segregation* (Journal of Mathematical Sociology 1971); popularized in *Micromotives and Macrobehavior* (1978; Nobel 2005). Schelling's checkerboard model:\n- A grid of cells; each holds an agent of one of two types (e.g., red + blue).\n- Each agent has a *tolerance* threshold τ — the minimum fraction of like-type neighbors they require to be 'satisfied.'\n- Unsatisfied agents move to the nearest open cell.\n- Iterate until equilibrium.\n\n**The astonishing result**: even when every individual is *moderately* tolerant (τ as low as 0.3 — willing to live where two-thirds of neighbors are of the other type), the dynamic produces *strongly segregated* equilibria. Individually mild preferences aggregate into collectively extreme outcomes. This is a foundational example of *macro outcomes diverging from micro intentions* — the emergent-systems intuition central to computational social science (lesson 7).\n\nThe interactive visualization (this lesson, viz: 'schelling-segregation', tolerance 0.3, gridSize 30) demonstrates: start with random placement, set tolerance, watch segregation emerge over iterations. Try τ = 0.3 vs. 0.5 vs. 0.7 to see how the *individual* tolerance level shifts the *aggregate* equilibrium.\n\n**Tipping points** in neighborhood racial composition (Schelling, also Card + Mas + Rothstein 2008 empirical): once minority share crosses a threshold (often 5-20% depending on context), white residents accelerate exit ('white flight') + few new white residents enter; the neighborhood rapidly resegregates. Empirically documented in mid-20th-century American cities (cf. Sugrue *Origins of the Urban Crisis* 1996 on Detroit) + continuing in subtler forms today.\n\n**Massey + Denton — American Apartheid (1993)**. Douglas Massey + Nancy Denton's *American Apartheid: Segregation and the Making of the Underclass*. Empirical + historical answer:\n- The *cause* of contemporary segregation is not (only) individual preference; it is the cumulative result of policy + violence + private practice — racial covenants, redlining (HOLC + FHA 1934+), block-busting + steering by realtors, mortgage discrimination, urban renewal, public-housing siting, suburban exclusionary zoning, restrictive Supreme Court decisions (cf. Rothstein *The Color of Law* 2017).\n- They develop **five dimensions of segregation** (Massey + Denton 1988): evenness, exposure, concentration, centralization, clustering. *Hypersegregation* = high on all five.\n- The American Black population is the most segregated in U.S. history + uniquely *hypersegregated* in many metros.\n- Segregation concentrates poverty + thereby concentrates social-problem co-occurrence (joblessness, school disinvestment, crime + policing, public-health disparities). Segregation is the *structural cause* of the urban underclass — not deficient culture (against Wilson's somewhat-controversial *The Truly Disadvantaged* 1987 formulation, though Wilson + Massey ultimately agree on much).\n- Public policy implications: voucher programs, fair-housing enforcement, exclusionary-zoning reform, school integration.\n\n**Sequels + extensions**:\n- Sampson, *Great American City* (2012): Chicago neighborhoods + concentrated disadvantage + collective efficacy; segregation as enduring structural fact.\n- Sharkey, *Stuck in Place* (2013): neighborhood disadvantage transmits across generations of Black families.\n- Rothstein, *The Color of Law* (2017): policy-driven racial segregation in postwar U.S. — readable history.\n- Sampson + Sharkey on *intergenerational neighborhood inequality*.\n- Chetty's geography of mobility (above) connects directly: places that *stay* segregated have lower upward mobility for everyone, especially Black children.\n\n**Synthesis**: Schelling models show that even mild preferences *can* aggregate to segregation — useful for thinking about feedback dynamics. Massey + Denton + Rothstein + Sampson + Sharkey + Chetty show that American segregation is also + primarily the *historical residue of policy* — redlining + restrictive covenants + zoning + violence. The combined lesson: segregation is *emergent* (from many small choices in a structured environment) + *engineered* (by policy + power). It has dynamic + structural roots; both matter for understanding + for reform."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_net_1",
+        "kind": "guided_derivation",
+        "question": "Reason through why Schelling's tolerance-0.3 simulation produces segregation",
+        "goal": "Connect the local rule to the emergent aggregate.",
+        "steps": [
+          {
+            "prompt": "What is each agent's local rule + what does tolerance $\\tau = 0.3$ mean?",
+            "motivation": "Specify the model.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "an agent is satisfied if at least 30% of neighbors are same type; otherwise it moves"
+              ]
+            },
+            "hints": [
+              "Locally, $\\tau$ is a minimum-share threshold."
+            ],
+            "reveal": "Each agent computes the fraction of *same-type* neighbors among its 8 (Moore) neighbors. If that fraction is at least $\\tau = 0.3$ — i.e., the agent is fine with up to 70% *different*-type neighbors — it stays. Otherwise it moves to the nearest empty cell. Note that $\\tau = 0.3$ is *not* a preference to be in a majority — it is a low threshold tolerating substantial diversity."
+          },
+          {
+            "prompt": "Why would an apparently mild individual preference produce a strongly segregated aggregate?",
+            "motivation": "Path dynamics.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "when an agent leaves, neighbors lose a same-type tie; some flip from satisfied to unsatisfied, cascading until clusters form"
+              ]
+            },
+            "hints": [
+              "Cascades + reinforcement."
+            ],
+            "reveal": "Initial random placement leaves many agents *just barely* satisfied. Any move by an unsatisfied agent changes neighborhoods' compositions. Some same-type neighbors flip from satisfied to unsatisfied as their threshold is crossed; they move; their old neighbors react; cascades propagate. The state-space contracts toward configurations where same-type agents cluster (because clusters self-stabilize) + the boundary thins (because boundary cells were the unstable ones). The system finds an equilibrium with much more segregation than any individual demanded."
+          },
+          {
+            "prompt": "How does increasing $\\tau$ (say 0.3 → 0.5 → 0.7) qualitatively change the equilibrium?",
+            "motivation": "Comparative statics.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "higher $\\tau$ produces faster + sharper + more total segregation"
+              ]
+            },
+            "hints": [
+              "Higher tolerance threshold = more demanding agents."
+            ],
+            "reveal": "Counterintuitively, $\\tau$ is *not* tolerance for diversity — it is the minimum share of *same-type* neighbors agents demand. As $\\tau$ rises (0.3 → 0.5 → 0.7), agents demand more same-type neighbors → more move → cascades amplify → equilibria are *more segregated*, reach equilibrium faster, with sharper boundaries. At $\\tau = 0.3$ (try the viz with the default), segregation is striking already; at $\\tau \\geq 0.5$, the grid splits into a few large monochromatic regions."
+          },
+          {
+            "prompt": "What is the *limit* of Schelling's model as an account of real-world segregation, in light of Massey-Denton + Rothstein?",
+            "motivation": "Mechanism vs. history.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Schelling abstracts from policy + violence + discrimination; real American segregation was also engineered, not merely emergent"
+              ]
+            },
+            "hints": [
+              "What does the model leave out?"
+            ],
+            "reveal": "Schelling is a *possibility-existence* model — it shows that segregation *can* emerge from mild preferences. It is *not* a sufficient empirical theory of American segregation. Massey + Denton (*American Apartheid* 1993) + Rothstein (*The Color of Law* 2017) document how segregation was actively engineered by redlining, restrictive covenants, exclusionary zoning, mortgage + insurance discrimination, urban renewal, public-housing siting, school-district boundary manipulation, and violent enforcement. Real segregation reflects *both* aggregated micro-preferences *and* deliberate policy + structural racism. Reading Schelling alone risks suggesting segregation is 'natural'; pairing it with Massey-Denton restores the political-historical structure."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_net_1",
+        "kind": "multiple_choice",
+        "question": "Why is Granovetter's 'strength of weak ties' (1973) considered one of sociology's most generative ideas?",
+        "options": [
+          "Random.",
+          "Granovetter (AJS 1973, from his Harvard dissertation on Boston-suburb job search) showed empirically + theoretically that people more often find jobs through acquaintances than close friends — *weak ties* carry novel information because close-tie clusters share redundant information. Formally a *bridge* is a tie whose removal disconnects components; nearly all bridges are weak (triadic closure tends to fill in around strong ties). The idea generalized: weak ties channel information diffusion (opinion change, technology adoption), bridge structural holes (Burt), thread global small-worlds (Watts-Strogatz), and mediate Coleman's + Putnam's social capital. It launched modern empirical network sociology, has >70000 citations, and remains the founding intuition for studying how information + opportunity flow through structured social space.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Granovetter (1973) showed weak ties carry novel information because they bridge clusters; close-tie networks recycle redundant information. Bridges in social networks are typically weak. The idea launched modern network sociology, connects to Burt (structural holes), Watts-Strogatz (small worlds), Coleman + Putnam (social capital). >70000 citations."
+      },
+      "hints": [
+        "Why are weak ties more informative than strong ties?",
+        "What follow-up work did it generate?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Granovetter (1973) — weak ties carry novel information by bridging otherwise disconnected clusters. Close-tie networks have redundant information. Bridges in social networks are typically weak. The idea launched modern network sociology + connects to Burt (structural holes), Watts + Strogatz (small worlds), Coleman + Putnam (social capital). >70000 citations."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_net_1",
+        "kind": "scenario",
+        "question": "Reading the Opportunity Atlas",
+        "prompt": "A philanthropist proposes a Move-to-Opportunity-style voucher program for low-income families in a U.S. metro region where the Chetty + Hendren Opportunity Atlas shows large neighborhood variation in children's intergenerational mobility. Drawing on (a) the Blau-Duncan + Wright + Goldthorpe stratification tradition; (b) Massey + Denton + Rothstein on segregation as engineered structure; (c) Schelling's tipping-dynamics; and (d) Granovetter / Burt / Chetty 2022 on networks + economic connectedness, write a ≤220-word memo. Identify (i) two reasons the program is likely to help, (ii) two structural obstacles that could undermine it, and (iii) one design feature that addresses each obstacle."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_net_1",
+        "kind": "math_expression",
+        "question": "In a Watts-Strogatz small-world graph on $n = 1000$ nodes with each node connected to its $k = 10$ nearest neighbors, the average path length scales approximately as $\\ell \\sim \\log(n) / \\log(k)$ after sufficient rewiring. Compute $\\log(1000) / \\log(10)$.",
+        "acceptedAnswers": [
+          "3",
+          "3.0"
+        ],
+        "hint": "$\\log_{10}(1000) / \\log_{10}(10) = 3 / 1 = 3$. The small-world regime gives logarithmic path lengths — Milgram's '6 degrees' on a planet of billions arises because $\\log(8 \\times 10^9) / \\log(\\text{avg degree}) \\sim 6$ for realistic social degrees."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_net_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, explain the relationship between (a) social networks (Granovetter, Milgram, Watts + Strogatz, Barabási, Coleman, Burt); (b) stratification + mobility (Blau-Duncan, Wright, Goldthorpe, Chetty); and (c) segregation (Schelling, Massey + Denton). Argue why the three literatures speak to each other.",
+        "rubric": "Mentions: networks structure information + resource flow (Granovetter weak ties + bridges; Watts-Strogatz small worlds; Barabási scale-free; Milgram six degrees; Coleman closure; Burt structural holes); stratification literatures (Blau-Duncan status attainment, Wright neo-Marxist classes, Goldthorpe EGP/CASMIN constant flux, Chetty's Opportunity Atlas + geographic variation) describe the structure inequality runs through; segregation (Schelling's tolerance-0.3 emergent dynamics + Massey-Denton's American Apartheid + Rothstein's *Color of Law*) describes how that inequality is spatially organized + reinforced. They speak to each other because segregation shapes who is in whose network (Chetty 2022's economic connectedness with Facebook data showed cross-class friendship strongly predicts mobility); networks carry the opportunities that stratification distributes; stratification is reproduced by + reinforced by segregation. Modern empirical sociology treats them as joint."
+      }
+    }
+  ]
+}
