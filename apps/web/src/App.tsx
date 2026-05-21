@@ -16,6 +16,7 @@ import { SignupPage } from "./pages/SignupPage";
 import { WikiListPage } from "./pages/WikiListPage";
 import { MasteryListPage } from "./pages/MasteryListPage";
 import { VizGalleryPage } from "./pages/VizGalleryPage";
+import { DiscoverPage } from "./pages/DiscoverPage";
 import { MasteryPathPage } from "./pages/MasteryPathPage";
 import { ForumListPage } from "./pages/ForumListPage";
 import { NewsListPage } from "./pages/NewsListPage";
@@ -549,6 +550,7 @@ function AppRoutes() {
           <Route path="/search" element={<SearchPage />} />
           <Route path="/paths" element={<MasteryListPage />} />
           <Route path="/viz-gallery" element={<VizGalleryPage />} />
+          <Route path="/discover" element={<DiscoverPage />} />
           <Route path="/paths/:slug" element={<MasteryPathPage />} />
           <Route
             path="/paths/:pathSlug/lessons/:nodeSlug"
