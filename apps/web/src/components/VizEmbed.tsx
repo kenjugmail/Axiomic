@@ -78,6 +78,9 @@ const StructuralLoadFlow = lazy(() => import("../../../../packages/viz/src/compo
 const PopulationPyramid = lazy(() => import("../../../../packages/viz/src/components/PopulationPyramid").then(m => ({ default: m.PopulationPyramid })));
 const MapProjections = lazy(() => import("../../../../packages/viz/src/components/MapProjections").then(m => ({ default: m.MapProjections })));
 const ShotComposition = lazy(() => import("../../../../packages/viz/src/components/ShotComposition").then(m => ({ default: m.ShotComposition })));
+const KeplerOrbits = lazy(() => import("../../../../packages/viz/src/components/KeplerOrbits").then(m => ({ default: m.KeplerOrbits })));
+const EpidemicCurve = lazy(() => import("../../../../packages/viz/src/components/EpidemicCurve").then(m => ({ default: m.EpidemicCurve })));
+const KoppenClimate = lazy(() => import("../../../../packages/viz/src/components/KoppenClimate").then(m => ({ default: m.KoppenClimate })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -160,6 +163,9 @@ export const VIZ_NAMES = [
   "population-pyramid",
   "map-projections",
   "shot-composition",
+  "kepler-orbits",
+  "epidemic-curve",
+  "koppen-climate",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -240,6 +246,9 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "population-pyramid": PopulationPyramid,
   "map-projections": MapProjections,
   "shot-composition": ShotComposition,
+  "kepler-orbits": KeplerOrbits,
+  "epidemic-curve": EpidemicCurve,
+  "koppen-climate": KoppenClimate,
 };
 
 interface VizEmbedProps {

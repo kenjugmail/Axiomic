@@ -36,6 +36,9 @@ import { StructuralLoadFlow } from "../src/components/StructuralLoadFlow";
 import { PopulationPyramid } from "../src/components/PopulationPyramid";
 import { MapProjections } from "../src/components/MapProjections";
 import { ShotComposition } from "../src/components/ShotComposition";
+import { KeplerOrbits } from "../src/components/KeplerOrbits";
+import { EpidemicCurve } from "../src/components/EpidemicCurve";
+import { KoppenClimate } from "../src/components/KoppenClimate";
 
 const VIZ_COMPONENTS = {
   KinshipDiagram,
@@ -64,6 +67,9 @@ const VIZ_COMPONENTS = {
   PopulationPyramid,
   MapProjections,
   ShotComposition,
+  KeplerOrbits,
+  EpidemicCurve,
+  KoppenClimate,
 };
 
 describe("viz components — SSR smoke tests", () => {

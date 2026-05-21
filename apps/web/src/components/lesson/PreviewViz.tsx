@@ -378,6 +378,21 @@ const LazyShotComposition = lazy(() =>
     (m) => ({ default: m.ShotComposition }),
   ),
 );
+const LazyKeplerOrbits = lazy(() =>
+  import("../../../../../packages/viz/src/components/KeplerOrbits").then(
+    (m) => ({ default: m.KeplerOrbits }),
+  ),
+);
+const LazyEpidemicCurve = lazy(() =>
+  import("../../../../../packages/viz/src/components/EpidemicCurve").then(
+    (m) => ({ default: m.EpidemicCurve }),
+  ),
+);
+const LazyKoppenClimate = lazy(() =>
+  import("../../../../../packages/viz/src/components/KoppenClimate").then(
+    (m) => ({ default: m.KoppenClimate }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -586,6 +601,12 @@ function VizByName({
       return <LazyMapProjections {...(props as object)} />;
     case "shot-composition":
       return <LazyShotComposition {...(props as object)} />;
+    case "kepler-orbits":
+      return <LazyKeplerOrbits {...(props as object)} />;
+    case "epidemic-curve":
+      return <LazyEpidemicCurve {...(props as object)} />;
+    case "koppen-climate":
+      return <LazyKoppenClimate {...(props as object)} />;
     default:
       return null;
   }

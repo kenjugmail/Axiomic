@@ -551,6 +551,27 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🎬",
     tags: ["cinematography", "composition", "film", "framing"],
   },
+  {
+    name: "kepler-orbits",
+    label: "Kepler orbits",
+    description: "Drag eccentricity + semi-major axis; orbit shape + period (T² ∝ a³); presets for Mercury, Earth, Mars, Halley.",
+    thumb: "🪐",
+    tags: ["astronomy", "physics", "kepler", "orbit"],
+  },
+  {
+    name: "epidemic-curve",
+    label: "Epidemic curve (SIR/SEIR)",
+    description: "Drag R₀ + intervention day + vaccination coverage; live S/I/R curves + herd-immunity threshold.",
+    thumb: "🦠",
+    tags: ["public-health", "epidemiology", "SIR", "vaccines"],
+  },
+  {
+    name: "koppen-climate",
+    label: "Köppen climate classifier",
+    description: "Pick a city; see the climograph + Köppen code (Af, BWh, Cfa, Dfc…) computed from temp + precip.",
+    thumb: "🌦️",
+    tags: ["geography", "climate", "biomes", "koppen"],
+  },
 ];
 
 interface Props {
