@@ -1,0 +1,154 @@
+{
+  "slug": "modern-frontier-digital-history",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply digital-humanities methods — GIS, text mining, network analysis — to history.",
+      "Engage Moretti's distant reading + computational text analysis.",
+      "Reason about AI + LLMs for archival + historical research + their limits."
+    ],
+    "prereqs": [
+      "cultural-and-intellectual-history",
+      "global-and-environmental-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Digital humanities + digital history: GIS, text mining, networks",
+      "body": "**Digital humanities** (DH) + **digital history**: applying computational tools, digital archives, + quantitative methods to humanities + historical research. The field crystallized in the 2000s building on decades of humanities computing (Father Roberto Busa's *Index Thomisticus*, late 1940s onward, is often cited as the founding project).\n\n**Roy Rosenzweig** (1950-2007) — pioneer of digital history.\n- Founder of the **Center for History and New Media (CHNM)** at George Mason (1994); since renamed the **Roy Rosenzweig Center for History and New Media**.\n- *Digital History: A Guide to Gathering, Preserving, and Presenting the Past on the Web* (with Dan Cohen, 2005): the field's first textbook.\n- *The Presence of the Past* (with David Thelen, 1998): how Americans use + relate to the past — survey + interview methodology.\n- 'Scarcity or Abundance? Preserving the Past in a Digital Era' (2003, *AHR*) + 'Can History Be Open Source? Wikipedia and the Future of the Past' (2006, *Journal of American History*): foundational essays.\n- **Zotero** (2006-): open-source reference manager developed at CHNM. **Omeka** (2008-): museum + archive publishing platform. **Tropy**: digital research tool for photographs of archival sources. These tools shaped digital scholarship infrastructure.\n\n**Historical GIS (geographic information systems)**:\n- Apply spatial-analysis tools to historical evidence: maps + georeferencing + spatial databases + temporal-spatial analysis.\n- **HGIS Lab** (Anne Kelly Knowles + Richard Marston *Placing History* 2008; Knowles *Mastering Iron* 2012).\n- **Geographies of the Holocaust** (Knowles et al. 2014): GIS of camps + ghettos + evacuation routes.\n- **Pelagios Network** + **Pleiades** for ancient world geography.\n- **HistoryPin**, **OldNYC**, **NYPL Map Warper**: public-facing GIS.\n- *Mapping the Republic of Letters* (Stanford, 2007-): see below — combines GIS + network analysis on Enlightenment correspondence.\n\n**Text mining + topic modeling**:\n- **Latent Dirichlet Allocation (LDA)** (Blei + Ng + Jordan 2003): probabilistic model that assigns documents to mixtures of topics; topics are distributions over words.\n- Historians applied LDA to large corpora: Cameron Blevins on 19th-c Texan newspapers (2010); Robert Nelson on Civil War Richmond newspapers (*Mining the Dispatch*, 2010-); David Mimno + colleagues at Princeton + Cornell.\n- **Andrew Goldstone + Ted Underwood** *The Quiet Transformations of Literary Studies: What Thirteen Thousand Scholars Could Tell Us* (2014, *NLH*): topic modeling of decades of literary scholarship.\n- Limitations: topics are statistical artifacts; interpretation requires close reading; corpus selection biases results; OCR noise + temporal-linguistic drift cause problems.\n- Other methods: word embeddings (word2vec, GloVe, BERT), keyness analysis, sentiment, named-entity recognition, dependency parsing — all used in computational history.\n\n**Franco Moretti**:\n- Founder of the **Stanford Literary Lab** (2010-).\n- *Maps, Graphs, Trees: Abstract Models for a Literary History* (2005); ***Distant Reading*** (2013, won the National Book Critics Circle award): coined 'distant reading' as a method — analyzing thousands or millions of texts statistically rather than closely reading a canon; trees + graphs + maps + networks as alternative interpretive forms. Originally for literary history but appropriated by historians.\n- Stanford Literary Lab pamphlets (2010-) — landmarks of computational humanities.\n- Critiques: distant reading sacrifices the texture + voice of close reading; corpus selection still privileges the canonical; English-language bias; risk of operationalizing fuzzy concepts in ways that mislead. Moretti's reputation was later separately damaged by sexual-misconduct allegations (2017+); the methods nonetheless remain influential.\n\n**Network analysis in history**:\n- *Mapping the Republic of Letters* (Stanford, Dan Edelstein + Paula Findlen + Nicole Coleman, 2007-): visualizes the Enlightenment correspondence network — Voltaire (~18000 letters), Locke, Galileo, Newton, Athanasius Kircher, Madame du Deffand. Reveals geographic + temporal structure of the Republic of Letters.\n- Six Degrees of Francis Bacon (Carnegie Mellon, Christopher Warren et al.): network of early-modern English intellectuals.\n- John Padgett + Christopher Ansell 'Robust Action and the Rise of the Medici, 1400-1434' (1993, *AJS*): foundational social-network analysis in history.\n- Hannah Sullivan + Mark Granovetter networks; HumNet workshops.\n\n**Digital archives + databases**:\n- **JSTOR** + **HathiTrust** + **Internet Archive**: mass-digitized print archive.\n- **Old Bailey Online**: 197745 criminal trial proceedings, 1674-1913, fully searchable + tagged.\n- **Slave Voyages** / Trans-Atlantic Slave Trade Database (David Eltis + David Richardson): 36000+ Atlantic slaving voyages.\n- **Founders Online** (US National Archives): Washington-Adams-Jefferson-Madison-Hamilton-Franklin papers.\n- **DocumentingTheAmericanSouth** + **Avalon Project** + **Perseus Digital Library**.\n- **Europeana** + **Digital Public Library of America** + **British Library Newspapers** + **Trove** (Australia) + **Gallica** (France).\n\n**Methodological consequences**: digital history + DH have moved from being a 'subfield' to being integrated infrastructure — most historians now use digitized archives, full-text search, citation databases (Zotero), + sometimes GIS or text mining. The field continues to debate which methods constitute serious historical argument vs presentational + heuristic."
+    },
+    {
+      "kind": "text",
+      "title": "AI + LLMs for historical research: OCR/HTR, NER, computational analysis, LLMs",
+      "body": "**AI for historical research** = applying machine learning + LLMs to archival + analytical work.\n\n**OCR + HTR (handwritten text recognition)**:\n- **OCR** (optical character recognition): converts printed images to searchable text. ABBYY FineReader + Tesseract (open source) + Google's commercial OCR. Mature for clean 19th-20th-c printed text; struggles with early-modern fonts, broken type, multilingual + non-Latin scripts.\n- **HTR**: recognizes handwritten text — much harder. Recent advances via deep learning have transformed the field.\n- **Transkribus** (Read Coop): leading HTR platform (originating with University of Innsbruck, EU-funded READ project 2016-19). Users train models on transcribed samples → automatic transcription of similar hands at scale. Now applied to early-modern correspondence, parish registers, court records, ship logs, scientific manuscripts.\n- **eScriptorium** (open source, École Pratique des Hautes Études): alternative HTR platform.\n- **HTR-United** corpus + ground-truth sharing initiative.\n- Impact: hand-written archives that were previously accessible only to specialist paleographers + transcribers are becoming machine-readable + searchable at scale. Court records, customs records, parish registers, correspondence — opening up to computational + global + serial analysis.\n\n**Named entity recognition (NER) + relation extraction**:\n- Extract persons + places + organizations + dates from archival text.\n- spaCy + Stanford NER + HuggingFace models; domain-specific NER for historical text (Hipe-2022 shared task on Historical NER).\n- Knowledge-graph construction: link individuals + institutions + events across documents.\n- Applications: prosopography (collective biography), social-network reconstruction, slave-trade databases, parish-register linking, scientific-correspondence networks.\n- **Programming Historian** + **Digital Humanities Quarterly** + **JDH** publish methodological tutorials + case studies.\n\n**LLM-augmented research**:\n- Large language models (GPT-4, Claude, Gemini, Llama) used for: summarization, translation, paraphrasing, drafting, OCR cleanup, semantic search, hypothesis generation, code assistance.\n- Useful for low-resource + multilingual archival work — Claude or GPT-4 can read 17th-c Latin or Renaissance Italian or 18th-c Ottoman Turkish + provide draft translations or summaries (with caveat that outputs must be verified).\n- **Risks** in historical work: (1) **hallucination** — LLMs confidently fabricate citations, dates, quotations, persons; this is catastrophic in historical writing; (2) **anachronistic projection** — LLMs trained on modern text may project modern categories onto historical sources; (3) **bias amplification** — training data reflects dominant historiographies, so LLMs may erase marginalized voices or topics; (4) **citation laundering** — LLM-generated 'references' look real but don't exist; (5) **deskilling** — over-reliance erodes the close-reading + archival-research skills central to the discipline; (6) **plagiarism + provenance** confusion in scholarly writing.\n- **Best practice**: use LLMs as research assistants (search, summary, draft) but verify all factual claims against primary sources; cite the human historian, not the model; disclose use; treat outputs as starting points not authorities.\n\n**Computational text analysis** (Ted Underwood):\n- **Ted Underwood** (Illinois) *Distant Horizons: Digital Evidence and Literary Change* (2019); 'Theorizing Research Practices We Forgot to Theorize Twenty Years Ago' (2014); *Why Literary Periods Mattered* (2013). Quantitative + ML analysis of literary history.\n- Methods: supervised classification (e.g., is a 19th-c novel 'highbrow' or 'lowbrow' as predicted by training set?), word frequency + topic modeling, embedding-based analysis, fiction-vs-nonfiction classification at scale.\n- Underwood's argument: quantitative methods reveal long-run trends (genre evolution, gendered language, perspective shifts) that close reading + small canons can miss.\n- Critiques + extensions: Andrew Piper *Enumerations* (2018); Matthew Jockers *Macroanalysis* (2013); Stephen Ramsay *Reading Machines* (2011); Lauren Klein + Catherine D'Ignazio *Data Feminism* (2020) — critical-feminist DH.\n\n**Applications across history**:\n- **Cliometrics 2.0**: machine-learning models predicting + interpreting historical economic + social data (Nathan Nunn, Melissa Dell, Daniel Bogart).\n- **Historical demography**: automated linking of birth-marriage-death records across decades + countries (Steve Ruggles + IPUMS).\n- **War + violence data**: Correlates of War, UCDP/PRIO, ACLED — quantitative conflict history.\n- **Historical economics + APIs**: machine-readable + linked-open-data archives.\n- **Wikipedia + Wikidata** as historical infrastructure (next slide)."
+    },
+    {
+      "kind": "text",
+      "title": "Methodology debates, Wikipedia, + the future of the discipline",
+      "body": "**Methodology debates** in digital + computational history:\n\n**Scaling history**:\n- Digital + computational methods enable studying massive corpora — millions of newspaper pages, all surviving 17th-c correspondence, all US census records 1790-1950, all OldBailey trials.\n- **Promise**: detect patterns + long-run trends invisible to single-archive close reading; test claims at scale; integrate sources globally.\n- **Risks**: privileging the digitized + searchable (English, North-Atlantic, well-funded archives over Indigenous + non-Western + small-archive material); operationalizing fuzzy concepts in ways that distort; replacing argument with visualization; the 'big data' aura masking small samples + bias.\n- **Best practice**: hybrid methods — distant reading to identify patterns + close reading to interpret + ground truth (Underwood's program).\n\n**AI risks for the discipline**:\n- **Hallucination + fabrication**: LLMs invent citations, persons, dates. A historical claim grounded in a hallucinated source is worse than no claim.\n- **Provenance + verification crisis**: as LLM-generated text floods the web + scholarly drafts, distinguishing real from synthetic becomes harder.\n- **Deskilling**: graduate training in paleography, archival methods, language fluency may erode if students rely on AI translations + summaries.\n- **Epistemic homogenization**: LLM outputs reflect a particular training distribution; if many historians use the same models, the discipline's interpretive diversity may shrink.\n- **Authorial responsibility**: the historian's name on a paper still implies responsibility for every claim. AI-assisted drafting + analysis must be disclosed + verified.\n- **Counter**: AI also democratizes access — non-specialists can read foreign + archaic texts; small departments can do work formerly requiring large teams. The net depends on institutional + professional norms.\n\n**Wikipedia + Wikimedia as historical record**:\n- **Wikipedia** (2001-, Jimmy Wales + Larry Sanger): now the world's de facto first historical reference. >60 million articles across 300+ languages.\n- **Wikidata** (2012-): structured open data — millions of entities + relations; used in scholarly + civic infrastructure.\n- **Roy Rosenzweig** 'Can History Be Open Source? Wikipedia and the Future of the Past' (2006, *JAH*): foundational essay arguing historians should engage Wikipedia rather than ignore it.\n- **Editorial bias**: Wikipedia's editors skew male, English-speaking, Global-North — biases visible in coverage (Wikipedia's gender gap in biographies, lack of coverage of Global-South topics; Linda Tuhiwai Smith's *Decolonizing Methodologies* critique applies).\n- **Wikipedia as primary source**: increasingly historians study Wikipedia itself — edit histories, talk pages, controversies — as primary sources for early-21st-c knowledge production (Heather Ford *Writing the Revolution* 2022).\n- **Wikidata** + structured-data linking enables digital historians to integrate Wikipedia with traditional databases (catalogs, archives, prosopographies).\n\n**Future of the discipline**:\n- **Multilingual + global**: digital + AI tools enable history beyond the Anglophone canon; non-Western archives + voices increasingly accessible.\n- **Multimodal**: text + image + audio + 3D + GIS as integrated archive (cross-ref P64 archaeology + virtual reconstruction).\n- **Open + collaborative**: open archives, citizen-science transcription (Smithsonian Transcription Center, Old Weather), open peer review.\n- **Public + applied**: history podcasts (Mike Duncan, Hardcore History), museum + memorial work, climate-history advising policy (lesson 7).\n- **Critical + reflexive**: continued attention to archives' silences, gender + race + class + region biases, Indigenous data sovereignty (CARE principles), repatriation + restitution (cross-ref P43 archaeology repatriation).\n- **Anthropocene-scale + deep time**: integration with climate science, environmental science, evolutionary biology, archaeology, big history (David Christian *Maps of Time* 2004).\n- **AI-augmented + human-centered**: the historian's craft — source criticism, contextual reading, interpretive judgment, ethical engagement — remains central + cannot be automated. AI is an amplifier, not a replacement.\n\n**A summary of the path**: the eight lessons traced historiography (lesson 1), ancient civilizations (lesson 2), medieval + early modern (lesson 3), industrial + modern (lesson 4), social-economic (lesson 5), cultural + intellectual (lesson 6), global + environmental (lesson 7), + this lesson's digital + AI frontier. The discipline is methodologically pluralist, reflexive about its silences + biases, increasingly global + planetary in scope, + facing both the opportunities + the risks of computational + AI augmentation. The historian's task — to make the past intelligible to the present + future without distortion — is more urgent than ever in an age of climate, inequality, conflict, + machine-generated text. Herodotus + Sima Qian + Ibn Khaldun + Ranke + Bloch + Hobsbawm + Foucault + Scott + Chakrabarty + Rosenzweig are companions in that task."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dig_1",
+        "kind": "guided_derivation",
+        "question": "Design a distant-reading project + reason about its limits",
+        "goal": "You want to study how the language of 'rights' changed in British parliamentary debate 1800-2000 using ~1 million Hansard speeches. Design + critique the project.",
+        "steps": [
+          {
+            "prompt": "What's the corpus + the basic operationalization?",
+            "motivation": "Set up the analysis.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Hansard 1800-2000; count + collocation of 'rights' + related terms over time"
+              ]
+            },
+            "hints": [
+              "Corpus + features."
+            ],
+            "reveal": "Corpus: Hansard (UK Parliament debates), digitized + machine-readable from 1803 to present. ~1 million speeches. Operationalization: track frequency of 'rights' + 'right' + variants + collocations (rights-of, civil rights, human rights, animal rights, property rights) over time; track contexts (which speeches + which speakers + which committee, etc.); apply topic models to identify shifting clusters of 'rights talk'; build word embeddings per decade to track semantic drift."
+          },
+          {
+            "prompt": "What patterns might emerge — + what would they suggest?",
+            "motivation": "Findings + interpretation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "rise of 'human rights' post-1945; 'civil rights' post-1960s; 'animal rights' post-1970s; semantic drift"
+              ]
+            },
+            "hints": [
+              "Historical hypotheses."
+            ],
+            "reveal": "Likely patterns (hypothetical): (1) 'rights' usage rises after UDHR 1948 + decolonization; (2) 'human rights' as a phrase explodes post-1970s (Samuel Moyn *The Last Utopia* 2010 argues human-rights discourse is a 1970s invention, not a 1940s one); (3) 'civil rights' rises in UK debates around immigration + Northern Ireland in the 1960s-80s; (4) 'animal rights' + 'environmental rights' appear post-1970s; (5) older usages — 'rights of free-born Englishmen', natural rights — decline in absolute terms but reappear in specific debates. Embedding shift: words near 'rights' change — earlier ('liberty', 'property', 'free-born', 'subject'), later ('universal', 'human', 'international', 'minorities')."
+          },
+          {
+            "prompt": "What are the methodological risks?",
+            "motivation": "Critique.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Hansard biases; OCR errors; semantic drift; conflation of frequency with meaning; close-read validation needed"
+              ]
+            },
+            "hints": [
+              "What can go wrong?"
+            ],
+            "reveal": "Risks: (1) Hansard records *parliamentary* speech — biased toward elite + male + Anglo speakers; not representative of British 'rights talk' more broadly; (2) OCR + transcription errors for 19th-c digitized text introduce noise; (3) 'rights' is polysemous + drifts — counting tokens conflates meanings; topic modeling + embeddings help but don't fully resolve; (4) frequency does not equal salience or political weight; a small spike in a key debate may matter more than a high baseline; (5) Cambridge-school contextual reading (lesson 6, Skinner): what speakers were *doing* in invoking 'rights' is not captured by frequency. Best practice: distant reading to identify candidate patterns; close reading of representative speeches to interpret + ground; combined argument."
+          },
+          {
+            "prompt": "How would an AI / LLM tool help or hurt?",
+            "motivation": "Frontier integration.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "AI helps with semantic search + classification but risks fabrication + anachronism"
+              ]
+            },
+            "hints": [
+              "Underwood + risks."
+            ],
+            "reveal": "AI / LLM uses: (1) semantic search beyond keyword (find speeches semantically about 'rights' even without the word); (2) zero-shot classification (e.g., which speeches are about human vs property vs civil rights); (3) summarization of long debates; (4) translation of any non-English material (parliamentary committees referenced other countries). Risks: (1) LLM-generated 'analysis' may hallucinate trends or speakers; (2) classification depends on the LLM's training data + categories — modern human-rights framing may be back-projected; (3) source-grounding becomes harder to verify. Best practice (Underwood's lab + computational humanists): use AI as a tool for hypothesis generation + initial classification; verify with human close reading + traditional Cambridge-school contextual reading; disclose AI use; maintain auditable code + reproducible pipelines."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dig_1",
+        "kind": "multiple_choice",
+        "question": "What is the value + the risk of using LLMs (e.g., Claude, GPT-4) for historical archival research?",
+        "options": [
+          "Random.",
+          "**Value**: LLMs accelerate translation of low-resource + multilingual + archaic texts (early-modern Latin, Ottoman Turkish, Sanskrit, Chinese, Old Norse); summarize long primary sources; draft + improve scholarly prose; assist with OCR cleanup + HTR post-correction (Transkribus + eScriptorium); semantically search corpora beyond keyword matching; help non-specialists access source material previously requiring teams of trained paleographers; democratize archival access. **Risks**: (1) **hallucination** — LLMs fabricate citations, persons, dates, quotations with confidence — catastrophic in historical writing; (2) **anachronistic projection** — training on modern text projects modern categories backward (e.g., 'race', 'nation', 'human rights' as anachronistic frames); (3) **bias amplification** — training data privileges dominant historiographies + erases marginalized voices; (4) **citation laundering** — LLM 'references' look real but don't exist; (5) **deskilling** — over-reliance erodes paleography + language + archival skills; (6) **provenance** — distinguishing human + LLM authorship + interpretation becomes harder. **Best practice**: use LLMs as research assistants but verify every factual claim against primary sources; cite the human historian; disclose AI use; treat outputs as starting points, not authorities. The historian's craft of source criticism + contextual reading + ethical interpretation remains irreplaceable.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "LLMs help with translation, summarization, semantic search, OCR/HTR cleanup; risks include hallucination, anachronistic projection, bias amplification, citation laundering, deskilling. Use LLMs as research assistants but verify primary sources, cite human historians, disclose use. Historian's craft remains irreplaceable."
+      },
+      "hints": [
+        "Value + risk dimensions.",
+        "Hallucination is critical."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "LLMs accelerate translation + summarization + semantic search + OCR/HTR cleanup of low-resource archives. Risks: hallucination of citations + dates + quotations; anachronistic projection of modern categories backward; bias amplification (training data reflects dominant historiographies); citation laundering; deskilling. Best practice: use LLMs as research assistants but verify every claim against primary sources; cite human historians; disclose AI use; treat outputs as starting points. Historian's craft of source criticism + contextual reading + ethics remains irreplaceable."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_dig_1",
+        "kind": "scenario",
+        "question": "Designing a digital-history dissertation",
+        "prompt": "A PhD student proposes a dissertation: 'Networks of Translation in the Republic of Letters, 1660-1720: A Computational + Connected History'. Drawing on *Mapping the Republic of Letters* (Stanford), Moretti's distant reading, Underwood's computational humanities, Transkribus HTR, network analysis, + Subrahmanyam's connected histories (lesson 7), advise the student on the design. Address: (1) what archives + corpora (Royal Society correspondence, *Acta Eruditorum*, Spinoza letters, Mughal Persian + Arabic + Sanskrit translations in Europe + Asia) to integrate, (2) what computational + AI tools to use (HTR, NER, network analysis, LLM-assisted translation, GIS), (3) how to handle multilingual + multi-script sources, (4) how to interpret + critique algorithmic findings, (5) how to balance distant reading at corpus scale with close reading of key cases, and (6) what ethical + reflexive issues (training-data bias, hallucination, archive silences) the dissertation should address."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_dig_1",
+        "kind": "math_expression",
+        "question": "A historian has $N = 200000$ scanned 18th-c manuscript pages + wants to transcribe them with HTR (Transkribus). If the model achieves $96\\%$ character accuracy + a typical page is $\\sim 400$ characters, what is the expected number of character errors per page? Round to nearest integer.",
+        "acceptedAnswers": [
+          "16",
+          "0.04*400",
+          "(1-0.96)*400"
+        ],
+        "hint": "$(1 - 0.96) \\times 400 = 0.04 \\times 400 = 16$ errors per page. The lesson: even high-accuracy HTR introduces non-trivial errors per page, requiring human + algorithmic post-correction (eScriptorium, programming-historian workflows) + careful uncertainty quantification — especially before downstream NER + topic modeling + LLM analysis amplify the errors. The 4% error rate sounds small + is consequential at scale."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dig_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, explain how digital + AI methods are reshaping historical practice — opportunities + risks — + what the future of the discipline looks like.",
+        "rubric": "Mentions: Roy Rosenzweig + the Center for History and New Media pioneered digital history (Zotero, Omeka, *Digital History* 2005). Historical GIS + *Mapping the Republic of Letters* (Stanford) integrated geography + correspondence networks. Text mining + topic modeling (LDA) on archives, distant reading (Moretti *Distant Reading* 2013) at scale, computational text analysis (Underwood *Distant Horizons* 2019) reveal long-run patterns invisible to close reading. AI/HTR (Transkribus, eScriptorium) opens hand-written archives; LLMs help with translation + summarization + semantic search. Risks: hallucination of citations + facts; anachronistic projection; bias amplification; deskilling; provenance confusion. Wikipedia + Wikidata are de facto historical infrastructure (Rosenzweig 2006). Future: multilingual + global + multimodal + open + AI-augmented + critically reflexive. The historian's craft — source criticism, contextual reading, ethical interpretation — remains central. Concludes: methods are pluralizing; tasks are scaling; standards of evidence + reflexivity stay rigorous."
+      }
+    }
+  ]
+}
