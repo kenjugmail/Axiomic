@@ -1,0 +1,155 @@
+{
+  "slug": "inertial-confinement-and-nif",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Explain implosion physics.",
+      "Compare indirect/direct drive.",
+      "Interpret NIF ignition."
+    ],
+    "prereqs": [
+      "magnetic-confinement-and-lawson"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Inertial confinement: imploding a capsule to fusion conditions",
+      "body": "**Inertial Confinement Fusion (ICF)** — proposed by **John Nuckolls et al. 1972 Nature**: instead of long magnetic confinement at low density, achieve ultra-short confinement at extreme density using a capsule's own inertia.\n\n**Energy economy** — ICF gain ~ exp(scale × pressure × time) drives capsule design. Authoritative textbook: **Atzeni + Meyer-ter-Vehn, *The Physics of Inertial Fusion* (2004 Oxford)** — the field's standard reference.\n\n**Capsule + target physics**:\n- **Capsule**: ~2 mm diameter spherical shell of frozen DT ice (~30-100 μm thick) inside a thin (10s of μm) plastic/HDC/Be ablator.\n- **Compression**: ablation drive (laser, X-rays, ions) blows off the outer ablator → 'rocket effect' implodes the DT shell inward at ~300-400 km/s.\n- **Volume compression**: ~30-40× linear → ~30000-50000× volume → **density ~1000 g/cm³** (≈ 5000× solid DT, ≈ 5× lead density).\n- **Hot spot**: central ~30 μm region heats to T_i ~ 5-10 keV by adiabatic + shock compression.\n- **Ignition**: alpha particles deposit 3.5 MeV in hot spot; if ρR_hotspot ≳ 0.3 g/cm² (range of 3.5 MeV alpha), alpha heating ignites the surrounding dense fuel → propagating burn wave.\n\n**Confinement time**: τ ~ R/c_s ~ 10⁻¹⁰ s — femtoseconds compared to magnetic confinement's seconds. **n τ_E ~ 10²⁰ s/m³** is achieved with **n ~ 10³² m⁻³, τ ~ 10⁻¹⁰ s** — the **same Lawson product** as magnetic fusion, but in opposite (n, τ) corners.\n\n**Implosion drivers**:\n- **Laser direct drive**: focus laser on capsule surface; OMEGA (Rochester, 60 beams, 30 kJ UV); LMJ (France, 240 beams). Best laser-to-fuel coupling, but vulnerable to **laser-plasma instabilities** (SRS, SBS, cross-beam transfer) + drive asymmetry.\n- **Laser indirect drive**: laser hits inside of gold cylinder ('**hohlraum**') → ~300 eV blackbody X-rays drive capsule symmetrically. NIF approach. Loss: only ~1-2% laser energy → fuel, but **superior symmetry**.\n- **Heavy-ion fusion (HIF)**: ion accelerators drive capsules (HIBALL 1980s, no major program now).\n- **Z-pinch X-ray drive**: Sandia Z-machine (~27 MA, 200 ns pulse, ~2 MJ X-rays); ZR upgrade; magnetized-liner inertial fusion (MagLIF) — Sandia.\n- **Pulsed-power direct drive**: emerging concepts.\n\n**Failure modes**:\n- **Rayleigh-Taylor instability**: ablation surface (light pushing heavy) + decelerating interface (heavy pushing light) → finger-like spikes/bubbles seed mix.\n- **Drive asymmetry**: low-mode (l=2, l=4) distortions kill compression.\n- **Mix**: ablator + fuel contamination → bremsstrahlung losses, hot-spot cooling.\n- **Pre-heat**: hard X-rays + hot electrons heat fuel before compression → raises adiabat → lower ρ.\n- **Laser-plasma instabilities** (SRS, SBS, two-plasmon decay) — scatter laser energy.\n- **Implosion velocity** — must reach ~370 km/s for ignition; too low + no burn."
+    },
+    {
+      "kind": "text",
+      "title": "Indirect vs direct drive + alternative approaches",
+      "body": "**Indirect drive** — NIF approach:\n- 192 laser beams (1.05 μm IR → 0.351 μm UV via KDP crystal frequency tripling) total 1.9 MJ delivered in ~10 ns pulse.\n- Enter through **laser entrance holes (LEHs)** at top + bottom of cylindrical **gold hohlraum** ~10 mm × 5.5 mm.\n- Lasers heat hohlraum walls → radiate ~300 eV blackbody X-rays.\n- X-rays drive capsule symmetrically (~99% sphericity) via ablation.\n- **Trade-off**: ~1-2% laser energy reaches fuel (most lost to hohlraum walls + plasma); BUT high symmetry + reduced hydro instabilities + LPI control.\n- **Coast time, picket pulses, low-foot vs high-foot vs Hybrid-E** — capsule pulse shapes tuned to optimize hot-spot vs fuel ρR.\n\n**Direct drive** — OMEGA approach:\n- Lasers focused directly on capsule from many directions.\n- **OMEGA** (LLE Rochester, 1995–): 60 beams × 500 J UV = 30 kJ; scaled down NIF physics studies.\n- **LMJ** (Laser MégaJoule, CEA France, 2014–): 240-beam, 1.8 MJ — direct or indirect.\n- **HiPER**, **NIF Direct-Drive option**, **FIREX** (Japan) — research directions.\n- **Better coupling** (10-15%) but harder symmetry + LPI.\n\n**Alternative ignition schemes**:\n- **Fast ignition (FI)** (Max Tabak, LLNL 1994): separate compression + ignition; compress at low velocity (subsonic, less RT) then ignite with **PW laser pulse** producing relativistic electron beam that deposits energy in pre-compressed fuel. Research at **OMEGA-EP, ELI, FIREX-II**.\n- **Shock ignition (SI)** (Betti et al. 2007): compression + final intense shock spike just before stagnation.\n- **Magnetized liner inertial fusion (MagLIF)** (Slutz + Vesey 2012; Sandia): cylindrical Be liner + preheated magnetized DT fuel + Z-pinch implosion. Z-machine results 2014-present; promising path with lower driver requirements.\n- **Magneto-Inertial Fusion (MIF)** — General Fusion's **piston-driven liquid metal liner** (Vancouver, ~2027 prototype).\n- **Plasma jet driven MIF**.\n\n**Private ICF startups** (post-NIF ignition surge):\n- **Marvel Fusion** (Munich): laser ICF + advanced fuel.\n- **Focused Energy** (USA / Germany): direct-drive proton fast ignition + p-B11.\n- **Xcimer**: KrF excimer laser-driven ICF.\n- **Longview Fusion**: laser-IFE plant design.\n- **First Light Fusion** (UK, 2022 first 'fusion' demo; acquired 2024): projectile-driven inertial.\n- **HB11 Energy** (Australia): laser p-B11 avalanche.\n\n**Inertial Fusion Energy (IFE)** — power-plant-scale ICF needs ~10 Hz repetition rate, low-cost mass-produced capsules, neutron-tolerant chamber, tritium breeding. **LaserNetUS** (DOE, 2018–) networks high-intensity laser facilities. **DOE IFE program** restarted 2023 with three hubs (LLNL, Rochester, Colorado State)."
+    },
+    {
+      "kind": "text",
+      "title": "NIF Dec 5 2022: laboratory ignition + post-ignition era",
+      "body": "**National Ignition Facility (NIF)** — Lawrence Livermore National Lab (LLNL), Livermore CA. Construction 1997-2009 ($3.5 B); operational 2009 → ignition Dec 2022.\n- **192 beams**, frequency-tripled Nd:glass laser, 1.05 μm → 0.351 μm UV.\n- Up to **2.05 MJ delivered** (2024 upgrades target 2.6 MJ).\n- **Pulse ~10 ns**, ~500 TW peak power.\n- World's most energetic laser (NIF Title II announced 2025 plans for higher energies via SLI upgrade).\n\n**Progress narrative**:\n- **Hurricane et al. Nature 2014** ('high-foot' campaign): first **alpha-heating significance** — fusion alphas deposited more energy than other sources in fuel. Watershed: showed self-heating works.\n- **August 8 2021**: yield 1.35 MJ from 1.9 MJ → Q_target ≈ 0.7 ('threshold of ignition' — Lawson satisfied within capsule).\n- **December 5 2022**: **first laboratory ignition** — 3.15 MJ fusion yield from **2.05 MJ laser energy → Q_target = 1.54** (target gain). **Larger fusion energy out than laser energy delivered to target**. *Announced by DOE Secretary Granholm Dec 13 2022; widely covered as a 60-year milestone* (Hurricane, Kritcher, Zylstra et al.; Phys. Rev. Lett. 132 + Nature 2024).\n- **July 30 2023**: repeat 3.88 MJ (Q ≈ 1.9).\n- **Oct 30 2023**: 5.2 MJ (Q ≈ 2.5) (delayed announcement).\n- **Feb 12 2024**: 5.2 MJ confirmed; pursued additional capsule + drive optimizations.\n- 2024-2025: repeated multi-MJ shots — moving from single-event proof toward routine ignition.\n\n**Caveats** (target gain ≠ wall-plug gain):\n- Wall-plug efficiency ≈ 1% (electricity in / laser energy out at target) → wall-plug Q ≈ 0.015-0.025. Need ~30-100× more for power plant.\n- 1 shot/day → IFE needs ~10 Hz × continuously.\n- Capsule cost ~$100k each (one-off); IFE needs ¢/capsule at billions/year.\n- Chamber + tritium breeding + neutronics not addressed in NIF (single-shot research).\n\n**Why it matters anyway**:\n1. **Scientific validation**: demonstrated **alpha-driven self-sustaining fusion burn** in laboratory — the long-sought ignition criterion (Lawson, Nuckolls, Atzeni-MtV).\n2. **National security**: stockpile stewardship — NIF's primary mission, validates HE code calibration with experimental data.\n3. **Catalyzed private IFE** (Focused Energy, Marvel, Xcimer, Longview) + DOE IFE hubs program (2023+).\n4. **Inspired magnetic-confinement urgency** + SPARC/CFS path.\n5. **Cultural milestone**: 60-year ignition quest closed; opened question of *practical* fusion energy.\n\n**Open questions post-ignition**:\n- Repetition + reproducibility (single-shot to routine).\n- IFE drivers (diode-pumped solid state, KrF, fiber lasers) at 10-Hz × MJ.\n- Capsule fabrication economics.\n- Direct-drive vs indirect-drive for IFE.\n- Fast ignition path scaling.\n- Hybrid IFE-fission systems.\n- Reactor materials + chamber under MJ-class repetitive blasts.\n\nNIF ignition is the **inertial counterpart of JET's 59 MJ DTE2 (2022)** + (forthcoming) ITER Q=10 — collectively heralding the **2020s as the decade fusion became unambiguously real in the laboratory**, with the remaining work being engineering economics rather than physics demonstration."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_icf_1",
+        "kind": "guided_derivation",
+        "question": "Inertial confinement Lawson + hot-spot ignition",
+        "goal": "Show ICF satisfies n τ ~ Lawson at extreme density + low τ; derive ρR ignition threshold.",
+        "steps": [
+          {
+            "prompt": "ICF compressed DT: ρ = 1000 g/cm³ → n_DT?",
+            "motivation": "Number density.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~2.4e32 m^-3",
+                "~3e32 m^-3"
+              ]
+            },
+            "hints": [
+              "n = ρ N_A / m_molar. DT avg mass ~ 2.5 g/mol."
+            ],
+            "reveal": "ρ/m_DT = 10⁶ kg/m³ / (2.5 × 1.66×10⁻²⁷ kg) ≈ **2.4×10³² m⁻³**. About 12 orders of magnitude denser than tokamak plasma."
+          },
+          {
+            "prompt": "Confinement time τ ~ R/c_s. R=30 μm hot spot, c_s ~ 10⁶ m/s at 10 keV.",
+            "motivation": "Disassembly time.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~30 ps",
+                "3e-11 s"
+              ]
+            },
+            "hints": [
+              "30×10⁻⁶ m / 10⁶ m/s."
+            ],
+            "reveal": "τ ~ R/c_s ≈ 3×10⁻⁵/10⁶ = **3×10⁻¹¹ s = 30 ps**. Ultra-short — confinement is purely inertial (no magnetic insulation needed)."
+          },
+          {
+            "prompt": "Compute n τ + compare to Lawson.",
+            "motivation": "Lawson product.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~7e21 s/m^3; comfortably > Lawson 1.5e20"
+              ]
+            },
+            "hints": [
+              "n × τ = 2.4×10³² × 3×10⁻¹¹."
+            ],
+            "reveal": "n τ ≈ 2.4×10³² × 3×10⁻¹¹ ≈ **7×10²¹ s/m³** — well above Lawson ~1.5×10²⁰ → consistent with ignition. Triple product n T τ ≈ 7×10²¹ × 10 keV ≈ 7×10²² keV·s/m³ — order of magnitude over threshold."
+          },
+          {
+            "prompt": "Derive the ρR ignition criterion from alpha range.",
+            "motivation": "Need alphas to deposit in hot spot.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ρR ≳ 0.3 g/cm² so 3.5 MeV alpha range ≤ hot-spot radius"
+              ]
+            },
+            "hints": [
+              "Range of 3.5 MeV α in DT plasma."
+            ],
+            "reveal": "**Alpha range in DT** at ignition conditions is roughly 0.3 g/cm² (stopping power dominated by electrons at T~few keV; ~λ_α ≈ 30 μm at ρ=1000 g/cm³). **ρR_hotspot ≳ 0.3 g/cm²** ensures alphas deposit their 3.5 MeV inside hot spot → bootstrap heating → ignition + propagating burn into surrounding cold dense fuel. **Fuel ρR ≳ 1 g/cm²** for high gain (sustains burn fraction)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_icf_1",
+        "kind": "multiple_choice",
+        "question": "Why was NIF's Dec 5 2022 result called 'ignition' even though wall-plug efficiency was much less than unity?",
+        "options": [
+          "Random.",
+          "**Ignition** in ICF refers specifically to the **scientific criterion** that fusion energy from the target exceeds the laser energy *delivered to the target* (Q_target ≥ 1). NIF Dec 2022 delivered 2.05 MJ of UV laser energy → produced 3.15 MJ fusion yield → Q_target = 1.54. This satisfies the **Lawson criterion in the compressed capsule** + demonstrated **alpha self-heating dominant** for the first time in laboratory — meaning the fusion alphas heated the plasma more than the laser drive did. This 'scientific ignition' was a **~60-year milestone** (Nuckolls 1972 ICF proposal; Tabak 1994 fast ignition; Atzeni-MtV 2004; Hurricane 2014 alpha-heating; threshold approached 2021). NIF wall-plug efficiency ~1% (laser electricity → UV output) → wall-plug Q ~0.015 is a distinct **engineering** target for IFE power plants requiring ~30-100× more, plus 10-Hz operation + cheap capsules + tritium-breeding chambers — all unresolved engineering. The scientific question 'can we ignite fuel in the lab?' was settled.",
+          "Wrong.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Ignition criterion is Q_target ≥ 1 (fusion yield > laser energy at target). NIF 2022 hit 3.15 MJ / 2.05 MJ = 1.54 + showed alpha self-heating dominant for first time in lab — a ~60-year scientific milestone (Nuckolls 1972, Hurricane 2014). Wall-plug Q is a separate engineering question for IFE power plants (~1% wall efficiency → wall-plug Q ~ 0.015; need 30-100× more)."
+      },
+      "hints": [
+        "What does 'ignition' mean technically?",
+        "Why is wall-plug different?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "ICF ignition criterion = fusion yield > laser energy delivered to target (Q_target ≥ 1). NIF 2022: 3.15 MJ / 2.05 MJ = 1.54 → satisfies + demonstrated alpha self-heating dominant in lab (long-sought milestone since Nuckolls 1972, Hurricane 2014). Wall-plug Q ~ 0.015 (laser is ~1% efficient) is a separate engineering challenge for IFE power plants needing 30-100× more × 10 Hz + cheap capsules."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_icf_1",
+        "kind": "scenario",
+        "question": "Rayleigh-Taylor + drive symmetry on a NIF capsule",
+        "prompt": "An NIF capsule has 5% drive asymmetry (l=2 mode) + 1 μm RMS ablator surface roughness. Discuss (a) why low-mode asymmetry kills compression more than high-mode roughness; (b) ablation-front RT growth rate vs hot-spot deceleration RT; (c) how 'Hybrid-E' + 'Hi-Foot' capsule designs control RT via lower-density gradient + dopants; (d) why fast ignition or shock ignition might relax these constraints."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_icf_1",
+        "kind": "math_expression",
+        "question": "Write the hot-spot ρR ignition criterion.",
+        "acceptedAnswers": [
+          "rho R >= 0.3 g/cm^2",
+          "ρR ≳ 0.3 g/cm²",
+          "ρR > 0.3"
+        ],
+        "hint": "Alpha-particle range condition in compressed DT."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_icf_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why NIF's Dec 2022 ignition was a watershed for fusion + what it means + doesn't mean for fusion energy.",
+        "rubric": "Mentions: NIF (Livermore, 192 beams, 1.9 MJ UV) achieved **first laboratory ignition Dec 5 2022** — 3.15 MJ fusion from 2.05 MJ laser → Q_target = 1.54. Demonstrated **alpha self-heating dominance** for first time in lab (built on Hurricane 2014 alpha-heating significance; Nuckolls 1972 ICF proposal). Closed a ~60-year scientific question: can we ignite a capsule? Yes. Subsequent shots (Jul 2023 3.88 MJ; Oct 2023 5.2 MJ) reproduced + improved. **Caveats**: wall-plug efficiency ~1% → wall-plug Q ~ 0.015; IFE needs ~30-100× more × 10 Hz × cheap capsules × chamber materials + tritium breeding — large engineering gap. Catalyzed: DOE IFE hubs (2023), private ICF (Focused Energy, Marvel, Xcimer, Longview), magnetic-confinement urgency (SPARC, ITER). Concludes: 2022 ended the physics question + opened the engineering era — combined with JET 59 MJ + SPARC/ITER + W7-X, makes the 2020s the decade fusion became real."
+      }
+    }
+  ]
+}

@@ -188,6 +188,11 @@ const LazyHodgkinHuxleyAP = lazy(() =>
     (m) => ({ default: m.HodgkinHuxleyAP }),
   ),
 );
+const LazyLawsonCriterion = lazy(() =>
+  import("../../../../../packages/viz/src/components/LawsonCriterion").then(
+    (m) => ({ default: m.LawsonCriterion }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -320,6 +325,8 @@ function VizByName({
       return <LazyRamachandranPlot {...(props as object)} />;
     case "hodgkin-huxley-ap":
       return <LazyHodgkinHuxleyAP {...(props as object)} />;
+    case "lawson-criterion":
+      return <LazyLawsonCriterion {...(props as object)} />;
     default:
       return null;
   }

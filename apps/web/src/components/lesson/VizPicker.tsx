@@ -278,6 +278,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "⚡",
     tags: ["neuroscience", "biophysics", "electrophysiology", "computational-neuroscience"],
   },
+  {
+    name: "lawson-criterion",
+    label: "Lawson criterion (fusion)",
+    description: "Drag temperature + nτE; see ignition curve, breakeven, and where TFTR/JET/JT-60U/ITER/SPARC sit in plasma performance space.",
+    thumb: "🔥",
+    tags: ["plasma-physics", "fusion", "energy", "nuclear"],
+  },
 ];
 
 interface Props {

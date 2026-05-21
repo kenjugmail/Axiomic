@@ -1,0 +1,156 @@
+{
+  "slug": "single-particle-motion",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Compute Larmor radius.",
+      "Identify drifts.",
+      "Apply adiabatic invariants."
+    ],
+    "prereqs": [
+      "plasma-foundations-and-debye"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Larmor gyromotion: the fundamental orbit",
+      "body": "**Lorentz force**: F = q(E + v × B). In a uniform B with no E, a charged particle executes a **helical orbit** — circular motion in the plane perpendicular to B (gyromotion), uniform along B.\n\n**Cyclotron / gyrofrequency**:\n$$\\omega_c = \\frac{|q|B}{m}, \\quad f_c = \\frac{\\omega_c}{2\\pi}$$\n\nElectron cyclotron: f_{ce}[Hz] ≈ 28 × B[Gauss] × 10⁹ — so at B = 5 T tokamak field, f_{ce} ≈ 140 GHz (microwave heating uses ECRH at this frequency).\n\n**Larmor (gyro) radius**:\n$$r_L = \\frac{m v_\\perp}{|q| B}$$\n\nThis is the perpendicular orbit radius. Key examples:\n- **Tokamak ions** (1 keV D⁺, B=5 T): r_L,i ~ 0.6 mm.\n- **Tokamak electrons** (1 keV, B=5 T): r_L,e ~ 0.01 mm (60× smaller because m_e/m_p ~ 1/1836 + factor √m).\n- **Fast alpha particles** (3.5 MeV He²⁺ in ITER, B=5.3 T): r_L ~ 5.5 cm — significant fraction of minor radius!\n- **Solar wind protons** (~1 keV, B~5 nT at 1 AU): r_L ~ 100 km.\n- **Earth magnetosphere ring-current ions** (~50 keV, B~30 nT): r_L ~ 700 km.\n- **Cosmic-ray protons** (1 GeV, ISM B~1 μG): r_L ~ AU; (10²⁰ eV cosmic rays): r_L ~ 100 kpc — galaxy can't confine them (Hillas criterion for cosmic-ray origins).\n\n**Pitch angle**: tan α = v⊥/v∥. Particles with low pitch angle (mostly parallel) escape mirrors easily; high pitch angle (mostly perpendicular) are trapped.\n\n**Guiding center**: average position of the gyrating particle — the slow motion of the guiding center is what drift theory describes.\n\n**Magnetization** holds when r_L ≪ scale of B variation (L_B = |B/∇B|): then a particle 'sees' a locally uniform B + drift theory applies. Failure of this assumption → finite-Larmor-radius (FLR) corrections + gyrokinetic theory."
+    },
+    {
+      "kind": "text",
+      "title": "Drifts of the guiding center",
+      "body": "Add a slowly-varying second force/field on top of B → the guiding center **drifts** perpendicular to both. The general drift formula for a force F:\n$$\\mathbf{v}_d = \\frac{\\mathbf{F} \\times \\mathbf{B}}{q B^2}$$\n\n**E × B drift** (most important!):\n$$\\mathbf{v}_E = \\frac{\\mathbf{E} \\times \\mathbf{B}}{B^2}$$\n\n**Charge-independent + mass-independent** — electrons + ions drift together, no current. Magnitude E[V/m] / B[T] in m/s. Drives **plasma rotation** in tokamaks, **ionospheric convection**, **solar-wind interaction** with magnetospheres. The basis of **Hall thrusters** for spacecraft propulsion.\n\n**Grad-B drift** (gradient drift):\n$$\\mathbf{v}_{\\nabla B} = \\frac{m v_\\perp^2}{2 q B^3}(\\mathbf{B} \\times \\nabla B)$$\n\nDepends on charge sign → drives **current**. Comes from r_L being smaller in stronger-field regions of the orbit.\n\n**Curvature drift** (in curved field lines with radius R_c):\n$$\\mathbf{v}_R = \\frac{m v_\\parallel^2}{q B^2}\\frac{\\mathbf{R}_c \\times \\mathbf{B}}{R_c^2}$$\n\nAlso charge-dependent. In tokamaks the grad-B + curvature drifts together drive vertical charge separation → vertical E-field → outward E×B drift → unstable! Solved by the **rotational transform** (poloidal field) which short-circuits the charge separation.\n\n**Polarization drift** (time-varying E):\n$$\\mathbf{v}_p = \\frac{m}{q B^2}\\frac{d\\mathbf{E}_\\perp}{dt}$$\n\nMass-dependent → ion polarization drift ≫ electron → drives **polarization current** central to MHD inertia + lower-hybrid waves.\n\n**Gravitational drift**: v_g = (m/q)(g × B)/B². Tiny for fusion but important in **stellar plasmas + Earth's magnetosphere** (drives equatorial electrojet).\n\n**Diamagnetic drift** (fluid-only, no individual particle equivalent): v_d = -∇p × B/(nqB²) — appears in fluid description as collective effect of pressure gradient + finite r_L."
+    },
+    {
+      "kind": "text",
+      "title": "Adiabatic invariants + magnetic mirrors",
+      "body": "**Adiabatic invariants**: quantities conserved when the field varies slowly compared to the motion. Plasma has three classical invariants associated with the three periodicities of trapped-particle motion.\n\n**First invariant — magnetic moment μ**:\n$$\\mu = \\frac{m v_\\perp^2}{2 B}$$\n\nConserved when (∂B/∂t)/(ω_c B) ≪ 1 + spatial variation r_L|∇B|/B ≪ 1. Physical: magnetic flux through Larmor orbit. Conservation makes the particle act as a **little magnetic dipole**.\n\nConsequence: as a particle moves into stronger B (with energy conserved), v⊥² ∝ B grows → v∥² shrinks → particle slows + reverses. This is **magnetic mirroring**.\n\n**Loss cone** (mirror machine):\n$$\\sin^2\\theta_{lc} = \\frac{B_{min}}{B_{max}} = \\frac{1}{R_m}$$\n\nR_m = mirror ratio. Particles with pitch angle below θ_lc escape; otherwise trapped. **Mirror confinement** by itself is leaky (open field lines, ~constant loss-cone) — limited fusion utility (LLNL MFTF-B canceled 1986); but mirrors do confine planetary radiation belts spectacularly.\n\n**Second invariant — longitudinal action J**:\n$$J = \\oint m v_\\parallel \\, ds$$\n\nConserved over a full bounce between mirror points. Governs **bounce motion** of trapped particles + how they drift in azimuthal direction.\n\n**Third invariant — flux Φ**:\n$$\\Phi = \\oint \\mathbf{A} \\cdot d\\boldsymbol{\\ell}$$\n\nMagnetic flux enclosed by full drift orbit around the system. Conserved over the slow azimuthal drift. Broken by storm-time field changes → radial diffusion of radiation belt particles.\n\n**Van Allen radiation belts** (James Van Allen, **Explorer 1, 1958** — first US satellite + first major space discovery!): inner belt (protons ~10-100 MeV) + outer belt (electrons ~MeV) trapped by Earth's dipole field via μ + J + Φ conservation. Particles **bounce** between magnetic mirrors near the poles (period ~seconds) + **drift** azimuthally (ions westward, electrons eastward — the **ring current** that depresses Earth's surface field during magnetic storms; period ~minutes).\n\n**Loss cone + auroras**: pitch-angle scattering by VLF waves + whistlers pushes particles into the loss cone, where they precipitate into the upper atmosphere → **auroras** (~100-300 km altitude). **Substorm injection** dumps fresh plasma sheet particles via reconnection. Particle precipitation rate determines auroral brightness."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_spm_1",
+        "kind": "guided_derivation",
+        "question": "Compute Larmor radius + E×B drift in ITER edge plasma",
+        "goal": "Edge plasma B = 5 T, T_i = 100 eV, E_r = 30 kV/m radial electric field. Compute (a) r_L for thermal D⁺; (b) v_E; (c) Mach number; (d) parallel transit time across 5 m.",
+        "steps": [
+          {
+            "prompt": "Compute thermal v⊥ for 100 eV D⁺ (m = 3.34×10⁻²⁷ kg).",
+            "motivation": "Need v⊥ for r_L.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~100 km/s",
+                "1.0e5 m/s"
+              ]
+            },
+            "hints": [
+              "(1/2) m v² = k_B T → v = √(2k_B T/m). 100 eV = 1.6×10⁻¹⁷ J."
+            ],
+            "reveal": "v_th = √(2 × 1.6×10⁻¹⁷ / 3.34×10⁻²⁷) ≈ √(9.6×10⁹) ≈ **9.8×10⁴ m/s ≈ 100 km/s**. Often use v_th = √(k_B T/m) for 1D thermal speed."
+          },
+          {
+            "prompt": "Compute r_L = m v⊥/(qB).",
+            "motivation": "Larmor radius.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~0.4 mm",
+                "~4e-4 m"
+              ]
+            },
+            "hints": [
+              "r_L = 3.34×10⁻²⁷ × 10⁵ / (1.6×10⁻¹⁹ × 5)."
+            ],
+            "reveal": "r_L = (3.34×10⁻²⁷ × 9.8×10⁴) / (1.6×10⁻¹⁹ × 5) = 3.27×10⁻²² / 8×10⁻¹⁹ ≈ **4.1×10⁻⁴ m ≈ 0.4 mm**. Tiny compared to ITER's 2 m minor radius → magnetization holds for thermal ions."
+          },
+          {
+            "prompt": "Compute v_E = E/B in m/s + compare to v_th.",
+            "motivation": "E×B drift speed.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "6000 m/s; M_E ~ 0.06"
+              ]
+            },
+            "hints": [
+              "v_E = 30000 V/m / 5 T."
+            ],
+            "reveal": "v_E = 30000/5 = **6000 m/s = 6 km/s**. Mach number M_E = v_E/v_th ≈ 6/100 = 0.06 — subsonic E×B rotation. Edge poloidal flow in real tokamaks can reach M ~ 0.1-0.3 driven by ∇p_i + neoclassical transport — important for L-H transition + edge transport barriers."
+          },
+          {
+            "prompt": "Parallel transit time for v∥ = v_th across 5 m connection length.",
+            "motivation": "Compare to collision + bounce times.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~50 μs",
+                "5e-5 s"
+              ]
+            },
+            "hints": [
+              "L/v∥ = 5 / 1×10⁵."
+            ],
+            "reveal": "τ_∥ = L/v∥ ≈ 5/10⁵ = **5×10⁻⁵ s = 50 μs**. Compare to E×B rotation period for 1 m circuit: 1/6×10³ ≈ 170 μs. Compare to gyroperiod 2π/ω_c ≈ 2π × 3.34×10⁻²⁷/(1.6×10⁻¹⁹×5) ≈ 26 ns. Strong scale separation gyromotion ≪ transit ≪ E×B rotation — the adiabatic / drift expansion is excellent."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_spm_1",
+        "kind": "multiple_choice",
+        "question": "Why is the E × B drift independent of charge + mass?",
+        "options": [
+          "Wrong.",
+          "From the drift formula v_d = (F×B)/(qB²) with F = qE: the charge cancels, giving v_E = (E×B)/B² independent of charge sign + magnitude. Physically: a positive ion accelerates in the +E direction, gains v∥E, then curves under v×B back the other way; the net guiding-center motion is sideways (perpendicular to both E + B) with the same speed regardless of mass — the cycloid orbits just have different sizes (r_L ∝ m). Electrons + ions drift **together**, so no current — only **transport**. This is fundamental to tokamak rotation (poloidal + toroidal flow shear), ionospheric convection (driven by solar-wind E field mapped down field lines), Hall thrusters (E×B confines electrons, accelerates ions axially), and magnetospheric plasma drift patterns. **Mass-dependent drifts** (grad-B, curvature, polarization, gravity) drive currents.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "v_E = E×B/B² is independent of q + m because the q cancels with the qE force. Electrons + ions drift together → no current, only bulk transport. Drives tokamak rotation, ionospheric convection, Hall thrusters, magnetospheric circulation. Mass/charge-dependent drifts (∇B, curvature, polarization, g) drive currents instead."
+      },
+      "hints": [
+        "Plug F = qE into v_d = F×B/(qB²).",
+        "What does charge-independence imply for currents?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Using v_d = F×B/(qB²) with F = qE: q cancels → v_E = E×B/B² depends only on field configuration. Both ion + electron drift identically (no current, just transport). Underlies tokamak rotation, ionospheric convection, Hall thrusters, magnetospheric drift. Charge/mass-dependent drifts (∇B, curvature, polarization, gravity) instead drive currents."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_spm_1",
+        "kind": "scenario",
+        "question": "Designing a magnetic mirror confinement device",
+        "prompt": "You're designing a magnetic mirror with central field B_min = 1 T + throat field B_max = 5 T (mirror ratio R_m = 5). For an isotropic Maxwellian distribution at T = 1 keV: (a) compute the loss-cone angle θ_lc; (b) estimate the fractional loss per bounce; (c) explain why this makes steady-state fusion confinement difficult vs a closed-field tokamak; (d) why do Van Allen belts trap particles for years despite being a mirror?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_spm_1",
+        "kind": "math_expression",
+        "question": "Write the first adiabatic invariant (magnetic moment).",
+        "acceptedAnswers": [
+          "mu = m v_perp^2 / (2 B)",
+          "μ = m v⊥² / (2B)",
+          "(1/2)m v_perp^2 / B"
+        ],
+        "hint": "Perpendicular kinetic energy divided by magnetic field strength."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_spm_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how single-particle motion in magnetized plasma decomposes into gyromotion + guiding-center drifts + adiabatic invariants.",
+        "rubric": "Mentions: Lorentz force F = qE + qv×B gives fast circular gyromotion at ω_c = qB/m with Larmor radius r_L = mv⊥/(qB); guiding center is the average position. Slow forces drive drifts: E×B drift (charge-independent, drives transport not current), grad-B + curvature + polarization + gravity drifts (charge-dependent, drive currents). Three adiabatic invariants — magnetic moment μ = mv⊥²/(2B) (gyro), longitudinal J = ∮mv∥ds (bounce), flux Φ (drift) — conserved when fields vary slowly. μ conservation gives mirror trapping: particles with sin²θ < B_min/B_max escape the loss cone; Van Allen belts (Explorer 1, 1958) trap radiation-belt particles for years. Concludes: this hierarchy — gyromotion ≪ bounce ≪ drift periods — underlies all magnetic confinement + space plasma physics + leads to gyrokinetics + drift theory."
+      }
+    }
+  ]
+}

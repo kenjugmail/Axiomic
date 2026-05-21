@@ -37,6 +37,7 @@ export { RadiocarbonDecay } from "./components/RadiocarbonDecay";
 export { AlignmentMatrix } from "./components/AlignmentMatrix";
 export { RamachandranPlot } from "./components/RamachandranPlot";
 export { HodgkinHuxleyAP } from "./components/HodgkinHuxleyAP";
+export { LawsonCriterion } from "./components/LawsonCriterion";
 export { SoftmaxTemperatureSlider } from "./quiz/SoftmaxTemperatureSlider";
 export { AttentionHeatmapExplorer } from "./quiz/AttentionHeatmapExplorer";
 export { GradientDescent2D } from "./quiz/GradientDescent2D";

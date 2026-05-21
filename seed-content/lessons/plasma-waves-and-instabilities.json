@@ -1,0 +1,154 @@
+{
+  "slug": "plasma-waves-and-instabilities",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Map plasma waves.",
+      "Explain Landau damping.",
+      "Identify instabilities."
+    ],
+    "prereqs": [
+      "fluid-and-kinetic-descriptions"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Electrostatic plasma waves",
+      "body": "Plasma supports a rich zoo of waves classified by (i) electrostatic vs electromagnetic, (ii) parallel vs perpendicular to B, (iii) ion vs electron timescales. Dispersion relations + polarizations are summarized in the **CMA (Clemmow-Mullaly-Allis) diagram** — parameter map in (ω_p/ω, ω_c/ω) plane.\n\n**Langmuir oscillations** (Irving Langmuir + Lewi Tonks 1929) — the **eponymous plasma oscillation**:\n$$\\omega_p = \\sqrt{\\frac{n_e e^2}{\\varepsilon_0 m_e}}$$\n\nElectron displacement creates restoring electric field → harmonic oscillation. Numerically: **f_p[Hz] ≈ 8980 × √(n_e[cm⁻³])** → 9 MHz for n = 10⁶ cm⁻³ ionosphere, 56 GHz for n = 10⁸ cm⁻³ tokamak edge, 280 THz for solid-density laser-plasma. Defines the **plasma cutoff** for EM-wave propagation (ω < ω_p → wave reflected; ionosphere HF reflection works because f_p ~ 10 MHz in the F-layer).\n\n**Bohm-Gross dispersion** with thermal correction:\n$$\\omega^2 = \\omega_p^2 + 3 k^2 v_{th,e}^2$$\n\n**Ion acoustic waves** — slow electrostatic mode (ions oscillate, electrons screen):\n$$\\omega = k c_s, \\quad c_s = \\sqrt{\\frac{\\gamma_e k_B T_e + \\gamma_i k_B T_i}{m_i}}$$\n\nLow-frequency 'sound waves' in plasma. Drive **Bohm sheath criterion** at boundaries + appear in ICF coupling, drift turbulence, solar wind.\n\n**Bernstein modes** (Ira Bernstein 1958) — purely perpendicular electrostatic modes in magnetized plasma at harmonics of ω_c. Used in **electron Bernstein wave (EBW) heating** in spherical tokamaks (overdense plasmas where ECRH is cut off).\n\n**Trivelpiece-Gould modes** — bounded plasma cylinder waves; foundation of Trivelpiece-Gould tube experiments + non-neutral plasma diagnostics.\n\n**Dust-acoustic + dust-Coulomb waves** — extra branches in **dusty / complex plasmas** (charged microparticles); Nobel-relevant work by **Lin I + Goree** on 'plasma crystals'.\n\n**Beam modes**: longitudinal modes of a streaming beam can couple resonantly with plasma waves → **two-stream instability** (next slide)."
+    },
+    {
+      "kind": "text",
+      "title": "Electromagnetic waves + Alfvén modes",
+      "body": "**Alfvén waves** (Hannes Alfvén 1942 PRL; Nobel 1970) — magnetic field lines as taut strings:\n$$v_A = \\frac{B}{\\sqrt{\\mu_0 \\rho}}$$\n\nIncompressible **shear Alfvén** wave: transverse oscillation polarized perpendicular to k + B, propagates along B. **Compressional (magnetosonic / fast)** wave: pressure-like, propagates perpendicular to B.\n\nTypical v_A:\n- **Tokamak**: ~10⁶-10⁷ m/s.\n- **Solar corona**: ~10⁶ m/s.\n- **Solar wind**: ~50 km/s.\n- **Magnetosphere**: highly variable.\n- **Relativistic** plasma (pulsar magnetosphere): v_A → c.\n\n**Magnetosonic waves** in MHD: fast + slow + intermediate (shear Alfvén) — Friedrichs diagrams of phase + group velocity reveal anisotropy.\n\n**Toroidal Alfvén Eigenmodes (TAEs) + RSAEs + EPMs** — discrete modes in tokamak geometry resonantly excited by **energetic particles** (alphas in ITER, NBI ions). Cause **alpha-particle loss + redistribution** — major ITER concern. Diagnosed via **fast Alfvén wave reflectometry** + magnetic pickup coils + ECE.\n\n**Whistler waves** — right-hand circularly polarized, ω < ω_ce/2, originally heard as descending whistles in WWI telegraph wires (Eckersley 1925; Storey 1953):\n$$\\omega \\approx \\frac{\\omega_{ce} k^2 c^2}{\\omega_{pe}^2 + k^2 c^2}\\cos\\theta$$\n\n**Lightning generates VLF whistlers** that propagate along magnetic field lines, bounce in magnetospheric **plasmaspheric ducts**, and drive **auroral electron precipitation**. **Chorus + hiss waves** in radiation belts accelerate + scatter electrons (Van Allen Probes 2012-2019).\n\n**Cold-plasma EM modes** in magnetized plasma — Stix notation:\n- **O-mode (ordinary)**: E ∥ B; cutoff at ω = ω_p.\n- **X-mode (extraordinary)**: E ⊥ B; cutoffs at ω_R + ω_L (right + left hand); resonance at upper-hybrid ω_UH = √(ω_p² + ω_c²).\n- **R + L modes** for parallel propagation.\n\n**Cutoffs vs resonances**: at cutoff ω = ω_p or ω_R — wave reflected (n² → 0); at resonance ω = ω_c, ω_UH, ω_LH — wave absorbed (n² → ∞). Used in **ICRH (ion cyclotron), ECRH (electron cyclotron), LH (lower hybrid) heating** + current drive in tokamaks.\n\n**Ionospheric HF reflection** — radio at f < f_p of F-layer (~5-15 MHz) is reflected → shortwave radio, OTH radar (over-the-horizon). Higher-frequency satellite signals pass through."
+    },
+    {
+      "kind": "text",
+      "title": "Landau damping + instabilities",
+      "body": "**Landau damping** (Lev Landau **1946 JETP**) — collisionless wave damping by resonant particles even without collisions. Particles with v ≈ ω/k exchange energy with wave: if more particles are slower than wave (∂f/∂v < 0) → net energy from wave to particles → wave **damps**. If more are faster (∂f/∂v > 0, beam) → **growth** (inverse Landau damping, two-stream instability).\n\nDamping rate for Langmuir wave on Maxwellian:\n$$\\gamma_L \\sim -\\sqrt{\\pi/8}\\, \\omega_p\\, (k\\lambda_D)^{-3} \\exp\\!\\left(-\\frac{1}{2(k\\lambda_D)^2} - \\frac{3}{2}\\right)$$\n\nExperimentally confirmed by **Malmberg + Wharton 1964 PRL** — landmark validation of collisionless plasma kinetic theory. Generalizes to **transit-time damping** + **cyclotron damping** in magnetized plasmas. Foundation of plasma heating + current drive: deliver wave at v_φ ≈ tail-particle velocity to selectively heat or push electrons (ECCD, LHCD).\n\n**Two-stream instability** (Pierce 1948, Bohm + Gross 1949): two counter-streaming electron beams or beam + plasma → unstable Langmuir mode → exponential growth + nonlinear saturation via **particle trapping** + **wave breaking**. Foundation of klystrons, free-electron lasers, beam-plasma physics.\n\n**Bump-on-tail instability** (Drummond 1962): a Maxwellian with a high-velocity bump (e.g. NBI fast ions) drives Langmuir-wave growth via inverse Landau damping. **Quasi-linear diffusion** flattens the bump — workhorse model of Langmuir turbulence + alpha-driven Alfvén modes.\n\n**Weibel instability** (Erich Weibel 1959) — anisotropic distribution (T_⊥ ≠ T_∥ or counter-streaming) → spontaneous filamentation + magnetic-field generation. Key in **collisionless shocks** (supernova remnants, GRB external shocks, ICF imploding shells), **cosmic-ray scattering**, **astrophysical magnetic-field origin** (Schlickeiser, Spitkovsky).\n\n**Drift-wave + ITG/ETG instabilities** — driven by ∇n + ∇T in magnetized plasma — **dominate anomalous transport in tokamaks** (Horton 1999 RMP, Garbet 2010 RMP).\n\n**Rayleigh-Taylor / interchange / ballooning** — pressure-driven; flute-mode geometry. Limits high-β tokamak operation; constrains stellarator design (Mercier criterion).\n\n**Kink + tearing modes** — current-driven; m=1 kink causes **sawtooth crashes** (Kadomtsev 1975 reconnection model); higher-m tearing modes form **magnetic islands** + **NTMs (neoclassical tearing modes)** — major ITER risk, controlled by ECCD at q=3/2 + 2/1 surfaces.\n\n**Magnetic reconnection** — change of magnetic topology via finite resistivity (or Hall + inertia in collisionless regime). **Sweet-Parker** (1957/58): rate ~ 1/√S where S = Lundquist number (S ~ 10⁸-10¹² in fusion; ~10¹³ solar corona) — way too slow. **Petschek** (1964): faster, with X-point + slow shocks — but unstable to thinning. **Collisionless / Hall reconnection** — rate ~ 0.1 v_A, observed by **MMS (Magnetospheric Multiscale, 2015–)** — explains fast solar flares + substorm onset.\n\n**Disruptions** in tokamaks: catastrophic loss of confinement → vessel-melting heat loads + halo currents + **runaway electrons** (up to 10s of MeV). Mitigation: **massive gas injection** (MGI), **shattered pellet injection** (SPI) — ITER's primary disruption mitigation system."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_wav_1",
+        "kind": "guided_derivation",
+        "question": "Derive the Langmuir frequency from fluid model",
+        "goal": "Linearize 1D fluid + Poisson for cold electrons + show ω = ω_p.",
+        "steps": [
+          {
+            "prompt": "Write linearized continuity for n_e1.",
+            "motivation": "First-order density perturbation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "∂n1/∂t + n0 ∂u1/∂x = 0"
+              ]
+            },
+            "hints": [
+              "Continuity ∂n/∂t + ∂(nu)/∂x = 0 with n = n0 + n1, u = u1."
+            ],
+            "reveal": "∂n_1/∂t + n_0 ∂u_1/∂x = 0. For plane waves ∝ exp(i(kx - ωt)): -iω n_1 + i k n_0 u_1 = 0 → n_1 = (k n_0/ω) u_1."
+          },
+          {
+            "prompt": "Linearized momentum (cold electrons, no pressure).",
+            "motivation": "Force balance.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "m ∂u1/∂t = -e E1",
+                "u1 = -ieE1/(m ω)"
+              ]
+            },
+            "hints": [
+              "m_e ∂u/∂t = -e E (cold limit drops pressure)."
+            ],
+            "reveal": "m_e ∂u_1/∂t = -e E_1 → -iω m_e u_1 = -e E_1 → **u_1 = -i e E_1/(m_e ω)**."
+          },
+          {
+            "prompt": "Use Poisson ∂E1/∂x = -e n1/ε0 to relate E1, n1.",
+            "motivation": "Closing the loop.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ik E1 = -e n1/ε0 → E1 = i e n1/(k ε0)"
+              ]
+            },
+            "hints": [
+              "Plane-wave Poisson: ikE = -en1/ε0."
+            ],
+            "reveal": "Plane-wave Poisson: i k E_1 = -e n_1/ε_0 → **E_1 = i e n_1/(k ε_0)**."
+          },
+          {
+            "prompt": "Combine to get dispersion relation ω².",
+            "motivation": "Eliminate u_1, E_1, n_1.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ω² = n0 e²/(ε0 m_e) = ω_p²"
+              ]
+            },
+            "hints": [
+              "Substitute u_1 from momentum into continuity; substitute E_1 from Poisson."
+            ],
+            "reveal": "From continuity: n_1 = (k n_0/ω) u_1 = (k n_0/ω) × (-i e E_1/(m_e ω)) = -i k n_0 e E_1/(m_e ω²). Substitute E_1 = i e n_1/(k ε_0): n_1 = -i k n_0 e (i e n_1/(k ε_0))/(m_e ω²) = n_0 e² n_1/(ε_0 m_e ω²). Divide by n_1: 1 = n_0 e²/(ε_0 m_e ω²) → **ω² = n_0 e²/(ε_0 m_e) = ω_p²**. Independent of k in cold-plasma limit; finite-T adds Bohm-Gross term 3k²v_th²."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_wav_1",
+        "kind": "multiple_choice",
+        "question": "Why does Landau damping occur without collisions, and why was its 1964 experimental verification important?",
+        "options": [
+          "Random.",
+          "**Landau** (1946 JETP) showed by contour-integral analysis that Langmuir waves on a Maxwellian distribution **decay even with zero collisions**: resonant particles with v ≈ ω/k surf the wave, exchanging energy. If ∂f/∂v < 0 at v_phase (most Maxwellians), more particles gain than lose energy → wave damps. The result was initially **controversial** because it violated time-reversal-invariant Vlasov equations + had no dissipation source — the asymmetry comes from initial-value treatment + analytic continuation of the dispersion relation. **Malmberg + Wharton 1964 PRL** observed it directly in Q-machine experiments, vindicating Landau's analysis + confirming that the **Vlasov equation correctly describes collisionless plasma kinetics**. Foundation for **collisionless heating** (ECRH, LHCD, ICRH), **wave-particle resonance** physics, **alpha-particle interactions with TAEs**, and **collisionless plasma astrophysics** (solar wind, accretion flows).",
+          "Wrong.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Landau damping (1946) = collisionless damping by resonant particles (v ≈ ω/k); arises from initial-value treatment + ∂f/∂v < 0 at v_phase. Controversial until Malmberg + Wharton (1964 PRL) measured it directly. Foundation for collisionless plasma physics + RF heating + alpha-TAE interactions."
+      },
+      "hints": [
+        "What's special about particles with v ≈ ω/k?",
+        "Why was the experimental verification a big deal?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Landau (1946) showed that initial-value treatment of Vlasov + Poisson gives a complex frequency with imaginary part proportional to ∂f/∂v at v = ω/k. For Maxwellians ∂f/∂v < 0 there → damping. Mechanism: resonant particles surf the wave, net energy transfer from wave (slower particles) to particles. Malmberg + Wharton (1964 PRL) confirmed experimentally → established collisionless kinetic theory + opened wave-particle physics for heating, alpha-Alfvén interactions, solar wind physics."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_wav_1",
+        "kind": "scenario",
+        "question": "Tearing modes + NTMs in ITER",
+        "prompt": "ITER plans to operate near β_N ~ 1.8 in H-mode with q_min > 1. Neoclassical tearing modes (NTMs) at the q = 3/2 + 2/1 surfaces could form magnetic islands that flatten pressure + degrade confinement. Describe (a) why bootstrap current drives NTMs (Carrera-Hazeltine-Kotschenreuther), (b) the Δ' island-width equation, (c) ECCD stabilization at the island O-point, (d) why disruptions from locked NTMs threaten the vessel."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_wav_1",
+        "kind": "math_expression",
+        "question": "Write the Alfvén speed.",
+        "acceptedAnswers": [
+          "v_A = B / sqrt(mu_0 rho)",
+          "v_A = B / √(μ₀ ρ)",
+          "B/sqrt(mu0*rho)"
+        ],
+        "hint": "Magnetic field divided by sqrt(permeability × mass density)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_wav_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why plasmas support such a rich wave + instability zoo + why Landau damping changed plasma kinetic theory.",
+        "rubric": "Mentions: plasmas have many coupled degrees of freedom (E, B, j, ρ_e, ρ_i, p_e, p_i, anisotropy, drift, beam) → many wave branches: electrostatic (Langmuir, ion-acoustic, Bernstein), electromagnetic (Alfvén shear/compressional, magnetosonic, whistler, R/L/O/X), and instabilities (two-stream, bump-on-tail, Weibel, Rayleigh-Taylor, drift, ITG/ETG, tearing, kink, ballooning). Landau (1946) showed collisionless damping — controversial until Malmberg + Wharton (1964 PRL) verified it. Established Vlasov as correct collisionless theory + wave-particle resonance as central paradigm (Landau, transit-time, cyclotron damping). Underpins RF heating (ECRH/LHCD/ICRH), alpha-Alfvén interactions, magnetic reconnection, drift turbulence, collisionless shocks. Concludes: plasma waves connect microscale (gyrokinetics) + macroscale (MHD reconnection); Landau damping unified them by showing dissipation can emerge without collisions — central to modern plasma astrophysics + fusion."
+      }
+    }
+  ]
+}

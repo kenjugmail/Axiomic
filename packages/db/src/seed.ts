@@ -1952,6 +1952,31 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P47 — Plasma Physicist path. Plasma fundamentals + Debye/Langmuir
+  // through fluid + kinetic descriptions + waves + magnetohydrodynamics
+  // + magnetic confinement (tokamak/stellarator) + Lawson + ICF (the
+  // viz anchor) + plasma diagnostics + astrophysical plasmas + space
+  // weather + low-T applications. The plasma stack end-to-end.
+  // Distinct from nuclear-engineer (P31, fission reactors), atmospheric-
+  // scientist (P33, neutral atmospheres), photonics-engineer (P36,
+  // optics/lasers).
+  seedMasteryPath({
+    slug: "plasma-physicist",
+    title: "Plasma Physicist",
+    description:
+      "From plasma foundations + Debye/Langmuir + quasi-neutrality through single-particle motion (gyromotion + drifts + mirrors), fluid + kinetic descriptions (Vlasov + Boltzmann + two-fluid + MHD), plasma waves (Langmuir, Alfvén, whistlers, Landau damping), magnetic confinement fusion + tokamak/stellarator + Lawson criterion (with interactive ignition viz) + JET/ITER/SPARC, inertial confinement + NIF ignition Dec 2022, plasma diagnostics (Langmuir probes, Thomson scattering, interferometry, neutron yield), astrophysical + space plasmas (solar wind + magnetospheres + accretion + reconnection), and low-temperature + industrial plasmas (etching, thrusters, medical, fusion-startup). The plasma stack end-to-end.",
+    nodes: [
+      { slug: "plasma-foundations-and-debye", title: "Foundations + Debye", level: "apprentice", order: 1, pages: ["fourth-state-langmuir", "debye-screening", "plasma-parameter-criteria"], prereqs: [], description: "Plasma as 4th state of matter + Langmuir 1928 + ionization + applications; Debye length + screening + quasi-neutrality; plasma parameter Λ + 3 criteria (λ_D ≪ L, N_D ≫ 1, ωτ ≫ 1) + Saha equation." },
+      { slug: "single-particle-motion", title: "Single-Particle Motion", level: "practitioner", order: 2, pages: ["gyromotion-larmor", "drifts-grad-b-curvature", "adiabatic-invariants-mirrors"], prereqs: ["plasma-foundations-and-debye"], description: "Larmor gyration + cyclotron frequency + Lorentz force; E×B + grad-B + curvature + polarization drifts; adiabatic invariants (μ, J, Φ) + magnetic mirrors + loss cones + Van Allen belts." },
+      { slug: "fluid-and-kinetic-descriptions", title: "Fluid + Kinetic Descriptions", level: "practitioner", order: 3, pages: ["vlasov-boltzmann", "two-fluid-and-mhd", "transport-coefficients"], prereqs: ["single-particle-motion"], description: "Vlasov + Boltzmann + BBGKY hierarchy + collision operators; two-fluid + ideal MHD + frozen-in flux + Alfvén theorem; collisional transport + Braginskii + Spitzer resistivity + thermal conductivity." },
+      { slug: "plasma-waves-and-instabilities", title: "Waves + Instabilities", level: "specialist", order: 4, pages: ["electrostatic-langmuir-ion", "em-alfven-whistler", "landau-damping-instabilities"], prereqs: ["fluid-and-kinetic-descriptions"], description: "Langmuir + ion-acoustic + Bernstein modes + dispersion; EM waves (Alfvén, magnetosonic, whistler, R/L/O/X) + cutoffs + resonances; Landau damping (Vlasov 1946 / Landau 1946) + two-stream + Weibel + interchange + drift-wave instabilities." },
+      { slug: "magnetic-confinement-and-lawson", title: "Magnetic Confinement + Lawson", level: "specialist", order: 5, pages: ["confinement-concepts", "tokamak-stellarator-pinches", "lawson-and-machines"], prereqs: ["plasma-waves-and-instabilities"], description: "Confinement requirements + β + safety factor q + Greenwald density limit; tokamak (Soviet 1960s, JET, JT-60U, KSTAR) + stellarator (W7-X) + Z-pinch + RFP + compact alternatives; Lawson criterion + triple product + interactive viz + JET 1997/2022 + ITER + SPARC + Wendelstein." },
+      { slug: "inertial-confinement-and-nif", title: "Inertial Confinement + NIF", level: "expert", order: 6, pages: ["icf-implosion-physics", "hohlraum-and-direct-drive", "nif-ignition-2022"], prereqs: ["magnetic-confinement-and-lawson"], description: "Implosion physics + Rayleigh-Taylor + hot-spot ignition + Atzeni-Meyer-ter-Vehn; indirect-drive hohlraum + LMJ + direct-drive OMEGA + fast/shock ignition; NIF Dec 2022 fusion ignition (Q_target=1.5) + 192 beams + Hurricane 2014 alpha-heating + path to IFE." },
+      { slug: "diagnostics-and-experimental", title: "Diagnostics + Experimental Methods", level: "expert", order: 7, pages: ["langmuir-and-spectroscopy", "thomson-and-interferometry", "neutron-fast-ion"], prereqs: ["plasma-waves-and-instabilities"], description: "Langmuir probes + emissive + Mach + spectroscopy (Doppler, Stark, Zeeman) for T_e + n_e + impurities; Thomson scattering + interferometry + reflectometry + polarimetry; neutron + gamma diagnostics + NPA + collective Thomson + ITER diagnostic suite." },
+      { slug: "astrophysical-and-low-temperature-plasmas", title: "Astrophysical + Low-T + Frontier", level: "expert", order: 8, pages: ["solar-magnetospheric-reconnection", "accretion-jets-cosmic", "low-t-industrial-medical"], prereqs: ["fluid-and-kinetic-descriptions"], description: "Solar wind + corona heating + magnetospheres + reconnection (Sweet-Parker + Petschek + Hall + MMS mission); accretion disks + MRI Balbus-Hawley + jets + gamma-ray bursts + relativistic + cosmic-ray acceleration; etching + Hall thrusters + medical plasmas + private fusion (CFS, TAE, Helion, Zap) + plasma AI." },
+    ],
+  });
+
   // P46 — Computational Neuroscientist path. Membrane biophysics
   // through Hodgkin-Huxley (the viz anchor) + synapses + plasticity
   // + neural coding + circuits + dendritic computation + NeuroAI +
