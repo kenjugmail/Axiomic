@@ -1,0 +1,160 @@
+{
+  "slug": "structural-systems-and-load-flow",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Catalog the loads a building must resist — dead, live, wind, seismic, snow.",
+      "Survey the major structural systems — post-and-beam, truss, frame, shear wall, shell, tension, space frame.",
+      "Apply statics (ΣF=0, ΣM=0) to determine reactions + draw shear + moment diagrams; reason from Euler-Bernoulli beam theory."
+    ],
+    "prereqs": [
+      "architecture-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Loads: what a building must resist",
+      "body": "Every building is a load-path problem. Forces arrive — from gravity, from people, from wind, from earthquakes, from snow — and the structure must conduct them through members + connections all the way to the foundation + the ground, in compression or tension or shear or bending, without any element exceeding its capacity. **Structural design is the art of designing that load path** so it is safe, efficient, buildable, and (when expressed) beautiful.\n\n**Dead loads (D)** — the permanent self-weight of the building itself: structural frame + slabs + walls + roofing + cladding + fixed equipment. Calculated from material densities + geometry; well-known + low-uncertainty. Concrete ≈ 24 kN/m³; steel ≈ 78.5 kN/m³; glulam ≈ 5 kN/m³. A typical office concrete slab + finishes contributes ~4-5 kN/m². Dead load varies <5% over the life of a building.\n\n**Live loads (L)** — occupancy + movable contents. **Code-specified** based on use:\n- Residential floors: ~1.9 kN/m² (40 psf).\n- Office floors: ~2.4 kN/m² (50 psf).\n- Assembly + retail: 4.8 kN/m² (100 psf).\n- Library stacks: ~7.2 kN/m².\n- Industrial: per actual equipment + storage.\n- Roof live (maintenance + small accumulations): typically 1 kN/m² minimum.\n- Live loads can be reduced for larger tributary areas (the *live-load reduction factor*) since not all areas are simultaneously fully loaded.\n\n**Snow load (S)** — climate-dependent. Ground snow load *p_g* mapped by code (USA: ASCE 7 maps; Europe: Eurocode EN 1991-1-3) — varies from 0 in the tropics to >5 kN/m² in mountain + northern climates. Roof snow load *p_f* = 0.7 · C_e · C_t · I · p_g (ASCE 7 form), adjusted for exposure, thermal condition, importance, slope, drift, sliding. Drift loads on lower roofs adjacent to higher ones can locally exceed 5 × the flat-roof load.\n\n**Wind loads (W)** — dynamic but treated as quasi-static via gust factors. **Basic wind speed** *V* mapped by code (50-yr or 700-yr return depending on Risk Category). **Velocity pressure** *q = 0.613 · V²* (Pa, V in m/s) (or 0.00256 · V² in psf for V in mph). Then design pressure *p = q · G · C_p · K_z* — gust factor G, external pressure coefficient C_p (windward + leeward + side + roof), exposure factor K_z (height + terrain). Tall + slender buildings are governed by wind; the Burj Khalifa's three-buttress Y plan + setbacks were chosen specifically to *disrupt vortex shedding* — the lock-in oscillation that plagues round tower cross-sections.\n\n**Seismic loads (E)** — earthquake ground motion shakes the foundation; the building's mass + stiffness + damping determine its response. **Base shear** *V = C_s · W* (W = effective seismic weight). *C_s* — the seismic response coefficient — depends on: spectral acceleration at the site (S_DS, S_D1 per ASCE 7 + USGS hazard maps), structural period *T = 2π · √(m/k)*, response modification factor *R* (R ≈ 8 for special moment frames, R ≈ 3 for ordinary masonry — *higher R = more ductility = lower design force*), importance factor I. The fundamental design philosophy: *don't try to elastically resist a major earthquake — instead detail the structure to deform inelastically without collapsing*. Capacity design + ductility detailing (special moment frames, base isolation, viscous dampers) carry buildings through events orders of magnitude larger than they could elastically withstand.\n\n**Other loads**: rain (ponding), ice, fluid pressures, soil pressures, thermal expansion, settlement, blast (selected buildings), impact (parking columns), construction loads.\n\n**Load combinations** — codes specify how to combine loads into governing design cases. **ASCE 7 LRFD (Load + Resistance Factor Design)**:\n- 1.4·D\n- 1.2·D + 1.6·L + 0.5·(L_r or S or R)\n- 1.2·D + 1.6·(L_r or S or R) + (L or 0.5·W)\n- 1.2·D + 1.0·W + L + 0.5·(L_r or S or R)\n- 1.2·D + 1.0·E + L + 0.2·S\n- 0.9·D + 1.0·W\n- 0.9·D + 1.0·E\n\nAllowable Stress Design (ASD) uses unfactored loads + an allowable stress. Eurocode uses the limit-state framework with partial safety factors γ_G + γ_Q. **IBC (International Building Code)**, **ASCE 7** (USA), **Eurocode EN 1990-1999** (Europe), and the National Building Codes (Canada, Japan, China) codify the framework. Every structural designer works inside this jurisdiction-specific code envelope."
+    },
+    {
+      "kind": "text",
+      "title": "Structural systems: from post-and-beam to shells + tension + space frames",
+      "viz": "structural-load-flow",
+      "vizProps": {
+        "system": "beam"
+      },
+      "body": "**Interactive load-flow viz** above — toggle between a simply supported beam, a cantilever, and a truss to see reactions, internal forces (shear + moment), and the deformed shape update live. The same loads, three load paths.\n\n**Post-and-beam (trabeated)** — the oldest system. Vertical columns (compression) + horizontal beams (bending). Greek temple, Egyptian hypostyle hall, Japanese timber temple, modern timber + steel + concrete frames. Maximum span is set by bending strength + stiffness of the beam; long spans require deep beams or trusses or arches.\n\n**Arch + vault + dome (compression masonry)** — Roman + Romanesque + Gothic + Renaissance. Loads carried in pure compression (ideally) along a *thrust line* lying inside the masonry. Lateral thrust at springing must be resisted. *Funicular shape* (the line of pure compression for a given load) is an inverted catenary for self-weight; Antoni Gaudí used hanging-chain models (Sagrada Família) to find funicular forms inverted for masonry domes + arches.\n\n**Truss** — assembly of straight members in triangles. Each member carries only axial force (tension or compression); the geometry resolves bending into a system of two-force members. Pratt, Howe, Warren, K-truss, fink — all variations on triangulation. Long-span roofs (railway stations, hangars, stadiums), bridges (Forth Bridge cantilever-truss 1890), towers (Eiffel Tower) — wherever a deep but lightweight load-carrier is needed. Steel + timber + aluminum.\n\n**Frame** — moment-resisting connections allow beams + columns to act together against lateral load. **Moment frame** (rigid connections, columns + beams bend together), **braced frame** (diagonal members carry lateral load axially, beams + columns simply resist gravity), **eccentrically braced frame** (combination). Major lateral system for tall buildings; ductility detailing critical for seismic regions (Special Moment Frame R = 8 in ASCE 7).\n\n**Shear wall + diaphragm** — solid walls (concrete or masonry or wood-sheathed) carry lateral load by in-plane shear; floor + roof diaphragms transfer lateral load horizontally to the walls. Most low-rise + mid-rise residential + commercial buildings use shear walls. Tall concrete buildings often combine **shear wall core** (around elevators + stairs) with **outrigger trusses** transferring load to perimeter columns.\n\n**Tension structures** — cable + membrane systems carrying load purely in tension. **Frei Otto** (1925-2015, Pritzker 2015) — German pioneer of *lightweight* + *form-found* tension structures. Munich Olympic stadium roof (1972, with Günter Behnisch); soap-film + chain-model form-finding; minimal-surface geometry. The roof of Denver International Airport, the Millennium Dome London (Buro Happold + Richard Rogers), the Burj Al Arab atrium — all in the Otto lineage. Cable-stayed + suspension bridges (Golden Gate, Akashi-Kaikyo at 1991 m span) are the engineering siblings.\n\n**Shell + membrane** — thin curved surfaces resisting load mostly through in-plane action (membrane forces) rather than bending. **Félix Candela** (1910-1997, Spanish-Mexican) — master of hyperbolic-paraboloid (*hypar*) thin concrete shells. Los Manantiales restaurant Xochimilco (1958, 4 cm thick shell over 30 m span). Eduardo Torroja (Madrid Hippodrome roof, 1935). Pier Luigi Nervi (Palazzetto dello Sport Rome 1957, ferro-cemento). The Sydney Opera House (Jørn Utzon + Ove Arup 1973) is a different lineage — segments of a sphere — but in the same spirit of geometric structural elegance.\n\n**Space frame** — 3D triangulated network; multi-directional load distribution. **R. Buckminster Fuller** (1895-1983) invented the **geodesic dome** — geodesic subdivisions of a sphere into struts, distributing load efficiently with minimal material. Montreal Biosphère 1967, Spaceship Earth at EPCOT, countless industrial domes. The *octet truss* + space-truss systems (MERO, Triodetic) span large column-free volumes — airports, conference halls, exhibition pavilions. **Tensegrity** — Fuller + Kenneth Snelson — discontinuous compression members suspended in a continuous tension network; the ultimate lightweight system, used selectively (Olympic stadiums, sculpture, soft robotics).\n\n**Tall building structural systems** (Fazlur Khan's hierarchy, ~1965):\n- ~10-30 stories: moment frame, braced frame, shear wall.\n- ~30-50 stories: framed tube (entire perimeter is a tube of closely-spaced columns + spandrel beams; World Trade Center, Aon Center).\n- ~50-80 stories: trussed tube + tube-in-tube (Sears/Willis Tower bundled tube; John Hancock Center).\n- 80+ stories: buttressed core (Burj Khalifa 828 m, Skidmore Owings & Merrill + Adrian Smith), mega-column + mega-brace (Shanghai Tower, CCTV).\n\n**Foundation systems** (lesson on geotech, briefly here): spread footings (low buildings, good soil), mat foundations (whole building floats), pile foundations (drilled shafts or driven piles to bedrock or deep dense layers), caissons + diaphragm walls, ground improvement (stone columns, jet grouting). The above-grade structure's loads + the soil's bearing capacity together determine foundation type.\n\nThe choice of system depends on: program (span + height + loads), site (soil + seismic + wind), material economy, constructability, schedule, embodied carbon (lesson 6), and architectural intent. Modern buildings often combine multiple systems — e.g., concrete core + steel moment frame + composite floors."
+    },
+    {
+      "kind": "text",
+      "title": "Statics: equilibrium, reactions, shear + moment, Euler-Bernoulli",
+      "body": "**Static equilibrium** — a structure is in static equilibrium when the sum of forces + the sum of moments at every point are zero:\n\n**ΣF_x = 0, ΣF_y = 0, ΣF_z = 0, ΣM_x = 0, ΣM_y = 0, ΣM_z = 0**\n\nIn 2D analysis (most building elements analyzed in plane), this reduces to three equations: **ΣF_x = 0, ΣF_y = 0, ΣM = 0**. A *statically determinate* structure has reactions exactly equal to the number of independent equations (3 in 2D); a *statically indeterminate* structure has more reactions + requires compatibility (deformation) equations as well.\n\n**Common support types in 2D**:\n- **Pin (hinge)**: 2 reactions (H + V); allows rotation.\n- **Roller**: 1 reaction (perpendicular to roller surface).\n- **Fixed support**: 3 reactions (H + V + M).\n- **Cantilever's free end**: 0 reactions.\n\n**Example: simply supported beam under uniform load** *w* (kN/m) over span *L*.\n- Reactions at each support by symmetry: *R_A = R_B = wL/2*.\n- Shear force at distance x from A: *V(x) = wL/2 - wx*. Linear; zero at midspan; ±wL/2 at supports.\n- Bending moment at x: *M(x) = (wL/2)·x - (w·x²/2) = wx(L-x)/2*. Parabolic; maximum at midspan: ***M_max = wL²/8***. (Memorize this — appears constantly.)\n- For a simply-supported beam under a single point load P at midspan: *M_max = PL/4* at midspan, V = ±P/2 at supports.\n- For a cantilever (fixed at A, free at B) under uniform load w: *M_max = wL²/2* at fixed end; V = wL at fixed end.\n\n**Shear + moment diagrams**:\n- Shear diagram = integral of distributed load along the beam (with sign).\n- Moment diagram = integral of shear along the beam.\n- Differential relations: *dV/dx = -w* (distributed load); *dM/dx = V*.\n- *Slope of moment diagram* = shear; *slope of shear diagram* = -distributed load.\n- Maximum moment occurs where shear crosses zero. (Critical design point.)\n\n**Reactions for the interactive viz**:\n- **Beam mode** (simply supported, point load P at midspan): R_A = R_B = P/2. *V* jumps from +P/2 to -P/2 at midspan; *M_max = PL/4* at midspan.\n- **Cantilever mode** (fixed at A, point load P at free end at distance L): R_A vertical = P; R_A moment = P·L; *V* = P throughout; *M(x)* = -P·(L-x), maximum -PL at the fixed end.\n- **Truss mode** (Pratt or Warren under panel-point load): each diagonal + chord carries pure axial force. Method of joints (ΣF at each joint) or method of sections (cut + ΣM about a strategic point) solves for member forces.\n\n**Euler-Bernoulli beam theory** (~1750) — the workhorse model of slender beams. Assumes: plane sections remain plane + perpendicular to the neutral axis; small deflections; linear elastic material; shear deformation negligible (only valid for span/depth > ~10).\n\n**Governing equations**:\n- Strain: *ε(y) = -y · κ* where κ is curvature, y is distance from neutral axis.\n- Stress: *σ(y) = E · ε(y) = -E · y · κ* (Hooke's law).\n- Moment: *M = ∫ y · σ · dA = E · I · κ* where ***I = ∫ y² dA*** is the **second moment of area**.\n- Curvature-deflection: *κ ≈ d²v/dx²* (small slope), where v(x) is deflection.\n- **Euler-Bernoulli equation**: *E · I · (d⁴v/dx⁴) = w(x)*.\n\n**Deflections** — for a simply supported beam under uniform load w: maximum deflection at midspan *δ_max = 5wL⁴/(384·E·I)*. This is the most-quoted formula in structural design after *M_max = wL²/8*. (For point load at midspan: δ_max = PL³/(48EI).)\n\n**Section properties** — *I* matters enormously: for a rectangle (b × h), I = bh³/12 — deflection scales as 1/h³, so depth dominates over width. This is why beams are tall + narrow (I-beams + wide-flange shapes optimize material distribution to the top + bottom flanges, where the bending stress is highest).\n\n**Buckling — Euler critical load** (long compression members): *P_cr = π²·E·I/(K·L)²*, where K is effective-length factor (K=1 pinned-pinned, K=0.5 fixed-fixed, K=2 cantilever). Slender steel columns + truss compression members fail by buckling long before reaching yield stress; the *slenderness ratio KL/r* (r = √(I/A) = radius of gyration) governs allowable stress.\n\n**Steel beam design** — pick a wide-flange (W-shape) so that the required plastic section modulus *Z* satisfies *M_u ≤ φ · F_y · Z* (LRFD, φ ≈ 0.9, F_y ≈ 345 MPa for A992 steel) + the deflection check *δ ≤ L/360* (typical floor). **Concrete beam design** — area of tension reinforcement A_s such that *M_n = A_s · f_y · (d - a/2)*, where a = A_s·f_y/(0.85·f'_c·b) is the equivalent stress-block depth; capacity factor φ ≈ 0.9 for tension-controlled flexure. Codes: AISC 360 (steel), ACI 318 (concrete), AISC 341 (seismic detailing).\n\nThese equations + their code-specified factors connect every observed beam, every steel section, every concrete frame to the abstract requirement: ΣF = 0 + ΣM = 0 at every point + every load combination. The viz above shows it; the code makes it safe."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_str_1",
+        "kind": "guided_derivation",
+        "question": "Reactions + maximum moment for a simply supported beam",
+        "goal": "A simply supported steel beam spans L = 8 m + carries a uniformly distributed load w = 12 kN/m (factored). Find the support reactions, the maximum shear, the maximum moment, and the required plastic section modulus Z if F_y = 345 MPa + φ = 0.9.",
+        "steps": [
+          {
+            "prompt": "Compute the reactions R_A + R_B by symmetry + statics.",
+            "motivation": "Reactions first.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "R_A = R_B = wL/2 = 12 × 8 / 2 = 48 kN"
+              ]
+            },
+            "hints": [
+              "Symmetry.",
+              "ΣF_y = 0."
+            ],
+            "reveal": "Total load = w·L = 12 · 8 = 96 kN. By symmetry, each support carries half: **R_A = R_B = wL/2 = 48 kN**. Equivalently, ΣF_y = R_A + R_B - wL = 0 → R_A + R_B = 96, and ΣM_A = R_B·L - wL·(L/2) = 0 → R_B = wL/2."
+            },
+          {
+            "prompt": "What is the maximum shear in the beam? Where does it occur?",
+            "motivation": "Shear extremes.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "V_max = wL/2 = 48 kN at each support"
+              ]
+            },
+            "hints": [
+              "V(x) = wL/2 - w·x.",
+              "Maximum at the supports."
+            ],
+            "reveal": "Shear V(x) = R_A - w·x = wL/2 - w·x is linear in x. **Maximum |V| = wL/2 = 48 kN at the supports** (and zero at midspan). This sign-change location is where the moment is maximum."
+          },
+          {
+            "prompt": "Compute the maximum bending moment + where it occurs.",
+            "motivation": "Critical design moment.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "M_max = wL²/8 = 12 × 64 / 8 = 96 kN·m at midspan"
+              ]
+            },
+            "hints": [
+              "M(x) = wx(L-x)/2.",
+              "Maximum at midspan x = L/2."
+            ],
+            "reveal": "Bending moment M(x) = R_A·x - w·x²/2 = wx(L-x)/2 is parabolic. Maximum at midspan (where dM/dx = V = 0): **M_max = wL²/8 = 12 · 64 / 8 = 96 kN·m**. (Memorize this — simply supported uniform load M_max = wL²/8 appears constantly.)"
+          },
+          {
+            "prompt": "Required plastic section modulus Z so that φ·F_y·Z ≥ M_u (LRFD)?",
+            "motivation": "Code design check.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Z ≥ M_u / (φ·F_y) = 96 × 10⁶ / (0.9 × 345) ≈ 309000 mm³ ≈ 309 cm³"
+              ]
+            },
+            "hints": [
+              "Z = M_u/(φ·F_y).",
+              "Watch units: 96 kN·m = 96 × 10⁶ N·mm; 345 MPa = 345 N/mm²."
+            ],
+            "reveal": "Required **Z ≥ M_u/(φ·F_y) = 96 × 10⁶ N·mm / (0.9 · 345 N/mm²) ≈ 309000 mm³ ≈ 309 cm³**. Looking up AISC W-shapes: a W250×33 (W10×22 in imperial) has Z_x ≈ 380 cm³ — sufficient. Then verify deflection δ_max = 5wL⁴/(384·E·I) ≤ L/360 = 22 mm (with E = 200 GPa). If deflection governs, pick a deeper / stiffer section. **Two checks always**: strength (M, V) + serviceability (δ)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_str_1",
+        "kind": "multiple_choice",
+        "question": "Why does the Euler-Bernoulli beam result *M_max = wL²/8* dominate so much of beam design?",
+        "options": [
+          "It only applies to steel beams.",
+          "*M_max = wL²/8* is the maximum bending moment in a simply supported beam under a uniformly distributed load — and it falls directly out of statics (ΣF=0, ΣM=0) plus the integration *M(x) = wx(L-x)/2* of the load along the beam. Because **most floor + roof beams in real buildings are well-approximated as simply supported under (factored) uniform load**, this single expression sizes a huge fraction of all beam members worldwide. Combined with the section-property relation σ = M·c/I + the LRFD limit M_u ≤ φ·F_y·Z (steel) or M_n = A_s·f_y·(d-a/2) (concrete), it leads directly to required member size. Engineers internalize wL²/8, PL/4, wL²/2 (cantilever), and PL³/48EI / 5wL⁴/384EI (deflections) as a memorized table; combined they cover the everyday cases. Deeper analysis — continuous beams, finite element models, nonlinear behavior — refines the picture but starts from these closed-form results.",
+          "It is the formula for column buckling.",
+          "It only applies to cantilevers."
+        ],
+        "correctIndex": 1,
+        "explanation": "*M_max = wL²/8* (simply supported, uniform load, maximum at midspan) falls out of statics + integration of load along the beam. Most real floor + roof beams are approximated as simply supported under uniform factored load, so this single closed-form sizes a huge fraction of all beam members. Combined with section-modulus relations + LRFD code limits (φ·F_y·Z for steel, A_s·f_y·(d-a/2) for concrete) it produces required member size. Engineers memorize the table of canonical cases (wL²/8, PL/4, wL²/2 cantilever, deflections 5wL⁴/384EI + PL³/48EI). Deeper FEM analysis refines from there."
+      },
+      "hints": [
+        "Where does it come from?",
+        "How often does it apply in real buildings?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "wL²/8 is the maximum bending moment in a simply supported beam under uniform load; falls from statics + integration of M(x) = wx(L-x)/2. Most real beams are well-approximated as simply supported under factored uniform load → this single expression + the section-modulus check φ·F_y·Z sizes a huge fraction of all beam members. Combined with deflection 5wL⁴/384EI + cantilever wL²/2 + PL/4 forms the memorized canonical table of beam design."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_str_1",
+        "kind": "scenario",
+        "question": "Choose a structural system for a 12-story office in coastal California",
+        "prompt": "You are the structural lead for a 12-story office building on a coastal California site near a seismic fault. Program requires open floor plates (no interior columns) + large windows + LEED Gold. Discuss your reasoning for: (a) the governing loads (gravity, wind, seismic) + which dominates lateral design; (b) candidate gravity + lateral systems (steel moment frame, steel braced frame, concrete shear-wall core, dual system); (c) why a Special Moment Frame or dual system (R = 8 in ASCE 7) might be required for seismic ductility; (d) foundation choice given likely soft coastal soils; (e) implications for embodied carbon + LEED (lesson 6). Recommend a system + justify."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_str_1",
+        "kind": "math_expression",
+        "question": "A cantilever beam of span L = 4 m carries a single point load P = 20 kN at its free tip. What is the bending moment at the fixed end, in kN·m?",
+        "acceptedAnswers": [
+          "80",
+          "80.0"
+        ],
+        "hint": "Cantilever with tip load: M_max = P · L at the fixed end."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_str_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, explain why capacity-design + ductility detailing is the modern philosophy for seismic design — and why elastic design alone is insufficient for major earthquakes.",
+        "rubric": "Mentions: a major earthquake (design basis ground motion, ~10% probability of exceedance in 50 yr) produces ground accelerations + base shears that would cost prohibitively to elastically resist for everyday buildings — elastic design alone would require massive sections + massive cost. Instead, modern codes (ASCE 7, Eurocode 8, NZ codes after Christchurch 2010-11) accept that the building will deform inelastically + dissipate energy through specific ductile mechanisms. The response modification factor R (R = 8 for special moment frames, R = 3 for ordinary masonry) reduces the design seismic force precisely because higher-R systems are detailed for greater ductility. *Capacity design* (Park + Paulay) ensures that ductile failure modes (flexural plastic hinges in beams + at column bases) form *before* brittle failures (shear, joint failure, column hinging) — letting the building deform without collapsing. Base isolation + viscous dampers extend this philosophy. Christchurch + Kobe + Northridge + Tohoku informed the modern detailing rules."
+      }
+    }
+  ]
+}

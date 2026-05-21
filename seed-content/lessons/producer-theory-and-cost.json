@@ -1,0 +1,157 @@
+{
+  "slug": "producer-theory-and-cost",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Characterize production technology + returns to scale.",
+      "Solve cost minimization + derive cost functions via Shephard's lemma.",
+      "Maximize profit + apply Hotelling's lemma + LeChatelier-Samuelson principle."
+    ],
+    "prereqs": [
+      "consumer-theory-utility-and-demand"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Technology + production functions",
+      "body": "**Producer theory** mirrors consumer theory: firms choose inputs to maximize profit (or minimize cost) given technology + market prices. The objects are production sets + cost functions instead of utility + expenditure.\n\n**Production function** f(K, L, …) — maximum output achievable from input bundle. Standard simplification: two inputs, capital K + labor L, output y = f(K, L).\n\n**Properties**:\n- Monotone (more inputs → more output).\n- Continuous + twice differentiable (in standard models).\n- Quasi-concave (convex input requirement sets — isoquants convex toward origin).\n\n**Marginal products**:\n- MPₖ = ∂f/∂K, MPₗ = ∂f/∂L.\n- **Diminishing marginal product** (∂²f/∂K² < 0): each additional unit of input contributes less.\n\n**Marginal rate of technical substitution (MRTS)**:\n- Slope of isoquant: MRTSₖ,ₗ = MPₗ / MPₖ.\n- How much K can be reduced per extra L while maintaining output.\n\n**Classic functional forms**:\n\n**Cobb-Douglas (Cobb + Douglas 1928)**: f(K, L) = A K^α L^β.\n- A = total factor productivity (Solow residual).\n- α + β: returns to scale (sum).\n- Constant expenditure shares on each input under cost minimization → empirically fit US manufacturing 1899-1922.\n- Workhorse of macro + growth theory.\n\n**CES (constant elasticity of substitution; Solow 1956 + Arrow-Chenery-Minhas-Solow 1961)**: f(K, L) = A[αK^ρ + (1-α)L^ρ]^(1/ρ).\n- Elasticity of substitution σ = 1/(1-ρ).\n- σ → ∞ (ρ → 1): linear (perfect substitutes).\n- σ → 1 (ρ → 0): Cobb-Douglas.\n- σ → 0 (ρ → −∞): Leontief.\n\n**Leontief (fixed-proportion)**: f(K, L) = min(K/a, L/b).\n- L-shaped isoquants — inputs used in rigid ratios.\n- Applies when technology dictates strict input mix (1 worker per 1 machine).\n\n**Linear (perfect substitutes)**: f(K, L) = aK + bL.\n- Straight-line isoquants — corner solutions in cost min.\n\n**Returns to scale** — homogeneity of f:\n- **Increasing returns to scale (IRS)**: f(λK, λL) > λ f(K, L) for λ > 1. Network effects, fixed costs, learning curves.\n- **Constant returns to scale (CRS)**: f(λK, λL) = λ f(K, L). Cobb-Douglas with α + β = 1; standard in macro long-run.\n- **Decreasing returns to scale (DRS)**: f(λK, λL) < λ f(K, L). Managerial diseconomies; coordination costs at scale.\n- Empirically: most industries CRS in long run; firm-level often DRS due to organizational frictions.\n\n**Total factor productivity (TFP)**: A in y = A f(K, L). Captures technology + institutions + R&D + management quality. Macroeconomic growth accounting (Solow 1957): TFP growth ≈ output growth − capital share · K growth − labor share · L growth."
+    },
+    {
+      "kind": "text",
+      "title": "Cost minimization + cost functions",
+      "body": "**Cost minimization problem (CMP)** — short version of producer dual:\n\nmin wL + rK subject to f(K, L) ≥ y.\n\nGiven input prices w (wage) + r (rental rate) + output target y.\n\n**Lagrangian**: ℒ = wL + rK − μ(f(K, L) − y).\n\n**FOC**:\n- w = μ ∂f/∂L = μ MPₗ\n- r = μ ∂f/∂K = μ MPₖ\n- f(K, L) = y\n\nDividing: **MRTS = MPₗ / MPₖ = w / r**. At cost-minimizing input mix, isoquant is tangent to isocost line. μ = marginal cost.\n\n**Conditional input demand**: L*(w, r, y), K*(w, r, y) — analogous to Hicksian demand in consumer theory.\n\n**Cost function** c(w, r, y) = w L*(w, r, y) + r K*(w, r, y) — minimum cost to produce y at prices (w, r).\n\n**Properties of c(w, r, y)**:\n- Homogeneous degree 1 in (w, r).\n- Concave in (w, r) — like expenditure function.\n- Non-decreasing in y, w, r.\n- **Shephard's lemma** (Shephard 1953): L* = ∂c/∂w, K* = ∂c/∂r. Recovers input demand from cost function by differentiation.\n\n**Short-run vs long-run**:\n- **Short run**: at least one input fixed (typically K = K̄). Variable cost VC(w, y; K̄) + fixed cost FC(r, K̄).\n- **Long run**: all inputs variable; firm chooses optimal K + L.\n- LR cost ≤ SR cost (more flexibility), with equality at SR-chosen K. The **envelope theorem** gives LR average cost as the lower envelope of SR average cost curves.\n\n**Cost curves**:\n- **Average cost** AC(y) = c(y) / y.\n- **Marginal cost** MC(y) = dc/dy = μ (Lagrange multiplier).\n- MC crosses AC at AC's minimum (U-shaped AC).\n- **Average variable cost** AVC + **average fixed cost** AFC = FC/y (falls in y).\n\n**Cobb-Douglas cost function**: for y = K^α L^β with α + β = 1 (CRS):\n- c(w, r, y) = y · w^β r^α · constant.\n- AC = MC = constant (CRS).\n- For DRS: AC + MC rise in y; for IRS: AC falls + MC < AC.\n\n**Economies of scale**: AC falls in y (= IRS).\n- **Internal**: bigger plant lowers cost (fixed cost spread; specialization).\n- **External**: industry growth lowers all firms' cost (knowledge spillover, supplier network — Marshall industrial districts).\n\n**Economies of scope**: cost of producing two goods together < sum of producing separately. Joint products, shared inputs, learning."
+    },
+    {
+      "kind": "text",
+      "title": "Profit maximization + Hotelling's lemma + LeChatelier-Samuelson",
+      "body": "**Profit maximization problem (PMP)**:\n\nmax py − wL − rK subject to y ≤ f(K, L).\n\nOr equivalently: max p·f(K, L) − wL − rK over (K, L) unconstrained.\n\n**FOC**:\n- p · MPₗ = w → value of marginal product of labor = wage.\n- p · MPₖ = r → value of marginal product of capital = rental.\n\nGeneral principle: **hire each input until its marginal revenue product equals its price**.\n\n**Solution**: factor demands L(p, w, r), K(p, w, r) — **unconditional demands** (no output constraint).\n\n**Supply function**: y(p, w, r) = f(K(p, w, r), L(p, w, r)).\n\n**Profit function** π(p, w, r) = p y(p, w, r) − w L − r K.\n\n**Properties**:\n- Convex in (p, w, r).\n- Homogeneous degree 1 in (p, w, r) — scaling all prices scales profit.\n- Non-decreasing in p, non-increasing in w + r.\n- **Hotelling's lemma** (Hotelling 1932): y(p, w, r) = ∂π/∂p; L(p, w, r) = −∂π/∂w; K(p, w, r) = −∂π/∂r. Recovers supply + factor demand from profit function by differentiation.\n\n**Relation between PMP + CMP**:\n- PMP = first choose y to max py − c(w, r, y); then choose inputs to achieve y at minimum cost.\n- **Output FOC**: p = ∂c/∂y = MC. Firm produces where price equals marginal cost.\n- Supply curve is the rising portion of MC above AVC (short run) or AC (long run).\n\n**LeChatelier-Samuelson principle** (Samuelson 1947 *Foundations*):\n- Long-run own-price elasticities ≥ short-run elasticities in absolute value.\n- Intuition: with more inputs flexible, the firm can respond more to price changes.\n- Example: wage rise → short-run labor cut is small (capital fixed); long-run cut larger (capital + labor both adjust).\n- Direct economic analog of LeChatelier's principle in thermodynamics.\n\n**Returns to scale + profit**:\n- CRS competitive firm: zero economic profit; supply not pinned down at any p ≠ MC (any scale works).\n- DRS: well-defined optimal firm size; positive economic profit possible in short run, dissipates via entry in long run.\n- IRS: not compatible with perfect competition — leads to natural monopoly.\n\n**Empirical estimation**:\n- Production function regression: log y = log A + α log K + β log L + ε. Endogeneity of inputs is a problem (Olley-Pakes 1996, Levinsohn-Petrin 2003, Ackerberg-Caves-Frazer 2015 corrections).\n- Cost function direct estimation (translog).\n- Plant-level data: Census of Manufactures, ASM, Compustat, Orbis.\n\n**Modern extensions**:\n- **Markups + market power** (De Loecker-Eeckhout-Unger 2020): markups have risen since 1980 in US.\n- **Heterogeneous firms** (Melitz 2003 trade; Hsieh-Klenow 2009 misallocation).\n- **Endogenous productivity** + intangibles (R&D, organizational capital, software)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_pt_cobb",
+        "kind": "guided_derivation",
+        "question": "Cost minimization for Cobb-Douglas y = K^α L^β (CRS, α + β = 1)",
+        "goal": "Derive conditional input demands + cost function.",
+        "steps": [
+          {
+            "prompt": "Set up Lagrangian for min wL + rK s.t. K^α L^β = y.",
+            "motivation": "Standard constrained min.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "L = wL + rK − μ(K^α L^β − y)",
+                "Lagrangian with multiplier μ"
+              ]
+            },
+            "hints": [
+              "Mirror of UMP."
+            ],
+            "reveal": "ℒ = wL + rK − μ(K^α L^β − y). FOC: w = μ β K^α L^(β-1); r = μ α K^(α-1) L^β; K^α L^β = y."
+          },
+          {
+            "prompt": "Divide the FOC to get MRTS = w/r.",
+            "motivation": "Tangency.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(β K) / (α L) = w / r",
+                "K/L = (α/β)(w/r)"
+              ]
+            },
+            "hints": [
+              "MRTS = MPₗ/MPₖ."
+            ],
+            "reveal": "Dividing the wage FOC by the rental FOC: (β K^α L^(β-1)) / (α K^(α-1) L^β) = w/r ⇒ (β/α)(K/L) = w/r ⇒ **K/L = (α/β)(w/r)**. Capital-labor ratio rises with wage + falls with rental — substitution effect."
+          },
+          {
+            "prompt": "Substitute into production constraint y = K^α L^β to get L*(w, r, y).",
+            "motivation": "Conditional labor demand.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "L* = y · (β r / (α w))^α",
+                "conditional labor demand"
+              ]
+            },
+            "hints": [
+              "K = (α/β)(w/r) L."
+            ],
+            "reveal": "K = (α/β)(w/r) L, so y = [(α/β)(w/r)]^α L^α · L^β = [(α/β)(w/r)]^α L^(α+β) = [(α/β)(w/r)]^α L (using CRS α+β=1). Solving: **L*(w, r, y) = y · (β r / (α w))^α**. By symmetry: **K*(w, r, y) = y · (α w / (β r))^β**."
+          },
+          {
+            "prompt": "Compute cost c(w, r, y) = w L* + r K*. Simplify.",
+            "motivation": "Cost function.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "c(w, r, y) = y · w^β r^α · ((α/β)^β + (β/α)^α) — simplifies to y · A · w^β r^α",
+                "c = y · constant · w^β r^α"
+              ]
+            },
+            "hints": [
+              "Algebra simplification."
+            ],
+            "reveal": "c(w, r, y) = w · y(βr/αw)^α + r · y(αw/βr)^β. Factor y · w^β r^α (using α + β = 1) → c(w, r, y) = y · w^β r^α · constant(α,β). Cost is **linear in y** (CRS) + Cobb-Douglas in factor prices. MC = AC = constant. **Shephard's lemma check**: ∂c/∂w = y · β · w^(β-1) r^α · constant = L* ✓."
+          }
+        ],
+        "finalResult": "$$\\boxed{c(w,r,y) = y \\cdot A(\\alpha,\\beta) \\cdot w^\\beta r^\\alpha}$$ Cobb-Douglas cost mirrors Cobb-Douglas utility expenditure. Capital share α + labor share β reappear in factor expenditure shares. With CRS, MC = AC = constant — competitive equilibrium yields zero profit + supply is indeterminate at any p = MC. Workhorse for macro + growth + trade theory."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_pt_shephard",
+        "kind": "multiple_choice",
+        "question": "What is Shephard's lemma + why is it useful?",
+        "options": [
+          "Random.",
+          "**Shephard's lemma** (Ronald Shephard 1953): the conditional input demand equals the partial derivative of the cost function with respect to that input's price — Lᵢ*(w, y) = ∂c(w, y)/∂wᵢ. Why useful: (1) once you know c(w, y), differentiation gives all conditional demands without re-solving the optimization; (2) parallels Shephard's other applications in duality + the envelope theorem; (3) connects to Roy's identity + Hotelling's lemma — all three say 'derivative of value function = quantity'; (4) basis for empirical translog cost-function estimation where shares are estimated directly; (5) parallels expenditure-function differentiation in consumer theory. Hotelling's lemma (1932) is the same principle for the profit function: y = ∂π/∂p, L = −∂π/∂w, K = −∂π/∂r.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Shephard's lemma (1953): Lᵢ*(w, y) = ∂c(w, y)/∂wᵢ — partial derivative of cost function w.r.t. input price gives the conditional input demand. Useful because: once you know c(w, y), differentiation recovers all conditional demands; basis for empirical translog estimation; envelope-theorem applications. Hotelling's lemma (1932) is the same principle for the profit function. Parallels Roy's identity + expenditure differentiation in consumer theory."
+      },
+      "hints": [
+        "Differentiation recovers what?",
+        "Parallels to Roy's identity?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Shephard's lemma (Shephard 1953): Lᵢ*(w, y) = ∂c(w, y)/∂wᵢ. Once c known, differentiation gives all conditional demands. Basis for empirical translog cost-function estimation. Parallel: Hotelling's lemma (profit function) + Roy's identity (consumer indirect utility). All forms of the envelope theorem applied to dual value functions."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_pt_lechatelier",
+        "kind": "scenario",
+        "question": "LeChatelier in practice",
+        "prompt": "A factory's wage rises 10% overnight. In the short run, capital + plant are fixed. In the long run, the firm can renegotiate leases, buy automation, relocate. Walk through what happens to (a) labor demand short vs long run; (b) output short vs long run; (c) cost short vs long run. How does this illustrate the LeChatelier-Samuelson principle?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_pt_mc",
+        "kind": "math_expression",
+        "question": "Firm has cost c(y) = 100 + 2y + 0.5y². What is marginal cost at y = 10?",
+        "acceptedAnswers": [
+          "12",
+          "MC = 12"
+        ],
+        "hint": "MC(y) = dc/dy = 2 + y. MC(10) = 2 + 10 = 12. AC(10) = (100 + 20 + 50)/10 = 17 > MC, so AC still falling."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_pt_duality",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why economists describe consumer + producer theory as 'dual' problems + name the parallel objects.",
+        "rubric": "Mentions: consumer + producer theory have parallel mathematical structures. Consumer UMP (max utility s.t. budget) ↔ producer PMP (max profit). Consumer EMP (min expenditure s.t. utility) ↔ producer CMP (min cost s.t. output). Indirect utility v(p, m) ↔ profit function π(p, w, r). Expenditure function e(p, ū) ↔ cost function c(w, y). Marshallian demand x(p, m) ↔ unconditional input demand L(p, w, r). Hicksian demand h(p, ū) ↔ conditional input demand L*(w, y). Roy's identity ↔ Hotelling's lemma. Shephard's lemma works in both. Slutsky decomposition has a producer analog (Hicks-Allen). All forms of the envelope theorem applied to optimization with quasi-concave/convex objectives + constraint sets. The duality structure unifies the two halves of micro + lets analysts choose whichever value function is easier to estimate (cost-function estimation common in IO). Concludes: optimization + duality are the algebraic spine of neoclassical price theory."
+      }
+    }
+  ]
+}
