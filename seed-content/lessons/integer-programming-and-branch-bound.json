@@ -1,0 +1,189 @@
+{
+  "slug": "integer-programming-and-branch-bound",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Distinguish LP/MIP.",
+      "Run branch-and-bound.",
+      "Apply MIP modeling tricks."
+    ],
+    "prereqs": [
+      "linear-programming-and-simplex"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Integer programming: when fractions don't make sense",
+      "body": "**Integer programming (IP)** + **mixed-integer programming (MIP)**: some/all decision variables are integer-valued. Models:\n- Number of trucks, employees, facilities.\n- Binary yes/no: open facility, take a job, route a vehicle.\n- Logical conditions: if-then via big-M.\n- Combinatorial structure: matching, set covering, partitioning.\n\n**Why hard**: NP-hard in general. Even pure-binary LPs (0/1 knapsack) are NP-hard. Yet practical MIPs with millions of variables get solved daily in industry.\n\n**LP relaxation**: drop integrality; solve LP. Gives bound (lower for min, upper for max). Often a tight bound (especially for well-formulated problems).\n\n**Key principle**: a good LP relaxation is the secret sauce of fast MIP. 'Tighter formulations' = LP relaxation closer to integer hull = fewer branches.\n\n**Classic 0/1 problems**:\n- **Knapsack**: pick subset with max value under weight constraint.\n- **Set cover**: pick fewest sets to cover all elements.\n- **Bin packing**: pack items into fewest bins.\n- **Facility location**: pick facilities + assign demand.\n- **TSP**: visit all cities min distance.\n- **VRP**: TSP with vehicles + capacities + time windows.\n- **Scheduling**: assign jobs to machines + slots.\n\n**Big-M + indicator trick**: model 'if y=1 then x ≤ U; else x = 0' as x ≤ M·y where M is large but not too large (loose M → weak relaxation). Modern solvers preprocess to find tight M."
+    },
+    {
+      "kind": "text",
+      "title": "Branch-and-bound + branch-and-cut",
+      "body": "**Branch-and-bound (B&B)**: tree search over partitions of solution space.\n\n**Algorithm**:\n1. Solve LP relaxation. If integer-feasible: done.\n2. Else pick fractional variable xⱼ = v. Branch: x_j ≤ ⌊v⌋ vs x_j ≥ ⌈v⌉.\n3. Recurse on each child; track best integer found (incumbent).\n4. Prune node when LP bound ≥ incumbent (no better solution possible).\n\n**Key components**:\n- **Bounding**: LP relaxation gives bound at each node.\n- **Branching**: which variable + direction? Most-fractional, strong, pseudocost.\n- **Pruning**: infeasible, bound-worse-than-incumbent, optimal.\n- **Incumbent**: best feasible found so far.\n- **Node selection**: best-bound (proves optimality faster), depth-first (memory).\n\n**Branch-and-cut**: at each node, also generate **cutting planes** (Gomory, lift-and-project, clique, cover, MIR) that tighten LP relaxation without removing integer solutions. Modern MIP solvers blend B&B + cuts heavily.\n\n**Branch-and-price**: column generation inside B&B; for huge problems (airline crew). Master problem + pricing subproblem.\n\n**Primal heuristics**: feasibility pump, RINS, local branching → find feasible solutions early → tighter bound → more pruning.\n\n**Why MIP works in practice**:\n- Pre-solve eliminates 50-90% of variables/constraints.\n- Strong cuts + good branching close 95%+ of gap quickly.\n- Modern solvers find optimum or prove tight gap on huge problems.\n- ~10⁶× faster than 1990 due to algorithm + machine improvements."
+    },
+    {
+      "kind": "text",
+      "title": "MIP modeling tricks + classic combinatorial problems",
+      "body": "**Indicator + logical constraints**:\n- y ∈ {0,1}, x ∈ [0, U]: '(y = 0) ⇒ (x = 0)' → x ≤ U·y.\n- '(y = 1) ⇒ (a·x ≤ b)' → a·x ≤ b + M·(1-y).\n- OR of constraints → big-M with binary indicator per constraint.\n- Conjunction of constraints → multiple big-M terms.\n\n**Disjunctive programming**: 'either constraint A or constraint B holds' modeled with binary δ + big-M.\n\n**Fixed costs**: total cost = fixed + variable·activity, modeled with binary indicator.\n\n**Piecewise-linear costs**: SOS2 (special ordered sets type 2); branching tightens.\n\n**Symmetry breaking**: if interchangeable units (machines, trucks), add ordering constraints to avoid exploring isomorphic branches.\n\n**Classic problems**:\n- **Vehicle routing (VRP)**: route N vehicles from depot to customers + back, min distance.\n- **Capacitated facility location**: open facilities + assign customers, capacity per facility.\n- **Job-shop scheduling**: M jobs on N machines, makespan or tardiness.\n- **Cutting stock**: cut paper rolls into smaller orders, min waste.\n- **TSP**: cycle visiting all cities, min length. Subtour elimination via lazy constraints or DFJ.\n- **Set cover / packing / partitioning**: choose subsets to cover/pack/partition.\n- **Assignment**: bipartite matching with weights (LP relaxation always integer).\n\n**Software**: Gurobi, CPLEX, Mosek (commercial); HiGHS, SCIP, CBC (open-source). Modeling languages: Pyomo, PuLP, JuMP, GAMS, AMPL, MPS format."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_or_mip_1",
+        "kind": "guided_derivation",
+        "question": "Solve a small 0/1 knapsack via branch-and-bound",
+        "goal": "Items: (v=10, w=5), (v=20, w=10), (v=15, w=7); capacity W=15. Max value.",
+        "steps": [
+          {
+            "prompt": "LP relaxation at root?",
+            "motivation": "Bound.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "take 2 + part of 3 = 20 + (3/7)·15 = 26.43",
+                "26.43"
+              ]
+            },
+            "hints": [
+              "Sort by v/w; greedy fractional."
+            ],
+            "reveal": "Ratios v/w: 10/5=2.0, 20/10=2.0, 15/7≈2.14. Sort desc: 3 (15,7), 1 (10,5), 2 (20,10). Greedy: 3 fully (w=7, v=15); 1 fully (w=5, total w=12, v=25); 2 fractionally (w=3 of 10 → 0.3, v=6); total LP relaxation v=31. (Different sort would give different bound.) Root LP bound = 31."
+          },
+          {
+            "prompt": "Branch on x₂ (fractional in LP)?",
+            "motivation": "B&B splits.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "x2=0 + x2=1"
+              ]
+            },
+            "hints": [
+              "Integer values."
+            ],
+            "reveal": "Two children: x₂=0 (don't take #2); x₂=1 (take #2)."
+          },
+          {
+            "prompt": "Node x₂=1: take item 2 (v=20, w=10). Remaining capacity 5. Best from items 1+3?",
+            "motivation": "Sub-MIP.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "item 1: v=10",
+                "x1=1, x3=0; total v=30"
+              ]
+            },
+            "hints": [
+              "Item 3 weighs 7 > 5; can't take."
+            ],
+            "reveal": "x₂=1 path: take #2 (v=20, w=10); can take #1 (v=10, w=5) (total w=15); item #3 (w=7) exceeds remaining w=5. Best = v=30."
+          },
+          {
+            "prompt": "Node x₂=0: best from items 1 + 3?",
+            "motivation": "Sub-MIP.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "both: v=25",
+                "x1=1, x3=1, v=25"
+              ]
+            },
+            "hints": [
+              "Capacity 15; sum w=12."
+            ],
+            "reveal": "x₂=0 path: items #1 (w=5) + #3 (w=7) both fit (w=12 ≤ 15); total v=25. Prune (25 < 30 incumbent)."
+          },
+          {
+            "prompt": "Optimum?",
+            "motivation": "Best incumbent.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "v=30 via x2=1, x1=1, x3=0",
+                "30"
+              ]
+            },
+            "hints": [
+              "x₂=1 child."
+            ],
+            "reveal": "Optimum: take items 1 + 2; total value 30, weight 15. Branch-and-bound explored 3 nodes (root + 2 children). Modern solvers do this with sophisticated cuts + heuristics on million-variable problems."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_or_mip_1",
+        "kind": "sortable",
+        "question": "Sort these problems by typical LP-relaxation tightness (loosest gap first, tightest last).",
+        "items": [
+          {
+            "id": "bigm-vrp",
+            "label": "VRP with naive big-M time windows"
+          },
+          {
+            "id": "fl-loose",
+            "label": "Facility location with aggregated demand"
+          },
+          {
+            "id": "knapsack",
+            "label": "0/1 knapsack"
+          },
+          {
+            "id": "matching",
+            "label": "Bipartite assignment"
+          }
+        ],
+        "explanation": "Tightness hierarchy: bipartite assignment has integer LP relaxation (totally unimodular); 0/1 knapsack relatively tight; aggregated facility location moderate; naive big-M VRP very loose (M too large → huge gap). Formulation strength is the single biggest determinant of MIP solve time."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_or_mip_1",
+        "kind": "multiple_choice",
+        "question": "What's the most impactful MIP modeling improvement?",
+        "options": [
+          "Random.",
+          "Tighter formulation. A 'strong' formulation has LP relaxation close to the integer hull; a 'weak' one has a loose relaxation and forces many branches. Replacing big-M with tight cliques, disaggregating constraints, adding valid inequalities, or reformulating with extended variables can change solve time from days to seconds. Solver pre-solve + automated cut generation help, but formulation is the modeler's job and often makes the difference between solvable and not.",
+          "Random.",
+          "Increase M."
+        ],
+        "correctIndex": 1,
+        "explanation": "Formulation strength is the central modeling concern in MIP. Same problem can be formulated multiple ways; the LP-relaxation gap drives branch-and-bound performance. Classical reformulations (disaggregation, lift-and-project, extended formulations) often give orders-of-magnitude speedups. Bigger M = weaker formulation = more branches."
+      },
+      "hints": [
+        "What determines branching?",
+        "Bound tightness."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Tighter LP relaxation = fewer branches in branch-and-bound. Reformulating (disaggregation, tight big-M, valid inequalities, extended formulations) often gives orders-of-magnitude speedup. Pre-solve + cuts help automatically but formulation is the modeler's leverage."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_or_mip_1",
+        "kind": "slider",
+        "question": "Drag to the practical limit (number of binary variables) where modern MIP solvers reliably get optimum in reasonable time on a typical structured problem (in millions).",
+        "target": {
+          "min": 1,
+          "max": 10
+        },
+        "default": 0.01,
+        "explanation": "Modern MIP solvers (Gurobi, CPLEX) routinely handle 10⁶-10⁷ binary variables on structured problems (network design, scheduling, etc.). Unstructured + dense are harder; structured + sparse easier. The 'frontier' moves outward steadily as both algorithms + hardware improve."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_or_mip_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why MIP is NP-hard yet practically solvable.",
+        "rubric": "Mentions: MIP NP-hard in worst case (Karp's 21 problems include MIP variants like TSP, set cover). Yet practical MIPs with millions of variables get solved daily. Reasons: (1) tight formulations (modeler's craft); (2) pre-solve eliminates 50-90% of vars/constraints; (3) cutting planes (Gomory, MIR, clique, cover) close most of LP-IP gap; (4) sophisticated branching (strong, pseudocost, reliability); (5) primal heuristics (feasibility pump, RINS, LB) find good incumbents early; (6) parallel + distributed solving; (7) warm starts + re-optimization for related instances. Bixby (Gurobi co-founder) talk: algorithm progress ~10³-10⁴×; hardware ~10²-10³×; combined ~10⁶× since 1990. Most real-world MIPs have exploitable structure (sparsity, decomposability). Concludes: MIP's worst case is bad but typical case is wonderful; OR solvers turn an NP-hard problem class into business infrastructure."
+      }
+    }
+  ]
+}

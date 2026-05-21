@@ -33,6 +33,7 @@ const VowelFormantChart = lazy(() => import("../../../../packages/viz/src/compon
 const PhillipsCurve = lazy(() => import("../../../../packages/viz/src/components/PhillipsCurve").then(m => ({ default: m.PhillipsCurve })));
 const HillFunction = lazy(() => import("../../../../packages/viz/src/components/HillFunction").then(m => ({ default: m.HillFunction })));
 const DriftDiffusion = lazy(() => import("../../../../packages/viz/src/components/DriftDiffusion").then(m => ({ default: m.DriftDiffusion })));
+const MM1Queue = lazy(() => import("../../../../packages/viz/src/components/MM1Queue").then(m => ({ default: m.MM1Queue })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -70,6 +71,7 @@ export const VIZ_NAMES = [
   "phillips-curve",
   "hill-function",
   "drift-diffusion",
+  "mm1-queue",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -105,6 +107,7 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "phillips-curve": PhillipsCurve,
   "hill-function": HillFunction,
   "drift-diffusion": DriftDiffusion,
+  "mm1-queue": MM1Queue,
 };
 
 interface VizEmbedProps {

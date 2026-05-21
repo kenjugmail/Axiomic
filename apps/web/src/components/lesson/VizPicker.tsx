@@ -236,6 +236,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🧠",
     tags: ["cognitive-science", "psychology", "decision-making", "neuroscience"],
   },
+  {
+    name: "mm1-queue",
+    label: "M/M/1 queue dynamics",
+    description: "Drag λ + μ; see L = ρ/(1-ρ) hockey-stick blowup near full utilization. The OR baseline.",
+    thumb: "🧮",
+    tags: ["operations-research", "queueing-theory", "industrial-engineering", "capacity-planning"],
+  },
 ];
 
 interface Props {

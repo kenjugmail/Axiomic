@@ -1952,6 +1952,27 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P41 — Operations Researcher path. LP + MIP + queueing (with
+  // new MM1Queue viz) + network flow + stochastic/robust +
+  // simulation + scheduling/VRP. The applied-optimization stack
+  // behind logistics, airlines, healthcare, supply chain, energy.
+  seedMasteryPath({
+    slug: "operations-researcher",
+    title: "Operations Researcher",
+    description:
+      "From OR foundations + modeling discipline through LP + simplex + duality + sensitivity, integer programming + branch-and-bound + cutting planes, queueing theory + M/M/1 with interactive viz + Little's law + Pollaczek-Khinchine, network flow + Dijkstra + max-flow/min-cut + Hungarian, stochastic + robust + chance-constrained optimization + flaw of averages, discrete-event simulation + Monte Carlo + variance reduction + digital twins, and scheduling + VRP + ALNS + ML-augmented heuristics. The operations-research stack end-to-end.",
+    nodes: [
+      { slug: "or-foundations-and-modeling", title: "OR Foundations + Modeling", level: "apprentice", order: 1, pages: ["or-vs-ml", "modeling-pipeline", "or-pillars"], prereqs: [], description: "OR vs ML vs IE vs systems engineering, modeling pipeline (vars → obj → constraints → solve), pillars (LP/MIP/queueing/simulation/MDP)." },
+      { slug: "linear-programming-and-simplex", title: "Linear Programming + Simplex", level: "practitioner", order: 2, pages: ["lp-geometry", "simplex-ipm", "duality-sensitivity"], prereqs: ["or-foundations-and-modeling"], description: "LP standard form + polytope geometry, simplex + interior-point methods + Klee-Minty pathology, duality + shadow prices + sensitivity analysis." },
+      { slug: "integer-programming-and-branch-bound", title: "Integer Programming + Branch & Bound", level: "practitioner", order: 3, pages: ["mip-basics", "branch-and-cut", "modeling-tricks"], prereqs: ["linear-programming-and-simplex"], description: "MIP classes + 0/1 problems + knapsack/TSP/VRP/facility, branch-and-bound + cutting planes + branch-and-price, big-M + indicators + symmetry breaking + formulation strength." },
+      { slug: "queueing-theory-and-mm1", title: "Queueing Theory + M/M/1", level: "specialist", order: 4, pages: ["queueing-foundations", "mm1-derivation", "littles-law-pk"], prereqs: ["or-foundations-and-modeling"], description: "Erlang origins + Kendall notation + applications, M/M/1 steady state + hockey-stick blowup + interactive viz, Little's law + Pollaczek-Khinchine + variance as enemy." },
+      { slug: "network-flow-and-shortest-path", title: "Network Flow + Shortest Path", level: "specialist", order: 5, pages: ["network-flow-intro", "dijkstra-bellman", "max-flow-assignment"], prereqs: ["linear-programming-and-simplex"], description: "Network-flow LP structure + totally unimodular, Dijkstra + Bellman-Ford + A* + contraction hierarchies, max-flow/min-cut + Hungarian assignment + NRMP." },
+      { slug: "stochastic-and-robust-optimization", title: "Stochastic + Robust Optimization", level: "expert", order: 6, pages: ["uncertainty-paradigms", "robust-cc", "applications-dfl"], prereqs: ["linear-programming-and-simplex"], description: "Stochastic + robust + DRO + chance-constrained, Bertsimas-Sim Γ-budget + CVaR + Wasserstein-DRO, applications + decision-focused learning + RL." },
+      { slug: "simulation-and-monte-carlo", title: "Simulation + Monte Carlo", level: "expert", order: 7, pages: ["simulation-paradigms", "des-mechanics", "mc-optimization"], prereqs: ["queueing-theory-and-mm1"], description: "DES + ABM + Monte Carlo + system dynamics, event calendar + variance reduction (CRN/antithetic/importance/strat), MC integration + optimization-via-simulation + digital twins." },
+      { slug: "scheduling-and-vehicle-routing", title: "Scheduling + Vehicle Routing", level: "expert", order: 8, pages: ["scheduling-classes", "vrp-family", "metaheuristics-ml"], prereqs: ["integer-programming-and-branch-bound"], description: "Single-machine + flow shop + job shop + Johnson's rule, CVRP + VRPTW + Clarke-Wright + ALNS + Lin-Kernighan, metaheuristics + RL/GNN learning-based methods + UPS ORION-scale industrial impact." },
+    ],
+  });
+
   // P40 — Cognitive Scientist path. Perception + attention +
   // decision-making with new DriftDiffusion viz + memory systems
   // + language + learning + cognitive control + neuroscience

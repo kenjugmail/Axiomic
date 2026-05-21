@@ -1,0 +1,196 @@
+{
+  "slug": "queueing-theory-and-mm1",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Derive M/M/1.",
+      "Use Little's law.",
+      "Apply to capacity planning."
+    ],
+    "prereqs": [
+      "or-foundations-and-modeling"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Queueing theory: the math of waiting lines",
+      "body": "**Queueing theory**: study of stochastic systems where entities wait for service. Pioneered by **Erlang** (1909-1917, Copenhagen Telephone Company): how many lines are needed so callers rarely get a busy signal? Yielded Erlang's loss + delay formulas still used in call centers + telecoms today.\n\n**Universal applications**:\n- Call centers (Erlang C: staffing for service level).\n- Hospital ER + OR scheduling.\n- Web/cloud servers (Little's law for capacity planning).\n- Manufacturing flow + WIP (Little's law again).\n- Networks (packet routers).\n- Airport security + immigration.\n- Restaurants + cafés.\n- ATMs + bank tellers.\n- Highway traffic.\n\n**Notation (Kendall A/B/c/K/N/D)**:\n- A = arrival process (M = Poisson/Markov, G = general, D = deterministic).\n- B = service time (same letters).\n- c = number of servers.\n- K = system capacity (default ∞).\n- N = population (default ∞).\n- D = service discipline (default FCFS).\n\nMost famous: **M/M/1** — Poisson arrivals, exponential service, 1 server. Simplest non-trivial queue. **M/M/c**: c parallel servers. **M/G/1**: general service-time distribution.\n\n**Stationary distribution**: long-run behavior. Requires ρ = λ/μ < 1 for stability. As ρ → 1, queue length → ∞.",
+      "viz": "mm1-queue",
+      "vizProps": {
+        "lambda": 0.6,
+        "mu": 1
+      }
+    },
+    {
+      "kind": "text",
+      "title": "M/M/1: deriving the steady state",
+      "body": "**M/M/1** assumptions:\n- Poisson arrivals at rate λ (inter-arrivals exponential).\n- Exponential service time at rate μ.\n- Single server, FIFO, infinite capacity + population.\n\n**Steady-state probabilities** pₙ = P(n in system) found via global balance equations.\n\nLevel n balance: rate in = rate out.\n  λ pₙ₋₁ = μ pₙ\n  pₙ = ρ pₙ₋₁ = ρⁿ p₀\n\nSum to 1: Σ pₙ = p₀ / (1-ρ) = 1 → p₀ = 1-ρ.\n  pₙ = (1-ρ) ρⁿ  (geometric distribution)\n\n**Key results**:\n- ρ = λ/μ (utilization; fraction of time server busy).\n- p₀ = 1-ρ (probability empty).\n- L = E[n] = ρ/(1-ρ) (mean number in system).\n- Lq = E[queue length] = ρ²/(1-ρ).\n- W = E[time in system] = 1/(μ-λ) (sojourn time).\n- Wq = E[wait time] = ρ/(μ-λ).\n\n**Hockey-stick blowup**: as ρ → 1, L + W explode. ρ=0.5 → L=1; ρ=0.8 → L=4; ρ=0.95 → L=19; ρ=0.99 → L=99. Quadruple wait time pushing utilization 0.8 → 0.95.\n\n**Universal lesson**: never run a system at 100% capacity. Variability + queueing exact a punishing tax near saturation. Hospital ICUs typically target ~85% occupancy; airline gate utilization ~70-85%; web servers ~70%."
+    },
+    {
+      "kind": "text",
+      "title": "Little's law + universal queueing results",
+      "body": "**Little's law** (Little 1961): for any stable queueing system (any arrival/service process, any discipline, any number of servers!):\n\n  L = λ W\n\nMean number in system = arrival rate × mean time in system.\n\n**Why so powerful**: works without any assumptions about distribution shapes. Applies to subsystems too (L_q = λ W_q for the queue; L_server = λ W_server for service).\n\n**Use cases**:\n- Web service: avg in-flight requests = req rate × avg latency.\n- Factory: WIP = throughput × cycle time.\n- Hospital: avg patients = admit rate × avg length-of-stay.\n- Capacity planning: solve for any unknown given other two.\n\n**M/M/c**: c parallel servers, same single queue (Erlang C formula). Used for call centers; ρ = λ/(cμ) per server.\n\n**M/G/1** with general service time:\n  Pollaczek-Khinchine: Lq = ρ² (1 + C²) / (2(1-ρ))\n  where C² = (σ_S / E[S])² is squared coefficient of variation of service time.\n  C²=0 (deterministic) → smallest queue.\n  C²=1 (exponential, M/M/1) → ρ²/(1-ρ).\n  C² > 1 (heavy-tail) → much bigger queue.\n  Lesson: variance is the enemy. Reducing service-time variance shrinks queues even if mean unchanged.\n\n**Jackson networks**: networks of M/M/c queues; product-form solution.\n\n**Beyond exact analysis**: discrete-event simulation (DES) handles arbitrary distributions, complex routing, finite capacities, balking + reneging."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_or_mm1_1",
+        "kind": "guided_derivation",
+        "question": "Apply M/M/1 to a help-desk",
+        "goal": "Help desk receives 12 tickets/hour (Poisson); each takes avg 4 min (exponential). 1 agent. Compute utilization + mean wait.",
+        "steps": [
+          {
+            "prompt": "λ in tickets/min?",
+            "motivation": "Unit conversion.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.2",
+                "12/60"
+              ]
+            },
+            "hints": [
+              "12 per hour."
+            ],
+            "reveal": "λ = 12/60 = 0.2 tickets/min."
+          },
+          {
+            "prompt": "μ in tickets/min?",
+            "motivation": "1 / mean service.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.25",
+                "1/4"
+              ]
+            },
+            "hints": [
+              "4 min mean."
+            ],
+            "reveal": "μ = 1/4 = 0.25 tickets/min."
+          },
+          {
+            "prompt": "Utilization ρ?",
+            "motivation": "λ/μ.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.8"
+              ]
+            },
+            "hints": [
+              "0.2/0.25."
+            ],
+            "reveal": "ρ = 0.2/0.25 = 0.8 (80% utilization)."
+          },
+          {
+            "prompt": "Mean wait Wq?",
+            "motivation": "ρ/(μ-λ).",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "16 min"
+              ]
+            },
+            "hints": [
+              "0.8/0.05."
+            ],
+            "reveal": "Wq = ρ/(μ-λ) = 0.8/(0.25-0.20) = 0.8/0.05 = 16 min mean wait. Mean time in system W = 1/(μ-λ) = 20 min (16 min waiting + 4 min service)."
+          },
+          {
+            "prompt": "If λ rises 25% to 0.25, what happens?",
+            "motivation": "ρ approaches 1.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "unstable; queue explodes; need more capacity"
+              ]
+            },
+            "hints": [
+              "ρ=1."
+            ],
+            "reveal": "ρ = 0.25/0.25 = 1.0 → system unstable; mean wait → ∞. Lesson: small demand increase at high utilization is catastrophic. Action: add a second agent (M/M/2), reduce service time, or shed load."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_or_mm1_1",
+        "kind": "multiple_choice",
+        "question": "Why is variance — not just the mean — the queue's enemy?",
+        "options": [
+          "Random.",
+          "Pollaczek-Khinchine: Lq = ρ²(1+C²)/(2(1-ρ)) where C² = squared coefficient of variation of service time. Doubling C² roughly doubles the queue at fixed utilization. Variability creates 'bunching' — periods of overload + idle that average to the mean but accumulate huge waits. Lean/Six Sigma's emphasis on variance reduction (standard work, takt time) is rooted in queueing math: smoothing the service process (or arrival process) shrinks waiting even without adding capacity. This is why hospitals invested in level loading + airlines stagger gate arrivals.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Pollaczek-Khinchine: Lq ∝ (1+C²)/(2(1-ρ)). Variance contributes linearly to queue length. Reducing variance reduces wait without reducing demand. Foundation of Lean + Six Sigma + level loading + takt time + variance reduction in service operations."
+      },
+      "hints": [
+        "What's C²?",
+        "How does it enter PK formula?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Pollaczek-Khinchine: Lq ∝ (1+C²). Doubling service-time variance ≈ doubles queue. Variability creates bunching; smoothing the process (Lean, takt time, standard work) shrinks waits at fixed throughput. Variance reduction has been the lever behind productivity gains since Toyota Production System."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_or_mm1_1",
+        "kind": "slider",
+        "question": "Drag to the typical airline-industry on-time-performance target (in percent).",
+        "target": {
+          "min": 80,
+          "max": 85
+        },
+        "default": 95,
+        "explanation": "Major US airlines target ~80-85% on-time arrivals. Above that, queueing-style cost climbs sharply: gate, taxiway, runway, crew + maintenance variability cascade. Going from 85% → 95% requires near-doubling of slack. Trade-off between cost of slack capacity vs cost of delay."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_or_mm1_1",
+        "kind": "sortable",
+        "question": "Order these systems by typical target utilization (lowest to highest).",
+        "items": [
+          {
+            "id": "er",
+            "label": "Hospital ER (must handle surge)"
+          },
+          {
+            "id": "icu",
+            "label": "Hospital ICU (life-critical)"
+          },
+          {
+            "id": "web",
+            "label": "Web service (latency-sensitive)"
+          },
+          {
+            "id": "airline-gate",
+            "label": "Airline gate utilization"
+          },
+          {
+            "id": "factory",
+            "label": "Manufacturing line (cost-driven, tolerate WIP)"
+          }
+        ],
+        "explanation": "Capacity planning trade-off: latency-sensitive + high-variability systems (ER, ICU) target ~60-70%; web/airline 70-85%; manufacturing 85-95% (predictable + can tolerate WIP). Higher utilization = lower cost but bigger queue at any variance. Queueing theory + simulation guide the right target per system."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_or_mm1_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain Little's law + why operations professionals find it indispensable.",
+        "rubric": "Mentions: Little's law (L = λW) — mean number in system = arrival rate × mean time in system. Holds for any stable queueing system regardless of arrival distribution, service distribution, discipline, or number of servers. Lets you compute one quantity given the other two: e.g., factory WIP = throughput × cycle time; web app in-flight requests = QPS × latency; hospital patient census = admit rate × avg LOS. Used everywhere: lean (Wally Hopp + Spearman 'Factory Physics'); cloud (Amdahl + Little for SLA design); healthcare ops (capacity planning); banking (teller staffing). Generalizes to L_q + W_q for queue alone. Powerful because no distributional assumptions; works as a back-of-envelope sanity check for any flow system. Concludes: Little's law is the 'F = ma' of operations management — three quantities tied together by a simple identity that holds with extraordinary generality."
+      }
+    }
+  ]
+}

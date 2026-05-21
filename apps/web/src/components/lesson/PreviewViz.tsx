@@ -158,6 +158,11 @@ const LazyPhasePortrait1D = lazy(() =>
     (m) => ({ default: m.PhasePortrait1D }),
   ),
 );
+const LazyMM1Queue = lazy(() =>
+  import("../../../../../packages/viz/src/components/MM1Queue").then(
+    (m) => ({ default: m.MM1Queue }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -278,6 +283,8 @@ function VizByName({
       return <LazyHillFunction {...(props as object)} />;
     case "drift-diffusion":
       return <LazyDriftDiffusion {...(props as object)} />;
+    case "mm1-queue":
+      return <LazyMM1Queue {...(props as object)} />;
     default:
       return null;
   }

@@ -1,0 +1,173 @@
+{
+  "slug": "simulation-and-monte-carlo",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Build a DES.",
+      "Run Monte Carlo.",
+      "Validate + verify."
+    ],
+    "prereqs": [
+      "queueing-theory-and-mm1"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "When analytical models fail: simulation",
+      "body": "**Simulation**: numerically experiment with a model of a system to estimate performance. Used when analytical models are intractable (complex stochastic dynamics, non-Markovian distributions, multiple interacting queues, complex routing, blocking, balking, reneging, time-varying arrivals).\n\n**Major paradigms**:\n1. **Discrete-event simulation (DES)**: state changes at discrete event times (arrival, service start/end, etc.). Maintain event calendar; advance clock to next event; update state + collect stats.\n2. **Agent-based modeling (ABM)**: each entity has rules + state; emergent behavior from interactions. Used in epidemiology (e.g., COVID models), urban planning, ecology.\n3. **Monte Carlo simulation**: random sampling from distributions for static problems (integration, risk, finance, physics).\n4. **System dynamics**: continuous-time aggregate stocks + flows (Forrester 1961). Used in policy modeling.\n5. **Hybrid simulation**: combine paradigms.\n\n**Software**: AnyLogic (multi-paradigm, commercial), Simio, FlexSim, Arena, SIMUL8 (commercial DES); SimPy, salabim (open-source Python DES); JuliaSim, AgentPy, Mesa (ABM); R, MATLAB, Python for Monte Carlo.\n\n**Use cases**:\n- Manufacturing throughput + WIP analysis.\n- Healthcare patient flow + capacity planning.\n- Airport passenger flow + security screening.\n- Supply chain resilience under disruption.\n- Financial portfolio Monte Carlo.\n- Epidemic + transmission modeling.\n- Traffic flow + autonomous vehicle interaction.\n- Server farm capacity + SLA validation."
+    },
+    {
+      "kind": "text",
+      "title": "Discrete-event simulation: anatomy",
+      "body": "**DES core loop**:\n```\ninitialize state; clock=0; event_calendar = []\nschedule_initial_events()\nwhile clock < END:\n  e = pop_next_event(calendar)\n  clock = e.time\n  process_event(e)        # update state, schedule new events\n  collect_statistics()\nreport_summary()\n```\n\n**Event types** (M/M/1 example): arrival, service-completion. Each event handler may schedule future events.\n\n**Random-variate generation**:\n- Pseudorandom generators (Mersenne Twister, xorshift, PCG): produce U(0,1).\n- Inverse CDF: X = F⁻¹(U) for many distributions.\n- Acceptance-rejection: for hard-to-invert distributions.\n- Box-Muller / Marsaglia polar: normal.\n- Composition + convolution.\n\n**Replications + variance reduction**:\n- Run N independent replications; report mean ± CI.\n- **Common random numbers (CRN)**: use same random seed for comparing alternatives (correlated → tighter difference CI).\n- **Antithetic variates**: pair U + 1-U.\n- **Control variates**: subtract known-expectation random variable.\n- **Importance sampling**: sample from a biased distribution; reweight. Used for rare events.\n- **Stratified sampling**.\n\n**Warm-up + steady-state estimation**: discard initial transient; collect stats only after.\n\n**Validation + verification**:\n- Verification: code matches model (debug).\n- Validation: model matches reality (compare to historical data, expert review)."
+    },
+    {
+      "kind": "text",
+      "title": "Monte Carlo + sensitivity + optimization-via-simulation",
+      "body": "**Monte Carlo integration**: estimate E[f(X)] by sampling.\n  Ê = (1/N) Σ f(X_i)\n  Var(Ê) = σ²/N → SE ∝ 1/√N\nConvergence dimensionally independent (vs O(h^d) for grid quadrature). Used in: option pricing (Black-Scholes & beyond), physics (transport, ising), Bayesian inference (MCMC), risk (VaR), molecular simulation.\n\n**Quasi-Monte Carlo (QMC)**: low-discrepancy sequences (Sobol, Halton) → O((log N)^d / N) convergence; faster in moderate dimensions. Used in finance + physics.\n\n**MCMC** (Metropolis-Hastings, Gibbs, HMC, NUTS): sample from intractable posteriors. Bayesian + statistical physics workhorse.\n\n**Sensitivity analysis**:\n- One-at-a-time (OAT): vary each input separately.\n- Sobol indices: variance-decomposition for variable importance.\n- Morris elementary effects: screening.\n- Tornado / spider plots: visualize impact.\n\n**Optimization via simulation**: find best decision when objective is simulation-evaluated (no closed form).\n- **Ranking + selection**: compare alternatives, pick best (Kim-Nelson, KN).\n- **Response-surface methodology (RSM)**: fit metamodel; optimize meta.\n- **Stochastic approximation (Robbins-Monro)**: gradient descent on noisy objective.\n- **Sample average approximation (SAA)**: solve deterministic equivalent on samples.\n- **Bayesian optimization (Kriging + EI)**: efficient for expensive simulations.\n\n**Digital twins**: high-fidelity simulation of physical asset (factory, aircraft, city); used for planning + maintenance + design. Industry trend across manufacturing, aerospace, civil."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_or_sim_1",
+        "kind": "guided_derivation",
+        "question": "Estimate π via Monte Carlo",
+        "goal": "Use Monte Carlo with samples in [0,1]² to estimate π. Derive formula + variance reduction.",
+        "steps": [
+          {
+            "prompt": "Geometric setup?",
+            "motivation": "Area ratio.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Area circle inscribed in unit square = π/4"
+              ]
+            },
+            "hints": [
+              "Quarter circle in unit square."
+            ],
+            "reveal": "Quarter-circle of radius 1 in unit square has area π/4. Random point (x,y) ~ U[0,1]² inside iff x² + y² ≤ 1."
+          },
+          {
+            "prompt": "Monte Carlo estimator?",
+            "motivation": "Sample mean.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "π̂ = 4 · (# inside / N)"
+              ]
+            },
+            "hints": [
+              "Fraction × 4."
+            ],
+            "reveal": "Generate N samples (xᵢ, yᵢ); count K with xᵢ² + yᵢ² ≤ 1. π̂ = 4K/N. E[π̂] = π; unbiased."
+          },
+          {
+            "prompt": "Variance of estimator?",
+            "motivation": "Quantify error.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Var(π̂) = 16·p·(1-p)/N where p=π/4"
+              ]
+            },
+            "hints": [
+              "Bernoulli variance × 16."
+            ],
+            "reveal": "K ~ Binomial(N, π/4). Var(K) = N·p·(1-p) ≈ N · 0.785 · 0.215 ≈ 0.169 N. Var(π̂) = 16·Var(K)/N² ≈ 2.7/N. SE ≈ √(2.7/N) ≈ 1.64/√N. For SE = 0.001: N ≈ 2.7 million."
+          },
+          {
+            "prompt": "Variance-reduction technique?",
+            "motivation": "Faster convergence.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "antithetic variates",
+                "stratified",
+                "QMC Sobol sequence"
+              ]
+            },
+            "hints": [
+              "Pair samples."
+            ],
+            "reveal": "Antithetic variates: pair (x,y) with (1-x,1-y); use same sample for both. Reduces variance by ~factor 2 due to negative correlation. Quasi-Monte Carlo (Sobol/Halton) gives O((log N)²/N) for d=2 — dramatically faster than O(1/√N)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_or_sim_1",
+        "kind": "multiple_choice",
+        "question": "Why is Monte Carlo's convergence 'dimension-independent' while grid quadrature is not?",
+        "options": [
+          "Random.",
+          "Monte Carlo's standard error is σ/√N regardless of dimension d. Grid quadrature with h spacing has error O(h^k) for k-th-order method, requiring N = (1/h)^d points → error O(N^{-k/d}) which collapses in high d (curse of dimensionality). MC trades dimensional convergence for slow O(1/√N) but escapes the curse. Practical: high-d Bayesian inference, financial pricing, statistical mechanics all rely on MC + MCMC. QMC + adaptive sampling improve constants but MC's robustness in high-d is foundational.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Monte Carlo SE ∝ 1/√N independent of dimension; grid quadrature O(N^{-k/d}) → curse of dimensionality. MC + MCMC dominate high-dimensional integration: Bayesian posteriors, statistical mechanics, financial pricing, machine learning. Quasi-MC + adaptive variants further improve constants but the 1/√N law holds."
+      },
+      "hints": [
+        "What's MC's SE?",
+        "What's quadrature's error?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Monte Carlo's SE is σ/√N regardless of dimension. Grid quadrature error is O(N^{-k/d}) — collapses in high-d (curse of dimensionality). MC's 1/√N is slow but dimensional invariance makes it the only practical tool in high-d (Bayesian inference, MCMC, financial pricing). QMC + adaptive variants improve constants."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_or_sim_1",
+        "kind": "math_expression",
+        "question": "If Monte Carlo gives SE = σ/√N, how many times more samples N are needed to halve the SE?",
+        "acceptedAnswers": [
+          "4",
+          "4 times",
+          "4x"
+        ],
+        "hint": "SE ∝ 1/√N; halve SE → double √N → quadruple N."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_or_sim_1",
+        "kind": "sortable",
+        "question": "Order these simulation approaches by typical computational cost per scenario (cheapest first).",
+        "items": [
+          {
+            "id": "mc-simple",
+            "label": "Plain Monte Carlo (closed-form sampling)"
+          },
+          {
+            "id": "des",
+            "label": "Discrete-event simulation of a queue network"
+          },
+          {
+            "id": "abm",
+            "label": "Agent-based model of a city"
+          },
+          {
+            "id": "digital-twin",
+            "label": "High-fidelity digital twin (CFD + structural + thermal)"
+          }
+        ],
+        "explanation": "Computational cost hierarchy: plain MC fastest (closed-form sampling); DES moderate (event processing + state updates); ABM higher (many interacting agents); digital twin expensive (CFD + multi-physics + high resolution). Choice depends on fidelity needed vs compute budget; meta-models + ROMs cheapen the highest-fidelity tools."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_or_sim_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain when to choose simulation over analytical optimization.",
+        "rubric": "Mentions: simulation is preferred when system is too complex for closed-form: non-Markovian distributions; complex routing + blocking + balking + reneging; multi-stage + multi-period dependencies; time-varying arrivals; rare events; agent interactions. Examples: hospital patient flow, semiconductor fab WIP, airport security screening, supply-chain resilience under disruption, autonomous-vehicle interaction in traffic, financial Monte Carlo risk. Costs: higher computation; output noise (variance reduction needed); model validation + verification overhead; harder optimization (no gradient by default). Modern: surrogate models + Bayesian optimization + differentiable simulation make simulation-in-the-loop optimization tractable. Digital twins now standard in aerospace + manufacturing + utilities. Concludes: rule of thumb — if you can write an LP, use it; if your system has too much stochastic + structural complexity to solve analytically, simulate."
+      }
+    }
+  ]
+}

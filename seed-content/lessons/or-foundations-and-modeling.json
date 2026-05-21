@@ -1,0 +1,228 @@
+{
+  "slug": "or-foundations-and-modeling",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intro",
+    "objectives": [
+      "Distinguish OR from related fields.",
+      "Identify problem classes.",
+      "Build a decision model."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Operations Research: optimizing the operation of complex systems",
+      "body": "**Operations Research (OR)**: applied math + computational discipline that uses optimization, simulation, probability + statistics to make better decisions in complex socio-technical systems. Born in WWII (Allied bomber/convoy routing, radar deployment, anti-submarine warfare); industrialized post-war into the dominant decision science behind airline scheduling, package routing, refinery planning, hospital ORs, supply chains, and electricity grids.\n\n**Sister fields + how they differ**:\n- **Industrial engineering (IE)**: shop-floor design, work measurement, ergonomics, Lean/Six Sigma. OR is more model-driven; IE more process-driven. In practice the boundary is fuzzy.\n- **Management science**: applied OR for business decisions.\n- **Statistics / ML**: build predictive models; OR usually consumes those forecasts as inputs.\n- **Systems engineering**: designs the whole; OR optimizes pieces.\n- **Economics**: equilibrium + behavior; OR is prescriptive.\n\n**Core problem classes**:\n1. **Linear programming (LP)**: linear obj + constraints; continuous variables.\n2. **Integer / mixed-integer programming (MIP)**: some variables integer.\n3. **Network flow**: shortest path, max flow, min-cost flow.\n4. **Queueing theory**: stochastic systems with waiting.\n5. **Inventory + supply-chain management**: stocking, ordering, multi-echelon.\n6. **Scheduling**: job shop, vehicle routing, airline crew.\n7. **Stochastic optimization**: uncertainty in parameters.\n8. **Simulation**: discrete-event simulation when analytical models fail.\n9. **Dynamic + Markov decision processes (MDPs)**: multi-stage under uncertainty.\n10. **Game theory + mechanism design**: multi-agent.\n\n**Why OR matters now**: every modern logistics platform (UPS ORION, Amazon, FedEx), every airline IRROPS recovery, every cloud-resource scheduler, every electricity market dispatch, every COVID hospital-bed planning model — all OR. Combined market value of OR tooling is in the hundreds of billions."
+    },
+    {
+      "kind": "text",
+      "title": "Modeling: from word problem to mathematical program",
+      "body": "**Modeling pipeline**: real-world problem → decision variables → objective → constraints → data → solver → interpret.\n\n**Step 1 — Identify decisions**: What can we choose? Production quantities, routing, schedules, prices.\n\n**Step 2 — Define variables**:\n- Continuous (production amounts).\n- Integer (number of trucks).\n- Binary (open facility or not).\n\n**Step 3 — Objective**:\n- Minimize cost / maximize profit / minimize travel time / maximize throughput.\n- Often multiple objectives → scalarize (weighted sum) or Pareto-optimal frontier.\n\n**Step 4 — Constraints**:\n- Capacity (production ≤ capacity).\n- Demand satisfaction.\n- Flow conservation (network).\n- Logical (if-then via big-M).\n- Non-negativity, bounds.\n\n**Step 5 — Data**: forecasts, costs, capacities. Garbage in → garbage out.\n\n**Step 6 — Solve**: LP solvers (simplex, interior-point: CPLEX, Gurobi, HiGHS, open-source SCIP). MIP solvers (branch-and-cut). Heuristics (genetic, simulated annealing, tabu) for huge or non-convex problems.\n\n**Step 7 — Sensitivity + interpretation**: shadow prices (dual variables) = marginal value of relaxing constraint. Reduced costs. Robustness to parameter shifts.\n\n**Example (production planning)**:\n- Decisions: x₁ = chairs, x₂ = tables.\n- Profit: $40 x₁ + $50 x₂.\n- Wood: 4 x₁ + 6 x₂ ≤ 240.\n- Labor: 3 x₁ + 2 x₂ ≤ 120.\n- Non-negativity: x₁, x₂ ≥ 0.\n- Solve graphically or with simplex → optimal corner solution."
+    },
+    {
+      "kind": "text",
+      "title": "OR's pillars: LP, MIP, queueing, simulation, MDP",
+      "body": "**Linear programming**: continuous, linear obj + constraints, convex polytope. Simplex (Dantzig 1947) traverses vertices; interior-point (Karmarkar 1984) polynomial. Modern solvers crush millions of variables.\n\n**Mixed-integer programming**: adds integrality. NP-hard in general but solver progress (branch-and-cut, presolve, cutting planes, primal heuristics) made it practical. Gurobi/CPLEX/HiGHS routinely solve million-variable MIPs. ~10⁶× faster than 1990 due to algorithm + machine improvements.\n\n**Network flow**: special LP structure → faster algorithms. Shortest path (Dijkstra), max flow (Ford-Fulkerson, Edmonds-Karp, push-relabel), min-cost flow (network simplex). Appears everywhere — assignment, transportation, project scheduling.\n\n**Queueing theory**: stochastic waiting lines. M/M/1, M/M/c, M/G/1, networks of queues (Jackson, BCMP). Erlang's call-center formulas still drive 911 staffing.\n\n**Simulation**: when analytical models fail. Discrete-event simulation (DES): generate events, advance clock, collect statistics. AnyLogic, SIMUL8, Arena, SimPy.\n\n**MDP / dynamic programming**: multi-stage under uncertainty. Bellman equation. Solves via value iteration, policy iteration, LP. Modern reinforcement learning is the function-approximation extension.\n\n**Stochastic + robust optimization**: parameters uncertain. Scenario-based (sample average approximation); chance constraints; robust (worst-case over uncertainty set); distributionally robust."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_or_intro_1",
+        "kind": "guided_derivation",
+        "question": "Build + solve a small LP (production planning)",
+        "goal": "Carpenter makes chairs (profit $40, 4hr wood, 3hr labor) + tables (profit $50, 6hr wood, 2hr labor). Has 240hr wood, 120hr labor. Maximize profit.",
+        "steps": [
+          {
+            "prompt": "Decision variables?",
+            "motivation": "What can carpenter choose.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "x1 chairs, x2 tables",
+                "x1 = # chairs, x2 = # tables"
+              ]
+            },
+            "hints": [
+              "Quantities to produce."
+            ],
+            "reveal": "x₁ = chairs produced, x₂ = tables produced. Continuous LP relaxation; integer programming if must be whole units."
+          },
+          {
+            "prompt": "Objective?",
+            "motivation": "Maximize profit.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "max 40 x1 + 50 x2",
+                "40x1+50x2"
+              ]
+            },
+            "hints": [
+              "Sum of profits."
+            ],
+            "reveal": "max Z = 40 x₁ + 50 x₂."
+          },
+          {
+            "prompt": "Constraints?",
+            "motivation": "Resources + non-neg.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "4x1+6x2≤240; 3x1+2x2≤120; x1,x2≥0"
+              ]
+            },
+            "hints": [
+              "Wood + labor + sign."
+            ],
+            "reveal": "Wood: 4 x₁ + 6 x₂ ≤ 240; Labor: 3 x₁ + 2 x₂ ≤ 120; x₁, x₂ ≥ 0."
+          },
+          {
+            "prompt": "Solve graphically: corner points + their values?",
+            "motivation": "Optimum at a vertex.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(0,40), (24,24), (40,0)",
+                "vertices of feasible region"
+              ]
+            },
+            "hints": [
+              "Find intersections."
+            ],
+            "reveal": "Feasible-region corners: (0,0) Z=0; (40,0) Z=1600; (24,24) Z=2160; (0,40) Z=2000. Optimum at (24,24): make 24 chairs + 24 tables for $2160 profit. Both constraints tight: 4(24)+6(24)=240; 3(24)+2(24)=120. Wood + labor 100% utilized."
+          },
+          {
+            "prompt": "Shadow price (dual) of wood?",
+            "motivation": "Marginal value of one more hour.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "≈$5/hr"
+              ]
+            },
+            "hints": [
+              "dZ/d(wood) at optimum."
+            ],
+            "reveal": "Shadow price of wood = $5/hr (extra wood-hr → $5 more profit). Of labor = $10/hr. Tells where to invest in expanded capacity. Sensitivity analysis = bread + butter of LP."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_or_intro_1",
+        "kind": "multiple_choice",
+        "question": "What distinguishes operations research from machine learning?",
+        "options": [
+          "No difference.",
+          "ML predicts; OR prescribes. ML estimates demand forecasts, classifies risk, models behavior. OR uses those predictions as inputs to optimization models that decide which trucks to send where, which orders to fill, which prices to set, which facilities to build. Production stacks combine both: ML predicts demand; OR optimizes inventory + routing given that demand. Increasingly co-trained (decision-focused learning, end-to-end prediction-and-optimization).",
+          "Same.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Predict vs prescribe is the canonical distinction. ML/statistics: P(X|data). OR: max E[reward | decisions]. Stack: forecast → optimize. Decision-focused learning (Elmachtoub + Grigas 2017 'smart predict-then-optimize') trains predictors to minimize downstream decision regret, not just forecast error."
+      },
+      "hints": [
+        "Predict vs prescribe.",
+        "What does each produce?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "ML estimates uncertain quantities (demand, risk, etc.); OR uses those estimates as inputs to optimization models that prescribe decisions (routing, scheduling, pricing). Modern systems stack them (forecast → optimize) or co-train (decision-focused learning)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_or_intro_1",
+        "kind": "drag_classify",
+        "question": "Classify each application by primary OR technique.",
+        "items": [
+          {
+            "id": "diet",
+            "label": "Stigler diet problem (minimize cost given nutrients)",
+            "bin": "lp"
+          },
+          {
+            "id": "refinery",
+            "label": "Refinery blending (continuous mixing)",
+            "bin": "lp"
+          },
+          {
+            "id": "vrp",
+            "label": "Vehicle routing with time windows",
+            "bin": "mip"
+          },
+          {
+            "id": "facility",
+            "label": "Facility-location (where to open warehouses)",
+            "bin": "mip"
+          },
+          {
+            "id": "call-center",
+            "label": "Call-center staffing (Erlang C)",
+            "bin": "queueing"
+          },
+          {
+            "id": "er",
+            "label": "ER triage wait times",
+            "bin": "queueing"
+          },
+          {
+            "id": "factory",
+            "label": "Factory shop-floor process design",
+            "bin": "sim"
+          },
+          {
+            "id": "covid",
+            "label": "Hospital bed surge under COVID",
+            "bin": "sim"
+          }
+        ],
+        "bins": [
+          {
+            "id": "lp",
+            "label": "Linear programming"
+          },
+          {
+            "id": "mip",
+            "label": "Mixed-integer programming"
+          },
+          {
+            "id": "queueing",
+            "label": "Queueing theory"
+          },
+          {
+            "id": "sim",
+            "label": "Simulation"
+          }
+        ],
+        "explanation": "Picking the right hammer: continuous flows → LP; discrete choices → MIP; stochastic waiting → queueing; complex stochastic dynamics with no closed form → simulation. Big OR projects combine multiple (forecast → MIP → simulate to validate)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_or_intro_1",
+        "kind": "slider",
+        "question": "Roughly how many times faster is a modern MIP solver vs 1990, accounting for both algorithm improvements and hardware (orders of magnitude)?",
+        "target": {
+          "min": 6,
+          "max": 7
+        },
+        "default": 2,
+        "explanation": "Modern MIP solvers (Gurobi, CPLEX, HiGHS) are about 10⁶-10⁷× faster than 1990 for the same problem, split roughly 50/50 between algorithm advances (presolve, cutting planes, branching heuristics, primal heuristics, conflict learning) and hardware (CPU clock, parallelism, memory). Bixby's 'Computational Progress in LP/MIP' talks document this."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_or_intro_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why operations research is a 'hidden infrastructure' of modern life.",
+        "rubric": "Mentions: every package delivered, flight scheduled, ICU bed allocated, kWh dispatched, financial portfolio rebalanced, refinery cracked, container ship loaded, semiconductor fab scheduled — all relies on OR optimization in the back office. UPS ORION saves ~10M gallons/year. Airline crew + aircraft scheduling. Amazon FCs. Electricity unit commitment + economic dispatch. Hospital OR scheduling + ICU surge. Most users never see it because OR runs invisibly inside ERPs, TMS/WMS, MES, planning systems. ML now layered on top (forecasts feed optimizers). The CEO of an airline once said: 'We don't fly planes; we solve LPs and happen to use airplanes to execute the solutions.' That's the punchline: OR is the prescriptive layer behind the predictive + perceptual layers everyone celebrates."
+      }
+    }
+  ]
+}
