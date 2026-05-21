@@ -75,6 +75,9 @@ const ZoningGrid = lazy(() => import("../../../../packages/viz/src/components/Zo
 const ExtinctionTimeline = lazy(() => import("../../../../packages/viz/src/components/ExtinctionTimeline").then(m => ({ default: m.ExtinctionTimeline })));
 const UtilityIndifference = lazy(() => import("../../../../packages/viz/src/components/UtilityIndifference").then(m => ({ default: m.UtilityIndifference })));
 const StructuralLoadFlow = lazy(() => import("../../../../packages/viz/src/components/StructuralLoadFlow").then(m => ({ default: m.StructuralLoadFlow })));
+const PopulationPyramid = lazy(() => import("../../../../packages/viz/src/components/PopulationPyramid").then(m => ({ default: m.PopulationPyramid })));
+const MapProjections = lazy(() => import("../../../../packages/viz/src/components/MapProjections").then(m => ({ default: m.MapProjections })));
+const ShotComposition = lazy(() => import("../../../../packages/viz/src/components/ShotComposition").then(m => ({ default: m.ShotComposition })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -154,6 +157,9 @@ export const VIZ_NAMES = [
   "extinction-timeline",
   "utility-indifference",
   "structural-load-flow",
+  "population-pyramid",
+  "map-projections",
+  "shot-composition",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -231,6 +237,9 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "extinction-timeline": ExtinctionTimeline,
   "utility-indifference": UtilityIndifference,
   "structural-load-flow": StructuralLoadFlow,
+  "population-pyramid": PopulationPyramid,
+  "map-projections": MapProjections,
+  "shot-composition": ShotComposition,
 };
 
 interface VizEmbedProps {

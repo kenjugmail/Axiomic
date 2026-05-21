@@ -530,6 +530,27 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🏛️",
     tags: ["architecture", "structures", "statics", "engineering"],
   },
+  {
+    name: "population-pyramid",
+    label: "Population pyramid",
+    description: "Age × sex back-to-back bars for Italy/Niger/Japan; toggle years to see demographic transition.",
+    thumb: "👥",
+    tags: ["demography", "population", "aging", "fertility"],
+  },
+  {
+    name: "map-projections",
+    label: "Map projections",
+    description: "Mercator / Robinson / Mollweide / Winkel-Tripel / Equal Earth with optional Tissot indicatrix.",
+    thumb: "🗺️",
+    tags: ["cartography", "geodesy", "projections", "gis"],
+  },
+  {
+    name: "shot-composition",
+    label: "Shot composition",
+    description: "Aspect-ratio frame with rule-of-thirds + golden ratio + dynamic-symmetry + safe-zone overlays.",
+    thumb: "🎬",
+    tags: ["cinematography", "composition", "film", "framing"],
+  },
 ];
 
 interface Props {

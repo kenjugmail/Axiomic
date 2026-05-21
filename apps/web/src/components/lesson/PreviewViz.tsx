@@ -363,6 +363,21 @@ const LazyStructuralLoadFlow = lazy(() =>
     (m) => ({ default: m.StructuralLoadFlow }),
   ),
 );
+const LazyPopulationPyramid = lazy(() =>
+  import("../../../../../packages/viz/src/components/PopulationPyramid").then(
+    (m) => ({ default: m.PopulationPyramid }),
+  ),
+);
+const LazyMapProjections = lazy(() =>
+  import("../../../../../packages/viz/src/components/MapProjections").then(
+    (m) => ({ default: m.MapProjections }),
+  ),
+);
+const LazyShotComposition = lazy(() =>
+  import("../../../../../packages/viz/src/components/ShotComposition").then(
+    (m) => ({ default: m.ShotComposition }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -565,6 +580,12 @@ function VizByName({
       return <LazyUtilityIndifference {...(props as object)} />;
     case "structural-load-flow":
       return <LazyStructuralLoadFlow {...(props as object)} />;
+    case "population-pyramid":
+      return <LazyPopulationPyramid {...(props as object)} />;
+    case "map-projections":
+      return <LazyMapProjections {...(props as object)} />;
+    case "shot-composition":
+      return <LazyShotComposition {...(props as object)} />;
     default:
       return null;
   }
