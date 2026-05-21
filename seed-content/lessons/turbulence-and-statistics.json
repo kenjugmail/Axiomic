@@ -1,0 +1,158 @@
+{
+  "slug": "turbulence-and-statistics",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Explain Reynolds transition + decomposition.",
+      "Derive K41 energy cascade.",
+      "Compare DNS / LES / RANS modeling."
+    ],
+    "prereqs": [
+      "navier-stokes-and-dimensionless-numbers",
+      "viscous-and-boundary-layer"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Reynolds's 1883 experiment + statistical turbulence",
+      "body": "**Osborne Reynolds** (1883, Manchester) injected dye into pipe flow + photographed the transition between two distinct regimes:\n- **Laminar flow** at Re < ~2300: dye stays a thin smooth filament; flow is parallel, predictable, governed by Hagen-Poiseuille (parabolic velocity profile).\n- **Turbulent flow** at Re > ~4000: dye disperses immediately; flow is chaotic, three-dimensional, with eddies spanning a wide range of scales.\n- **Transitional** regime 2300 < Re < 4000: intermittent puffs + slugs.\n\nReynolds's photographs + his number Re = UD/ν founded modern turbulence research. The transition Reynolds number depends on geometry + disturbance level — flat-plate boundary layers transition near Re_x ~ 5·10⁵; for very quiet wind tunnels transition can be delayed to Re_x ~ 3·10⁶ (laminar flow control aircraft).\n\n**Why turbulence matters**: most engineering + natural flows are turbulent. Pipes (water, oil), atmosphere, oceans, blood arteries (Womersley ~10), aircraft + ship boundary layers, internal combustion, mixing reactors, stars, galaxies. Without turbulence we couldn't smell coffee from across a room (molecular diffusion is too slow) — turbulent mixing transports heat, mass + momentum orders of magnitude faster than diffusion.\n\n**Statistical description**. Turbulent flow is **deterministic-chaotic**: the Navier-Stokes equation is deterministic, but solutions are exquisitely sensitive to initial conditions + boundary noise. So we describe turbulence statistically.\n\n**Reynolds decomposition** (1895): split each variable into mean + fluctuation\n\n  u = ū + u′,   v = v̄ + v′,   p = p̄ + p′\n\nwith averages over time, ensemble, or phase. Substituting into Navier-Stokes + averaging gives the **Reynolds-Averaged Navier-Stokes (RANS) equations**:\n\n  ρ Dū_i/Dt = −∂p̄/∂x_i + μ ∇²ū_i − ρ ∂(u′_i u′_j)/∂x_j\n\nThe new term **−ρ u′_i u′_j** is the **Reynolds stress tensor** — momentum flux carried by fluctuations. Symmetric, six independent components. **The closure problem**: ⟨u′u′⟩ is unknown — must be modeled in terms of the mean flow.\n\n**Turbulent kinetic energy** k = ½⟨u′_i u′_i⟩; its budget includes production, transport, dissipation. **Dissipation rate** ε = ν ⟨∂u′_i/∂x_j · ∂u′_i/∂x_j⟩ — energy converted to heat at the smallest scales.\n\n**Pioneers**: Reynolds (transition + decomposition), **G.I. Taylor** (statistical theory + spectrum), **Kármán + Howarth** (two-point correlations), **Kolmogorov** (universal cascade), **Batchelor**, **Saffman**, **Stephen Pope** (modern textbook), **Parviz Moin** (DNS pioneer).",
+      "viz": "vortex-shedding",
+      "vizProps": {
+        "reynolds": 100,
+        "diameter": 1.0
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Kolmogorov 1941 — energy cascade + −5/3 spectrum",
+      "body": "**Andrey Kolmogorov** (1903-1987), one of the great mathematicians of the 20th century, published in 1941 three short papers ('K41') that founded modern turbulence theory. Idea built on **Lewis Fry Richardson's** 1922 poem:\n\n> 'Big whirls have little whirls / that feed on their velocity / and little whirls have lesser whirls / and so on to viscosity.'\n\n**Energy cascade picture**:\n- **Integral scale L** + velocity scale U set by geometry + forcing. Energy is injected at this scale at rate ε per unit mass.\n- **Inertial subrange**: at intermediate scales ℓ (η ≪ ℓ ≪ L), viscosity is negligible + only ε matters. Energy cascades from large eddies to smaller via nonlinear vortex stretching, conservatively.\n- **Kolmogorov dissipation scale** η = (ν³/ε)^{1/4}: smallest eddies, where Re_η = O(1) + viscosity finally dissipates the energy.\n\n**Kolmogorov's hypotheses (K41)**:\n1. **Local isotropy**: at small scales (ℓ ≪ L), turbulence statistics are isotropic + universal — independent of large-scale anisotropy.\n2. **First similarity hypothesis**: in the inertial subrange + below, statistics depend only on ε + ν.\n3. **Second similarity hypothesis**: in the inertial subrange (η ≪ ℓ ≪ L), statistics depend only on ε.\n\n**Consequences via dimensional analysis**:\n- **Velocity scale at ℓ**: u_ℓ ~ (εℓ)^{1/3}.\n- **Time scale**: τ_ℓ ~ ℓ^{2/3}/ε^{1/3}.\n- **Kolmogorov spectrum**: E(k) = C ε^{2/3} k^{−5/3} in the inertial subrange (k = wavenumber).\n\nThe **−5/3 power law** is one of the most-confirmed predictions in fluid mechanics — measured in tidal channels, jet engines, atmosphere, oceans, wind tunnels, astrophysical plasmas, all collapsing to the same universal constant C ≈ 0.5-1.5 (the Kolmogorov constant). It demonstrates extraordinary universality.\n\n**Reynolds-number scaling of scales**:\n- L/η ~ Re^{3/4} (range of dynamically important scales).\n- Total degrees of freedom in 3D ~ Re^{9/4}. For an aircraft Re ~ 10⁷ that's ~10¹⁵ degrees of freedom — astronomically expensive for direct numerical simulation.\n\n**Intermittency + K62**: Kolmogorov + Obukhov (1962) refined K41 to account for **intermittency** — turbulence is highly non-Gaussian, with rare bursts of very intense dissipation. Higher-order structure functions ⟨(Δu)^p⟩ ~ ℓ^{ζ_p} deviate from K41 linear prediction ζ_p = p/3. **Multifractal models** (Parisi-Frisch, She-Lévêque) describe these deviations. Active research domain.\n\n**Taylor microscale** λ = √(15ν⟨u'²⟩/ε): intermediate scale, Re_λ characterizes turbulence intensity. Wind-tunnel Re_λ ~ 10-100; atmospheric Re_λ ~ 10⁴.\n\nKolmogorov's framework remains the backbone of turbulence theory + the benchmark against which every model + experiment is measured."
+    },
+    {
+      "kind": "text",
+      "title": "DNS, LES, RANS + the closure problem",
+      "body": "**The grand challenge**: 3D turbulent flow has Re^{9/4} relevant degrees of freedom. Engineering flows at Re ~ 10⁶-10⁸ are beyond direct computation. **Three approaches**.\n\n**1. Direct Numerical Simulation (DNS)**: resolve all scales from L down to η. Grid spacing h ≤ η, time step Δt ~ τ_η. Cost ~ Re³ in 3D. **Parviz Moin + John Kim** (NASA Ames, 1980s) ran the first DNS of channel flow at Re_τ = 180. Modern DNS reaches Re_τ ~ 5200 (channel) or Re_λ ~ 1300 (isotropic) on exascale supercomputers — still far from aircraft Re ~ 10⁷. DNS is the **gold standard** for validation + physical insight, but not for engineering design.\n\n**2. Large-Eddy Simulation (LES)**: resolve large energy-containing eddies; **model the small scales** below a filter width Δ (subgrid-scale model). Reduces cost dramatically while retaining unsteady, three-dimensional physics. **Smagorinsky** (1963) introduced the simplest subgrid model: ν_t = (C_s Δ)² |S̄| with C_s ≈ 0.1. **Dynamic Smagorinsky** (Germano 1991, Lilly 1992) computes C_s locally from the resolved field. **Vreman, WALE, σ-model** improve near-wall behavior. **Wall-modeled LES** uses RANS-like models near walls to avoid resolving viscous sublayer.\n\nLES is the workhorse for unsteady aerodynamics, combustion, atmospheric boundary layers, oceans, wind energy. Cost ~ Re^{0.4-0.6} for wall-resolved.\n\n**3. Reynolds-Averaged Navier-Stokes (RANS)**: time-average everything; solve only mean flow. Closure problem: how to model the Reynolds stresses **−ρ⟨u'_i u'_j⟩** in terms of mean quantities? **Boussinesq eddy-viscosity hypothesis** (1877):\n\n  −⟨u'_i u'_j⟩ = ν_t (∂ū_i/∂x_j + ∂ū_j/∂x_i) − (2/3) k δ_{ij}\n\nReduces to choosing a turbulent viscosity ν_t.\n\n**Famous RANS models** (each adds one or two PDEs for turbulence quantities):\n- **Mixing length** (Prandtl 1925): ν_t = ℓ_m²|∂ū/∂y|; phenomenological.\n- **k-ε** (Launder-Spalding 1972): two transport equations for k + ε; ν_t = C_μ k²/ε. Widely used industrial standard; struggles with adverse pressure gradients + separation.\n- **k-ω** (Wilcox 1988, Menter SST 1994): better near-wall behavior; SST blends k-ε in outer + k-ω inner. Dominant in aerospace.\n- **Spalart-Allmaras** (1992): single transport equation for ν_t; fast + robust for aero.\n- **Reynolds-Stress Models (RSM, e.g. LRR, SSG)**: model all six Reynolds-stress components; more accurate but stiff + expensive.\n- **DDES, IDDES**: hybrid RANS-LES — RANS near walls, LES in separated regions.\n\n**Closure problem**: every RANS model contains empirical constants tuned to specific canonical flows (boundary layer, channel, free shear). They fail outside their calibration — separated flows, swirling jets, shock-boundary-layer interactions are notoriously hard.\n\n**ML closures**: deep-learning models trained on DNS data to replace classical RANS / LES subgrid models. **Ling, Templeton, Kutz, Brunton, Duraisamy** + many groups: tensor-basis neural networks, graph neural networks, sparse regression (SINDy), reinforcement learning. Promising for specific flow classes; generalization still open. Trade physical interpretability for empirical accuracy.\n\nThe closure problem is one of the deepest unsolved problems in classical physics; ML may finally provide a path forward."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fluid_turb_1",
+        "kind": "guided_derivation",
+        "question": "Derive the Kolmogorov −5/3 spectrum",
+        "goal": "Using dimensional analysis + Kolmogorov's second similarity hypothesis, derive E(k) ∝ ε^{2/3} k^{−5/3}.",
+        "steps": [
+          {
+            "prompt": "State what E(k) depends on in the inertial subrange.",
+            "motivation": "Kolmogorov's 2nd similarity hypothesis.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E(k) = f(ε, k)"
+              ]
+            },
+            "hints": [
+              "Only ε + k matter in inertial range."
+            ],
+            "reveal": "By K41 second similarity hypothesis, in the inertial subrange the statistics depend only on the energy dissipation rate ε (energy flux through the cascade) + the wavenumber k. Viscosity ν is irrelevant; the integral length L is irrelevant. So E(k) = f(ε, k)."
+          },
+          {
+            "prompt": "List units of E(k), ε, k.",
+            "motivation": "Dimensional analysis.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "[E(k)] = m³/s²; [ε] = m²/s³; [k] = 1/m"
+              ]
+            },
+            "hints": [
+              "E(k)·dk has units of energy/mass."
+            ],
+            "reveal": "Energy per mass per unit wavenumber: [E(k)] = (m²/s²)/(1/m) = m³/s². [ε] = energy/(mass·time) = m²/s³. [k] = 1/m."
+          },
+          {
+            "prompt": "Assume E(k) = C ε^a k^b + match units.",
+            "motivation": "Solve for exponents.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "a = 2/3, b = −5/3"
+              ]
+            },
+            "hints": [
+              "Match length + time exponents."
+            ],
+            "reveal": "Units: m³/s² = (m²/s³)^a · (1/m)^b = m^{2a−b} · s^{−3a}. Match time: −3a = −2 ⇒ a = 2/3. Match length: 2a − b = 3 ⇒ 4/3 − b = 3 ⇒ b = −5/3."
+          },
+          {
+            "prompt": "Write the result + identify the Kolmogorov constant.",
+            "motivation": "Final spectrum.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E(k) = C_K ε^{2/3} k^{−5/3}"
+              ]
+            },
+            "hints": [
+              "Universal prefactor C_K."
+            ],
+            "reveal": "E(k) = C_K ε^{2/3} k^{−5/3} in the inertial subrange. C_K ≈ 1.5 (Kolmogorov constant) is empirically universal across flows from oceans to wind tunnels to galactic-scale plasmas — extraordinary confirmation of K41. The −5/3 power is among the most-validated predictions in classical physics. Departures at high orders (intermittency) led to K62 refinement + multifractal models."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fluid_turb_1",
+        "kind": "multiple_choice",
+        "question": "Why can't we run DNS for engineering applications like full-aircraft aerodynamics?",
+        "options": [
+          "DNS is incorrect.",
+          "**DNS cost scales as Re^{9/4}** because the **Kolmogorov scale η = (ν³/ε)^{1/4}** sets the smallest dynamically important eddy + must be fully resolved in 3D + time. For an aircraft chord Re ~ 10⁷ this yields ~10¹⁵-10¹⁶ degrees of freedom + time-stepping at the Kolmogorov time scale — far beyond any current or near-term supercomputer (exascale gives ~10¹⁸ FLOP/s but DNS at this scale takes years). DNS is feasible only for canonical low-Re flows (channel flow up to Re_τ ~ 5000, isotropic Re_λ ~ 1000), serving as a research gold standard for validating LES + RANS models. Engineering uses RANS (cheap but inaccurate for separation) or LES / wall-modeled LES (Re^{~0.5} scaling) or hybrid RANS-LES (DDES). ML-based closures are an emerging path forward.",
+          "Magic.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "DNS resolves all scales from L to η = (ν³/ε)^{1/4}, costing Re^{9/4} ~ 10¹⁵ DOF for aircraft Re ~ 10⁷ — beyond any near-term supercomputer. Used only for canonical low-Re research + benchmarking. Engineering: RANS (cheap) or LES (Re^{~0.5}) or hybrid. ML closures emerging."
+      },
+      "hints": [
+        "What scales must DNS resolve?",
+        "How does cost grow with Re?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "DNS resolves all scales from L to η = (ν³/ε)^{1/4} + scales as Re^{9/4} in 3D. Aircraft Re ~ 10⁷ ⇒ ~10¹⁵ DOF — far beyond current supercomputers. Used for low-Re canonical research + validation only. Engineering relies on RANS, LES, hybrid. ML closures emerging."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fluid_turb_1",
+        "kind": "scenario",
+        "question": "Choosing a turbulence model for a CFD project",
+        "prompt": "You must run CFD on a wind turbine in atmospheric boundary layer + capture wake interactions with downstream turbines. Discuss the trade-offs between RANS (k-ω SST), LES, hybrid DDES + ML-augmented closures. Where does each succeed + fail? Address near-wall treatment, computational cost, prediction of separation + atmospheric stability effects."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fluid_turb_1",
+        "kind": "math_expression",
+        "question": "Write the Kolmogorov dissipation length scale η in terms of viscosity ν + dissipation rate ε.",
+        "acceptedAnswers": [
+          "η = (ν³/ε)^{1/4}",
+          "η = (ν^3/ε)^(1/4)"
+        ],
+        "hint": "Dimensional combination of ν + ε with length units."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fluid_turb_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain Kolmogorov's energy cascade + why the −5/3 spectrum is so universal.",
+        "rubric": "Mentions: Richardson 1922 proposed eddies break into smaller eddies; Kolmogorov 1941 (K41) formalized in three short papers. Energy injected at large scale L cascades through an **inertial subrange** (conservatively, with rate ε) down to the **Kolmogorov scale** η = (ν³/ε)^{1/4} where viscosity dissipates it. Local isotropy + universality hypothesized at small scales. Dimensional analysis gives E(k) = C_K ε^{2/3} k^{−5/3} — confirmed across atmospheric, oceanic, laboratory, jet-engine + astrophysical flows over decades, with C_K ≈ 1.5. Intermittency corrections (K62, multifractals) refine higher-order statistics. The −5/3 law is one of the great universal predictions in classical physics — comparable to scaling laws in critical phenomena. Concludes: K41 stands as a landmark theoretical-physics result + Kolmogorov among the giants of 20th-century mathematics."
+      }
+    }
+  ]
+}

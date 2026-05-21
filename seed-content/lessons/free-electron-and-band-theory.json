@@ -1,0 +1,162 @@
+{
+  "slug": "free-electron-and-band-theory",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Apply the Drude and Sommerfeld free-electron models.",
+      "Derive band gaps from nearly-free-electron and tight-binding pictures.",
+      "Distinguish metals, semiconductors, and insulators via band structure."
+    ],
+    "prereqs": [
+      "crystal-lattices-and-reciprocal-space"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Free electrons in a metal: Drude and Sommerfeld",
+      "body": "**Drude model** (Paul Drude 1900): treat conduction electrons as a classical gas of charged hard spheres scattering off ions with mean free time $\\tau$.\n\nKey predictions:\n- DC conductivity $\\sigma = n e^2 \\tau / m$.\n- Wiedemann-Franz law: thermal-to-electrical conductivity ratio $\\kappa/\\sigma T = L_0 = \\pi^2 k_B^2 / 3e^2 \\approx 2.44 \\times 10^{-8}\\,\\mathrm{W\\Omega/K^2}$ — remarkably accurate even though Drude got the wrong contribution from each side, two errors cancelling. The Lorenz number $L_0$ is universal for free electrons.\n- Hall effect: $R_H = -1/(ne)$ — gives electron density.\n- Optical response: $\\sigma(\\omega) = \\sigma_0/(1 - i\\omega\\tau)$; plasma frequency $\\omega_p^2 = ne^2/(\\varepsilon_0 m)$. Metals shiny below $\\omega_p$, transparent above.\n\n**Drude failures**: predicts heat capacity $C_v = (3/2)nk_B$, but experiments give $C_v \\ll nk_B$ at room temperature for electrons. Drude can't explain why electrons don't carry the classical thermal capacity.\n\n**Sommerfeld correction** (Arnold Sommerfeld 1927): apply Fermi-Dirac statistics. Electrons obey Pauli exclusion → only those within $\\sim k_B T$ of the Fermi surface respond.\n\n**Fermi sea + Fermi surface**:\n- At $T=0$ electrons fill plane-wave states $|\\mathbf{k}|\\leq k_F$.\n- $n = k_F^3/(3\\pi^2)$ in 3D.\n- $E_F = \\hbar^2 k_F^2 / 2m$ — typically 1-10 eV for metals (Na ~3.2 eV, Cu ~7 eV, Au ~5.5 eV). $T_F = E_F/k_B \\sim 10^4$-$10^5$ K — far above room temperature, so the gas is strongly degenerate.\n- Heat capacity: $C_v = (\\pi^2/2) n k_B (T/T_F)$ — linear in $T$, suppressed by $T/T_F \\sim 10^{-2}$ at room temperature. Explains the Wiedemann-Franz law correctly.\n\n**Density of states (DOS)**:\n- 3D free: $g(E) = (1/2\\pi^2)(2m/\\hbar^2)^{3/2} E^{1/2}$.\n- 2D: constant.\n- 1D: $\\propto 1/\\sqrt{E}$.\n- Van Hove singularities arise at band edges + saddle points.\n\n**Pauli paramagnetism + Landau diamagnetism**: also Sommerfeld consequences (covered in magnetism lesson). Sommerfeld's theory — free electrons with Fermi statistics — is the zeroth-order model of every metal.",
+      "viz": "band-structure",
+      "vizProps": {
+        "latticeConstant": 1.0,
+        "potentialDepth": 5.0
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Bloch's theorem, nearly-free-electron, and tight-binding",
+      "body": "Free electrons explain metals qualitatively but ignore the periodic ionic potential. **Bloch's theorem** (Felix Bloch 1928, PhD thesis under Heisenberg; Nobel 1952 for NMR) is the foundation of modern band theory:\n\nFor a periodic potential $V(\\mathbf{r}+\\mathbf{R}) = V(\\mathbf{r})$, energy eigenstates have the form\n\n$$\\psi_{n,\\mathbf{k}}(\\mathbf{r}) = e^{i\\mathbf{k}\\cdot\\mathbf{r}}\\, u_{n,\\mathbf{k}}(\\mathbf{r}), \\qquad u_{n,\\mathbf{k}}(\\mathbf{r}+\\mathbf{R}) = u_{n,\\mathbf{k}}(\\mathbf{r}),$$\n\nwith band index $n$ and crystal momentum $\\mathbf{k} \\in$ 1st BZ. Energies $E_n(\\mathbf{k})$ form **bands** — continuous functions of $\\mathbf{k}$ across the BZ.\n\n**Nearly-free-electron (NFE) model**: start from free electrons, treat $V$ as a weak perturbation. Plane waves $|\\mathbf{k}\\rangle$ and $|\\mathbf{k}-\\mathbf{G}\\rangle$ couple via the Fourier component $V_\\mathbf{G}$ of the potential. Degenerate perturbation theory at the BZ boundary (where $|\\mathbf{k}| = |\\mathbf{k}-\\mathbf{G}|$, i.e., the Bragg planes) gives a **gap** $E_\\pm = E_0 \\pm |V_\\mathbf{G}|$.\n\n- Gaps open exactly at BZ boundaries — Bragg reflection generates standing waves whose charge density piles up on / between ions.\n- The size of each gap is set by the Fourier component $V_\\mathbf{G}$ — small gaps when the basis suppresses certain G-vectors.\n- For very weak $V$: nearly-continuous parabolic bands distorted near BZ edges.\n\n**Tight-binding (LCAO) model**: start from atomic orbitals localized at lattice sites; let them hop with amplitude $-t$ to neighbors. For a 1D chain with site energy $\\varepsilon_0$ + nearest-neighbor hopping $t$:\n\n$$E(k) = \\varepsilon_0 - 2t\\cos(ka).$$\n\nThis gives a band of width $4t$ centered at $\\varepsilon_0$. Generalize to 3D (Slater-Koster 1954) for $s$, $p$, $d$ orbitals — quantitative for transition-metal oxides, graphene, organics.\n\n**Wannier functions**: localized orthogonal basis (Gregory Wannier 1937) dual to Bloch functions; foundation of modern theories of polarization (Resta, King-Smith-Vanderbilt 1993), topological invariants (Wannier obstruction = topology), and DFT linear-scaling methods.\n\n**Modern band-structure computation**:\n- **DFT** (Hohenberg-Kohn 1964 + Kohn-Sham 1965; Walter Kohn Nobel 1998) with LDA, GGA, hybrid (HSE), meta-GGA functionals.\n- **GW** approximation (Hedin 1965) — quasiparticle bands, used for accurate band gaps.\n- **DMFT** (Georges-Kotliar 1996) — correlated bands.\n- Codes: **VASP, Quantum ESPRESSO, ABINIT, FHI-aims, CASTEP, WIEN2k, FLEUR**. Modern materials-project databases (Materials Project, AFLOW, NOMAD, OQMD) host millions of computed band structures."
+    },
+    {
+      "kind": "text",
+      "title": "Metals, semiconductors, insulators — and how we measure bands",
+      "body": "**Band-filling rule**: each band holds $2N$ electrons (factor 2 for spin) where $N$ is the number of unit cells.\n\n- **Metal**: at least one band partially filled → Fermi surface in the BZ → finite DOS at $E_F$ → DC conductivity.\n- **Insulator**: all bands either completely filled or completely empty; gap $E_g$ separates highest occupied (valence) from lowest unoccupied (conduction) band. Insulating if $E_g \\gg k_B T$ (≳ 3 eV).\n- **Semiconductor**: small gap (0.1-3 eV); thermal excitation across the gap gives weak conductivity at room temperature that grows exponentially with $T$. Si: 1.12 eV, Ge: 0.67 eV, GaAs: 1.42 eV (direct), diamond: 5.5 eV.\n- **Semimetal**: bands overlap slightly so both electron + hole pockets exist (Bi, graphite). **Dirac/Weyl semimetals**: bands touch at isolated points with linear dispersion (graphene, Cd₃As₂, TaAs).\n\n**Direct vs indirect gap**: in a direct-gap material (GaAs, InP, II-VI's) the valence-band max and conduction-band min sit at the same $\\mathbf{k}$ (Γ) → optical transitions are momentum-conserving + bright; foundation of LEDs + diode lasers. In an indirect-gap material (Si, Ge) the band extrema are at different $\\mathbf{k}$; phonons must supply the momentum → weak absorption + emission. Why silicon photovoltaics are great absorbers per gram but bad emitters; why GaAs dominates laser diodes.\n\n**Effective mass**: near band extrema, $E(\\mathbf{k}) \\approx E_0 + \\hbar^2 k^2 / 2m^*$ where $m^* = \\hbar^2 / (\\partial^2 E/\\partial k^2)$. Can be much smaller than $m_e$ (GaAs $m^*_e \\approx 0.067 m_e$) or anisotropic. Sets mobility, cyclotron resonance, Landau-level spacing.\n\n**Holes**: empty states near a valence-band max behave like positively-charged particles with effective mass $m_h^*$. Conductivity = electron + hole contributions; Hall sign reveals dominant carrier.\n\n**Experimental probes of band structure**:\n- **ARPES (angle-resolved photoemission)**: shoot photons (UV / soft X-ray / VUV) at a clean surface, measure energy + angle of ejected electrons → reconstruct $E_n(\\mathbf{k})$ directly. Modern facilities: SLS, Diamond, ALS, Soleil, BESSY. Spin-resolved + time-resolved ARPES extend to spin texture + ultrafast dynamics. Revolutionized our understanding of cuprates, topological insulators, twisted bilayer graphene.\n- **Quantum oscillations (de Haas-van Alphen, Shubnikov-de Haas)**: magnetization or resistivity oscillates as $B$ tunes Landau levels through $E_F$; Onsager relation extracts Fermi-surface cross-sections.\n- **Cyclotron resonance**: microwave absorption at $\\omega_c = eB/m^*$.\n- **Optical absorption + reflectivity + ellipsometry**: interband transitions reveal joint DOS + gap structure.\n- **Tunneling spectroscopy (STS, STM)**: $dI/dV$ measures local DOS.\n- **X-ray absorption (XAS, EXAFS, XMCD)**: element-specific + spin-resolved.\n\n**Beyond single-particle**: real materials have electron-electron correlation, electron-phonon coupling, disorder, spin-orbit coupling. The successes + failures of band theory motivate every other lesson in solid-state physics — from semiconductors and magnetism to superconductivity, the quantum Hall effect, and the strongly-correlated frontier."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_band_1",
+        "kind": "guided_derivation",
+        "question": "Open a band gap in the nearly-free-electron model.",
+        "goal": "Show that a weak periodic potential $V$ with Fourier component $V_\\mathbf{G}$ opens a gap $2|V_\\mathbf{G}|$ at the Brillouin-zone boundary (where $\\mathbf{k}$ satisfies $|\\mathbf{k}| = |\\mathbf{k} - \\mathbf{G}|$).",
+        "steps": [
+          {
+            "prompt": "What two plane-wave states become degenerate at the BZ boundary?",
+            "motivation": "Identify the degeneracy.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "|k> and |k-G>",
+                "k and k - G with |k| = |k-G|"
+              ]
+            },
+            "hints": [
+              "Bragg condition $|\\mathbf{k}| = |\\mathbf{k}-\\mathbf{G}|$ at the Brillouin-zone boundary."
+            ],
+            "reveal": "At the BZ edge, $|\\mathbf{k}| = |\\mathbf{k}-\\mathbf{G}|$ so the free-electron energies $\\hbar^2 k^2/2m$ and $\\hbar^2(\\mathbf{k}-\\mathbf{G})^2/2m$ are degenerate. These two plane waves couple via $V_\\mathbf{G}$."
+          },
+          {
+            "prompt": "Write the 2×2 effective Hamiltonian in the degenerate subspace.",
+            "motivation": "Degenerate perturbation theory.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "[[E0, V_G], [V_G*, E0]]",
+                "H = E_0 I + V_G σ_x"
+              ]
+            },
+            "hints": [
+              "Diagonal = unperturbed energy $E_0$; off-diagonal = $V_\\mathbf{G}$."
+            ],
+            "reveal": "In the $\\{|\\mathbf{k}\\rangle, |\\mathbf{k}-\\mathbf{G}\\rangle\\}$ basis,\n\n$$H = \\begin{pmatrix} E_0 & V_\\mathbf{G} \\\\ V_\\mathbf{G}^* & E_0 \\end{pmatrix}$$\n\nwith $E_0 = \\hbar^2 k^2/2m$."
+          },
+          {
+            "prompt": "Diagonalize and find the energy eigenvalues.",
+            "motivation": "Find the new band edges.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E_pm = E_0 +/- |V_G|",
+                "E_± = E_0 ± |V_G|"
+              ]
+            },
+            "hints": [
+              "2×2 with equal diagonals diagonalizes to $E_0 \\pm |\\text{off-diag}|$."
+            ],
+            "reveal": "Eigenvalues $E_\\pm = E_0 \\pm |V_\\mathbf{G}|$. The gap between the two new bands is $\\Delta = E_+ - E_- = 2|V_\\mathbf{G}|$."
+          },
+          {
+            "prompt": "Physically interpret the two eigenstates.",
+            "motivation": "Standing waves.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "symmetric standing wave (charge on ions, lower energy) and antisymmetric (charge between ions, higher)",
+                "symmetric and antisymmetric Bloch standing waves"
+              ]
+            },
+            "hints": [
+              "Bragg reflection makes standing waves; charge piles either on or between the ions."
+            ],
+            "reveal": "Linear combinations $\\propto e^{i\\mathbf{k}\\cdot\\mathbf{r}} \\pm e^{i(\\mathbf{k}-\\mathbf{G})\\cdot\\mathbf{r}}$ are standing waves. One pile-up coincides with the attractive ionic cores (lower energy), the other peaks between them (higher energy). The energy difference is the band gap."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_band_1",
+        "kind": "multiple_choice",
+        "question": "Why does Bloch's theorem (1928) restructure how we describe electrons in solids?",
+        "options": [
+          "It's only a mathematical convenience.",
+          "Bloch's theorem (Felix Bloch 1928, NMR Nobel 1952) shows that in a periodic potential the energy eigenstates must be plane waves modulated by lattice-periodic functions: $\\psi_{n,\\mathbf{k}} = e^{i\\mathbf{k}\\cdot\\mathbf{r}} u_{n,\\mathbf{k}}$. This immediately yields the band structure: a discrete band index $n$ + continuous crystal momentum $\\mathbf{k}$ in the 1st Brillouin zone. Every quantitative claim about metals, semiconductors, insulators, semimetals, optical absorption, transport, effective mass, Fermi surfaces, ARPES + quantum-oscillation experiments, topological invariants — all rest on this. It explains why a periodic potential, despite the staggering complexity of Avogadro's number of atoms, admits a tractable single-particle description. Together with Sommerfeld's Fermi statistics, Bloch's theorem is the spine of modern solid-state physics.",
+          "It applies only to free electrons.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Bloch (1928) reduces the periodic-crystal problem to plane waves × periodic functions, labeled by $(n,\\mathbf{k})$. Yields band structure; underpins metal/semiconductor/insulator distinction, Fermi surfaces, transport, effective mass, ARPES, topology, DFT codes."
+      },
+      "hints": [
+        "What's the form of $\\psi_{n,\\mathbf{k}}$?",
+        "Why is this powerful for ~$10^{23}$ atoms?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Bloch (1928) restricts eigenstates in periodic potentials to $e^{i\\mathbf{k}\\cdot\\mathbf{r}} u_{n,\\mathbf{k}}(\\mathbf{r})$ with $\\mathbf{k} \\in$ 1st BZ. This produces band structure $E_n(\\mathbf{k})$; underlies the metal/semiconductor/insulator distinction, Fermi surfaces, optical + transport response, effective mass, ARPES, topological invariants, and DFT band-structure software."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_band_1",
+        "kind": "scenario",
+        "question": "Interpreting an ARPES spectrum",
+        "prompt": "An ARPES measurement on a clean (111) surface of a transition-metal compound shows a hole-like band crossing $E_F$ at $\\mathbf{k} = $ M with effective mass $m^* = 8\\, m_e$ from parabolic fit, plus a separate Dirac-like cone at K with Fermi velocity $v_F = 10^6$ m/s. Interpret the band structure: type of material, expected transport behavior, and what follow-up experiments (quantum oscillations, optical, DFT) you would request."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_band_1",
+        "kind": "math_expression",
+        "question": "Write the 1D tight-binding dispersion for a chain with on-site energy $\\varepsilon_0$, lattice constant $a$, and nearest-neighbor hopping $-t$.",
+        "acceptedAnswers": [
+          "E(k) = epsilon_0 - 2*t*cos(k*a)",
+          "ε_0 − 2t cos(ka)",
+          "epsilon_0 - 2t cos(ka)"
+        ],
+        "hint": "Sum hopping contributions $-t e^{\\pm ika}$ from both nearest neighbors → $-2t\\cos(ka)$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_band_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how the Drude → Sommerfeld → Bloch sequence gives us modern band theory of solids.",
+        "rubric": "Mentions: Drude (1900) classical electron gas — DC conductivity, Hall, Wiedemann-Franz. Failed heat capacity. Sommerfeld (1927) applied Fermi-Dirac statistics → degenerate electron gas at $T \\ll T_F$, linear $T$ heat capacity. Both ignored ionic periodic potential. Bloch (1928, Nobel 1952 for NMR) showed eigenstates in a periodic potential are $e^{i\\mathbf{k}\\cdot\\mathbf{r}} u_{n,\\mathbf{k}}$ with crystal momentum $\\mathbf{k}$ in the 1st BZ — giving band structure $E_n(\\mathbf{k})$. Nearly-free-electron + tight-binding (Slater-Koster) are complementary pictures of bands. Filling rule (each band holds $2N$ electrons) classifies metals / insulators / semiconductors / semimetals. Direct vs indirect gaps explain why Si is a great absorber but GaAs makes the lasers. ARPES + quantum oscillations + DFT (Kohn-Sham 1965, Nobel 1998) measure + compute bands. Foundation of every device + every advanced topic in solid-state."
+      }
+    }
+  ]
+}

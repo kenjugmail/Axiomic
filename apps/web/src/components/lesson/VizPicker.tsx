@@ -285,6 +285,27 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🔥",
     tags: ["plasma-physics", "fusion", "energy", "nuclear"],
   },
+  {
+    name: "band-structure",
+    label: "Band structure E(k)",
+    description: "Drag lattice constant + potential depth; see metal vs semiconductor vs insulator from the band gap at the zone boundary.",
+    thumb: "📈",
+    tags: ["solid-state", "physics", "semiconductors", "materials"],
+  },
+  {
+    name: "vortex-shedding",
+    label: "Vortex shedding (Kármán)",
+    description: "Drag Reynolds + diameter; see Stokes / steady wake / Kármán street / drag-crisis regimes and the Strouhal frequency.",
+    thumb: "🌀",
+    tags: ["fluids", "turbulence", "aerodynamics", "engineering"],
+  },
+  {
+    name: "ice-sheet-dynamics",
+    label: "Ice sheet flowline",
+    description: "Drag accumulation + ice temperature; see the Vialov shallow-ice profile, ELA, and net mass balance.",
+    thumb: "🧊",
+    tags: ["glaciology", "climate", "geophysics", "earth-science"],
+  },
 ];
 
 interface Props {

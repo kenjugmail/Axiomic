@@ -1,0 +1,158 @@
+{
+  "slug": "topological-phases-and-quantum-hall",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Explain integer and fractional quantum Hall effects.",
+      "Classify topological insulators via Z2 invariants and Kane-Mele theory.",
+      "Survey Weyl/Dirac semimetals, Majorana physics, and topological computing."
+    ],
+    "prereqs": [
+      "free-electron-and-band-theory",
+      "magnetism-in-solids"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Integer + fractional quantum Hall effects",
+      "body": "The quantum Hall effects (QHE) opened the era of **topological phases of matter** — quantum states whose properties are protected not by symmetry breaking but by global topological invariants of the wavefunction.\n\n**Integer Quantum Hall Effect (IQHE)** — Klaus von Klitzing, Grenoble, 5 February 1980 (recognized by **Nobel Prize 1985**, fastest physics Nobel turnaround at the time): in a 2D electron gas (GaAs MOSFET) at low temperature and high magnetic field, the Hall conductivity $\\sigma_{xy}$ is quantized in **exact integer multiples** of $e^2/h$:\n\n$$\\sigma_{xy} = \\nu \\frac{e^2}{h}, \\quad \\nu = 1, 2, 3, \\ldots$$\n\nwith $\\rho_{xx} \\to 0$ on the plateaus. Accuracy: $\\sim 10^{-10}$, independent of sample geometry + impurity content. Used to redefine the **kilogram + ampere in the 2019 SI** via the Klitzing constant $R_K = h/e^2 = 25812.807\\Omega$.\n\n**Origin** — Landau levels:\n- 2D electrons in $B$ field have flat Landau levels $E_n = \\hbar\\omega_c(n+1/2)$, $\\omega_c = eB/m$.\n- Each Landau level holds one state per flux quantum $\\Phi_0 = h/e$ → degeneracy $\\nu_{\\max} = BA/\\Phi_0$.\n- **Filling factor** $\\nu = n/(B/\\Phi_0)$.\n- Disorder localizes states except for a delocalized state near each Landau level; chemical potential pinned in localization gap → plateaus.\n- **Chiral edge channels**: each filled Landau level contributes a 1D edge mode flowing in one direction → quantized $\\sigma_{xy}$, dissipationless current.\n\n**Topology of IQHE** — Thouless-Kohmoto-Nightingale-Nijs (TKNN 1982): $\\sigma_{xy} = (e^2/h) \\times C$ where $C$ is the **Chern number**\n\n$$C_n = \\frac{1}{2\\pi} \\int_{\\text{BZ}} F_n(\\mathbf{k})\\, d^2k$$\n\n— the Berry curvature integrated over the Brillouin zone. $C$ is a quantized integer = topological invariant of the filled band. Cannot change without closing the gap; survives smooth deformations + disorder. **David Thouless** earned half of the **Nobel 2016** for this topological reformulation.\n\n**Fractional Quantum Hall Effect (FQHE)** — Daniel Tsui + Horst Störmer 1982 at Bell Labs, in ultra-clean GaAs/AlGaAs 2DEGs: discovered $\\sigma_{xy} = (1/3)e^2/h$ plateau. Hundreds of fractions known ($\\nu = p/q$ with $q$ odd). **Nobel 1998** to Tsui, Störmer, **Robert Laughlin**.\n\n**Laughlin wavefunction** (1983): for $\\nu = 1/m$ (m odd integer):\n\n$$\\Psi_m(z_1, \\ldots, z_N) = \\prod_{i<j} (z_i - z_j)^m \\exp\\big(-\\sum_i |z_i|^2/4 \\ell_B^2\\big).$$\n\nIncompressible quantum fluid. Excitations are **anyons** — quasiparticles with fractional charge $e/m$ + fractional statistics (intermediate between bosons + fermions), confirmed by shot noise (Saminadayar 1997, Picciotto 1997) and 2020 interferometry (Bartolomei + Carrega + Glattli + Fève — direct anyonic phase observation).\n\n**Composite fermions** (Jainendra Jain 1989): bind 2$p$ flux quanta to each electron; explains hierarchy of fractions; effective field theory uses Chern-Simons gauge structure.\n\n**Non-Abelian states**: $\\nu = 5/2$ (Moore-Read Pfaffian 1991) believed to host Ising anyons; experimental tests ongoing.\n\n**Quantum anomalous Hall effect (QAHE)** — Haldane 1988 model + Yu-Zhang-Xue 2013 first observation in Cr-doped (Bi,Sb)$_2$Te$_3$ thin films: quantized $\\sigma_{xy} = e^2/h$ **without** external magnetic field; broken time-reversal from intrinsic ferromagnetism. **Duncan Haldane** earned 1/4 of **Nobel 2016**."
+    },
+    {
+      "kind": "text",
+      "title": "Topological insulators: Z2 invariants and Kane-Mele",
+      "body": "**Time-reversal-invariant topological insulators (TIs)**: a new class predicted ~2005-7 + observed 2007-9. Insulating bulk + conducting surface states protected by **time-reversal symmetry**, classified by a $\\mathbb{Z}_2$ topological invariant.\n\n**2D TI = Quantum Spin Hall Insulator (QSHI)**:\n- **Kane + Mele 2005**: graphene with strong intrinsic spin-orbit would be a $\\mathbb{Z}_2$ topological insulator with helical edge states — but graphene's spin-orbit is too weak (~25 μeV).\n- **Bernevig + Hughes + Zhang 2006**: HgTe/CdTe quantum wells above critical thickness $d_c \\approx 6.3$ nm have inverted band ordering → QSH phase.\n- **König et al. 2007 Würzburg**: experimental observation of QSH edge transport in HgTe wells. Quantized 2-terminal conductance $G = 2e^2/h$.\n- **InAs/GaSb** double quantum wells (Du + Knez): second QSH platform.\n- 2D-material QSH candidates: monolayer WTe$_2$ (Cobden, Wu et al. 2018), bismuthene on SiC, Na$_3$Bi.\n\n**3D Topological Insulators**:\n- **Fu + Kane + Mele 2007**: predict 3D Z2 TI; 4 invariants $(\\nu_0; \\nu_1 \\nu_2 \\nu_3)$.\n- **Hsieh + Hasan 2008**: ARPES on Bi$_{0.9}$Sb$_{0.1}$ shows Dirac surface states — first 3D TI experimentally confirmed.\n- **Bi$_2$Se$_3$, Bi$_2$Te$_3$, Sb$_2$Te$_3$** (Zhang + Hasan + Cava + Chen + Shen 2009): single-Dirac-cone surface states + bulk gap ~0.3 eV. Standard model 3D TI materials.\n- Surface states are **massless 2D Dirac fermions** with spin-momentum locking — robust to non-magnetic disorder, immune to backscattering.\n\n**Why topology matters** — comparison with symmetry-broken phases:\n- A ferromagnet is characterized by local order parameter $\\mathbf{M}$.\n- A TI is characterized by a global property of the wavefunction across the BZ — no local order parameter; need a topological invariant.\n- Bulk-boundary correspondence: topologically nontrivial bulk forces gapless boundary states.\n- Protected against perturbations preserving the protecting symmetry (TR or particle-hole + chiral).\n\n**Ten-fold periodic table** of topological insulators + superconductors (Schnyder + Ryu + Furusaki + Ludwig 2008; Kitaev 2009): classification by symmetry class (TR, particle-hole, chiral) + spatial dimension. Foundation for systematic topological-materials searches.\n\n**Topological band theory** + symmetry-indicators (Po + Vishwanath + Watanabe 2017; Bradlyn et al. 2017; Tang + Po + Vishwanath 2019): combine 230 space groups with band topology → algorithm-driven discovery. **Topological materials databases**: Topological Quantum Chemistry, materiae, topomat — found ~30% of inorganic crystals topological.\n\n**Crystalline topological insulators** (Fu 2011): protected by crystal symmetries (mirror, rotation). SnTe (Hsieh + Liu + Lin + Bansil + Fu 2012) is a mirror-Chern TI.\n\n**Higher-order TIs** (Benalcazar + Bernevig + Hughes 2017): gapped surfaces but gapless hinges (corners in 2D). Bismuth, breathing kagome lattices.\n\n**Floquet TIs** (Lindner + Refael + Galitski 2011): periodically driven systems acquire topological band structure absent in equilibrium. Realized in cold atoms (Esslinger lab) + photonics."
+    },
+    {
+      "kind": "text",
+      "title": "Weyl + Dirac semimetals, Majorana fermions, topological quantum computing",
+      "body": "**Dirac + Weyl semimetals**: 3D analogues of graphene with bulk band touching at isolated points and linear dispersion in all three directions.\n\n**3D Dirac semimetals** (broken inversion + time-reversal both restored, 4-fold degenerate point):\n- **Na$_3$Bi** (Liu et al. 2014 Princeton + Stanford).\n- **Cd$_3$As$_2$** (Neupane 2014, Borisenko 2014, Wang 2013).\n- ARPES + magnetotransport reveals chiral anomaly.\n\n**3D Weyl semimetals** (break TR or inversion → 2-fold degenerate point):\n- **TaAs, NbAs, TaP, NbP** (Weng + Fang 2015; Xu + Belopolski 2015 — first Weyl observation in TaAs). Fermi arcs on surface connect projections of Weyl points.\n- **Co$_3$Sn$_2$S$_2$, Mn$_3$Sn**: magnetic Weyl semimetals (TR-breaking).\n- **WTe$_2$, MoTe$_2$**: type-II Weyl with tilted cones.\n- **TaIrTe$_4$, Y$_2$Ir$_2$O$_7$**: more recent additions.\n\n**Topological signatures**:\n- **Chiral anomaly** (Adler-Bell-Jackiw): parallel $\\mathbf{E}, \\mathbf{B}$ pump charge between Weyl points → negative longitudinal magnetoresistance.\n- **Fermi arcs** on surface terminate at projected Weyl points; observed by ARPES.\n- **Anomalous Hall effect** without net magnetization in time-reversal-breaking Weyl semimetals.\n\n**Topological superconductors**:\n- **Kitaev 1D chain** (2001): toy model of p-wave SC with **Majorana zero modes** at the ends — particles equal to their antiparticles, non-Abelian statistics.\n- **Fu-Kane proposal** (2008): proximity between an $s$-wave SC and a 3D TI surface induces effective $p+ip$ Majorana physics.\n- **InSb / InAs nanowires with Al proximity SC + strong spin-orbit + Zeeman** (Mourik + Kouwenhoven 2012, Microsoft Station Q): zero-bias peaks consistent with Majoranas — but cleanly distinguishing from trivial Andreev bound states remains contentious. 2023 Microsoft Nature paper on Majorana zero modes generated debate; community moved toward stricter protocols (topological gap, fusion + braiding tests).\n- **Iron-based SCs** (Fe(Te,Se)) and **2M-WS$_2$**: signatures of vortex-bound Majoranas (STM zero-bias peaks).\n- **Sr$_2$RuO$_4$, UTe$_2$**: candidate odd-parity SCs.\n\n**Majorana fermion physics**:\n- Mathematically: real solutions to Dirac equation; $\\gamma = \\gamma^\\dagger$.\n- Non-Abelian braiding statistics: exchanging two Majoranas implements a topologically protected unitary on the Hilbert space spanned by their pair.\n- **Topological qubits** (Kitaev 2003): qubit encoded non-locally in pairs of Majoranas; protected against local decoherence. Microsoft's qubit roadmap relies on this; competitor approaches (transmons, ions, neutral atoms) advance faster but lack topological protection.\n\n**Topological quantum computation**:\n- Universal computation requires Ising-anyon + supplementary gates, or Fibonacci anyons (intrinsically universal; candidates in $\\nu=12/5$ FQHE).\n- 'Measurement-only' topological QC reduces hardware requirements (Bonderson + Freedman + Nayak 2008).\n- Active competition with conventional gate-based QC; Microsoft + delft + Copenhagen + Sydney + Niels Bohr Institute consortia.\n\n**Nobel 2016 — Topological phase transitions and topological phases of matter**:\n- **David Thouless** (1/2): TKNN topological invariant for IQHE, KT BKT transition.\n- **Duncan Haldane** (1/4): Haldane gap in 1D spin-1 chains, Haldane model = first quantum anomalous Hall.\n- **Michael Kosterlitz** (1/4): KT (Berezinskii-Kosterlitz-Thouless) transition in 2D XY model — vortex-antivortex unbinding; foundational for thin-film superfluids + 2D superconductivity + 2D melting.\n\n**Frontiers**:\n- **Twisted bilayer graphene magic angle 1.05°** (Cao + Jarillo-Herrero 2018): flat bands, correlated insulators, superconductivity, ferromagnetism, fractional Chern insulators (Park et al. 2023 — fractional QHE without external field).\n- **Moiré materials** (twisted TMD bilayers, trilayer graphene + h-BN): tunable Chern + correlated + topological phases.\n- **Topological photonics + acoustics + mechanics**: classical wave analogues with edge states.\n- **Higher-order topology**: corner + hinge states.\n- **Symmetry-protected topological phases** + **topological order** + **fracton phases**: zoology of exotic states.\n- **Quantum Hall-superconductor hybrids**: chiral Majorana hunt (He + Wang 2017 claim retracted 2022).\n- **Axion insulators + magnetoelectric coupling** + theta-angle effects."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_topo_1",
+        "kind": "guided_derivation",
+        "question": "Quantize the Hall conductivity in IQHE.",
+        "goal": "Show that filling $\\nu$ Landau levels in a 2DEG gives $\\sigma_{xy} = \\nu e^2/h$.",
+        "steps": [
+          {
+            "prompt": "Write the cyclotron frequency + Landau-level spectrum.",
+            "motivation": "Quantum mechanics of charged particle in magnetic field.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ω_c = eB/m, E_n = ħω_c(n + 1/2)",
+                "Landau levels at ħω_c(n+1/2)"
+              ]
+            },
+            "hints": [
+              "Each Landau level is a harmonic-oscillator level shifted by $\\frac{1}{2}\\hbar\\omega_c$."
+            ],
+            "reveal": "$\\omega_c = eB/m$; $E_n = \\hbar\\omega_c(n + 1/2)$ for $n = 0, 1, 2, \\ldots$"
+          },
+          {
+            "prompt": "What is the Landau-level degeneracy per unit area?",
+            "motivation": "Counting states.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "B/Φ_0 = eB/h",
+                "one state per flux quantum"
+              ]
+            },
+            "hints": [
+              "Each LL holds one state per flux quantum $\\Phi_0 = h/e$."
+            ],
+            "reveal": "Degeneracy per area = $B/\\Phi_0 = eB/h$. Equivalently, magnetic length $\\ell_B = \\sqrt{\\hbar/eB}$ and each state occupies area $2\\pi\\ell_B^2 = h/eB$."
+          },
+          {
+            "prompt": "Compute the Hall conductivity when $\\nu$ Landau levels are filled, using the classical Drude relation in the strong-field limit.",
+            "motivation": "Hall conductivity formula.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "σ_xy = ne/B = ν (eB/h)(e/B) = ν e²/h",
+                "σ_xy = ν e²/h"
+              ]
+            },
+            "hints": [
+              "$\\sigma_{xy} = ne/B$ in the strong-$B$ limit; $n = \\nu \\times (eB/h)$ when $\\nu$ LLs are filled."
+            ],
+            "reveal": "Carrier density $n = \\nu \\times eB/h$. Hall conductivity $\\sigma_{xy} = ne/B = \\nu e^2/h$ — quantized in integer multiples of $e^2/h$, exact + universal."
+          },
+          {
+            "prompt": "Why are the plateaus topologically robust against disorder?",
+            "motivation": "TKNN + edge channels.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "σ_xy = Chern number × e²/h; bulk gap + localization keeps μ in mobility gap; edge states carry quantized current",
+                "topological invariant; disorder cannot change C without closing the gap"
+              ]
+            },
+            "hints": [
+              "TKNN identifies $\\sigma_{xy}$ with Chern number, an integer that cannot change continuously."
+            ],
+            "reveal": "TKNN (1982): $\\sigma_{xy} = (e^2/h) \\sum_n C_n$ where $C_n$ is the Chern number of band $n$. Integer-valued topological invariant — disorder smoothly deforms the wavefunction but cannot change $C$ unless the bulk gap closes. Bulk-boundary correspondence: each filled LL has $C=1$, giving one chiral edge mode per LL → quantized 2-terminal conductance $G = \\nu e^2/h$ from edge transport (Halperin 1982, Büttiker 1988)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_topo_1",
+        "kind": "multiple_choice",
+        "question": "Why was the 2016 Nobel awarded to Thouless, Haldane, and Kosterlitz for 'topological phase transitions and topological phases of matter'?",
+        "options": [
+          "Random.",
+          "Three pieces fit together: (i) Kosterlitz-Thouless 1973 BKT transition in 2D XY model — vortex-antivortex unbinding gives a topological phase transition without spontaneous symmetry breaking, foundational for thin-film superfluids, 2D SCs, 2D melting; (ii) Thouless-Kohmoto-Nightingale-Nijs 1982: integer quantum Hall conductivity = Chern number, a topological invariant of filled bands integrated over the Brillouin zone — explained Klitzing's exact quantization (von Klitzing Nobel 1985), the first example of topological order; (iii) Haldane 1983 + 1988: gapped 1D spin-1 antiferromagnet (Haldane gap) is symmetry-protected topological, and the Haldane honeycomb model is the original quantum anomalous Hall insulator with no net field. Together, these papers established topology as a new organizing principle for phases of matter alongside symmetry breaking — leading to topological insulators, Weyl/Dirac semimetals, topological superconductors, Majorana fermions, the ten-fold way classification, and topological-materials databases now used to search for new topological phases.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "2016 Nobel (Thouless 1/2, Haldane + Kosterlitz 1/4 each) recognized BKT transition (KT 1973), TKNN topology of IQHE (Thouless 1982 → Klitzing Nobel 1985), Haldane gap + Haldane model (QAH precursor). Established topology as new organizing principle: topological insulators, Weyl/Dirac semimetals, Majorana, ten-fold way."
+      },
+      "hints": [
+        "Three foundational works connected.",
+        "What is the new organizing principle?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "2016 Nobel (Thouless 1/2 + Haldane + Kosterlitz 1/4 each) — KT transition (1973), TKNN topology of IQHE (1982; supporting Klitzing 1985 Nobel), Haldane gap + Haldane model (QAHE precursor). Established topology as organizing principle alongside symmetry breaking: TIs, Weyl/Dirac semimetals, Majorana, ten-fold way classification."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_topo_1",
+        "kind": "scenario",
+        "question": "Identifying a topological insulator candidate",
+        "prompt": "A new compound shows ARPES Dirac surface states, indirect bulk gap of 200 meV from DFT, and inverted band ordering near Γ point. Magnetotransport shows linear MR up to 10 T and Shubnikov-de Haas oscillations with a Berry phase of π. Discuss whether this is a strong 3D TI, weak TI, Dirac semimetal, or trivial insulator, and what additional experiments (spin-ARPES, scanning tunneling, second-harmonic generation, transport with magnetic doping for QAH) you'd request to confirm."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_topo_1",
+        "kind": "math_expression",
+        "question": "Write the quantized Hall conductivity $\\sigma_{xy}$ in the integer quantum Hall effect with filling factor $\\nu$.",
+        "acceptedAnswers": [
+          "sigma_xy = nu * e^2 / h",
+          "σ_xy = ν e²/h",
+          "$\\sigma_{xy} = \\nu e^2/h$"
+        ],
+        "hint": "TKNN: $\\sigma_{xy}$ = Chern number × $e^2/h$. With $\\nu$ fully filled Landau levels, $C=\\nu$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_topo_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how topology became a third organizing principle for phases of matter alongside symmetry breaking and Landau Fermi liquid theory.",
+        "rubric": "Should mention: IQHE (von Klitzing 1980, Nobel 1985) exact quantization $\\sigma_{xy} = \\nu e^2/h$; TKNN 1982 identified $\\sigma_{xy}$ with Chern number — first topological invariant in matter; FQHE (Tsui-Störmer-Laughlin 1998 Nobel) — fractional charge + anyonic statistics; QAH effect (Haldane 1988 → Yu-Zhang-Xue 2013); time-reversal-symmetric topological insulators (Kane-Mele 2005, Bernevig-Hughes-Zhang 2006 HgTe, Fu-Kane-Mele 2007 3D, Bi$_2$Se$_3$ 2009); ten-fold way classification (Schnyder-Ryu-Furusaki-Ludwig 2008, Kitaev 2009); 3D Weyl/Dirac semimetals (TaAs 2015, Cd$_3$As$_2$, Na$_3$Bi); Majorana fermions in topological SCs + topological quantum computing (Kitaev chain, Microsoft); Haldane-Kosterlitz-Thouless Nobel 2016 for topological phase transitions + phases; topological materials databases (Tang-Po-Vishwanath, Bradlyn et al. 2017) find ~30% of crystals topological; twisted bilayer graphene flat-band + fractional Chern insulators (2018-2023); topology now alongside symmetry breaking as a fundamental organizing principle."
+      }
+    }
+  ]
+}

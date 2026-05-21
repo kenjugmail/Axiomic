@@ -193,6 +193,21 @@ const LazyLawsonCriterion = lazy(() =>
     (m) => ({ default: m.LawsonCriterion }),
   ),
 );
+const LazyBandStructure = lazy(() =>
+  import("../../../../../packages/viz/src/components/BandStructure").then(
+    (m) => ({ default: m.BandStructure }),
+  ),
+);
+const LazyVortexShedding = lazy(() =>
+  import("../../../../../packages/viz/src/components/VortexShedding").then(
+    (m) => ({ default: m.VortexShedding }),
+  ),
+);
+const LazyIceSheetDynamics = lazy(() =>
+  import("../../../../../packages/viz/src/components/IceSheetDynamics").then(
+    (m) => ({ default: m.IceSheetDynamics }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -327,6 +342,12 @@ function VizByName({
       return <LazyHodgkinHuxleyAP {...(props as object)} />;
     case "lawson-criterion":
       return <LazyLawsonCriterion {...(props as object)} />;
+    case "band-structure":
+      return <LazyBandStructure {...(props as object)} />;
+    case "vortex-shedding":
+      return <LazyVortexShedding {...(props as object)} />;
+    case "ice-sheet-dynamics":
+      return <LazyIceSheetDynamics {...(props as object)} />;
     default:
       return null;
   }

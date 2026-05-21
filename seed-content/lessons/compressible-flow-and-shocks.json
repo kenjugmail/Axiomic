@@ -1,0 +1,152 @@
+{
+  "slug": "compressible-flow-and-shocks",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Derive sound speed + Mach.",
+      "Analyze normal + oblique shocks.",
+      "Understand supersonic + hypersonic regimes."
+    ],
+    "prereqs": [
+      "inviscid-and-potential-flow"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Sound speed, Mach + acoustic equations",
+      "body": "Compressible flow introduces a new fundamental velocity scale: the **speed of sound** c. Small disturbances propagate as acoustic waves at speed c relative to the local fluid.\n\nFrom mass + momentum conservation linearized around a quiescent state (perturbations ρ', u', p' small):\n\n  ∂ρ'/∂t + ρ_0 ∂u'/∂x = 0\n  ρ_0 ∂u'/∂t = −∂p'/∂x\n\nWith isentropic equation of state p' = c² ρ' where c² = (∂p/∂ρ)_s, eliminating ρ' + u' gives the **wave equation**:\n\n  ∂²p'/∂t² − c² ∇²p' = 0\n\nfor any small disturbance. Sound speed for an **ideal gas**:\n\n  c = √(γRT) = √(γp/ρ)\n\nwith γ = c_p/c_v (1.4 for diatomic air). At T = 288 K (sea-level): c_air = 340 m/s. Water c = 1480 m/s; helium c = 1010 m/s; iron c = 5000 m/s.\n\n**Mach number** M = U/c (Ernst Mach 1838-1916). Regimes:\n- **Incompressible** M < 0.3: ρ ≈ const; classical incompressible NS.\n- **Subsonic** 0.3 < M < 0.8: compressibility corrections (Prandtl-Glauert, Kármán-Tsien).\n- **Transonic** 0.8 < M < 1.2: mixed sub + supersonic regions; shocks appear; critical for airliner design.\n- **Supersonic** M > 1: shocks + expansion fans; linear theory (Ackeret) sometimes OK.\n- **Hypersonic** M > 5: real-gas effects (vibrational + dissociation + ionization); strong shock heating; viscous-inviscid coupling; chemistry-coupled flow.\n\n**Mach cone**: a body moving at M > 1 creates a conical disturbance region with half-angle μ = sin⁻¹(1/M) — the **Mach angle**. Outside the cone the fluid hasn't 'heard' the body. This is why **sonic booms** are sharp + ground-level (the cone sweeps the ground).\n\n**Compressible Bernoulli** (isentropic): combining steady Euler with isentropic relations gives\n\n  T_0/T = 1 + ((γ−1)/2) M²\n  p_0/p = [1 + ((γ−1)/2) M²]^{γ/(γ−1)}\n  ρ_0/ρ = [1 + ((γ−1)/2) M²]^{1/(γ−1)}\n\nwhere subscript 0 denotes stagnation values (M = 0). At M = 1: p_0/p ≈ 1.89 (γ = 1.4); a Pitot tube measuring stagnation pressure on a supersonic jet measures very different pressure than incompressible Bernoulli predicts.\n\n**Choked flow**: in a converging nozzle, M = 1 at the throat; further reducing back pressure cannot increase mass flow rate. The choked mass flow rate ṁ_max = ρ*A*c* sets the limit. Foundation of rocket nozzle design (de Laval, 1888) — converging-diverging nozzle exploits this to reach supersonic exhaust velocities.\n\n**Acoustic analogies** (Lighthill 1952): wave equation generalized to include flow noise — aeroacoustics. **Sir James Lighthill** (1924-1998) founded jet noise theory; **Curle, Ffowcs-Williams, Hawkings** extended to surface + moving sources. Today's quiet aircraft + UAV design owes heavily to this lineage."
+    },
+    {
+      "kind": "text",
+      "title": "Normal + oblique shocks + Rankine-Hugoniot",
+      "body": "**Shock waves** are thin discontinuities where flow properties change abruptly. Across a shock, mass + momentum + energy are conserved but entropy increases. Shock thickness ~ a few mean free paths (Knudsen O(1) inside the shock) — outside, continuum description holds.\n\n**Normal shock — Rankine-Hugoniot conditions** (Rankine 1870, Hugoniot 1887). Across a shock perpendicular to flow, with subscripts 1 (upstream) + 2 (downstream):\n\n  ρ_1 u_1 = ρ_2 u_2\n  p_1 + ρ_1 u_1² = p_2 + ρ_2 u_2²\n  h_1 + u_1²/2 = h_2 + u_2²/2\n\nFor an ideal gas + supersonic upstream M_1 > 1:\n\n  M_2² = ((γ−1) M_1² + 2) / (2γ M_1² − (γ−1))\n  ρ_2/ρ_1 = (γ+1) M_1² / ((γ−1) M_1² + 2)\n  p_2/p_1 = 1 + (2γ/(γ+1))(M_1² − 1)\n  T_2/T_1 = (p_2/p_1)(ρ_1/ρ_2)\n\nKey properties:\n- M_2 < 1 (always subsonic downstream of a normal shock).\n- p_2/p_1 ↑ with M_1; pressure ratio across M = 3 shock ≈ 10, across M = 10 ≈ 116.\n- T_2/T_1 ↑ with M_1; large temperature rise causes hypersonic heating problems.\n- Entropy increases (s_2 > s_1); shock is irreversible; stagnation pressure decreases.\n- Cannot have an 'expansion shock' — would violate 2nd law.\n\n**Oblique shocks**: shock at angle β to flow + deflection angle θ. **θ-β-M relation**:\n\n  tan θ = 2 cot β · (M_1² sin²β − 1) / (M_1²(γ + cos 2β) + 2)\n\nFor given M_1 + θ, two solutions (weak + strong shock); usually weak occurs. Above a maximum θ_max no attached oblique shock — **detached bow shock** instead (curved standoff shock in front of blunt body).\n\n**Prandtl-Meyer expansion**: supersonic flow turning **away** from itself expands smoothly through a fan of Mach waves (not a shock). Mach number rises, p + T fall, isentropic. The **Prandtl-Meyer function** ν(M):\n\n  ν(M) = √((γ+1)/(γ−1)) tan⁻¹√((γ−1)/(γ+1)(M²−1)) − tan⁻¹√(M²−1)\n\nfor M = 1: ν = 0; for M → ∞: ν → (√((γ+1)/(γ−1)) − 1) π/2 ≈ 130° (γ = 1.4). Combining shocks + expansion fans + slip lines via the **method of characteristics** gives 2D supersonic flow over arbitrary shapes.\n\n**Shock-boundary-layer interactions** (SBLI): when a shock impinges on a boundary layer, the BL must turn through the shock pressure rise — often **separates**, creating bubbles, λ-shocks, oscillations, buffet. Crucial in transonic aircraft + supersonic inlets + scramjets + space vehicles. Still poorly predicted by RANS; active research with LES + DNS + ML.\n\n**Shock formation** in unsteady flow: nonlinear wave steepening — large-amplitude acoustic waves steepen because pressure peaks travel faster than troughs (c depends on T), until a discontinuity forms (**Burgers equation** is the canonical model). Founders: **Riemann** (1860 first shock theory), **Rankine + Hugoniot + Mach + Prandtl + von Neumann + Friedrichs + Lax**."
+    },
+    {
+      "kind": "text",
+      "title": "Supersonic, hypersonic, sonic booms, scramjets",
+      "body": "**Supersonic flight history**:\n- **Chuck Yeager** broke the sound barrier in Bell X-1 (1947).\n- **F-104 Starfighter, MiG-21, Mirage III** — first practical supersonic fighters.\n- **Concorde** (1976-2003, M = 2.04 at 60000 ft, cruise 18 km altitude) — Anglo-French SST; retired after 2000 Paris crash + economics + sonic-boom restrictions over land.\n- **Tu-144** — Soviet SST (1968-1978), troubled.\n- **SR-71 Blackbird** — M = 3+ reconnaissance; still iconic.\n\n**Sonic boom**: pressure jump from passing Mach cone. Two N-shaped pressure spikes (bow + tail) reach the ground; rattling effect + sometimes window damage. Banned over populated land in most countries (1973 US FAA Part 91 ban). **NASA X-59 QueSST** (2024+) aims to reduce sonic boom to a soft 'thump' (~75 PLdB) — could enable overland supersonic flight.\n\n**Hypersonic regime** (M > 5):\n- **Strong heating** — stagnation T ~ T_∞(1 + (γ−1)/2 M²). At M = 8 + 250 K freestream, T_0 ~ 3500 K; air dissociates + ionizes; **chemistry-coupled flow**.\n- **Viscous-inviscid interaction** strong; classical Prandtl boundary-layer split breaks down.\n- **Real-gas effects**: vibrational excitation, dissociation, ionization, ionization layers.\n- **Reentry vehicles** (Apollo, Shuttle, SpaceX Dragon, Starship): heat shields critical; ablative or radiative cooling.\n- **Scramjet engines**: supersonic combustion ramjet — air enters combustion chamber still supersonic (M ~ 2-3 internally); avoids dissipation in slowing flow to subsonic. **X-43A** (2004, M = 9.6) + **X-51 WaveRider** (2013, sustained M = 5.1 for 200s) demonstrated feasibility. Boeing, Lockheed, China, Russia all pursuing.\n- **Hypersonic glide vehicles** (HGV) + **boost-glide weapons** — current strategic systems (US LRHW, Russia Avangard, China DF-17, India BrahMos-II).\n\n**Designing supersonic airfoils**:\n- **Double-wedge / diamond airfoil**: leading-edge oblique shock + trailing-edge expansion fan. Lift + drag analytically computable via Ackeret linear supersonic theory: C_L = 4α/√(M²−1), C_D,wave = 4α²/√(M²−1) for thin airfoil + small α.\n- **Wave drag** = drag from shocks; grows sharply near M = 1 (transonic drag rise) + plateaus supersonically.\n- **Area rule** (Whitcomb 1952): for low transonic wave drag, cross-section area distribution along the axis should be smooth (coke-bottle shape). Enabled F-102 Convair Hustler + every modern fighter.\n- **Swept wings** + **delta wings** + **double-deltas** + **canards**: design space for supersonic + hypersonic vehicles.\n\n**Why Concorde retired (2003)**:\n- Single fatal crash (Paris 2000).\n- Operating economics — high fuel burn at M = 2.\n- Sonic-boom overland ban limited routes.\n- Post-9/11 aviation market collapse.\n- Aging airframe + cost of recertification.\n\n**Supersonic + hypersonic revival**: Boom Supersonic (Overture), Hermeus, Lockheed Quarterhorse, Stratolaunch Talon-A. NASA Hyper-X program + DARPA Operational Fires + AFRL HAWC. Combined with reusable rockets (Starship), routine hypersonic transport is now technically feasible. Heat management + sonic boom + economics remain the gating issues.\n\n**Theodore von Kármán's** WWII + Cold War work at Caltech / JPL / NATO AGARD enabled the whole supersonic + hypersonic era; **Adolf Busemann** (sweep theory 1935), **Hans von Ohain** + **Frank Whittle** (jet engine 1930s), **Alexander Lippisch** (delta wings) all key contributors."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fluid_shock_1",
+        "kind": "guided_derivation",
+        "question": "Derive the normal-shock Mach + pressure relations",
+        "goal": "Given M_1 = 2 + γ = 1.4, compute M_2, p_2/p_1, T_2/T_1, ρ_2/ρ_1 using Rankine-Hugoniot.",
+        "steps": [
+          {
+            "prompt": "Use M_2² = ((γ−1) M_1² + 2) / (2γ M_1² − (γ−1)).",
+            "motivation": "Downstream Mach.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "M_2² = (0.4·4 + 2)/(2.8·4 − 0.4) = 3.6/10.8 = 1/3; M_2 ≈ 0.577"
+              ]
+            },
+            "hints": [
+              "γ = 1.4, M_1² = 4."
+            ],
+            "reveal": "Numerator: (1.4−1)(4) + 2 = 0.4(4) + 2 = 3.6. Denominator: 2(1.4)(4) − 0.4 = 11.2 − 0.4 = 10.8. M_2² = 3.6/10.8 = 1/3. M_2 = 1/√3 ≈ 0.577 < 1. Confirms downstream always subsonic for a normal shock."
+          },
+          {
+            "prompt": "Compute p_2/p_1 = 1 + (2γ/(γ+1))(M_1² − 1).",
+            "motivation": "Pressure jump.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "p_2/p_1 = 1 + (2.8/2.4)(3) = 1 + 3.5 = 4.5"
+              ]
+            },
+            "hints": [
+              "2γ/(γ+1) = 2.8/2.4 ≈ 1.167."
+            ],
+            "reveal": "p_2/p_1 = 1 + (2(1.4)/(2.4))(4 − 1) = 1 + (2.8/2.4)(3) = 1 + 3.5 = 4.5. Strong jump — pressure quadruples + a half. This 'pressure rise across normal shock' is what makes supersonic inlets + shock tunnels feasible."
+          },
+          {
+            "prompt": "Compute ρ_2/ρ_1 = (γ+1)M_1² / ((γ−1)M_1² + 2).",
+            "motivation": "Density jump.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ρ_2/ρ_1 = 2.4·4/3.6 = 9.6/3.6 ≈ 2.667"
+              ]
+            },
+            "hints": [
+              "(γ+1)/(γ−1) = 6 is the maximum density ratio for γ = 1.4."
+            ],
+            "reveal": "ρ_2/ρ_1 = 2.4(4)/(0.4·4 + 2) = 9.6/3.6 = 8/3 ≈ 2.667. Note as M_1 → ∞, ρ_2/ρ_1 → (γ+1)/(γ−1) = 6 — the maximum density ratio across an air normal shock. Real-gas + relaxation effects in hypersonic flow modify this."
+          },
+          {
+            "prompt": "Compute T_2/T_1 = (p_2/p_1)(ρ_1/ρ_2).",
+            "motivation": "Temperature jump via ideal gas.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "T_2/T_1 = 4.5/2.667 ≈ 1.687"
+              ]
+            },
+            "hints": [
+              "p = ρRT, so T_2/T_1 = (p_2/p_1)·(ρ_1/ρ_2)."
+            ],
+            "reveal": "T_2/T_1 = (4.5)(1/2.667) = 4.5/2.667 ≈ 1.687. So crossing a M = 2 normal shock raises temperature ~70%. At higher Mach numbers this becomes severe — M = 5 shock raises T about 5.8×; M = 10 about 21×; these are the temperatures that motivate hypersonic heat-shield design. Entropy also rises (s_2 > s_1) + stagnation pressure drops irreversibly."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fluid_shock_1",
+        "kind": "multiple_choice",
+        "question": "Why was Concorde retired in 2003 despite being a technical triumph?",
+        "options": [
+          "Random.",
+          "**Concorde** (1976-2003, M = 2.04, 60000 ft cruise) was a technical triumph but failed economically. (1) **Sonic-boom overland ban** (US 1973, similar elsewhere) restricted routes to overwater corridors (mainly transatlantic), limiting fleet utilization. (2) **High fuel burn** at M = 2 made tickets ~5-10× business class price; only viable on a few premium routes. (3) The **Paris 2000 crash** (tire blowout + ruptured fuel tank, 113 killed) damaged passenger confidence. (4) **Post-9/11 aviation market collapse** made the operating economics untenable. (5) **Aging airframes + recertification costs** were prohibitive. Air France retired in May 2003, British Airways in October 2003. The end of supersonic civilian flight for ~20 years until current efforts (Boom, NASA X-59 QueSST aimed at low-boom design, Hermeus). Hypersonic civil travel remains a long-term aspiration.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Concorde (1976-2003, M = 2) retired due to (i) sonic-boom overland ban limiting routes, (ii) high fuel burn + ticket price, (iii) Paris 2000 crash damaging confidence, (iv) post-9/11 market collapse, (v) aging airframe + recertification cost. NASA X-59 QueSST + Boom Supersonic aim at low-boom revival."
+    },
+      "hints": [
+        "Sonic-boom restrictions.",
+        "Economics + accidents."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Concorde retired in 2003 due to: overland sonic-boom ban limiting routes; high fuel burn / ticket price; Paris 2000 crash; post-9/11 market collapse; aging airframe recertification. Civil supersonic restart now via Boom + NASA X-59 QueSST + Hermeus."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fluid_shock_1",
+        "kind": "scenario",
+        "question": "Hypersonic vehicle heat-shield design",
+        "prompt": "A reentry vehicle enters Earth's atmosphere at M = 25, altitude 60 km, freestream T ≈ 240 K. Estimate the stagnation temperature using compressible-Bernoulli (γ = 1.4, ideal-gas assumption). Discuss why the ideal-gas calculation overestimates the wall temperature + what real-gas effects (vibrational, dissociation, ionization) modify the picture. Compare heat-shield strategies: ablative (Apollo, Stardust), radiative (Shuttle tiles), transpiration cooling + active cooling for sustained hypersonic cruise (X-51, scramjets)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fluid_shock_1",
+        "kind": "math_expression",
+        "question": "Write the speed of sound c for an ideal gas in terms of γ, R, T.",
+        "acceptedAnswers": [
+          "c = √(γRT)",
+          "c = sqrt(γRT)"
+        ],
+        "hint": "γ = c_p/c_v, R = specific gas constant."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fluid_shock_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how Mach number organizes compressible flow + why shocks are so important.",
+        "rubric": "Mentions: Mach number M = U/c (Ernst Mach, 1838-1916) classifies regimes — incompressible (M < 0.3), subsonic, transonic, supersonic, hypersonic. Sound speed c = √(γRT) sets propagation of pressure disturbances; a body moving at M > 1 creates a Mach cone with half-angle sin⁻¹(1/M) outside which the fluid is uninformed. Sonic booms result. **Shocks** are thin discontinuities (~few mean free paths) where flow properties jump irreversibly; **Rankine-Hugoniot** conservation laws give downstream M, p, ρ, T from upstream M_1. Across a normal shock M_2 < 1 + entropy rises. Drives **wave drag** (sharp rise near M = 1, transonic drag), **shock-boundary-layer interactions**, **shock heating** for reentry + hypersonics. **Concorde**, **SR-71**, **X-43**, **X-51**, **Starship reentry** all live in these regimes. Concludes: compressibility transforms classical fluid mechanics; shocks are simultaneously the diagnostic + the design challenge of supersonic + hypersonic flight."
+      }
+    }
+  ]
+}

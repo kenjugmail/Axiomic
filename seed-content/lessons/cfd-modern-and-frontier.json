@@ -1,0 +1,152 @@
+{
+  "slug": "cfd-modern-and-frontier",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Compare CFD discretization methods.",
+      "Apply mesh + V&V principles.",
+      "Survey ML + bio-inspired frontier."
+    ],
+    "prereqs": [
+      "turbulence-and-statistics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "CFD foundations — FV, spectral, lattice-Boltzmann, IB",
+      "body": "**Computational Fluid Dynamics (CFD)**: numerical solution of fluid PDEs. Industry workhorse since 1980s. Founders: **Frank Harlow** (LANL, MAC method), **Suhas Patankar** (SIMPLE algorithm), **Peyret + Roache** (V&V), **Brian Spalding** (PHOENICS first commercial code).\n\n**Discretization methods**:\n\n**1. Finite Volume (FV)** — most widespread. Integrate conservation laws over control volumes; ensures exact local conservation. Fluxes computed at cell faces via Riemann solvers (Roe, HLL, HLLC, AUSM). Used by ANSYS Fluent, OpenFOAM, Star-CCM+, SU2. Handles complex geometries + general meshes well. Standard for industrial aerodynamics, combustion, turbomachinery, automotive.\n\n**2. Finite Difference (FD)** — replace derivatives with difference quotients. Simple, works on structured grids. Used in atmospheric + oceanic models + many academic codes. Less flexible than FV for complex geometry.\n\n**3. Finite Element (FE)** — weak formulation + basis functions. Strong in solid mechanics + multiphysics; less common in compressible flow but used heavily in incompressible CFD (FEniCS, Nektar++) + biomedical.\n\n**4. Spectral methods** — Fourier or Chebyshev basis; exponential convergence for smooth solutions. Best for canonical flows (channel DNS, isotropic turbulence) on simple geometries. **Kim, Moin, Moser** classic channel-DNS code uses spectral.\n\n**5. Spectral element / Discontinuous Galerkin (DG)** — combines geometric flexibility of FE with spectral accuracy. Codes: Nek5000, NekRS, FLEXI, FlowPM. Hot area for exascale.\n\n**6. Lattice Boltzmann Method (LBM)** — instead of solving NS directly, evolve a discrete-velocity Boltzmann equation on a lattice. Macroscopic NS recovered in continuum limit. Highly parallel, ideal for porous media + complex geometry + multiphase. Codes: Palabos, OpenLB, M-Star CFD, NVIDIA Modulus' LBM modules.\n\n**7. Smoothed Particle Hydrodynamics (SPH)** — meshless Lagrangian particles. Free surfaces, splashing, astrophysics. **Gingold + Monaghan + Lucy** (1977). Codes: DualSPHysics, splatNs.\n\n**8. Immersed Boundary (IB) methods** — solve flow on a fixed Cartesian grid + add forcing terms to enforce no-slip on arbitrary moving bodies. Avoids re-meshing for moving / deforming geometries (insects, fish, heart valves). **Peskin** (1972, heart valve simulation), **Mittal**, **Verzicco**.\n\n**Time integration**: explicit Runge-Kutta (compressible), semi-implicit fractional-step or projection methods (incompressible — Chorin 1968, Temam 1969). For stiff problems IMEX schemes or fully implicit BDF.\n\n**Linear solvers** (incompressible pressure-Poisson dominates cost): conjugate gradient, GMRES, multigrid (algebraic + geometric), preconditioned Krylov. Modern: hypre, PETSc, AmgX.\n\n**Languages + frameworks**: Fortran (legacy + HPC), C/C++ (OpenFOAM, SU2), Python wrappers + JAX/PyTorch for differentiable CFD (JAX-CFD, PhiFlow, NVIDIA Modulus, Lettuce LBM-PyTorch)."
+    },
+    {
+      "kind": "text",
+      "title": "Meshes, adaptivity + verification & validation (V&V)",
+      "body": "**Mesh generation** is often the rate-limiting step in industrial CFD (~60-80% of engineer time).\n\n**Mesh types**:\n- **Structured (hexahedral)** — logical i,j,k indexing; efficient + accurate but rigid for complex shapes. Aerodynamic wings, turbomachinery cascades.\n- **Unstructured (tetra/poly)** — flexible; meshes arbitrary geometry. Most automotive + ship + biomedical CFD. Hex-dominated polyhedral cells (Pointwise, Star-CCM+ poly) improve accuracy.\n- **Overset (chimera)** — overlapping component grids interpolate across boundaries; used for moving bodies (helicopter blades, store separation).\n- **Cartesian + cut-cell** — Cartesian grid + special cells at boundaries. Easy auto-meshing; popular in academic + open-source codes + lattice-Boltzmann.\n- **Body-fitted** — clusters cells near walls to resolve boundary layers.\n\n**Y+ requirement**: first-cell y+ < 1 for wall-resolved (no wall function), y+ ~ 30-300 for wall-functions. RANS quality + LES near-wall resolution depend strongly on this.\n\n**Mesh adaptive refinement (AMR)**: refine cells where solution gradients are largest (shocks, shear layers, vortices). **Berger + Oliger** (1984), **Berger + Colella** (1989). Used in shock-dominated + multiphase flows (PARAMESH, Chombo, BoxLib, AMReX). Saves orders of magnitude in DOF vs uniform.\n\n**Grid convergence + Richardson extrapolation**: solve on grids h, h/2, h/4; estimate solution + order of convergence + extrapolated value. **Grid Convergence Index (GCI)** (Roache 1994) is the standard quantitative measure.\n\n**Verification + Validation (V&V)** — formalized by **Pat Roache** + **Bill Oberkampf**:\n- **Verification**: 'are you solving the equations right?' Compare to analytic solutions (manufactured solutions, MMS), check grid convergence + iterative residuals.\n- **Validation**: 'are you solving the right equations?' Compare to experiments + DNS benchmarks.\n- **Uncertainty quantification (UQ)**: propagate uncertainties in inputs + models to outputs. **AIAA G-077** + **ASME V&V20** are industry standards.\n\n**Famous benchmark cases**:\n- **Backward-facing step** (separation + reattachment).\n- **NACA 0012 airfoil** at various Re, α.\n- **Turbulent channel flow** (Moser-Kim-Mansour DNS).\n- **Flow over a cylinder** (Bénard-Kármán shedding, drag crisis).\n- **DLR-F6 + Common Research Model** (transonic transport aero).\n- **Ahmed body** (automotive bluff aero).\n- **HiFiLES NASA Juncture Flow** (corner separation).\n- **AIAA Drag Prediction Workshop** + Turbulence Modeling Resource.\n\n**Verification + validation are non-negotiable**: a CFD prediction without quantified error bars is useless for safety-critical design (aircraft, nuclear, medical devices). FAA + EASA require V&V documentation for certification."
+    },
+    {
+      "kind": "text",
+      "title": "Modern frontier — GPUs, neural surrogates, bio-inspired",
+      "body": "**Hardware revolution**:\n- **GPU CFD**: 10-100× speedup over CPU. NVIDIA Modulus, M-Star CFD, NVIDIA Simulation, Altair nanoFluidX use GPUs natively. AMD MI300X + Intel Ponte Vecchio + custom ASICs (Cerebras CS-3 for CFD) emerging.\n- **Exascale supercomputers**: Frontier (1.1 EFLOP/s, Oak Ridge), Aurora (Argonne), El Capitan (LLNL). DNS now possible at Re_τ ~ 5000 channel, Re_λ ~ 1300 isotropic. Realistic-aircraft LES becoming routine.\n- **Cloud CFD**: AWS Parallel Cluster, Azure HPC, Rescale, Simscale — democratized access.\n\n**Machine learning + neural surrogates**:\n- **Physics-Informed Neural Networks (PINNs)** (Raissi + Karniadakis 2019): train neural networks whose loss includes PDE residuals + boundary conditions. Solve forward + inverse problems with sparse data. Works well for low-dimensional + smooth PDEs; struggles with stiffness + multi-scale turbulence.\n- **Fourier Neural Operators (FNO)** (Li + Anandkumar 2020): learn solution operators in spectral space; generalize across resolutions; orders-of-magnitude faster than CFD for inference.\n- **Graph Neural Networks for fluids** (Pfaff + Battaglia, DeepMind MeshGraphNets 2020): mesh-based ML predictions of unsteady flow.\n- **Neural-network turbulence closures** (Ling, Templeton, Duraisamy, Brunton, Kutz, Maulik, Moin's group): tensor-basis NN, SINDy, RL-driven RANS / LES.\n- **AlphaFold-style for fluids**: **AlphaFlow** (DeepMind/Imperial College 2024) for transient turbulent flow prediction. **Neural ODE-based** + **diffusion-based** generative simulators.\n- **NVIDIA Modulus**: open-source AI-physics framework — PINNs, FNOs, hybrid solvers. Used by Siemens, BMW, Lockheed.\n- **ECMWF GraphCast + Aurora + FengWu** (DeepMind, Microsoft, Shanghai AI Lab) for weather: equivalent of NS for atmosphere + ocean; 10000× faster than traditional NWP; comparable accuracy. Pure data-driven Earth-system models a major frontier.\n\n**Differentiable CFD**: PDE solvers that propagate gradients backward through time + space, enabling end-to-end optimization (JAX-CFD, PhiFlow, Φ-Flow, Diff-FoamFlow). Use cases: shape optimization, control, inverse design, calibrating turbulence models from data.\n\n**Bio-inspired + animal-inspired fluid mechanics**:\n- **Jellyfish propulsion**: ultra-efficient — pulsed-jet + suction. Inspires AUV designs (Costello, Dabiri, Colin).\n- **Fish + schooling**: Strouhal St ≈ 0.25-0.35 for cruising — universal swimming optimum. Phalanx + diamond schooling formations exploit vortex wakes for energetic gain.\n- **Insect flight + clap-and-fling** (Weis-Fogh 1973): hovering hawkmoths + butterflies use vortex lift; **MAV** (micro-air-vehicle) design (Wood lab Harvard RoboBee, DelFly).\n- **Bird flight + V-formation**: trailing birds exploit upwash from leaders; 15-20% energy savings.\n- **Whale fin + bumps (tubercles)** — humpback flipper tubercles delay stall + reduce drag. **Tubercle-inspired wind-turbine blades** (WhalePower).\n- **Shark skin + riblets**: micro-grooves reduce turbulent skin friction ~5%. Used in 3M films + Boeing fuselage trials.\n- **Sailfish + tuna**: rigid leading edge + caudal-fin oscillation; high-frequency thrust at Strouhal optimum.\n- **Cephalopod jet propulsion** — variable-area nozzle adaptive jets.\n\n**Industrial + societal applications**:\n- **Aviation**: 787 + A350 + F-35 entirely CFD-driven aero + propulsion design.\n- **Automotive**: F1 + EVs + autonomous-driving cooling, all CFD.\n- **Climate + weather**: GCMs (ECMWF IFS, NOAA GFS, UKMO Unified Model); ML hybrid emerging (GraphCast, Aurora).\n- **Energy**: wind farms, hydropower, fusion (tokamak edge), oil recovery.\n- **Biomedical**: cardiovascular surgery planning, drug delivery, prosthetic-valve design.\n- **Drug discovery**: protein-protein hydrodynamics, AI-fluids for organ-on-chip.\n- **Hypersonics + space**: Starship, Skylon, Hermeus, NASA hypersonics + plasma propulsion.\n\nThe future of fluid mechanics: **GPU-accelerated + differentiable + ML-augmented + bio-inspired** CFD, working at exascale + integrating into automated design pipelines. The Navier-Stokes equations themselves remain unsolved analytically (Clay Prize), but our practical mastery over them grows year by year."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fluid_cfd_1",
+        "kind": "guided_derivation",
+        "question": "Estimate DNS cost for an aircraft wing",
+        "goal": "Aircraft wing chord c = 3 m, U = 250 m/s, ν = 1.5·10⁻⁵. Estimate Re_c, Kolmogorov scale η, total DNS DOF in 3D, + total operation count for one flow-through time.",
+        "steps": [
+          {
+            "prompt": "Compute Re_c = Uc/ν.",
+            "motivation": "Reynolds number.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Re_c = 250·3/1.5e-5 = 5·10⁷"
+              ]
+            },
+            "hints": [
+              "U·L/ν."
+            ],
+            "reveal": "Re_c = (250)(3)/(1.5·10⁻⁵) = 5·10⁷. Typical for transport aircraft."
+          },
+          {
+            "prompt": "Estimate η/c using K41 scaling η/L ~ Re^{−3/4}.",
+            "motivation": "Smallest dynamically active scale.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "η/c ~ (5·10⁷)^{−3/4} ~ 5·10⁻⁶"
+              ]
+            },
+            "hints": [
+              "(5e7)^{−0.75}."
+            ],
+            "reveal": "(5·10⁷)^{0.75} ≈ 1.9·10⁶. So η/c ~ 5·10⁻⁷; η ~ 1.6 μm. Boundary-layer Kolmogorov scale even smaller near the wall."
+          },
+          {
+            "prompt": "Estimate 3D mesh DOF assuming uniform η-resolution.",
+            "motivation": "DOF in 3D scaling.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "DOF ~ (c/η)³ ~ (5·10⁶)³ wait. Uniform DOF (c/η)³ ~ (2·10⁶)³ = 8·10¹⁸; for boundary-layer-relevant volume smaller."
+              ]
+            },
+            "hints": [
+              "(L/η)³."
+            ],
+            "reveal": "DOF ~ (L/η)³ ~ Re^{9/4} ~ (5·10⁷)^{9/4} ~ 5·10¹⁶ for uniform mesh — astronomical. In practice the boundary layer is the dominant subdomain + DOF for wall-resolved DNS in a turbulent boundary layer scale as Re^{2.7} or so for the BL + Re² for wall-modeled LES (Choi + Moin 2012)."
+          },
+          {
+            "prompt": "Compare with exascale (~10¹⁸ FLOP/s) capability.",
+            "motivation": "Conclude on feasibility.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Even at exascale full aircraft DNS would take years; out of reach. Wall-modeled LES at Re^{~1} is feasible."
+              ]
+            },
+            "hints": [
+              "1 FLOP per DOF per time step; many time steps."
+            ],
+            "reveal": "Each time step needs ~100 FLOP/DOF + we need many flow-through times (~10⁵-10⁶ steps). Total ~5·10¹⁶ × 100 × 10⁵ ~ 5·10²³ FLOP. At Frontier (~10¹⁸ FLOP/s) ~ 5·10⁵ s ~ 6 days per simulation, **assuming perfect scaling on a uniform mesh — never achievable**. Realistic estimates give years per case. Hence wall-modeled LES (cost ~ Re or Re¹·⁵) + hybrid RANS-LES + ML closures are the engineering path forward; DNS reserved for low-Re research + canonical validation."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fluid_cfd_1",
+        "kind": "multiple_choice",
+        "question": "Why are PINNs, FNOs + ML-augmented CFD considered a frontier rather than yet a replacement for traditional solvers?",
+        "options": [
+          "Magic.",
+          "**PINNs (Raissi-Karniadakis 2019)** + **Fourier Neural Operators (Li-Anandkumar 2020)** + graph-neural-network solvers can be **orders of magnitude faster** for inference + naturally differentiable for inverse / optimization problems. But they have **limitations**: (1) **generalization** — trained on a flow class, may fail outside it (compared to NS, which works everywhere); (2) **stiffness + multi-scale** turbulence remains hard; (3) **uncertainty quantification** + **out-of-distribution** detection are immature; (4) **convergence + stability guarantees** are weaker than for traditional FV / FE methods with formal proofs; (5) **certification + V&V** infrastructure (FAA, ASME) does not yet accept ML predictions for safety-critical design. So they currently augment rather than replace: ML closures inside RANS / LES (Ling, Duraisamy, Maulik), neural surrogates for design-space exploration, differentiable CFD for inverse design (JAX-CFD, PhiFlow). Tools like NVIDIA Modulus + Boltz / AlphaFlow / AlphaFold-style models suggest a long-term trajectory toward AI-native physical simulation, but the path is empirical + ongoing.",
+          "Random.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "PINNs + FNOs + GNN-based CFD are very fast + naturally differentiable. But generalization, stiffness, multi-scale turbulence, UQ, OOD detection + certification (FAA, ASME V&V) are immature. They currently augment classical CFD (ML closures, design exploration, inverse design) rather than replace it. Long-term trajectory is AI-native physics simulation."
+      },
+      "hints": [
+        "Strengths: speed + differentiability.",
+        "Weaknesses: generalization + UQ + certification."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "ML surrogates (PINNs, FNOs, GNNs) are fast + differentiable, ideal for inverse design. But generalization, multi-scale turbulence, UQ + certification (FAA, ASME V&V) are immature. Currently augment classical CFD (ML closures, design exploration). Path toward AI-native simulation is empirical + ongoing."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fluid_cfd_1",
+        "kind": "scenario",
+        "question": "ML-augmented CFD project plan",
+        "prompt": "You lead aerodynamics at a startup designing a novel eVTOL aircraft. Outline a CFD workflow combining (a) traditional RANS / LES on GPU clusters, (b) ML turbulence closures trained on DNS / LES libraries, (c) FNO / PINN surrogate models for design-space exploration, (d) experimental validation in wind tunnel. Discuss V&V documentation needed for FAA certification + how you'd manage uncertainty quantification + out-of-distribution risk."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fluid_cfd_1",
+        "kind": "math_expression",
+        "question": "Write the Strouhal number St for an oscillating fish-tail of frequency f, amplitude A, swimming speed U (canonical biological cruising form).",
+        "acceptedAnswers": [
+          "St = fA/U",
+          "St = f·A/U"
+        ],
+        "hint": "Biological cruising optimum St ≈ 0.25-0.35."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fluid_cfd_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why modern CFD is being transformed by GPUs, ML + bio-inspired design.",
+        "rubric": "Mentions: traditional CFD (FV / FE / spectral / LBM) on CPUs is mature but expensive — full-aircraft LES at Re ~ 10⁷ still pushes exascale limits. Three concurrent revolutions: (1) **GPU + exascale hardware** (Frontier, Aurora, El Capitan; NVIDIA Modulus, AMD MI300X) gives 10-100× speedup + enables routine LES + DNS for canonical cases. (2) **ML + neural surrogates** — PINNs (Raissi-Karniadakis 2019), FNOs (Li-Anandkumar 2020), graph-NN solvers (DeepMind MeshGraphNets), Reynolds-stress ML closures (Ling, Duraisamy, Maulik, Brunton-Kutz), AlphaFlow + differentiable CFD frameworks (JAX-CFD, PhiFlow) accelerate inference + enable inverse design. (3) **Bio-inspired design** — jellyfish propulsion, fish schooling Strouhal optimum, insect clap-and-fling, whale tubercles, shark riblets inform AUVs, drones, wind turbines, swimsuits. Concludes: Navier-Stokes remains analytically unsolved (Clay Prize) but our practical mastery — driven by GPU + ML + biology + classical theory — grows year by year, transforming aviation, automotive, energy, biomedical + climate science."
+      }
+    }
+  ]
+}

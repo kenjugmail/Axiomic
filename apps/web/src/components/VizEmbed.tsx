@@ -40,6 +40,9 @@ const AlignmentMatrix = lazy(() => import("../../../../packages/viz/src/componen
 const RamachandranPlot = lazy(() => import("../../../../packages/viz/src/components/RamachandranPlot").then(m => ({ default: m.RamachandranPlot })));
 const HodgkinHuxleyAP = lazy(() => import("../../../../packages/viz/src/components/HodgkinHuxleyAP").then(m => ({ default: m.HodgkinHuxleyAP })));
 const LawsonCriterion = lazy(() => import("../../../../packages/viz/src/components/LawsonCriterion").then(m => ({ default: m.LawsonCriterion })));
+const BandStructure = lazy(() => import("../../../../packages/viz/src/components/BandStructure").then(m => ({ default: m.BandStructure })));
+const VortexShedding = lazy(() => import("../../../../packages/viz/src/components/VortexShedding").then(m => ({ default: m.VortexShedding })));
+const IceSheetDynamics = lazy(() => import("../../../../packages/viz/src/components/IceSheetDynamics").then(m => ({ default: m.IceSheetDynamics })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -84,6 +87,9 @@ export const VIZ_NAMES = [
   "ramachandran-plot",
   "hodgkin-huxley-ap",
   "lawson-criterion",
+  "band-structure",
+  "vortex-shedding",
+  "ice-sheet-dynamics",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -126,6 +132,9 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "ramachandran-plot": RamachandranPlot,
   "hodgkin-huxley-ap": HodgkinHuxleyAP,
   "lawson-criterion": LawsonCriterion,
+  "band-structure": BandStructure,
+  "vortex-shedding": VortexShedding,
+  "ice-sheet-dynamics": IceSheetDynamics,
 };
 
 interface VizEmbedProps {

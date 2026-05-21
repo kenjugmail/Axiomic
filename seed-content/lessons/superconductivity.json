@@ -1,0 +1,158 @@
+{
+  "slug": "superconductivity",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Explain Meissner effect, London theory, and type I/II superconductors.",
+      "Derive Cooper pairing and the BCS gap.",
+      "Survey high-Tc cuprates, iron-based, hydrides, and the room-T quest."
+    ],
+    "prereqs": [
+      "lattice-dynamics-and-phonons"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Phenomenology: Onnes, Meissner, London, type I/II",
+      "body": "**Discovery** — Heike Kamerlingh Onnes, Leiden, 1911. After liquefying helium (1908, Nobel 1913), Onnes measured the resistance of mercury at 4 K and found it dropped abruptly to zero at $T_c = 4.2$ K. He had liquefied He at 1 K below the discovery; called the phenomenon 'supraconductivity.' The discovery launched a century of effort.\n\n**Defining properties**:\n- **Perfect conductivity**: $\\rho = 0$ below $T_c$; persistent currents observed for years.\n- **Meissner-Ochsenfeld effect** (1933): a SC expels magnetic field as it's cooled through $T_c$ — not just preserves the original $B$. This is a thermodynamic state, not just zero resistance. A SC is a **perfect diamagnet**: $\\chi = -1$.\n- **Energy gap**: tunneling (Giaever 1960, Nobel 1973) shows a gap $2\\Delta$ at the Fermi level — quasiparticle excitations cost energy $\\geq \\Delta$.\n- **Critical field** $H_c(T)$: external field above which SC is destroyed.\n- **Critical current** $I_c$.\n- **Isotope effect** (Maxwell 1950): $T_c \\propto M^{-\\alpha}$ with $\\alpha \\approx 1/2$ for many elements — proved phonons drive the pairing in conventional SCs.\n\n**London brothers (1935)** — phenomenological electrodynamics:\n\n$$\\nabla \\times \\mathbf{J}_s = -\\frac{n_s e^2}{m} \\mathbf{B}, \\qquad \\mathbf{E} = \\frac{m}{n_s e^2}\\frac{\\partial \\mathbf{J}_s}{\\partial t}.$$\n\nCombined with Maxwell, gives $\\nabla^2 \\mathbf{B} = \\mathbf{B}/\\lambda_L^2$ → exponential decay of field within penetration depth $\\lambda_L = \\sqrt{m/(n_s e^2 \\mu_0)}$. Typical values 30-300 nm.\n\n**Ginzburg-Landau (1950)** — order-parameter theory; complex field $\\psi$ with free energy\n\n$$F = \\alpha |\\psi|^2 + \\frac{\\beta}{2} |\\psi|^4 + \\frac{1}{2m^*}\\Big|\\big(-i\\hbar\\nabla - 2e\\mathbf{A}\\big)\\psi\\Big|^2 + \\frac{B^2}{2\\mu_0}.$$\n\nMicroscopically derived from BCS by Gor'kov (1959). Two length scales: GL coherence length $\\xi$ (variation of $\\psi$) + penetration depth $\\lambda$. **GL parameter** $\\kappa = \\lambda/\\xi$:\n- $\\kappa < 1/\\sqrt{2}$: **type I**. Single Meissner phase; SC destroyed abruptly at $H_c$. Pure elemental SCs (Al, Sn, Pb).\n- $\\kappa > 1/\\sqrt{2}$: **type II** (Abrikosov 1957, Nobel 2003). Two critical fields $H_{c1} < H_{c2}$; in between, magnetic flux penetrates as quantized vortices arranged in a triangular lattice (Abrikosov lattice). Each vortex carries one flux quantum $\\Phi_0 = h/2e \\approx 2.07 \\times 10^{-15}$ Wb. Most useful SCs (Nb-Ti, Nb$_3$Sn, MgB$_2$, YBCO, BSCCO) are type II.\n\n**Flux quantization** — half of $h/e$ because Cooper pairs carry charge $2e$.\n\n**Josephson effect** (Brian Josephson 1962, Nobel 1973 at age 33; theoretical prediction as graduate student): DC + AC Josephson currents through tunnel junctions. DC: $I_J = I_c \\sin(\\delta\\phi)$, AC: $V \\to d(\\delta\\phi)/dt = 2eV/\\hbar$. Voltage standard ($K_J = 2e/h$ defines volt since 2019 SI redefinition). Foundation of SQUIDs, qubits, single-flux-quantum logic.\n\n**SQUIDs** (Superconducting Quantum Interference Devices): most sensitive magnetometers — $\\sim$ fT/$\\sqrt{Hz}$. Brain magnetoencephalography (MEG), geophysics, gravitational-wave detection, magnetic microscopy."
+    },
+    {
+      "kind": "text",
+      "title": "BCS theory: Cooper pairs and the gap",
+      "body": "**BCS theory** (John Bardeen + Leon Cooper + Robert Schrieffer 1957, **Nobel 1972** — Bardeen's second Nobel after the transistor): the microscopic theory of conventional superconductivity.\n\n**Cooper pairs** (1956): in a Fermi sea, even an infinitesimal attractive interaction between two electrons just above $E_F$ leads to a bound state. The Schrödinger equation has a solution below the Fermi sea continuum. The 'Cooper instability' shows the normal metal is unstable to pairing.\n\n**The attractive interaction**:\n- Electron 1 polarizes the lattice (attracts ions toward it).\n- After the heavy ions sluggishly respond, electron 1 has moved on — leaving a positively-charged distortion that attracts electron 2.\n- Net effective attraction between electrons with opposite momentum + spin, mediated by phonons.\n- Maximum attraction at momentum transfer matching phonon Debye energy $\\hbar\\omega_D$ — far below $E_F$.\n\n**BCS wavefunction** — coherent superposition of pair-occupation states:\n\n$$|\\Psi_{\\text{BCS}}\\rangle = \\prod_\\mathbf{k} (u_\\mathbf{k} + v_\\mathbf{k}\\, c^\\dagger_{\\mathbf{k}\\uparrow} c^\\dagger_{-\\mathbf{k}\\downarrow})|0\\rangle$$\n\nwith $|u|^2 + |v|^2 = 1$.\n\n**Gap equation** (self-consistent):\n\n$$\\Delta = V \\sum_\\mathbf{k}' \\frac{\\Delta}{2\\sqrt{\\varepsilon_\\mathbf{k}'^2 + \\Delta^2}} \\tanh\\Big(\\frac{\\sqrt{\\varepsilon_\\mathbf{k}'^2 + \\Delta^2}}{2 k_B T}\\Big).$$\n\nSolved in the weak-coupling limit gives:\n\n$$\\Delta(0) = 2\\hbar\\omega_D \\exp(-1/N(E_F)V), \\qquad k_B T_c = 1.13\\, \\hbar\\omega_D \\exp(-1/N(E_F)V).$$\n\nUniversal ratio $2\\Delta(0)/k_B T_c \\approx 3.53$ — confirmed by tunneling experiments.\n\n**Isotope effect** falls out: $\\omega_D \\propto 1/\\sqrt{M}$ → $T_c \\propto M^{-1/2}$. The isotope effect was the crucial 1950 clue (Maxwell + Reynolds) that phonons matter.\n\n**Eliashberg theory (1960)**: strong-coupling extension of BCS using retarded phonon-mediated interaction $\\alpha^2 F(\\omega)$. McMillan formula\n\n$$T_c \\approx \\frac{\\omega_{\\log}}{1.20} \\exp\\left(-\\frac{1.04(1+\\lambda)}{\\lambda - \\mu^*(1 + 0.62\\lambda)}\\right)$$\n\npredicts $T_c$ from electron-phonon coupling $\\lambda$ + Coulomb pseudopotential $\\mu^*$. Used today to evaluate hydride superconductor candidates from DFT.\n\n**Conventional superconductors**:\n- Hg 4.2 K (Onnes 1911); Pb 7.2 K; Nb 9.3 K (highest elemental); V$_3$Si 17 K (1953); Nb$_3$Sn 18 K (1954); Nb$_3$Ge 23 K (1973) — held the record for 13 years.\n- **A15 + B1 compounds**: used for accelerator + fusion + MRI magnets.\n- **MgB$_2$** (Akimitsu 2001): $T_c = 39$ K; two-gap conventional SC; cheap + light.\n\n**Magnet applications**:\n- **MRI**: ~100% of clinical MRI uses Nb-Ti or Nb$_3$Sn coils at 1.5-7 T; >50000 MRI scanners worldwide; ~$10B+ annual revenue + saved countless lives.\n- **Accelerators**: LHC at CERN uses Nb-Ti for 8.3 T dipoles (27 km of SC magnets); HL-LHC + future colliders move to Nb$_3$Sn (12-16 T).\n- **Fusion**: ITER tokamak uses Nb$_3$Sn; commonwealth Fusion + SPARC use HTS REBCO tape for 20 T+ at compact scale.\n- **Maglev trains** (Japan SCMaglev): Nb-Ti levitation magnets; 603 km/h record.\n- **Power transmission** (HTS demonstrations in Essen, Long Island).\n- **Quantum computing** (Josephson qubits: IBM, Google, Rigetti, IQM, AWS)."
+    },
+    {
+      "kind": "text",
+      "title": "High-Tc, iron-based, hydrides, and the room-temperature quest",
+      "body": "**1986 cuprate revolution** — Bednorz + Müller at IBM Zürich discovered superconductivity in (La,Ba)$_2$CuO$_4$ at $T_c = 35$ K. **Nobel 1987** awarded the very next year. Within months, Wu + Chu (Houston) found YBa$_2$Cu$_3$O$_{7-\\delta}$ (YBCO) with $T_c = 92$ K — above liquid nitrogen (77 K). Bi-Sr-Ca-Cu-O (BSCCO) and Tl + Hg cuprates pushed $T_c$ to 138 K (HgBa$_2$Ca$_2$Cu$_3$O$_{8+\\delta}$ 1993). Under pressure, ~165 K.\n\n**Cuprate properties**:\n- Layered perovskite-derived structure; CuO$_2$ planes are the SC layer.\n- Parent compounds are antiferromagnetic Mott insulators (La$_2$CuO$_4$, YBa$_2$Cu$_3$O$_6$); doping with holes (Sr, O) destroys AFM + introduces SC dome from underdoped → optimal → overdoped.\n- $d$-wave pairing symmetry ($d_{x^2-y^2}$): nodes on the Fermi surface; observed via phase-sensitive Josephson experiments (Tsuei + Kirtley + Van Harlingen 1990s), corner SQUIDs, penetration-depth anisotropy.\n- **Pseudogap regime** above $T_c$ in underdoped cuprates — partial gap without superconductivity. Origin debated: preformed pairs vs competing CDW/PDW/loop-current order.\n- **Strange metal**: linear-in-$T$ resistivity over decades of temperature above $T_c$; non-Fermi-liquid behavior.\n- Not BCS phonon-driven: too high $T_c$ vs Debye energy, $d$-wave gap, antiferromagnetic spin-fluctuation glue.\n\n**Theory status (2025)**: no consensus microscopic theory after 40 years. Leading candidates: (i) spin-fluctuation pairing (Scalapino, Pines, Monthoux), (ii) RVB / resonating valence bond (Anderson 1987 — proposed weeks after Bednorz-Müller; foundation of QSL ideas), (iii) competing-order frameworks, (iv) Mottness + doped Mott insulator + Hubbard model (numerics: DMRG, DCA, AFQMC, neural-network states). DMFT + cluster extensions essential.\n\n**Iron-based superconductors** (Kamihara + Hosono 2008): LaFeAsO$_{1-x}$F$_x$ at 26 K → SmFeAsO at 55 K under pressure. Different family from cuprates; multi-band; sign-changing $s_\\pm$ pairing thought to be mediated by spin fluctuations. Active comparison platform.\n\n**Heavy-fermion + organic + Sr$_2$RuO$_4$** SCs: unconventional pairing across many families. UTe$_2$ — possible spin-triplet (2019).\n\n**Hydrogen hydrides** (the Ashcroft 1968 conjecture revisited under pressure):\n- **H$_3$S** at 200 GPa: $T_c = 203$ K (Drozdov + Eremets 2015, Mainz). First clear room-T-approaching SC; BCS phonon-mediated; matched McMillan/Eliashberg predictions.\n- **LaH$_{10}$** at 170 GPa: $T_c = 250$ K (Somayazulu + Hemley 2019; Drozdov 2019). Near-room-T.\n- **C-S-H, ScH$_n$, YH$_n$, CaH$_6$, BaH$_{12}$** — many DFT-predicted hydrides confirmed.\n- All require diamond-anvil-cell pressures; not practical for applications.\n- **Cautionary tale**: Ranga Dias's 2020 'room-temperature' C-S-H paper (15 °C at 267 GPa) was retracted (Nature 2022) amid data-integrity concerns; second Dias paper (LuH$_3$N) also retracted (2023). Field now requires raw data + reproducibility.\n\n**LK99 (2023)** — Korean group claimed room-T ambient-pressure SC in Cu-doped lead apatite Pb$_{10-x}$Cu$_x$(PO$_4$)$_6$O. Viral on Twitter/X for a few weeks; independent replication efforts within days. Conclusion: not a superconductor — observed signatures are due to Cu$_2$S impurity transition + ferromagnetic Meissner-like artifact. The episode highlighted: open replication is fast in 2025, social-media hype + careful science are different things, claims need quantitative reproducible data.\n\n**Room-temperature ambient-pressure superconductivity** remains the field's holy grail — would enable lossless transmission, room-T MRI, ultra-efficient motors + generators, fusion, levitating transport. Theoretically not forbidden but no known material.\n\n**HTS commercial reality 2025**:\n- **REBCO coated conductors** (Y or rare-earth Ba$_2$Cu$_3$O$_7$ on metal tape): produced by SuperPower, SuNAM, Faraday Factory, Shanghai Superconductor, Bruker EAS. ~$50/m. Operates at 20 K with very high upper critical field (>30 T).\n- **Commonwealth Fusion Systems SPARC tokamak**: 20 T REBCO toroidal-field magnets demonstrated 2021 — opens compact, economic tokamak fusion. First plasma target 2026; net energy target 2027.\n- **HTS particle accelerator + NMR magnets**: 32 T all-superconducting NMR (2024); FCC-hh, muon collider concepts depend on HTS.\n- **HTS-based MRI** (Philips, GE prototypes): 7-11 T at 20 K vs LHe — major cost + supply savings.\n\n**Quantum computing**: superconducting transmon qubits (Koch 2007; Yale + IBM + Google + Rigetti) lead in scale (IBM Condor 1121 qubits 2023, Heron 156-qubit error-corrected target). 'Quantum supremacy' (Arute + Google 2019) used 53 transmons. Surface code error correction milestones (Google 2023, 2024)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sc_1",
+        "kind": "guided_derivation",
+        "question": "Show the BCS pairing instability leads to a gap.",
+        "goal": "Sketch the BCS gap equation in the weak-coupling limit and derive $\\Delta(0) \\sim 2\\hbar\\omega_D e^{-1/N(E_F)V}$.",
+        "steps": [
+          {
+            "prompt": "What is the attractive interaction between electrons in BCS and over what energy range does it act?",
+            "motivation": "Phonon-mediated.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "phonon-mediated, range ~ Debye energy ħω_D around E_F",
+                "phonon exchange creates -V for |ε| < ħω_D"
+              ]
+            },
+            "hints": [
+              "Phonons mediate attraction; energy scale is Debye energy."
+            ],
+            "reveal": "Electron 1 distorts the lattice; electron 2 (retarded in time + opposite momentum) feels the resulting positive charge. Modeled as a constant attraction $-V$ for $|\\varepsilon_\\mathbf{k}|, |\\varepsilon_{\\mathbf{k}'}| < \\hbar\\omega_D$, zero outside."
+          },
+          {
+            "prompt": "Write the linearized (T=0) gap equation in this constant-V approximation.",
+            "motivation": "Setup the integral.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1 = V N(E_F) ∫_0^{ħω_D} dε / sqrt(ε² + Δ²)",
+                "1 = V N(E_F) sinh⁻¹(ħω_D / Δ)"
+              ]
+            },
+            "hints": [
+              "Replace $\\sum_\\mathbf{k}$ by $N(E_F)\\int d\\varepsilon$ + use $E_\\mathbf{k} = \\sqrt{\\varepsilon_\\mathbf{k}^2 + \\Delta^2}$."
+            ],
+            "reveal": "$1 = V N(E_F) \\int_0^{\\hbar\\omega_D} \\frac{d\\varepsilon}{\\sqrt{\\varepsilon^2 + \\Delta^2}} = V N(E_F)\\, \\sinh^{-1}(\\hbar\\omega_D/\\Delta).$"
+          },
+          {
+            "prompt": "Solve for $\\Delta$ in the weak-coupling limit $\\Delta \\ll \\hbar\\omega_D$.",
+            "motivation": "Use $\\sinh^{-1}(x) \\approx \\ln(2x)$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Δ(0) = 2 ħω_D exp(-1 / (V N(E_F)))",
+                "$\\Delta(0) = 2\\hbar\\omega_D e^{-1/N(E_F)V}$"
+              ]
+            },
+            "hints": [
+              "$\\sinh^{-1}(x) \\approx \\ln(2x)$ for $x \\gg 1$."
+            ],
+            "reveal": "$\\sinh^{-1}(\\hbar\\omega_D/\\Delta) = 1/[V N(E_F)]$. With $\\hbar\\omega_D/\\Delta \\gg 1$, $\\sinh^{-1}(x) \\approx \\ln(2x)$, giving $\\ln(2\\hbar\\omega_D/\\Delta) = 1/[V N(E_F)]$ → $\\Delta(0) = 2\\hbar\\omega_D \\exp(-1/[V N(E_F)])$."
+          },
+          {
+            "prompt": "Why is the gap non-perturbative in $V$, and what does this imply about computational approaches?",
+            "motivation": "Conceptual.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "essential singularity at V=0; no Taylor series; pairing instability",
+                "no perturbative expansion; mean field / self-consistent"
+              ]
+            },
+            "hints": [
+              "$e^{-1/V}$ has all derivatives vanishing at $V=0$."
+            ],
+            "reveal": "$\\Delta \\propto e^{-1/V}$ has an essential singularity at $V=0$ — no Taylor series in $V$. The normal Fermi liquid is unstable to pair condensation for any attractive $V$ no matter how small. This is why BCS could not be obtained from naive perturbation theory; required a self-consistent mean-field treatment. Same structure recurs in renormalization-group BCS flow + in Kondo + in other Cooper-like instabilities."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sc_1",
+        "kind": "multiple_choice",
+        "question": "Why was BCS theory (Bardeen-Cooper-Schrieffer 1957, Nobel 1972) such a milestone?",
+        "options": [
+          "Random.",
+          "After 46 years of phenomenology (Onnes 1911, Meissner 1933, London 1935, Ginzburg-Landau 1950), BCS gave the first microscopic theory: phonon-mediated attractive interaction between time-reversed electrons creates Cooper pairs; the BCS wavefunction is a coherent superposition of pair occupations; a self-consistent gap equation produces $\\Delta(0)/k_B T_c \\approx 1.76$ universally; predicts the isotope effect ($T_c \\propto M^{-1/2}$) confirmed by Maxwell + Reynolds 1950; explains Meissner effect, persistent currents, energy gap measured by Giaever tunneling (Nobel 1973), specific-heat jump at $T_c$. Bardeen earned his second Nobel (transistor 1956 + BCS 1972 — only physicist with two physics Nobels). The theory + Eliashberg extension predict $T_c$ from electron-phonon coupling, guiding the entire search for conventional + later hydride SCs (H$_3$S 200 K 2015, LaH$_{10}$ 250 K 2019). Foundation of all modern superconductivity research.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "BCS (1957, Nobel 1972) gave the first microscopic theory of SC after 46 years of phenomenology. Predicts $2\\Delta/k_BT_c \\approx 3.53$, isotope effect, Meissner, gap, persistent currents. Bardeen earned 2nd Nobel. Eliashberg extension guides modern hydride SC predictions (H$_3$S 200 K 2015, LaH$_{10}$ 250 K)."
+      },
+      "hints": [
+        "What did BCS explain that London + GL didn't?",
+        "What predictions did it make?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "BCS theory (1957, Nobel 1972) gave the first microscopic SC theory after 46 years of phenomenology. Phonon-mediated Cooper pairs + coherent BCS wavefunction + self-consistent gap equation. Predicts $2\\Delta/k_BT_c \\approx 3.53$, isotope effect, Meissner, persistent currents. Bardeen earned 2nd physics Nobel. Eliashberg extension drives modern hydride SC predictions."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sc_1",
+        "kind": "scenario",
+        "question": "Evaluating a superconductivity claim",
+        "prompt": "A preprint claims room-temperature ambient-pressure superconductivity in a new compound. What experimental signatures (resistive transition, Meissner expulsion vs zero-field-cooled diamagnetism, specific-heat jump, isotope effect, NMR Knight shift, tunneling gap, AC susceptibility, persistent current) would you require for full confirmation? How would you separate genuine SC from impurity-phase artifacts (e.g., LK99 2023 Cu$_2$S impurity)? Discuss the appropriate replication standards in the post-Dias era of retracted claims."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sc_1",
+        "kind": "math_expression",
+        "question": "Write the universal BCS ratio $2\\Delta(0)/k_B T_c$ in the weak-coupling limit.",
+        "acceptedAnswers": [
+          "2*Delta(0)/(k_B * T_c) ≈ 3.53",
+          "2Δ/k_B T_c = 3.53",
+          "$2\\Delta(0)/k_BT_c \\approx 3.53$",
+          "3.53"
+        ],
+        "hint": "Combine $\\Delta(0) = 2\\hbar\\omega_D e^{-1/N V}$ and $k_BT_c = 1.13\\hbar\\omega_D e^{-1/N V}$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sc_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain the 100-year arc of superconductivity from Onnes to room-T hydrides.",
+        "rubric": "Should mention: Onnes 1911 Hg at 4 K after liquefying He (Nobel 1913); Meissner-Ochsenfeld 1933 perfect diamagnetism (thermodynamic, not just R=0); London 1935 phenomenology, penetration depth; Ginzburg-Landau 1950, order parameter; Abrikosov 1957 vortex lattice + type II; BCS 1957 + Nobel 1972 (Bardeen's 2nd Nobel) — phonon-mediated Cooper pairs, gap equation, $2\\Delta/k_BT_c \\approx 3.53$, isotope effect; Josephson 1962 (Nobel 1973); cuprates Bednorz-Müller 1986 (Nobel 1987 — fastest ever), YBCO 92 K (>77 K LN$_2$), $d$-wave + pseudogap + strange-metal mystery still unsolved; iron-based 2008; hydrides H$_3$S 203 K 2015, LaH$_{10}$ 250 K 2019 — high pressure required; LK99 2023 + Dias retractions reminder of replication standards; HTS commercial: REBCO tape, SPARC tokamak 20 T magnets, MRI/accelerator/quantum-computer applications. Room-T ambient-pressure SC is the holy grail."
+      }
+    }
+  ]
+}

@@ -1,0 +1,160 @@
+{
+  "slug": "glaciology-foundations-and-ice-physics",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Map the cryosphere + its components.",
+      "Reason about Ih ice physics + thermodynamics.",
+      "Apply Glen's flow law to glacier creep."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The cryosphere: Earth's frozen domain",
+      "body": "**Cryosphere** (from Greek *kryos* = cold): all the frozen-water components of the Earth system. ~10% of Earth's land surface; ~7% of the ocean (seasonal); contains ~70% of all freshwater on the planet (almost all of it locked in Greenland + Antarctica).\n\n**Components**:\n- **Glaciers + small ice caps**: ~200,000 glaciers globally; ~0.5% of Earth's land. Total volume ~158,000 km³ ice-equivalent (~0.4 m sea-level equivalent SLE). Found in High Mountain Asia (Karakoram, Himalaya, Tibet, HKH), Andes, Alps, Rockies, Alaska, Patagonia, New Zealand Southern Alps, Scandinavia, Iceland, Caucasus, East African mountains.\n- **Greenland Ice Sheet (GrIS)**: ~1.7 million km² area; ~2.9 million km³ volume; ~7.4 m SLE. ~3000 m thick at center.\n- **Antarctic Ice Sheet (AIS)**: ~14 million km² area; ~26.5 million km³ volume; ~58 m SLE. Two main parts — East Antarctic Ice Sheet (EAIS, stable, on bedrock above sea level) + West Antarctic Ice Sheet (WAIS, marine-based, vulnerable to Marine Ice Sheet Instability). Antarctic Peninsula.\n- **Sea ice**: floating ice on polar oceans. Arctic ~15 M km² winter / ~4-5 M km² summer (declining ~13% per decade since 1979). Antarctic ~18 M km² winter / ~2-3 M km² summer (more variable).\n- **Ice shelves**: floating extensions of grounded ice sheets. Ross + Ronne-Filchner in Antarctica (each ~500,000 km²); Petermann + 79N in Greenland.\n- **Permafrost**: ground frozen ≥2 consecutive years. ~24% of Northern Hemisphere land (~15 M km²). Continuous (>90% area), discontinuous, sporadic. Active layer thaws each summer.\n- **Seasonal snow**: ~46 M km² peak winter NH; ~26 M km² peak SH. Albedo + hydrology importance.\n- **Lake + river ice**, **subglacial ice**, **alpine periglacial features**.\n\n**Role in the climate system**:\n- **Albedo**: snow + ice ~0.5-0.9 vs ocean ~0.06 + land ~0.1-0.3. Ice-albedo feedback amplifies polar warming.\n- **Heat capacity buffer**: phase-change latent heat (334 kJ/kg fusion) buffers seasonal cycle.\n- **Sea level**: GrIS + AIS contain ~65 m SLE; current global mean sea-level rise ~3.6 mm/yr (2006-2018; IPCC AR6) with cryosphere contributing ~half + accelerating.\n- **Ocean circulation**: deep-water formation in Nordic Seas + Weddell + Ross Seas drives the global thermohaline circulation (MOC). Sea-ice + glacial-meltwater fluxes matter.\n- **Carbon storage**: permafrost holds ~1500 Gt C (~2× atmospheric C); thaw is a major climate feedback.\n- **Freshwater supply**: ~1.9 billion people downstream of glacier-fed rivers; HKH 'Asian water tower' supplies Indus, Ganges, Brahmaputra, Yangtze, Yellow, Mekong.\n\n**Why study glaciology now**: cryosphere is the *most-rapidly-changing* component of the climate system. Arctic warming 2-4× global mean. AR6 (Fox-Kemper + Hugelius + Hock + Slater chapter authors) is the strongest IPCC statement on cryospheric change to date."
+    },
+    {
+      "kind": "text",
+      "title": "Ice physics: Ih, phase diagram, density",
+      "body": "**Crystallography**: at terrestrial pressures + temperatures, water freezes into **ice Ih** (hexagonal). Oxygens occupy a tetrahedral wurtzite-like lattice; hydrogens form a disordered network of H-bonds (Bernal-Fowler ice rules: each O has 2 covalent + 2 H-bonded H neighbors). Hexagonal symmetry gives snowflakes their six-fold habit (Nakaya diagram of crystal habits vs T + supersaturation).\n\n**Other ice polymorphs**: under high pressure, water freezes into ice II, III, V, VI, VII, VIII, IX, ... (~20 known phases). In glaciers + ice sheets pressures rarely exceed ~30 MPa (3000 m ice column), so Ih dominates. Ice VII + X exist deep in icy moons (Europa, Ganymede) + exoplanets.\n\n**Phase diagram**:\n- Triple point at 273.16 K (0.01 °C), 611 Pa.\n- Atmospheric-pressure freezing point: 273.15 K (0 °C). Famously decreases slightly with pressure (~0.0074 K/atm) — the **Clausius-Clapeyron slope is negative** for water because ice is less dense than liquid (one of water's anomalies). This pressure-melting effect contributes to **basal melting + sliding** of glaciers + ice streams (typically a few tenths of °C beneath thick ice).\n- Solid-vapor sublimation curve relevant in cold deserts + ice-shelf surface.\n\n**Density**:\n- Pure ice Ih at 0 °C: **917 kg/m³** (less dense than water at 999.8 kg/m³ — ice floats).\n- Freshly fallen snow: ~50-200 kg/m³.\n- Old firn: ~400-830 kg/m³ (firn = compacted multi-year snow not yet ice).\n- **Firn-to-ice transition (close-off depth)**: ~830 kg/m³; air bubbles seal off; depth typically ~50-100 m (Greenland) to ~100-120 m (Antarctica). Critical for ice-core gas-age determination.\n- Pure ice density slightly *decreases* with rising T (anomalous; thermal expansion).\n\n**Impurities + composition**:\n- Dissolved gases (mostly N₂, O₂) form trapped bubbles below close-off → paleoatmosphere archive.\n- **Stable isotopes**: H₂¹⁶O vs HD¹⁶O vs H₂¹⁸O fractionate during evaporation + condensation (Rayleigh distillation). δ¹⁸O + δD are temperature proxies — Dansgaard 1964 calibrated δ¹⁸O ≈ 0.69 T_avg − 13.6 ‰ for Greenland.\n- **Dust + ash + sea salt + black carbon**: aerosol record; Saharan dust layers, volcanic tephra, biomass-burning soot.\n- **Cosmogenic radionuclides**: ¹⁰Be, ³⁶Cl, ¹⁴C for dating + solar-activity reconstruction.\n\n**Mechanical properties** (relevant for flow):\n- Young's modulus ~9 GPa.\n- Brittle at fast strain rates (cracks, crevasses); ductile at slow rates (creep).\n- Anisotropic — basal plane (perpendicular to c-axis) is the easy-glide plane, ~60× softer than the prism + pyramidal planes. Ice fabric (crystal-orientation distribution) develops with deformation history — modeled via fabric tensor + observed in ice cores.\n- **Thermal conductivity** ~2.1 W/(m·K) at 0 °C, increasing as T drops. Cold ice diffuses heat slowly → ice sheet thermal inertia ~10⁵ yr."
+    },
+    {
+      "kind": "text",
+      "title": "Ice rheology: Glen's flow law + creep",
+      "body": "Glaciers + ice sheets *flow* — slowly. They are non-Newtonian fluids: viscosity depends nonlinearly on stress. The constitutive equation is **Glen's flow law** (Glen 1955; refined by Nye 1953 + 1957, Steinemann 1958, Paterson 1994):\n\n  ε̇ = A τ^n\n\nwhere ε̇ is strain rate, τ is effective deviatoric stress, **n ≈ 3** (typical 2.5-4), and **A** is a temperature-dependent rate factor following an Arrhenius relation:\n\n  A(T) = A₀ exp(−Q / (R T))\n\nActivation energy Q ≈ 60 kJ/mol below −10 °C, ≈ 140 kJ/mol above (transition due to grain-boundary + premelting effects). A roughly doubles per 10 °C warming below −10 °C → warmer ice flows dramatically faster.\n\n**John Nye** (Bristol, 1953-1965) developed the theoretical framework: derived the parallel-sided-slab solution + the surface-slope-driven flow, founding modern theoretical glaciology. **Charles Raymond + Garry Clarke + Ian Joughin + Eric Rignot + Hilmar Gudmundsson** built on it.\n\n**Glen-law consequences for a parallel-sided slab on a slope α**:\n- Driving stress: τ_d = ρ g h sin α (typical 50-150 kPa for valley glaciers).\n- Surface velocity (deformation only): u_s = (2 A / (n+1)) (ρ g sin α)^n h^(n+1).\n- For n = 3: **u_s ∝ h⁴ × (sin α)³** — thicker + steeper glaciers flow vastly faster.\n\n**Creep mechanisms** (microscale):\n- **Dislocation creep** (basal slip): primary mode; basal plane slips easily.\n- **Diffusional creep** (Nabarro-Herring, Coble): dominant at low stress + high T.\n- **Grain-boundary sliding**: contributes at fine grain size.\n- **Recrystallization**: fabric evolution under stress.\n\n**Beyond Glen**:\n- **Anisotropy**: oriented fabric softens or stiffens depending on stress direction; ~10× effect in extreme fabrics. Models (CAFFE, ELLE-FEVOR).\n- **Damage mechanics**: micro-cracks pre-failure (especially shear margins, ice-shelf flexure, calving fronts).\n- **Hydrology coupling**: liquid water at grain boundaries weakens ice.\n- **Impurity effects**: dust + soluble ions modulate A.\n\n**Sliding vs deformation**:\n- **Internal deformation** (Glen flow): cold, frozen-bed glaciers (most of Antarctica). Velocities m/yr to tens of m/yr.\n- **Basal sliding**: where bed is at pressure-melting point; meltwater lubricates. Can dominate motion (~90% of surface velocity for fast ice streams + outlet glaciers). Velocities ~100-10000 m/yr (Jakobshavn ~17 km/yr).\n- **Ice-stream flow**: Bindschadler + Whillans named WAIS ice streams; sliding-dominated, characterized by Shelfy-Stream Approximation (SSA, see next lesson).\n\n**Bridging stresses**: in shear margins, ice-shelf flexure, near grounding lines, non-Glen behavior arises + must be treated via full-Stokes models (Elmer/Ice, ISSM, BISICLES).\n\n**Connection to ice-core analysis**: knowledge of A(T) is what lets us back out flow histories from observed deformation; ice-core fabric measurements calibrate microphysical models. The whole chain — from molecular ice physics through grain-scale rheology to ice-sheet flow — is the foundation of modern glaciology."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ice_1",
+        "kind": "guided_derivation",
+        "question": "Compute the surface velocity of a parallel-sided glacier slab",
+        "goal": "A temperate-glacier slab is 200 m thick, slope α = 5°, T = −2 °C (so A ≈ 6.8×10⁻²⁴ Pa⁻³ s⁻¹). Use ρ = 917 kg/m³, g = 9.81 m/s², n = 3. Compute driving stress + surface velocity.",
+        "steps": [
+          {
+            "prompt": "Driving stress τ_d = ρ g h sin α. Compute (kPa).",
+            "motivation": "Standard glaciology.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~157 kPa",
+                "157",
+                "1.57×10⁵ Pa"
+              ]
+            },
+            "hints": [
+              "917 × 9.81 × 200 × sin 5° = 917 × 9.81 × 200 × 0.0872."
+            ],
+            "reveal": "τ_d = 917 × 9.81 × 200 × sin(5°) ≈ 917 × 9.81 × 200 × 0.0872 ≈ 1.57×10⁵ Pa ≈ 157 kPa. Typical valley-glacier driving stress (50-150 kPa range; this is at the high end)."
+          },
+          {
+            "prompt": "Glen-law surface velocity u_s = (2 A / (n+1)) τ_d^n h. Compute (m/yr). 1 yr ≈ 3.15×10⁷ s.",
+            "motivation": "Plug into the slab solution.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~40 m/yr",
+                "30-50 m/yr",
+                "~10⁻⁶ m/s"
+              ]
+            },
+            "hints": [
+              "u_s = (2 × 6.8×10⁻²⁴ / 4) × (1.57×10⁵)³ × 200.",
+              "τ_d³ ≈ 3.87×10¹⁵ Pa³."
+            ],
+            "reveal": "u_s = (2 × 6.8×10⁻²⁴ / 4) × (1.57×10⁵)³ × 200 = 3.4×10⁻²⁴ × 3.87×10¹⁵ × 200 = 2.6×10⁻⁶ m/s ≈ 83 m/yr. (Sensitive to A — small changes in T or fabric easily move this by factor 2-3.) Real Alpine valley glaciers move ~10-100 m/yr; consistent."
+          },
+          {
+            "prompt": "If T dropped to −20 °C (so A ≈ 1.0×10⁻²⁴), by what factor does u_s change?",
+            "motivation": "Arrhenius softening.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "factor ~6-7× slower",
+                "~6×",
+                "slows by ~6"
+              ]
+            },
+            "hints": [
+              "A scales velocity linearly; new A is ~6.8× smaller."
+            ],
+            "reveal": "u_s ∝ A → A drops by factor 6.8 → velocity drops by factor 6.8. This is why cold (East Antarctic) ice flows ~10-100× slower than temperate (Alpine, GrIS coastal) ice for the same geometry — the Arrhenius A(T) dominance. Glen's law + thermal regime together explain the polar/temperate flow contrast."
+          },
+          {
+            "prompt": "If basal sliding contributes equal motion, what's total surface speed?",
+            "motivation": "Decompose flow.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "u_s ≈ 166 m/yr",
+                "~165 m/yr",
+                "double"
+              ]
+            },
+            "hints": [
+              "Total = deformation + sliding."
+            ],
+            "reveal": "u_total = u_deform + u_slide = 83 + 83 ≈ 166 m/yr. Sliding is the dominant additional control for fast ice — Pine Island, Jakobshavn, Thwaites, Whillans ice stream all sliding-dominated. Inferring sliding from observed velocity requires modeled deformation as residual (inversion via Joughin + Rignot + Gudmundsson methods)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ice_1",
+        "kind": "multiple_choice",
+        "question": "Why is the cryosphere often called the 'most rapidly changing' component of the Earth system?",
+        "options": [
+          "Random.",
+          "Cryosphere change is amplified relative to global mean because of multiple positive feedbacks: ice-albedo (loss of bright ice → more absorption → more warming → more loss); lapse-rate feedback in the Arctic (more surface trapping); ice-thickness feedback (thinner ice melts faster); ocean stratification under melt. Result: Arctic warming 2-4× global mean (Arctic amplification); summer Arctic sea ice declined ~50% since 1979 (PIOMAS volume; satellite extent); Greenland + Antarctica mass-loss accelerating (GRACE, IMBIE 2020); permafrost thaw widening + deepening; alpine glaciers lost ~50% volume over the 20th century. IPCC AR6 (Hock + Slater + Stocker + Fox-Kemper chapter authors) treats the cryosphere as the system component furthest from quasi-equilibrium — most likely to cross tipping points + with the strongest committed change.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Cryosphere amplification: ice-albedo, lapse-rate, ice-thickness feedbacks → Arctic warms 2-4× global mean. Summer Arctic sea ice ~50% reduced since 1979; Greenland + Antarctica mass loss accelerating; permafrost thaw widespread; alpine glaciers ~50% volume loss in 20th century. IPCC AR6 emphasizes the cryosphere as the most-rapidly-changing system component + most likely to cross tipping points."
+      },
+      "hints": [
+        "Think about feedbacks.",
+        "Arctic vs global mean warming."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Multiple positive feedbacks (ice-albedo, lapse-rate, ice-thickness) → Arctic amplification. Summer Arctic sea ice halved since 1979; Greenland + Antarctica losing mass at accelerating rate; permafrost thaw deepening; alpine glaciers ~50% lost in 20th century. AR6 treats cryosphere as most rapidly changing + most tipping-prone component."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ice_1",
+        "kind": "scenario",
+        "question": "A new ice-core site",
+        "prompt": "A drilling program plans to extract an ice core at a site in East Antarctica where snow accumulation is 30 kg/m²/yr + ice thickness is 3500 m. Estimate the age range achievable + describe what physical + chemical signals you would prioritize measuring + why."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ice_1",
+        "kind": "math_expression",
+        "question": "If Glen-law n = 3 + ice thickness doubles, by what factor does the slab-flow surface velocity increase (all else equal)?",
+        "acceptedAnswers": [
+          "16×",
+          "16",
+          "factor 16"
+        ],
+        "hint": "u_s ∝ h^(n+1) = h⁴; doubling h gives 2⁴ = 16."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ice_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why understanding ice rheology (Glen's flow law + Arrhenius temperature dependence) is foundational for projecting future sea-level rise from Greenland + Antarctica.",
+        "rubric": "Mentions: Glen's flow law ε̇ = A τ^n (Glen 1955, Nye 1953) with n ≈ 3 means ice flow is highly nonlinear in stress — small geometric changes (steeper, thicker) produce large velocity changes (u ∝ h⁴ sin³ α for slab). A(T) Arrhenius with Q ~60-140 kJ/mol means a ~10 °C warming roughly doubles A → warmer ice flows much faster. Combined with basal-sliding regimes, fabric anisotropy + damage, rheology controls the speed at which marine ice sheets respond to ocean + atmospheric forcing. Future projections (ISMIP6 ensembles, AR6 chapter authors Slater + Edwards + DeConto + Pollard) hinge on properly representing flow physics. Why it matters: Greenland holds 7.4 m sea-level equivalent + Antarctica 58 m; getting timescales right (centuries vs millennia) depends on Glen rheology + the sliding + calving + grounding-line physics layered on top. Without solid rheology, future sea-level uncertainties remain unbounded."
+      }
+    }
+  ]
+}

@@ -1,0 +1,152 @@
+{
+  "slug": "multiphase-rheology-and-non-newtonian",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Analyze multiphase + interfacial flows.",
+      "Distinguish rheological models.",
+      "Apply to biology + industry."
+    ],
+    "prereqs": [
+      "viscous-and-boundary-layer"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Multiphase + interfacial flows",
+      "body": "**Multiphase flow** = simultaneous flow of multiple fluid phases (gas-liquid, liquid-liquid, solid-fluid) separated by interfaces.\n\n**Examples**:\n- Bubbles rising in champagne, soda, blood-oxygenation.\n- Droplets in inkjet, atomization, sprays.\n- Boiling + condensation in heat exchangers + power plants.\n- Sediment + slurry transport (rivers, oil pipelines).\n- Aerosols + clouds (atmosphere).\n- Emulsions (milk, mayonnaise).\n- Foams (beer, fire-fighting, polymer processing).\n- Two-phase nuclear reactor coolant.\n\n**Surface tension** σ: free energy per unit interfacial area. Drives the **Young-Laplace equation** for pressure jump across a curved interface:\n\n  Δp = σ κ = σ(1/R_1 + 1/R_2)\n\nwhere κ is the mean curvature + R_1, R_2 principal radii. For a sphere of radius R: Δp = 2σ/R (drop) or 4σ/R (soap bubble — two surfaces).\n\n**Capillarity** + **wetting**: at solid-liquid-gas triple line, contact angle θ given by Young's equation:\n\n  σ_sg = σ_sl + σ_lg cos θ\n\nθ < 90°: wetting (water on clean glass). θ > 90°: non-wetting (water on Teflon). Capillary rise h = 2σ cos θ/(ρgr) in a tube of radius r — drives water transport in plants, paper, soils, microfluidic devices.\n\n**Bubble + droplet dynamics**:\n- **Stokes rising bubble** (small): U = (2/9)(ρ_l − ρ_g)g R²/μ_l (terminal velocity). Linear in R²; small bubbles rise slowly.\n- **Drag transition**: at higher Re, bubbles deform from spherical → ellipsoidal → spherical cap; drag coefficient C_D depends on Eotvös + Morton numbers + Re.\n- **Bubble oscillation**: Rayleigh-Plesset equation governs spherical bubble dynamics + acoustic cavitation.\n- **Plateau-Rayleigh instability**: a cylindrical liquid jet breaks into droplets with most-unstable wavelength ~ 9R — same physics as ink-jet droplet formation + faucet stream beadup.\n\n**Marangoni flows**: gradients in σ drive flow along an interface from low-σ to high-σ regions. **σ** can vary with temperature (∂σ/∂T < 0 for water) or surfactant concentration. Examples:\n- **Tears of wine** — alcohol evaporates at meniscus, σ rises, fluid pulled up.\n- **Welding pools** — Marangoni convection sets weld penetration.\n- **Microgravity manufacturing** — surface-tension-driven flows dominate (no gravity).\n- **Cellular convection** (Bénard cells) when surface-tension effects matter (Bénard-Marangoni convection).\n- **Surfactant action** — soaps spread along interfaces, drive flow.\n\n**Pioneers**: **Pierre-Gilles de Gennes** (Nobel 1991, soft matter); **Howard Stone** (microfluidics); **Daniel Bonn**; **Marangoni** (1865); **Plateau, Rayleigh, Worthington, G.I. Taylor** all foundational. Modern multiphase CFD: **volume-of-fluid (VOF)**, **level-set**, **phase-field** + **lattice-Boltzmann** methods."
+    },
+    {
+      "kind": "text",
+      "title": "Rheology — Newtonian vs non-Newtonian + viscoelasticity",
+      "body": "**Rheology** = science of flow + deformation. Studies how the stress tensor relates to deformation history. Newtonian fluids (water, air, simple solvents) are the exception, not the rule.\n\n**Newtonian fluid**: τ = μ γ̇, where γ̇ = strain rate. Linear, instantaneous, isotropic. μ is a single constant (at given T, p).\n\n**Non-Newtonian fluids** (most polymers, suspensions, gels, biological fluids):\n\n**1. Generalized Newtonian** — viscosity depends on shear rate η = η(γ̇):\n- **Power-law (Ostwald-de Waele)**: τ = K γ̇^n.\n  - n < 1: **shear-thinning** (pseudoplastic) — paint, blood, polymer melts, ketchup.\n  - n > 1: **shear-thickening** (dilatant) — cornstarch + water, dense suspensions.\n  - n = 1: Newtonian (K = μ).\n- **Bingham plastic**: τ = τ_y + μ_p γ̇ for τ > τ_y; no flow until τ exceeds yield stress τ_y. Examples: toothpaste, mayonnaise, drilling muds, fresh concrete, lava.\n- **Herschel-Bulkley**: τ = τ_y + K γ̇^n — combines Bingham + power-law. Blood at low shear, muds, gels.\n- **Carreau / Cross models**: smooth interpolation with zero-shear + infinite-shear plateaus + a power-law transition. Used in CFD for polymer + biological fluids.\n\n**2. Viscoelastic fluids** — memory effects; stress depends on deformation history:\n- **Maxwell model** (spring + dashpot in series): η = η_0/(1 + i ω λ). Relaxation time λ characterizes elastic memory.\n- **Kelvin-Voigt** (parallel): models elastic solids with viscous dissipation.\n- **Oldroyd-B** (1950 J.G. Oldroyd): convected-derivative constitutive equation. Continuum-mechanically frame-invariant. Used heavily for polymer-solution simulation.\n- **Giesekus, FENE-P, PTT**: more advanced models; nonlinear extensional behavior.\n\n**Weissenberg number** Wi = λ γ̇ + **Deborah number** De = λ/τ_obs: dimensionless measures of viscoelasticity. Wi ≫ 1: strong elastic effects.\n\n**Viscoelastic phenomena**:\n- **Weissenberg effect** — polymer solutions climb a rotating rod (normal-stress differences).\n- **Die swell** — extruded polymer swells beyond die diameter (stored elastic energy releases).\n- **Drag reduction (Toms effect, 1948)** — a few ppm of polymer in turbulent pipe flow can reduce drag by 50-80% (used in oil pipelines, fire hoses, ship hulls).\n- **Elastic turbulence** (Groisman + Steinberg 2000) — turbulence-like flows at vanishing Re in elastic fluids.\n- **Strain hardening** in extension — polymer chains align + stiffen.\n\n**Polymer kinetic theory**: dilute polymer solutions modeled as bead-spring chains; gives mean-field constitutive equations (Rouse, Zimm, FENE). Crosslinks → rubber elasticity (Treloar, Doi-Edwards reptation theory for entangled melts). **Pierre-Gilles de Gennes** Nobel 1991 for polymer + liquid-crystal physics.\n\n**Rheometers**: cone-plate, parallel-plate, capillary (Hagen-Poiseuille pressure drop), extensional rheometers. Measure η(γ̇), normal stresses, elastic moduli G'(ω), G''(ω).\n\nFor a discussion of why **Stokes flow time-reversibility** breaks down with non-Newtonian fluids + how microswimmers can exploit viscoelastic environments, see Lauga + Powers review (2009)."
+    },
+    {
+      "kind": "text",
+      "title": "Biological + industrial applications",
+      "body": "**Biological non-Newtonian fluids**:\n\n**Blood**:\n- Shear-thinning (decreases from ~30 mPa·s at low shear to ~4 mPa·s at high shear).\n- Yield stress ~ 0.04 Pa (Casson + Herschel-Bulkley models).\n- Cause: red-blood-cell aggregation (rouleaux) at low shear breaks up at high shear.\n- Critical for hemodynamics: low shear regions in arteries (post-stenosis recirculation zones) develop high viscosity → promotes thrombosis + atherosclerosis.\n- Womersley number α = R √(ω/ν) ≈ 10-15 in aorta — pulsatile-flow regime.\n- **Cell + drug delivery**: shear-stress affects platelet adhesion, drug-eluting stent design, lab-on-chip blood-cell sorting.\n\n**Synovial fluid** (joints): shear-thinning lubricant; viscosity drops 1000× from rest to motion. Hyaluronic acid + lubricin maintain low-friction joint surfaces.\n\n**Mucus** (respiratory, GI): viscoelastic; cilia must beat hard at low Re to clear it. Cystic fibrosis = abnormally viscous mucus.\n\n**Cytoplasm + cytoskeleton** — viscoelastic, glassy + thixotropic. Critical for cell migration + division.\n\n**Tear film**: thin layer (~10 μm) with lipid + aqueous + mucus layers; surface-tension + Marangoni-driven; reset by blinking. Dry-eye disease.\n\n**Industrial non-Newtonian fluids**:\n\n**Polymer processing**:\n- **Extrusion** (pipes, films, fibers): polymer melts have η ~ 10²-10⁵ Pa·s + die-swell after exit.\n- **Injection molding**: polymer fills mold at high shear → shear-thinning is crucial for filling.\n- **Fiber spinning**: extensional flow, strain hardening.\n- **Polymer drag-reduction additives** for oil pipelines + firefighting (Toms effect).\n\n**Drilling fluids (muds)**: Bingham + Herschel-Bulkley behavior — yield stress carries cuttings up the hole; high-shear thinning reduces pump pressure. Bentonite clay or polymer-based; tuned in real time.\n\n**Food + cosmetics**:\n- Ketchup, mayonnaise, yogurt — yield-stress fluids.\n- Toothpaste — Bingham; stays on brush, flows under squeeze.\n- Lipstick, lotion, paint — designed shear-thinning profiles.\n- Honey — Newtonian at moderate T, slightly shear-thinning at low T.\n\n**Inkjet printing**: shear-thinning, viscosity 1-20 mPa·s at jetting (high shear), higher at rest. Surface tension 30-40 mN/m. Drop volume ~ pL. Z-number Z = √(σρa)/μ controls jetting regime (1 < Z < 14 typical).\n\n**Concrete + slurries + magmas**: yield-stress fluids; design depends on flow profile + slump.\n\n**3D printing**:\n- **FDM** (extrusion): polymer melt viscosity-driven.\n- **SLA / DLP** (photopolymer): photo-crosslinking + surface-tension-driven layering.\n- **Bioprinting**: hydrogels with cells; shear-thinning required for syringe extrusion + recovery of shape after deposition (yield-stress 'inks').\n\n**Microfluidics + lab-on-chip**: Re ≪ 1 + often non-Newtonian working fluids; design uses Marangoni, electro-osmosis, viscoelastic focusing.\n\n**Howard Brenner** + Pierre-Gilles de Gennes + Howard Stone + George Whitesides + David Weitz are giants of soft-matter + microfluidics. Strong intersection with biology, medicine + materials science."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fluid_rheo_1",
+        "kind": "guided_derivation",
+        "question": "Derive the Young-Laplace pressure jump across a spherical droplet",
+        "goal": "Show that a spherical liquid drop of radius R has internal-pressure excess Δp = 2σ/R via energy minimization.",
+        "steps": [
+          {
+            "prompt": "Write the surface energy of a spherical drop.",
+            "motivation": "Energy proportional to surface area.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E_surf = 4π R² σ"
+              ]
+            },
+            "hints": [
+              "Surface area of sphere is 4π R²."
+            ],
+            "reveal": "E_surf = σ · (surface area) = 4π R² σ."
+          },
+          {
+            "prompt": "Compute the work done by internal pressure for a virtual expansion dR.",
+            "motivation": "Mechanical work of pressure difference.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "dW = Δp · dV = Δp · 4π R² dR"
+              ]
+            },
+            "hints": [
+              "dV = 4π R² dR."
+            ],
+            "reveal": "Volume V = (4/3)π R³, so dV = 4π R² dR. Work done by the pressure excess Δp = p_in − p_out is dW = Δp · dV = Δp · 4π R² dR."
+          },
+          {
+            "prompt": "Equilibrium: equate surface-energy change with pressure work.",
+            "motivation": "Δp adjusts so equilibrium holds at fixed R.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "dE_surf = dW"
+              ]
+            },
+            "hints": [
+              "Energy conservation in virtual displacement."
+            ],
+            "reveal": "Differential surface energy change: dE_surf = 8π R σ dR. Equating with work: 8π R σ dR = Δp · 4π R² dR."
+          },
+          {
+            "prompt": "Solve for Δp.",
+            "motivation": "Final result.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Δp = 2σ/R"
+              ]
+            },
+            "hints": [
+              "Cancel 4π R dR."
+            ],
+            "reveal": "Δp = 2σ/R — **Young-Laplace** for a sphere. For a soap bubble with two surfaces (inner + outer): Δp = 4σ/R. For a general curved interface with principal radii R_1, R_2: Δp = σ(1/R_1 + 1/R_2) = σ κ. Foundation of capillary action, droplet stability, microfluidic flows + meteorology (cloud droplet activation via Kelvin equation)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fluid_rheo_1",
+        "kind": "multiple_choice",
+        "question": "Why is blood a shear-thinning yield-stress fluid + why does it matter clinically?",
+        "options": [
+          "Magic.",
+          "Blood is a **non-Newtonian** suspension of red blood cells (~45% by volume) + plasma. At low shear, **RBCs aggregate into rouleaux** stacks (face-to-face coin-like assemblies linked by plasma proteins), raising apparent viscosity to ~30 mPa·s + creating a small yield stress (~0.04 Pa). At high shear, rouleaux break up + cells align + deform → viscosity drops to ~4 mPa·s. Captured by **Casson** or **Herschel-Bulkley** constitutive models. Clinical importance: (1) **low-shear recirculation zones** downstream of stenoses develop higher viscosity, **promoting thrombosis + atherosclerosis**; (2) **pulsatile flow** (Womersley α ~10-15 in aorta) interacts with viscoelasticity; (3) **microcirculation** — cells must deform to pass through capillaries < cell diameter (~5 μm); (4) **stent / VAD design** — high shear can hemolyze (lyse) RBCs + activate platelets; design targets sub-150 Pa. Lab-on-chip + drug-delivery devices all need this physics.",
+          "Random.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Blood = ~45% RBCs + plasma. Shear-thinning: low shear ⇒ rouleaux ⇒ high viscosity + small yield stress; high shear ⇒ aligned cells ⇒ low viscosity. Casson / Herschel-Bulkley models. Clinically critical: thrombosis in low-shear recirculation zones, microcirculation deformability, stent + VAD shear limits to avoid hemolysis."
+      },
+      "hints": [
+        "RBC rouleaux at low shear.",
+        "Why does this affect disease?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Blood is shear-thinning + has small yield stress (Casson / Herschel-Bulkley). RBC rouleaux at low shear → high viscosity; break up at high shear. Clinically: low-shear recirculation regions promote thrombosis + atherosclerosis; microcirculation needs RBC deformability; stent + VAD design limits shear to avoid hemolysis."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fluid_rheo_1",
+        "kind": "scenario",
+        "question": "Inkjet droplet design",
+        "prompt": "You're designing an inkjet print head producing 10 pL droplets from a 30 μm nozzle at 5 m/s. Estimate Reynolds, Weber + capillary numbers using water-like properties (ρ = 1000, μ = 0.01 Pa·s, σ = 0.04 N/m). Compute the Z number Z = √(σρa)/μ. Discuss why most ink formulations need shear-thinning behavior to jet cleanly + the role of viscoelasticity (Plateau-Rayleigh breakup vs sustained ligaments)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fluid_rheo_1",
+        "kind": "math_expression",
+        "question": "Write the Weber number We for inertia-vs-surface-tension in a droplet of size L moving at velocity U.",
+        "acceptedAnswers": [
+          "We = ρU²L/σ",
+          "We = (ρ U² L)/σ"
+        ],
+        "hint": "Inertia/(surface tension) per unit volume."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fluid_rheo_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why most real-world fluids are non-Newtonian + what consequences this has.",
+        "rubric": "Mentions: Newtonian fluids (water, air, simple solvents) are the exception; **polymers, suspensions, gels, biological fluids** + most industrial materials are non-Newtonian — viscosity depends on shear rate, has yield stress, or shows memory (viscoelasticity). Models: **power-law (shear-thinning n<1, shear-thickening n>1), Bingham yield stress, Herschel-Bulkley, Carreau, Oldroyd-B, Giesekus**. Key phenomena: Weissenberg rod-climbing, die swell, drag reduction (Toms effect), elastic turbulence, **shear-thinning blood**, mucus clearance + cytoplasm rheology. Industrial relevance: **polymer extrusion + injection molding**, drilling muds, inkjet printing, paint, food, cosmetics, 3D bioprinting. Pierre-Gilles de Gennes (Nobel 1991) + Stone + Brenner + Bird-Armstrong-Hassager built the field. Concludes: rheology bridges fluid mechanics + materials science + biology; understanding deformation-history-dependent stress is essential to almost every modern process."
+      }
+    }
+  ]
+}
