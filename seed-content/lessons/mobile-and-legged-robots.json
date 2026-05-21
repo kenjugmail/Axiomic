@@ -1,0 +1,156 @@
+{
+  "slug": "mobile-and-legged-robots",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Model differential-drive, Ackermann, and omnidirectional mobile bases.",
+      "Reason about legged locomotion via ZMP and capture point.",
+      "Place modern legged-RL (Hwangbo, Lee) and whole-body MPC (Boston Dynamics) in context."
+    ],
+    "prereqs": [
+      "dynamics-and-control"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Mobile robots: differential, Ackermann, omnidirectional, Mecanum, odometry",
+      "body": "**Mobile robots** = bases that move (vs fixed-base manipulators). The kinematic constraints determine planning + control.\n\n**Differential drive**: two independent wheels (TurtleBot, Roomba, Kiva/Amazon Robotics warehouse robots).\n- State (x, y, θ); controls (v, ω) where v = (v_R + v_L)/2, ω = (v_R − v_L)/L (L = wheelbase).\n- **Nonholonomic**: cannot move sideways. Path planning must respect the constraint. Kinematic equations: ẋ = v cos θ, ẏ = v sin θ, θ̇ = ω.\n- Instantaneous center of rotation (ICR) lies on the wheel axle.\n- Cheap, mechanically simple, the workhorse of indoor mobile robots.\n\n**Ackermann steering**: front wheels steer, rear drives (cars, AVs).\n- State (x, y, θ, φ) where φ is steering angle.\n- Kinematics like differential drive with curvature κ = tan(φ)/L (L = wheelbase).\n- Nonholonomic — needs reverse + multi-point turns in tight spaces.\n- Bicycle model is the standard simplification (used in MPC for autonomous vehicles).\n\n**Omnidirectional**: three or four **omni wheels** (rollers around the rim) or **Mecanum wheels** (rollers at 45° to the wheel axis).\n- Holonomic: can translate in any direction + rotate independently.\n- Mecanum (Bengt Ilon 1973, US patent 3876255): four wheels at 45° rollers; vector sum of wheel velocities gives any (vx, vy, ω). Used in factory floor AMRs, KUKA omnirob, RoboCup robots.\n- Tradeoff: slip + complex kinematics; less efficient on slopes/imperfect floors.\n\n**Tracked / skid-steer**: tank-like; high mobility on rough terrain; high slippage so odometry is unreliable. Used in military, mining, search-and-rescue.\n\n**Odometry**:\n- Integrate wheel encoders + kinematics → pose estimate.\n- Drifts due to wheel slip, uneven floors, calibration error. Typically 1-5% of distance traveled.\n- **Wheel slip** (especially on smooth/turn) is the main error source.\n- Fused with IMU, vision (visual-inertial odometry as in perception lesson), LIDAR, GPS for robust state estimation.\n\n**Path tracking controllers for nonholonomic bases**:\n- **Pure pursuit (Coulter 1992)**: aim at a lookahead point on the path.\n- **Stanley controller (Hoffmann + Thrun + Montemerlo + Stanley 2007)**: combines crosstrack error + heading; from 2005 DARPA Grand Challenge winner.\n- **MPC-based**: bicycle-model MPC with curvature + slip constraints. Modern self-driving + race-line planning.\n- **Lyapunov-based** posture-stabilization controllers (Aicardi-Casalino-Bicchi-Balestrino 1995, Brockett impossibility theorem — no smooth stabilizing feedback for nonholonomic systems).\n\n**Outdoor mobile robots**: rough terrain, GPS, weather. Sojourner (Mars 1997), Spirit + Opportunity (2003), Curiosity (2011), Perseverance (2021) — JPL's planetary rovers (six-wheel rocker-bogie suspension). Self-driving cars (Waymo, Cruise) are mobile robots at scale.\n\n**Aerial mobile robots** (quadrotors): SE(3) configuration; thrust + 3 torques; differentially flat (Mellinger + Kumar 2011); minimum-snap trajectories; the canonical agile aerial vehicle. Skydio + Anduril + DJI."
+    },
+    {
+      "kind": "text",
+      "title": "Legged robots: ZMP, capture point, and dynamic locomotion",
+      "body": "**Legged locomotion** = locomotion via intermittent contact (feet vs ground). Far harder than wheels because:\n- **Underactuated**: floating base + intermittent contact.\n- **Hybrid dynamics**: continuous phase + discrete contact events.\n- **Friction-cone + unilateral contact** constraints.\n- **Balance**: must keep center of mass over support polygon (or use dynamic stability).\n\n**Static stability**: center of mass over support polygon. Quasistatic walking (early ASIMO, Petman). Slow but safe.\n\n**ZMP (Zero-Moment Point) — Miomir Vukobratović (1972)**: point on the ground where the net moment of inertial + gravitational forces has no horizontal component.\n- Definition: ZMP = projection of (gI − mg) net moment such that horizontal moment is zero.\n- **Stability criterion**: if ZMP lies strictly inside the support polygon (foot or feet), the robot is dynamically balanced — won't tip.\n- ZMP = center of pressure (CoP) under the foot.\n- **Honda ASIMO (2000)** + **Petman** + **HRP-2/HRP-4 (Japan)** + classical Atlas walking used ZMP control.\n- **Preview control (Kajita + Kanehiro 2003)**: precompute ZMP reference + use LQR-like preview to track. Smooth + stable walking.\n- **LIPM (Linear Inverted Pendulum Model, Kajita 2001)**: simplified centroidal dynamics; assumes constant CoM height; closed-form ZMP dynamics. Foundational simplification.\n\n**Capture point — Jerry Pratt (IHMC) 2006**: a point on the ground such that stepping there with a single step brings the robot to rest (capture). Generalizes ZMP for **dynamic walking**.\n- Capture point: ξ = x_CoM + (1/ω₀) ẋ_CoM with ω₀ = √(g/h).\n- Step where ξ lies → stop. Step before → keep walking. Outside reachable region → fall.\n- **N-step capture region**: where you can stop in N steps.\n- Foundation of dynamic walking algorithms; used at IHMC, Boston Dynamics ancestors.\n\n**Modern legged robots**:\n- **Boston Dynamics**: spun out of MIT Leg Lab (Marc Raibert). **BigDog (2005-2012)** quadruped on rough terrain; **LS3, WildCat, Cheetah**; **Spot (2015→)** commercial quadruped; **Atlas (2013→)** humanoid doing parkour, backflips, dynamic manipulation. Hydraulic Atlas retired 2024 in favor of all-electric Atlas.\n- **MIT Cheetah series (Sangbae Kim 2013→)**: Cheetah 1-3, **MIT Mini Cheetah (2018)** open-source-ish design; **Cheetah 4** with high-bandwidth proprioceptive legs; basis for many academic + commercial quadrupeds (Unitree, Berkeley Humanoid). Quasi-direct-drive motors enable proprioceptive feedback without explicit force sensors.\n- **Anymal (ETH/ANYbotics, since 2016)**: quadruped designed for industrial inspection.\n- **Cassie + Digit (Agility Robotics, OSU lineage)**: bipedal; Cassie is the canonical bipedal RL testbed. Digit is commercial humanoid for warehouse + delivery.\n- **Unitree Go, B, A1, Aliengo, H1** humanoid: low-cost quadrupeds + humanoids enabling massive academic + hobbyist research.\n- **HRP series (Japan AIST)** + **iCub** + **NAO**: research humanoids.\n\n**Control hierarchy on a modern legged robot**:\n1. **High-level**: footstep planner (where to step) + path planner.\n2. **Mid-level**: trajectory optimization (centroidal + whole-body) + MPC.\n3. **Low-level**: joint torque control (impedance/PD on each joint, hundreds of Hz).\n- **Foothold selection**: heuristics + terrain analysis + visual perception."
+    },
+    {
+      "kind": "text",
+      "title": "Legged control: CPGs, whole-body MPC, sim-to-real RL",
+      "body": "**Central pattern generators (CPGs)**: neurally-inspired oscillators producing rhythmic gait patterns (Ijspeert 2008 review).\n- Decentralized, biologically motivated, simple parameterization.\n- Useful for **rough-terrain** locomotion as reactive primitives.\n- Less common in current SOTA; replaced by optimization + RL.\n\n**Whole-body MPC (control)**:\n- **Convex MPC** for quadrupeds: linearize about a centroidal dynamics model + foot placement variables; QP at 100-1000 Hz. **Di Carlo + Wensing + Bledt + Katz + Kim (MIT, 2018)** — \"Dynamic Locomotion in the MIT Cheetah 3\".\n- **Full-body MPC** at Boston Dynamics: complete floating-base dynamics + contact; SQP per step; underlies Atlas parkour + dance + manipulation.\n- **MPC + tracking controller** decomposition: MPC selects desired ground-reaction forces + foot trajectories; low-level controller commands joint torques.\n\n**Sim-to-real reinforcement learning** — the legged-robotics revolution of 2018-2024:\n- **Jonas Hwangbo (now KAIST, formerly ETH) + Lee + Hutter (2019) Science Robotics**: \"Learning agile and dynamic motor skills for legged robots\" — trained Anymal in simulation via PPO; transferred zero-shot to hardware. Demonstrated unprecedented dynamic recovery (falling-then-standing).\n- **Joonho Lee et al. (ETH/RSL) 2020 Science Robotics + Nature**: Anymal traversing alpine + forest terrain via privileged-information teacher-student RL. \"Learning quadrupedal locomotion over challenging terrain\" — Anymal walks where no classical controller had.\n- **Tan et al. (Google 2018)**: sim-to-real for Minitaur. **Peng-Coumans-Bohez (Google 2020)** for variable terrain.\n- **Margolis + Yang + Paolini + Pinto + Agrawal (MIT 2022-23)**: walk-these-ways + rapid-locomotion. **Cheetah 4 + MIT Mini Cheetah** with proprioceptive-only RL.\n- **Cheng + Pathak (CMU 2023-24)** + **DreamWaQ, RMA, Berkeley Humanoid**: extreme parkour via RL on Unitree quadrupeds + recent humanoids.\n- **Domain randomization** (NVIDIA, OpenAI) + **privileged training** (teacher with full state; student with onboard sensors only) + **massive parallel sim** (NVIDIA Isaac Gym/Sim, Brax, MuJoCo MJX) = the recipe.\n\n**Hybrid stacks**: modern systems combine\n- Classical MPC (Boston Dynamics, ANYbotics) for control + planning, often with RL refinements.\n- RL policies (ETH, MIT, Berkeley, CMU, Tesla) trained end-to-end or as residuals.\n- **Marc Raibert legacy**: hopping monopods + dynamic running pioneered at CMU + MIT Leg Lab (1980s-90s) inform every modern legged robot.\n\n**Quad → biped → humanoid transfer**: techniques pioneered on quadrupeds (RL, MPC, contact-implicit optimization) are now scaling to humanoids — Boston Dynamics Atlas, Tesla Optimus, Figure, Unitree H1, Berkeley Humanoid, 1X Neo. The 2020s humanoid renaissance is essentially \"quadruped tooling applied to bipeds + funded by AI capital.\"\n\n**Notable feats**:\n- Atlas backflip (2017), parkour (2021), dance (2020), gymnastics (2022).\n- Anymal alpine traversal (2020 Nature).\n- Spot warehouse + construction-site inspection.\n- Cassie 100-m sprint (Guinness record, OSU + Agility 2022).\n- Mini Cheetah backflip (Katz + Kim 2019).\n- Berkeley Humanoid Lite + Unitree H1 walking in 2024."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_leg_lipm",
+        "kind": "guided_derivation",
+        "question": "Linear inverted pendulum dynamics",
+        "goal": "A biped's CoM at height h moves above a stationary foot at the origin. Assume constant CoM height (Kajita's LIPM). Derive horizontal CoM dynamics + capture point.",
+        "steps": [
+          {
+            "prompt": "Equations of motion under gravity + foot reaction force, assuming massless legs + constant h.",
+            "motivation": "Inverted pendulum.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ẍ = (g/h) x",
+                "x_dot_dot = (g/h) x"
+              ]
+            },
+            "hints": [
+              "Pendulum with positive eigenvalue."
+            ],
+            "reveal": "LIPM: ẍ = (g/h)(x − x_zmp). For x_zmp = 0 (foot at origin): ẍ = (g/h)x. Natural frequency ω₀ = √(g/h). Note positive eigenvalue → unstable. CoM wants to fall away."
+          },
+          {
+            "prompt": "Capture point ξ = x + ẋ/ω₀. Why does it satisfy ξ̇ = ω₀(ξ − x_zmp)?",
+            "motivation": "First-order dynamics.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "differentiate; substitute LIPM; algebraic simplification"
+              ]
+            },
+            "hints": [
+              "Differentiate ξ."
+            ],
+            "reveal": "ξ̇ = ẋ + ẍ/ω₀ = ẋ + (ω₀)(x − x_zmp) (using ẍ = ω₀²(x − x_zmp)) = ω₀(x + ẋ/ω₀ − x_zmp) = ω₀(ξ − x_zmp). So **ξ is the first-order unstable mode**; placing x_zmp = ξ holds it stationary."
+          },
+          {
+            "prompt": "Pratt's stepping rule: if you step onto x_step = ξ_current, what happens to ξ?",
+            "motivation": "Capture.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ξ exponentially decays to x_step = ξ_current; the robot comes to rest there"
+              ]
+            },
+            "hints": [
+              "Eigenvalue + ZMP."
+            ],
+            "reveal": "If next step places x_zmp = ξ, then ξ̇ = ω₀(ξ − ξ) = 0 — frozen for that step. With damping or a successive step on ξ_new, the CoM trajectory decays to rest at the foot. **One-step capture region** = locations the robot can step to and stop. Used by Pratt at IHMC + foundational at Boston Dynamics."
+          },
+          {
+            "prompt": "Why is modern RL (Hwangbo, Lee, Margolis) increasingly preferred over ZMP/LIPM for rough-terrain quadrupeds?",
+            "motivation": "Limitations.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ZMP/LIPM assume flat ground + constant CoM height + quasi-static / linearized dynamics; RL learns full nonlinear policy + handles arbitrary terrain + actuator limits + slip + perturbations end-to-end"
+              ]
+            },
+            "hints": [
+              "Modeling assumptions."
+            ],
+            "reveal": "ZMP/LIPM require flat ground, single contact polygon, constant CoM height — break down on rough terrain + dynamic gaits. Modern RL (Hwangbo et al. 2019 Anymal; Lee et al. 2020 Nature; Margolis 2022; Cheng + Pathak parkour 2023) learns a closed-loop policy in massively parallel simulation, transferred to hardware via domain randomization + privileged training, that handles unstructured terrain + slips + payload changes — surpassing classical methods on rough terrain. Classical MPC still leads on dynamic manipulation + jumps."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\xi = x + \\dot{x}/\\omega_0,\\;\\omega_0 = \\sqrt{g/h};\\;\\;\\dot{\\xi} = \\omega_0(\\xi - x_{zmp})}$$ The capture point is to dynamic walking what the ZMP is to static walking. Pratt, Vukobratović, Kajita defined the classical foundation; Hwangbo, Lee, Raibert, Kim drove the modern RL + MPC era."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_leg_rl",
+        "kind": "multiple_choice",
+        "question": "Why does Hwangbo et al. (2019, Science Robotics) cite simulation + privileged-information teacher-student training as the recipe behind Anymal's recovery-from-fall behavior?",
+        "options": [
+          "Random.",
+          "Pure RL on hardware is infeasible (too slow, hardware breaks). They trained in NVIDIA-RaiSim simulation at >1000× real-time with thousands of parallel Anymal models. **Domain randomization** of mass, friction, latency, motor dynamics, terrain bridged sim-to-real. **Privileged-information teacher-student**: a teacher policy sees full state (including ground truth contact + terrain) in sim; a student policy is trained to imitate the teacher using only onboard proprioception (IMU + joint encoders). This works because the teacher learns optimal behavior easily; the student only needs to match it from the deployable observation set. The resulting student policy ran on hardware zero-shot and demonstrated dynamic recovery + locomotion previously inaccessible to model-based controllers.",
+          "Magic.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Massively parallel sim + domain randomization + teacher-student training. Hwangbo 2019 + Lee 2020 set the recipe for sim-to-real legged RL. Foundational for the modern legged + humanoid robotics revolution."
+      },
+      "hints": [
+        "Sim-to-real.",
+        "Privileged training."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Hwangbo et al. 2019: simulation at 1000× real-time + domain randomization + privileged teacher-student. Foundational sim-to-real recipe. Subsequently extended by Lee 2020 Nature for rough terrain; Margolis 2022 for quadruped speed; Cheng + Pathak 2023 for parkour; the modern legged + humanoid RL stack."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_leg_atlas",
+        "kind": "scenario",
+        "question": "Atlas parkour control stack",
+        "prompt": "Boston Dynamics Atlas leaps from box to box, vaults over a beam, does a backflip. Walk through the control stack: offline trajectory optimization (DDP / contact-implicit) for the maneuver; whole-body MPC at ~100 Hz tracking the trajectory while reacting to disturbance; low-level joint torque controllers (hydraulic — now electric Atlas) at 1 kHz; state estimation (IMU + leg odometry + cameras + LIDAR). Reference Marc Raibert, MIT Leg Lab lineage, Kajita's LIPM as conceptual predecessor."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_leg_cp",
+        "kind": "math_expression",
+        "question": "Humanoid CoM at height h = 1 m on Earth (g = 9.81). What is ω₀ for the LIPM (capture point frequency)?",
+        "acceptedAnswers": [
+          "3.13 rad/s",
+          "~3.13",
+          "sqrt(9.81)",
+          "3.132"
+        ],
+        "hint": "ω₀ = √(g/h) = √9.81."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_leg",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how legged robotics has evolved from ZMP/LIPM (Vukobratović 1972, Kajita 2001, ASIMO 2000) to modern RL (Hwangbo 2019, Lee 2020) + whole-body MPC (Boston Dynamics, ETH).",
+        "rubric": "Mentions Vukobratović's ZMP (1972) as the classical stability criterion (CoP in support polygon); Kajita's LIPM (2001) as the simplified centroidal model; preview control + ZMP tracking enabling Honda ASIMO + HRP humanoids in the 2000s; capture point (Pratt, IHMC) for dynamic walking; Marc Raibert + MIT Leg Lab + Boston Dynamics for hopping monopods → quadrupeds → Atlas humanoid; convex MPC for legged (Di Carlo / Wensing / Bledt / Kim — MIT Cheetah 3) + whole-body MPC at Boston Dynamics; the sim-to-real RL revolution from Hwangbo 2019 Anymal + Lee 2020 Nature rough-terrain + Margolis MIT walk-these-ways + Cheng/Pathak parkour 2023, enabled by NVIDIA Isaac massively parallel simulation + domain randomization + privileged teacher-student training. Notes that 2020s humanoid renaissance (Optimus, Figure, Digit, Unitree H1, Atlas-electric) applies these techniques to bipeds + couples them with foundation models."
+      }
+    }
+  ]
+}

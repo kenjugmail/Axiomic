@@ -1,0 +1,154 @@
+{
+  "slug": "manipulation-and-grasping",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Plan grasps via form closure, force closure, and modern learned methods.",
+      "Use tactile sensing and compliance for dexterous manipulation.",
+      "Place diffusion policies and modern imitation methods in context."
+    ],
+    "prereqs": [
+      "dynamics-and-control"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Grasp planning: from form/force closure to Dex-Net",
+      "body": "**Manipulation** = physically interacting with the world to change it. Picking up + placing + assembling + tool use + dexterous in-hand manipulation. Manipulation is the **hardest open problem in robotics** (Moravec's paradox in action) and the focus of much current research.\n\n**Grasp planning** = compute a hand pose + finger configuration + contact set that securely holds an object.\n\n**Foundational concepts** (Mason, Salisbury, Nguyen, Bicchi):\n\n**Form closure**: the contacts geometrically prevent any object motion regardless of contact force magnitude. Requires ≥7 frictionless contacts on a generic rigid body in 3D (Reuleaux 1875; Lakshminarayana 1978). Robust to friction uncertainty + force noise. Examples: a key in a lock, a peg in a hole.\n\n**Force closure**: the contacts together can resist any external wrench (force + torque) on the object using bounded contact forces consistent with **Coulomb friction cones**. Less restrictive than form closure but requires modeling friction coefficients. Requires ≥3 friction-contact points (Nguyen 1988) generically.\n\n**Van-Duc Nguyen (MIT, 1988)**: \"Constructing force-closure grasps\" — established the geometric tests that became foundational. Showed equivalences between force closure and the wrench cone spanning ℝ⁶.\n\n**Grasp wrench space (GWS)**: convex hull of contact wrenches. Force-closed iff origin lies in interior of GWS. **Epsilon quality (Ferrari + Canny 1992)**: largest sphere around origin contained in GWS — standard quality metric.\n\n**Antonio Bicchi + Vijay Kumar 2000 survey \"Robotic Grasping and Contact\"**: the canonical reference linking grasp analysis, manipulation planning, dexterous hands.\n\n**GraspIt! (Miller + Allen, Columbia 2004)**: open-source grasp simulator + planner. Decades of academic grasping work used GraspIt!.\n\n**Sampling-based grasp planners**: sample contact sets, evaluate force closure + epsilon quality, optimize.\n\n**Learning-based grasping — the deep-learning era**:\n- **Cornell Grasp Dataset (Jiang + Saxena 2011)**: rectangle grasps annotated on RGB-D images; first benchmark.\n- **DeepGrasp (Lenz + Lee + Saxena 2015)**: CNN on Cornell dataset; ~75% success.\n- **Dex-Net 1.0/2.0/3.0/4.0 (Jeff Mahler + Goldberg, UC Berkeley, 2016-2019)**: synthesizes grasps via large-scale simulation; Dex-Net 2.0 (Mahler 2017) trained a Grasp Quality CNN on >6M synthetic point clouds; >90% success on novel objects. Dex-Net 3.0 added suction; Dex-Net 4.0 hybrid parallel-jaw + suction. **Ken Goldberg** (UC Berkeley) leads this lineage; foundational work on cloud robotics + benchmarks.\n- **GG-CNN, Contact-GraspNet, AnyGrasp**: modern fully-convolutional grasp prediction networks.\n- **6-DOF GraspNet (Mousavian + Eppner + Fox 2019)**: sampling + refinement; SOTA on real-world grasping.\n\n**Grasp-then-do**: pick → transport → place. Most pick-and-place pipelines combine learned grasp prediction + classical motion planning."
+    },
+    {
+      "kind": "text",
+      "title": "Tactile sensing, compliance, and dexterous hands",
+      "body": "**Tactile sensing** = the sense of touch. Critical for grasp control under friction uncertainty, slip detection, and in-hand manipulation.\n\n**Tactile sensors**:\n- **BioTac (SynTouch, since 2008)**: fluid-filled fingertip + electrode array + thermistor + AC + DC impedance. Senses force, slip, vibration, temperature. Used on Shadow Hand, Allegro Hand, ICub. Discontinued ~2023 but still widely used.\n- **GelSight (Adelson, MIT 2009; Yuan + Dong + Adelson 2017 SOTA)**: silicone gel with reflective coating + internal RGB camera + LEDs. The gel deforms under contact; the camera images the deformation with **sub-millimeter spatial resolution + sub-Newton force resolution**. Revolutionary for tactile sensing because it converts touch into a vision problem solvable by CNNs.\n- **DIGIT (Lambeta + Calandra, Meta AI 2020)**: open-source GelSight derivative; widely adopted in research.\n- **Capacitive arrays** (PPS, Tekscan): coarser but mature; integrated in dexterous hands.\n- **Piezoresistive (Tekscan, FlexiForce)**: thin-film pressure mats.\n- **Soft optical waveguides** for finger-shape tactile.\n- **Magnetic (ReSkin, Bhirangi + Pinto 2021)**: cheap, durable; magnetometer reads deformation.\n\n**Slip detection**: vibration signatures + tangential micro-displacement signal incipient slip. Closed-loop grip-force adaptation (mimic the human cutaneous reflex).\n\n**Compliance** = mechanical softness in the hand. Crucial for safe + robust contact.\n- **Hardware compliance**: soft fingertips, jointed phalanges with springs, underactuated hands (Robotis, Adams).\n- **Software compliance**: impedance / admittance control (Hogan 1985, see dynamics lesson).\n- **Series elastic actuators (SEA)**: spring between motor + load → force is measured via spring deflection (cheap + accurate).\n- **Tendon-driven hands**: cables route from forearm motors → distal joints; lightweight + back-drivable.\n\n**Dexterous hands**:\n- **Shadow Hand (Shadow Robot Company)**: 20 DOF, 24 actuators, tendon-driven; the canonical research hand. Used by OpenAI Rubik's cube + Mobile ALOHA labs.\n- **Allegro Hand (SimLab/Wonik)**: 16 DOF, more affordable; in many academic labs.\n- **MIMIC (1X Mimic Robotics, 2024)**: humanoid hand for teleoperation + AI manipulation; **Mimic** Pinto et al.\n- **Tesla Optimus hand (Gen 2 2024)**: 22 DOF, cable-driven.\n- **Sanctuary Phoenix hand, Figure 02 hand**: humanoid frontier.\n- **Robotiq 2F + 3F grippers**: industrial parallel-jaw, simple + reliable.\n- **Schunk SVH, Barrett Hand**: legacy research hands.\n\n**Underactuated grasping (Dollar + Howe 2010 SDM hand)**: passive compliance + small actuator count + tendons can adapt to objects without exact shape sensing — very robust, used in industrial bin picking.\n\n**Mimic Robotics** (Pinto et al., 2024-ish) and other startups bring high-DOF hands to a price point compatible with humanoid deployment."
+    },
+    {
+      "kind": "text",
+      "title": "Dexterous manipulation and the imitation-learning era",
+      "body": "**Dexterous manipulation** = manipulating objects within the hand (in-hand reorientation, tool use, fine assembly). Long the holy grail.\n\n**Classical analyses**:\n- **Salisbury + Mason + Mason-Salisbury** (1980s): contact-mode reasoning; rolling, sliding, pivoting.\n- **Brockett + Murray + Sastry**: nonholonomic control + finger gaiting.\n- **Manipulation planning (Latombe, Lozano-Pérez)**: pick-and-place with reachability + grasp + placement constraints.\n\n**Reinforcement learning manipulation**:\n- **OpenAI Rubik's cube (Akkaya + et al. 2019)**: trained a Shadow Dex Hand in simulation via PPO + domain randomization; deployed on real hardware to solve a Rubik's cube one-handed. Used **automatic domain randomization (ADR)** — randomize physics + appearance over a curriculum. Massive simulation throughput.\n- **In-hand object reorientation (Chen + Wang + Pinto 2022)**: arbitrary-object in-hand rotation via RL + tactile feedback.\n- **Hwangbo et al. Anymal walking 2019** (cited in legged lesson) was the proof of concept for sim-to-real RL; manipulation followed.\n\n**Imitation learning (next lesson goes deeper)**:\n- **Behavior cloning** from demonstrations.\n- **ALOHA (Zhao + Kumar + Fu + Finn, Stanford 2023)**: \"A Low-cost Open-source HArdware\" bimanual teleop platform. **ACT (Action Chunking with Transformers)** policy. Solves tasks like unwrapping candy + putting on socks.\n- **Mobile ALOHA (Fu + Zhao + Wang + Finn, Stanford 2024)**: ALOHA + mobile base; learns long-horizon mobile manipulation like cooking shrimp + wiping wine.\n- **Diffusion Policy (Cheng Chi + Song Han + Burchfiel + Song, Columbia + TRI 2023)**: behavior cloning via diffusion model over future action chunks. State-of-the-art on real-world manipulation benchmarks. **Cheng Chi** has been a driver of this lineage; **Shuran Song** group at Stanford.\n- **3D Diffusion Policy (Ze + Chi 2024)**: 3D point-cloud conditioning for stronger generalization.\n- **VINN, BC-Z, RoboCat**: alternative behavior cloning architectures.\n\n**Foundation models for manipulation**:\n- **RT-1 (Brohan + Google 2022)** — first large-scale robotic transformer.\n- **RT-2 (Brohan + Google 2023)** — vision-language-action model: pretrain on web + finetune on robot data.\n- **OpenVLA (Kim + Liang + Pertsch 2024)** open-source VLA.\n- **Physical Intelligence π0 (Black + Hausman + Levine + Pertsch 2024)** — generalist robot foundation model.\n- These bring manipulation closer to commodity general-purpose performance — the topic of the AI-robotics lesson.\n\n**Long-horizon manipulation** = tasks requiring many sub-steps (cooking, cleaning, assembly). Hierarchical methods, task-and-motion planning (TAMP), code-as-policies (Liang + Hausman 2022), language-conditioned policies. The current frontier.\n\n**Industrial vs research manipulation**: industrial bin-picking (Photoneo, Ambi Robotics — Goldberg + Pinto cofounded — Covariant) is mature for limited object sets. General-purpose dexterous home robots remain an open problem despite enormous recent progress."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_man_force",
+        "kind": "guided_derivation",
+        "question": "Force-closure with three frictional contacts",
+        "goal": "Three fingers grasp a planar disk at 120° apart. Each contact has Coulomb friction coefficient μ. Show conditions for force closure.",
+        "steps": [
+          {
+            "prompt": "Each contact's friction cone has half-angle α = atan(μ). What contact wrenches can each finger apply?",
+            "motivation": "Friction cones.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "any wrench (force) inside a cone of half-angle atan(μ) about the inward normal, scaled by force magnitude"
+              ]
+            },
+            "hints": [
+              "Forces inside the cone, no tangential pull."
+            ],
+            "reveal": "Each contact i applies a force f_i in the friction cone C_i = {f : f·n̂_i ≥ ||f|| cos α} with α = atan(μ). Pure pushing + tangential force up to μ × normal."
+          },
+          {
+            "prompt": "When is force closure achieved?",
+            "motivation": "Wrench space.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "the convex hull of all primitive wrenches (cone generators) spans the 3-D planar wrench space (origin in interior)"
+              ]
+            },
+            "hints": [
+              "Wrench space spanning."
+            ],
+            "reveal": "Planar wrench = (Fx, Fy, M). Force closure iff convex cone of contact wrenches = all of ℝ³ (planar). Equivalently, origin is in the interior of the convex hull of the friction-cone edges' wrenches. With 3 contacts at 120° on a disk, generically this holds for any μ > 0."
+          },
+          {
+            "prompt": "Why does increasing μ improve force-closure quality?",
+            "motivation": "Wider cones.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "larger μ ⇒ wider friction cones ⇒ larger spanned wrench set ⇒ greater epsilon quality (Ferrari-Canny)"
+              ]
+            },
+            "hints": [
+              "Bigger cones, bigger span."
+            ],
+            "reveal": "Wider friction cones increase the wrench-space spanned by the contacts, growing the Ferrari-Canny epsilon (radius of largest ball about origin in GWS). Tactile sensing + rubber fingertips + high-friction materials all improve grip quality."
+          },
+          {
+            "prompt": "How does Dex-Net (Mahler + Goldberg) sidestep explicit force-closure analysis?",
+            "motivation": "Learning-based.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "trains a Grasp Quality CNN on >6M simulated point-cloud + grasp pairs labeled with robust force-closure quality; at runtime CNN predicts quality directly from depth image"
+              ]
+            },
+            "hints": [
+              "Massive sim dataset."
+            ],
+            "reveal": "Dex-Net (Mahler 2017): generate millions of (object, parallel-jaw grasp) pairs in simulation with stochastic friction; compute analytic robust force-closure quality (Ferrari-Canny averaged over perturbations); train a CNN to predict it from depth image. At runtime, propose grasps + score via CNN. Achieves >90% success on novel objects; sidesteps brittle analytic grasp synthesis."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Force closure: } 0 \\in \\text{int}(\\text{conv-hull of cone wrenches});\\;\\;\\epsilon = \\text{Ferrari-Canny radius}}$$ Classical analysis (Nguyen, Ferrari-Canny) + simulation + deep learning (Dex-Net) compose the modern grasping pipeline. Goldberg's Berkeley group has driven this synthesis."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_man_diffusion",
+        "kind": "multiple_choice",
+        "question": "Why has diffusion policy (Chi + Song + Burchfiel + Song 2023) become the de-facto behavior-cloning method for robot manipulation?",
+        "options": [
+          "Random.",
+          "Diffusion policy models the conditional action distribution p(a_{t:t+H} | obs_t) as a diffusion (score-matching) generative model over future action chunks (not single actions). This handles (a) multi-modality — multiple correct actions for the same observation (e.g., approach left vs right); plain MSE behavior cloning averages modes and fails; (b) temporal consistency — chunked actions are smoother; (c) high-dim action spaces — diffusion scales gracefully. Combined with vision encoders (ResNet, ViT) + receding-horizon execution, it achieves SOTA on real-world tasks like flipping pancakes, pushing T-blocks, and bimanual ALOHA. Diffusion + 3D point-cloud conditioning + flow matching are continuing the lineage.",
+          "Magic.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Diffusion policy (Chi 2023) models multi-modal action distributions over chunks via diffusion. Avoids mode-averaging of MSE BC; produces smooth, multi-modal, high-dim policies. SOTA on real manipulation. Foundation of modern imitation learning."
+      },
+      "hints": [
+        "Multi-modality.",
+        "Action chunks."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Diffusion policy (Chi et al. 2023) handles multi-modal action distributions (multiple correct actions per state), models action chunks (temporal consistency), scales with action dim. SOTA on real-world manipulation. Foundation of modern BC. Mobile ALOHA + many followups build on it."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_man_pick",
+        "kind": "scenario",
+        "question": "Designing a bin-picking system",
+        "prompt": "A warehouse needs to pick novel objects (apparel, packaged goods, toys) from cluttered bins at 1000 picks/hour. Walk through the perception (RGB-D, segmentation), grasp planning (Dex-Net style learned grasp quality + suction + parallel-jaw choice), motion planning (RRT-Connect + TrajOpt), execution (impedance control + force feedback), and failure handling (drop, slip detection via tactile sensors, re-grasp). Reference Mahler + Goldberg Dex-Net + Covariant + Ambi Robotics."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_man_friction",
+        "kind": "math_expression",
+        "question": "A parallel-jaw gripper applies 20 N normal force per finger to a cube with μ = 0.3. What is the maximum total tangential (lifting) force before slip?",
+        "acceptedAnswers": [
+          "12 N",
+          "12",
+          "2 × 0.3 × 20 = 12 N"
+        ],
+        "hint": "Two fingers × μ × N."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_man",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, summarize how manipulation has evolved from analytic grasp planning (Nguyen, Ferrari-Canny, GraspIt!) to learning-based methods (Dex-Net, diffusion policy, foundation models).",
+        "rubric": "Mentions analytic foundations — form closure, force closure, friction cones, wrench space, Ferrari-Canny epsilon quality (Nguyen 1988); GraspIt! (Miller-Allen 2004) for simulation; Bicchi-Kumar survey; the difficulty of analytic grasp synthesis on novel objects in clutter; learning era — Dex-Net (Mahler + Goldberg 2017-19) trained on millions of simulated grasps to predict quality from depth; tactile sensing (BioTac, GelSight, DIGIT) closing the loop on slip + compliance; RL (OpenAI Rubik's cube 2019, in-hand reorientation) for dexterity; imitation learning ALOHA + Mobile ALOHA (Zhao + Finn 2023-24) + diffusion policy (Chi 2023) as the de facto SOTA; foundation models RT-1/RT-2, OpenVLA, π0 generalizing across tasks. Concludes that modern manipulation is hybrid — classical grasp + motion planning + learned perception + learned policies — and remains the hardest open problem in robotics."
+      }
+    }
+  ]
+}

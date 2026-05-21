@@ -1,0 +1,155 @@
+{
+  "slug": "ai-robotics-and-frontier",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Compare imitation-learning methods: behavior cloning, DAgger, ACT, diffusion policy.",
+      "Explain vision-language-action foundation models: RT-1/RT-2, OpenVLA, π0.",
+      "Connect humanoid scaling, simulation, and the frontier of embodied AI."
+    ],
+    "prereqs": [
+      "motion-planning-and-trajectory",
+      "perception-and-sensors"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Imitation learning: BC, DAgger, ALOHA/ACT, diffusion policy",
+      "body": "**Imitation learning (IL)**: learn a policy π(a|s) from demonstrations (s₁, a₁, ..., s_T, a_T) collected from a human expert or another policy. Sidesteps reward design + exploration that plague RL.\n\n**Behavior cloning (BC)** = supervised learning: train π to minimize ||π(s) − a_expert||² (regression) or −log π(a|s) (classification, MLE). Simple + scalable but suffers from **covariate shift**:\n- Expert collects data on the expert distribution; small policy errors compound, pushing the robot off-distribution.\n- T-step trajectories give O(T²) compounding error in worst case (Ross + Bagnell 2010).\n\n**DAgger (Dataset Aggregation) — Stéphane Ross + Geoffrey Gordon + J. Andrew Drew Bagnell 2011 AISTATS**: interactive imitation that fixes covariate shift.\n- Algorithm: collect data with current policy; have expert label visited states with correct actions; aggregate into training set; retrain.\n- Reduces error from O(T²) to O(T).\n- Foundational result: interactive correction beats off-policy BC.\n- Modern uses: HG-DAgger (Kelly + Sidrane 2019), human-gated DAgger, EnsembleDAgger.\n\n**Inverse reinforcement learning (IRL)**: recover a reward from demonstrations + plan with it. Max-entropy IRL (Ziebart 2008), GAIL (Ho + Ermon 2016), AIRL.\n\n**Behavior cloning with high-capacity nets**:\n- **ALOHA (Tony Zhao + Vikash Kumar + Pieter Abbeel + Chelsea Finn, Stanford 2023)**: \"A Low-cost Open-source HArdware\" — bimanual teleop with leader-follower arms; collected demos for fine manipulation (unwrapping candy, putting on socks, opening cups).\n- **ACT (Action Chunking with Transformers) — Zhao et al. 2023**: behavior cloning with transformer + **action chunks** (predict next H actions, not one). Chunking + variational autoencoder structure improved smoothness + multi-modal handling. The breakthrough paper that catalyzed bimanual fine-manipulation research.\n- **Mobile ALOHA (Zipeng Fu + Tony Zhao + Chelsea Finn, Stanford 2024)**: ALOHA + mobile base; co-training with static ALOHA data + small mobile dataset; learns long-horizon mobile manipulation like cooking shrimp + wiping wine.\n\n**Diffusion Policy — Cheng Chi + Siyuan Feng + Yilun Du + Burchfiel + Shuran Song (Columbia + TRI 2023)**:\n- Model conditional action-chunk distribution p(a_{t:t+H} | obs_t) as a denoising diffusion model.\n- Handles **multi-modality** in action distributions (two correct ways to do something — averaging modes via MSE fails).\n- DDPM/DDIM-style training; receding-horizon execution.\n- SOTA on real-world manipulation; superseded ACT on many benchmarks. **Cheng Chi**, **Shuran Song** group key drivers.\n- **3D Diffusion Policy (Ze + Chi 2024)**, **iDP3**: 3D point-cloud variants for stronger generalization.\n- **Flow matching policies (FMP)**: alternative continuous-time generative method; faster inference; e.g., **π0** uses flow matching.\n\n**Why imitation + foundation models win right now**:\n- RL exploration on real robots is too slow + breaks hardware; sim-to-real works for locomotion but is harder for manipulation contact.\n- Demonstrations are the cheapest signal; teleop + crowd-sourced + cross-embodiment.\n- Combined with pretrained vision encoders + transformer backbones, behavior cloning scales remarkably."
+    },
+    {
+      "kind": "text",
+      "title": "Foundation models for robotics: RT-1/RT-2, PaLM-E, OpenVLA, Octo, π0",
+      "body": "**Vision-Language-Action (VLA) models**: take in image + natural-language instruction → output robot actions. The robotics analog of GPT/Llama for language + DALL-E for image.\n\n**RT-1 (Robotics Transformer 1) — Brohan + Brown + Carbajal + Chebotar + Dabis + Finn + Gopalakrishnan + Hausman + Herzog + Hsu + Ibarz + Ichter + Irpan + Jackson + Jesmonth + Joshi + Julian + Kalashnikov + Kuang + Leal + Lee + Levine + Lu + Malla + Manjunath + Mordatch + Nachum + Parada + Peralta + Perez + Pertsch + Quiambao + Rao + Ryoo + Salazar + Sanketi + Sayed + Singh + Sontakke + Stone + Tan + Tran + Vanhoucke + Vega + Vuong + Wahid + Welker + Wohlhart + Wu + Xia + Xiao + Xu + Xu + Yu + Zitkovich (Google 2022)**: trained on 130k+ episodes across 700+ tasks from 13 robots in 17 months. Transformer over image tokens + language tokens + action tokens. Generalizes to novel objects, distractors, and lighting.\n\n**RT-2 (Brohan + Google + DeepMind 2023)**: takes a **pretrained VLM (PaLI-X, PaLM-E)** and fine-tunes it for robot actions encoded as text tokens. Inherits language + visual reasoning from the web-scale pretraining; transfers to robot tasks. Demonstrated chain-of-thought robotic reasoning (\"put strawberry in correct bowl based on color\") and emergent capabilities (using a rock as a hammer).\n\n**PaLM-E (Driess + Xia + Sajjadi + Lynch + Chowdhery + Ichter + Wahid + Tompson + Vuong + Yu + Huang + Chebotar + Sermanet + Brown + Jackson + Luu + Levine + Hausman + Florence — Google 2023)**: **embodied** multimodal language model. Inject image + state + language tokens into PaLM; output text + actions. Demonstrated long-horizon task planning + visual question answering grounded in physical scenes.\n\n**OpenVLA (Kim + Liang + Levine + Pertsch + Finn et al. 2024)**: open-source 7B VLA based on Llama-2 + DINOv2 + SigLIP vision encoders. Fine-tuned on Open X-Embodiment dataset. Outperformed RT-2-X on several benchmarks. **Sergey Levine + Pertsch** drove the open release.\n\n**Octo (Octo Team, Berkeley + Stanford + CMU 2024)**: transformer-based generalist policy trained on Open X-Embodiment with diffusion action head. Compact, open-source, easy to fine-tune.\n\n**Physical Intelligence π0 (π-Zero) — Black + Hausman + Levine + Pertsch + Brohan + Finn 2024**: vision-language-action foundation model with flow-matching action head; trained on the largest published robot dataset. Cross-embodiment generalization to many robots + tasks. Demonstrated unprecedented dexterity (folding laundry, T-shirts) zero-shot. **Sergey Levine + Chelsea Finn** at Physical Intelligence (founded 2024) and **Karol Hausman**.\n\n**Open X-Embodiment (RT-X, 2024)**: 60+ robot platforms + 22 institutions + 1M+ episodes. Foundation for cross-embodiment robot learning. The \"ImageNet of robotics.\"\n\n**Code as Policies (Liang + Huang + Xia + Hausman + Florence + Brohan + Ichter, Google 2022)**: generate Python code from language prompts that calls perception + motion primitives. Bridges LLM reasoning + robot APIs.\n\n**Saycan (Ahn + Brohan + Google 2022)**: LLM ranks high-level skills + a value function says which are feasible; combine to plan long-horizon tasks.\n\n**Pretraining trends**:\n- Visual pretraining (R3M from Nair-Rajeswaran-Pinto, VC-1, Voltron) before fine-tuning policies.\n- Cross-embodiment + multi-task scaling (Open X-Embodiment) reduces single-robot data needs.\n- Language as a universal interface to robot capabilities.\n- Image generation (UniPi, AVID) for video-conditioned policies.\n\n**Scaling laws for robotics**: still being established. Recent results (RT-1, RT-2, OpenVLA, π0) suggest similar power-law improvements with data + compute + parameters as in language; but real-robot data remains the bottleneck."
+    },
+    {
+      "kind": "text",
+      "title": "Humanoids, simulation, and the frontier",
+      "body": "**The humanoid renaissance (2022→)**: a generation of well-funded humanoid robots aiming at general-purpose physical labor, paired with foundation models.\n\n**Major programs**:\n- **Tesla Optimus (2022→)**: humanoid for factory + home use. Multiple generations (Gen 1 2022, Gen 2 2023, Gen 3 2024-25). Tesla Inc. internal program; ~25 DOF, in-house actuators, eyes on FSD vision stack. Demonstrated folding shirts (telop initially; learning-based now).\n- **Figure 01 / Figure 02 (Figure AI, 2023→)**: humanoid + OpenAI partnership for VLA; Figure 02 deployed at BMW factory 2024.\n- **Agility Robotics Digit (2019→)**: bipedal humanoid with forward-bending knees; commercial deployment at Amazon + GXO warehouses 2024.\n- **Sanctuary Phoenix (2023→)**: humanoid with dexterous hands; UI for teleop + autonomy.\n- **1X Neo + Eve (2023→)**: residential humanoid; tendon-driven for safety; OpenAI investor.\n- **Apptronik Apollo (2023)**: humanoid for industrial use, NASA + Mercedes partnerships.\n- **Boston Dynamics Atlas (electric, 2024→)**: succeeds hydraulic Atlas; Hyundai-owned, commercial trajectory.\n- **Unitree H1, H2 (2023→)**: lower-cost humanoids enabling academic research at scale.\n- **Berkeley Humanoid Lite (2024)**: $5k-class research humanoid (Kim group).\n- **Booster T1, K-Scale Open Source Robot**: open-source efforts.\n\n**Why now**: confluence of (a) actuator + battery progress; (b) foundation models providing perception + reasoning; (c) sim-to-real RL maturing (legged from Hwangbo onwards); (d) capital flowing post-ChatGPT.\n\n**Simulation infrastructure (training + sim-to-real)**:\n- **NVIDIA Isaac Sim / Isaac Lab / Isaac Gym**: GPU-parallel simulation; thousands of agents in real-time; the de facto industry standard. Built on PhysX + USD.\n- **MuJoCo (Todorov + Erez + Tassa 2012; DeepMind 2021 open-source; MJX 2024 for GPU)**: contact-rich simulation; the academic standard.\n- **Drake (Tedrake + TRI)**: trajectory optimization + simulation; rigorous + open-source.\n- **PyBullet / Bullet (Coumans)**: easy + open.\n- **Brax (Google)**: differentiable sim in JAX.\n- **Habitat (Facebook AI)**: photo-realistic indoor sim for embodied navigation.\n- **AI2-THOR + RoboTHOR**: indoor navigation + manipulation.\n- **RoboCasa, ManiSkill, RoboSuite**: manipulation benchmarks.\n- **RaiSim (ETH/RaiSim)**: fast contact sim used by Hwangbo's group.\n- **Genesis (CMU 2024)**: differentiable + photorealistic.\n\n**Embodied AI benchmarks**:\n- **Habitat-PointNav / ObjectNav / Rearrange**: navigation + rearrangement.\n- **CALVIN, Behavior-1k**: long-horizon language-conditioned manipulation.\n- **RLBench, ManiSkill**: tabletop manipulation.\n- **Open X-Embodiment, DROID, Mobile ALOHA datasets**: cross-embodiment evaluation.\n\n**Frontier research directions**:\n- **Scaling laws for robot data + compute** (RT-X analysis 2024): power-law improvements with data exist but data is expensive to collect.\n- **Foundation models + RL fine-tuning**: BC-then-RL hybrid (RLHF for robots).\n- **Cross-embodiment generalization**: a single policy across many robot bodies.\n- **Long-horizon + hierarchical planning**: LLM planner + low-level skills (SayCan, Code-as-Policies, Octo, π0).\n- **Multimodal grounding**: tactile + audio + force into VLAs.\n- **World models + video generative models** (UniPi, AVID, 1X World Model, Sora as world model).\n- **Safe + aligned humanoids**: physical safety + intent inference.\n- **Sim-to-real for manipulation contact** (still hard).\n- **Open data + open models**: Open X-Embodiment, OpenVLA, Octo enabling academic + indie research at frontier scale.\n\n**Where it's going**: a decade ago hand-coded controllers were the norm; today learning-based policies + foundation models dominate research + are entering commercial humanoid stacks. Whether the curve continues like LLMs (each year a new step-change) or plateaus (manipulation contact + the long tail of physical tasks slow it down) is the central open question of mid-2020s robotics."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ai_dagger",
+        "kind": "guided_derivation",
+        "question": "Why DAgger beats behavior cloning",
+        "goal": "Plain BC suffers compounding error. DAgger (Ross + Gordon + Bagnell 2011) reduces it. Walk through the argument.",
+        "steps": [
+          {
+            "prompt": "BC: π trained iid on (s, a) from expert. At test, π is deployed → small action errors push state off-distribution. Compounding error?",
+            "motivation": "Covariate shift.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "if per-step error ε, expected total error over T steps is O(ε T²) worst case (Ross + Bagnell 2010)"
+              ]
+            },
+            "hints": [
+              "Quadratic in T."
+            ],
+            "reveal": "Per-step error ε on expert distribution → ε on near-expert states. But policy errors push us off-distribution where error is uncontrolled. Worst case: O(ε T²) total error. Visits states with prob d_π(s) ≠ d_expert(s)."
+          },
+          {
+            "prompt": "DAgger's idea?",
+            "motivation": "Interactive correction.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "execute current policy in env; query expert for correct action at visited states; aggregate dataset; retrain — repeat"
+              ]
+            },
+            "hints": [
+              "Roll out + label visited."
+            ],
+            "reveal": "DAgger: roll out current policy π_i, collect visited states {s}; query expert at those s for a* = expert(s); aggregate (s, a*) into D; retrain π_{i+1} on D. Iterate. Policy is trained on its **own state distribution** (interleaved with expert's)."
+          },
+          {
+            "prompt": "Result?",
+            "motivation": "Reduced regret.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Total error grows linearly in T: O(ε T) rather than O(ε T²)"
+              ]
+            },
+            "hints": [
+              "Linear instead of quadratic."
+            ],
+            "reveal": "DAgger achieves O(ε T) regret — a factor of T improvement over BC's O(ε T²) in the worst case. This is the foundational result for **interactive imitation learning**."
+          },
+          {
+            "prompt": "Practical limitation + modern modifications?",
+            "motivation": "Expert availability.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "requires expert during training, which is expensive; modern: HG-DAgger / human-gated DAgger; ensemble-DAgger uses ensemble disagreement to query expert only at uncertain states"
+              ]
+            },
+            "hints": [
+              "Querying expert is expensive."
+            ],
+            "reveal": "DAgger requires expert availability during training — expensive in practice (especially for human experts). Modifications: HG-DAgger (human gates query); EnsembleDAgger (ensemble uncertainty triggers query); SafeDAgger (only query if predicted dangerous). Modern systems (ALOHA + ACT, diffusion policy) often use plain BC with action chunking + multi-modal modeling, since these mitigate the BC failure mode differently — but DAgger remains the theoretical backbone."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{BC: } O(\\epsilon T^2);\\quad \\text{DAgger: } O(\\epsilon T)}$$ Interactive imitation learning is fundamentally better than off-policy BC because it trains on the policy's own state distribution. Ross-Gordon-Bagnell 2011 is the foundational result; modern imitation methods (ACT, diffusion policy) compensate via richer policy classes."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ai_vla",
+        "kind": "multiple_choice",
+        "question": "Why are vision-language-action (VLA) models like RT-2, OpenVLA, and π0 the current frontier for general-purpose robotics?",
+        "options": [
+          "Random.",
+          "VLAs combine pretrained vision encoders (DINOv2, SigLIP) + LLM backbones (PaLM, Llama, Gemma) + action heads (token-decoded, diffusion, flow-matching). They inherit web-scale visual + linguistic priors (knowledge of objects, language, common sense), which dramatically improves generalization compared to robot-only data. Fine-tuning on cross-embodiment robot data (Open X-Embodiment) gives a single policy that handles many tasks across many robot bodies. Demonstrated emergent capabilities: chain-of-thought reasoning (RT-2 strawberry-in-bowl), tool use (rock-as-hammer), and zero-shot transfer to novel tasks. The closest analog to GPT/Llama for robots — and the leading bet on closing Moravec's paradox.",
+          "Magic.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "VLAs combine web-pretrained vision + language priors with cross-embodiment robot fine-tuning. RT-2/OpenVLA/π0 are the leading examples. Inherits scaling laws; enables generalization beyond specific robot + task. Current frontier of embodied AI."
+      },
+      "hints": [
+        "Web-scale priors.",
+        "Cross-embodiment + task."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "VLAs (RT-2 Google 2023, OpenVLA Kim 2024, π0 Physical Intelligence 2024) inherit pretrained vision + language priors + fine-tune on cross-embodiment data (Open X-Embodiment). Generalize across tasks + bodies. Emergent reasoning. Current frontier."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ai_humanoid",
+        "kind": "scenario",
+        "question": "From foundation model to humanoid",
+        "prompt": "Tesla Optimus / Figure 02 / 1X Neo / Apptronik Apollo are commercial humanoids deploying in 2024-2025. Walk through the modern stack: hardware (28+ DOF, tendon vs direct drive, dexterous hands), low-level torque + impedance control, mid-level locomotion (sim-to-real RL — Hwangbo lineage), perception (multi-camera + IMU + ToF + tactile), high-level vision-language-action (RT-2 / OpenVLA / π0 family) for task understanding + planning, teleop data collection (Mobile ALOHA style) bootstrapping cross-embodiment fine-tuning. What are the dominant open problems (manipulation contact, long-horizon planning, safety, data scaling)?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ai_horizon",
+        "kind": "math_expression",
+        "question": "BC has worst-case O(ε T²) error; DAgger has O(ε T). For ε = 0.01 and T = 100, what is the BC worst-case bound, and what is DAgger's bound?",
+        "acceptedAnswers": [
+          "BC: 100; DAgger: 1",
+          "BC 100, DAgger 1",
+          "100 vs 1"
+        ],
+        "hint": "Plug in: 0.01 × 100² = 100; 0.01 × 100 = 1."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ai",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain the AI-robotics frontier: imitation learning + vision-language-action foundation models + humanoids + simulation. Name key methods + groups.",
+        "rubric": "Mentions imitation learning (BC, DAgger Ross-Gordon-Bagnell 2011, ALOHA + ACT Zhao 2023, Mobile ALOHA Fu+Zhao+Finn 2024, diffusion policy Chi 2023, 3D diffusion + flow matching); vision-language-action foundation models (RT-1/RT-2 Google 2022/23, PaLM-E 2023, OpenVLA Kim/Levine/Pertsch 2024, Octo, Physical Intelligence π0 — Black/Hausman/Levine/Pertsch/Finn 2024); cross-embodiment data (Open X-Embodiment, DROID); the humanoid renaissance (Tesla Optimus, Figure 01/02, Agility Digit, Sanctuary Phoenix, 1X Neo, Apptronik Apollo, electric Atlas, Unitree H1, Berkeley Humanoid Lite); simulation tooling (NVIDIA Isaac Sim/Gym, MuJoCo + MJX, Drake, Habitat); scaling laws still being established; remaining hard problems — manipulation contact, long-horizon planning, safety, real-world data collection. Concludes that 2024-2025 robotics blends classical kinematics/control/planning (the substrate) with learning-based perception + policies + foundation models (the new frontier) and is the closest robotics has been to general-purpose physical intelligence — though Moravec's paradox is yielding only slowly."
+      }
+    }
+  ]
+}
