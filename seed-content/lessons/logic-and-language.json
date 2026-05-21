@@ -1,0 +1,157 @@
+{
+  "slug": "logic-and-language",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Master propositional logic — connectives, truth tables, tautologies, soundness + completeness.",
+      "Understand predicate logic + the Frege-Russell-Tarski revolution.",
+      "Grasp the modern philosophy of language — Frege sense/reference, Russell descriptions, Kripke rigid designators, Wittgenstein language games, Grice implicature."
+    ],
+    "prereqs": [
+      "philosophy-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Propositional logic — connectives, truth tables, soundness + completeness",
+      "body": "**Logic** = the systematic study of valid inference. The 20th century saw logic become a *mathematical* discipline + the indispensable tool of analytic philosophy + computer science + linguistics.\n\n**Propositional logic** (sentential calculus) studies how the truth of compound sentences depends on their atomic constituents. Atomic propositions $P, Q, R$ each have a truth value $T$ or $F$; connectives combine them.\n\n**The five standard connectives**:\n- **Negation** $\\neg P$ — 'not $P$'.\n- **Conjunction** $P \\land Q$ — '$P$ and $Q$'.\n- **Disjunction** $P \\lor Q$ — '$P$ or $Q$' (inclusive).\n- **Material conditional** $P \\to Q$ — 'if $P$ then $Q$' — true except when $P$ is true + $Q$ is false.\n- **Biconditional** $P \\leftrightarrow Q$ — '$P$ iff $Q$' — true iff $P$ and $Q$ have the same truth value.\n\n**Truth tables** systematically enumerate all $2^n$ combinations of $n$ atomic propositions. The material conditional $P \\to Q$ is the most counterintuitive — it is *vacuously* true when $P$ is false. ('If the moon is cheese, then 2+2=4' is true.) The viz on this page explores all four binary connectives.\n\n**Tautologies + contradictions + contingencies**:\n- A formula is a **tautology** if it is true on every row — e.g. $P \\lor \\neg P$ (law of excluded middle), $(P \\to Q) \\leftrightarrow (\\neg Q \\to \\neg P)$ (contraposition).\n- A **contradiction** is false on every row — e.g. $P \\land \\neg P$ (law of non-contradiction).\n- A **contingency** is true on some rows + false on others.\n\n**Logical equivalence**: $\\phi \\equiv \\psi$ iff $\\phi \\leftrightarrow \\psi$ is a tautology. **De Morgan's laws**: $\\neg(P \\land Q) \\equiv \\neg P \\lor \\neg Q$; $\\neg(P \\lor Q) \\equiv \\neg P \\land \\neg Q$.\n\n**Validity**: an argument $\\phi_1, \\ldots, \\phi_n \\models \\psi$ is *semantically valid* iff every truth-value assignment that makes all premises true makes the conclusion true.\n\n**Proof systems** ($\\vdash$): natural deduction (Gentzen 1934), Hilbert systems, sequent calculus, tableaux. **Soundness** — if $\\Gamma \\vdash \\phi$ then $\\Gamma \\models \\phi$ (proof ⇒ truth). **Completeness** — if $\\Gamma \\models \\phi$ then $\\Gamma \\vdash \\phi$ (truth ⇒ proof). For propositional logic + first-order logic, both hold (**Gödel's completeness theorem** 1930 for FOL). For arithmetic, completeness fails (**Gödel's incompleteness theorems** 1931).\n\n**Decidability**: propositional logic is decidable (truth tables in $O(2^n)$; SAT is NP-complete — Cook 1971); first-order logic is *semi-decidable* (Church + Turing 1936); higher-order + arithmetic are not.\n\nThe interactive truth-table viz on this slide lets you flip atomic values + visualize how complex formulas evaluate row-by-row. Time spent reading + building truth tables is the single best way to build logical intuition.",
+      "viz": "truth-table",
+      "vizProps": {
+        "formula": "P->Q"
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Predicate logic — Frege, Russell + Whitehead, Tarski",
+      "body": "Propositional logic cannot represent *'All humans are mortal; Socrates is human; therefore Socrates is mortal.'* That requires **predicate logic** — quantifiers + variables + predicates.\n\n**Gottlob Frege (1848-1925)** invented modern predicate logic in ***Begriffsschrift*** ('Concept-Script', 1879) — a 2-D notation introducing:\n- **Predicates** ($P(x)$, $R(x, y)$).\n- **Variables** ranging over a domain.\n- **Universal quantifier** $\\forall x \\, P(x)$ — 'for all $x$, $P(x)$'.\n- **Existential quantifier** $\\exists x \\, P(x)$ — 'there exists $x$ such that $P(x)$'.\nFrege's *Grundgesetze der Arithmetik* (1893, 1903) tried to derive arithmetic from logic alone — the **logicist** program.\n\n**Russell's paradox (1901)**: Russell wrote to Frege: consider $R = \\{x : x \\notin x\\}$. Is $R \\in R$? If yes, then $R \\notin R$. If no, then $R \\in R$. Contradiction. Frege famously replied that the foundation of his life's work had been shaken.\n\n**Bertrand Russell + Alfred North Whitehead, *Principia Mathematica* (1910-1913)** — three volumes; ramified type theory to block paradox; '$1 + 1 = 2$' proven on page 379 of vol. 1. The most ambitious logicist enterprise + a foundation of analytic philosophy.\n\n**Alfred Tarski (1901-1983)** — semantic conception of truth. ***The Concept of Truth in Formalized Languages*** (1933, German edition 1935): a formal theory of truth via *satisfaction* by sequences of objects in a structure (model). For a sentence $\\phi$ in language $L$: $\\phi$ is true in model $M$ iff a recursive satisfaction relation holds. **Convention T**: 'snow is white' is true iff snow is white — the famous *T-schema*. **Tarski's undefinability theorem** (1936): truth for arithmetic is not definable within arithmetic; semantic + object languages must be distinguished. Foundation of model theory + formal semantics.\n\n**First-order logic (FOL)**: domain + predicates + functions + connectives + quantifiers + identity. Properties:\n- **Soundness + completeness** (Gödel 1930) — proof matches truth.\n- **Compactness** — if every finite subset of a theory has a model, the whole theory has a model.\n- **Löwenheim-Skolem** — countable theories with infinite models have models of every infinite cardinality.\n- **Semi-decidability** — Church-Turing 1936 (validity is RE but not decidable).\n- Cannot express categoricity (the natural numbers cannot be uniquely characterized).\n\n**Higher-order + intensional logics**:\n- **Second-order logic**: quantify over predicates — more expressive, less well-behaved (no completeness).\n- **Modal logic** (necessity $\\Box$, possibility $\\Diamond$) — formalized by C. I. Lewis + Kripke semantics (lesson 4).\n- **Tense + epistemic + deontic logics**, **temporal logic** (Pnueli, Manna, Clarke + Emerson — model checking + Turing-award-level CS contribution).\n- **Intuitionistic logic** (Brouwer + Heyting) — rejects $P \\lor \\neg P$ as a non-constructive law; Curry-Howard correspondence with constructive type theory (foundation of Coq, Agda, Lean).\n- **Linear, relevance, paraconsistent logics**.\n\n**Logic in CS + AI**: SAT solvers (DPLL 1962; CDCL; minisat; z3); SMT (z3, cvc5); description logics (OWL); Prolog + Datalog; type theory + proof assistants (Coq, Agda, Lean, Isabelle, Idris); program verification (Floyd-Hoare, separation logic, model checking); ML + logic integration (neuro-symbolic AI). The marriage of logic + computation is one of the 20th century's great intellectual achievements."
+    },
+    {
+      "kind": "text",
+      "title": "Philosophy of language — Frege, Russell, Kripke, Wittgenstein, Grice",
+      "body": "Philosophy of language asks: what is meaning? how do words refer? what makes communication possible?\n\n**Frege's *Über Sinn und Bedeutung* (1892) — sense + reference**. Puzzle: 'the morning star = the evening star' is *informative*; 'the morning star = the morning star' is trivial. Yet both refer to Venus. Frege: every meaningful expression has **sense** (*Sinn*, mode of presentation) + **reference** (*Bedeutung*, what it picks out). Sentences refer to truth values; senses are 'modes of presentation' of those truth values. Foundation of all subsequent semantics.\n\n**Russell, 'On Denoting' (1905) — theory of definite descriptions**. 'The present king of France is bald.' France has no king. Is the sentence true? false? meaningless? Russell: the sentence has the logical form\n$$\\exists x \\,(Kx \\land \\forall y\\,(Ky \\to y = x) \\land Bx)$$\n— there exists a unique $x$ such that $x$ is king of France + $x$ is bald. Since no such $x$ exists, the sentence is *false* (not meaningless). Eliminates apparent reference to non-existent objects + dissolves a cluster of puzzles. One of the canonical examples of *logical analysis* in analytic philosophy.\n\n**P. F. Strawson (1950, 'On Referring')** — counter-Russell: such sentences *presuppose* the king's existence + lack a truth value when the presupposition fails. Donnellan (1966) — referential vs attributive use. Live debate continues.\n\n**Saul Kripke, *Naming and Necessity* (1972, 1980)** — proper names are **rigid designators** (refer to the same object in every possible world in which that object exists); descriptions are not. The **causal theory of reference**: 'Aristotle' refers to Aristotle through a causal-historical chain back to a *baptism*, not through any descriptive content the speaker associates with the name. Necessary a posteriori truths ('water = H₂O', 'Hesperus = Phosphorus'); contingent a priori truths (the standard meter, in Wittgenstein's example). Reshaped metaphysics + philosophy of language + the analytic-Kantian framework.\n\n**Hilary Putnam, 'The Meaning of Meaning' (1975)** — **content externalism** + the Twin Earth thought experiment. On Twin Earth, the colorless drinkable substance is XYZ, not H₂O. Twin-Oscar's word 'water' refers to XYZ even though Twin-Oscar's mental state may be intrinsically identical to Oscar's. *'Meanings just ain't in the head.'* Tyler Burge extended externalism to broader social content.\n\n**Wittgenstein's later philosophy — *Philosophical Investigations* (1953)**. Repudiating his own *Tractatus*:\n- ***Language games***: meaning isn't a fixed correspondence; it's the use of an expression in a particular human activity ('builder + slab', '5 red apples', giving orders, telling jokes).\n- ***Meaning as use***: 'For a large class of cases — though not for all — in which we employ the word 'meaning', it can be defined thus: the meaning of a word is its use in the language.'\n- ***Rule-following*** (sec. 185-242): no number of past instances determines the next; rules are constituted by practice + agreement in form of life.\n- ***Private-language argument*** (sec. 243+): a purely private language is impossible; meaning requires public criteria.\n- ***Family resemblance***: 'game' has no single defining feature; just overlapping similarities.\nDeeply influential — late-Wittgenstein-inflected approaches to mind (Ryle), social science, anthropology (Winch), philosophy of mathematics.\n\n**H. P. Grice, *Studies in the Way of Words* (1989; lectures from 1960s)** — **implicature**. There's what is *said* (semantics) + what is *implicated* (pragmatics). The **cooperative principle** + four maxims: **quantity** (be informative), **quality** (be truthful), **relation** (be relevant), **manner** (be clear). 'Some students passed' *implicates* (but does not entail) 'not all students passed' — *conversational implicature*. Foundation of formal pragmatics + linguistic semantics.\n\n**Speech-act theory**: J. L. Austin *How to Do Things with Words* (1962) — locutionary, illocutionary, perlocutionary acts; performatives ('I promise'). John Searle *Speech Acts* (1969) extended this. Foundational for philosophy of action + jurisprudence + linguistics.\n\n**Davidson + truth-conditional semantics**: Donald Davidson, ***Truth and Meaning*** (1967) — a theory of meaning for $L$ should yield a Tarskian truth theory; meaning is given by truth conditions; **radical interpretation** + the *principle of charity*. Foundation of formal semantics in linguistics (Montague + Lewis + Kamp + Heim).\n\n**Modern developments**: dynamic semantics (Heim, Kamp), generative grammar (Chomsky) + linguistic philosophy, cognitive science of language, computational linguistics + NLP (lesson 8 + Chalmers on LLMs); philosophy of LLMs (do they understand? do they refer?). Frege's sense + reference, Russell's descriptions, Kripke's rigid designators, Wittgenstein's language games, Grice's implicature remain the canonical tools."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_log_1",
+        "kind": "guided_derivation",
+        "question": "Build the truth table for the material conditional + verify a tautology",
+        "goal": "Construct the truth table for $P \\to Q$ + show that $(P \\to Q) \\equiv (\\neg P \\lor Q)$ + that $((P \\to Q) \\land P) \\to Q$ is a tautology (modus ponens).",
+        "steps": [
+          {
+            "prompt": "Write the truth table for $P \\to Q$.",
+            "motivation": "Four rows enumerate all $2^2$ combinations.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "TT->T; TF->F; FT->T; FF->T — the conditional is false only when P is true and Q is false"
+              ]
+            },
+            "hints": [
+              "$P \\to Q$ is false only when $P$ is true + $Q$ is false."
+            ],
+            "reveal": "The truth table:\n\n| $P$ | $Q$ | $P \\to Q$ |\n|---|---|---|\n| T | T | T |\n| T | F | F |\n| F | T | T |\n| F | F | T |\n\nThe material conditional is *vacuously true* when its antecedent is false. This is the source of the 'paradoxes of material implication' — 'If the moon is cheese, then 2+2=4' comes out true."
+          },
+          {
+            "prompt": "Now compute $\\neg P \\lor Q$ on the same four rows.",
+            "motivation": "Compare row-by-row.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "TT: F or T = T; TF: F or F = F; FT: T or T = T; FF: T or F = T — identical to P->Q"
+              ]
+            },
+            "hints": [
+              "Negate $P$ then take inclusive or with $Q$."
+            ],
+            "reveal": "$\\neg P \\lor Q$ row-by-row: TT $\\to F \\lor T = T$; TF $\\to F \\lor F = F$; FT $\\to T \\lor T = T$; FF $\\to T \\lor F = T$. **Identical** to $P \\to Q$. So $(P \\to Q) \\equiv (\\neg P \\lor Q)$ — the standard definition of the material conditional in disjunctive form. This equivalence is used everywhere in proof systems + logic-design + SAT-solving."
+          },
+          {
+            "prompt": "Compute $((P \\to Q) \\land P) \\to Q$ on all four rows.",
+            "motivation": "Check tautology status.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "all four rows evaluate to T — modus ponens is a tautology"
+              ]
+            },
+            "hints": [
+              "Evaluate the antecedent first, then the conditional."
+            ],
+            "reveal": "Let $A = (P \\to Q) \\land P$. Then:\n\n| $P$ | $Q$ | $P \\to Q$ | $A$ | $A \\to Q$ |\n|---|---|---|---|---|\n| T | T | T | T | T |\n| T | F | F | F | T |\n| F | T | T | F | T |\n| F | F | T | F | T |\n\nAll four rows are $T$ — $((P \\to Q) \\land P) \\to Q$ is a tautology. This is **modus ponens** — from $P \\to Q$ + $P$, conclude $Q$. The most basic + indispensable inference rule."
+          },
+          {
+            "prompt": "What does soundness + completeness add?",
+            "motivation": "Connecting syntax to semantics.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "soundness says provable implies true on every assignment; completeness says true on every assignment implies provable — together they ensure the proof system perfectly matches the semantics"
+              ]
+            },
+            "hints": [
+              "$\\vdash$ vs $\\models$."
+            ],
+            "reveal": "A proof system $\\vdash$ + a semantics $\\models$. **Soundness**: $\\Gamma \\vdash \\phi$ implies $\\Gamma \\models \\phi$ (if you can prove $\\phi$ from $\\Gamma$, then $\\phi$ is true wherever $\\Gamma$ is). **Completeness**: $\\Gamma \\models \\phi$ implies $\\Gamma \\vdash \\phi$ (if $\\phi$ is true wherever $\\Gamma$ is, you can prove it). For propositional + first-order logic, both hold (Gödel 1930 for FOL completeness). Soundness ensures we never prove falsehoods; completeness ensures the proof system captures all + only the truths. For richer logics (second-order, arithmetic) completeness fails — Gödel's incompleteness theorems (1931)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_log_1",
+        "kind": "multiple_choice",
+        "question": "Why is Kripke's *Naming and Necessity* (1972) considered the most important book in analytic philosophy of the second half of the 20th century?",
+        "options": [
+          "Random.",
+          "Saul Kripke's three lectures (Princeton 1970; published 1972, expanded 1980) overturned the Frege-Russell descriptivist orthodoxy by arguing that **proper names are rigid designators** — they refer to the same object in every possible world in which that object exists, regardless of which descriptive content speakers associate with the name. The **causal-historical theory of reference**: a name picks up its reference via a *baptism* + then transmits causally through linguistic communities. Consequences: (1) **necessary a posteriori truths** — 'Hesperus = Phosphorus', 'water = H₂O', 'gold has atomic number 79' are necessary (true in every possible world) yet known a posteriori; (2) **contingent a priori truths** ('the standard meter is one meter long', under a particular stipulation); (3) revival of essentialism — natural-kind terms have an essence (atomic number, microstructure) discovered empirically. Combined with Putnam's Twin Earth (1975) + content externalism, this reshaped philosophy of language, metaphysics (lesson 4 modal realism), philosophy of mind (mental content is not in the head), philosophy of science (natural kinds), + much of metaethics. The Kripke-Putnam consensus is the analytic baseline for the next half-century.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Kripke's *Naming and Necessity* (lectures 1970; published 1972, expanded 1980) overturned descriptivism — names are rigid designators that refer in every possible world; reference is fixed by a baptism + causal-historical chain, not descriptive content. Yielded necessary a posteriori ('water = H₂O') + contingent a priori (standard meter) truths + revived natural-kind essentialism. With Putnam's Twin Earth (1975) it grounds modern externalism in language, metaphysics, mind, science."
+      },
+      "hints": [
+        "Rigid designators + necessary a posteriori.",
+        "Causal-historical theory of reference."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Kripke (*Naming and Necessity* 1972) showed names are rigid designators referring to the same object in every possible world; reference comes from a baptism + causal-historical chain. Yielded necessary a posteriori (water = H₂O, Hesperus = Phosphorus) + contingent a priori (standard meter) truths + revived natural-kind essentialism. With Putnam's Twin Earth + content externalism it grounds the analytic baseline of the late 20th century."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_log_1",
+        "kind": "scenario",
+        "question": "Logic + language in a real puzzle",
+        "prompt": "A 21st-century legal philosopher asks: what does it mean for a statute to *say* something? Draft a ≤220-word reply that draws on (a) Frege's sense + reference (1892); (b) Russell's theory of descriptions (1905); (c) Kripke's rigid designation + causal theory of reference (1972); (d) Wittgenstein's later work — language games + meaning as use (1953); + (e) Grice's distinction between what is said + what is conversationally implicated (1989). Identify two concrete legal-interpretation questions (e.g., textualism vs purposivism; statutory terms referring to natural kinds vs social kinds; presupposition failure in legal proceedings) that these tools illuminate."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_log_1",
+        "kind": "math_expression",
+        "question": "How many distinct rows does a truth table for a propositional formula with $n = 6$ atomic propositions have?",
+        "acceptedAnswers": [
+          "64",
+          "2^6",
+          "2**6"
+        ],
+        "hint": "$2^6 = 64$. Each row is an assignment of T/F to each of the $n$ atoms; there are $2^n$ such assignments. SAT — the problem of finding an assignment that satisfies a propositional formula — is NP-complete (Cook 1971); but modern SAT solvers (DPLL 1962; CDCL; minisat, glucose, kissat) routinely handle millions of variables on industrial instances."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_log_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, characterize 20th-century logic + philosophy of language by naming (a) one core contribution from Frege, Russell + Whitehead, Tarski + Quine; (b) Kripke, Putnam, Wittgenstein, Grice + Davidson; + (c) one open question (e.g., implicature in LLMs; semantic externalism + cognitive science; the analytic-synthetic distinction).",
+        "rubric": "Mentions: Frege (*Begriffsschrift* 1879 — predicate logic with quantifiers; 1892 sense/reference). Russell + Whitehead (*Principia Mathematica* 1910-13 — logicism + type theory + 1905 theory of descriptions). Tarski (1933/1936 semantic conception of truth + T-schema + undefinability). Quine (1951 *Two Dogmas* — rejects analytic-synthetic + reductionism; meaning holism). Kripke (1972 *Naming and Necessity* — rigid designators + causal theory of reference + necessary a posteriori). Putnam (1975 Twin Earth + content externalism). Wittgenstein (*Tractatus* 1921 + *Investigations* 1953 — language games + meaning as use + private-language argument). Grice (cooperative principle + maxims + conversational implicature). Davidson (truth-conditional semantics + radical interpretation). Open questions: do LLMs refer + understand (lesson 8 — Chalmers)? How does Gricean pragmatics scale to large-context dialogue? Is the analytic-synthetic distinction salvageable after Quine? Concludes that logic + language are the analytic tradition's signature contributions + remain central to philosophy + linguistics + CS + AI."
+      }
+    }
+  ]
+}
