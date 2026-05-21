@@ -1,0 +1,156 @@
+{
+  "slug": "digital-bim-and-parametric",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Trace the CAD → BIM transition (AutoCAD 1982 → Revit 2000 → IFC + LOD).",
+      "Survey parametric + computational design (Grasshopper + Dynamo, Galapagos, Karamba, Ladybug, Rhino.Inside).",
+      "Connect to generative + AI tools (Spacemaker, Hypar, Midjourney, LookX, Stable Diffusion) shaping practice."
+    ],
+    "prereqs": [
+      "architectural-design-process",
+      "building-systems-and-technology"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "CAD → BIM: from drafting to information modeling",
+      "body": "**CAD (Computer-Aided Drafting / Design)** replaced the drawing board in architecture between ~1980 and 2000, but it was essentially a faster way to produce 2D drawings. **BIM (Building Information Modeling)** is a generational shift: from drawings to a *parametric, object-oriented, information-rich 3D model* that drives drawings, schedules, analyses, fabrication, and operations. Both shifts profoundly reshaped practice.\n\n**CAD origins**:\n- **Sketchpad** (Ivan Sutherland 1963 MIT PhD): the first interactive computer graphics + parametric drawing system; recognized as the origin of CAD.\n- **Patrick Hanratty** (~1970s) — pioneer of CAD/CAM at General Motors; DAC + ICEM/Camand systems.\n- **Computervision, Intergraph, Bentley Systems** (1980s): early commercial CAD; large mainframe + workstation installations.\n- **AutoCAD** (Autodesk, 1982; co-founders John Walker + Dan Drake + Michael Riddle): democratized CAD on the IBM PC; ~$1000 vs $100k for workstation systems. By the late 1980s AutoCAD dominated. **Versions**: AutoCAD R14 (1997) was the mass-adoption breakthrough; AutoCAD 2024 still updated. **DWG file format** became the de facto industry exchange.\n- **MicroStation** (Bentley Systems, 1985-): competitor; strong in civil + infrastructure.\n- **ArchiCAD** (Graphisoft, Hungary 1984): earliest *object-based* architectural CAD; led BIM development long before the term existed.\n\n**The BIM transition**:\n- **Chuck Eastman + the BIM Handbook**: Charles M. Eastman (1940-2020, Georgia Tech), pioneer + author of *The BIM Handbook: A Guide to Building Information Modeling for Owners, Managers, Designers, Engineers and Contractors* (2008, 3rd ed. 2018; with Teicholz, Sacks, Liston). Earlier *Building Description System* (1974) — first formal proposal for what BIM became. *BIM and Integrated Design* (2008).\n- **Term 'Building Information Modeling'**: coined / popularized by Autodesk + Phil Bernstein + others in late 1990s-2000s.\n- **Revit** (founded 1997; Autodesk acquired 2002 for $133M; first commercial release 2000): the breakthrough BIM platform — parametric objects (walls + columns + doors + windows + roofs) with attributes (size, material, manufacturer, U-value, fire rating, cost) + relationships (a window cuts a hole in a wall; resizing the wall moves the window). One model produces plans + sections + elevations + 3D + schedules + quantities — all synchronized.\n- **ArchiCAD** (Graphisoft, ~1984; acquired by Nemetschek): the European + Apple-friendly BIM alternative; long heritage of object-based design.\n- **Vectorworks** (Nemetschek): residential + landscape + entertainment.\n- **Tekla Structures** (Trimble): structural BIM; detailed steel + concrete shop modeling.\n- **Bentley OpenBuildings / AECOsim**: large infrastructure + complex buildings.\n- **Allplan** (Nemetschek), **Rhino** (architects' free-form modeler; lesson focus next).\n\n**BIM core concepts**:\n- **Parametric objects**: walls + columns + doors + windows + roofs + slabs as smart objects with attributes + relationships, not just lines + arcs.\n- **Federated model**: combine architectural + structural + MEP + civil + landscape models in one coordination environment.\n- **Single source of truth**: change once, propagate everywhere — plans, sections, schedules, renderings all from the same underlying model.\n- **Dimensions** beyond geometry: 3D (geometry) + 4D (time/schedule) + 5D (cost) + 6D (sustainability + facilities) + 7D (operations/handover).\n- **LOD (Level of Development / Detail)** — AIA + BIMForum standard:\n  - **LOD 100**: conceptual mass + general intent.\n  - **LOD 200**: generic objects, approximate dimensions.\n  - **LOD 300**: specific objects, accurate geometry — design-development quality.\n  - **LOD 350**: + connections + clash-ready.\n  - **LOD 400**: + fabrication-detailed.\n  - **LOD 500**: + as-built / facilities.\n\n**Interoperability**:\n- **IFC (Industry Foundation Classes)** — buildingSMART (formerly IAI) open data model; **ISO 16739** standard. Vendor-neutral exchange between Revit + ArchiCAD + Tekla + AECOsim + others. Required by public-sector procurement in many countries (UK BIM Level 2 Mandate 2016; Singapore, Norway, Denmark, Germany, France).\n- **COBie (Construction Operations Building Information Exchange)**: spreadsheet-based handover data subset for FM.\n- **BCF (BIM Collaboration Format)**: issue + clash + comment exchange.\n- **gbXML**: building-performance simulation exchange.\n\n**Clash detection + coordination (recapping lesson 5)**:\n- **Navisworks** (Autodesk), **Solibri** (Nemetschek/Trimble), **Revizto**, **BIMcollab**, **Autodesk Construction Cloud**.\n- **Hard clashes** (geometric interference), **clearance clashes** (code/access requirements), **workflow clashes** (constructability sequencing).\n- Weekly clash reports → consultant resolution → re-publish + re-clash. Saves weeks-months of field RFIs + change orders on large complex projects.\n\n**4D + 5D + 6D + 7D BIM**:\n- **4D**: model linked to schedule. Synchro 4D, Navisworks TimeLiner, Bentley SYNCHRO. Visualize construction sequence; identify scheduling clashes (a column erected before its slab can be poured).\n- **5D**: model linked to cost. CostX, RIB iTWO, Vico Office, Sage Estimating. Real-time cost feedback as design changes.\n- **6D**: sustainability + lifecycle (Tally, OneClickLCA, EC3, Cove.tool).\n- **7D**: facilities management + operations (Archibus, Planon, FM:Systems, IBM TRIRIGA; with digital-twin live data integration via IoT sensors).\n\n**National + international BIM mandates**:\n- **UK BIM Level 2 (2016)** — government-procured projects required to use BIM (later ISO 19650 series).\n- **Singapore BIM Roadmap** (2010-).\n- **Nordic countries** (Norway, Denmark, Finland) — early BIM adopters; full IFC-based mandates.\n- **France, Germany, Italy** — BIM mandates rolling out since ~2015.\n- **US** — federal GSA, USACE, VA have BIM requirements; less unified than UK or Nordic.\n\n**The shift's consequences**: BIM has not just speeded drawing production — it has reshaped collaboration (federated models force consultant coordination), procurement (precision quantities + scheduling), construction (clash-free CDs, prefabrication), and operations (handover model as digital-twin foundation). The next two slides cover the *parametric* + *generative* layers that sit on top of BIM."
+    },
+    {
+      "kind": "text",
+      "title": "Parametric + computational design: Grasshopper, Dynamo, Karamba, Ladybug",
+      "body": "**Parametric design** is design driven by *parameters* + *algorithmic relationships*, not fixed geometry. Change a parameter → the design updates automatically; explore many variants quickly; embed performance objectives + optimize against them. The parametric layer sits *on top of* BIM (Revit + ArchiCAD) + free-form modeling (Rhino).\n\n**Rhinoceros (Rhino) + Grasshopper**:\n- **Rhino** (Robert McNeel & Associates, 1998-): NURBS-based free-form 3D modeler. Indispensable for complex geometry — Frank Gehry's Bilbao + Walt Disney Concert Hall + Foster's swirls + Hadid's fluid surfaces are Rhino + sister CATIA models.\n- **Grasshopper** (David Rutten, integrated into Rhino 2007 as plug-in, native in Rhino 6+, 2018): **visual programming** environment — connect components (number sliders, math operations, geometry generators, list operations) on a graphical canvas. Output: live-updating Rhino geometry. No traditional coding required; an architectural-friendly graph-based programming model.\n- Quickly became the dominant parametric-design environment in academia + leading practice.\n\n**Dynamo** (Autodesk, 2011-):\n- The Grasshopper analog for Revit + AutoCAD. Visual node graph that reads + writes Revit elements + parameters + family instances + schedules.\n- Used for BIM automation (mass-create families, rationalize complex geometry, audit + report).\n\n**Grasshopper ecosystem — major plug-ins** (each adds a domain to the algorithmic toolkit):\n- **Karamba3D** (Clemens Preisinger, Bollinger + Grohmann + TU Wien): real-time finite-element structural analysis + sizing inside Grasshopper. Couples geometry to structural performance; closes the architect-engineer loop.\n- **Kangaroo** (Daniel Piker): real-time physics-based form-finding — relaxation, soap-film + minimal surfaces (Frei Otto-style), inflated cushions, fabric structures, dynamic relaxation for shells.\n- **Ladybug + Honeybee + Butterfly + Dragonfly** (Mostapha Sadeghipour Roudsari): climate + radiation + daylighting + thermal + CFD inside Grasshopper. Honeybee wraps EnergyPlus + Radiance + OpenFOAM; lets designers run weather-driven simulations inside the modeling environment. **The most-adopted environmental-simulation toolkit in academic + leading practice**.\n- **ClimateStudio** (Solemma, by Christoph Reinhart MIT): commercial successor + complement; faster radiance daylighting + glare + thermal.\n- **Wallacei + Octopus + Galapagos** (genetic + Pareto-optimization solvers): multi-objective design optimization on Grasshopper definitions. **Galapagos** (David Rutten) shipped with Grasshopper; **Octopus** (Robert Vierlinger) extends to multi-objective; **Wallacei** (Mohammed Makki + Milad Showkatbakhsh) adds analytics on Pareto fronts.\n- **Lunchbox, Weaverbird, Mesh+, Pufferfish**: geometry + meshing libraries.\n- **Anemone**: explicit loops in Grasshopper.\n- **Elefront**: bake + reference geometry to + from Rhino layers + attributes.\n- **OpenNURBS, IronPython, C# scripting**: extend Grasshopper with custom code.\n\n**Rhino.Inside Revit**:\n- A bridge launched 2019-2020 (McNeel + Autodesk collaboration) allowing Grasshopper to run inside Revit's process + directly create, read, and modify Revit elements. Closes the Rhino-Revit gap that long hampered parametric workflows in BIM-mandate jurisdictions.\n- Now standard in many firms: design + iterate parametrically in Rhino + Grasshopper, produce Revit BIM in the same session.\n\n**Generative + optimization workflows**:\n- **Galapagos** (single-objective evolutionary solver): set a fitness function + parameter ranges; the solver evolves generations of designs maximizing the fitness. Example: minimize annual energy use of an office facade by tuning shading + glazing ratio.\n- **Octopus / Wallacei** (multi-objective): trade off competing objectives — minimize embodied carbon + maximize daylight + minimize cost. Output Pareto front of non-dominated designs.\n- **Discover** (Autodesk Forma research line): generative design for site massing — input site + program + objectives, generate massing options + Pareto fronts.\n- **Refinery / Project Refinery** → **Forma**: generative-design Autodesk products evolving toward AI-augmented design.\n\n**Where it's used in real projects**:\n- **Foster + Partners**: applied research group has used Grasshopper + Karamba + Galapagos extensively (30 St Mary Axe diagrid optimization, Apple Park courtyard tree placement).\n- **Zaha Hadid Architects (ZHA)**: a parametric-design powerhouse; the parametric vocabulary that defines the practice runs on Rhino + Grasshopper + Maya.\n- **BIG**: programmatic massing + Grasshopper geometry for the unfolding-volume diagrams that drive their projects.\n- **SOM** + **Arup** + **Buro Happold** + **Thornton Tomasetti**: leading engineering firms with mature parametric practices.\n- **Snøhetta, Olson Kundig, Diller Scofidio + Renfro, Heatherwick Studio**: complex geometry projects.\n- **MIT, ETH Zurich, AA, Sci-Arc, GSAPP, Bartlett**: leading parametric + computational programs.\n\n**Skills transition**: practicing architects increasingly need Grasshopper / Dynamo literacy alongside CAD + BIM. Computational designer + design technologist roles are common in larger firms. The line between *architect* + *engineer* + *programmer* blurs.\n\n**Limits + caveats**:\n- Parametric geometry doesn't automatically make better architecture — over-complex form often serves the algorithm rather than the user. The *parametricism* manifesto (Patrik Schumacher, ZHA) drew critical pushback.\n- Construction documentation + permitting still need conventional drawings + specs (lesson 4). Rhino.Inside Revit + Dynamo bridge to the BIM that the building department reviews.\n- Maintenance + handover: parametric definitions go stale; firms struggle to maintain libraries across projects.\n\nThe parametric layer is now a standard part of advanced practice — and the substrate for the AI-generative tools of the next slide."
+    },
+    {
+      "kind": "text",
+      "title": "Generative + AI: Spacemaker, Hypar, Midjourney, LookX, diffusion-aided design",
+      "body": "Architecture is entering its **AI-augmented** generation. Three families of tools matter: **generative-design platforms** (Autodesk Forma née Spacemaker, Hypar, TestFit) that optimize site + massing + early-design configurations under constraints; **image-generation models** (Midjourney, Stable Diffusion, DALL-E, LookX) that produce concept-imagery from text + sketches; and **emerging end-to-end design AI** (LookX, Diagram, Architect.io, Adept.ai) that combines language models + diffusion + BIM-aware generation.\n\n**Autodesk Forma (formerly Spacemaker)**:\n- **Spacemaker AS** (Oslo, founded 2016 by Havard Haukeland + Anders Kvale + Carl Christensen) — cloud platform for AI-assisted site + massing design. Inputs: site boundary + zoning rules + program + climate. Outputs: thousands of massing alternatives ranked by daylight + view + wind + noise + solar + buildable area + carbon.\n- Acquired by Autodesk 2020 for ~$240M; rebranded as **Autodesk Forma** in 2023 (along with adjacent products).\n- Used by Skanska, Bouygues, JLL, NCC, large EU developers + planners.\n- Demonstrates the pattern: combine *site rules + program + simulation* in a fast cloud engine + use AI/ML to surface high-performing options early.\n\n**Hypar** (Anthony Hauck — ex-Revit chief; co-founders Andrew Heumann + others):\n- **Hypar.io** (2018-) — cloud platform for *generative building design*. Combines reusable parameterized *functions* (a panel system, an MEP layout, a stair core) into composable Hypar workflows that generate full BIM models from program + site.\n- Targets the *productization* of building components — turning standard design decisions into reusable AI-assisted modules.\n- Active community + integration with Revit, Rhino, web previews.\n\n**TestFit** (Clifton Harness + Ryan Griege, Dallas):\n- Real-estate-developer-focused generative design for site + program studies. Optimize for parking, units, FAR, returns.\n\n**Higharc, KOPE, BIMobject, Vossloh, others**: residential + product-system generative tools.\n\n**Image-generation models** (~2022-):\n- **Stable Diffusion** (Stability AI 2022, open source; Rombach + Blattmann et al. 'High-Resolution Image Synthesis with Latent Diffusion Models', 2022) — latent diffusion text-to-image model; runs locally; can be fine-tuned (DreamBooth, LoRA) on architectural styles or specific projects.\n- **Midjourney** (David Holz 2022-): subscription image-generation service via Discord + web; widely used for *concept imagery* + *moodboards* in architectural practice.\n- **DALL-E 3** (OpenAI 2023): integrated with ChatGPT.\n- **Adobe Firefly** (Adobe 2023): Photoshop-integrated.\n- **Workflow**: text prompt (or text + sketch via ControlNet) → conceptual imagery → use as moodboard or initial-massing inspiration → develop in CAD + BIM as conventional design. *Not* a substitute for design — a fast ideation + presentation aid.\n\n**LookX (LookX.AI)**:\n- Architecture-specific AI tool — text-to-image + sketch-to-image trained on architectural imagery + plans + sections. Plug-ins for Rhino + Revit + SketchUp; ControlNet-style conditioning on geometry.\n- Competing with Midjourney + Stable Diffusion but tuned for architectural use cases.\n\n**Diagram, Maket, ARK, ArchiOps, Veras, PromeAI, Architect.io**: a rapidly evolving ecosystem of architectural AI tools (rendering, concept generation, plan generation, code-checking).\n\n**Diffusion-aided massing + design exploration**:\n- ControlNet (Zhang et al. 2023) lets diffusion models condition on a sketch + edge map + depth map → preserve the underlying massing while applying material + style.\n- Workflow: massing model in Rhino → render simple depth/edge map → ControlNet + Stable Diffusion → realistic visualization. Architects iterate dozens of variants in minutes.\n\n**LLM-augmented BIM** (~2023+):\n- ChatGPT + GitHub Copilot + Claude integrated into Revit / Dynamo / Grasshopper workflows.\n- Natural-language Dynamo scripts (*'set the height of all walls in this view to 3.5 m'*).\n- Building-code checking (Microsoft, Hypar) using LLMs to read drawings + check against zoning + IBC.\n- Project documentation drafting + RFI response automation.\n\n**Generative *building* design (emerging)**:\n- End-to-end design from program + site → BIM model. Combination of LLM (program understanding + constraint translation), diffusion (concept imagery), parametric (Grasshopper + Hypar) + Revit-integration. Several stealth + early-stage startups; Hassell + Sidewalk Labs + Diagram + Adept + others.\n- Caveat: practice + code + liability still require *the architect of record* — AI augments + accelerates, doesn't replace.\n\n**Major firms' AI postures**:\n- **Hassell** (Australia/UK/global) — early adopter; published 2022 *Hassell + AI* design experiments. Hassell-built building plans generated from text prompts.\n- **Foster + Partners ARD (Applied Research + Development)**: ML for energy + structural optimization, generative facade design, knowledge-graph search across firm archives.\n- **SOM, ZHA, BIG, KPF, Gensler**: each have applied-research groups developing AI + generative tooling.\n- **Autodesk Research, Adobe Research, Google Research**: model + tool R&D feeding into commercial products.\n\n**The future of practice (transition to lesson 8)**:\n- **AI as design partner**: ideation + visualization + alternative generation + performance optimization. Architects still curate, select, refine, take responsibility, and execute.\n- **Skills mix evolves**: parametric + scripting + AI-prompt literacy alongside design + drawing + construction-documents skill.\n- **The role of the architect**: shifts toward curating, programming, integrating, and stewarding AI-augmented workflows. Less drafting, more model + system thinking.\n- **Ethics + bias**: training-data bias, IP + authorship questions, automation displacement of junior staff, climate impact of training compute, equity in access to AI tools.\n\nLessons 4 + 5 + 6 are the *what* + *how* + *why* of building design. Lesson 7 is the *with what tools*. Lesson 8 explores the *what's next* — 3D printing, robotics, mass timber, smart cities + responsive architecture + AI's broader implications for the discipline."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bim_1",
+        "kind": "guided_derivation",
+        "question": "Set up a parametric facade optimization in Grasshopper + Galapagos",
+        "goal": "An office facade has external shading fins whose depth (D) + spacing (S) + tilt (T) are parameters. Objective: minimize annual cooling load while keeping daylight autonomy (sDA) ≥ 55%. Outline the Grasshopper + Galapagos setup.",
+        "steps": [
+          {
+            "prompt": "What Grasshopper components / plug-ins generate the geometry + simulate the performance?",
+            "motivation": "Set up the parametric model.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Grasshopper number sliders for D + S + T, geometry components (boxes / lofts) producing fin geometry parametrically, Honeybee + EnergyPlus for cooling load, Honeybee + Radiance for sDA daylight autonomy"
+              ]
+            },
+            "hints": [
+              "Sliders for parameters.",
+              "Ladybug / Honeybee for sim."
+            ],
+            "reveal": "**Geometry**: Grasshopper **number sliders** for D + S + T → standard geometry components (box, loft, array) produce the fin geometry as a function of the sliders. **Performance**: **Honeybee + EnergyPlus** for annual cooling load (kWh/m²·yr); **Honeybee + Radiance** for sDA300/50 (annual climate-based daylight autonomy). Ladybug provides the EPW weather file + radiation; **ClimateStudio** is a faster commercial alternative for daylight."
+          },
+          {
+            "prompt": "What is the fitness function for Galapagos given the dual objective (minimize cooling + maintain sDA ≥ 55%)?",
+            "motivation": "Single-objective + penalty.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "fitness = cooling load + large penalty if sDA < 55%; minimize fitness so the solver finds low cooling load designs that satisfy the daylight constraint; or use Octopus / Wallacei for true multi-objective Pareto front"
+              ]
+            },
+            "hints": [
+              "Single objective with constraint penalty.",
+              "Or multi-objective Pareto."
+            ],
+            "reveal": "**Single-objective Galapagos**: fitness = cooling_load + λ · max(0, 55 - sDA), where λ is a large penalty weight. Minimize fitness → solver finds low-cooling-load designs that also meet the daylight floor. **Multi-objective Octopus or Wallacei**: explicit Pareto front trading cooling vs sDA — better when you want to see the trade-off curve + pick a balanced design. **Wallacei** also gives analytics on the Pareto front (clustering, design-space diversity)."
+          },
+          {
+            "prompt": "Why is the simulation runtime the binding constraint + what shortcuts help?",
+            "motivation": "Compute budget.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "each evaluation runs EnergyPlus + Radiance which can take minutes to hours; thousands of generations × tens of individuals → infeasible without simplifications; mitigations: reduced model (single zone), surrogate models (neural-network emulators), parallelization on cloud, coarse-then-fine refinement"
+              ]
+            },
+            "hints": [
+              "EnergyPlus + Radiance per generation.",
+              "Surrogate models help."
+            ],
+            "reveal": "**Each evaluation** runs EnergyPlus + Radiance, which can take **minutes to hours** depending on model complexity. Galapagos may run **hundreds to thousands of evaluations** — quickly becoming computationally infeasible. **Mitigations**: (1) simplified energy model (single representative zone); (2) **surrogate model** — train a neural network on a sample of full simulations + use the surrogate during optimization (research from MIT, ETH, Penn State); (3) **cloud parallelization** (Pollination.cloud, Ladybug Tools' Pollination); (4) **two-stage**: coarse global optimization → fine local refinement; (5) **batch evaluation** in EnergyPlus."
+          },
+          {
+            "prompt": "Once the optimizer finds promising designs, what does the architect do with the output?",
+            "motivation": "Human-in-the-loop.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "architect reviews Pareto front or top solutions for architectural quality, refines manually, considers constructability + cost + appearance + aesthetic intent, and integrates the chosen design into the Revit BIM model via Rhino Inside Revit"
+              ]
+            },
+            "hints": [
+              "Human in the loop.",
+              "Integrate to BIM."
+            ],
+            "reveal": "The optimizer produces a **Pareto front or ranked solutions**; the architect **reviews for architectural quality, constructability, cost, appearance + aesthetic intent** — picking a design that satisfies performance + the larger project values. The chosen design is then integrated into the Revit BIM model (via **Rhino.Inside Revit** if iterating, or by re-creating in Revit family form). **Parametric + AI tools generate options; architects still select, refine, take responsibility, and execute**. This human-in-the-loop pattern is the standard mode of computational practice."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bim_1",
+        "kind": "multiple_choice",
+        "question": "Why is Charles Eastman's *BIM Handbook* (2008, 3rd ed. 2018) considered the foundational text of Building Information Modeling?",
+        "options": [
+          "It is a Revit user manual.",
+          "Charles M. Eastman (1940-2020, Georgia Tech) proposed the *Building Description System* in 1974 — the first formal articulation of what BIM became. The **BIM Handbook** (2008, 3rd ed. 2018; with Teicholz, Sacks, Liston) is the canonical reference: it defines BIM (parametric, object-oriented, information-rich 3D model), distinguishes it from CAD, describes IFC interoperability + LOD + clash detection + the federated workflow, surveys vendor platforms (Revit, ArchiCAD, Tekla, AECOsim), and frames BIM for **owners, managers, designers, engineers, contractors** — the full delivery team. Eastman's earlier work + the Handbook helped shape ISO 19650 + national BIM mandates (UK BIM Level 2 2016, Singapore, Nordic countries) + the consensus framework now taught in architecture + engineering programs worldwide. Together with Revit's commercial breakthrough (Autodesk acquisition 2002) + IFC's open-standard maturation, the BIM Handbook anchored the discipline's generational shift from drafting to information modeling.",
+          "It rejects BIM.",
+          "It is about Grasshopper."
+        ],
+        "correctIndex": 1,
+        "explanation": "Eastman (Georgia Tech) proposed the Building Description System in 1974 — first formal BIM precursor. The BIM Handbook (2008, 3rd ed. 2018, with Teicholz, Sacks, Liston) defines BIM, IFC, LOD, clash detection, federated workflows; surveys vendor platforms (Revit, ArchiCAD, Tekla); frames BIM for full delivery team. Shaped ISO 19650 + national BIM mandates (UK BIM Level 2 2016, Singapore, Nordic). Anchored the discipline's generational shift from drafting to information modeling."
+      },
+      "hints": [
+        "Who is Eastman?",
+        "What did the handbook codify?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Charles M. Eastman (Georgia Tech, 1974 Building Description System) is BIM's intellectual ancestor; the *BIM Handbook* (2008, 3rd ed. 2018 with Teicholz + Sacks + Liston) is the canonical reference defining BIM, IFC, LOD, clash detection, federated workflows + framing it for the full delivery team. Shaped ISO 19650 + UK BIM Level 2 (2016) + Singapore + Nordic mandates. Anchored architecture's shift from drafting to information modeling."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_bim_1",
+        "kind": "scenario",
+        "question": "Design a parametric + AI-augmented workflow for a mid-size firm",
+        "prompt": "You lead design technology at a 50-person architectural firm transitioning from AutoCAD + Revit to a parametric + AI-augmented practice. Propose a 3-year roadmap covering: (a) BIM maturation (LOD, IFC, clash detection, COBie handover); (b) parametric tooling (Grasshopper + Karamba + Ladybug, Dynamo, Rhino.Inside Revit); (c) generative + AI (Forma, Hypar, Midjourney/Stable Diffusion + LookX for concept imagery, LLM-augmented Dynamo); (d) skills + training; (e) governance — IP, training-data bias, authorship, the architect-of-record liability question. Which one investment would yield the biggest competitive advantage?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_bim_1",
+        "kind": "math_expression",
+        "question": "A Grasshopper definition has three parameters (D, S, T), each discretized to 20 possible values. How many unique design combinations does this brute-force grid contain?",
+        "acceptedAnswers": [
+          "8000"
+        ],
+        "hint": "20 × 20 × 20."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bim_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, explain how parametric + computational design (Grasshopper + Ladybug + Karamba + Galapagos + Rhino.Inside Revit) reshaped contemporary architectural practice — and what the architect's role becomes.",
+        "rubric": "Mentions: Rhino (McNeel 1998) + Grasshopper (Rutten 2007, native Rhino 6+ 2018) introduced **visual programming** for design — a graph of components computing live-updating geometry from parameters. Plug-ins extended Grasshopper into structures (**Karamba3D**, Preisinger + Bollinger Grohmann), environmental simulation (**Ladybug + Honeybee + ClimateStudio**, Sadeghipour-Roudsari + Reinhart), form-finding (**Kangaroo**, Piker), optimization (**Galapagos + Octopus + Wallacei**), and BIM integration (**Rhino.Inside Revit** 2019-20). The combined toolkit allows architects to encode design intent + performance objectives + constraint relationships in a single algorithmic environment, evaluate thousands of variants quickly, and surface high-performing options via genetic + Pareto optimization. **The architect's role evolves**: less drafting + more model-building, system-thinking, prompt + parameter design, performance integration, and curation of the AI/optimizer's outputs. Practice now requires *design technologist* + *computational designer* alongside conventional skills — a shift comparable to the CAD → BIM transition a generation earlier."
+      }
+    }
+  ]
+}
