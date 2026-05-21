@@ -1952,6 +1952,28 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P39 — Cell + Molecular Biologist path. Cell structure + DNA
+  // replication + transcription/translation + gene regulation with
+  // new HillFunction viz + signal transduction + cell cycle +
+  // apoptosis + epigenetics. Distinct from comp-biologist (which
+  // is bioinformatics-focused).
+  seedMasteryPath({
+    slug: "cell-molecular-biologist",
+    title: "Cell + Molecular Biologist",
+    description:
+      "From cell structure + organelles + endosymbiosis through DNA replication + repair + telomeres, transcription + translation + alternative splicing, gene regulation with an interactive Hill-function viz + lac operon + GRNs, signal transduction + GPCR/RTK/NHR + MAPK + drug targeting, cell cycle + CDK-cyclin + CDK4/6 inhibitors, apoptosis + venetoclax + immune checkpoints, and epigenetics + histone marks + DNA methylation + epigenetic therapies. The cell + molecular biology stack end-to-end.",
+    nodes: [
+      { slug: "cell-structure-and-organelles", title: "Cell Structure + Organelles", level: "apprentice", order: 1, pages: ["pro-vs-eukaryote", "membrane-transport", "cytoskeleton"], prereqs: [], description: "Prokaryote vs eukaryote + endosymbiosis, plasma membrane + Na/K ATPase + endocytosis, cytoskeleton + motor proteins + cilia." },
+      { slug: "dna-replication-and-repair", title: "DNA Replication + Repair", level: "practitioner", order: 2, pages: ["semi-conservative", "telomeres", "repair-pathways"], prereqs: ["cell-structure-and-organelles"], description: "Replication fork + polymerases + fidelity, telomeres + telomerase + aging + cancer, BER/NER/MMR/HR/NHEJ repair pathways + BRCA + PARP synthetic lethality." },
+      { slug: "transcription-and-translation", title: "Transcription + Translation", level: "practitioner", order: 3, pages: ["pol-machinery", "rna-processing", "ribosome-translation"], prereqs: ["dna-replication-and-repair"], description: "Pol II + GTFs + Mediator, 5' cap + splicing + alternative-splicing + 3' polyA, 80S ribosome + genetic code + NMD." },
+      { slug: "gene-regulation-and-hill", title: "Gene Regulation + Hill Function", level: "specialist", order: 4, pages: ["lac-operon", "hill-cooperativity", "grn-motifs"], prereqs: ["transcription-and-translation"], description: "lac operon + classical regulation, Hill function + cooperativity + interactive viz, gene regulatory network motifs (FFLs, bistability, feedback)." },
+      { slug: "signal-transduction-and-receptors", title: "Signal Transduction + Receptors", level: "specialist", order: 5, pages: ["receptor-classes", "mapk-pi3k", "drug-discovery"], prereqs: ["cell-structure-and-organelles"], description: "GPCR + RTK + NHR + ion channels, MAPK + PI3K + JAK-STAT + Wnt + Notch + Hedgehog cascades, targeted cancer therapies + GLP-1 agonists." },
+      { slug: "cell-cycle-and-mitosis", title: "Cell Cycle + Mitosis", level: "specialist", order: 6, pages: ["phases-mitosis", "cdk-cyclin", "p53-cancer"], prereqs: ["dna-replication-and-repair"], description: "G1/S/G2/M + meiosis, CDK-cyclin + checkpoints + p53/RB, CDK4/6 inhibitors + cancer hallmarks + targeted oncology." },
+      { slug: "apoptosis-and-cancer", title: "Apoptosis + Cancer", level: "expert", order: 7, pages: ["death-types-caspases", "bcl2-venetoclax", "immunotherapy-checkpoints"], prereqs: ["cell-cycle-and-mitosis", "signal-transduction-and-receptors"], description: "Apoptosis + necroptosis + pyroptosis + ferroptosis + autophagy, intrinsic + extrinsic pathways + venetoclax + BCL-2 inhibition, checkpoint inhibitors (PD-1/CTLA-4) + CAR-T + immunotherapy revolution." },
+      { slug: "epigenetics-and-chromatin", title: "Epigenetics + Chromatin", level: "expert", order: 8, pages: ["histone-marks", "dna-methylation", "epigenetic-therapies"], prereqs: ["transcription-and-translation", "cell-cycle-and-mitosis"], description: "Histone modifications + Polycomb/Trithorax + chromatin remodelers, DNA methylation + X-inactivation + epigenetic clocks + iPSCs, DNMT/HDAC/EZH2/IDH inhibitors + aging therapeutics." },
+    ],
+  });
+
   // P38 — Macroeconomist path. From national-income accounting +
   // growth theory through IS-LM + money + Phillips curve with new
   // interactive viz + business cycles + fiscal policy + public debt

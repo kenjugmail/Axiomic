@@ -1,0 +1,211 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Distinguish prokaryote + eukaryote transcription.",
+      "Trace pre-mRNA → mRNA processing.",
+      "Apply translation mechanics + genetic code."
+    ],
+    "prereqs": [
+      "dna-replication-and-repair"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Transcription: DNA → RNA",
+      "body": "**Central dogma**: DNA → RNA → protein (Crick 1958; revised to include reverse transcription).\n\n**Transcription** (DNA → RNA):\n• **Prokaryote**: single RNA polymerase (RNAP). Holoenzyme: core (α₂ββ'ω) + σ factor (promoter recognition). Sigma 70 housekeeping; alternative sigmas for stress, sporulation, etc.\n• **Eukaryote**: three RNA polymerases.\n  - Pol I: rRNA (45S → 18S, 5.8S, 28S in nucleolus).\n  - Pol II: mRNA + miRNA + snRNA. Heavily regulated.\n  - Pol III: tRNA + 5S rRNA + other small.\n\n**Promoters**:\n- Bacterial: -10 (TATAAT) + -35 (TTGACA).\n- Eukaryotic Pol II: TATA box (~-25), Inr (initiator), GC box, CAAT box. ~30% of promoters TATA-containing.\n\n**Transcription initiation** (eukaryotic Pol II):\n1. General transcription factors (TFIID with TBP, TFIIA, TFIIB, TFIIE, TFIIF, TFIIH) recruited.\n2. Mediator complex bridges enhancers + Pol II.\n3. TFIIH opens DNA; Pol II phosphorylated on CTD (Ser5).\n4. Pol II escapes promoter; CTD phosphorylated Ser2 for elongation.\n5. Elongation factors (P-TEFb, Spt5, etc.) facilitate.\n\n**Termination**: \n- Bacteria: rho-independent (hairpins) or rho-dependent.\n- Eukaryote: complex; cleavage by CPSF.\n\n**Regulation**:\n- Activator + repressor TFs binding to enhancers/silencers.\n- Chromatin state (Lesson 8 epigenetics).\n- Distal enhancers + insulators via chromosome looping (Hi-C, capture-C).\n- Liquid-liquid phase separation (LLPS) condensates: Mediator-CTD interactions form transcription hubs.\n- ~1500 TFs in human; 8% of genome encodes TFs.\n\nTranscription is the primary point of gene regulation; vast diversity of regulatory mechanisms.",
+      "viz": "hill-function",
+      "vizProps": {
+        "K": 1,
+        "n": 2,
+        "mode": "activator"
+      }
+    },
+    {
+      "kind": "text",
+      "title": "RNA processing + splicing",
+      "body": "**Eukaryotic pre-mRNA → mature mRNA processing** (3 steps; all co-transcriptional):\n\n1. **5' capping** (~30 nt in): 7-methyl-guanosine added 5'→5' via triphosphate. Functions:\n   - Stability (prevents 5'→3' decay).\n   - Translation initiation (binds eIF4E).\n   - Nuclear export (CBC).\n\n2. **Splicing**: introns removed + exons joined. Spliceosome (snRNAs U1/U2/U4/U5/U6 + ~150 proteins).\n   - 5' splice site (GU), branch point (A), 3' splice site (AG).\n   - Two transesterification reactions.\n   - **Alternative splicing**: same gene → multiple mRNA isoforms. ~95% of human multi-exon genes undergo. Tissue-specific regulation by SR proteins, hnRNPs, regulatory factors.\n   - Drosophila Dscam: ~38K isoforms from one gene.\n   - Cassette exons, alternative 5'/3' sites, mutually exclusive exons, retained introns.\n\n3. **3' polyadenylation**: 50-250 A's added 3'. AAUAAA polyadenylation signal recognized by CPSF; cleavage + poly(A) tail by PAP. Functions: stability, translation, export.\n\n**Alternative-splicing regulation**:\n- Tissue-specific TFs + regulators.\n- Co-transcriptional kinetics (Pol II speed affects which sites used).\n- Defects → disease: spinal muscular atrophy (SMN1 splicing), various cancers, β-thalassemia.\n- Therapeutic targeting: nusinersen (Spinraza) ASO for SMA modulates SMN2 splicing.\n\n**Other RNA processing**:\n- tRNA: CCA addition, base modifications, intron removal in some.\n- rRNA: cleavage of 45S precursor + modifications.\n- miRNA: Drosha + Dicer processing.\n- siRNA + piRNA: distinct biogenesis.\n- snRNAs + snoRNAs.\n\n**mRNA quality control**:\n- Nonsense-mediated decay (NMD): degrades mRNAs with premature stop codons. Triggered by exon-junction complexes downstream of stop.\n- No-go decay, non-stop decay.\n- Modulate disease severity (e.g., CFTR nonsense mutations)."
+    },
+    {
+      "kind": "text",
+      "title": "Translation: RNA → protein",
+      "body": "**Translation** (mRNA → protein):\n\n**Ribosome**: \n- Prokaryote: 70S = 50S (23S + 5S rRNA + 31 proteins) + 30S (16S rRNA + 21 proteins).\n- Eukaryote: 80S = 60S (28S + 5.8S + 5S + 49 proteins) + 40S (18S + 33 proteins).\n- ~10⁷ ribosomes/cell.\n\n**Sites on ribosome**:\n- **A (aminoacyl)**: incoming aminoacyl-tRNA.\n- **P (peptidyl)**: peptidyl-tRNA holding growing chain.\n- **E (exit)**: deacylated tRNA.\n\n**Translation phases**:\n\n1. **Initiation**:\n   - Prokaryote: 30S binds Shine-Dalgarno sequence; fMet-tRNA + IF1/2/3 + GTP → AUG codon.\n   - Eukaryote: eIF4F (eIF4E + 4G + 4A) binds cap; 40S scans 5' UTR for first AUG (Kozak context); 80S assembles.\n   - Internal-ribosome entry sites (IRES): viral + some cellular mRNAs bypass scanning.\n\n2. **Elongation**: ~6 AA/sec in bacteria; ~6/sec eukaryotes too.\n   - tRNA binding (codon-anticodon).\n   - Peptide-bond formation (peptidyl transferase activity of 23S rRNA — ribosome is a ribozyme).\n   - Translocation (EF-G/eEF2 + GTP).\n\n3. **Termination**: stop codon (UAA, UAG, UGA) → release factor (RF1/RF2/RF3 in bact; eRF1/eRF3 in euk) → peptide released.\n\n**Genetic code**:\n- 64 codons → 20 AAs + 3 stops.\n- Degenerate: most AAs have multiple codons.\n- Universal (nearly): some mitochondrial + organism-specific variants.\n- Wobble (third codon position): tRNA flexibility.\n- Selenocysteine (Sec): 21st AA, encoded by UGA + SECIS element.\n- Pyrrolysine: 22nd, in some archaea.\n\n**Translation regulation**:\n- 5' UTR structure + uORFs.\n- 3' UTR (miRNA targets + AU-rich elements).\n- mRNA localization + local translation.\n- Phosphorylation of eIF2α (response to stress; integrated stress response).\n- mTOR pathway (nutrients + growth signals).\n- Drugs: chloramphenicol, tetracyclines, macrolides (bacterial); cycloheximide (eukaryote).\n\n**Co-translational folding**: chaperones (HSP70, HSP90) help fold; ribosome-associated complex (RAC). Misfolding → degradation (ERAD, proteasome) or aggregation (Alzheimer's amyloid, Parkinson's α-synuclein, prion diseases)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_trans_1",
+        "kind": "guided_derivation",
+        "question": "Trace a single gene from chromatin to protein",
+        "goal": "Trace a typical eukaryotic gene from chromatin opening through completed protein.",
+        "steps": [
+          {
+            "prompt": "Chromatin state for active transcription?",
+            "motivation": "Open chromatin.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "euchromatin, H3K4me3/H3K27ac active marks",
+                "open + active marks"
+              ]
+            },
+            "hints": [
+              "What marks active genes?"
+            ],
+            "reveal": "**Euchromatin**: open + accessible. Active marks: H3K4me3 (promoter), H3K27ac (enhancer + promoter), H3K36me3 (gene body). Pol II accessibility."
+          },
+          {
+            "prompt": "Transcription initiation?",
+            "motivation": "Pol II preinitiation complex.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "TFIID + Mediator + Pol II at promoter",
+                "GTFs + Pol II"
+              ]
+            },
+            "hints": [
+              "Recruit GTFs."
+            ],
+            "reveal": "TFIID (with TBP) + TFIIB/A/E/F/H assembled; Mediator bridges enhancer + promoter; Pol II joins; TFIIH opens DNA + phosphorylates CTD-Ser5 → transcription starts."
+          },
+          {
+            "prompt": "RNA processing steps?",
+            "motivation": "Cap + splice + poly-A.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "5' cap, splicing, 3' poly-A",
+                "all three co-transcriptionally"
+              ]
+            },
+            "hints": [
+              "Three modifications."
+            ],
+            "reveal": "Co-transcriptionally: 5' capping (~30 nt in); splicing (spliceosome removes introns + joins exons; alternative-splicing isoforms possible); 3' polyadenylation (cleavage at AAUAAA + ~150 A's added)."
+          },
+          {
+            "prompt": "Export + translation?",
+            "motivation": "Nuclear pore + ribosome.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "nuclear export via NXF1; translation by 80S ribosome",
+                "mRNA exported + translated"
+              ]
+            },
+            "hints": [
+              "Move + translate."
+            ],
+            "reveal": "Mature mRNA exported through nuclear pore (NXF1/TAP-p15 complex); in cytoplasm, eIF4F binds cap + scans 5' UTR; 40S finds AUG; 80S assembles; elongation at ~6 AA/sec; release at stop codon; nascent polypeptide folds (with chaperones) into mature protein."
+          },
+          {
+            "prompt": "Post-translational fate?",
+            "motivation": "Function or degrade.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "folded protein, modifications, function or degradation",
+                "ubiquitin-proteasome degradation if misfolded"
+              ]
+            },
+            "hints": [
+              "Function or destroy."
+            ],
+            "reveal": "Functional protein: localized via signal sequences; modified post-translationally (phosphorylation, glycosylation, etc.); performs biology. Misfolded or damaged: ubiquitin-tagged → proteasome degradation. Average human protein half-life ~10-30 hr. Specific proteins very short (CDK inhibitors ~min) or very long (collagen, eye-lens crystallins, lifetime)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_trans_1",
+        "kind": "sortable",
+        "question": "Order these events in eukaryotic gene expression (transcriptional → post-translational).",
+        "items": [
+          {
+            "id": "chromatin-opening",
+            "label": "Chromatin opening / nucleosome eviction"
+          },
+          {
+            "id": "transcription",
+            "label": "RNA polymerase II initiation"
+          },
+          {
+            "id": "5cap",
+            "label": "5' capping"
+          },
+          {
+            "id": "splicing",
+            "label": "Splicing (intron removal)"
+          },
+          {
+            "id": "polya",
+            "label": "3' polyadenylation"
+          },
+          {
+            "id": "export",
+            "label": "Nuclear export"
+          },
+          {
+            "id": "translation",
+            "label": "Translation by ribosome"
+          },
+          {
+            "id": "folding",
+            "label": "Protein folding + post-translational modifications"
+          }
+        ],
+        "explanation": "Eukaryotic gene-expression cascade is well-ordered:\n1. Chromatin opening (transcription factors + histone modifications enable Pol II access).\n2. Transcription initiation (Pol II + GTFs assemble at promoter).\n3. 5' capping (~30 nt into transcript; co-transcriptional).\n4. Splicing (introns removed; co-transcriptional).\n5. 3' polyadenylation (cleavage + ~150 A's).\n6. Nuclear export (mature mRNA through pore).\n7. Translation (80S ribosome).\n8. Protein folding + PTMs (co-translational + post-translational).\n\nRegulation possible at every step. Modern: large-scale time-resolved measurements (PRO-seq, BRU-seq, ribosome profiling, mass spec) reveal kinetics. Disease defects across all steps (splicing variants in SMA, β-thalassemia; translation factors in ribosomopathies)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_trans_1",
+        "kind": "multiple_choice",
+        "question": "Why is alternative splicing such a powerful mechanism for proteomic diversity?",
+        "options": [
+          "Random.",
+          "Same gene → multiple mRNA isoforms via inclusion/exclusion of exons + alternative 5'/3' sites + intron retention. ~95% of human multi-exon genes undergo. From ~20K protein-coding genes, ~100K+ protein isoforms produced. Tissue-specific + developmentally regulated. Drosophila Dscam: ~38K isoforms from one gene. Disease: splicing defects (SMA SMN1, β-thalassemia, many cancers). Therapeutic targeting: nusinersen ASO modulates SMN2 splicing.",
+          "Random.",
+          "Required."
+        ],
+        "correctIndex": 1,
+        "explanation": "Alternative splicing creates proteomic diversity from limited genes. ~95% of human multi-exon genes alternatively spliced. ~20K coding genes → 100K+ protein isoforms. Mechanisms: cassette exons, alternative 5'/3' splice sites, mutually exclusive exons, retained introns. Regulation: SR proteins + hnRNPs + tissue-specific factors + Pol II kinetics. Diseases: SMN1 SMA (treated by nusinersen ASO targeting SMN2 splicing 2016); β-thalassemia. Modern: deep RNA-seq + Iso-Seq quantify isoforms. Cancer: many tumor-specific splicing alterations (~25% of cancer alterations)."
+      },
+      "hints": [
+        "How many genes × isoforms?",
+        "Why does this matter for diversity?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Alternative splicing: ~95% of multi-exon human genes; ~20K genes → 100K+ isoforms via cassette exons, alt 5'/3' sites, mutually exclusive, intron retention. Drosophila Dscam: 38K isoforms from one gene. Tissue + developmental regulation by SR proteins + hnRNPs + Pol II speed. Diseases (SMA, β-thal, cancer) often splicing defects. Therapeutic: nusinersen ASO targets SMN2 splicing (2016 FDA). Modern: Iso-Seq quantifies isoforms; ML predicts effects of splicing-disrupting variants."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_trans_1",
+        "kind": "math_expression",
+        "question": "If translation elongation rate is 6 AA/sec and a protein is 500 AA, how many seconds for translation?",
+        "acceptedAnswers": [
+          "~83 sec",
+          "83.3",
+          "500/6"
+        ],
+        "hint": "500 / 6 ≈ 83 seconds. Plus initiation + termination ~1-2 sec. Total ~85 sec for average-sized protein."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_trans_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why the ribosome is a 'ribozyme' + what that tells us about life's origins.",
+        "rubric": "Mentions: ribosome catalyzes peptide-bond formation via its 23S rRNA (or 28S in eukaryote), not the protein components. Crystal structures (Steitz + Ramakrishnan + Yonath, Nobel 2009) revealed: catalytic site at peptidyl transferase center is entirely RNA — within ~18 Å, only RNA + Mg²⁺. Confirms ribosome is a ribozyme (RNA enzyme). Implications: supports 'RNA world' hypothesis — primordial life had RNA both as information storage + catalyst before protein-based catalysis emerged. Ribosome is evolutionary fossil. Other ribozymes: hammerhead, hairpin, intron self-splicing, RNase P, riboswitches. Modern: ribozyme engineering (aptamers, ribozymes as therapeutics, recent Nobel for catalytic RNA work in pharmaceuticals). Concludes: ribosome embodies the RNA-world legacy + central role of RNA in cellular biology."
+      }
+    }
+  ]
+}

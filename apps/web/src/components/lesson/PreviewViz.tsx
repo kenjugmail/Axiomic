@@ -138,6 +138,11 @@ const LazyPhillipsCurve = lazy(() =>
     (m) => ({ default: m.PhillipsCurve }),
   ),
 );
+const LazyHillFunction = lazy(() =>
+  import("../../../../../packages/viz/src/components/HillFunction").then(
+    (m) => ({ default: m.HillFunction }),
+  ),
+);
 const LazyDoublePendulum = lazy(() =>
   import("../../../../../packages/viz/src/components/DoublePendulum").then(
     (m) => ({ default: m.DoublePendulum }),
@@ -264,6 +269,8 @@ function VizByName({
       return <LazyVowelFormantChart {...(props as object)} />;
     case "phillips-curve":
       return <LazyPhillipsCurve {...(props as object)} />;
+    case "hill-function":
+      return <LazyHillFunction {...(props as object)} />;
     default:
       return null;
   }

@@ -1,0 +1,183 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Apply Hill-function gene-regulation kinetics.",
+      "Reason about TF combinatorial control.",
+      "Connect to gene-regulatory networks."
+    ],
+    "prereqs": [
+      "transcription-and-translation"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The lac operon + classical regulation",
+      "body": "**Gene regulation**: control of when, where, how much gene expressed. Classic example: **lac operon** (Jacob + Monod 1961 Nobel 1965).\n\n**lac operon**: 3 genes (lacZ β-galactosidase, lacY permease, lacA transacetylase) under single promoter. Regulated by:\n• **lacI (repressor)**: binds operator (lacO) when no lactose → represses transcription.\n• **Allolactose**: derivative of lactose; binds repressor → derepression.\n• **CAP (catabolite activator protein)**: binds cAMP (high when glucose low) + DNA upstream → activates Pol II.\n\n**Diauxic growth** (Monod): bacteria use glucose first (cheap), then lactose. Logic gate: lactose AND not-glucose → express lac.\n\n**Two regulatory modes**:\n1. **Negative regulation** (repressor): default ON; repressor turns OFF (lac).\n2. **Positive regulation** (activator): default OFF; activator turns ON.\n\n**Eukaryotic regulation** much more complex:\n- Distal enhancers (sometimes >1 Mb from promoter).\n- Combinatorial control: multiple TFs together.\n- Chromatin context.\n- Cell-type-specific TFs.\n- Insulators + topologically-associating domains.\n\n**Master regulators**: TFs at top of cell-fate hierarchies. MyoD (muscle), GATA1 (erythroid), Pax6 (eye), MyoG, OCT4 (pluripotency)."
+    },
+    {
+      "kind": "text",
+      "title": "Hill function: TF binding + cooperativity",
+      "body": "**TF-DNA binding kinetics**: TF binds operator → recruits/blocks RNA Pol II.\n\nFor single binding site:\n  Fraction bound = [TF] / (K_d + [TF])\n\nHyperbolic + saturating; n = 1 ('Michaelis-Menten' shape).\n\n**Cooperative binding** (multiple sites + cooperativity):\n  f = [TF]ⁿ / (Kⁿ + [TF]ⁿ)\n\nHill coefficient n quantifies cooperativity:\n- n = 1: no cooperativity (single-site).\n- n > 1: positive cooperativity (binding first site facilitates second).\n- n < 1: negative cooperativity (rare).\n\n**Steepness at K**: slope = n/4. Higher n = sharper switch.\n\n**Examples in biology**:\n- Hemoglobin O₂ binding: n ≈ 2.8 (cooperative; 4 sites).\n- λ phage cI: n = 2 (dimer binding).\n- MAPK cascade: ultrasensitive (n > 4 effective).\n- Many TF dimers/tetramers: n = 2-4.\n\n**Why cooperativity matters**:\n1. **Sharper switches**: digital (on/off) behavior from analog inputs.\n2. **Bistability**: with feedback, can be flipped between stable states.\n3. **Robustness**: filters noise; threshold-like behavior.\n4. **Pattern formation**: morphogen gradients → discrete cell fates via cooperative TFs.\n\n**Coherent vs incoherent feed-forward loops**:\n- Feed-forward loop (FFL, Alon 2007): X → Y, X + Y → Z.\n- Coherent FFL: noise filter (X + Y both required → robust to brief X pulses).\n- Incoherent FFL: pulse generator (X activates Z directly + via repressor Y).\n\n**Bistability + memory**:\n- Mutual repression (cross-inhibitory pair): two stable states.\n- Positive feedback + Hill ultrasensitivity: hysteresis (state depends on history).\n- Memory: lac operon hysteresis (Novick + Weiner 1957).\n- Cell-fate decisions: hematopoietic GATA1/PU.1 toggle for erythroid vs myeloid.\n\nGene-regulatory networks are modular + analyzable via these motifs.",
+      "viz": "hill-function",
+      "vizProps": {
+        "K": 1,
+        "n": 4,
+        "mode": "activator"
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Gene-regulatory networks + systems biology",
+      "body": "**Gene regulatory networks (GRNs)**: directed graphs of TF-gene interactions. Modern systems biology builds + analyzes these.\n\n**Reconstruction methods**:\n- **ChIP-seq**: TF-binding genome-wide. Pol II + histone marks too.\n- **ATAC-seq + DNase-seq**: open chromatin.\n- **Hi-C + Capture-C**: 3D chromosome contacts (enhancer-promoter loops).\n- **scRNA-seq + scATAC-seq**: single-cell gene + accessibility.\n- **CRISPR screens**: perturb TFs + measure phenotype/transcriptome.\n- **Perturb-seq**: combine CRISPR + scRNA-seq for genome-wide perturbation.\n\n**Computational models**:\n- **Boolean networks**: discrete on/off states.\n- **Ordinary differential equations (ODEs)**: continuous; for small networks.\n- **Stochastic** (Gillespie SSA): for low-copy + bursting genes.\n- **Neural network surrogates**: predict expression from regulatory sequence (ENFORMER 2021; Akita; ChromBPNet).\n\n**Common motifs** (Alon 2007 'Network Motifs'):\n- **Auto-regulation** (X → X): faster response time; bistability.\n- **Single-input module (SIM)**: one TF regulates many genes (cooperative regulons).\n- **Feed-forward loops (FFL)**: pulse generators, noise filters.\n- **Bi-fans**: two TFs regulate two targets.\n\n**Cell-fate trajectory** + **developmental landscape**:\n- Waddington 1957: epigenetic landscape; cells roll downhill into fates.\n- GRN dynamics shape attractors.\n- Modern: scRNA-seq + lineage tracing + RNA velocity reveal dynamics.\n- Pluripotency: OCT4 + SOX2 + NANOG core network; modulated by KLF4, MYC.\n- iPSC reprogramming (Yamanaka 2006): OSKM TFs revert somatic → pluripotent.\n\n**Modern applications**:\n- **Cell-type atlas** (Human Cell Atlas, Tabula Sapiens): genome-wide single-cell.\n- **Disease GRNs**: cancer-driver TF networks; therapeutic targeting.\n- **Synthetic biology**: engineer gene circuits (P45 next path).\n- **AI + GRN**: ENFORMER + similar predict gene expression from sequence; effects of variants."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_grn_1",
+        "kind": "guided_derivation",
+        "question": "Apply Hill function to TF gene-activation",
+        "goal": "TF activator with K = 10 nM + Hill coefficient n = 4 controls target gene. Compute target activation at [TF] = 5, 10, 20 nM.",
+        "steps": [
+          {
+            "prompt": "Hill formula?",
+            "motivation": "Standard.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "f = [TF]ⁿ / (Kⁿ + [TF]ⁿ)"
+              ]
+            },
+            "hints": [
+              "Activator."
+            ],
+            "reveal": "f = [TF]ⁿ / (Kⁿ + [TF]ⁿ) for activator."
+          },
+          {
+            "prompt": "f at [TF] = 5 nM?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~0.059",
+                "0.0588",
+                "5⁴ / (10⁴ + 5⁴)"
+              ]
+            },
+            "hints": [
+              "625 / (10000 + 625)."
+            ],
+            "reveal": "f = 5⁴ / (10⁴ + 5⁴) = 625 / 10625 = 0.0588. ~6% activation at half-K."
+          },
+          {
+            "prompt": "f at [TF] = 10 nM (= K)?",
+            "motivation": "Half-max.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.5",
+                "10⁴/(10⁴+10⁴)"
+              ]
+            },
+            "hints": [
+              "At K, f = 0.5."
+            ],
+            "reveal": "f = 0.5 by definition (K is half-max concentration)."
+          },
+          {
+            "prompt": "f at [TF] = 20 nM (2K)?",
+            "motivation": "Compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~0.941",
+                "0.94",
+                "20⁴/(10⁴+20⁴)"
+              ]
+            },
+            "hints": [
+              "160000 / (10000 + 160000)."
+            ],
+            "reveal": "f = 20⁴ / (10⁴ + 20⁴) = 160000 / 170000 ≈ 0.94. ~94% activation at 2K. **Steep response near K** for n=4 — characteristic of cooperative binding."
+          },
+          {
+            "prompt": "Why is n=4 cooperativity biologically common?",
+            "motivation": "Switch behavior.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "sharp switches from analog inputs",
+                "filters noise"
+              ]
+            },
+            "hints": [
+              "Digital responses."
+            ],
+            "reveal": "n = 4 cooperativity creates near-digital switch: small change in [TF] around K → large change in target expression. Filters noise (small fluctuations don't trigger response); enables bistable + cell-fate decisions; common via tetrameric TF (n=4) or via cooperative oligomerization. Hemoglobin O₂ binding n=2.8 (4 sites with partial cooperativity); λ phage cI n=2; many transcription circuits effective n=2-6."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_grn_1",
+        "kind": "slider",
+        "question": "Drag to the Hill coefficient for hemoglobin O₂ binding.",
+        "target": {
+          "min": 2.5,
+          "max": 3
+        },
+        "default": 1,
+        "explanation": "Hemoglobin O₂ binding: Hill coefficient n ≈ 2.8 (max possible 4, since 4 binding sites). Cooperative — binding first O₂ facilitates next. Curve steeper than non-cooperative myoglobin (n=1). Allows efficient O₂ pickup in lungs (high pO₂, sigmoid plateau) + release in tissues (low pO₂, sigmoid drop). Bohr effect: pH + CO₂ shift curve. Foundation of respiratory physiology."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_grn_1",
+        "kind": "multiple_choice",
+        "question": "Why are feed-forward loop network motifs (FFLs) so common in gene-regulatory networks?",
+        "options": [
+          "Random.",
+          "FFLs (X → Y, X + Y → Z): provide noise-filtering + sign-sensitive delay. Coherent FFL (X activates Y + Z; Y also activates Z): Z requires sustained X (filters brief pulses); delayed Y rise → Z waits for Y. Incoherent FFL (X activates Z directly + activates repressor Y): Z pulses up then down. Both motifs solve specific signal-processing problems. Alon (2007) showed FFLs are overrepresented in observed networks vs random graphs — evolved.",
+          "Random.",
+          "Required."
+        ],
+        "correctIndex": 1,
+        "explanation": "Network motifs (Alon 2007 'An Introduction to Systems Biology'): small recurring subgraphs overrepresented in real networks vs random. Feed-forward loops (FFLs) common in E. coli, yeast, mammalian. Coherent FFL: noise filter (sustained X required) + sign-sensitive delay. Incoherent FFL: pulse generator. Modern: AI to predict motif function from structure; engineer synthetic FFLs (P45 next path). Other common motifs: auto-regulation (faster response/bistability), single-input module (coordinated regulons), bi-fan. Modular design enables systems-biology analysis + synthetic biology."
+      },
+      "hints": [
+        "What do FFLs do?",
+        "Why are they overrepresented?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "FFLs (X → Y, X + Y → Z): coherent variant filters noise (Z needs sustained X); incoherent variant generates pulses. Alon 2007: FFLs overrepresented vs random graphs → evolutionarily selected. Common in E. coli, yeast, mammals. Synthetic biology engineers FFLs for specific signal-processing tasks. Modern AI tools predict motif function + design."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_grn_1",
+        "kind": "math_expression",
+        "question": "Hill activator with K=2, n=3. At [TF] = 4, what fraction f is bound?",
+        "acceptedAnswers": [
+          "~0.889",
+          "0.889",
+          "64/(8+64)"
+        ],
+        "hint": "f = 4³/(2³+4³) = 64/72 ≈ 0.889."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_grn_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how the Hill function with high cooperativity enables cellular 'digital' switching from analog inputs.",
+        "rubric": "Mentions: Hill function f = [TF]ⁿ/(Kⁿ+[TF]ⁿ) — sigmoid with steepness ~n/4 at K. Low n (~1, MM): graded analog response. High n (>4): near-digital switch — small [TF] → ~0; small change near K → large jump. Mechanisms: cooperative oligomeric TFs (tetramers); enzyme cascade amplification; positive feedback. Examples: hemoglobin O₂ binding (n≈2.8); cell-fate decisions; MAPK ultrasensitivity; bistable circuits like lambda phage lysogen/lytic switch. Functions: noise filter (small inputs don't trigger); bistability + memory (with feedback); robust decisions despite noisy signals. Compare to circuits + computers: cells use cooperativity to implement digital logic from molecular building blocks. Synthetic biology exploits this for engineered switches + circuits."
+      }
+    }
+  ]
+}

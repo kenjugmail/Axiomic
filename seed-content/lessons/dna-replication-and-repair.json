@@ -1,0 +1,163 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Apply semi-conservative + bidirectional replication.",
+      "Distinguish DNA polymerases + their fidelity.",
+      "Reason about repair pathways."
+    ],
+    "prereqs": [
+      "cell-structure-and-organelles"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Semi-conservative replication + the fork",
+      "body": "**DNA replication** (Meselson + Stahl 1958): semi-conservative — each daughter dsDNA has one parental strand + one new strand. Confirmed via N¹⁵→N¹⁴ density-gradient experiment.\n\n**Replication fork**: site where dsDNA unwound + replicated.\n\n**Key enzymes**:\n• **Helicase** (in bacteria: DnaB; eukaryote: MCM2-7): unwinds parental dsDNA.\n• **Topoisomerase** (gyrase in bact; Topo I/II in eukaryote): relieves supercoiling ahead of fork.\n• **Single-strand binding proteins (SSB)**: stabilize ssDNA.\n• **Primase** (DnaG in bact; Pol α-primase in euk): synthesizes RNA primers (~10 nt).\n• **DNA polymerase**: extends 5'→3' from primer.\n  - Prokaryote: Pol III main replicative.\n  - Eukaryote: Pol ε leading strand; Pol δ lagging strand.\n  - Proofreading 3'→5' exonuclease activity.\n• **Sliding clamp** (β-clamp in bact; PCNA in euk): tethers polymerase for processivity.\n• **DNA ligase**: seals Okazaki fragments.\n\n**Leading vs lagging strand**:\n- Leading: continuous synthesis 5'→3' toward fork.\n- Lagging: discontinuous synthesis in Okazaki fragments (~200 nt in eukaryote; 1-2 kb in bact), each with its own primer; later joined.\n\n**Bidirectional replication**: two forks emerge from each origin + diverge. Bacterial chromosome: single origin (oriC). Eukaryotic: thousands of origins (~30K per human genome).\n\n**Fidelity**: ~10⁻⁹-10⁻¹⁰ error rate after proofreading + mismatch repair. ~3 errors per genome per replication."
+    },
+    {
+      "kind": "text",
+      "title": "Telomeres + telomerase + aging",
+      "body": "**End-replication problem**: lagging-strand synthesis can't complete the 3' end of linear chromosomes. Each round shortens telomeres ~50-200 bp.\n\n**Telomeres** (Blackburn + Greider + Szostak Nobel 2009): repetitive sequence at chromosome ends.\n- Human: TTAGGG repeats; ~10-15 kb at birth.\n- Shelterin complex (TRF1, TRF2, POT1, etc.) caps + protects ends.\n- Without telomeres: ends recognized as DNA breaks → fusion + chromosome instability.\n\n**Telomerase**: ribonucleoprotein reverse transcriptase that extends telomeres. Has TERT (catalytic) + TERC (RNA template).\n- Expressed: germ cells, stem cells, ~90% of cancers.\n- Repressed: most adult somatic cells (Hayflick limit ~50 divisions).\n- Aging connection: telomere shortening contributes to cellular senescence.\n\n**Cancer + telomerase**: ~90% of cancers reactivate telomerase, escaping replicative senescence. Major therapeutic target (imetelstat etc.).\n\n**Aging + senescence**:\n- Hayflick 1961: somatic cells divide ~50× then senesce.\n- Telomere shortening one component of aging.\n- Other: oxidative damage, somatic mutations, senolytic accumulation.\n- Therapeutic interventions emerging (senolytic drugs, telomerase activators)."
+    },
+    {
+      "kind": "text",
+      "title": "DNA damage + repair pathways",
+      "body": "**DNA damage** is constant: ~10⁴-10⁵ lesions per cell per day from:\n- Oxidative damage (8-oxo-G).\n- Deamination (C → U; methylC → T).\n- Hydrolytic depurination/depyrimidination (~10K apurinic sites/cell/day).\n- UV radiation (CPDs, 6-4 photoproducts).\n- Replication errors (mismatches).\n- Alkylation, ionizing radiation, chemicals.\n- Double-strand breaks (replication forks collapse, ionizing rad).\n\n**Repair pathways** (5 main classes):\n\n1. **Direct repair**:\n   - Photolyase (CPDs; not in humans).\n   - MGMT (O⁶-methylguanine).\n   - AlkB family (alkylation).\n\n2. **Base excision repair (BER)**: small lesions (oxidative, deamination).\n   - Glycosylase removes base.\n   - APE1 cleaves backbone.\n   - Pol β + ligase fill + seal.\n\n3. **Nucleotide excision repair (NER)**: bulky lesions (UV, chemicals).\n   - XPC + RNA Pol II stalling detect.\n   - TFIIH (XPB/XPD helicase) opens.\n   - XPA/XPF/XPG excise ~30 nt.\n   - Pol δ/ε fill.\n   - Defects: xeroderma pigmentosum, Cockayne syndrome, trichothiodystrophy.\n\n4. **Mismatch repair (MMR)**: replication errors.\n   - MutS/MutL (bact); MSH/MLH (euk) detect mismatches.\n   - Strand discrimination via methylation (bact) or nicks (euk).\n   - Defects: Lynch syndrome (HNPCC), colorectal cancer susceptibility.\n\n5. **Double-strand break (DSB) repair**:\n   - **NHEJ (Non-Homologous End Joining)**: fast + error-prone. Ku70/80 + DNA-PKcs + Artemis + XLF/Cernunnos + ligase IV. Predominant in G0/G1; used for V(D)J recombination.\n   - **HR (Homologous Recombination)**: accurate; requires sister chromatid template. BRCA1/2, RAD51, MRN complex, ATM. S + G2 phases. Defects: BRCA1/2 → breast/ovarian cancer susceptibility.\n\n**Cancer + DNA damage**:\n- Defects in repair → genomic instability → cancer.\n- PARP inhibitors (olaparib, etc.) exploit BRCA-defective cells via synthetic lethality.\n- Recent: ATR/ATM/CHK1 inhibitors in development."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dna_1",
+        "kind": "guided_derivation",
+        "question": "Compute mutation rate + fidelity contributions",
+        "goal": "Human polymerase: intrinsic error 10⁻⁵; proofreading reduces 10²; MMR reduces 10³. Effective rate?",
+        "steps": [
+          {
+            "prompt": "Effective error rate?",
+            "motivation": "Multiply reductions.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "10⁻¹⁰",
+                "10^-10",
+                "1e-10"
+              ]
+            },
+            "hints": [
+              "10⁻⁵ × 10⁻² × 10⁻³."
+            ],
+            "reveal": "Effective rate = 10⁻⁵ × 10⁻² × 10⁻³ = 10⁻¹⁰ per base pair."
+          },
+          {
+            "prompt": "For 3 Gbp diploid genome, errors per replication?",
+            "motivation": "Multiply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~0.3",
+                "0.3-0.6",
+                "3e9 × 1e-10"
+              ]
+            },
+            "hints": [
+              "3×10⁹ × 10⁻¹⁰."
+            ],
+            "reveal": "Errors = 6×10⁹ × 10⁻¹⁰ ≈ 0.6 per cell division (diploid considered). Most repaired; ~3 mutations per gamete per generation contributes to human genetic variation."
+          },
+          {
+            "prompt": "Why is MMR's contribution larger than proofreading?",
+            "motivation": "Different lesion types.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "catches replication errors after Pol",
+                "second-line defense"
+              ]
+            },
+            "hints": [
+              "Polymerase plus subsequent."
+            ],
+            "reveal": "Proofreading catches errors during synthesis (3'→5' exo). MMR catches errors after replication completes. Both essential; defects in either elevate mutation rates dramatically (Lynch syndrome → MMR deficient → 10²-10⁴× elevated mutation rate → predisposition to colorectal + endometrial cancers)."
+          },
+          {
+            "prompt": "Why does BRCA1/2 deficiency predispose to cancer?",
+            "motivation": "HR repair failure.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "HR defective; DSBs accumulate",
+                "homologous recombination defect"
+              ]
+            },
+            "hints": [
+              "Double-strand-break repair."
+            ],
+            "reveal": "BRCA1/2 essential for homologous recombination (HR) DSB repair. Defective → DSBs repaired by error-prone NHEJ → chromosomal instability + cancer (breast 60-80% lifetime risk; ovarian 20-40%). PARP inhibitors exploit synthetic lethality: PARP needed for SSB repair → SSBs become DSBs → BRCA-defective cells can't repair → die. Olaparib + rucaparib + niraparib FDA-approved for BRCA-mutant cancers."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_dna_1",
+        "kind": "slider",
+        "question": "Drag to the approximate number of DNA lesions per human cell per day.",
+        "target": {
+          "min": 10000,
+          "max": 100000
+        },
+        "default": 100,
+        "explanation": "Human cells experience ~10⁴-10⁵ DNA lesions per cell per day from oxidative damage, deamination, alkylation, UV, etc. Most repaired efficiently via BER, NER, MMR, DSB pathways. Accumulated damage contributes to aging + cancer + neurodegeneration. Estimate from Lindahl + others 1990s+."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dna_1",
+        "kind": "multiple_choice",
+        "question": "Why do PARP inhibitors selectively kill BRCA1/2-mutated cancer cells (synthetic lethality)?",
+        "options": [
+          "Direct toxicity.",
+          "PARP inhibitors block PARP-dependent single-strand break (SSB) repair. SSBs accumulate; during replication, become double-strand breaks (DSBs). BRCA-deficient cells can't repair DSBs via homologous recombination (HR); only error-prone NHEJ available. Cells accumulate chromosomal aberrations + die. BRCA-wild-type cells survive (HR intact). Synthetic lethality: PARP-loss + BRCA-loss together lethal but either alone tolerable.",
+          "Random.",
+          "PARP is mutated."
+        ],
+        "correctIndex": 1,
+        "explanation": "Synthetic lethality (Hartwell 1997; Bryant + Helleday 2005 PARP-BRCA): two non-lethal mutations together cause death. PARP inhibitors (olaparib 2014 FDA approval, rucaparib, niraparib, talazoparib) cause SSB accumulation → DSBs in BRCA-mutant cells lacking HR → death. BRCA-wt cells repair via HR. Used in BRCA1/2-mutated breast, ovarian, prostate, pancreatic cancers. Resistance via reversion mutations restoring BRCA function. Modern: PARPi combinations + selection biomarkers (HRD score)."
+      },
+      "hints": [
+        "What does PARP do?",
+        "Why can't BRCA-deficient cells repair?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "PARP inhibitors block PARP-dependent SSB repair → SSBs → DSBs during replication. BRCA1/2-deficient cells can't repair DSBs via HR; NHEJ error-prone → cell death. BRCA-wt cells survive (HR intact). Synthetic lethality. Olaparib + others FDA-approved 2014+ for BRCA-mutant breast/ovarian/prostate/pancreatic. Resistance: BRCA reversion mutations. Modern: combinations + HRD biomarkers."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_dna_1",
+        "kind": "math_expression",
+        "question": "Human genome 3.2 Gbp; replication completes in ~8 hr; ~30K origins; bidirectional. Avg replication-fork speed (bp/sec/fork)?",
+        "acceptedAnswers": [
+          "~37 bp/sec/fork",
+          "37",
+          "1e3/27"
+        ],
+        "hint": "3.2e9 / (2 × 30000) / (8×3600) ≈ 1.85 bp/sec/fork. Closer to 1-2 kb/min/fork typical."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dna_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how DNA repair pathways constitute a 'guardian of the genome' system.",
+        "rubric": "Mentions: ~10⁴-10⁵ lesions/cell/day; without repair, mutations accumulate → cancer + aging + cell death. Five repair pathways handle different lesion types: direct (alkylation, photolyase); BER (small lesions); NER (bulky UV/chemical); MMR (mismatches); DSB-repair via HR + NHEJ. Each has specific machinery. Defects → cancer-predisposition syndromes: XP (NER → UV-skin cancer); Lynch (MMR → colorectal/endometrial); BRCA (HR → breast/ovarian); ATM (DSB → ataxia telangiectasia). Therapeutic exploitation: PARP inhibitors via synthetic lethality in BRCA-mutant cancers. Aging connection: repair declines with age; somatic mutations accumulate; senescence. Modern: ATR/ATM/CHK1 inhibitors; immunotherapy + repair-defective tumors (MMR-deficient → high TMB → PD-1 response, Keytruda 2017 first tumor-agnostic indication). Concludes: DNA repair foundational to life + cancer biology + aging."
+      }
+    }
+  ]
+}

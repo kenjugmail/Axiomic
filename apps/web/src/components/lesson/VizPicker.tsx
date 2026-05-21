@@ -222,6 +222,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "📉",
     tags: ["economics", "macroeconomics", "monetary-policy", "inflation"],
   },
+  {
+    name: "hill-function",
+    label: "Hill function / gene regulation",
+    description: "Drag K + n; see cooperative TF binding curve (n=1 hyperbolic; n>1 ultrasensitive). Activator + repressor.",
+    thumb: "🧬",
+    tags: ["biology", "cell-biology", "molecular-biology", "biochemistry", "gene-regulation"],
+  },
 ];
 
 interface Props {

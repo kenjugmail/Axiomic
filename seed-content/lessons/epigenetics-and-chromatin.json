@@ -1,0 +1,182 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish DNA methylation + histone modifications.",
+      "Reason about chromatin states + cell-fate decisions.",
+      "Connect to epigenetic-based therapies + aging."
+    ],
+    "prereqs": [
+      "transcription-and-translation",
+      "cell-cycle-and-mitosis"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Chromatin structure + organization",
+      "body": "**Chromatin**: DNA + histones + other proteins in nucleus.\n\n**Nucleosome**: 147 bp DNA wrapped around histone octamer (2× H2A + 2× H2B + 2× H3 + 2× H4). Linker H1 between. ~30 nm chromatin fiber → higher-order folding.\n\n**Histone modifications** (epigenetic marks; mostly N-terminal tail):\n- **Acetylation** (H3K9ac, H3K27ac, H3K56ac): activates; opens chromatin; recruits BRD4. Enzymes: HATs (writers, e.g., p300/CBP) + HDACs (erasers).\n- **Methylation** (H3K4me3, H3K27me3, H3K36me3, H3K9me3, H3K79me3): activating or repressive depending on position. Writers: methyltransferases (e.g., MLL for K4; EZH2 for K27; SUV39 for K9). Erasers: demethylases (LSD1, KDM family). Readers: PHD + chromodomains.\n- **Phosphorylation** (H3S10ph): mitotic; cell-cycle.\n- **Ubiquitination** (H2AK119ub, H2BK120ub).\n- **Sumoylation**.\n\n**Active chromatin (euchromatin) marks**: H3K4me3 (promoter), H3K27ac (active enhancer + promoter), H3K36me3 (gene body).\n\n**Repressed chromatin (heterochromatin) marks**: H3K27me3 (Polycomb), H3K9me3 (constitutive heterochromatin).\n\n**Polycomb + Trithorax**: opposing groups of complexes. PRC2 deposits H3K27me3 (repressive); Trithorax deposits H3K4me3 (active). Maintain cell-identity states.\n\n**Chromatin remodelers** (ATP-dependent): SWI/SNF, ISWI, CHD, INO80. Reposition + evict nucleosomes. SWI/SNF mutated in ~20% of cancers (especially SMARCB1 in pediatric).\n\n**3D genome**:\n- Topologically-associating domains (TADs): ~1 Mb; functional units.\n- Cohesin + CTCF loop extrusion forms TADs.\n- Enhancer-promoter contacts within TADs.\n- Hi-C + Capture-C + micro-C reveal 3D structure.\n- Disease: TAD boundary disruption → ectopic gene expression."
+    },
+    {
+      "kind": "text",
+      "title": "DNA methylation + the epigenome",
+      "body": "**DNA methylation** (5mC; 5-methylcytosine):\n- Mostly CpG dinucleotides in mammals.\n- CpG islands: clusters at promoters; usually unmethylated in active genes.\n- Methylation of CpG islands → silencing (X-inactivation, imprinting, repressed genes).\n- **DNMT enzymes**: DNMT1 (maintenance; copies methylation to new strand at replication); DNMT3A + DNMT3B (de novo).\n- **TET enzymes**: convert 5mC → 5hmC → 5fC → 5caC → unmethylated. Active demethylation.\n\n**Genomic imprinting**: ~100 genes in human imprinted (expressed from only one parental allele). H19 (maternal); Igf2 (paternal); etc. Loss of imprinting → diseases (Prader-Willi, Angelman, Beckwith-Wiedemann).\n\n**X-chromosome inactivation** (Mary Lyon 1961): one X randomly silenced in females early development. Driven by XIST long non-coding RNA → coats X → recruits PRC2 → silenced chromatin. Calico cat patches!\n\n**Epigenetic clocks** (Horvath 2013): DNA methylation patterns predict biological age (vs chronological).\n- 353 CpGs in original Horvath clock.\n- Predicts mortality + age-related disease.\n- Reset partially during reprogramming.\n- Influences research on aging interventions.\n\n**Long non-coding RNAs (lncRNAs)** in chromatin:\n- XIST (X-inactivation).\n- HOTAIR (cancer).\n- Many tissue-specific.\n- Function partly via chromatin recruitment.\n\n**Modern technologies**:\n- **WGBS** (whole-genome bisulfite sequencing): genome-wide methylation.\n- **ChIP-seq + CUT&RUN + CUT&Tag**: histone marks + TF binding.\n- **ATAC-seq**: open chromatin.\n- **Hi-C + Micro-C**: 3D genome.\n- **Single-cell** versions: scATAC, scChIP, scWGBS.\n- **Multiomic**: combined modalities (e.g., 10x Multiome ATAC+RNA)."
+    },
+    {
+      "kind": "text",
+      "title": "Epigenetic therapies + diseases",
+      "body": "**Epigenetic drugs** target chromatin enzymes + readers:\n\n**DNMT inhibitors** (hypomethylating agents):\n- **Azacitidine (Vidaza, 2004 FDA)**, **Decitabine (Dacogen, 2006 FDA)**: AML + MDS.\n- Reactivate silenced tumor-suppressor genes.\n\n**HDAC inhibitors**:\n- **Vorinostat (Zolinza, 2006 FDA)**, **Romidepsin, Belinostat, Panobinostat**: T-cell lymphomas, multiple myeloma.\n- Hyperacetylate chromatin → reactivate gene expression.\n\n**EZH2 inhibitors**:\n- **Tazemetostat (Tazverik 2020)**: epithelioid sarcoma + follicular lymphoma with EZH2 mutation.\n- Block H3K27 methylation → derepress silenced genes.\n\n**IDH1/IDH2 inhibitors**:\n- **Ivosidenib + enasidenib**: AML with IDH mutations.\n- Mutant IDH produces oncometabolite 2-hydroxyglutarate (2-HG) → inhibits TET + Jumonji demethylases → DNA + histone hypermethylation → cancer.\n\n**BRD4 inhibitors** (BET inhibitors):\n- Block BRD4 reading of acetylated histones → MYC + other oncogenes silenced.\n- Multiple agents in trials.\n\n**LSD1 (KDM1A) inhibitors**:\n- Multiple in trials for AML + small-cell lung.\n\n**Diseases with epigenetic basis**:\n- **Rett syndrome**: MECP2 (methyl-DNA binding) mutation; neurodevelopmental.\n- **Fragile X**: FMR1 CGG-repeat expansion → hypermethylation → silencing.\n- **ICF syndrome**: DNMT3B mutations.\n- **Kabuki syndrome**: KMT2D (MLL2) mutations.\n- **Sotos syndrome**: NSD1 mutations.\n- **Many cancers**: EZH2, DNMT3A, IDH1/2, TET2, ASXL1 mutations recurrent.\n\n**Aging + epigenetics**:\n- Epigenetic clocks predict mortality.\n- Reprogramming (Yamanaka factors) can reverse aging signatures in vitro.\n- Senolytic + senomorphic drugs target senescent cells.\n- Active research area: can we 'reset' aging via partial reprogramming?\n- Concerns: cancer risk if reprogramming uncontrolled.\n\n**iPSCs + cell reprogramming** (Yamanaka 2006 Nobel 2012):\n- 4 TFs (OCT4 + SOX2 + KLF4 + MYC = 'OSKM') revert somatic cells to pluripotency.\n- Epigenetic memory mostly reset.\n- Foundation of regenerative medicine + disease modeling + drug discovery."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_epi_1",
+        "kind": "guided_derivation",
+        "question": "Trace X-inactivation in early female embryo",
+        "goal": "How does dosage compensation work in mammals — one X expressed per cell?",
+        "steps": [
+          {
+            "prompt": "Why need dosage compensation?",
+            "motivation": "X vs Y gene-dose imbalance.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "female XX has 2 X-linked genes; male XY has 1; need equalization"
+              ]
+            },
+            "hints": [
+              "X vs autosome dose."
+            ],
+            "reveal": "Females have 2 X chromosomes (~800 protein-coding genes); males have 1 X + 1 Y. Without compensation, females would have 2× X-linked gene dosage. Solution: inactivate one X in each female somatic cell."
+          },
+          {
+            "prompt": "Which X gets inactivated?",
+            "motivation": "Random, then heritable.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "random in early embryo, then heritable",
+                "random inactivation"
+              ]
+            },
+            "hints": [
+              "Random + clonal."
+            ],
+            "reveal": "Random selection in early embryo (~32-cell stage). Once chosen, **clonally heritable** — all descendants of a cell inactivate the same X. Calico cat patches reflect coat-color genes on X."
+          },
+          {
+            "prompt": "Molecular mechanism?",
+            "motivation": "XIST lncRNA.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "XIST lncRNA coats X + recruits PRC2",
+                "XIST + Polycomb"
+              ]
+            },
+            "hints": [
+              "Long non-coding RNA + Polycomb."
+            ],
+            "reveal": "**XIST** (X-inactive specific transcript): long non-coding RNA expressed from X-inactivation center (Xic). XIST RNA spreads in cis along its own X → recruits PRC2 (deposits H3K27me3) + other silencing machinery → forms 'Barr body' — facultative heterochromatin."
+          },
+          {
+            "prompt": "What's the 'tsix' antisense story?",
+            "motivation": "Counter-XIST.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Tsix is antisense; prevents XIST on active X",
+                "antisense regulator"
+              ]
+            },
+            "hints": [
+              "Antisense XIST."
+            ],
+            "reveal": "**Tsix**: antisense transcript opposing XIST. On the X-to-be-active, Tsix continues → prevents XIST accumulation. On X-to-be-inactivated, Tsix silenced → XIST coats. Stochastic Tsix/XIST balance + feedback determines which X is chosen.\n\nX-inactivation: classic example of epigenetic stable inheritance, lncRNA-mediated chromatin regulation, mosaic gene expression in females. Modern: structural genomics shows Xi has distinct 3D organization."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_epi_1",
+        "kind": "sortable",
+        "question": "Order these chromatin marks/states from most ACTIVE to most REPRESSIVE.",
+        "items": [
+          {
+            "id": "h3k4me3",
+            "label": "H3K4me3 (active promoter)"
+          },
+          {
+            "id": "h3k27ac",
+            "label": "H3K27ac (active enhancer + promoter)"
+          },
+          {
+            "id": "h3k36me3",
+            "label": "H3K36me3 (gene body, transcribed)"
+          },
+          {
+            "id": "h3k27me3",
+            "label": "H3K27me3 (Polycomb, facultative heterochromatin)"
+          },
+          {
+            "id": "h3k9me3",
+            "label": "H3K9me3 (constitutive heterochromatin)"
+          },
+          {
+            "id": "dna-methyl",
+            "label": "DNA methylation at CpG island (silencing)"
+          }
+        ],
+        "explanation": "Chromatin-state hierarchy:\n• **Active marks**: H3K4me3 (promoter), H3K27ac (enhancer + promoter active), H3K36me3 (transcribed gene body), H3K4me1 (poised enhancer).\n• **Facultative heterochromatin** (developmentally repressed; can be reactivated): H3K27me3 (Polycomb-marked, deposited by EZH2).\n• **Constitutive heterochromatin** (permanently silenced): H3K9me3 (centromeres, repetitive elements; deposited by SUV39).\n• **DNA methylation**: CpG-island methylation = silencing (most repressive); gene body methylation can be associated with transcription.\n\nChromatin marks form combinatorial 'code' (Strahl + Allis 2000 'histone code hypothesis'). Different combinations recruit different readers → state-specific outputs. Modern: ML on chromatin marks predicts gene expression (ENFORMER, Akita)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_epi_1",
+        "kind": "multiple_choice",
+        "question": "Why have epigenetic therapies (DNMT inhibitors, HDAC inhibitors) been clinically modest vs targeted oncogene inhibitors?",
+        "options": [
+          "Random.",
+          "Epigenetic drugs typically: (1) Broad mechanism → affects many genes including beneficial ones → narrow therapeutic window; (2) Often cytostatic + reversible vs cytotoxic + permanent (chemo); (3) Best in specific settings like MDS/AML (azacitidine) where epigenetic reprogramming directly addresses disease; (4) Resistance + escape common; (5) Mostly modest single-agent activity; better in combinations. Targeted oncogene inhibitors (imatinib, osimertinib) have specific gain-of-function targets with cleaner therapeutic indices. Modern: emerging selective epigenetic agents (EZH2 inhibitors, IDH inhibitors, BET inhibitors) more promising.",
+          "Random.",
+          "Required."
+        ],
+        "correctIndex": 1,
+        "explanation": "Epigenetic-drug landscape: DNMT inhibitors (azacitidine, decitabine) approved for MDS/AML; modest activity in solid tumors. HDAC inhibitors (vorinostat) approved for T-cell lymphomas; modest single-agent broadly. EZH2 inhibitors (tazemetostat) approved for EZH2-mutant tumors. IDH1/2 inhibitors (ivosidenib, enasidenib) approved for IDH-mutant AML. BET inhibitors in trials. Modern trend: selective + biomarker-guided. Reasons for modest activity: broad mechanism + cytostatic + resistance + escape. Future: combinations + selective second-gen + new targets (LSD1, methyltransferases, BAF complex)."
+      },
+      "hints": [
+        "Why are epigenetic drugs less effective?",
+        "What's the comparison to kinase inhibitors?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Epigenetic drugs (DNMT-I, HDAC-I, EZH2-I, IDH-I, BET-I): broad mechanism, often cytostatic, narrow therapeutic window, modest single-agent activity. Approved for: MDS/AML (azacitidine, ivosidenib), T-cell lymphomas (vorinostat), EZH2-mutant sarcoma (tazemetostat). Targeted oncogene inhibitors (imatinib BCR-ABL, osimertinib EGFR, sotorasib KRAS) have cleaner mechanism + biomarker selection + larger therapeutic indices. Modern epigenetic-drug trend: selective + biomarker-guided + combination strategies."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_epi_1",
+        "kind": "slider",
+        "question": "Drag to the typical number of nucleosomes per Mb of human DNA.",
+        "target": {
+          "min": 4500,
+          "max": 5500
+        },
+        "default": 1000,
+        "explanation": "~5000 nucleosomes per Mb of human DNA (147 bp per nucleosome + ~50 bp linker × 5000 = ~1 Mb). Human genome 3.2 Gb → ~16 million nucleosomes per haploid genome. Each cell: ~30 million nucleosomes per diploid genome. Chromatin packing ratio: ~10⁴-10⁵× compaction from linear DNA to mitotic chromosome."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_epi_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how epigenetic modifications enable identical cells in the body to have different phenotypes.",
+        "rubric": "Mentions: all somatic cells in body share same DNA but exhibit distinct phenotypes (neuron vs liver vs immune cell). Mechanism: differential epigenetic states. DNA methylation (CpG islands, methylation lineage-specific); histone modifications (H3K4me3 active vs H3K27me3 repressive); 3D chromatin organization (cell-type-specific TADs + enhancer-promoter contacts); transcription factor combinations + cofactors. Master regulators (MyoD muscle, GATA1 erythroid, OCT4 pluripotency) establish cell identity via chromatin reprogramming. Differentiation: progressive chromatin restriction + loss of pluripotency potential. Aging + disease alter epigenome (DNA methylation drift, histone-mark loss, chromatin disorganization). Reprogramming (iPSCs via OSKM Yamanaka 2006): reset to pluripotency. Modern: epigenetic editing tools (dCas9-fused chromatin enzymes) enable precise reprogramming. Clinical: epigenetic biomarkers for diagnosis + prognosis. Concludes: epigenetics is the cellular memory + identity system enabling multicellular organism complexity from a single genome."
+      }
+    }
+  ]
+}

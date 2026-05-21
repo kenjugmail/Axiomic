@@ -1,0 +1,238 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Distinguish receptor classes (GPCR, RTK, NHR, ion channel).",
+      "Trace cascades (MAPK, PI3K, JAK-STAT, Wnt, Notch).",
+      "Reason about pharmacology + drug-target intersection."
+    ],
+    "prereqs": [
+      "cell-structure-and-organelles"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Receptor classes: how cells sense the world",
+      "body": "Cells perceive extracellular signals (hormones, growth factors, neurotransmitters, light) via receptors. Major classes:\n\n**1. G-protein coupled receptors (GPCRs)**: 7-transmembrane helices. ~800 in human genome.\n- Ligand binds → conformation change → GDP/GTP exchange on Gα → downstream effectors.\n- Gs/Gi (cAMP via adenylate cyclase ± direction).\n- Gq (PLCβ → DAG + IP₃ → Ca²⁺ + PKC).\n- G12/13 (Rho GTPase).\n- ~30-40% of FDA-approved drugs target GPCRs.\n- Examples: β2-adrenergic (asthma), opioid receptors, dopamine receptors, GLP-1 (Ozempic + semaglutide diabetes/obesity), sphingosine-1-phosphate (multiple sclerosis fingolimod).\n\n**2. Receptor tyrosine kinases (RTKs)**: single-TM with intracellular kinase domain. ~58 in human.\n- Ligand binding → dimerization → trans-autophosphorylation → recruits SH2/PTB-domain proteins → downstream cascades.\n- EGFR (epidermal growth factor; cancer driver).\n- HER2/ERBB2 (breast cancer; trastuzumab).\n- VEGFR (angiogenesis; bevacizumab).\n- Insulin receptor.\n- ~10-15% of drugs target RTKs.\n\n**3. Nuclear hormone receptors (NHRs)**: ~50 in human. Cytoplasmic + nuclear; bind lipid-soluble ligands (steroids, thyroid, retinoids).\n- Ligand binds → translocate to nucleus → bind DNA response elements → activate transcription.\n- Estrogen, androgen, glucocorticoid, vitamin D, retinoid receptors.\n- Drug targets: tamoxifen (ER), bicalutamide (AR), dexamethasone (GR).\n\n**4. Ligand-gated ion channels**: ionotropic receptors. nicotinic ACh (muscle); GABA-A (anxiety); 5-HT3 (nausea); NMDA + AMPA (glutamate; learning + memory; ketamine fast antidepressant).\n\n**5. Voltage-gated ion channels**: action potentials in neurons + muscle. Na+, K+, Ca²⁺ channels.\n\n**6. Other**: integrins (ECM sensing), Notch, Hedgehog, Wnt, JAK-STAT, TGFβ, TNF, TLRs (innate immunity).\n\n**Drug discovery**: targeting receptors is the most productive drug-target class (>50% of FDA approvals). Modern: GLP-1 agonists (semaglutide; ~$30B market 2024)."
+    },
+    {
+      "kind": "text",
+      "title": "Signal-transduction cascades + the MAPK pathway",
+      "body": "**Signal cascades**: receptor activation → multi-step protein phosphorylation cascade → transcription factor activation → gene expression. Common features:\n- Amplification: 1 receptor → 10s-100s of downstream effectors.\n- Specificity: scaffolds + adaptors organize.\n- Feedback (positive + negative): noise filter + signal duration.\n- Crosstalk: pathways converge + diverge.\n\n**MAPK cascade** (RAS-RAF-MEK-ERK):\n1. Ligand binds RTK (e.g., EGF→EGFR).\n2. RTK dimerizes + autophosphorylates.\n3. Adaptor (GRB2) + GEF (SOS) recruited.\n4. SOS activates RAS (GDP → GTP).\n5. Active RAS recruits + activates RAF (Ser/Thr kinase).\n6. RAF phosphorylates MEK1/2.\n7. MEK phosphorylates ERK1/2.\n8. Active ERK enters nucleus + phosphorylates TFs (ELK1, MYC, etc.) + cytoplasmic targets.\n\nResult: cell proliferation + survival + differentiation.\n\n**RAS cancer driver**:\n- ~30% of human cancers have RAS mutations (especially KRAS in pancreatic, colon, lung).\n- KRAS G12C: covalent inhibitor sotorasib (Lumakras 2021), adagrasib (2022) FDA-approved.\n- Other RAS variants (G12D, G13, Q61): drugs in development.\n\n**MAPK inhibitors**:\n- BRAF inhibitors (vemurafenib, dabrafenib) for BRAF-V600E melanoma + colorectal.\n- MEK inhibitors (trametinib, cobimetinib) in combination.\n- ERK inhibitors emerging.\n\n**PI3K-AKT-mTOR pathway**:\n- RTK → PI3K → PIP₃ → AKT → multiple targets including mTOR.\n- PI3K mutations (especially PIK3CA) common in many cancers.\n- Inhibitors: idelalisib, alpelisib.\n- mTOR drives translation + cell growth.\n\n**JAK-STAT**:\n- Cytokine receptors → JAK kinases → STAT TFs → directly to nucleus.\n- JAK inhibitors (tofacitinib, ruxolitinib) for autoimmune + myeloproliferative.\n\n**Wnt/β-catenin**:\n- Wnt → Frizzled receptor → Dishevelled → inhibits β-catenin destruction → β-catenin enters nucleus → TCF/LEF TFs.\n- Stem cells + cancer (colon: APC mutation activates).\n\n**Notch**:\n- Direct receptor-ligand cleavage on adjacent cells.\n- Cell-fate decisions; T-cell development.\n- Mutations in T-ALL (gain-of-function), some lymphomas.\n\n**Hedgehog**:\n- Shh → Patched → SMO → Gli TFs.\n- Embryonic development; mutations in basal-cell carcinoma + medulloblastoma.\n- SMO inhibitors: vismodegib (Erivedge)."
+    },
+    {
+      "kind": "text",
+      "title": "Drug discovery + targeted therapies",
+      "body": "**Targeted cancer therapies**: small-molecule kinase inhibitors + monoclonal antibodies targeting specific signaling proteins.\n\n**Notable approvals**:\n- **Imatinib (Gleevec, 2001)**: first targeted kinase inhibitor; BCR-ABL fusion in CML. Transformed CML from death sentence to chronic. ~$48B+ lifetime sales.\n- **Trastuzumab (Herceptin, 1998)**: HER2 mAb for HER2+ breast cancer.\n- **Erlotinib (Tarceva, 2004)**, **Gefitinib (Iressa, 2002)**: EGFR inhibitors for EGFR-mutant NSCLC.\n- **Vemurafenib (Zelboraf, 2011)**: BRAF V600E for melanoma.\n- **Osimertinib (Tagrisso, 2015)**: 3rd-gen EGFR for T790M-resistant.\n- **Sotorasib (Lumakras, 2021)**: KRAS G12C — first selective KRAS inhibitor.\n- **Pembrolizumab (Keytruda, 2014)**: PD-1 immunotherapy.\n\n**Targeted therapy + biomarker development**:\n- Identifies subpopulations likely to respond.\n- Companion diagnostics (HER2 IHC + FISH; EGFR sequencing; etc.).\n- Precision oncology: NCI-MATCH, ASCO-TAPUR.\n\n**Resistance mechanisms**:\n- Target mutation (T790M in EGFR; gatekeeper).\n- Bypass pathway activation.\n- Tumor heterogeneity + clonal evolution.\n- Drug efflux (MDR1).\n- Solutions: combination therapy + next-gen drugs (covalent, allosteric).\n\n**Immunotherapy revolution**:\n- Checkpoint inhibitors: PD-1 + PD-L1 + CTLA-4 blockers.\n- Adoptive cell therapy: CAR-T (Kymriah 2017, Yescarta) for B-cell malignancies.\n- TCR therapy + TIL therapy in trials.\n- Cancer vaccines (Moderna mRNA-4157 + Keytruda combo in trials).\n\n**Modern drug-discovery pipeline**:\n- Target identification: human genetics + CRISPR screens + proteomics.\n- Hit identification: HTS, fragment-based, DNA-encoded libraries.\n- Lead optimization: structure-based (cryo-EM revolution since 2015).\n- Clinical trials: ~$2-3B + 10-15 yr typical.\n- AI + ML: AlphaFold + structural predictions; ChEMBL + Reaxys.\n- Modalities: small molecules, biologics, ADCs, gene therapy, mRNA.\n\nSignal-transduction pharmacology is the engine of modern medicine; understanding pathways + receptors → effective therapies."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sig_1",
+        "kind": "guided_derivation",
+        "question": "Trace EGF signal from extracellular to nucleus",
+        "goal": "Trace EGF stimulation of EGFR through MAPK cascade to gene expression.",
+        "steps": [
+          {
+            "prompt": "EGF binds + does what to EGFR?",
+            "motivation": "Ligand-induced dimerization.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "dimerization + autophosphorylation"
+              ]
+            },
+            "hints": [
+              "RTK activation."
+            ],
+            "reveal": "EGF binds EGFR extracellular domain → conformational change → EGFR dimerization → intracellular kinase domains trans-autophosphorylate on Tyr residues."
+          },
+          {
+            "prompt": "How is RAS activated?",
+            "motivation": "GEF activation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "GRB2 + SOS recruited; SOS activates RAS GDP→GTP"
+              ]
+            },
+            "hints": [
+              "Adaptor + GEF."
+            ],
+            "reveal": "Phosphotyrosines on EGFR recruit GRB2 (SH2 domain) + GRB2-bound SOS (GEF). SOS catalyzes RAS-GDP → RAS-GTP exchange. Active RAS conformation."
+          },
+          {
+            "prompt": "RAS to ERK signal?",
+            "motivation": "MAPK cascade.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "RAS → RAF → MEK → ERK",
+                "phosphorylation cascade"
+              ]
+            },
+            "hints": [
+              "Three-tiered kinase cascade."
+            ],
+            "reveal": "RAS-GTP recruits + activates RAF (Ser/Thr kinase). RAF phosphorylates MEK1/2. MEK phosphorylates ERK1/2 on Thr+Tyr residues. ERK activated."
+          },
+          {
+            "prompt": "ERK does what next?",
+            "motivation": "Translocation + TF phosphorylation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "translocates to nucleus + phosphorylates TFs"
+              ]
+            },
+            "hints": [
+              "Goes where, does what?"
+            ],
+            "reveal": "Active ERK translocates to nucleus. Phosphorylates: ELK1 (Ets family), MYC, FOS, JUN (AP-1 components). Activated TFs drive immediate-early gene expression (FOS, JUN, EGR1) → secondary genes for cell-cycle entry, proliferation, survival."
+          },
+          {
+            "prompt": "How does this go wrong in cancer?",
+            "motivation": "Oncogenic activation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "constitutive activation via mutations",
+                "RAS / RAF / EGFR mutations"
+              ]
+            },
+            "hints": [
+              "Mutations make it always-on."
+            ],
+            "reveal": "Cancer mutations: EGFR (T790M, exon-19 deletions, L858R) → constitutive activation; RAS (G12C/D, G13, Q61) → can't hydrolyze GTP → always GTP-bound; BRAF V600E → constitutive kinase. All drive constitutive MAPK signaling → uncontrolled proliferation. Targeted inhibitors (osimertinib EGFR; sotorasib KRAS G12C; vemurafenib BRAF V600E) selectively block these — transformed clinical oncology."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_sig_1",
+        "kind": "drag_classify",
+        "question": "Match each receptor to its primary class.",
+        "items": [
+          {
+            "id": "beta2",
+            "label": "β2-adrenergic (epinephrine, asthma)",
+            "bin": "gpcr"
+          },
+          {
+            "id": "egfr",
+            "label": "EGFR (EGF, cancer driver)",
+            "bin": "rtk"
+          },
+          {
+            "id": "her2",
+            "label": "HER2/ERBB2 (breast cancer)",
+            "bin": "rtk"
+          },
+          {
+            "id": "estrogen",
+            "label": "Estrogen receptor (steroid)",
+            "bin": "nhr"
+          },
+          {
+            "id": "androgen",
+            "label": "Androgen receptor",
+            "bin": "nhr"
+          },
+          {
+            "id": "nicotinic",
+            "label": "Nicotinic acetylcholine receptor (muscle)",
+            "bin": "ion"
+          },
+          {
+            "id": "gaba-a",
+            "label": "GABA-A receptor (anxiety)",
+            "bin": "ion"
+          },
+          {
+            "id": "glp1",
+            "label": "GLP-1 receptor (diabetes, semaglutide)",
+            "bin": "gpcr"
+          },
+          {
+            "id": "vitd",
+            "label": "Vitamin D receptor",
+            "bin": "nhr"
+          },
+          {
+            "id": "insulin",
+            "label": "Insulin receptor",
+            "bin": "rtk"
+          }
+        ],
+        "bins": [
+          {
+            "id": "gpcr",
+            "label": "GPCR (7-TM)"
+          },
+          {
+            "id": "rtk",
+            "label": "Receptor tyrosine kinase"
+          },
+          {
+            "id": "nhr",
+            "label": "Nuclear hormone receptor"
+          },
+          {
+            "id": "ion",
+            "label": "Ligand-gated ion channel"
+          }
+        ],
+        "explanation": "Major receptor classes:\n• **GPCR**: ~800 in human; ~30-40% of drugs target. β2-AR (asthma), opioid, dopamine, GLP-1 (Ozempic).\n• **RTK**: ~58 in human. EGFR, HER2, insulin, VEGFR. Cancer drivers; targeted by inhibitors.\n• **NHR**: ~50 in human. Steroid + thyroid + retinoid. Slow + transcriptional. Estrogen (tamoxifen), androgen (bicalutamide), glucocorticoid (dexamethasone).\n• **Ligand-gated ion channels**: nAChR, GABA-A, glycine, NMDA. Fast (ms) signaling in neurons + muscle.\n\nUnderstanding receptor class informs: drug-design strategy (small mol vs biologic vs ASO), kinetics (ms-min for channels; min-hr for GPCRs/RTKs; hr-days for NHRs), selectivity, side effects."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sig_1",
+        "kind": "multiple_choice",
+        "question": "Why has the GLP-1 receptor agonist class (semaglutide, tirzepatide) become the largest-selling drug class of the 2020s?",
+        "options": [
+          "Marketing.",
+          "Combined: (1) Strong efficacy in type 2 diabetes + obesity — 15-25% body-weight loss with semaglutide/tirzepatide (vs ~5% historical meds); (2) Improved cardiovascular + renal outcomes (Selecting + others); (3) Improving formulations (weekly injection; oral semaglutide; future longer-acting); (4) Massive unmet need (>40% adults overweight/obese globally); (5) Pricing premium ($1000+/mo). Market: Ozempic + Wegovy + Mounjaro + Zepbound; $30B+ revenue 2024; projected $100B+/yr by 2030s. Pipeline: amycretin, retatrutide, oral options. Demand crisis 2023-24.",
+          "Random.",
+          "Required."
+        ],
+        "correctIndex": 1,
+        "explanation": "GLP-1 receptor agonists (semaglutide = Ozempic/Wegovy; tirzepatide = Mounjaro/Zepbound) became dominant 2020s drug class: efficacy (15-25% weight loss + improved A1C + CV outcomes); massive obesity epidemic + unmet need; convenient formulations; premium pricing. Novo Nordisk + Eli Lilly market caps surged. ~5% of US adults on GLP-1 by 2024. Supply shortages 2023-24. Pipeline: amycretin (single triple-agonist), retatrutide, oral semaglutide approved 2024. Long-term: cardiovascular, renal, NASH, sleep apnea indications. Mechanism: GLP-1 GPCR slows gastric emptying + increases insulin + suppresses glucagon + suppresses appetite (CNS). Major implication for healthcare + economy."
+      },
+      "hints": [
+        "What efficacy in obesity?",
+        "What's the market size?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "GLP-1 agonists (Ozempic, Wegovy, Mounjaro, Zepbound): 15-25% weight loss + improved CV/renal + diabetes; obesity epidemic; convenient weekly injection; premium pricing. $30B+ revenue 2024; projected $100B+ by 2030s. Novo + Lilly. Pipeline: amycretin, retatrutide, oral semaglutide approved 2024. Long-term indications expanding. Foundation: GLP-1 GPCR (gastric emptying + insulin + glucagon + appetite). Largest drug class of 2020s."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sig_1",
+        "kind": "math_expression",
+        "question": "Signal amplification: 1 receptor → 10 G-proteins → 100 PLC → 1000 IP3 → 10000 Ca²⁺. What's total amplification?",
+        "acceptedAnswers": [
+          "10000",
+          "10^4",
+          "10000-fold"
+        ],
+        "hint": "Step amplifications multiply: 10 × 10 × 10 × 10 = 10⁴."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sig_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why signal-transduction pathways are the dominant focus of modern drug discovery.",
+        "rubric": "Mentions: signal-transduction pathways control cell proliferation + survival + differentiation + immune response — disease drivers (cancer, autoimmune, metabolic). Receptors (GPCR + RTK) accessible drug targets (extracellular + transmembrane). >50% of FDA approvals target receptors + signaling components. Modern targeted therapies: imatinib (BCR-ABL CML), trastuzumab (HER2 breast), osimertinib (EGFR-T790M lung), sotorasib (KRAS G12C lung), GLP-1 agonists (semaglutide). Strategies: small-molecule kinase inhibitors, mAbs, ADCs, allosteric modulators. Challenges: resistance via mutation + bypass; off-target effects; selectivity. Precision medicine: biomarker-guided. Modern: AI + ML accelerate target ID, hit discovery, structure prediction (AlphaFold). Conclusions: signaling pathways = molecular wiring of disease; targeting them = molecular medicine; defines 21st-century pharmaceutical industry."
+      }
+    }
+  ]
+}
