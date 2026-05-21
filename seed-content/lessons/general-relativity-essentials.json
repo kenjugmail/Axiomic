@@ -1,0 +1,153 @@
+{
+  "slug": "general-relativity-essentials",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "State the equivalence principle + Einstein field equations.",
+      "Identify key spacetimes (Schwarzschild, Kerr, FLRW, de Sitter).",
+      "Survey observational tests of GR."
+    ],
+    "prereqs": [
+      "cosmology-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Equivalence principle + curvature + Einstein equations",
+      "body": "**General Relativity (GR)** (Einstein 1915, building on 1907-1915 work with Grossmann + Hilbert): theory of gravity as **curvature of spacetime** caused by energy + momentum. The most beautifully validated physical theory ever, surviving every precision test for over a century.\n\n**Equivalence principle** (Einstein 1907 'happiest thought'): locally, gravity is indistinguishable from acceleration. A freely falling observer in a uniform gravitational field experiences no gravity — no local experiment distinguishes a freely falling lab from a lab in deep space. Three forms:\n- **Weak EP**: inertial mass = gravitational mass (Eötvös 1890s; modern MICROSCOPE 2017 confirms to ~10⁻¹⁵).\n- **Einstein EP**: all local non-gravitational experiments are independent of position + velocity.\n- **Strong EP**: extends EEP to gravitational experiments (tested by lunar laser ranging + binary pulsars).\n\n**Geometry of spacetime**: 4D pseudo-Riemannian manifold (M, g) with metric g_μν. Line element ds² = g_μν dx^μ dx^ν. **Curvature** measured by:\n- **Christoffel symbols** Γ^λ_μν: derived from g; encode parallel transport.\n- **Riemann curvature tensor** R^ρ_σμν: full curvature info; non-zero ⇔ spacetime is curved.\n- **Ricci tensor** R_μν = R^λ_μλν: contracted Riemann; matter response.\n- **Ricci scalar** R = g^μν R_μν: trace of Ricci.\n- **Weyl tensor** C_μνρσ: traceless part of Riemann; describes tidal + gravitational waves in vacuum.\n\n**Einstein field equations** (1915; the 'jewel of theoretical physics' per Penrose):\n\n  **G_μν + Λ g_μν = (8πG/c⁴) T_μν**\n\nwhere G_μν = R_μν − (1/2) g_μν R is the **Einstein tensor** (geometric side), T_μν is the stress-energy tensor (matter side), Λ is the cosmological constant, G is Newton's constant, c is the speed of light. Wheeler's summary: **'spacetime tells matter how to move; matter tells spacetime how to curve'**.\n\n**Geodesic equation**: free-falling test particles follow geodesics — extremal paths in curved spacetime:\n\n  d²x^μ/dτ² + Γ^μ_αβ · (dx^α/dτ) · (dx^β/dτ) = 0\n\n**Hilbert action**: GR derivable from variational principle on S = ∫(R + L_matter)·√(-g) d⁴x — von Hilbert 1915 (independent of Einstein). The action approach is the foundation of modern GR + extensions (f(R) gravity, scalar-tensor, Horndeski).\n\n**Newtonian limit**: in weak field + slow motion, g_00 ≈ -(1 + 2Φ/c²), Einstein → Poisson ∇²Φ = 4πGρ. GR contains Newton."
+    },
+    {
+      "kind": "text",
+      "title": "Key spacetimes: Schwarzschild, Kerr, FLRW, de Sitter",
+      "body": "**Schwarzschild metric** (Karl Schwarzschild 1916, on the WWI Russian front; died of pemphigus weeks later, age 42): exact solution for **non-rotating, uncharged, spherically symmetric mass**. The first non-trivial GR solution.\n\n  ds² = -(1 - r_s/r) c² dt² + (1 - r_s/r)⁻¹ dr² + r² (dθ² + sin²θ dφ²)\n\nwhere **r_s = 2GM/c²** is the Schwarzschild radius (~3 km for the Sun; ~9 mm for Earth).\n\n**Features**:\n- **Event horizon at r = r_s**: one-way membrane; nothing escapes, not even light. Coordinate singularity (resolvable via Kruskal-Szekeres or Eddington-Finkelstein coords), not physical.\n- **Curvature singularity at r = 0**: physical; Kretschmann scalar R_μνρσ R^μνρσ ~ M²/r⁶ → ∞.\n- **Gravitational redshift**: photons climbing out lose energy; ν_∞/ν_emit = √(1 - r_s/r). Tested by Pound-Rebka 1959 (Mössbauer; γ-ray over 22.5 m tower); GPS satellites correct for ~38 µs/day.\n- **Birkhoff's theorem** (1923): outside any spherically symmetric mass, vacuum solution = Schwarzschild — independent of internal dynamics. Analog of Newton's shell theorem.\n\n**Kerr metric** (Roy Kerr 1963): exact solution for **rotating uncharged** black hole; parameterized by mass M + spin a = J/(Mc). More complex than Schwarzschild; features:\n- **Ergosphere**: region outside event horizon where co-rotation is forced (frame dragging extreme); energy extractable via **Penrose process**.\n- **Inner + outer horizons** at r_± = M ± √(M² - a²) (in geometric units); maximally rotating: a = M; over-spun would be naked singularity (cosmic censorship conjecture forbids).\n- **Frame dragging (Lense-Thirring effect)** measured by Gravity Probe B (2011, ~19% precision) + LAGEOS satellites.\n- **Reissner-Nordström** (charged), **Kerr-Newman** (charged + rotating): generalize.\n\n**FLRW metric** (Friedmann-Lemaître-Robertson-Walker; 1922-1936): the geometry of the cosmological principle — homogeneous + isotropic universe:\n\n  ds² = -c² dt² + a(t)² [ dr²/(1 - kr²) + r² (dθ² + sin²θ dφ²) ]\n\nwhere **a(t)** is the scale factor + k ∈ {-1, 0, +1} is spatial curvature. Substituting into Einstein equations → Friedmann equations (next lesson).\n\n**de Sitter spacetime** (Willem de Sitter 1917): vacuum solution with positive Λ; exponentially expanding empty universe; a(t) ∝ exp(H·t) with H = √(Λ/3). Asymptotic future of ΛCDM. Used in inflationary models + as a toy quantum-gravity arena.\n\n**Anti-de Sitter (AdS)**: vacuum with negative Λ; constant negative curvature. Central to **AdS/CFT correspondence** (Maldacena 1997) — holographic duality between gravity in AdS_{d+1} + conformal field theory on the boundary. Foundation of modern theoretical physics; >12000 citations.\n\n**Black hole types**:\n- **Stellar-mass** (5-100 M⊙): collapse of massive stars; LIGO mergers; X-ray binaries (Cygnus X-1).\n- **Intermediate-mass** (~100-10⁵ M⊙): elusive; ultraluminous X-ray sources, possibly in globular clusters.\n- **Supermassive** (~10⁵-10¹⁰ M⊙): galactic centers; Sgr A* in our galaxy (Genzel + Ghez Nobel 2020; ~4×10⁶ M⊙); M87* (~6.5×10⁹ M⊙ imaged by EHT 2019).\n- **Primordial** (hypothetical): formed in early universe from density perturbations; possible dark matter candidate in 10⁻¹⁶-10⁻¹¹ M⊙ window. (Cross-ref P28 astrophysicist lesson on black holes.)"
+    },
+    {
+      "kind": "text",
+      "title": "Cosmological constant problem + observational tests",
+      "body": "**Cosmological constant Λ + dark energy**:\n- **Einstein 1917**: added Λ to enforce static universe; called it 'biggest blunder' after Hubble 1929.\n- **Returned 1998**: Type Ia SNe (Perlmutter + Schmidt + Riess; 2011 Nobel) → universe accelerating → Λ > 0 ⇔ dark energy with equation of state w = -1.\n- **Energy density** ρ_Λ ≈ 6×10⁻²⁷ kg/m³ ≈ Λ·c²/(8πG); contributes Ω_Λ ≈ 0.685 to total energy budget.\n- **Cosmological constant problem**: naively Λ should be ~Planck-scale (10¹²² × measured) from zero-point fluctuations; observed ~120 orders smaller. Greatest known fine-tuning in physics. Possible resolutions: anthropic (Weinberg 1987), supersymmetry, quintessence, modified gravity, holographic bounds.\n\n**Spacetimes with Λ**:\n- **Schwarzschild-de Sitter**: BH in Λ universe; cosmological horizon at r_c ≈ √(3/Λ) ≈ 16 Gly.\n- **de Sitter**: pure positive Λ; H = √(Λ/3); asymptotic universe.\n- **Anti-de Sitter (AdS)**: negative Λ; AdS/CFT holography.\n\n**Classical tests of GR**:\n1. **Perihelion of Mercury** (1859 anomaly: 43''/century unexplained by Newton; Einstein 1915 explained from GR). First triumph.\n2. **Light deflection** at the Sun's limb (Eddington's 1919 Principe + Sobral eclipse expedition; 1.75''; made Einstein a global celebrity). Modern VLBI: deflection confirmed to ~10⁻⁴.\n3. **Gravitational redshift** (Pound-Rebka 1959; GPS).\n4. **Shapiro time delay** (1964; radar echoes off Mercury/Venus take longer near the Sun). Cassini 2002 confirms to ~10⁻⁵.\n5. **Lense-Thirring frame dragging** (Gravity Probe B 2011; LARES; LAGEOS).\n6. **Binary pulsar PSR B1913+16** (Hulse + Taylor 1974 → 1993 Nobel): orbital decay matches GW emission prediction to ~0.2%. Strong-field test.\n7. **Double pulsar J0737-3039** (Burgay + Kramer 2003): tests >5 GR effects simultaneously.\n8. **GW150914** (LIGO 2015 → 2017 Nobel): direct GW detection from BH merger 1.3 Gly away. Confirmed quadrupole formula + ringdown matches Kerr quasinormal modes.\n9. **GW170817** (LIGO + Virgo 2017): NS-NS merger + γ-ray burst GRB 170817A + kilonova (multi-messenger; >70 observatories). c_gw = c to ~10⁻¹⁵ — kills many modified-gravity models (Horndeski subclasses).\n10. **EHT M87* (2019) + Sgr A* (2022)**: Event Horizon Telescope imaged shadow of supermassive BHs; shadow shape consistent with Kerr predictions; size matches general relativity expectations within ~10%.\n11. **No-hair theorem tests** (LIGO ringdown; EHT photon ring): BH characterized by M, a, Q only; quasinormal-mode spectroscopy probes deviations.\n12. **MICROSCOPE** (2017): weak EP to 2×10⁻¹⁵.\n\n**Modified gravity alternatives**:\n- **f(R)** gravity: replace R in action with function of R.\n- **Scalar-tensor**: Brans-Dicke (1961); coupling parameter ω constrained by Cassini ω > 40000.\n- **MOND** (Milgrom 1983): modify Newtonian dynamics at low acceleration; explains galaxy rotation curves without DM; tension with cluster + cosmological data.\n- **Horndeski + DHOST + beyond**: most general scalar-tensor with second-order EOM. GW170817 (c_gw = c) excluded many subclasses.\n- **TeVeS** (Bekenstein 2004): MOND-relativistic.\n- **Massive gravity** (de Rham-Gabadadze-Tolley 2010): graviton with small mass.\n\n**Status**: GR is the best-tested theory in physics; no statistically significant deviation across 14 orders of magnitude in scale (lab to cosmological). Modifications strongly constrained.\n\n**Cross-reference**: P28 astrophysicist's black-holes-and-general-relativity lesson covers astrophysical BH formation, accretion disks, X-ray binaries, jets, EHT imaging in more depth — this lesson focuses on GR's mathematical + cosmological structure."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_gr_1",
+        "kind": "guided_derivation",
+        "question": "Compute the Schwarzschild radius + photon sphere of the Sun",
+        "goal": "Use M_⊙ = 1.989×10³⁰ kg, G = 6.674×10⁻¹¹ N·m²/kg², c = 2.998×10⁸ m/s. Find r_s + the photon-sphere radius r_ph = 1.5 r_s.",
+        "steps": [
+          {
+            "prompt": "Write the formula for r_s + plug in numbers.",
+            "motivation": "Definition.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "r_s = 2GM/c² = 2·6.674×10⁻¹¹·1.989×10³⁰ / (2.998×10⁸)² ≈ 2954 m ≈ 2.95 km"
+              ]
+            },
+            "hints": [
+              "r_s = 2GM/c²."
+            ],
+            "reveal": "r_s = 2GM/c² = 2 · (6.674×10⁻¹¹) · (1.989×10³⁰) / (2.998×10⁸)² ≈ 2.954×10³ m ≈ 2.95 km. The Sun's photon-trapping radius."
+          },
+          {
+            "prompt": "Compute the photon-sphere radius r_ph = 1.5 r_s.",
+            "motivation": "Photon orbits.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "r_ph = 1.5 × 2.95 km ≈ 4.43 km"
+              ]
+            },
+            "hints": [
+              "Unstable circular photon orbit at 3GM/c²."
+            ],
+            "reveal": "r_ph = 3GM/c² = 1.5·r_s ≈ 4.43 km. Light orbiting tangentially at this radius circles forever (unstable orbit); inside it, photons spiral in; just outside, they form the photon ring imaged by EHT for M87* + Sgr A*."
+          },
+          {
+            "prompt": "What's r_s for a 4×10⁶ M⊙ supermassive BH (Sgr A*)?",
+            "motivation": "Scaling.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "r_s ≈ 4×10⁶ × 2.95 km ≈ 1.18×10⁷ km ≈ 0.08 AU"
+              ]
+            },
+            "hints": [
+              "Linear in M."
+            ],
+            "reveal": "r_s = 4×10⁶ × 2.95 km ≈ 1.2×10⁷ km ≈ 0.08 AU ≈ 17 solar radii. Sgr A*'s event horizon. EHT imaging resolves the photon ring at ~3r_s/c via worldwide VLBI."
+          },
+          {
+            "prompt": "What's the surface gravity (Hawking temperature) of a 1 M⊙ BH?",
+            "motivation": "Connection to quantum gravity.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "T_H = ℏc³/(8πGM k_B) ≈ 6×10⁻⁸ K for 1 M⊙"
+              ]
+            },
+            "hints": [
+              "Hawking 1974; T inverse to M."
+            ],
+            "reveal": "T_Hawking = ℏc³/(8πGM k_B) ≈ 6.17×10⁻⁸ K · (M⊙/M). 1 M⊙ BH: ~60 nK — far colder than CMB (2.725 K), so absorbs more than emits. Primordial BHs <10¹² kg evaporate by Hubble time (Hawking 1974). Bekenstein-Hawking entropy S = k_B·A/(4 ℓ_P²) where A is horizon area — foundation of black-hole thermodynamics + AdS/CFT."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_gr_1",
+        "kind": "multiple_choice",
+        "question": "What did GW170817 (NS-NS merger detected 2017) uniquely confirm about gravity?",
+        "options": [
+          "Random.",
+          "GW170817 (LIGO + Virgo, 17 Aug 2017): neutron-star merger 130 Mly away, simultaneously detected as gravitational waves + γ-ray burst (GRB 170817A, Fermi) + kilonova (>70 observatories follow-up). The GW + γ-ray signals arrived within ~1.7 seconds of each other after ~130 million years of travel — implying |c_gw - c|/c < 10⁻¹⁵. This precision excluded large classes of modified gravity (Horndeski subclasses, TeVeS, many dark-energy alternatives that allow c_gw ≠ c). Also confirmed: (1) GR's quadrupole formula via inspiral chirp; (2) r-process heavy-element nucleosynthesis (kilonova spectrum); (3) NS-NS as short-GRB progenitor; (4) standard-siren H_0 measurement (70 ± 7 km/s/Mpc, independent of cosmic distance ladder); (5) tidal deformability constraint on NS equation of state. Multi-messenger astronomy's defining event.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "GW170817 confirmed c_gw = c to ~10⁻¹⁵ via near-simultaneous GW + γ-ray arrival from a 130-Mly NS-NS merger. Excluded large classes of modified gravity (Horndeski, TeVeS subsets, c_gw ≠ c). Also confirmed r-process nucleosynthesis, short-GRB progenitor, standard-siren H_0. Defining multi-messenger event."
+      },
+      "hints": [
+        "GW + EM arrived nearly simultaneously.",
+        "Constrains c_gw vs c."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "GW170817 NS-NS merger had GW + γ-ray (GRB 170817A) signals arriving within 1.7s after 130 Myr travel, fixing |c_gw - c|/c < 10⁻¹⁵. Excluded broad Horndeski + TeVeS subclasses. Also: r-process kilonova nucleosynthesis confirmation, NS-NS → short-GRB, standard-siren H_0 measurement. Multi-messenger astronomy's milestone event."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_gr_1",
+        "kind": "scenario",
+        "question": "EHT's next generation (ngEHT, 2030s) targets sub-µas resolution + can image the secondary photon ring of M87* + Sgr A*.",
+        "prompt": "How does the photon ring geometry encode Kerr no-hair theorem tests? What deviations from Kerr would indicate modified gravity, dark matter halos around the BH, or exotic compact objects (boson stars, wormholes)? Discuss connection to LIGO/LISA ringdown spectroscopy + the holography program."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_gr_1",
+        "kind": "math_expression",
+        "question": "Write the Einstein field equations with cosmological constant.",
+        "acceptedAnswers": [
+          "G_μν + Λ g_μν = (8πG/c⁴) T_μν",
+          "R_μν - (1/2) g_μν R + Λ g_μν = 8πG/c^4 T_μν",
+          "G_{mu nu} + Lambda g_{mu nu} = 8 pi G / c^4 T_{mu nu}"
+        ],
+        "hint": "Einstein tensor G_μν = R_μν − (1/2)g_μν R; matter side proportional to stress-energy."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_gr_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why GR is considered the most beautifully validated theory in physics + name three precision tests.",
+        "rubric": "Mentions: GR (Einstein 1915) describes gravity as curvature of 4D spacetime sourced by stress-energy via G_μν + Λg_μν = 8πG/c⁴ T_μν. Tests across 14 orders of magnitude in scale: (1) Mercury perihelion (1859/1915); (2) Eddington 1919 light deflection at eclipse (made Einstein global celebrity); (3) Pound-Rebka 1959 gravitational redshift; (4) Shapiro delay (Cassini ~10⁻⁵); (5) Hulse-Taylor pulsar PSR B1913+16 orbital decay (1993 Nobel); (6) GW150914 LIGO 2015 BH merger (2017 Nobel); (7) GW170817 NS-NS multi-messenger fixing c_gw = c to 10⁻¹⁵; (8) EHT 2019 M87* + 2022 Sgr A* shadows consistent with Kerr; (9) MICROSCOPE 2017 weak EP to 2×10⁻¹⁵. No statistically significant deviation. Modified gravity (f(R), MOND, Horndeski) strongly constrained. GR is the foundation of cosmology, astrophysics, GPS technology, + the deepest test of geometric physics ever conducted."
+      }
+    }
+  ]
+}

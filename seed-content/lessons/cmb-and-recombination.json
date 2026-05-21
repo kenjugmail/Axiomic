@@ -1,0 +1,153 @@
+{
+  "slug": "cmb-and-recombination",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Explain recombination + last-scattering surface.",
+      "Interpret CMB acoustic peaks + Sachs-Wolfe.",
+      "Survey polarization (E + B) experiments + future."
+    ],
+    "prereqs": [
+      "friedmann-equations-and-expansion"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Photon-baryon plasma, Saha equation, recombination at z ≈ 1100",
+      "body": "**Before recombination** (z > 1100, t < 380 kyr, T > 3000 K): the universe was a hot ionized plasma — free electrons + protons + nuclei + photons tightly coupled by Thomson scattering. Mean free path of photons ≪ horizon; universe opaque.\n\n**Recombination** (z ≈ 1100, T ≈ 3000 K, t ≈ 380 kyr): the universe cooled enough for electrons to bind to protons forming neutral H. Photons no longer scattered; universe became transparent. The 'photon last-scattering surface' (LSS) is the spherical shell we observe as the CMB today.\n\n**Why T_rec ≈ 3000 K (not 157000 K = 13.6 eV / k_B)?** The hydrogen ionization energy 13.6 eV would suggest recombination at T ~ 10⁵ K. But:\n- Photon-to-baryon ratio is huge: n_γ/n_b ≈ 10⁹. Even at T ≪ 13.6 eV, the high-energy tail of the blackbody has enough photons to keep H ionized.\n- Recombination only completes once T drops to ~3000 K — ionization fraction X_e drops from ~1 to ~10⁻⁴ between z=1400 + z=900.\n\n**Saha equation** (equilibrium ionization-recombination balance):\n\n  X_e²/(1 - X_e) = (1/n_b)·(m_e k_B T / 2π ℏ²)^(3/2)·exp(-B/k_B T)\n\nwhere B = 13.6 eV is the H ionization energy + X_e is the ionization fraction. Predicts recombination at T ≈ 3700 K (Saha is approximate; assumes equilibrium).\n\n**Peebles 1968 + Zel'dovich 1968 detailed treatment**: full non-equilibrium recombination kinetics. Includes:\n- **Lyman-α trapping**: direct recombination to ground state emits a 13.6 eV photon that immediately re-ionizes another H atom — net no recombination.\n- **2-photon decay** of 2s → 1s: emits two photons of energy ~5 eV each; doesn't re-ionize; major recombination channel.\n- **Lyman-α escape from H 2p → 1s**: photons redshift out of resonance via cosmological expansion.\n- **Helium recombination**: He²⁺ → He⁺ at z ≈ 6000; He⁺ → He at z ≈ 2500 (precedes H recombination).\n\n**Modern numerical codes**: RECFAST (Seager + Sasselov + Scott 1999), CosmoRec (Chluba + Thomas 2010), HyRec (Ali-Haïmoud + Hirata 2010): solve coupled atomic + radiation equations; CMB precision (Planck) requires recombination accuracy ~0.1%.\n\n**Last-scattering surface (LSS)** + thickness:\n- z_LSS ≈ 1090 (Planck 2018: 1089.92 ± 0.25).\n- LSS not a sharp surface but ~80 Mpc thick (Δz ≈ 80) — visibility function peaks at z = 1090 with FWHM ~ 80.\n- Photons travel ~14 Gly to us (comoving); LSS is at comoving distance ~13.8 Gpc (radius of observable universe).\n- Sound horizon at LSS: r_s ≈ 147 Mpc (comoving) — the BAO standard ruler.\n\n**Post-recombination dark ages**: t = 380 kyr to ~150 Myr (z ~ 30 to z ~ 1100). Neutral H absorbs UV (21-cm Hyperfine line probes); no luminous sources until first stars (Pop III, z ~ 20-30). 21-cm observations (EDGES, HERA, SKA) probe this epoch.\n\n**Reionization** (z ≈ 6-15, t ≈ 200 Myr-1 Gyr): first stars + quasars ionize neutral H. Optical depth τ ≈ 0.054 (Planck 2018). Probed by: CMB polarization at large scales (reionization bump in EE), Gunn-Peterson trough in high-z quasar spectra, Lyman-α forest at z > 5, 21-cm absorption (EDGES tentative claim 2018, contested), JWST high-z galaxy surveys."
+    },
+    {
+      "kind": "text",
+      "title": "CMB anisotropy + acoustic peaks + Sachs-Wolfe",
+      "body": "**CMB anisotropies**: ΔT/T ~ 10⁻⁵ on the 2.7255 K background. Discovered by COBE-DMR (Smoot et al. 1992; Nobel 2006). Mapped to exquisite precision by WMAP (2001-2010) + Planck (2009-2013).\n\n**Decomposition**: temperature map T(θ, φ) expanded in spherical harmonics:\n\n  T(θ,φ) = ΣΣ a_lm Y_lm(θ,φ); C_l ≡ ⟨|a_lm|²⟩\n\n**Angular power spectrum** C_l plotted vs multipole ℓ — peaks + troughs encode physics. ℓ ~ 1/θ (degrees ~ 180/ℓ).\n\n**Primary anisotropy sources** (at z ≈ 1100):\n\n**1. Sachs-Wolfe (SW) effect** (Sachs + Wolfe 1967): gravitational redshift of photons climbing out of potential wells Φ at LSS:\n\n  ΔT/T = Φ/(3c²)\n\nDominates at large angles (ℓ < ~50; θ > 2°) — produces the COBE-detected flat 'SW plateau'.\n\n**2. Acoustic oscillations** (sound waves in photon-baryon plasma; Sunyaev-Zel'dovich 1970, Peebles + Yu 1970): before recombination, photon pressure + baryon inertia + DM gravity → sound waves at c_s = c/√(3(1+R)), R = 3ρ_b/(4ρ_γ). Density perturbations oscillate as cos(kr_s); modes with kr_s = nπ at recombination have extremal amplitudes → peaks in C_l.\n\n- **First peak** at ℓ ≈ 220 (θ ≈ 0.83°): mode that just compressed once before recombination; position encodes angular size of sound horizon → curvature/Ω_k (flat universe + r_s).\n- **Second peak** at ℓ ≈ 540: ratio to first peak encodes Ω_b (baryons cause asymmetry).\n- **Third peak** at ℓ ≈ 810: encodes Ω_m (matter-radiation equality).\n- **Higher peaks**: Silk damping (photon diffusion ~10 Mpc at recombination) suppresses small angular scales (ℓ > 1500).\n\n**3. Doppler effect** (peculiar velocities of plasma at LSS): contributes to acoustic oscillations.\n\n**Secondary anisotropies** (post-recombination):\n- **Integrated Sachs-Wolfe (ISW)**: photons crossing time-evolving potentials (Λ-dominated era + early matter era) gain/lose energy. Contributes at low ℓ; cross-correlated with LSS.\n- **Rees-Sciama**: nonlinear ISW.\n- **CMB lensing**: photons deflected by foreground LSS gravitational potentials; smooths peaks + transfers power to small scales; sensitive to Σm_ν, σ_8.\n- **Sunyaev-Zel'dovich (SZ)**: inverse Compton scattering of CMB photons by hot cluster electrons; thermal SZ has characteristic spectral distortion (frequency-dependent); kinetic SZ from peculiar velocities. Used to find clusters (Planck-SZ, ACT, SPT) + measure cluster gas + missing baryons.\n- **Reionization**: τ damps anisotropies by factor exp(-2τ).\n\n**Three eras of CMB cosmology**:\n- **COBE** (1989-1993; Mather + Smoot Nobel 2006): blackbody to 50 ppm precision; first anisotropy detection ΔT/T ~ 10⁻⁵.\n- **WMAP** (2001-2010; Bennett + Spergel + Wright + Page): nine-year maps; first ΛCDM precision fit; H_0 = 70.0 ± 2.2.\n- **Planck** (2009-2018; Tauber + Efstathiou; ESA): polarization E + lensing + small-scale (ℓ up to 2500). H_0 = 67.4 ± 0.5; six-parameter ΛCDM definitive.\n\n**Ground-based**: ACT (Atacama Cosmology Telescope, Chile) + SPT (South Pole Telescope) + POLARBEAR + BICEP/Keck for high-ℓ + polarization."
+    },
+    {
+      "kind": "text",
+      "title": "Polarization (E + B modes), BICEP, future experiments",
+      "body": "**CMB polarization**: at recombination, Thomson scattering of anisotropic radiation field by free electrons produces ~10% polarized signal. Polarization map Q(θ,φ) + U(θ,φ) Stokes parameters decomposed into E-modes + B-modes (Kamionkowski + Kosowsky + Stebbins 1997; Seljak + Zaldarriaga 1997).\n\n**E-modes** (curl-free, even parity):\n- Generated by **scalar (density) perturbations**: dominant at recombination + reionization.\n- Power spectrum C_l^EE peaks at ℓ ≈ 400, 1000, 1400 (cross-correlated with temperature).\n- Detected: DASI 2002 (Kovac + Carlstrom et al.), WMAP, Planck, BICEP, POLARBEAR.\n- Constrains: reionization optical depth τ from low-ℓ reionization bump; inflationary parameters; n_s.\n\n**B-modes** (curl, odd parity):\n- Cannot be generated by scalar perturbations at linear order — distinctive of:\n  - **Primordial gravitational waves** (tensor perturbations from inflation; B^B from t = 10⁻³⁶ s primordial GWs).\n  - **Lensing of E-modes** by foreground LSS (lensing B-modes; nonzero at ℓ > 50).\n- **Tensor-to-scalar ratio r** = A_t/A_s ≡ primordial GW amplitude / density amplitude.\n- Inflationary models predict r ~ 10⁻³ to 0.1 (slow-roll); higher r ⇒ higher inflation energy scale V^(1/4) ~ (r/0.01)^(1/4) × 10¹⁶ GeV.\n\n**BICEP/Keck Array** (South Pole, since 2006): B-mode polarization at degree scales.\n- **BICEP2 2014**: claimed r ≈ 0.20 detection (CMB-S4-level discovery if real). Spectacular international news; widely covered. Joint BICEP+Planck 2015 analysis showed signal was foreground polarized galactic dust (Planck 353 GHz). **Retracted** (Ade et al. 2015).\n- **BICEP/Keck 2021** (BK18): upper limit r < 0.036 at 95% CL (jointly with Planck).\n- **Lessons**: foreground separation (galactic dust + synchrotron) at 100s of GHz is critical; multi-frequency observations essential.\n\n**Lensing B-modes**:\n- Detected by **SPTpol** (Hanson 2013), **POLARBEAR** (2014), **Planck**.\n- Used to reconstruct lensing potential κ; sensitive to Σm_ν, σ_8 — constrains neutrino mass.\n\n**Future experiments**:\n- **Simons Observatory (SO)** (Atacama, 2024+; operational late 2024): 3 small + 1 large telescope; ~40000 detectors; r sensitivity ~0.003; precision σ_8 + τ.\n- **CMB-S4** (2030s; Antarctica + Atacama; DOE + NSF): >500000 detectors; r ~ 10⁻³ sensitivity; sub-percent τ.\n- **LiteBIRD** (JAXA satellite, 2032+ launch): full-sky polarization; r sensitivity ~10⁻³ at large scales; complements ground-based.\n- **PICO** (proposed NASA satellite): full-sky imaging polarization.\n- **PIXIE / SPHEREx-CMB**: spectral distortions (μ + y); probe energy injection + reionization.\n\n**Spectral distortions**:\n- Predicted μ + y distortions from energy injection (DM decay, primordial BHs, structure formation).\n- COBE-FIRAS (Mather 1990s): |μ| < 10⁻⁴, |y| < 10⁻⁵.\n- Future PIXIE-class: sensitivity ~10⁻⁸ in μ — probes acoustic damping + DM decay.\n\n**The CMB is the richest single dataset in cosmology**:\n- ~10⁷ independent ℓ-modes from Planck.\n- Encodes geometry, content, perturbation spectrum, recombination physics, reionization, neutrino species N_eff, sum of neutrino masses, primordial nucleosynthesis baryon density, inflationary parameters.\n- The 'Rosetta Stone' of cosmology — 1 dataset constrains ~30+ parameters at sub-percent precision.\n\n**Connection to other lessons**: structure-formation-and-bao uses LSS sound horizon as BAO ruler at 150 Mpc; inflation-and-early-universe uses n_s + r upper limit to discriminate inflationary models; dark-matter-and-dark-energy uses Σm_ν + Ω_DM from CMB+lensing; modern-frontier-cosmology covers H_0 + S_8 tensions arising from CMB vs late-time probes."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cmb_1",
+        "kind": "guided_derivation",
+        "question": "Estimate the sound horizon at recombination",
+        "goal": "Compute the comoving sound horizon r_s = ∫c_s dt/a from t=0 to t_rec, with c_s ≈ c/√3 (radiation-dominated). Use t_rec = 380 kyr; treat universe as roughly radiation-dominated through equality + transitioning to matter near recombination.",
+        "steps": [
+          {
+            "prompt": "Set up the sound speed in photon-baryon fluid.",
+            "motivation": "c_s formula.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "c_s = c/√(3·(1 + R)), R = 3ρ_b/(4ρ_γ)"
+              ]
+            },
+            "hints": [
+              "R is baryon-to-photon density ratio."
+            ],
+            "reveal": "Sound speed in baryon-photon fluid: c_s = c/√(3·(1 + R)) where R = 3ρ_b/(4ρ_γ) measures baryon loading. At recombination R ≈ 0.6 (Planck Ω_b h² = 0.0224); c_s ≈ c/√(3·1.6) ≈ 0.456c. Before recombination, c_s slightly lower than c/√3."
+          },
+          {
+            "prompt": "Estimate r_s by approximating c_s ≈ 0.5c + integrating to t_rec.",
+            "motivation": "Comoving distance traveled.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "r_s ~ c_s · η_rec ≈ 0.5·c·t_rec/a_rec; in comoving Mpc, ~150 Mpc"
+              ]
+            },
+            "hints": [
+              "Use conformal time η = ∫dt/a."
+            ],
+            "reveal": "r_s = ∫₀^{η_rec} c_s dη. In matter+radiation universe with proper evaluation: r_s ≈ 147 Mpc (Planck 2018: 147.05 ± 0.30 Mpc). About 0.5c × age in conformal units, accounting for the time-varying scale factor. This sound horizon is the 'standard ruler' that imprints both the CMB acoustic peak positions + the BAO scale in galaxy distribution at z ~ 0.5."
+          },
+          {
+            "prompt": "Convert r_s to angular scale on sky at LSS distance d_A ≈ 13.8 Mpc/0.01 ≈ 13.8 Gpc — what is θ_s?",
+            "motivation": "First-peak angular scale.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "θ_s ≈ r_s/d_A ≈ 147 Mpc / 13.8 Gpc ≈ 0.01 rad ≈ 0.6° ≈ 1°"
+              ]
+            },
+            "hints": [
+              "θ = r_s/d_A."
+            ],
+            "reveal": "θ_s ≈ r_s/d_A ≈ 147/13800 ≈ 0.0106 rad ≈ 0.61°. Corresponding multipole ℓ_1 = π/θ_s ≈ 296 (rough); precise CMB first acoustic peak at ℓ ≈ 220 from full transfer-function calculation. The angular scale is the most precisely measured CMB observable; 100·θ_MC = 1.04 ± 0.0003 fixes flatness/curvature."
+          },
+          {
+            "prompt": "Why does the first-peak position fix curvature Ω_k?",
+            "motivation": "Geometric standard ruler.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "r_s computable from early-universe physics (Ω_b, Ω_m, T_CMB); d_A depends on geometry; θ_s = r_s/d_A → Ω_k"
+              ]
+            },
+            "hints": [
+              "r_s known; d_A depends on Ω_k."
+            ],
+            "reveal": "Sound horizon r_s = 147 Mpc is computed from early-universe physics (BBN + recombination) — independent of late-time geometry. Angular diameter distance d_A(z_rec) depends on integrated cosmology including curvature. Measured θ_s = r_s/d_A constrains d_A → Ω_k. Planck: Ω_k = 0.001 ± 0.002 — universe flat to ~0.1%. The CMB first peak is the cleanest geometric measurement in cosmology."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cmb_1",
+        "kind": "multiple_choice",
+        "question": "Why was the BICEP2 2014 r ≈ 0.20 'detection' retracted in 2015?",
+        "options": [
+          "Random.",
+          "BICEP2 (Kovac, Bock, et al. South Pole 150 GHz) announced in March 2014 a 5σ detection of B-mode polarization at degree scales, with tensor-to-scalar ratio r ≈ 0.20 — interpreted as primordial gravitational waves from inflation. Spectacular: implied inflation energy scale ~ 10¹⁶ GeV. Joint BICEP-Planck analysis (Ade et al. 2015) used Planck's 353 GHz maps to characterize polarized galactic dust at the BICEP field. Conclusion: the B-mode signal was consistent with being dominated by dust foreground emission rather than primordial GWs. Retraction. Lesson: foreground separation is critical for B-mode searches; one frequency insufficient. Subsequent BICEP/Keck (multi-frequency, joint with Planck): upper limit r < 0.036 (BK18 2021). Foreground physics (synchrotron + dust modeling) is now central to CMB B-mode work; Simons Observatory + CMB-S4 + LiteBIRD designed to handle multi-frequency foreground subtraction.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "BICEP2's 2014 single-frequency (150 GHz) B-mode detection at r ≈ 0.20 was found by joint BICEP-Planck 2015 analysis to be dominated by galactic dust foreground emission (constrained at Planck 353 GHz). Retracted. Lesson: multi-frequency foreground separation essential. Modern limit r < 0.036 (BK18). Simons Observatory + CMB-S4 + LiteBIRD designed for multi-frequency."
+      },
+      "hints": [
+        "Single frequency vs foregrounds.",
+        "What is the 353 GHz Planck data important for?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "BICEP2 2014 reported r ≈ 0.20 at 150 GHz. Joint BICEP-Planck 2015 used 353 GHz dust maps to show the B-mode signal was foreground polarized dust, not primordial GWs. Retracted. Lesson: multi-frequency separation required. Modern limit r < 0.036 (BK18 2021). Future SO/CMB-S4/LiteBIRD designed for foreground handling."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_cmb_1",
+        "kind": "scenario",
+        "question": "CMB-S4 (2030s) detects B-modes at r ≈ 0.005 ± 0.001 — a 5σ detection.",
+        "prompt": "What classes of inflation models would this select for? How does it constrain the inflation energy scale + the field excursion (Lyth bound)? How do you ensure the signal is not lensing/foreground? Discuss implications for the multiverse + the 'is inflation falsifiable' debate, + connection to LiteBIRD complementarity."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_cmb_1",
+        "kind": "math_expression",
+        "question": "Write the Sachs-Wolfe relation between CMB temperature anisotropy + gravitational potential at last scattering.",
+        "acceptedAnswers": [
+          "ΔT/T = (1/3)·Φ/c²",
+          "ΔT/T = Φ / (3 c^2)",
+          "Delta T / T = Phi / 3 c^2"
+        ],
+        "hint": "Photons in a potential well at recombination redshift by Δλ/λ ~ Φ/c² but expansion effect partially cancels; net factor 1/3."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cmb_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why the CMB is the 'Rosetta Stone' of cosmology.",
+        "rubric": "Mentions: CMB is a 2.7255 K blackbody (FIRAS 1990s, best blackbody ever) + ΔT/T ~ 10⁻⁵ anisotropies (COBE 1992, WMAP 2003, Planck 2013/2018) at the photon last-scattering surface (z ≈ 1090, t ≈ 380 kyr). Carries six-parameter ΛCDM fit: Ω_b h² (baryon density via 2nd peak), Ω_c h² (DM via 3rd peak), θ_MC (sound horizon angular scale ~ flatness), τ (reionization), n_s (spectral index), A_s (amplitude). Plus derived: H_0, σ_8, Σm_ν, N_eff, age. Encodes recombination physics (Peebles-Zel'dovich), Saha+non-equilibrium, Sachs-Wolfe potential redshift, acoustic oscillations, Silk damping, ISW lensing. Polarization adds E (scalar perturbations + τ) + B (tensors + lensing). Future S-O + CMB-S4 + LiteBIRD will probe r ≲ 0.001 (inflation scale), neutrino mass sub-meV, spectral distortions, dark sector. The CMB constrains ~30 parameters at sub-percent precision; foundation for ΛCDM as standard model of cosmology."
+      }
+    }
+  ]
+}
