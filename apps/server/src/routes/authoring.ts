@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { streamSSE } from "hono/streaming";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { existsSync, readFileSync, writeFileSync } from "fs";
@@ -153,6 +154,71 @@ authoringRouter.post("/lesson", zValidator("json", authorSchema), async (c) => {
     warnings,
     valid: warnings.length === 0,
     rawLength: accumulated.length,
+  });
+});
+
+// ---- Streaming variant -----------------------------------------------
+//
+// Same body shape as POST /lesson, but emits Server-Sent Events as
+// the provider streams tokens. The frontend (AuthorLessonPage)
+// renders partial output live, then switches to the validated-lesson
+// display when the final `done` event arrives. Useful for the
+// Anthropic provider where 5-15s of tokens are unbuffered.
+
+authoringRouter.post("/lesson/stream", zValidator("json", authorSchema), (c) => {
+  const req = c.req.valid("json");
+  const provider = getAIProvider();
+  const reference = loadReferenceLesson();
+  if (!reference) {
+    return c.json({ error: "Reference lesson not found" }, 500);
+  }
+  const system = buildSystemPrompt(reference);
+  const user = buildUserPrompt(req);
+
+  return streamSSE(c, async (stream) => {
+    let accumulated = "";
+    try {
+      await provider.stream({
+        system,
+        messages: [{ role: "user", content: user }],
+        onToken: (t) => {
+          accumulated += t;
+          // Best-effort emit; if the writer rejects (client gone) we
+          // catch on the next iteration via the signal check.
+          void stream.writeSSE({ data: JSON.stringify({ token: t }) });
+        },
+        signal: c.req.raw.signal,
+      });
+    } catch (err) {
+      await stream.writeSSE({
+        data: JSON.stringify({
+          error: err instanceof Error ? err.message : "provider stream failed",
+          rawOutput: accumulated.slice(0, 2000),
+        }),
+      });
+      return;
+    }
+
+    const parsed = extractJSON(accumulated);
+    if (parsed === null) {
+      await stream.writeSSE({
+        data: JSON.stringify({
+          error: "Could not parse JSON from provider response",
+          rawOutput: accumulated.slice(0, 2000),
+        }),
+      });
+      return;
+    }
+    const warnings = validateLesson(parsed, req.nodeSlug);
+    await stream.writeSSE({
+      data: JSON.stringify({
+        done: true,
+        lesson: parsed,
+        warnings,
+        valid: warnings.length === 0,
+        rawLength: accumulated.length,
+      }),
+    });
   });
 });
 

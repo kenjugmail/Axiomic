@@ -30,6 +30,8 @@ export function AuthorLessonPage() {
   const [result, setResult] = useState<AuthorResponse | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+  const [streaming, setStreaming] = useState(false);
+  const [partial, setPartial] = useState("");
 
   useEffect(() => {
     api.mastery.getPaths().then((d) => setPaths(d.paths)).catch(() => undefined);
@@ -54,21 +56,66 @@ export function AuthorLessonPage() {
   async function generate() {
     setBusy(true);
     setResult(null);
+    setPartial("");
+    const body = JSON.stringify({
+      nodeSlug,
+      pathSlug: pathSlug || undefined,
+      topic,
+      objectives,
+      difficulty,
+      timeMinutes,
+    });
     try {
-      const res = await fetch("/api/v1/authoring/lesson", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          nodeSlug,
-          pathSlug: pathSlug || undefined,
-          topic,
-          objectives,
-          difficulty,
-          timeMinutes,
-        }),
-      });
-      const data = (await res.json()) as AuthorResponse;
-      setResult(data);
+      if (streaming) {
+        const res = await fetch("/api/v1/authoring/lesson/stream", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body,
+        });
+        if (!res.body) throw new Error("stream not supported in this browser");
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let acc = "";
+        // SSE frames are delimited by \n\n; each frame starts with "data: "
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const frames = buffer.split("\n\n");
+          buffer = frames.pop() ?? "";
+          for (const frame of frames) {
+            const line = frame.trim();
+            if (!line.startsWith("data: ")) continue;
+            const payload = line.slice("data: ".length);
+            try {
+              const parsed = JSON.parse(payload);
+              if (parsed.token) {
+                acc += parsed.token;
+                setPartial(acc);
+              } else if (parsed.done) {
+                setResult({
+                  lesson: parsed.lesson,
+                  warnings: parsed.warnings,
+                  valid: parsed.valid,
+                });
+              } else if (parsed.error) {
+                setResult({ error: parsed.error, rawOutput: parsed.rawOutput });
+              }
+            } catch {
+              void 0;
+            }
+          }
+        }
+      } else {
+        const res = await fetch("/api/v1/authoring/lesson", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body,
+        });
+        const data = (await res.json()) as AuthorResponse;
+        setResult(data);
+      }
     } catch (err) {
       setResult({ error: err instanceof Error ? err.message : "request failed" });
     } finally {
@@ -197,6 +244,10 @@ export function AuthorLessonPage() {
               <input type="number" min={5} max={60} value={timeMinutes} onChange={(e) => setTimeMinutes(parseInt(e.target.value) || 22)} className="w-full px-3 py-2 rounded border border-border bg-background text-sm" />
             </div>
           </div>
+          <label className="inline-flex items-center gap-2 text-xs">
+            <input type="checkbox" checked={streaming} onChange={(e) => setStreaming(e.target.checked)} />
+            <span>Stream tokens (live partial output)</span>
+          </label>
           <button
             onClick={generate}
             disabled={!canSubmit}
@@ -214,8 +265,14 @@ export function AuthorLessonPage() {
             </div>
           )}
           {busy && (
-            <div className="text-sm text-muted-foreground border border-border rounded p-6">
-              <Sparkles className="h-4 w-4 inline mr-2 animate-pulse" /> Calling the AI provider… (this may take 10-60s depending on the provider)
+            <div className="text-sm text-muted-foreground border border-border rounded p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="h-4 w-4 animate-pulse" />
+                {streaming && partial.length > 0 ? `Streaming… ${partial.length} chars` : "Calling the AI provider… (10-60s)"}
+              </div>
+              {streaming && partial.length > 0 && (
+                <pre className="text-[10px] font-mono bg-muted/30 rounded p-2 max-h-64 overflow-auto whitespace-pre-wrap">{partial}</pre>
+              )}
             </div>
           )}
           {result?.error && (
