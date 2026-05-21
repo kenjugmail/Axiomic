@@ -1,0 +1,155 @@
+{
+  "slug": "modern-frontier-law",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Survey legal AI tools + algorithmic discrimination + AI-judges debate.",
+      "Explain emerging AI regulation: EU AI Act, US executive orders, Section 230 reform.",
+      "Map international + human rights law + climate litigation."
+    ],
+    "prereqs": [
+      "precedent-and-judicial-reasoning",
+      "business-law-and-regulation"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Legal AI + ediscovery + algorithmic discrimination",
+      "body": "The legal profession is undergoing its largest technological shift since the printing press distributed the *Year Books*. The intersection of **machine learning** + **large language models** + **case-law corpora** is reshaping research, drafting, review, prediction, + decision-support.\n\n**The first generation: legal analytics + research automation**:\n- **Westlaw** (Thomson Reuters, 1975) + **LexisNexis** (1973) — the original digital legal research platforms; revolutionized 20th-century practice. **KeyCite** + **Shepard's** built the first citation networks at scale.\n- **Lex Machina** (Stanford spinoff, 2010; Lexis acquisition 2015) — **legal analytics** on litigation data: judges' rulings, motion outcomes, time-to-disposition, attorney-by-attorney win rates, party-by-party patterns. Originated in patent litigation; expanded to IP, employment, securities, commercial. Reshaped litigation strategy: lawyers can now empirically estimate a particular judge's grant rate on a Rule 12 motion or summary-judgment likelihood.\n- **Ravel Law** (2012; Lexis acquisition 2017) — visual citation networks + judge analytics.\n- **Premonition AI** (2014) — outcome prediction.\n\n**ROSS Intelligence** (2014-2020) — IBM Watson-based legal-research startup; partnered with major firms; ultimately shut down after Thomson Reuters copyright suit (settled 2021). A cautionary tale about training-data sourcing.\n\n**Casetext** (2013; Thomson Reuters acquisition 2023 for $650M) — **CARA** (Case Analysis Research Assistant) used NLP to suggest authorities for uploaded briefs; **Casetext CoCounsel** (2023) was the first GPT-4-based law-specific assistant — research, summarization, contract review, deposition prep, document review. Acquired by Thomson Reuters + folded into Westlaw + Practical Law.\n\n**Modern legal-AI tools** (2023+):\n- **Harvey AI** — OpenAI-backed; raised $300M+; adopted by major firms (Allen & Overy, PwC, Schulte, Reed Smith); GPT-4-tuned for legal workflows.\n- **Spellbook**, **Ironclad AI**, **Lawgeex**, **Kira Systems** (M&A diligence; iManage acquisition 2021) — contract review + drafting.\n- **Hebbia** — enterprise search + retrieval over private + public legal corpora.\n- **Robin AI**, **DraftWise**, **LawDroid**, **Latch** — workflow + drafting assistants.\n- **Vincent AI** (vLex) — full-fledged GPT-4-based research; international corpus.\n- **Bloomberg Law Litigation Analytics**; **Lexis+ AI** (2023+) — generative AI in the major incumbents.\n- **GPT-4 + the Bar Exam** — **Katz, Bommarito, Gao, + Arredondo (2023)** *GPT-4 Passes the Bar Exam* — GPT-4 in the 90th percentile of UBE test-takers; broad press coverage; reshaped public + bar perception of AI capability + curriculum debates.\n\n**Ediscovery + technology-assisted review (TAR)**:\n- **Da Silva Moore v. Publicis Groupe (2012 SDNY; Judge Andrew Peck)** — first federal opinion endorsing **predictive coding** (TAR 1.0); applied iterative ML training with attorney-reviewed seed sets. **Rio Tinto v. Vale (2015 SDNY; Peck)** — TAR best-practice opinion.\n- **TAR 2.0 / continuous active learning** — modern ML approaches.\n- **FRE 502** — limited waiver protection for inadvertent privilege disclosure.\n- **Sedona Conference Principles + Working Group 1**.\n\n**Algorithmic discrimination + fairness in law**:\n- **Latanya Sweeney**, *Discrimination in Online Ad Delivery* (Comm. ACM 2013) — Black-identified names triggered ads suggesting arrest records more often than white-identified names. Foundational empirical demonstration of algorithmic discrimination in deployed commercial systems. Sweeney later showed real-world deployments of risk-assessment tools encode + amplify racial disparities.\n- **ProPublica investigation of COMPAS** (Angwin et al. 2016) — Northpointe's recidivism-risk algorithm had higher false-positive rates for Black defendants in Broward County data. Methodologically debated (Chouldechova 2017 on incompatibility of multiple fairness criteria; Kleinberg, Mullainathan, Raghavan 2017) — but cemented the empirical literature on automated risk assessment.\n- **State v. Loomis (2016 Wis.)** — sustained use of COMPAS at sentencing against due-process challenge, with caveats about validity + reliability.\n- **Algorithmic Accountability Act** (proposed federal; multiple state versions enacted — CO AI Act 2024).\n- **EEOC + algorithmic-hiring guidance** (2022, 2023); **NYC AEDT law (2023)** — automated employment-decision tool audits.\n- **Algorithmic-housing + lending** — *Connecticut Fair Housing Center v. CoreLogic* (2020) — fair-housing claims against algorithmic tenant-screening.\n\n**AI in adjudication — the AI-judge debate**:\n- **Estonia's small-claims AI** (2019 announcement, contested; partial deployment).\n- **China's smart courts** + automated adjudication for simple claims; deep debate about due process + fairness.\n- **US courts**: AI-assisted research + drafting acceptable; AI as decisionmaker rejected by virtually all commentators (Coglianese, Lehr, Re, Solum, Surden, Wu).\n- **ABA Model Rule 1.1 Comment 8** — duty of technological competence (adopted 2012); 40+ states have adopted.\n- **Disqualification + judicial use of AI**: emerging norms; some judges have issued standing orders on AI use by lawyers (Judge Mizelle, Judge Castel — the *Mata v. Avianca* fictitious-citations scandal 2023).\n\n**Hallucination + verification** is the central practical issue: lawyers using generative AI must verify every citation (the high-profile *Mata v. Avianca* sanctions made this universal). Retrieval-augmented generation (RAG), grounding on case-law databases, + human review are the standard pattern. Legal-specific models (Harvey, Casetext, Vincent) reduce hallucination but never eliminate it."
+    },
+    {
+      "kind": "text",
+      "title": "AI regulation + Section 230 + algorithmic accountability",
+      "body": "Society is just beginning to build a regulatory architecture for AI. The landscape is a patchwork — moving fast — across jurisdictions.\n\n**EU AI Act (2024)** — the world's first comprehensive AI statute:\n- Adopted by Parliament March 2024; entered into force August 2024; phased application through 2026-2027.\n- **Risk-based tier**:\n  - **Prohibited practices** (Article 5) — social scoring; emotion recognition in workplace + schools; real-time biometric surveillance (with narrow law-enforcement exceptions); manipulative or exploitative AI; predictive policing for individuals; untargeted facial-recognition scraping.\n  - **High-risk systems** — biometrics, critical infrastructure, education, employment, essential services, law enforcement, migration, justice administration. Extensive requirements: risk-management systems; data-governance; technical documentation; transparency; human oversight; accuracy + robustness + cybersecurity; conformity assessment; CE marking.\n  - **Limited-risk** — transparency obligations (e.g., deepfake disclosures).\n  - **Minimal-risk** — most ordinary AI.\n- **General-purpose AI (GPAI)** — base + foundation models with separate obligations (technical documentation, training-data summaries, copyright compliance); **systemic-risk GPAI** above compute thresholds (>10^25 FLOPs) — additional model-evaluation, red-team, + incident-reporting obligations.\n- **Penalties** — up to 7% of global turnover; substantial enforcement teeth.\n- **AI Office** — central EU enforcement body.\n- Influence: **'Brussels Effect'** — many global firms align practices to EU standard. Compare GDPR's global impact.\n\n**US AI executive orders + regulation**:\n- **Executive Order 14110 (October 2023, Biden)** — most comprehensive US AI executive action: safety + security testing for dual-use foundation models above compute thresholds; reporting of red-teaming results; NIST AI Risk Management Framework + standards; chip + cloud-compute reporting; immigration + workforce + IP + civil-rights provisions across agencies.\n- **Executive Order revocation/replacement (January 2025, Trump)** — rescinded 14110; new executive order 14179 ('Removing Barriers to American Leadership in AI'); deregulatory shift.\n- **Sector-specific guidance**: FTC (unfair/deceptive AI), EEOC (employment), CFPB (consumer credit), HHS (health), DOT (autonomous vehicles), FDA (medical-device software), NHTSA, NIST AI RMF, OSTP AI Bill of Rights (blueprint 2022).\n- **State AI laws**: Colorado AI Act (2024) — first comprehensive US state algorithmic-decision-tool statute; California SB 1047 (vetoed 2024); New York City AEDT (2023); Illinois BIPA enforcement against AI biometric uses.\n- **NIST AI Risk Management Framework (AI RMF 1.0, 2023)** — voluntary standard, widely referenced.\n\n**Section 230 reform debate** — **Communications Decency Act §230(c)** (1996) — 'No provider or user of an interactive computer service shall be treated as the publisher or speaker of any information provided by another information content provider.' One of the most consequential Internet statutes; underpins platform liability shielding for user-generated content; treated alternatively as the Magna Carta of the Internet (Kosseff, *The Twenty-Six Words That Created the Internet* 2019) + as the source of platform pathologies:\n- **Modifications**: SESTA-FOSTA (2018) — sex-trafficking carveouts.\n- **Litigation**: *Gonzalez v. Google* (2023) + *Twitter v. Taamneh* (2023) — Section 230 + algorithmic recommendation under federal terrorism statutes; Court declined to reach §230 question in *Gonzalez*.\n- **NetChoice v. Moody / NetChoice v. Paxton (2024)** — Texas + Florida social-media platform-regulation laws; First Amendment + Section 230 implications.\n- **AI + §230** — emerging question: does §230 shield AI-generated outputs? Most commentators say no — the platform itself is generating, not hosting third-party speech.\n- **Reform proposals**: PACT Act, EARN IT Act, SAFE TECH Act, JCPA, KOSA; many state proposals.\n\n**Algorithmic accountability + auditing**:\n- **Algorithmic Accountability Act of 2022, 2023** (federal; Sen. Wyden + Rep. Clarke) — proposed but not enacted.\n- **NYC AEDT Law (Local Law 144, 2023)** — bias audits for automated employment-decision tools; first US legal requirement of its kind.\n- **Colorado AI Act (2024)** — high-risk AI decisions; risk-management + duty-of-care + notice obligations; effective 2026.\n- **Bias audits + impact assessments** — best-practice norms increasingly required by regulation.\n- **State + local biometric laws** — Illinois BIPA (2008); Texas + Washington; private rights of action.\n\n**Copyright + AI**:\n- **AI training-data** — *Authors Guild v. OpenAI; NYT v. OpenAI* (filed 2023); *Tremblay v. OpenAI; Silverman v. OpenAI; Getty v. Stability AI; Andersen v. Stability AI; Concord Music Group v. Anthropic; Universal Music v. Anthropic*; rapidly evolving fair-use litigation.\n- **AI-generated outputs** — *Thaler v. Perlmutter* (DDC 2023; affirmed DC Cir. 2025) — human-authored requirement for copyright registration. **Andy Warhol Foundation v. Goldsmith** (2023) narrowed transformative-use analysis.\n- **EU AI Act** training-data transparency obligations.\n- **DMCA §1201** + AI circumvention scenarios.\n\nLegal architecture for AI is the most active regulatory + litigation frontier of the 2020s. Lawyers building expertise here are positioned for the next decade of practice."
+    },
+    {
+      "kind": "text",
+      "title": "International + human rights + climate + the future of practice",
+      "body": "Modern legal practice increasingly operates across national borders + integrates international + human-rights norms.\n\n**International courts + tribunals**:\n- **International Court of Justice (ICJ, 1945)** — Hague; principal judicial organ of the UN; state-vs-state disputes (Nicaragua v. United States 1986; Bosnia v. Serbia 2007; The Gambia v. Myanmar 2024); advisory opinions (Wall in Palestinian Territory 2004; Chagos 2019; Climate Change 2024 advisory opinion proceedings). Compulsory jurisdiction limited; US withdrew acceptance after Nicaragua.\n- **International Criminal Court (ICC, 2002)** — Rome Statute 1998; prosecutes individuals for genocide, crimes against humanity, war crimes, aggression. Investigations + arrest warrants — recent: Russia/Ukraine (Putin warrant 2023); Israel/Palestine. Major non-signatories include US, China, Russia, India.\n- **International Criminal Tribunals**: ICTY (Yugoslavia, 1993-2017); ICTR (Rwanda, 1994-2015); ECCC (Cambodia); STL (Lebanon); SCSL (Sierra Leone). Pioneered modern international-criminal jurisprudence.\n- **Regional human-rights courts**: European Court of Human Rights (Strasbourg; ECHR 1950); Inter-American Court of Human Rights (San José; ACHR 1969); African Court on Human + Peoples' Rights (Arusha; 1998).\n- **WTO Dispute Settlement Body** — trade disputes; appellate-body crisis since 2019 US blockage; multi-party interim appeal arrangement (MPIA).\n- **ICSID + investment arbitration** — investor-state disputes under bilateral investment treaties (BITs) + multilateral (ECT, NAFTA→USMCA).\n\n**International humanitarian law (IHL) — the laws of war**:\n- **Geneva Conventions (1864, 1906, 1929, 1949)** + **Additional Protocols I + II (1977) + III (2005)** — protection of wounded + sick + POWs + civilians + medical + civilian objects; ICRC custodian.\n- **Hague Conventions (1899, 1907)** — conduct of hostilities; means + methods of warfare.\n- **Geneva Conventions Common Article 3** — minimum non-international-armed-conflict protections.\n- **Customary International Humanitarian Law** — ICRC study (2005) catalogued 161 rules of customary IHL.\n- **War-crimes prosecutions**: Nuremberg + Tokyo Tribunals (1945-48); ICTY + ICTR + ICC; modern universal-jurisdiction trials in national courts (Germany, Sweden, France).\n- **Modern issues**: autonomous weapons + LAWS (lethal autonomous weapons systems); cyber operations + the Tallinn Manual; private military contractors; counter-terrorism; targeted killings + drone warfare.\n\n**International human rights**:\n- **Universal Declaration of Human Rights (1948)** — Eleanor Roosevelt chaired the drafting commission; adopted by UN General Assembly. Not legally binding but foundational.\n- **International Covenant on Civil + Political Rights (ICCPR, 1966)** + **International Covenant on Economic, Social + Cultural Rights (ICESCR, 1966)** — the two binding treaties operationalizing UDHR.\n- **CEDAW, CERD, CAT, CRC, CRPD** — specific-rights treaties (women, racial discrimination, torture, children, persons with disabilities). The US has signed but not ratified most.\n- **UN Human Rights Council** + **Universal Periodic Review** + **Special Rapporteurs**.\n- **Business + Human Rights** — UN Guiding Principles (Ruggie 2011); EU Corporate Sustainability Due Diligence Directive (CSDDD, 2024); supply-chain due diligence; modern slavery acts (UK 2015, AU 2018, CA 2024).\n- **Refugee + migration**: 1951 Refugee Convention + 1967 Protocol; non-refoulement; UNHCR; modern challenges of mass displacement + climate-induced migration.\n\n**Climate litigation** — one of the fastest-growing legal frontiers:\n- **Urgenda Foundation v. State of the Netherlands** (HR 2019) — Dutch Supreme Court affirmed government's legal duty to reduce GHG emissions; landmark + globally influential.\n- **Juliana v. United States** (2015-2024) — youth-led federal climate suit; standing challenges (9th Cir. dismissed 2020; subsequent attempts).\n- **Massachusetts v. EPA (2007)** — Stevens — EPA had authority to regulate GHGs under Clean Air Act; foundational to US climate regulation.\n- **West Virginia v. EPA (2022)** — Roberts — **Major Questions Doctrine**; struck Clean Power Plan-style regulation; reshaped admin law (covered also in *Loper Bright Enterprises v. Raimondo* 2024 overruling Chevron).\n- **Held v. Montana (2023)** — first US state court to find climate harm violates state constitutional rights.\n- **Neubauer v. Germany (2021)** — German Federal Constitutional Court — climate-statute insufficient to protect future generations' rights; required revision.\n- **Klimaseniorinnen v. Switzerland (2024)** — European Court of Human Rights — first ECHR climate ruling; positive obligations under Article 8.\n- **Inflation Reduction Act 2022** — $370B+ in climate provisions; transformational US climate-investment law.\n- **EU Green Deal + EU Emissions Trading System (EU ETS) + Carbon Border Adjustment Mechanism (CBAM)**.\n- **Loss + damage funding**: COP27 + COP28 establishment; nascent international architecture.\n\n**Lawtech + the future of the profession**:\n- **LLM-augmented practice**: drafting + research + review + analysis dramatically accelerated; junior-lawyer training + business model under pressure.\n- **Access to justice**: ~80% of US low-income civil legal needs unmet; AI offers potential to expand access (LegalZoom, Rocket Lawyer, DoNotPay, ABA Free Legal Answers, civil legal aid). But UPL (unauthorized practice of law) rules + lawyer-regulation regimes lag.\n- **Reg + ethics**: ABA Model Rule 5.5 (UPL); MR 5.4 (fee-sharing + non-lawyer ownership; Arizona + Utah pilot non-lawyer ownership); MR 1.1 cmt. 8 (technological competence); MR 1.6 (confidentiality) + AI-tool data risks.\n- **Court technology** — e-filing + remote hearings (massive pandemic-era expansion); court analytics + algorithmic-bail tools (controversial); online dispute resolution.\n- **Legal education** — case method (Langdell 1870) under pressure from clinical + simulation + tech-augmented pedagogy; bar-exam reform (NextGen Bar effective 2026); MPRE; UBE/UE.\n- **Compensation + practice models** — billable hour pressure; alternative fee arrangements; private-equity in legal services (UK + Australia + Arizona); ALSPs (alternative legal service providers — Axiom, Elevate, Integreon).\n- **Demographics + diversity** — ongoing efforts; gender + race equity; first-gen lawyers; mental-health crisis in the profession.\n\nThe modern lawyer of 2030 will navigate AI-augmented practice, transnational regulation, climate + AI governance frontiers, + a public increasingly skeptical of legal institutions. Mastery of foundational doctrine — from Hammurabi to *Dobbs*, from common law to the EU AI Act — is more essential than ever, even as the tools change."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_front_1",
+        "kind": "guided_derivation",
+        "question": "Audit an algorithmic-hiring tool for legal exposure",
+        "goal": "A large US employer deploys an AI resume-screening tool that ranks candidates. The tool was trained on historical hiring data. Walk through the algorithmic-discrimination + regulatory exposure.",
+        "steps": [
+          {
+            "prompt": "What is the core legal risk under Title VII of the Civil Rights Act 1964?",
+            "motivation": "Disparate-impact framework.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Disparate impact — Title VII §703(k); Griggs v Duke Power 1971; if the tool's selection rate for protected groups falls below the EEOC's 4/5 rule of thumb, presumption of disparate impact + employer must show job-related + consistent with business necessity"
+              ]
+            },
+            "hints": [
+              "Griggs disparate impact."
+            ],
+            "reveal": "**Griggs v. Duke Power (1971)** — Burger — established **disparate-impact** theory under Title VII: facially neutral practices with disproportionate adverse effect on protected groups are unlawful unless job-related + consistent with business necessity. Title VII §703(k) codified post-*Wards Cove* (1989). **EEOC's 4/5 rule** — selection rate for protected group < 80% of highest-rate group is evidence of adverse impact. ML systems trained on historical hiring data routinely encode + amplify historical patterns of disparity."
+          },
+          {
+            "prompt": "What state-law obligations apply (Colorado AI Act, NYC AEDT, Illinois HB 2557)?",
+            "motivation": "Patchwork state laws.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "NYC AEDT Local Law 144 (2023) — annual bias audit + candidate notice; Colorado AI Act (2024) — high-risk AI + risk management + impact assessment effective 2026; IL AI Video Interview Act (2020); CA Civil Rights Department draft regs"
+              ]
+            },
+            "hints": [
+              "NYC AEDT + Colorado AI Act."
+            ],
+            "reveal": "**NYC AEDT (Local Law 144, 2023)** — automated employment-decision tools require an annual independent **bias audit**, public disclosure of audit results, + advance candidate notice (10 business days). **Colorado AI Act (2024)** — broader: high-risk AI decisions in employment + housing + education + lending + insurance require risk management + impact assessments + notice + appeals; effective 2026. **Illinois AI Video Interview Act (2020)** — consent + retention rules for AI video interviews. **CA Civil Rights Department draft regs (2024+)**. + EEOC guidance (May 2022, October 2023) treating AI tools under Title VII."
+          },
+          {
+            "prompt": "What are the federal + EU regulatory regimes?",
+            "motivation": "Federal + EU.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Federal: EEOC + ADA technical assistance; potential Algorithmic Accountability Act; rescinded Biden EO 14110; sector-specific. EU: AI Act high-risk category for HR/employment AI with extensive obligations effective 2026-27"
+              ]
+            },
+            "hints": [
+              "EU AI Act high-risk."
+            ],
+            "reveal": "**Federal**: **EEOC** treats AI tools under existing Title VII + ADA (2022 + 2023 technical assistance documents); proposed **Algorithmic Accountability Act** (Wyden) not enacted; Biden **EO 14110** (Oct 2023) rescinded January 2025; sector-specific guidance. **EU AI Act (2024)** classifies employment AI as **high-risk** (Annex III §4) — extensive risk-management + data-governance + transparency + human-oversight + conformity-assessment obligations; up to 7% of global turnover for violations. Cross-border employers face the full stack."
+          },
+          {
+            "prompt": "What are the recommended compliance steps?",
+            "motivation": "Practical guidance.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Pre-deployment bias audit + impact assessment; ongoing monitoring; documentation of business necessity; candidate notice + opt-out; human-in-the-loop oversight; vendor due diligence (Sweeney 2013-style discrimination research); annual independent audits; record-keeping for litigation/regulatory review"
+              ]
+            },
+            "hints": [
+              "Audit + document + monitor."
+            ],
+            "reveal": "Best practices: (1) **pre-deployment bias audit** (4/5 rule + intersectional analysis); (2) **impact assessment** (Colorado AI Act + EU AI Act); (3) **ongoing monitoring** + adverse-event reporting; (4) **documentation of business necessity + job-relatedness**; (5) **candidate notice + opt-out**; (6) **human-in-the-loop** review of high-stakes decisions; (7) **vendor due diligence** + indemnification; (8) **annual independent audits** (NYC AEDT); (9) **record-keeping** for litigation + regulatory review. **Sweeney's** + COMPAS-line research informs the empirical methodology."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_front_1",
+        "kind": "multiple_choice",
+        "question": "Why is the EU AI Act (2024) considered globally consequential even for non-EU companies + non-EU users?",
+        "options": [
+          "It is irrelevant outside Europe.",
+          "**EU AI Act (2024)** is the world's first comprehensive AI statute; phased application through 2026-2027. **Risk-based tier**: prohibited practices (social scoring, real-time biometric surveillance, manipulative AI, predictive policing); high-risk systems (employment, education, biometrics, critical infrastructure, law enforcement, justice administration) with extensive obligations (risk management, data governance, technical documentation, transparency, human oversight, accuracy/robustness/security, conformity assessment + CE marking); limited-risk transparency obligations (deepfakes); minimal-risk most AI. **General-purpose AI (GPAI)** + **systemic-risk GPAI** (>10^25 FLOPs) — base/foundation models with model-evaluation + red-team + incident-reporting obligations + training-data summaries + copyright compliance. **Penalties** — up to 7% of global turnover. The **Brussels Effect** — multinationals + global vendors typically align practices to the EU baseline because complying with two regimes is impractical; GDPR established the template (also EU 2018 — global privacy practices changed dramatically post-GDPR). + the AI Act has extraterritorial scope (Article 2) for outputs used in the EU. Non-EU US + UK + Japan + Korea regulators are watching + partially following. AI Act is shaping the global AI-governance baseline.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "EU AI Act (2024) — world's first comprehensive AI statute. Risk-based: prohibited, high-risk, limited-risk, minimal-risk. GPAI + systemic-risk GPAI obligations. Up to 7% global turnover. Brussels Effect drives global alignment (like GDPR). Extraterritorial scope. Globally consequential baseline."
+      },
+      "hints": [
+        "Brussels Effect + GDPR analog.",
+        "Risk tiers + GPAI + global enforcement."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "EU AI Act (2024) — world's first comprehensive AI statute. Risk-based: prohibited, high-risk, limited-risk, minimal. GPAI + systemic-risk GPAI obligations. Up to 7% global turnover. Brussels Effect drives global alignment (GDPR template). Extraterritorial scope. Shapes global AI-governance baseline."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_front_1",
+        "kind": "scenario",
+        "question": "Build an AI-augmented international + climate practice",
+        "prompt": "You advise a multinational energy company that is (i) deploying AI-augmented legal-research + contract-review tools, (ii) defending climate-litigation claims in Dutch + German + US courts, (iii) facing EU AI Act + Colorado AI Act compliance for an algorithmic-hiring tool, + (iv) negotiating supply-chain due diligence under the EU CSDDD. (a) Walk through **lawyer competence** (Model Rule 1.1 cmt. 8) + **confidentiality** (MR 1.6) when using **Harvey/Casetext/Vincent AI**. (b) Compare the **Urgenda** + **Held v. Montana** + **Massachusetts v. EPA** + **West Virginia v. EPA** framework for the climate claims. (c) Map the **EU AI Act high-risk** + **Colorado AI Act** obligations + the **NYC AEDT** bias-audit overlay for the hiring tool. (d) Address **Geneva Conventions** + **ICC** + **universal-jurisdiction** risks for operations in conflict zones. (e) Identify **Section 230** + **DMCA** + AI-training-data copyright exposure (Andersen, NYT, Authors Guild). (f) Predict how a future AI-judge or AI-augmented arbitration would interact with **ICSID** investment-treaty arbitration."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_front_1",
+        "kind": "math_expression",
+        "question": "Under the EU AI Act (2024), maximum administrative fines for the most serious violations (e.g., prohibited practices) can reach what percentage of global annual turnover or fixed amount, whichever is higher?",
+        "acceptedAnswers": [
+          "7% of global turnover or €35 million",
+          "7% or €35M",
+          "Up to 7% of global annual turnover or €35 million",
+          "7%"
+        ],
+        "hint": "EU AI Act Article 99: up to 7% of global annual turnover or €35 million for the most serious violations (prohibited practices)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_front_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how AI + climate + international law are reshaping the lawyer's practice in the 2020s.",
+        "rubric": "Mentions: **Legal AI** — **Lex Machina** (analytics), **ROSS**/Casetext/Harvey/Vincent (LLM-based research + drafting); **Katz et al. 2023** GPT-4 + Bar Exam; ediscovery + TAR (*Da Silva Moore* 2012 Peck). **Algorithmic discrimination** — **Sweeney 2013** + COMPAS controversy; NYC AEDT (2023); Colorado AI Act (2024). **AI regulation** — **EU AI Act 2024** risk-tier + GPAI obligations + 7% turnover penalties + Brussels Effect; US Biden EO 14110 rescinded 2025; sector-specific guidance. **Section 230 reform** — *Gonzalez/Twitter v. Taamneh* + NetChoice v. Moody 2024; AI + §230 question. **International + human rights** — ICC + ICJ + Geneva Conventions + UDHR + ICCPR + business-+-human-rights (Ruggie 2011, CSDDD 2024). **Climate litigation** — **Urgenda** 2019, **Juliana**, **Massachusetts v EPA** 2007, **West Virginia v EPA** 2022, **Held v Montana** 2023. **Practice future** — **LLM-augmented** practice + access-to-justice + Model Rule 1.1 cmt. 8 technological competence. Concludes: foundational doctrine more essential than ever as tools change."
+      }
+    }
+  ]
+}
