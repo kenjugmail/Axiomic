@@ -411,6 +411,27 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🏛️",
     tags: ["history", "ancient", "axial-age", "civilizations"],
   },
+  {
+    name: "truth-table",
+    label: "Truth table",
+    description: "Type or pick a propositional formula (¬ ∧ ∨ → ↔); see all 2ⁿ rows + tautology/contradiction detection.",
+    thumb: "🧮",
+    tags: ["philosophy", "logic", "propositional-logic", "mathematics"],
+  },
+  {
+    name: "voting-systems",
+    label: "Voting systems compared",
+    description: "5 voter blocks, 4 candidates, 5 tally methods (FPTP, IRV, Borda, Condorcet, Approval) — see Arrow's impossibility live.",
+    thumb: "🗳️",
+    tags: ["political-science", "voting", "arrow", "social-choice"],
+  },
+  {
+    name: "clonal-selection",
+    label: "Clonal selection (immune)",
+    description: "Naive lymphocyte repertoire + antigen → expansion → contraction → memory; affinity maturation visible.",
+    thumb: "🦠",
+    tags: ["immunology", "biology", "clonal-selection", "burnet"],
+  },
 ];
 
 interface Props {

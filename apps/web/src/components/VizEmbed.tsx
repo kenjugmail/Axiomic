@@ -58,6 +58,9 @@ const FriedmannEquation = lazy(() => import("../../../../packages/viz/src/compon
 const SchellingSegregation = lazy(() => import("../../../../packages/viz/src/components/SchellingSegregation").then(m => ({ default: m.SchellingSegregation })));
 const BigFiveRadar = lazy(() => import("../../../../packages/viz/src/components/BigFiveRadar").then(m => ({ default: m.BigFiveRadar })));
 const CivilizationTimeline = lazy(() => import("../../../../packages/viz/src/components/CivilizationTimeline").then(m => ({ default: m.CivilizationTimeline })));
+const TruthTable = lazy(() => import("../../../../packages/viz/src/components/TruthTable").then(m => ({ default: m.TruthTable })));
+const VotingSystems = lazy(() => import("../../../../packages/viz/src/components/VotingSystems").then(m => ({ default: m.VotingSystems })));
+const ClonalSelection = lazy(() => import("../../../../packages/viz/src/components/ClonalSelection").then(m => ({ default: m.ClonalSelection })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -120,6 +123,9 @@ export const VIZ_NAMES = [
   "schelling-segregation",
   "big-five-radar",
   "civilization-timeline",
+  "truth-table",
+  "voting-systems",
+  "clonal-selection",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -180,6 +186,9 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "schelling-segregation": SchellingSegregation,
   "big-five-radar": BigFiveRadar,
   "civilization-timeline": CivilizationTimeline,
+  "truth-table": TruthTable,
+  "voting-systems": VotingSystems,
+  "clonal-selection": ClonalSelection,
 };
 
 interface VizEmbedProps {

@@ -283,6 +283,21 @@ const LazyCivilizationTimeline = lazy(() =>
     (m) => ({ default: m.CivilizationTimeline }),
   ),
 );
+const LazyTruthTable = lazy(() =>
+  import("../../../../../packages/viz/src/components/TruthTable").then(
+    (m) => ({ default: m.TruthTable }),
+  ),
+);
+const LazyVotingSystems = lazy(() =>
+  import("../../../../../packages/viz/src/components/VotingSystems").then(
+    (m) => ({ default: m.VotingSystems }),
+  ),
+);
+const LazyClonalSelection = lazy(() =>
+  import("../../../../../packages/viz/src/components/ClonalSelection").then(
+    (m) => ({ default: m.ClonalSelection }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -453,6 +468,12 @@ function VizByName({
       return <LazyBigFiveRadar {...(props as object)} />;
     case "civilization-timeline":
       return <LazyCivilizationTimeline {...(props as object)} />;
+    case "truth-table":
+      return <LazyTruthTable {...(props as object)} />;
+    case "voting-systems":
+      return <LazyVotingSystems {...(props as object)} />;
+    case "clonal-selection":
+      return <LazyClonalSelection {...(props as object)} />;
     default:
       return null;
   }
