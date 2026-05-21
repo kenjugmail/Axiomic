@@ -81,6 +81,9 @@ const ShotComposition = lazy(() => import("../../../../packages/viz/src/componen
 const KeplerOrbits = lazy(() => import("../../../../packages/viz/src/components/KeplerOrbits").then(m => ({ default: m.KeplerOrbits })));
 const EpidemicCurve = lazy(() => import("../../../../packages/viz/src/components/EpidemicCurve").then(m => ({ default: m.EpidemicCurve })));
 const KoppenClimate = lazy(() => import("../../../../packages/viz/src/components/KoppenClimate").then(m => ({ default: m.KoppenClimate })));
+const AllianceNetwork = lazy(() => import("../../../../packages/viz/src/components/AllianceNetwork").then(m => ({ default: m.AllianceNetwork })));
+const GrowthChart = lazy(() => import("../../../../packages/viz/src/components/GrowthChart").then(m => ({ default: m.GrowthChart })));
+const DoseResponseCurve = lazy(() => import("../../../../packages/viz/src/components/DoseResponseCurve").then(m => ({ default: m.DoseResponseCurve })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -166,6 +169,9 @@ export const VIZ_NAMES = [
   "kepler-orbits",
   "epidemic-curve",
   "koppen-climate",
+  "alliance-network",
+  "growth-chart",
+  "dose-response-curve",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -249,6 +255,9 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "kepler-orbits": KeplerOrbits,
   "epidemic-curve": EpidemicCurve,
   "koppen-climate": KoppenClimate,
+  "alliance-network": AllianceNetwork,
+  "growth-chart": GrowthChart,
+  "dose-response-curve": DoseResponseCurve,
 };
 
 interface VizEmbedProps {

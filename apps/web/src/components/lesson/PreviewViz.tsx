@@ -393,6 +393,21 @@ const LazyKoppenClimate = lazy(() =>
     (m) => ({ default: m.KoppenClimate }),
   ),
 );
+const LazyAllianceNetwork = lazy(() =>
+  import("../../../../../packages/viz/src/components/AllianceNetwork").then(
+    (m) => ({ default: m.AllianceNetwork }),
+  ),
+);
+const LazyGrowthChart = lazy(() =>
+  import("../../../../../packages/viz/src/components/GrowthChart").then(
+    (m) => ({ default: m.GrowthChart }),
+  ),
+);
+const LazyDoseResponseCurve = lazy(() =>
+  import("../../../../../packages/viz/src/components/DoseResponseCurve").then(
+    (m) => ({ default: m.DoseResponseCurve }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -607,6 +622,12 @@ function VizByName({
       return <LazyEpidemicCurve {...(props as object)} />;
     case "koppen-climate":
       return <LazyKoppenClimate {...(props as object)} />;
+    case "alliance-network":
+      return <LazyAllianceNetwork {...(props as object)} />;
+    case "growth-chart":
+      return <LazyGrowthChart {...(props as object)} />;
+    case "dose-response-curve":
+      return <LazyDoseResponseCurve {...(props as object)} />;
     default:
       return null;
   }

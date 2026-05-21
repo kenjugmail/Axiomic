@@ -39,6 +39,9 @@ import { ShotComposition } from "../src/components/ShotComposition";
 import { KeplerOrbits } from "../src/components/KeplerOrbits";
 import { EpidemicCurve } from "../src/components/EpidemicCurve";
 import { KoppenClimate } from "../src/components/KoppenClimate";
+import { AllianceNetwork } from "../src/components/AllianceNetwork";
+import { GrowthChart } from "../src/components/GrowthChart";
+import { DoseResponseCurve } from "../src/components/DoseResponseCurve";
 
 const VIZ_COMPONENTS = {
   KinshipDiagram,
@@ -70,6 +73,9 @@ const VIZ_COMPONENTS = {
   KeplerOrbits,
   EpidemicCurve,
   KoppenClimate,
+  AllianceNetwork,
+  GrowthChart,
+  DoseResponseCurve,
 };
 
 describe("viz components — SSR smoke tests", () => {

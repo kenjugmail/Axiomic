@@ -572,6 +572,27 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🌦️",
     tags: ["geography", "climate", "biomes", "koppen"],
   },
+  {
+    name: "alliance-network",
+    label: "Alliance network",
+    description: "29 states + bloc-colored ties (NATO/EU/ASEAN/BRICS/OAS/AU/GCC). Click a node to highlight its connections.",
+    thumb: "🌐",
+    tags: ["diplomacy", "international-relations", "geopolitics"],
+  },
+  {
+    name: "growth-chart",
+    label: "Growth chart (WHO percentiles)",
+    description: "Weight/height/BMI-for-age curves with sample child trajectory; stunting + wasting cutoffs.",
+    thumb: "👶",
+    tags: ["pediatrics", "growth", "who", "anthropometry"],
+  },
+  {
+    name: "dose-response-curve",
+    label: "Dose-response curve",
+    description: "Hill-function therapeutic + toxic curves; LD50 + ED50 + therapeutic index; preset compounds.",
+    thumb: "💊",
+    tags: ["toxicology", "pharmacology", "dose-response", "hill"],
+  },
 ];
 
 interface Props {
