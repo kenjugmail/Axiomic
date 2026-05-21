@@ -1,0 +1,157 @@
+{
+  "slug": "building-systems-and-technology",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Understand the enclosure + envelope — wall assemblies, thermal bridges, vapor + air barriers, curtain walls, rain-screens (Lstiburek + WUFI).",
+      "Survey MEP — heating, cooling, ventilation, daylighting, Passivhaus (Feist 1991), acoustics (Sabine equation, Beranek).",
+      "Integrate building systems through coordination, zoning, plenum + raised-floor strategies, BIM clash detection."
+    ],
+    "prereqs": [
+      "materials-of-architecture"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Enclosure + envelope: walls, thermal bridges, vapor + air barriers, curtain walls, rain-screens",
+      "body": "**The building envelope** — the assembly of walls + roof + foundation + windows + doors — is the boundary that separates conditioned interior from outdoor environment. It must do four jobs: (1) keep out **bulk water** (rain, snow), (2) control **air leakage**, (3) control **vapor + moisture migration**, (4) limit **heat transfer**. These four control layers (J. Lstiburek's framework) — *water, air, vapor, thermal* — are now the standard organizing principle of building-science envelope design.\n\n**Joseph Lstiburek + the Building Science Corporation**:\n- Lstiburek (Canadian-American, PhD UToronto) + the Building Science Corporation (Westford MA, ~1990-) codified North-American building-science best practices.\n- *Builder's Guide* series + *Building Science Insights* (BSI) papers + ASHRAE Standard 160 contributions.\n- **Perfect Wall** concept (BSI-001 + later): every wall has *the four control layers* (water + air + vapor + thermal) + a structural layer + an interior + exterior finish; they should be unambiguously located + continuous around the building.\n- Insight: most envelope failures are **water + air leakage failures**, not thermal-insulation failures. Air-sealing + flashing details are decisive.\n\n**Thermal performance + heat transfer**:\n- Three mechanisms: **conduction** (through solid materials), **convection** (through fluids — air movement), **radiation** (electromagnetic, including the sun + room-temperature thermal radiation between surfaces).\n- **R-value** (resistance to heat flow): R = thickness / k (where k is thermal conductivity W/m·K). Stack assemblies' R-values add (in series): R_total = R_1 + R_2 + ... + R_n.\n- **U-value** (overall conductance, the reciprocal of total R): U = 1/R_total (W/m²·K). Lower U = better insulation.\n- Common values: typical 2×6 stud wall with R-19 batt + R-7.5 continuous insulation ≈ R-26 effective; *Passivhaus* exterior wall R-40 to R-60; triple-glazed window U ≈ 0.7-1.0 W/m²·K (R-5 to R-7); single-pane window U ≈ 5.8 W/m²·K (R-1).\n- **Thermal bridge**: localized high-conductivity path that bypasses the insulation — typically a steel stud, a concrete slab penetrating the wall, a balcony cantilever, or a window jamb. Thermal bridges can degrade effective insulation by 20-50%; modern energy codes (ASHRAE 90.1, Title 24, Passivhaus) require **continuous insulation** outboard of the framing + **thermally broken** windows + connections (Schöck Isokorb thermal-break for balcony cantilevers).\n\n**Air barrier**:\n- A continuous layer that resists air leakage through the envelope. **Air leakage** is far more damaging than vapor diffusion — wet air carries 50-100× more moisture into wall cavities than vapor diffusion through the same wall.\n- **Blower-door testing** (ASTM E1827, ATTMA) measures air-leakage at 50 Pa pressure differential (Passivhaus requires ≤ 0.6 ACH₅₀ — air-changes per hour at 50 Pa; new conventional construction typically 3-7 ACH₅₀).\n- Materials: peel-and-stick membranes (Henry, Carlisle, Soprema), liquid-applied (Sto, Henry), spray-foam, sheathing-applied (Huber ZIP, ZIP-R).\n\n**Vapor barrier / vapor retarder**:\n- Vapor permeance categorized in *perms* (US) or *ng/Pa·s·m²* (metric). Class I (<0.1 perm, true vapor barrier — polyethylene), Class II (0.1-1 perm, kraft paper), Class III (1-10 perm, latex paint). Different climates need different strategies:\n- **Cold climates**: vapor retarder on the **warm (interior) side** to prevent interior vapor condensing in the cold cavity.\n- **Hot-humid climates**: vapor retarder on the **exterior** to prevent exterior vapor condensing on the cold (air-conditioned) interior cladding.\n- **Mixed climates**: smart vapor retarders (Pro-Clima Intello, CertainTeed MemBrain) that vary permeance with humidity — vapor-tight in winter, vapor-open in summer.\n- **WUFI (Wärme Und Feuchte Instationär)** — Fraunhofer IBP hygrothermal simulation software; tracks coupled heat + moisture transport through walls + roofs over a year of hourly weather. Standard for envelope analysis where moisture risk is significant.\n\n**Curtain wall + storefront**:\n- **Curtain wall**: non-load-bearing exterior wall hung from the structural frame; typically aluminum mullions + glass infill. Stick-built, unitized (pre-assembled panels), structural-glazed, double-skin.\n- Performance metrics: U-value, SHGC (Solar Heat Gain Coefficient, fraction of solar radiation transmitted; lower in cooling-dominated climates), VT (Visible Transmittance, daylighting), WSHGC.\n- **Low-E coating** (Lawrence Berkeley Lab + commercial development 1980s+): sputtered metallic films that reflect long-wave IR; can reduce SHGC to <0.3 while transmitting >0.6 visible light.\n- **Triple-glazing + argon/krypton** fills: U ≈ 0.7 W/m²·K (vs. single pane ~5.8); standard for Passivhaus.\n- **Spandrel** panels: opaque insulated panels at floor lines + service zones, integrated with curtain wall vision glazing.\n- **Double-skin façades**: two layers of glazing with a buffer cavity for ventilation + shading + acoustics. Common in European office towers.\n\n**Rain-screen + ventilated cladding**:\n- **Drained + ventilated cladding** strategy: outer cladding (terra cotta, fiber cement, metal, brick, stone, wood) deflects most rain; an **air gap** behind it drains + vents any moisture that penetrates; an inboard *weather-resistant barrier* (WRB) + drainage plane handles the remainder.\n- **Pressure-equalized rain-screen** (PER): cavity vented to outdoor air pressure so wind-driven rain has no pressure gradient to push moisture through cladding joints.\n- Lstiburek's *drained + ventilated assemblies* are the dominant modern best practice for high-performance walls.\n\n**Roof systems**:\n- **Conventional (membrane-up)**: structural deck → vapor retarder → insulation → membrane → ballast or cover. EPDM, TPO, PVC, modified bitumen.\n- **PMR (protected membrane roof)** / IRMA (inverted roof membrane assembly): membrane below insulation; insulation protects membrane from UV + thermal cycling. Insulation = XPS (closed-cell).\n- **Green roof** (extensive 100-150 mm media; intensive deeper with trees); reduces stormwater + urban heat island + extends membrane life.\n- **Cool roof** (high SRI Solar Reflectance Index): reflective membranes reducing cooling load + heat island.\n- **PV-integrated roofing**: building-integrated photovoltaic (BIPV)."
+    },
+    {
+      "kind": "text",
+      "title": "MEP: HVAC, daylighting, acoustics, Passivhaus",
+      "body": "**MEP (Mechanical + Electrical + Plumbing) systems** account for ~40-50% of a typical building's construction cost + are the primary determinant of operational energy use + occupant comfort + indoor environmental quality.\n\n**HVAC (Heating, Ventilation, Air Conditioning)** — the largest MEP subsystem.\n- **Loads**: heating (winter envelope losses + ventilation), cooling (envelope + ventilation + internal loads from lights, equipment, people), ventilation (outside air for IAQ — ASHRAE 62.1 specifies ~5-10 L/s per person, more for high-density spaces), dehumidification, humidification.\n- **Heating + cooling sources**:\n  - **Boilers** (natural gas, oil, electric, biomass) producing hot water.\n  - **Chillers** (water-cooled, air-cooled) producing chilled water.\n  - **Heat pumps** (air-source, water-source, ground-source/geothermal) — electrically reverse-cycle vapor-compression; modern variable-refrigerant-flow (VRF) systems (Mitsubishi, Daikin, LG) deliver high COP + flexible zoning. The standard electrification strategy.\n  - **District energy**: central plants serving multiple buildings (universities, urban districts).\n- **Distribution + delivery**:\n  - **All-air** (constant volume, VAV - Variable Air Volume): forced air through ducts to diffusers; VAV terminal units modulate airflow per zone. Dominant in commercial buildings.\n  - **Hydronic radiant**: hot/chilled water through embedded floor or ceiling slabs/panels; high thermal mass + comfort + low velocity (no drafts). Common in European + high-end North American.\n  - **Chilled beam + induction units**: low-temp chilled water + minimal primary air; energy-efficient.\n  - **Fan-coil + heat pumps + mini-splits**: zone-level vapor compression.\n- **Ventilation strategies**: 100% outside air (DOAS — Dedicated Outdoor Air System), demand-controlled (CO₂ sensors modulating airflow), heat-recovery ventilation (HRV/ERV — 70-90% efficient recovery of exhaust-air heat).\n- **Controls**: BMS (Building Management System) — Tridium Niagara, Schneider EcoStruxure, Siemens Desigo. Trends: open protocols (BACnet, Modbus), analytics + fault detection, occupant feedback.\n\n**Energy modeling + standards**:\n- **EnergyPlus** (DOE, open source), **IES VE**, **eQUEST**, **Sefaira**, **Cove.tool**, **Ladybug + Honeybee** (Grasshopper) — simulate annual energy use against weather files (EnergyPlus EPW format).\n- **ASHRAE 90.1** (US commercial, baseline + reference standard); **IECC** (International Energy Conservation Code, residential + commercial); **Title 24** (California); **Eurocode + EPBD** (Europe Energy Performance of Buildings Directive); **NECB** (Canada).\n- **Energy Star** for commercial buildings (Portfolio Manager) + appliances + windows — DOE/EPA recognition for top-quartile performers.\n- **LEED** (Leadership in Energy + Environmental Design, USGBC) — building certification with energy as a major category. See lesson 6.\n\n**Passivhaus (Passive House) — Wolfgang Feist 1991**:\n- German physicist Feist + Bo Adamson (Lund) developed the original Passive House Standard in Darmstadt 1991. The first Passivhaus building was four row houses in Darmstadt-Kranichstein (1991).\n- Passivhaus Institut (PHI), Darmstadt — certification authority + research center.\n- **Five criteria**:\n  1. **Annual heating + cooling demand** ≤ 15 kWh/m²·yr each.\n  2. **Primary energy (renewable, PER)** ≤ 60 kWh/m²·yr (overall).\n  3. **Airtightness** ≤ 0.6 ACH₅₀.\n  4. **Thermal comfort** in all rooms (no winter temperature drift below 20 °C; no >10% hours above 25 °C in summer without active cooling).\n  5. **No thermal bridges** above critical threshold.\n- **PHPP (Passive House Planning Package)** — Excel-based design + verification tool; required for certification.\n- Achieved through: super-insulation (R-40 to R-60 walls + R-60 to R-80 roof), triple-glazing, thermal-break framing, blower-door tested airtightness, balanced HRV/ERV ventilation with 80%+ heat recovery, passive solar orientation, summer shading.\n- ~50000+ certified Passivhaus buildings worldwide as of 2024; widespread in Germany + Austria + Scandinavia + increasingly North America.\n\n**Daylighting**:\n- *Goal*: high-quality daylight to most occupied spaces, minimizing artificial lighting energy + improving occupant well-being.\n- Metrics: **Daylight Factor (DF)** — interior illuminance / exterior under overcast sky, as %. Older metric. **sDA (Spatial Daylight Autonomy, IES LM-83)**: fraction of floor area receiving ≥300 lux for ≥50% of occupied hours. **ASE (Annual Sunlight Exposure)**: fraction of floor area receiving direct sunlight for too many hours (>250 hr/yr at >1000 lux) — overlit / glare risk.\n- LEED v4 + WELL specify sDA + ASE thresholds.\n- Strategies: floor depth ≤ 2.5× window height (rule of thumb), light shelves bouncing daylight to ceiling, clerestories + skylights + tubular daylighting devices (Solatube), automatic + manual shading, glare control.\n- Modeling: **Radiance** (LBNL, ray-traced), **DIVA**, **ClimateStudio**, **DAYSIM**, **Ladybug + Honeybee** (Grasshopper integration).\n\n**Acoustics**:\n- **Room acoustics**: how sound behaves within a room. **Sabine's equation** (Wallace Clement Sabine 1898, founding work of architectural acoustics at Harvard Fogg Lecture Hall): **T_60 = 0.161 · V / A** (SI), where T_60 is reverberation time (seconds for sound to decay 60 dB), V is room volume (m³), A is total absorption (Sabins, m² equivalent absorption). Sabine's original Fogg formula in imperial: T_60 = 0.049 V/A (V in ft³, A in ft² sabins). **Leo Beranek** (1914-2016, MIT + Harvard, co-founder BBN) extended room acoustics + concert-hall design — *Music, Acoustics, and Architecture* (1962). Concert hall design (Boston Symphony Hall, Sabine's masterpiece; Disney Hall LA; Elbphilharmonie Hamburg; KKL Lucerne) is the most acoustically demanding building type.\n- Optimum T_60 by use: speech rooms ~0.5-0.8 s; classrooms ~0.6 s; concert hall ~1.8-2.2 s; cathedral ~3-8 s.\n- **Sound transmission** between rooms (STC — Sound Transmission Class). Required STC by code: 50 between residential units (multifamily); 60+ for premium hotels + high-end housing.\n- **Vibration**: floor vibration in mass timber + composite floors (footfall, equipment); mitigation via mass + stiffness + damping.\n- **Mechanical noise** (HVAC fans + ducts): NC (Noise Criteria) ratings; rule of thumb NC-25 for performance spaces, NC-30 for offices.\n\nMEP coordination is non-trivial; the BIM clash detection of lesson 7 + a dedicated MEP coordinator are essential on any project larger than a single-family house."
+    },
+    {
+      "kind": "text",
+      "title": "Integration: structural + MEP coordination, zoning, plenum + raised floor",
+      "body": "**The integration problem**: a building must simultaneously accommodate structural framing, HVAC ductwork, hydronic piping, electrical conduits + cable trays, plumbing risers, sprinkler piping, telecom cabling, lighting, fire-alarm wiring, and the architectural ceiling + wall + floor finishes — all routed without conflicts, with code-required clearances, and serving the building program. Coordination failures cost time + money + sometimes the project's quality.\n\n**Zoning of MEP systems**:\n- **Thermal zones**: group spaces with similar loads + uses into a zone served by a single thermostat + VAV box or fan coil. Typical floor: perimeter zones (4 cardinal directions, each ~3-5 m deep) + interior zone(s). Each zone is independently controlled.\n- **Service zones (vertical)**: stack mechanical shafts, electrical risers, plumbing risers, telecom risers, elevators, stairs — typically at the building core. This *core-and-perimeter* organization is the dominant tall-building typology + makes vertical service distribution efficient.\n- **Horizontal distribution**: from the core, ducts + pipes + conduits run horizontally to each space; lateral capacity sized for the longest run.\n\n**Plenum strategies**:\n- **Above-ceiling plenum**: the space above a suspended ceiling (typically 300-600 mm) houses ducts + piping + lighting + sprinklers. Standard for commercial offices.\n- **Pressurized return-air plenum**: rather than ducting return air, the plenum *is* the return path — saves ducting + cost + maintains acoustic damping. Code requires plenum-rated cables + materials (CMP, FEP) where ducts + plenum spaces carry air.\n- **Floor-to-floor heights**: typical office 4.0-4.5 m floor-to-floor (2.7-3.0 m clear + plenum + structure). Higher quality + complex services need more (5.0 m+).\n\n**Raised access floor**:\n- **Underfloor distribution**: power + data + low-velocity supply air delivered through a raised access floor (typically 100-300 mm cavity above structural slab). Floor panels removable; cable + duct + diffuser layout reconfigurable as use changes.\n- **UFAD (Underfloor Air Distribution)**: supply air at floor level rising via convective plume to ceiling exhaust; energy-efficient + good IAQ at occupant level; popular in tech offices, government buildings.\n- Advantages: reconfigurability for office churn, integrated services, occupant-controlled comfort, energy efficiency.\n- Disadvantages: greater floor-to-floor height + cost + slightly higher floor build-up.\n\n**Structural integration**:\n- **Penetrations**: every duct or pipe crossing a structural beam or wall or fire separation requires a code-allowable penetration. **Web penetrations** in steel beams are common (with reinforcement when large); **slab penetrations** in concrete need to avoid reinforcement (or be designed-in). Mass timber requires careful detailing — preferably routed in the structural depth rather than penetrating it.\n- **Beam depth + plenum depth**: critical for floor-to-floor coordination. Deep transfer beams + large ducts compound.\n- **Joists + open-web steel joists + composite-deck floors**: open webs allow MEP routing through the structural depth, reducing required plenum depth.\n\n**BIM clash detection (lesson 7)**:\n- Combine the architectural + structural + MEP models in a coordination platform (Autodesk Navisworks, Solibri, Revizto, BIMcollab); software identifies *clashes* (geometric interferences) by category.\n- **Hard clashes**: physical interference (a duct through a beam, two pipes occupying the same point).\n- **Clearance clashes**: code-required clearance not met (e.g., electrical panel access, sprinkler clearance to combustibles).\n- **Workflow clashes**: order-of-installation issues (a duct routed before a column it would conflict with during erection).\n- **Coordination workflow**: weekly clash reports → consultants resolve in their models → re-publish + re-clash → repeat until clash-free CD set. Saves weeks-to-months of field RFIs + change orders during construction.\n\n**Modular + prefabricated MEP**:\n- **Multi-trade racks**: shop-fabricated MEP racks (duct + pipe + cable tray + sprinkler) for repetitive corridor + ceiling runs. Used in hospitals, hotels, data centers, multifamily.\n- **Prefab bathroom pods, mechanical rooms**: factory assembled, lifted into place. Marriott, hospital chains, data centers.\n- **Modular construction**: full volumetric modules — entire rooms with finishes + MEP — stacked at site. Marriott opening hotels in months. Katerra (defunct 2021), Project Frog, CIMC Modular.\n\n**Fire + life safety integration**:\n- **Fire separations**: rated walls + floors + doors (1-2-3-4 hr ratings per IBC + NFPA). Compartmentalization limits fire spread + maintains tenable egress.\n- **Egress**: code-required width + distance + number of exits per occupant load (IBC Ch. 10). Architects design plans + sections satisfying egress.\n- **Sprinklers** (NFPA 13): mostly hydraulic-design distribution; coordinate with ceiling + duct layout; many code allowances depend on sprinklered status.\n- **Smoke control**: stair pressurization, atrium smoke evacuation, smoke-stop doors.\n- **Detection + alarm**: smoke + heat detectors, manual pull stations, alarm + voice evacuation.\n\n**Accessibility**:\n- **ADA (Americans with Disabilities Act 1990) + IBC Chapter 11 + ANSI A117.1** in the US; **BS 8300** UK; equivalents in EU + elsewhere.\n- Architects + MEP designers ensure accessible routes, restrooms, elevators, controls, signage, alarm strobes — coordinated at all phases.\n\nA modern building is a layered + integrated machine. The architect's job — with mechanical + electrical + plumbing + structural + sustainability + fire-protection + acoustic + lighting + civil + landscape consultants — is to orchestrate this layered machine to a clear architectural intent. BIM + the lesson-7 digital tools make the coordination tractable; the architect's *integration thinking* makes it good."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sys_1",
+        "kind": "guided_derivation",
+        "question": "Design a Lstiburek 'perfect wall' for a cold-climate office",
+        "goal": "A 5-story office in Minneapolis (cold climate, zone 6) needs an exterior wall meeting ASHRAE 90.1 R-21+R-7.5ci. Lay out the four control layers (water, air, vapor, thermal) per Lstiburek + identify materials for each.",
+        "steps": [
+          {
+            "prompt": "List the four control layers Lstiburek requires in every wall + state their general order (interior to exterior).",
+            "motivation": "Set the framework.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "thermal control (insulation), vapor control, air control, and water control — interior finish, structural sheathing + vapor + air + WRB, continuous exterior insulation, drained ventilated cladding"
+              ]
+            },
+            "hints": [
+              "Four control layers.",
+              "Continuous + unambiguous."
+            ],
+            "reveal": "**Four control layers (Lstiburek)**: (1) **water** (bulk rain + snow), (2) **air**, (3) **vapor**, (4) **thermal**. Each must be **continuous** + **unambiguous** around the entire building (walls + roof + foundation + windows + doors meeting). Typical interior-to-exterior cold-climate stack: GWB → stud cavity (or insulated bay) → structural sheathing → integrated air + WRB + vapor retarder (e.g., Henry Blueskin VP100, Sto Gold Coat, Huber ZIP-R) → continuous exterior insulation (mineral wool or rigid foam) → vented cavity → cladding."
+          },
+          {
+            "prompt": "For Minneapolis cold climate, where does the vapor retarder belong + why?",
+            "motivation": "Climate-specific.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "on the warm interior side to prevent interior winter vapor from condensing in the cold cavity — typically Class II kraft or smart membrane on inboard face of stud + Class III latex paint as backup"
+              ]
+            },
+            "hints": [
+              "Cold climate = vapor retarder interior side.",
+              "Prevent winter condensation."
+            ],
+            "reveal": "In a **cold climate**, vapor flows interior → exterior in winter (driven by interior humidity + low outdoor dew point). A vapor retarder on the **warm (interior) side** prevents indoor vapor from migrating into the cold cavity + condensing on the cold sheathing. Use **Class II** kraft-faced batt or **smart vapor retarder** (Pro-Clima Intello, MemBrain). In hot-humid climates the opposite — exterior-side vapor retarder. Smart retarders (variable permeance with humidity) hedge mixed climates."
+          },
+          {
+            "prompt": "What is the dew-point check for the exterior sheathing in this wall + why do we want exterior continuous insulation outboard of the sheathing?",
+            "motivation": "Avoid sheathing condensation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "exterior continuous insulation keeps the sheathing warmer than the dew point of interior air so any vapor that reaches the sheathing does not condense; ASHRAE 90.1 requires continuous insulation to address this and to mitigate thermal bridges through framing"
+              ]
+            },
+            "hints": [
+              "Warm sheathing avoids condensation.",
+              "Continuous insulation also kills thermal bridges."
+            ],
+            "reveal": "**Exterior continuous insulation (CI)** keeps the structural sheathing **above the dew point** of interior air (Lstiburek's classic insight). Without CI, in a cold-climate wall, the exterior sheathing can run colder than the interior dew point + sheathing-cavity moisture accumulates → rot. CI also bridges the studs (which otherwise short-circuit the wall's R-value by ~30%). ASHRAE 90.1 + IECC require continuous insulation precisely to deliver both effects. Typical: R-21 cavity batt + R-7.5 ci → effective ~R-24 + reliable moisture performance."
+          },
+          {
+            "prompt": "How do we verify the assembly's hygrothermal performance + identify risks?",
+            "motivation": "Validation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "run a WUFI hygrothermal simulation with hourly weather + interior + exterior boundary conditions over multiple years checking moisture content of all materials remains below failure thresholds and identifying any layer at risk of sustained wetting"
+              ]
+            },
+            "hints": [
+              "WUFI.",
+              "Hourly weather simulation."
+            ],
+            "reveal": "Run **WUFI (Wärme Und Feuchte Instationär)** — Fraunhofer IBP hygrothermal simulation — over 3-5 years of hourly weather, with interior + exterior boundary conditions, to verify that no layer accumulates moisture beyond the failure threshold (ASHRAE 160 + EN 15026 specify limits). Check sheathing wood moisture < 19-20%, no mold-growth conditions (>80% RH for sustained hours). Iterate stack if WUFI flags a risk. The combination of Lstiburek's perfect-wall framework + WUFI is the modern standard for high-performance envelope design."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sys_1",
+        "kind": "multiple_choice",
+        "question": "Why does Passivhaus (Wolfgang Feist + Bo Adamson 1991) achieve order-of-magnitude reductions in building heating + cooling energy?",
+        "options": [
+          "By using more conventional HVAC.",
+          "Passivhaus (Feist + Adamson Darmstadt 1991) combines **super-insulated envelope** (walls R-40 to R-60, roof R-60 to R-80, triple-glazed thermally-broken windows U ≤ 0.8), **rigorous airtightness** (≤ 0.6 ACH₅₀ blower-door tested), **thermal-bridge-free detailing**, **balanced heat-recovery ventilation** (HRV/ERV with ≥75% sensible heat recovery), and **passive solar orientation + shading**. Together these reduce the envelope + ventilation heat loss + gain by ~80-90% from typical construction, so a small heat pump or even a hairdryer-sized heater can maintain comfort year-round. **Five certification criteria**: heating + cooling ≤ 15 kWh/m²·yr each, primary energy ≤ 60 kWh/m²·yr, airtightness ≤ 0.6 ACH₅₀, thermal comfort in all rooms, no thermal bridges. Verified using **PHPP (Passive House Planning Package)** Excel-based design tool + post-construction blower-door + thermography. Over 50000 certified buildings worldwide; widespread in Germany + Austria + Scandinavia + increasingly N. America. The performance benchmark for low-energy buildings + a foundational input to lesson-6 carbon-target setting.",
+          "By relying entirely on solar panels.",
+          "By using thinner walls."
+        ],
+        "correctIndex": 1,
+        "explanation": "Passivhaus (Feist + Adamson Darmstadt 1991) combines super-insulation (R-40 to R-60 walls), triple-glazing, airtightness ≤0.6 ACH₅₀, no thermal bridges, balanced HRV/ERV with 75%+ heat recovery, passive solar + shading. Five criteria + PHPP verification. Reduces envelope + ventilation loads ~80-90% so a tiny heat pump can heat + cool comfortably. 50k+ certified buildings; foundational low-energy benchmark feeding lesson-6 carbon targets."
+      },
+      "hints": [
+        "Five criteria.",
+        "Super-insulation + airtightness + HRV."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Passivhaus (Feist + Adamson Darmstadt 1991): super-insulation (R-40 to R-60 walls), triple-glazing U≤0.8, airtightness ≤0.6 ACH₅₀, no thermal bridges, balanced HRV/ERV ≥75% heat recovery, passive solar. Five criteria + PHPP verification. ≤15 kWh/m²·yr heating + cooling. Reduces envelope + ventilation loads ~80-90%. 50k+ certified buildings worldwide. Foundational low-energy benchmark."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sys_1",
+        "kind": "scenario",
+        "question": "Specify building systems for a 4-story science library",
+        "prompt": "You are the architect for a 4-story 6000 m² science library in coastal Boston (mixed climate, zone 5). Discuss your system choices for: (a) envelope strategy — Lstiburek four control layers, continuous insulation, triple-glazing, rain-screen cladding; (b) HVAC — VRF + DOAS + radiant slabs + economizer; (c) daylighting target (sDA ≥ 55%, ASE ≤ 10%) + glare-control strategy; (d) acoustic targets for reading rooms (T_60 ~ 0.5-0.7 s) + lecture hall (~0.9 s); (e) integration — plenum or raised floor, BIM clash detection workflow. How would you balance Passivhaus + LEED + WELL ambitions against budget?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sys_1",
+        "kind": "math_expression",
+        "question": "A concert hall has volume V = 16000 m³ + total absorption A = 1300 sabins (m² equivalent). Using Sabine's equation T_60 = 0.161 · V / A, what is the reverberation time T_60 in seconds (to one decimal place)?",
+        "acceptedAnswers": [
+          "2.0",
+          "1.98",
+          "1.981"
+        ],
+        "hint": "T_60 = 0.161 × V / A."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sys_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, explain why MEP-structural coordination — and the BIM clash detection that enables it — is one of the highest-leverage activities in modern building design.",
+        "rubric": "Mentions: a modern building combines architectural framing, structural beams + columns + slabs, HVAC ductwork + piping, electrical conduits + cable trays, plumbing risers, sprinkler piping, telecom cabling, lighting, fire-alarm wiring — routed through a constrained vertical depth (plenum). Without coordination, geometric clashes are discovered during construction → expensive RFIs, change orders, schedule delays, rework. Pre-construction **BIM coordination** (Autodesk Navisworks, Solibri, Revizto, BIMcollab) federates the architectural + structural + MEP models + identifies geometric *clashes* (hard, clearance, workflow) before they reach the field. Weekly clash reports → consultants resolve in their models → re-publish + re-clash. Hospitals, labs, data centers — the most MEP-intensive building types — depend on this. Savings: weeks-to-months of field rework + tens of millions of dollars on large complex projects. Lesson 7 covers BIM in depth; this lesson establishes *why* coordination matters."
+      }
+    }
+  ]
+}
