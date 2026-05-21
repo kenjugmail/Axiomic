@@ -64,6 +64,10 @@ Key invariants:
 - Body text uses markdown (bold via **x**, code via \`x\`, math via $x$). Real names + dates + citations.
 - For text slides, draw on real history of the field, specific researchers, year-published papers, modern frontier work.
 
+JSON GOTCHAS — STRICT:
+- Do NOT add a closing brace after the \`workedSolution\` field. The slide ends with one \`}\` at the slide level; \`workedSolution\`, \`hints\`, \`retryUntilCorrect\` are sibling fields, not nested wrappers. The pattern \`"workedSolution": "..."\n  }\n}\` (with two consecutive closing braces after a string) on a question slide is the canonical bug — do not produce it.
+- Every \`{\` must have a matching \`}\`. Re-validate your output mentally by counting braces before responding.
+
 Respond with valid JSON matching this schema. No commentary.`;
 }
 
@@ -80,6 +84,21 @@ ${req.objectives.map((o, i) => `  ${i + 1}. ${o}`).join("\n")}
 Return the lesson JSON now.`;
 }
 
+// Repair the recurring JSON bugs the lesson-generation agents emit.
+// Most frequent: an extra closing brace after `workedSolution` on a
+// multiple_choice slide, producing `"workedSolution": "..."\n  }\n},`
+// where the middle `}` closes nothing valid. Strip it. Exported for
+// unit testing.
+export function repairCommonJSONBugs(raw: string): string {
+  // The extra-brace bug: match a workedSolution string immediately
+  // followed by TWO consecutive closing braces before the next ",".
+  // Replace with one closing brace.
+  return raw.replace(
+    /("workedSolution":\s*"(?:[^"\\]|\\.)*")\s*\n\s*\}\s*\n\s*\},/g,
+    "$1\n    },",
+  );
+}
+
 // Try to extract a JSON object from a free-form response. Strips
 // markdown fences, leading prose, etc.
 function extractJSON(raw: string): unknown | null {
@@ -92,10 +111,16 @@ function extractJSON(raw: string): unknown | null {
   const end = candidate.lastIndexOf("}");
   if (start < 0 || end < 0 || end <= start) return null;
   const slice = candidate.slice(start, end + 1);
+  // Try as-is first; only run the repair pass if parse fails. Keeps
+  // the happy path zero-cost.
   try {
     return JSON.parse(slice);
   } catch {
-    return null;
+    try {
+      return JSON.parse(repairCommonJSONBugs(slice));
+    } catch {
+      return null;
+    }
   }
 }
 

@@ -1,5 +1,51 @@
 import { describe, expect, test } from "bun:test";
 import { app } from "../index";
+import { repairCommonJSONBugs } from "./authoring";
+
+describe("repairCommonJSONBugs", () => {
+  test("repairs the workedSolution extra-brace pattern", () => {
+    const broken = `{
+  "slides": [
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_test",
+        "kind": "multiple_choice"
+      },
+      "workedSolution": "Some explanation here"
+      }
+    },
+    {
+      "kind": "text"
+    }
+  ]
+}`;
+    // Original is invalid JSON
+    expect(() => JSON.parse(broken)).toThrow();
+    // Repaired is valid JSON
+    const repaired = repairCommonJSONBugs(broken);
+    const parsed = JSON.parse(repaired);
+    expect(parsed.slides.length).toBe(2);
+    expect(parsed.slides[0].workedSolution).toBe("Some explanation here");
+  });
+
+  test("leaves correctly-formed JSON untouched", () => {
+    const good = `{
+  "slides": [
+    {
+      "kind": "question",
+      "workedSolution": "x"
+    },
+    {
+      "kind": "text"
+    }
+  ]
+}`;
+    const repaired = repairCommonJSONBugs(good);
+    expect(repaired).toBe(good);
+    expect(JSON.parse(repaired).slides.length).toBe(2);
+  });
+});
 
 // Tests for POST /authoring/lesson. The mock AI provider doesn't
 // generate real lesson JSON, so most tests assert the route's
