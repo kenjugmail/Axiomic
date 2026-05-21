@@ -348,6 +348,21 @@ const LazyZoningGrid = lazy(() =>
     (m) => ({ default: m.ZoningGrid }),
   ),
 );
+const LazyExtinctionTimeline = lazy(() =>
+  import("../../../../../packages/viz/src/components/ExtinctionTimeline").then(
+    (m) => ({ default: m.ExtinctionTimeline }),
+  ),
+);
+const LazyUtilityIndifference = lazy(() =>
+  import("../../../../../packages/viz/src/components/UtilityIndifference").then(
+    (m) => ({ default: m.UtilityIndifference }),
+  ),
+);
+const LazyStructuralLoadFlow = lazy(() =>
+  import("../../../../../packages/viz/src/components/StructuralLoadFlow").then(
+    (m) => ({ default: m.StructuralLoadFlow }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -544,6 +559,12 @@ function VizByName({
       return <LazyHarmonicSeries {...(props as object)} />;
     case "zoning-grid":
       return <LazyZoningGrid {...(props as object)} />;
+    case "extinction-timeline":
+      return <LazyExtinctionTimeline {...(props as object)} />;
+    case "utility-indifference":
+      return <LazyUtilityIndifference {...(props as object)} />;
+    case "structural-load-flow":
+      return <LazyStructuralLoadFlow {...(props as object)} />;
     default:
       return null;
   }

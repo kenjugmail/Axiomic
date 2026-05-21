@@ -72,6 +72,9 @@ const BacterialGrowthCurve = lazy(() => import("../../../../packages/viz/src/com
 const AlleleFrequencyDrift = lazy(() => import("../../../../packages/viz/src/components/AlleleFrequencyDrift").then(m => ({ default: m.AlleleFrequencyDrift })));
 const HarmonicSeries = lazy(() => import("../../../../packages/viz/src/components/HarmonicSeries").then(m => ({ default: m.HarmonicSeries })));
 const ZoningGrid = lazy(() => import("../../../../packages/viz/src/components/ZoningGrid").then(m => ({ default: m.ZoningGrid })));
+const ExtinctionTimeline = lazy(() => import("../../../../packages/viz/src/components/ExtinctionTimeline").then(m => ({ default: m.ExtinctionTimeline })));
+const UtilityIndifference = lazy(() => import("../../../../packages/viz/src/components/UtilityIndifference").then(m => ({ default: m.UtilityIndifference })));
+const StructuralLoadFlow = lazy(() => import("../../../../packages/viz/src/components/StructuralLoadFlow").then(m => ({ default: m.StructuralLoadFlow })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -148,6 +151,9 @@ export const VIZ_NAMES = [
   "allele-frequency-drift",
   "harmonic-series",
   "zoning-grid",
+  "extinction-timeline",
+  "utility-indifference",
+  "structural-load-flow",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -222,6 +228,9 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "allele-frequency-drift": AlleleFrequencyDrift,
   "harmonic-series": HarmonicSeries,
   "zoning-grid": ZoningGrid,
+  "extinction-timeline": ExtinctionTimeline,
+  "utility-indifference": UtilityIndifference,
+  "structural-load-flow": StructuralLoadFlow,
 };
 
 interface VizEmbedProps {

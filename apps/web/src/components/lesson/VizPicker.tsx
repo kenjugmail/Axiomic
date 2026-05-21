@@ -509,6 +509,27 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🏙️",
     tags: ["urban-planning", "zoning", "transit", "walkability"],
   },
+  {
+    name: "extinction-timeline",
+    label: "Extinction timeline (Phanerozoic)",
+    description: "Geologic periods + diversity-recovery curve + Big Five extinction markers; scrub through 540 Mya.",
+    thumb: "🦖",
+    tags: ["paleontology", "extinction", "geologic-time", "diversity"],
+  },
+  {
+    name: "utility-indifference",
+    label: "Utility + indifference curves",
+    description: "Cobb-Douglas utility with budget line + optimal-bundle dot; drag prices, income, preference α.",
+    thumb: "📊",
+    tags: ["microeconomics", "consumer-theory", "utility", "demand"],
+  },
+  {
+    name: "structural-load-flow",
+    label: "Structural load flow",
+    description: "Beam / cantilever / Pratt truss with point load; live reactions + bending-moment diagram.",
+    thumb: "🏛️",
+    tags: ["architecture", "structures", "statics", "engineering"],
+  },
 ];
 
 interface Props {
