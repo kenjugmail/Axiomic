@@ -55,6 +55,9 @@ const KinshipDiagram = lazy(() => import("../../../../packages/viz/src/component
 const ForwardKinematicsArm = lazy(() => import("../../../../packages/viz/src/components/ForwardKinematicsArm").then(m => ({ default: m.ForwardKinematicsArm })));
 const GroupOrbits = lazy(() => import("../../../../packages/viz/src/components/GroupOrbits").then(m => ({ default: m.GroupOrbits })));
 const FriedmannEquation = lazy(() => import("../../../../packages/viz/src/components/FriedmannEquation").then(m => ({ default: m.FriedmannEquation })));
+const SchellingSegregation = lazy(() => import("../../../../packages/viz/src/components/SchellingSegregation").then(m => ({ default: m.SchellingSegregation })));
+const BigFiveRadar = lazy(() => import("../../../../packages/viz/src/components/BigFiveRadar").then(m => ({ default: m.BigFiveRadar })));
+const CivilizationTimeline = lazy(() => import("../../../../packages/viz/src/components/CivilizationTimeline").then(m => ({ default: m.CivilizationTimeline })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -114,6 +117,9 @@ export const VIZ_NAMES = [
   "forward-kinematics-arm",
   "group-orbits",
   "friedmann-equation",
+  "schelling-segregation",
+  "big-five-radar",
+  "civilization-timeline",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -171,6 +177,9 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "forward-kinematics-arm": ForwardKinematicsArm,
   "group-orbits": GroupOrbits,
   "friedmann-equation": FriedmannEquation,
+  "schelling-segregation": SchellingSegregation,
+  "big-five-radar": BigFiveRadar,
+  "civilization-timeline": CivilizationTimeline,
 };
 
 interface VizEmbedProps {

@@ -390,6 +390,27 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🌌",
     tags: ["cosmology", "general-relativity", "physics"],
   },
+  {
+    name: "schelling-segregation",
+    label: "Schelling segregation",
+    description: "Drag tolerance τ; run the dynamic-segregation simulation on a 30×30 torus; see emergent macro-clustering.",
+    thumb: "🧩",
+    tags: ["sociology", "agent-based-model", "segregation", "schelling"],
+  },
+  {
+    name: "big-five-radar",
+    label: "Big Five (OCEAN) radar",
+    description: "Drag five trait sliders; compare against archetype overlays (salesperson, academic, artist, leader).",
+    thumb: "🧠",
+    tags: ["psychology", "personality", "big-five", "ocean"],
+  },
+  {
+    name: "civilization-timeline",
+    label: "Civilization timeline (parallel)",
+    description: "Six civilizational threads on one timeline; see axial age, Maya Classic + Han + Rome simultaneity.",
+    thumb: "🏛️",
+    tags: ["history", "ancient", "axial-age", "civilizations"],
+  },
 ];
 
 interface Props {

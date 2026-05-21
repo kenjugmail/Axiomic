@@ -268,6 +268,21 @@ const LazyFriedmannEquation = lazy(() =>
     (m) => ({ default: m.FriedmannEquation }),
   ),
 );
+const LazySchellingSegregation = lazy(() =>
+  import("../../../../../packages/viz/src/components/SchellingSegregation").then(
+    (m) => ({ default: m.SchellingSegregation }),
+  ),
+);
+const LazyBigFiveRadar = lazy(() =>
+  import("../../../../../packages/viz/src/components/BigFiveRadar").then(
+    (m) => ({ default: m.BigFiveRadar }),
+  ),
+);
+const LazyCivilizationTimeline = lazy(() =>
+  import("../../../../../packages/viz/src/components/CivilizationTimeline").then(
+    (m) => ({ default: m.CivilizationTimeline }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -432,6 +447,12 @@ function VizByName({
       return <LazyGroupOrbits {...(props as object)} />;
     case "friedmann-equation":
       return <LazyFriedmannEquation {...(props as object)} />;
+    case "schelling-segregation":
+      return <LazySchellingSegregation {...(props as object)} />;
+    case "big-five-radar":
+      return <LazyBigFiveRadar {...(props as object)} />;
+    case "civilization-timeline":
+      return <LazyCivilizationTimeline {...(props as object)} />;
     default:
       return null;
   }
