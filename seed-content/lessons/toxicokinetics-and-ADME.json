@@ -1,0 +1,156 @@
+{
+  "slug": "toxicokinetics-and-ADME",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply ADME (absorption + distribution + metabolism + excretion) to xenobiotics.",
+      "Quantify volume of distribution + clearance + half-life + bioavailability.",
+      "Reason about Phase I CYP450 + Phase II conjugation + PBPK modeling."
+    ],
+    "prereqs": [
+      "dose-response-and-mechanisms"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Absorption + distribution: from exposure to target tissue",
+      "body": "**Toxicokinetics** = pharmacokinetics applied to toxicants. The body's ADME (Absorption + Distribution + Metabolism + Excretion) handling of a xenobiotic determines internal dose at the target organ. A high external exposure with poor absorption (e.g., ingested elemental mercury) may produce less internal dose than a low external exposure with high absorption (e.g., methylmercury). This is why dose alone (Paracelsus) is necessary but not sufficient — route + ADME together determine effect.\n\n**Absorption**: crossing the body's barriers (gut, skin, lung) into systemic circulation.\n\n**Oral absorption**:\n- Stomach + small intestine + colon; small intestine dominant due to surface area (microvilli) + transit time.\n- **Passive diffusion** for lipophilic, nonionized molecules (most drugs + toxicants). Follows Fick's law: J = D·A·ΔC/d. **Lipophilicity** quantified by **logP** (octanol-water partition coefficient); logP 1-3 optimal for absorption; logP > 5 = poor solubility; logP < 0 = poor membrane crossing.\n- **pH partitioning** — weak acids (aspirin, pKa ~3.5) absorbed in stomach (acidic, neutral form); weak bases (codeine, pKa ~8) absorbed in small intestine (more neutral form, despite less acidic pH).\n- **Active transport** — P-glycoprotein (efflux limiting absorption); OATP + OCT + PEPT1 (uptake).\n- **First-pass metabolism (presystemic)** — gut wall CYP3A4 + UGT + hepatic Phase I/II metabolism before systemic circulation. **Bioavailability F** = fraction reaching systemic circulation (F = 1 for IV; F < 1 for oral). Some drugs nearly 100% extracted on first pass — IV-only (lidocaine has high first-pass).\n\n**Dermal absorption**:\n- Stratum corneum is the rate-limiting barrier (lipid bilayer; keratinocytes).\n- Lipophilic + small molecules cross (parathion, nicotine, organic solvents).\n- Damaged skin or occlusion → enhanced absorption.\n- Occupational exposures: parathion + organophosphates; PCBs; dermal solvent absorption (Yu-Cheng + Yusho oil contamination).\n- Karl Karrer + Maibach were early dermal-permeability researchers; transdermal patches (nicotine, fentanyl, scopolamine) exploit the same principles.\n\n**Inhalation absorption**:\n- Lung surface area ~70 m² + thin alveolar epithelium → very rapid for gases + vapors.\n- **Blood-air partition coefficient** (λ) determines uptake; high-λ gases (halothane) reach equilibrium slowly; low-λ gases (nitrous oxide, N₂O) equilibrate rapidly.\n- Particulates: deposition depends on size — >10 μm trap in nasopharynx; 2.5-10 μm bronchi; <2.5 μm reach alveoli (PM2.5 is the dangerous fraction; covered in environmental lesson); ultrafine (<0.1 μm) translocate systemically.\n- Occupational + ambient exposures (silica, asbestos, particulates, vapors) — dominant route for many toxicants.\n\n**Distribution**:\n- **Volume of distribution (Vd)** — apparent volume that would contain the drug if uniformly distributed at plasma concentration. V_d = Dose / C_plasma at t=0.\n  - Vd small (~0.1 L/kg ~ plasma) — heparin, warfarin (highly protein-bound, stays vascular).\n  - Vd ~0.6 L/kg (~total body water) — ethanol.\n  - Vd large (>10 L/kg) — chloroquine, amiodarone, basic lipophilic drugs accumulating in tissue.\n- **Plasma protein binding** — albumin (acidic + neutral drugs, warfarin, NSAIDs, sulfonamides) + α1-acid glycoprotein (basic drugs, lidocaine, propranolol). Only free fraction is pharmacologically/toxicologically active. Hypoalbuminemia + drug displacement raise free fraction.\n- **Blood-brain barrier (BBB)** — tight junctions + P-glycoprotein efflux limit CNS penetration; lipophilic + small + neutral molecules cross. Loperamide doesn't (P-gp efflux); morphine does (slowly); methylmercury crosses (organic form key to Minamata neurotoxicity).\n- **Placental transfer** — placental barrier less restrictive than BBB; many xenobiotics reach fetus (DES, thalidomide, methylmercury, ethanol — FASD). **Pittenger** + the Goodman-Gilman textbook codified placental pharmacology.\n- **Tissue redistribution + storage** — lead in bone (half-life decades — bone serves as long-term reservoir + source of remobilization in pregnancy/lactation); fat-soluble compounds (DDT, dioxins, PCBs, PFAS) in adipose; arsenic + cadmium in hair + nail (biomarkers); fluoride in teeth + bone."
+    },
+    {
+      "kind": "text",
+      "title": "Metabolism: Phase I CYP450 + Phase II conjugation + polymorphisms",
+      "body": "**Biotransformation** converts xenobiotics into more polar, water-soluble metabolites for excretion. Most metabolism is hepatic but also gut wall, kidney, lung, skin, blood.\n\n**Phase I — functionalization (R. T. Williams 1959 framework)**:\nOxidation, reduction, hydrolysis. Introduces or unmasks functional groups (-OH, -NH₂, -SH, -COOH) for Phase II conjugation.\n\n**Cytochrome P450 (CYP) superfamily** — heme-thiolate monooxygenases; ~57 human genes; ~12 enzymes handle most xenobiotic metabolism. Hepatic ER membrane-bound; require O₂ + NADPH + CYP reductase. Catalyze: R-H + O₂ + NADPH → R-OH + H₂O + NADP⁺.\n\nMajor xenobiotic-metabolizing CYPs:\n- **CYP3A4/5** — ~50% of clinically used drugs; broad substrate scope; hepatic + gut wall. Inducers: rifampin, carbamazepine, St John's wort, phenytoin. Inhibitors: ketoconazole, ritonavir, grapefruit furanocoumarins. Substrates: cyclosporine, statins, midazolam, many.\n- **CYP2D6** — ~25% of drugs; highly polymorphic (poor + intermediate + extensive + ultrarapid metabolizers — different allele frequencies across populations). Substrates: codeine (→ morphine; UM = toxicity risk in infants of breastfeeding UM mothers), dextromethorphan, paroxetine, fluoxetine, tamoxifen (→ active endoxifen).\n- **CYP2C9** — warfarin, phenytoin, NSAIDs. Polymorphisms (*2, *3) reduce activity → require lower warfarin doses.\n- **CYP2C19** — clopidogrel (prodrug → active metabolite; *2/*3 carriers have reduced activation → reduced antiplatelet effect, ↑MACE). PPIs (omeprazole). \n- **CYP1A2** — caffeine, theophylline, clozapine. Induced by smoking (polycyclic aromatic hydrocarbons) + cruciferous vegetables.\n- **CYP2E1** — small-molecule + alcohol metabolism; activates acetaminophen → NAPQI; activates carbon tetrachloride → CCl₃• free radical; induced by ethanol + isoniazid + fasting (substrate-induction). Why chronic alcoholics + fasted patients are more vulnerable to acetaminophen hepatotoxicity at lower doses.\n\n**Other Phase I**: flavin-containing monooxygenases (FMOs), alcohol/aldehyde dehydrogenases (ADH/ALDH — ethanol → acetaldehyde → acetate; ALDH2*2 East Asian flushing variant), esterases (cocaine → benzoylecgonine), epoxide hydrolases.\n\n**Phase II — conjugation**: addition of polar group → highly water-soluble for excretion.\n- **Glucuronidation (UGT enzymes)** — UDP-glucuronic acid; dominant Phase II in adults. Drug glucuronides excreted in bile + urine. UGT1A1 (bilirubin — Gilbert syndrome polymorphism), UGT2B7 (morphine, NSAIDs).\n- **Sulfation (SULT enzymes)** — PAPS donor; saturable at higher doses (PAPS-limited). Important for acetaminophen at low dose (sulfate predominant); shifts to glucuronide + CYP2E1 (NAPQI) at higher dose.\n- **Glutathione conjugation (GST enzymes)** — GSH (γ-glu-cys-gly tripeptide) conjugates electrophiles + reactive metabolites. Detoxifies NAPQI, alkylating agents, reactive oxygen species, epoxides. Depletion = toxicity (acetaminophen overdose). NAC replenishes GSH precursor cysteine.\n- **Acetylation (NAT enzymes)** — slow vs fast acetylator polymorphism (NAT2). Isoniazid: slow acetylators have higher exposure + hepatotoxicity risk; fast acetylators may have therapeutic failure. Sulfonamides, hydralazine (lupus in slow acetylators).\n- **Methylation (COMT, TPMT, INMT, HNMT)** — catecholamine inactivation (COMT); 6-MP/azathioprine (TPMT — polymorphism; deficient patients suffer severe myelosuppression at standard doses; testing now standard).\n\n**Bioactivation**: Phase I sometimes makes xenobiotics MORE toxic — covered in dose-response mechanisms lesson (NAPQI, benzene oxide, vinyl-chloride epoxide, bromobenzene epoxide, CCl₃•, MPTP→MPP+).\n\n**Induction + inhibition**:\n- **Induction** — CYP transcriptional upregulation (rifampin, phenobarbital, phenytoin, carbamazepine, St John's wort, smoking, ethanol chronic) via PXR + CAR + AhR. Days-weeks onset. Increases clearance → may reduce drug effect or enhance bioactivation.\n- **Inhibition** — competitive (ketoconazole at CYP3A4), mechanism-based (suicide inhibition by furanocoumarins, ritonavir at CYP3A4, erythromycin). Hours-to-days onset. Reduces clearance → drug accumulation + toxicity.\n\n**Pharmacogenomic variation** — covered in part above; CPIC + DPWG + FDA Table of Pharmacogenomic Biomarkers list actionable genotype-drug pairs. Genotyping increasingly precedes prescribing (clopidogrel + 2C19; warfarin + 2C9 + VKORC1; codeine + 2D6; azathioprine + TPMT)."
+    },
+    {
+      "kind": "text",
+      "title": "Excretion + half-life + PBPK modeling",
+      "body": "**Excretion**: removal of parent compound + metabolites from the body.\n\n**Renal excretion**:\n- **Glomerular filtration** — small (<60 kDa), unbound molecules filtered. Filtration fraction limited to free + unbound fraction. GFR ~120 mL/min in healthy adult.\n- **Tubular secretion** — active transport (OAT for organic acids: penicillins, NSAIDs, uric acid; OCT for organic cations: metformin, cimetidine). Saturable; site of drug-drug interactions (probenecid + penicillin).\n- **Tubular reabsorption** — passive for nonionized lipophilic molecules; ionized polar metabolites poorly reabsorbed → excreted. **Urinary pH manipulation**: alkalinize urine (sodium bicarbonate) to trap weak acids (salicylate, phenobarbital) for enhanced excretion in overdose.\n\n**Biliary + fecal excretion**:\n- Liver excretes large (>500 Da), polar conjugates into bile via MRP2 + BCRP + BSEP transporters.\n- Enters intestine; some reabsorbed (especially after deconjugation by gut β-glucuronidase) → **enterohepatic recirculation** (extends half-life). Estradiol, mycophenolate, methotrexate.\n- Activated charcoal in poisoning interrupts enterohepatic cycle (multi-dose charcoal for phenobarbital, theophylline, carbamazepine, dapsone).\n\n**Other routes**: pulmonary (volatile compounds — ethanol breath testing; halothane elimination), milk (basic + lipophilic drugs concentrate; nursing concern), sweat + saliva (hair + nail are integrated markers, basis for forensic hair drug testing).\n\n**Pharmacokinetic parameters**:\n- **Clearance (CL)** — volume of plasma cleared per unit time. CL = Dose / AUC. Total = renal + hepatic + other.\n- **Volume of distribution (Vd)** — apparent volume; covered above.\n- **Elimination rate constant (k)** = CL / Vd.\n- **Half-life (t½)** = 0.693 / k = 0.693 · Vd / CL.\n- **Bioavailability (F)** — IV reference; F = AUC_oral / AUC_IV × Dose_IV/Dose_oral.\n- **First-order kinetics** (linear, dose-independent t½) — typical for most xenobiotics at therapeutic doses.\n- **Zero-order (saturation) kinetics** — constant amount eliminated per unit time when metabolism saturated. Examples: ethanol (ADH saturation ~5-8 g/h); phenytoin (CYP2C9 saturation at therapeutic levels); high-dose aspirin (capacity-limited conjugation).\n- **Michaelis-Menten kinetics** — transitions from first-order at low concentration to zero-order at high concentration when [substrate] >> Km.\n\nFor an IV bolus + first-order elimination + one-compartment model: C(t) = (Dose/Vd)·exp(-kt). Multi-dose steady state in ~5 half-lives. Loading dose = C_target × Vd. Maintenance = CL × C_target / F.\n\n**Modeling**:\n- **Bauer + Aach + clinical pharmacokinetic modeling** — bedside dose adjustment using sparse plasma levels (vancomycin trough/AUC, aminoglycoside peak/trough, digoxin, phenytoin). Bayesian + population-PK software (PrecisePK, InsightRX, DoseMeRx).\n- **Population PK (NONMEM, R + nlmixr)** — nonlinear mixed-effects models identify covariates (weight, renal function, genotype, drug interactions) of variability.\n- **Physiologically-Based PK (PBPK; Bischoff + Dedrick + Brown 1970s+; Krishnan + Andersen 1990s+)** — compartmental model of organ blood flows + tissue partition coefficients + physiologic parameters; mechanistically predicts ADME from physicochemical properties + in vitro data. **Melvin E. Andersen** (CIIT, Hamner) + **Kannan Krishnan** (Montreal) leading developers — applied to risk assessment (TCDD, methylene chloride, perchloroethylene). Modern uses: first-in-human dosing, special populations (pregnancy, pediatrics, renal/hepatic impairment), drug-drug interaction prediction. Software: SimCYP, GastroPlus, PK-Sim, Berkeley Madonna. EPA + FDA accept PBPK-based regulatory submissions.\n- **In vitro to in vivo extrapolation (IVIVE)** — combines in vitro intrinsic clearance (hepatocyte/microsomal assays) with PBPK to predict human pharmacokinetics — central to modern drug development + Tox21 strategy.\n\n**Half-life across xenobiotics** — vastly different timescales:\n- Aspirin t½ ~15 min (low dose) - extends with saturation.\n- Acetaminophen t½ ~2 h.\n- Diazepam t½ ~20-100 h (active metabolites).\n- TCDD (dioxin) t½ ~7 years (lipophilic, slow elimination).\n- PFOS/PFOA (PFAS) t½ ~4-8 years.\n- Lead (bone compartment) t½ ~10-30 years.\n\nLong half-lives = bioaccumulation + delayed manifestation + persistent body burden — central to chronic + environmental toxicology (covered in environmental lesson)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_tk_1",
+        "kind": "guided_derivation",
+        "question": "Reason through acetaminophen ADME at therapeutic + toxic dose",
+        "goal": "A 70 kg adult takes 1 g acetaminophen (therapeutic) vs 20 g (overdose). Bioavailability ~88%; Vd ~0.9 L/kg; t½ ~2 h. At therapeutic dose: ~52% glucuronidation, ~32% sulfation, ~5% CYP2E1 → NAPQI (detoxified by GSH). At overdose: glucuronidation + sulfation saturate; CYP2E1 fraction rises + GSH depletes.",
+        "steps": [
+          {
+            "prompt": "Estimate plasma C_max after 1 g oral dose at one-compartment + immediate absorption (worst case).",
+            "motivation": "C = F·Dose / Vd.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "≈ 14 mg/L",
+                "14 μg/mL",
+                "0.88 × 1000 / 63"
+              ]
+            },
+            "hints": [
+              "Vd = 0.9 × 70 = 63 L; F = 0.88."
+            ],
+            "reveal": "C_max ≈ F·Dose/Vd = 0.88 × 1000 mg / 63 L ≈ 14 mg/L (= 14 μg/mL = 93 μM). Typical therapeutic peak. Real C_max is lower due to absorption-distribution kinetics (peak ~30-60 min)."
+          },
+          {
+            "prompt": "At 20 g (overdose, 20× therapeutic), what changes mechanistically?",
+            "motivation": "Saturation + GSH depletion.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "sulfation + glucuronidation saturate; CYP2E1 fraction rises; GSH depletes; NAPQI binds hepatocyte proteins"
+              ]
+            },
+            "hints": [
+              "Which pathways are PAPS-limited or saturable?"
+            ],
+            "reveal": "At 20 g: (1) sulfation saturates (PAPS-limited); (2) glucuronidation partially saturates; (3) fractional flux through CYP2E1 → NAPQI rises (from ~5% to ~20-30%); (4) hepatic GSH depletes within hours when NAPQI demand exceeds replenishment (~30% threshold critical); (5) free NAPQI covalently binds hepatocyte proteins (centrilobular zone 3, where CYP2E1 highest) → mitochondrial dysfunction + necrosis. t½ may extend due to saturation kinetics + hepatic dysfunction (>4 h at presentation is poor-prognostic marker)."
+          },
+          {
+            "prompt": "Why are chronic alcoholics + fasted patients more vulnerable?",
+            "motivation": "Induction + GSH depletion.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "chronic ethanol induces CYP2E1; fasting depletes glutathione + sulfate"
+              ]
+            },
+            "hints": [
+              "What does ethanol do to CYP2E1?"
+            ],
+            "reveal": "Chronic ethanol induces CYP2E1 (substrate-induction). More NAPQI per acetaminophen ingested. Fasting depletes glutathione (substrate for GSH-CYS-GLY synthesis requires sulfur amino acids) + sulfate (PAPS depletion shunts to oxidation). So lower 'toxic threshold' in these populations. Even therapeutic-range chronic acetaminophen (4 g/d) can cause hepatotoxicity in chronic alcoholics. FDA acetaminophen label warns explicitly about alcohol use. Antidote: N-acetylcysteine — restores cysteine for GSH synthesis + may scavenge NAPQI directly. Most effective within ~8 h of overdose."
+          },
+          {
+            "prompt": "Relate to the Rumack-Matthew nomogram.",
+            "motivation": "Clinical decision tool.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "plot 4-hour plasma level; above treatment line → NAC"
+              ]
+            },
+            "hints": [
+              "Plasma level vs time post-ingestion."
+            ],
+            "reveal": "Rumack-Matthew nomogram (Rumack + Matthew 1975, validated Prescott + Park) plots plasma acetaminophen vs hours since ingestion. Treatment line at 150 μg/mL at 4 h (logarithmic decline parallels expected t½). Patients above the line → NAC treatment. Caveats: doesn't apply to chronic supratherapeutic + late presenters (>24 h) + extended-release products. Modern: most centers use the 150 line + NAC liberal use given low toxicity of NAC. King's College criteria predict transplant need in fulminant hepatic failure."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_tk_1",
+        "kind": "multiple_choice",
+        "question": "Why is PBPK (Physiologically-Based PK) modeling (Krishnan + Andersen) increasingly central to modern risk assessment?",
+        "options": [
+          "Because PBPK is simpler than compartmental PK.",
+          "Because PBPK mechanistically links external dose to internal tissue concentration through physiological parameters (organ blood flows, tissue volumes, partition coefficients) + biochemical parameters (metabolism, transport), enabling: (i) species extrapolation (animal-to-human); (ii) route-to-route extrapolation; (iii) dose extrapolation (high-to-low); (iv) special populations (pregnancy + pediatric + renal/hepatic impairment); (v) interspecies differences in toxicity through dosimetry rather than empirical safety factors. Accepted by EPA + FDA + EFSA for regulatory submissions.",
+          "PBPK requires no validation.",
+          "PBPK applies only to ethanol."
+        ],
+        "correctIndex": 1,
+        "explanation": "PBPK modeling (Bischoff + Dedrick + Brown 1970s; Andersen + Krishnan 1990s+) — compartmental representation of organ blood flows + tissue volumes + partition coefficients + metabolism + transport. Mechanistic linkage of external exposure to internal tissue dose enables: (i) **species extrapolation** (replaces default 10× interspecies UF with PBPK-derived dosimetry); (ii) **route-to-route extrapolation**; (iii) **high-to-low dose** + **acute-to-chronic** extrapolation; (iv) **special populations** (pregnant women, pediatrics, renal/hepatic impaired) where standard PK data sparse; (v) drug-drug interaction prediction; (vi) Tox21 IVIVE — extrapolating in vitro intrinsic clearance to in vivo. Adopted by EPA (TCDD, methylene chloride, perchloroethylene), FDA, EFSA. Software: SimCYP, GastroPlus, PK-Sim, Berkeley Madonna. Reduces animal use + replaces empirical safety factors with mechanistic predictions — central to the modern Tox21 + 21st Century Toxicology vision."
+      },
+      "hints": [
+        "What does PBPK link?",
+        "What problems does it solve?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "PBPK (Andersen + Krishnan) — mechanistic model of organ flows + partition coefficients + metabolism. Enables species + route + dose + special-population extrapolation. EPA + FDA + EFSA accept for regulatory submissions. Reduces empirical safety factors + animal use; foundation of modern IVIVE + Tox21 strategy."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_tk_1",
+        "kind": "scenario",
+        "question": "Designing a dosing strategy for a narrow-TI drug",
+        "prompt": "You are a clinical pharmacologist managing a 78-year-old patient with atrial fibrillation + reduced renal function (eGFR 40) requiring digoxin. Discuss: (a) the relevant ADME considerations (low first-pass, F ≈ 0.7 for tablet; Vd ~7 L/kg — large + tissue-bound; primarily renal elimination as parent compound; t½ ~36 h normal, ~3-5 d in severe renal impairment); (b) loading dose vs maintenance dose calculation; (c) target therapeutic range (0.5-2.0 ng/mL) + when to draw level (>6-8 h post-dose to avoid distribution phase); (d) DDIs (amiodarone, verapamil, clarithromycin elevate via P-gp inhibition; cholestyramine reduces by sequestration); (e) signs of toxicity (nausea, visual halos, arrhythmia); (f) antidote (digoxin-specific Fab fragments — Digibind/DigiFab); (g) how Bauer + Aach pharmacokinetic models + Bayesian dose individualization help in this elderly + impaired patient; (h) discussion of switching to a DOAC for stroke prevention (rivaroxaban, apixaban) where TDM is unnecessary."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_tk_1",
+        "kind": "math_expression",
+        "question": "A drug has clearance 6 L/h + volume of distribution 60 L. What is the elimination half-life in hours?",
+        "acceptedAnswers": [
+          "6.93",
+          "≈ 7",
+          "7 h",
+          "0.693 × 60 / 6"
+        ],
+        "hint": "t½ = 0.693 × Vd / CL."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_tk_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how ADME (absorption + distribution + metabolism + excretion) determines internal dose at the target organ + why polymorphisms + induction/inhibition matter for individual susceptibility.",
+        "rubric": "Mentions: absorption (oral lipophilicity logP, first-pass, dermal stratum corneum, inhalation alveolar surface + particle size); distribution (Vd, plasma protein binding albumin + AAG, BBB, placental Pittenger, tissue storage lead/bone, dioxin/fat); metabolism Phase I CYP450 (3A4 + 2D6 + 2C9 + 2C19 + 1A2 + 2E1) + Phase II conjugation (glucuronidation + sulfation + GSH + acetylation + methylation); pharmacogenomic polymorphisms (CYP2D6 PM/UM, CYP2C9, CYP2C19, NAT2, TPMT, ALDH2*2); induction (rifampin, smoking) + inhibition (ketoconazole, ritonavir, grapefruit); excretion (renal GFR + tubular secretion OAT/OCT, biliary + enterohepatic, pulmonary); half-life t½ = 0.693·Vd/CL; PBPK (Krishnan + Andersen) + Bauer-Aach Bayesian dose individualization. Concludes: ADME explains why same external dose produces vastly different internal exposure + effect across individuals — and motivates pharmacogenomic + TDM-guided personalization."
+      }
+    }
+  ]
+}

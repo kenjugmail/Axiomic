@@ -1,0 +1,163 @@
+{
+  "slug": "dose-response-and-mechanisms",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Derive + interpret dose-response curves + LD50/ED50/TI.",
+      "Explain mechanisms: receptor binding, enzyme inhibition, bioactivation, oxidative stress, adducts, DNA damage.",
+      "Recognize hormesis + non-monotonic dose-response + endocrine disruption."
+    ],
+    "prereqs": [
+      "toxicology-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The dose-response curve: LD50, ED50, therapeutic index",
+      "body": "**Dose-response** is the quantitative relationship between exposure (dose × time) + a biological effect (incidence × severity). The cornerstone of all of toxicology + pharmacology — operationalizing Paracelsus's principle.\n\nTry the interactive curves below: switch between acetaminophen vs benzodiazepine vs ricin to see how their LD50 + ED50 + therapeutic index differ. Acetaminophen has a moderate TI (~30-50) where ED-LD curves are close enough that intentional overdose causes hepatic necrosis (NAPQI mechanism). Benzodiazepines have wide TI (>100 in isolation; deaths usually involve polypharmacy). Ricin has extreme potency (LD50 ≈ 1-10 μg/kg parenterally), no therapeutic ED, no TI defined — used in assassinations (Markov 1978, forensic lesson).\n\n**Two classes of dose-response curve**:\n- **Quantal (population)**: fraction of population showing all-or-none response (death, seizure, sleep). Cumulative gives the sigmoidal cumulative-distribution curve. Yields **LD50, LC50, ED50, EC50** — median effective doses.\n- **Graded (individual)**: continuous magnitude of response (force of contraction, %inhibition, plasma concentration) at varying doses in one individual or preparation. Yields **Hill curves + Emax models**.\n\n**Hill function** (A. V. Hill 1910, derived from cooperative ligand binding to hemoglobin):\n\n$$E = \\frac{E_{max} \\cdot C^n}{EC_{50}^n + C^n}$$\n\nwhere E_max = maximal response, EC_50 = concentration at half-maximal response, n = Hill coefficient (slope; >1 cooperative, <1 antagonistic). Linearizes on log-log near the midpoint with slope n. For most receptor-mediated drug effects n ≈ 1 (single-site binding); ion channels + multimeric receptors give n = 2-4.\n\n**Quantal dose-response derivation**:\n- Individual organisms have varying sensitivity (log-normal in most populations).\n- Cumulative fraction responding rises sigmoidally with log(dose).\n- **Probit (Bliss 1934, Chester Ittner Bliss)** transformation: convert cumulative % to probit units (z + 5) → linearizes the cumulative log-normal. Probit + linear regression = standard LD50 estimation.\n- **John W. Trevan (1927)** introduced **LD50** (median lethal dose, the dose killing 50% of a population) — became the standard regulatory toxicity metric.\n\n**Key metrics**:\n- **LD50 (median lethal dose)** — Trevan 1927; mg/kg body weight, route-specified. NTP + OECD guideline 401 (revised toward Up-and-Down + Acute Toxic Class methods reducing animal numbers).\n- **LC50 (median lethal concentration)** — for inhaled gases/vapors or aquatic exposures; ppm × time (Haber's rule C·t = constant for many gases).\n- **ED50 (median effective dose)** — produces desired effect in 50% of population.\n- **TD50 (median toxic dose)** — produces specified toxic effect.\n- **NOAEL/LOAEL** — no-/lowest-observed adverse effect level — anchor for regulatory reference doses (RfD = NOAEL / uncertainty factors).\n- **BMD (Benchmark Dose, Crump 1984)** — dose producing pre-specified small change (e.g., BMD₁₀ at 10% response) with model fit + confidence bounds; replacing NOAEL in modern regulation (US EPA, EFSA).\n\n**Therapeutic Index (TI)**:\n\n$$TI = \\frac{LD_{50}}{ED_{50}}$$\n\nLarger TI = safer drug. **Margin of Safety** = LD₁ / ED₉₉ (more conservative; uses tail probabilities). Examples:\n- Penicillin: TI > 100 (very safe).\n- Acetaminophen: TI ≈ 30-50 (moderate; narrow at chronic use).\n- Digoxin: TI ≈ 2-3 (narrow; therapeutic drug monitoring needed).\n- Lithium: TI ≈ 2 (very narrow).\n- Warfarin: TI ≈ 3-5; requires INR monitoring.\n\nA narrow TI motivates therapeutic drug monitoring (TDM), pharmacogenomic testing, + dose individualization.",
+      "viz": "dose-response-curve",
+      "vizProps": {
+        "compound": "acetaminophen"
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Mechanisms: receptor binding, enzyme inhibition, bioactivation, oxidative stress, adducts",
+      "body": "Mechanisms by which xenobiotics cause toxic effects — the molecular initiating events that propagate through cellular + organ pathways.\n\n**Receptor binding (interaction with endogenous targets)**:\n- **Agonists**: bind + activate receptor (nicotine at nAChR; morphine at μ-opioid; cocaine indirect via DAT inhibition).\n- **Antagonists**: bind without activating, blocking endogenous ligand (curare at nAChR; naloxone at μ-opioid; atropine at muscarinic). Atropine reverses organophosphate cholinergic crisis.\n- **Partial agonists** (buprenorphine), **inverse agonists** (some benzodiazepine ligands), **allosteric modulators** (benzodiazepines positively modulating GABA_A).\n- **Endocrine receptors** — bisphenol A + nonylphenol bind estrogen receptors at low doses (covered in non-monotonic section).\n- **Ion channels** — tetrodotoxin (TTX) blocks Nav (puffer fish, blue-ringed octopus); saxitoxin (red tide); batrachotoxin (poison dart frog); local anesthetics + class I antiarrhythmics.\n\n**Enzyme inhibition**:\n- **Cholinesterase inhibition** — organophosphates (sarin, malathion, parathion) + carbamates phosphorylate/carbamylate the catalytic serine of AChE → ACh accumulates → cholinergic crisis (DUMBELS — diarrhea, urination, miosis, bronchorrhea/bronchospasm, emesis, lacrimation, salivation/sweating + nicotinic fasciculations + CNS depression). Treatment: atropine (muscarinic blockade) + pralidoxime (2-PAM) to reactivate enzyme before 'aging' (covered in clinical-toxicology lesson).\n- **Cytochrome inhibition** — drug-drug + drug-toxin interactions via CYP450 (covered in toxicokinetics lesson).\n- **Mitochondrial inhibition** — cyanide blocks cytochrome c oxidase (Complex IV); rotenone blocks Complex I; oligomycin blocks ATP synthase; arsenic inhibits pyruvate + α-KG dehydrogenase by binding lipoic acid; carbon monoxide binds cytochrome c oxidase + hemoglobin.\n- **Specific enzyme targets** — methotrexate (DHFR); fluorouracil (thymidylate synthase); statin HMG-CoA reductase off-target rhabdomyolysis.\n\n**Bioactivation + reactive metabolites**: Phase I metabolism (typically CYP450 oxidation) generates electrophilic species that covalently bind macromolecules. Classic examples:\n- **Acetaminophen → NAPQI** (N-acetyl-p-benzoquinone-imine) via CYP2E1 + CYP3A4. Normally glutathione conjugates NAPQI; in overdose, GSH depletes + NAPQI binds hepatocyte proteins → centrilobular necrosis. NAC (N-acetylcysteine) replenishes GSH. (Rumack + Matthew 1975).\n- **Benzene → benzene oxide → phenol + hydroquinone → benzoquinone** → bone marrow toxicity + aplastic anemia + AML.\n- **Bromobenzene → bromobenzene epoxide** → hepatotoxicity (Brodie + Mitchell 1971 — paradigm-defining).\n- **Vinyl chloride → chloroethylene oxide → DNA adducts** → hepatic angiosarcoma (Creech + Johnson 1974 — Goodyear PVC workers).\n- **Carbon tetrachloride → CCl₃• free radical** via CYP2E1 → lipid peroxidation → centrilobular necrosis.\n- **Halothane → trifluoroacetyl chloride → covalent adducts** → halothane hepatitis (idiosyncratic).\n\nThe **Brodie-Mitchell-Gillette-Pohl framework** (NIH 1970s+): reactive metabolite + covalent binding + critical-protein modification + cell death.\n\n**Oxidative stress + ROS**: imbalance between reactive oxygen species (superoxide O₂•⁻, hydrogen peroxide H₂O₂, hydroxyl •OH, peroxynitrite ONOO⁻) + cellular antioxidants (GSH, SOD, catalase, GPx, vitamin E, vitamin C). Sources:\n- **Redox cycling** — paraquat + menadione + doxorubicin generate ROS via single-electron transfer.\n- **Mitochondrial leak** — complex I/III electron transport.\n- **Inflammation** — NADPH oxidase respiratory burst.\n- **Metal-catalyzed Fenton** — Fe²⁺ + H₂O₂ → •OH (iron + copper overload).\n\nROS damage lipids (lipid peroxidation → 4-HNE + MDA), proteins (carbonylation, sulfenic/sulfinic), DNA (8-oxo-dG, mutagenic). Nrf2/Keap1 pathway senses + induces antioxidant response (HO-1, NQO1, GCL).\n\n**Protein adducts + biomarkers**: covalent modification of proteins by reactive metabolites. Hemoglobin + albumin adducts persist (lifespan of RBC ~120 d; albumin ~21 d) → integrated biomarkers of exposure. Examples: ethylene oxide → N-(2-hydroxyethyl)valine on Hb; aflatoxin B1 → AFB1-albumin (Wild + Pisani 1991); acrylamide → N-(2-carbamoylethyl)valine. Used in biomonitoring + occupational surveillance.\n\n**DNA damage**: single-strand breaks, double-strand breaks, abasic sites, base modifications, bulky adducts (PAH-DNA), crosslinks (cisplatin, mitomycin), oxidative lesions. Repair: BER + NER + MMR + HR + NHEJ. Failure → mutagenesis → carcinogenesis (Ames 1973 + Tomatis IARC framework). Genotoxic carcinogens: aflatoxin B1, vinyl chloride, benzene, formaldehyde, ethylene oxide, alkylating agents (mustard gas)."
+    },
+    {
+      "kind": "text",
+      "title": "Modern dose-response: hormesis, non-monotonic curves, endocrine disruption",
+      "body": "**Hormesis** — a biphasic dose-response where low doses stimulate + high doses inhibit (or low doses protect + high doses damage). Inverted-U or J-shaped curves. **Edward J. Calabrese** (UMass; BELLE) has championed hormesis as a generalizable phenomenon, with >9000 published examples across pharmacology, toxicology, agriculture, ecology. Examples: low-dose radiation appears to upregulate DNA-repair + antioxidant defenses (debated); low-dose dioxin may induce protective AhR responses; mild exercise + caloric restriction extend lifespan (similar shape).\n\n**Implications for regulation**:\n- Conventional risk assessment assumes **threshold + monotonic** (NOAEL/LOAEL framework) or **linear-no-threshold (LNT)** for genotoxic carcinogens (BEIR + ICRP).\n- Hormesis challenges both: low-dose effects may be opposite-signed to high-dose. Defaults to LNT extrapolation may overestimate low-dose harm + underestimate beneficial range.\n- Regulatory uptake is slow + contested (e.g., radiation safety, low-dose endocrine disruptors).\n\n**Non-monotonic dose-response (NMDR)** — curves where the slope sign changes across the dose range (U-shaped, inverted-U, multiple inflections). **Laura N. Vandenberg** + colleagues (Endocrine Reviews 2012) systematically reviewed NMDR + argued that endocrine-active xenobiotics (especially low-dose, in critical windows) frequently show NMDR. Mechanisms:\n- Receptor desensitization at high dose.\n- Multiple receptors with opposite effects + different affinities.\n- Negative feedback regulation.\n- Cell-type-specific cofactors.\n\n**Endocrine disruptors**: chemicals interfering with hormone synthesis, release, transport, binding, action, or elimination. **Theo Colborn + Dianne Dumanoski + John Peterson Myers (Our Stolen Future, 1996)** + the WHO/UNEP 2012 report defined the category. Mechanism: bind hormone receptors (estrogen, androgen, thyroid, glucocorticoid) at low concentrations; interfere with developmental + reproductive programming. Examples:\n- **Diethylstilbestrol (DES)** — prescribed to pregnant women 1940s-1970s; daughters (in utero exposed) developed clear-cell vaginal adenocarcinoma + reproductive abnormalities (Herbst + Ulfelder + Poskanzer 1971). Paradigmatic 'developmental origins of adult disease' (DOHaD; Barker).\n- **Bisphenol A (BPA)** — polycarbonate plastics + epoxy resins (food can liners + thermal receipts). Weak ER agonist; non-monotonic effects on neurodevelopment + metabolism + reproduction (Vandenberg + vom Saal). FDA banned in baby bottles 2012; EU set TDI 0.04 ng/kg/d (2023; >10000× reduction).\n- **Phthalates** (DEHP, DBP, BBP) — plasticizers; anti-androgenic; reduce fetal testosterone → genital malformations (anogenital distance shortening; Swan).\n- **PFAS** (perfluoroalkyl substances) — covered in environmental lesson; multiple endocrine effects.\n- **Atrazine** — herbicide; aromatase induction → demasculinization of frogs (Hayes + Berkeley); regulatory controversy.\n- **Dioxins** (TCDD) — AhR ligand; reproductive + developmental + carcinogenic. Yusho/Yu-Cheng + Seveso 1976 + Times Beach.\n\n**Critical windows + developmental programming (DOHaD — David Barker 1989+)**: in utero + early postnatal exposures program lifelong susceptibility. Even low doses during these windows can produce permanent effects (timing > dose). Programming via epigenetic mechanisms (DNA methylation, histone modifications, noncoding RNA) creates a 'memory' that adult-tissue exposure cannot reproduce.\n\n**Regulatory implications**:\n- Conventional 'safe' doses (NOAEL) determined in adult-dosed studies may miss developmental endpoints.\n- EPA + EFSA + WHO now require developmental + reproductive toxicity testing (DART) for major chemicals.\n- **Endocrine Society** + **Endocrine Disruptor Screening Program (EDSP)** at EPA (1996+) — uses Tox21 + ToxCast high-throughput assays (covered in modern-frontier lesson) to screen for endocrine activity.\n- **EU + EDC criteria** (2017) — defines endocrine disruptor for pesticide + biocide regulation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dr_1",
+        "kind": "guided_derivation",
+        "question": "Compute therapeutic index + interpret narrow vs wide TI",
+        "goal": "Three drugs: (A) penicillin LD50 = 2.3 g/kg, ED50 = 5 mg/kg. (B) digoxin LD50 = 14 mg/kg, ED50 = 5 mg/kg (in animal model). (C) heparin LD50 = 700 mg/kg, ED50 = 0.5 mg/kg. Compute TI for each + rank by safety. Then discuss clinical implications.",
+        "steps": [
+          {
+            "prompt": "Penicillin TI?",
+            "motivation": "TI = LD50 / ED50.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "460",
+                "≈ 460",
+                "2300/5"
+              ]
+            },
+            "hints": [
+              "Convert g/kg to mg/kg + divide."
+            ],
+            "reveal": "Penicillin TI = 2300 mg/kg / 5 mg/kg = 460. Very wide therapeutic index — explains its safety + outpatient use without monitoring. Reactions are typically idiosyncratic (allergic) not dose-related."
+          },
+          {
+            "prompt": "Digoxin TI?",
+            "motivation": "Narrow TI.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2.8",
+                "≈ 3",
+                "14/5"
+              ]
+            },
+            "hints": [
+              "14 / 5."
+            ],
+            "reveal": "Digoxin TI = 14/5 ≈ 2.8. Very narrow — therapeutic + toxic doses overlap. Requires (1) therapeutic drug monitoring (target 0.5-2.0 ng/mL); (2) dose adjustment for renal function + body composition (Bauer pharmacokinetics); (3) awareness of drug-drug interactions (amiodarone, verapamil raise levels); (4) clinical vigilance for toxicity (nausea, visual changes, arrhythmia). Antidote: digoxin-specific Fab fragments (Digibind)."
+          },
+          {
+            "prompt": "Heparin TI?",
+            "motivation": "Compare ranges.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1400",
+                "≈ 1400",
+                "700/0.5"
+              ]
+            },
+            "hints": [
+              "700 / 0.5."
+            ],
+            "reveal": "Heparin TI = 700/0.5 = 1400 in this calculation. But this misrepresents clinical reality — heparin's narrow margin between therapeutic + bleeding is captured by **graded** dose-response not LD50 (death) vs ED50 (anticoagulation). Anticoagulant therapeutic window measured by aPTT (1.5-2.5× normal) or anti-Xa is narrow + requires monitoring. Lesson: LD50/ED50 is a coarse population metric; clinical practice often hinges on graded curves + biomarkers (INR, aPTT, plasma drug levels). The Margin of Safety (LD₁/ED₉₉) is more conservative."
+          },
+          {
+            "prompt": "Why does Margin of Safety differ from TI in practice?",
+            "motivation": "Tail vs median.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "tails of the population can overlap even when medians are far apart"
+              ]
+            },
+            "hints": [
+              "What if curves are wide?"
+            ],
+            "reveal": "TI = LD50/ED50 is a ratio of medians. If the ED + LD curves are steep + similar slopes, TI = 5 is safe. If the curves are shallow + overlap at tails, TI = 5 may still mean 5% of treated patients suffer LD-range toxicity. **Margin of Safety = LD₁/ED₉₉** addresses tails — the dose ineffective in 1% (LD₁) divided by dose effective in 99% (ED₉₉). For narrow-TI drugs, MoS often < 1 — overlap exists. This is why pharmacogenomic individualization + TDM matter. Also: the Hill coefficient (n in the Hill equation) determines curve steepness; cooperative binding (n > 1) gives steeper curves + sharper LD/ED separation."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dr_1",
+        "kind": "multiple_choice",
+        "question": "Why is the dose-response paradigm sometimes inadequate for endocrine disruptors (Vandenberg, Endocrine Reviews 2012)?",
+        "options": [
+          "Endocrine disruptors are non-toxic.",
+          "Because (i) low-dose effects are common + sometimes opposite-signed to high-dose effects (non-monotonic dose-response, U-shaped or inverted-U curves); (ii) developmental windows (DOHaD; Barker) make timing equally or more important than dose; (iii) standard NOAEL-based regulation may extrapolate from high adult-dose studies + miss critical-window effects at much lower doses; (iv) multiple receptors + tissue-specific cofactors produce complex curves; (v) hormonal systems operate at very low physiological concentrations where receptor occupancy is nonlinear.",
+          "Endocrine disruptors always cause cancer.",
+          "Dose-response works perfectly for endocrine disruptors."
+        ],
+        "correctIndex": 1,
+        "explanation": "Vandenberg et al. (Endocrine Reviews 2012) — endocrine disruptors violate classic monotonic dose-response assumptions. (i) **Non-monotonic dose-response (NMDR)** — U-shaped + inverted-U curves where slope sign changes; mechanisms include receptor downregulation at high dose, multiple receptors with different affinities + opposing effects, feedback regulation; (ii) **Critical-window effects** (Barker + DOHaD) — exposures during in-utero or perinatal development produce lifelong programming with permanent effects that adult-dose studies miss (DES, BPA, phthalates); (iii) **Low-dose effects** — hormones act at picomolar-nanomolar; xenobiotics interacting with receptors at those concentrations behave differently than at micromolar-millimolar (toxicological range); (iv) standard NOAEL/BMD frameworks extrapolate from high-dose studies + may not capture low-dose endocrine effects. Implication: regulatory frameworks (EPA EDSP, EFSA, ECHA, EU EDC criteria 2017) now incorporate endocrine-specific testing + lower default uncertainty factors for endocrine-active chemicals."
+      },
+      "hints": [
+        "What's non-monotonic dose-response?",
+        "What's the critical-window effect?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Vandenberg 2012 — endocrine disruptors show non-monotonic dose-response (U + inverted-U), critical-window developmental effects (DOHaD/Barker), + activity at very low concentrations matching physiological hormones. Standard NOAEL extrapolation from high-dose adult studies misses these. Examples: DES (clear-cell vaginal carcinoma in daughters), BPA, phthalates, atrazine. EPA EDSP + EU EDC criteria address this."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_dr_1",
+        "kind": "scenario",
+        "question": "Designing a dose-response study for a new pesticide",
+        "prompt": "You are a regulatory toxicologist assessing a new insecticide candidate. Discuss: (a) the test species + routes + exposure durations you would specify (acute oral + dermal + inhalation LD50; subchronic 90-day; chronic 2-year; reproductive 2-generation; developmental); (b) the dose levels you would select (typically 3-5 doses including a high dose targeting LOAEL, a low NOAEL-anchor, + a control); (c) how you would compute LD50 via Trevan + probit (Bliss) or Up-and-Down OECD 425; (d) how Benchmark Dose (Crump 1984) modeling has replaced NOAEL in modern risk assessment + the EPA Benchmark Dose Software (BMDS); (e) screening for endocrine activity (Tox21 + EDSP Tier 1 in vitro + Tier 2 in vivo assays — Vandenberg + non-monotonic considerations); (f) hormesis (Calabrese) considerations + whether low-dose findings would alter your interpretation; (g) the reference dose / acceptable daily intake calculation: RfD = NOAEL / (UFA × UFH × UFS × UFL × MF) where uncertainty factors account for interspecies, intraspecies, subchronic-to-chronic, LOAEL-to-NOAEL extrapolation."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_dr_1",
+        "kind": "math_expression",
+        "question": "A drug has LD50 = 600 mg/kg + ED50 = 4 mg/kg. What is its therapeutic index?",
+        "acceptedAnswers": [
+          "150",
+          "≈ 150",
+          "600/4"
+        ],
+        "hint": "TI = LD50 / ED50."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dr_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain the dose-response paradigm + its key extensions (hormesis, non-monotonic curves, endocrine disruption).",
+        "rubric": "Mentions: Paracelsus's dose-makes-the-poison + the Hill equation E = Emax·C^n / (EC50^n + C^n); Trevan 1927 LD50 + Bliss probit transformation; ED50 + therapeutic index TI = LD50/ED50; NOAEL/LOAEL + BMD (Crump 1984); hormesis (Calabrese) — low-dose stimulation + biphasic curves; non-monotonic dose-response (Vandenberg) — slope sign changes across dose range; endocrine disruption — DES + BPA + phthalates + atrazine; DOHaD (Barker) critical-window developmental programming; regulatory implications — EPA EDSP, EU EDC criteria, lower uncertainty factors. Concludes: classic dose-response remains foundational but is supplemented by hormesis + NMDR + critical-window thinking for endocrine + developmental endpoints."
+      }
+    }
+  ]
+}
