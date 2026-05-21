@@ -37,8 +37,6 @@ const KNOWN_VIZ_NAMES = loadKnownVizNames();
 // each lesson is fixed, drop the corresponding entry — the test will
 // then guard against regression. New lessons MUST use canonical names.
 const LEGACY_VIZ_ALIASES = new Set([
-  "attention-heatmap-explorer", // → attention-heatmap
-  "softmax-temperature-preview", // → softmax-temperature
   "gradient-descent-2d", // no registered component yet
   "sampling-temperature-lab", // no registered component yet
   "brillouin-zone", // no registered component yet

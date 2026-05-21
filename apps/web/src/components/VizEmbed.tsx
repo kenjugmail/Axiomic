@@ -61,6 +61,17 @@ const CivilizationTimeline = lazy(() => import("../../../../packages/viz/src/com
 const TruthTable = lazy(() => import("../../../../packages/viz/src/components/TruthTable").then(m => ({ default: m.TruthTable })));
 const VotingSystems = lazy(() => import("../../../../packages/viz/src/components/VotingSystems").then(m => ({ default: m.VotingSystems })));
 const ClonalSelection = lazy(() => import("../../../../packages/viz/src/components/ClonalSelection").then(m => ({ default: m.ClonalSelection })));
+const GradientDescent2D = lazy(() => import("../../../../packages/viz/src/quiz/GradientDescent2D").then(m => ({ default: m.GradientDescent2D })));
+const SamplingTemperatureLab = lazy(() => import("../../../../packages/viz/src/components/SamplingTemperatureLab").then(m => ({ default: m.SamplingTemperatureLab })));
+const CrystalLattice = lazy(() => import("../../../../packages/viz/src/components/CrystalLattice").then(m => ({ default: m.CrystalLattice })));
+const BrillouinZone = lazy(() => import("../../../../packages/viz/src/components/BrillouinZone").then(m => ({ default: m.BrillouinZone })));
+const PhononDispersion = lazy(() => import("../../../../packages/viz/src/components/PhononDispersion").then(m => ({ default: m.PhononDispersion })));
+const PrecedentNetwork = lazy(() => import("../../../../packages/viz/src/components/PrecedentNetwork").then(m => ({ default: m.PrecedentNetwork })));
+const ForgettingCurve = lazy(() => import("../../../../packages/viz/src/components/ForgettingCurve").then(m => ({ default: m.ForgettingCurve })));
+const BacterialGrowthCurve = lazy(() => import("../../../../packages/viz/src/components/BacterialGrowthCurve").then(m => ({ default: m.BacterialGrowthCurve })));
+const AlleleFrequencyDrift = lazy(() => import("../../../../packages/viz/src/components/AlleleFrequencyDrift").then(m => ({ default: m.AlleleFrequencyDrift })));
+const HarmonicSeries = lazy(() => import("../../../../packages/viz/src/components/HarmonicSeries").then(m => ({ default: m.HarmonicSeries })));
+const ZoningGrid = lazy(() => import("../../../../packages/viz/src/components/ZoningGrid").then(m => ({ default: m.ZoningGrid })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -126,6 +137,17 @@ export const VIZ_NAMES = [
   "truth-table",
   "voting-systems",
   "clonal-selection",
+  "gradient-descent-2d",
+  "sampling-temperature-lab",
+  "crystal-lattice",
+  "brillouin-zone",
+  "phonon-dispersion",
+  "precedent-network",
+  "forgetting-curve",
+  "bacterial-growth-curve",
+  "allele-frequency-drift",
+  "harmonic-series",
+  "zoning-grid",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -189,6 +211,17 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "truth-table": TruthTable,
   "voting-systems": VotingSystems,
   "clonal-selection": ClonalSelection,
+  "gradient-descent-2d": GradientDescent2D,
+  "sampling-temperature-lab": SamplingTemperatureLab,
+  "crystal-lattice": CrystalLattice,
+  "brillouin-zone": BrillouinZone,
+  "phonon-dispersion": PhononDispersion,
+  "precedent-network": PrecedentNetwork,
+  "forgetting-curve": ForgettingCurve,
+  "bacterial-growth-curve": BacterialGrowthCurve,
+  "allele-frequency-drift": AlleleFrequencyDrift,
+  "harmonic-series": HarmonicSeries,
+  "zoning-grid": ZoningGrid,
 };
 
 interface VizEmbedProps {

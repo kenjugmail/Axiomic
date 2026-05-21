@@ -298,6 +298,56 @@ const LazyClonalSelection = lazy(() =>
     (m) => ({ default: m.ClonalSelection }),
   ),
 );
+const LazySamplingTemperatureLab = lazy(() =>
+  import("../../../../../packages/viz/src/components/SamplingTemperatureLab").then(
+    (m) => ({ default: m.SamplingTemperatureLab }),
+  ),
+);
+const LazyCrystalLattice = lazy(() =>
+  import("../../../../../packages/viz/src/components/CrystalLattice").then(
+    (m) => ({ default: m.CrystalLattice }),
+  ),
+);
+const LazyBrillouinZone = lazy(() =>
+  import("../../../../../packages/viz/src/components/BrillouinZone").then(
+    (m) => ({ default: m.BrillouinZone }),
+  ),
+);
+const LazyPhononDispersion = lazy(() =>
+  import("../../../../../packages/viz/src/components/PhononDispersion").then(
+    (m) => ({ default: m.PhononDispersion }),
+  ),
+);
+const LazyPrecedentNetwork = lazy(() =>
+  import("../../../../../packages/viz/src/components/PrecedentNetwork").then(
+    (m) => ({ default: m.PrecedentNetwork }),
+  ),
+);
+const LazyForgettingCurve = lazy(() =>
+  import("../../../../../packages/viz/src/components/ForgettingCurve").then(
+    (m) => ({ default: m.ForgettingCurve }),
+  ),
+);
+const LazyBacterialGrowthCurve = lazy(() =>
+  import("../../../../../packages/viz/src/components/BacterialGrowthCurve").then(
+    (m) => ({ default: m.BacterialGrowthCurve }),
+  ),
+);
+const LazyAlleleFrequencyDrift = lazy(() =>
+  import("../../../../../packages/viz/src/components/AlleleFrequencyDrift").then(
+    (m) => ({ default: m.AlleleFrequencyDrift }),
+  ),
+);
+const LazyHarmonicSeries = lazy(() =>
+  import("../../../../../packages/viz/src/components/HarmonicSeries").then(
+    (m) => ({ default: m.HarmonicSeries }),
+  ),
+);
+const LazyZoningGrid = lazy(() =>
+  import("../../../../../packages/viz/src/components/ZoningGrid").then(
+    (m) => ({ default: m.ZoningGrid }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -474,6 +524,26 @@ function VizByName({
       return <LazyVotingSystems {...(props as object)} />;
     case "clonal-selection":
       return <LazyClonalSelection {...(props as object)} />;
+    case "sampling-temperature-lab":
+      return <LazySamplingTemperatureLab {...(props as object)} />;
+    case "crystal-lattice":
+      return <LazyCrystalLattice {...(props as object)} />;
+    case "brillouin-zone":
+      return <LazyBrillouinZone {...(props as object)} />;
+    case "phonon-dispersion":
+      return <LazyPhononDispersion {...(props as object)} />;
+    case "precedent-network":
+      return <LazyPrecedentNetwork {...(props as object)} />;
+    case "forgetting-curve":
+      return <LazyForgettingCurve {...(props as object)} />;
+    case "bacterial-growth-curve":
+      return <LazyBacterialGrowthCurve {...(props as object)} />;
+    case "allele-frequency-drift":
+      return <LazyAlleleFrequencyDrift {...(props as object)} />;
+    case "harmonic-series":
+      return <LazyHarmonicSeries {...(props as object)} />;
+    case "zoning-grid":
+      return <LazyZoningGrid {...(props as object)} />;
     default:
       return null;
   }

@@ -52,7 +52,7 @@
       "kind": "text",
       "title": "Reading an attention heatmap",
       "body": "This visualization is an $n\\times n$ matrix: each **row** is one query token, each **column** one key token, brightness = attention weight (rows sum to 1). Look at the row for `are`: nearly all its weight sits on `cats` — the verb learned subject–verb agreement across intervening words. That pattern is *emergent*: nobody coded \"verbs attend to their subject.\" It fell out of next-token prediction. Drag the controls: notice rows are distributions (one bright cell or a spread), and that different inputs induce different patterns. Spending real time reading these is the single best way to build attention intuition.",
-      "viz": "attention-heatmap-explorer",
+      "viz": "attention-heatmap",
       "vizProps": {
         "presetIndex": 0
       }
@@ -282,7 +282,7 @@
       "kind": "text",
       "title": "Heads specialize — a preview of interpretability",
       "body": "Once trained, attention heads acquire recognizable, reproducible jobs: positional heads (attend to the previous token), syntactic heads (verb→subject), coreference heads (pronoun→antecedent), and the celebrated **induction heads** (\"…A B … A → predict B\") that underlie in-context learning. This visualization shows a coreference-like pattern. The reproducibility of these circuits is the empirical foundation of *mechanistic interpretability* — reverse-engineering trained networks. You're seeing the raw phenomenon that whole research agenda is built on.",
-      "viz": "attention-heatmap-explorer",
+      "viz": "attention-heatmap",
       "vizProps": {
         "presetIndex": 2
       }

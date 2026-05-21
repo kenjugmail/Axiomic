@@ -28,7 +28,7 @@
       "kind": "text",
       "title": "Soft argmax — and the temperature knob",
       "body": "Softmax is a smooth, differentiable stand-in for $\\arg\\max$. With a **temperature** $T$, use $\\text{softmax}(z/T)$:\n\n- $T\\to 0^{+}$: the largest logit's weight $\\to 1$ — hard argmax (greedy decoding).\n- $T=1$: the standard distribution.\n- $T\\to\\infty$: every weight $\\to 1/K$ — the uniform distribution (maximum entropy).\n\nThis single scalar is exactly the exploration↔exploitation dial in text generation: low $T$ = safe/repetitive, high $T$ = diverse/risky. Watch it move continuously between one-hot and uniform.",
-      "viz": "softmax-temperature-preview"
+      "viz": "softmax-temperature"
     },
     {
       "kind": "section",

@@ -25,7 +25,7 @@
       "kind": "text",
       "title": "Run attention h times in parallel — the construction",
       "body": "Multi-head attention splits the model dimension $d_{model}$ into $h$ subspaces of size $d_k=d_{model}/h$. For head $t$: project with its own $W^Q_t,W^K_t,W^V_t\\in\\mathbb{R}^{d_{model}\\times d_k}$, run scaled dot-product attention, get an $n\\times d_k$ output. Concatenate the $h$ head outputs back to $n\\times d_{model}$ and mix with one output projection $W^O\\in\\mathbb{R}^{d_{model}\\times d_{model}}$. Key parameter fact: because each head works in a $d_k=d_{model}/h$ subspace, total parameters are ~the same as a single full-width attention — you buy *diversity of relations* at ~no extra parameter cost, only a reshape.",
-      "viz": "attention-heatmap-explorer",
+      "viz": "attention-heatmap",
       "vizProps": {
         "presetIndex": 2
       }
@@ -134,7 +134,7 @@
       "kind": "text",
       "title": "Grouped-query attention (GQA) and why it exists",
       "body": "At inference, autoregressive decoding caches K and V for every past token, every head — the **KV-cache**. Its size $\\propto n\\cdot h\\cdot d_k$ and it dominates memory and bandwidth for long contexts (often *the* serving bottleneck). **Multi-query attention** shares a single K/V across *all* query heads (tiny cache, some quality loss). **Grouped-query attention** is the practical middle: groups of query heads share one K/V head — e.g. 32 query heads → 8 KV heads → 4× smaller cache with near-zero quality loss. This is why Llama-2-70B, Mistral, and most modern served LLMs use GQA. It changes only K/V head count, not the math you derived.",
-      "viz": "attention-heatmap-explorer",
+      "viz": "attention-heatmap",
       "vizProps": {
         "presetIndex": 0
       }
