@@ -84,6 +84,9 @@ const KoppenClimate = lazy(() => import("../../../../packages/viz/src/components
 const AllianceNetwork = lazy(() => import("../../../../packages/viz/src/components/AllianceNetwork").then(m => ({ default: m.AllianceNetwork })));
 const GrowthChart = lazy(() => import("../../../../packages/viz/src/components/GrowthChart").then(m => ({ default: m.GrowthChart })));
 const DoseResponseCurve = lazy(() => import("../../../../packages/viz/src/components/DoseResponseCurve").then(m => ({ default: m.DoseResponseCurve })));
+const DnaElectropherogram = lazy(() => import("../../../../packages/viz/src/components/DnaElectropherogram").then(m => ({ default: m.DnaElectropherogram })));
+const ComparativeAnatomy = lazy(() => import("../../../../packages/viz/src/components/ComparativeAnatomy").then(m => ({ default: m.ComparativeAnatomy })));
+const BeatGrid = lazy(() => import("../../../../packages/viz/src/components/BeatGrid").then(m => ({ default: m.BeatGrid })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -172,6 +175,9 @@ export const VIZ_NAMES = [
   "alliance-network",
   "growth-chart",
   "dose-response-curve",
+  "dna-electropherogram",
+  "comparative-anatomy",
+  "beat-grid",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -258,6 +264,9 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "alliance-network": AllianceNetwork,
   "growth-chart": GrowthChart,
   "dose-response-curve": DoseResponseCurve,
+  "dna-electropherogram": DnaElectropherogram,
+  "comparative-anatomy": ComparativeAnatomy,
+  "beat-grid": BeatGrid,
 };
 
 interface VizEmbedProps {

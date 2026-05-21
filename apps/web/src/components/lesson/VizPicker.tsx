@@ -593,6 +593,27 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "💊",
     tags: ["toxicology", "pharmacology", "dose-response", "hill"],
   },
+  {
+    name: "dna-electropherogram",
+    label: "DNA STR electropherogram",
+    description: "13-loci CODIS profile comparison; reroll profiles + see match count + random-match probability.",
+    thumb: "🧬",
+    tags: ["forensics", "dna", "codis", "str"],
+  },
+  {
+    name: "comparative-anatomy",
+    label: "Comparative anatomy",
+    description: "Vertebrate skeletons (dog/cat/horse/cow/bird/human) with homologous forelimb-bone color coding.",
+    thumb: "🦴",
+    tags: ["veterinary", "anatomy", "homology", "evolution"],
+  },
+  {
+    name: "beat-grid",
+    label: "Beat grid (choreography)",
+    description: "16-step rhythmic notation × 6 tracks; 4/4 / 3/4 / polyrhythm presets; click to toggle beats.",
+    thumb: "💃",
+    tags: ["choreography", "music", "rhythm", "meter"],
+  },
 ];
 
 interface Props {

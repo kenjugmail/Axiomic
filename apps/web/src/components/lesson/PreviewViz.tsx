@@ -408,6 +408,21 @@ const LazyDoseResponseCurve = lazy(() =>
     (m) => ({ default: m.DoseResponseCurve }),
   ),
 );
+const LazyDnaElectropherogram = lazy(() =>
+  import("../../../../../packages/viz/src/components/DnaElectropherogram").then(
+    (m) => ({ default: m.DnaElectropherogram }),
+  ),
+);
+const LazyComparativeAnatomy = lazy(() =>
+  import("../../../../../packages/viz/src/components/ComparativeAnatomy").then(
+    (m) => ({ default: m.ComparativeAnatomy }),
+  ),
+);
+const LazyBeatGrid = lazy(() =>
+  import("../../../../../packages/viz/src/components/BeatGrid").then(
+    (m) => ({ default: m.BeatGrid }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -628,6 +643,12 @@ function VizByName({
       return <LazyGrowthChart {...(props as object)} />;
     case "dose-response-curve":
       return <LazyDoseResponseCurve {...(props as object)} />;
+    case "dna-electropherogram":
+      return <LazyDnaElectropherogram {...(props as object)} />;
+    case "comparative-anatomy":
+      return <LazyComparativeAnatomy {...(props as object)} />;
+    case "beat-grid":
+      return <LazyBeatGrid {...(props as object)} />;
     default:
       return null;
   }
