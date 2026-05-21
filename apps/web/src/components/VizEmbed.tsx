@@ -52,6 +52,9 @@ const RaftLogReplication = lazy(() => import("../../../../packages/viz/src/compo
 const ManhattanPlot = lazy(() => import("../../../../packages/viz/src/components/ManhattanPlot").then(m => ({ default: m.ManhattanPlot })));
 const MacArthurConsumerResource = lazy(() => import("../../../../packages/viz/src/components/MacArthurConsumerResource").then(m => ({ default: m.MacArthurConsumerResource })));
 const KinshipDiagram = lazy(() => import("../../../../packages/viz/src/components/KinshipDiagram").then(m => ({ default: m.KinshipDiagram })));
+const ForwardKinematicsArm = lazy(() => import("../../../../packages/viz/src/components/ForwardKinematicsArm").then(m => ({ default: m.ForwardKinematicsArm })));
+const GroupOrbits = lazy(() => import("../../../../packages/viz/src/components/GroupOrbits").then(m => ({ default: m.GroupOrbits })));
+const FriedmannEquation = lazy(() => import("../../../../packages/viz/src/components/FriedmannEquation").then(m => ({ default: m.FriedmannEquation })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -108,6 +111,9 @@ export const VIZ_NAMES = [
   "manhattan-plot",
   "macarthur-consumer-resource",
   "kinship-diagram",
+  "forward-kinematics-arm",
+  "group-orbits",
+  "friedmann-equation",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -162,6 +168,9 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "manhattan-plot": ManhattanPlot,
   "macarthur-consumer-resource": MacArthurConsumerResource,
   "kinship-diagram": KinshipDiagram,
+  "forward-kinematics-arm": ForwardKinematicsArm,
+  "group-orbits": GroupOrbits,
+  "friedmann-equation": FriedmannEquation,
 };
 
 interface VizEmbedProps {

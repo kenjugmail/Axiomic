@@ -253,6 +253,21 @@ const LazyKinshipDiagram = lazy(() =>
     (m) => ({ default: m.KinshipDiagram }),
   ),
 );
+const LazyForwardKinematicsArm = lazy(() =>
+  import("../../../../../packages/viz/src/components/ForwardKinematicsArm").then(
+    (m) => ({ default: m.ForwardKinematicsArm }),
+  ),
+);
+const LazyGroupOrbits = lazy(() =>
+  import("../../../../../packages/viz/src/components/GroupOrbits").then(
+    (m) => ({ default: m.GroupOrbits }),
+  ),
+);
+const LazyFriedmannEquation = lazy(() =>
+  import("../../../../../packages/viz/src/components/FriedmannEquation").then(
+    (m) => ({ default: m.FriedmannEquation }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -411,6 +426,12 @@ function VizByName({
       return <LazyMacArthurConsumerResource {...(props as object)} />;
     case "kinship-diagram":
       return <LazyKinshipDiagram {...(props as object)} />;
+    case "forward-kinematics-arm":
+      return <LazyForwardKinematicsArm {...(props as object)} />;
+    case "group-orbits":
+      return <LazyGroupOrbits {...(props as object)} />;
+    case "friedmann-equation":
+      return <LazyFriedmannEquation {...(props as object)} />;
     default:
       return null;
   }

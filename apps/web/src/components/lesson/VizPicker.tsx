@@ -369,6 +369,27 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "👪",
     tags: ["anthropology", "kinship", "social-science"],
   },
+  {
+    name: "forward-kinematics-arm",
+    label: "Forward-kinematics arm",
+    description: "Drag joint angles; see the end-effector position + manipulability score for a planar N-link revolute arm.",
+    thumb: "🦾",
+    tags: ["robotics", "kinematics", "control"],
+  },
+  {
+    name: "group-orbits",
+    label: "Group orbits (D4, S3, Z6, Z2×Z2)",
+    description: "Pick a finite group + base point; see its orbit under the group action and verify orbit-stabilizer.",
+    thumb: "🌀",
+    tags: ["mathematics", "abstract-algebra", "group-theory"],
+  },
+  {
+    name: "friedmann-equation",
+    label: "Friedmann a(t) (ΛCDM)",
+    description: "Drag Ω_m, Ω_Λ, H₀; see scale-factor evolution + age of universe + Big Bang and future fate.",
+    thumb: "🌌",
+    tags: ["cosmology", "general-relativity", "physics"],
+  },
 ];
 
 interface Props {
