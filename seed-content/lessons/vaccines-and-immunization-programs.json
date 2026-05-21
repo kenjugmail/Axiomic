@@ -1,105 +1,110 @@
 {
+  "slug": "vaccines-and-immunization-programs",
   "meta": {
-    "timeMinutes": 24,
-    "difficulty": "intermediate",
+    "timeMinutes": 22,
+    "difficulty": "advanced",
     "objectives": [
-      "Distinguish vaccine efficacy + effectiveness + impact.",
-      "Reason about herd immunity by disease.",
-      "Walk through immunization program design + safety monitoring."
+      "Compare vaccine platforms + their immunogenicity + durability.",
+      "Design + monitor immunization programs (EPI, cold chain, coverage, equity, AEFI).",
+      "Reason about major successes (smallpox, polio, measles, HPV, COVID) + remaining gaps."
     ],
     "prereqs": [
-      "compartmental-models-and-r0",
-      "study-designs"
+      "infectious-disease-and-epidemic-curves"
     ]
   },
   "slides": [
     {
       "kind": "text",
-      "title": "Vaccines: the most powerful public-health intervention",
-      "body": "Vaccines have eradicated smallpox (1980), nearly eradicated polio (>99% reduction), eliminated measles in many countries (until coverage drops), + reduced childhood mortality globally by an order of magnitude since the 1960s. The Expanded Programme on Immunization (EPI, WHO 1974) is among the most successful public-health programs ever.\n\n**Vaccine types**:\n• **Live-attenuated**: weakened virus — MMR, varicella, oral polio, yellow fever. Strong + long-lived immunity; contraindicated in immunocompromised.\n• **Inactivated**: killed pathogen — IPV (polio), hepatitis A, flu. Safer but multiple doses + adjuvants typically needed.\n• **Subunit / protein**: target antigens only — hepatitis B HBsAg, HPV L1, Tdap. Highly safe, less immunogenic alone.\n• **mRNA**: lipid nanoparticle delivering mRNA for antigen — Pfizer/Moderna COVID, RSV. Rapid design, scalable manufacturing.\n• **Viral vector**: adenovirus carrying antigen DNA — J&J COVID, Sputnik. Pre-existing vector immunity is a concern.\n• **Toxoid**: inactivated toxin — tetanus, diphtheria.\n\n**Vaccine schedule** (US childhood): birth (HBV), 2 mo (DTaP, IPV, Hib, RV, PCV), 4 mo, 6 mo, 12-15 mo (MMR, varicella, HepA), 4-6 yr, adolescent (Tdap, HPV, MenACWY), adult (Tdap, flu, COVID, shingles). Schedule is optimized for immune system maturity + epidemiological risk."
+      "title": "Vaccine platforms, immunogenicity, + durability",
+      "body": "**Vaccines** induce protective adaptive immunity by presenting antigens in a controlled, non-pathogenic context. Detailed mechanism (germinal centers, affinity maturation, memory B + T cells, plasma cells) is covered in P68 (immunologist). Here we focus on platforms, programmatics, + population effects.\n\n**Major vaccine platforms**:\n- **Live attenuated** — replication-competent but weakened pathogen. Strong, durable immunity (often lifelong). Examples: measles + mumps + rubella (MMR; Hilleman; Plotkin), varicella, yellow fever 17D (Theiler 1937 — Nobel), oral polio (Sabin), BCG (Calmette + Guérin 1921), rotavirus (Rotarix + RotaTeq), influenza FluMist. Cold-chain sensitive; contraindicated in immunocompromised.\n- **Inactivated whole-pathogen** — killed pathogen. Examples: inactivated polio (Salk), hepatitis A, rabies, Japanese encephalitis, Sinovac CoronaVac. Safer but less durable; multiple doses needed.\n- **Subunit + recombinant protein** — purified antigen ± adjuvant. Examples: hepatitis B (HBsAg; recombinant DNA — first GE vaccine; Hilleman 1981), HPV (Cervarix Gardasil; VLPs), pertussis acellular, COVID-19 Novavax (NVX-CoV2373 spike + Matrix-M).\n- **Conjugate** — polysaccharide linked to carrier protein → T-cell-dependent response. Required for protection in <2 yr olds. Examples: Hib (Robbins + Schneerson + Anderson; Nobel-deserving 1990s), pneumococcal PCV7/13/20, meningococcal ACWY + B.\n- **Toxoid** — chemically detoxified bacterial toxin. Examples: diphtheria + tetanus + pertussis (DTP/DTaP).\n- **Viral vector** — engineered virus delivers antigen gene. Examples: ChAdOx1 (Oxford-AZ COVID-19), Ad26 (J&J COVID-19; Ebola), rVSV-ZEBOV (Ebola; Henao-Restrepo 2015 ring vaccination Guinea trial).\n- **mRNA** — lipid nanoparticle delivers mRNA encoding antigen. Examples: BNT162b2 Pfizer-BioNTech (Sahin + Türeci) + mRNA-1273 Moderna for COVID-19 (Karikó + Weissman; Nobel 2023). Rapid design (weeks from sequence), high immunogenicity, but cold-chain demanding.\n- **DNA + self-amplifying RNA + virus-like particles (VLPs)** — emerging.\n\n**Adjuvants** — boost + modulate the immune response:\n- **Alum** (aluminum salts; Glenny 1926) — workhorse; Th2-skewed.\n- **MF59** (squalene; Flu Q-Pan H5N1).\n- **AS01** (MPL + QS-21; RTS,S malaria + shingles).\n- **CpG ODN** — TLR9 agonist (Heplisav-B).\n- **Matrix-M** (Novavax).\n- Newer adjuvants enable strong Th1 + CD8 + mucosal responses.\n\n**Immunogenicity metrics**:\n- **Seroconversion rate** — fraction reaching detectable antibody threshold.\n- **Geometric mean titer (GMT)** — central tendency of antibody titers.\n- **Neutralization titer** — functional virus neutralization (gold standard for many vaccines).\n- **Vaccine efficacy (VE)** = 1 - (incidence_vacc/incidence_unvacc). Measured in Phase 3 RCT.\n- **Vaccine effectiveness** — real-world performance from observational + test-negative designs.\n\n**Durability + waning**:\n- **Tetanus + diphtheria**: boosters every 10 yr.\n- **Pertussis** (aP): waning over 3-5 yr; resurgence in adolescents.\n- **HPV**: durable >12 yr; possibly lifetime.\n- **Yellow fever**: lifetime after 1 dose.\n- **Measles (MMR)**: durable lifetime in most.\n- **COVID-19 mRNA**: 3-6 mo against infection; ~12+ mo against severe disease.\n- **Influenza**: ~6-12 mo, must be redesigned annually."
     },
     {
       "kind": "text",
-      "title": "Efficacy, effectiveness, impact — three different questions",
-      "body": "Three vocabulary distinctions that confuse the public + journalists:\n\n• **Vaccine efficacy (VE)**: reduction in incidence among vaccinated vs unvaccinated in a *controlled trial* (RCT). e.g., Pfizer COVID-19 mRNA: 95% efficacy against symptomatic infection in phase III trial.\n• **Vaccine effectiveness**: same reduction in *real-world deployment*. Usually lower than efficacy because population is more heterogeneous, compliance imperfect, vaccine handling variable. e.g., Pfizer COVID-19 effectiveness ~85-90% against hospitalization in early real-world data; lower with variant emergence + waning.\n• **Vaccine impact**: population-level reduction in disease burden + transmission, including herd-immunity effects. E.g., HPV vaccine: ~90% reduction in cervical pre-cancer in vaccinated cohorts; ~75% reduction in HPV-attributable disease in *all* women (incl. unvaccinated) due to herd effects.\n\nFormula: VE = 1 − (P_vaccinated / P_unvaccinated) — where P is incidence.\n\n**Sources of VE drift**: variant emergence (Omicron escaped Pfizer immunity to ~30% effectiveness against symptomatic infection, though >85% against severe disease); waning immunity (most vaccines have time-limited antibody titers); population heterogeneity (children vs elderly respond differently).\n\nReporting clearly distinguishes between symptomatic protection, severe-disease protection, transmission reduction, + duration. Confusing them leads to misinterpretation."
+      "title": "EPI + cold chain + Gavi + vaccine confidence",
+      "body": "**Expanded Programme on Immunization (EPI)** — launched by WHO 1974 under Henderson + Keja + Yach. Standard EPI portfolio originally: **BCG, DTP, OPV, measles**; later extended with hepatitis B, Hib, pneumococcal, rotavirus, HPV, meningococcal A (Africa), yellow fever. By 2024, immunization saves ~5 million lives annually.\n\n**Routine schedule** (typical LMIC, EPI-aligned):\n- Birth: BCG, OPV0, HepB.\n- 6, 10, 14 wk: DTP-HepB-Hib (pentavalent), OPV, PCV, rota.\n- 9 mo + 15-18 mo: measles + rubella (MR or MMR).\n- 9-14 yr (girls + boys): HPV.\n- HCWs + travelers + risk groups: additional.\n\n**Cold chain** — vaccine potency depends on temperature integrity from manufacturer to arm. Standard 2-8 °C; some live (varicella) frozen; mRNA -20 to -70 °C. Cold chain components: refrigerators (gas + solar), vaccine carriers, ice packs, freeze indicators (Vaccine Vial Monitors VVM), training, supervision. Last-mile delivery is a recurrent failure point. Cold-chain innovations: Project Optimize, drones (Zipline Rwanda + Ghana), thermostable formulations (vaccine vial monitors, MR thermostable in development).\n\n**Vaccine wastage** — open-vial waste from multidose vials. Multidose vial policy + Universal Mass Vaccination policy balance access vs waste.\n\n**Gavi, the Vaccine Alliance** — founded 2000 (Gates + WHO + UNICEF + World Bank + governments). Pools demand + finances vaccines for the poorest countries. Pneumococcal + rotavirus + HPV scale-up driven by Gavi's Advance Market Commitment (AMC). Gavi co-financed ~half the world's children's vaccinations by 2022. Funded COVAX during COVID-19. Gavi 5.0 strategy (2021-25) + 6.0 (2026-30) emphasize zero-dose children + sustainability.\n\n**Vaccine confidence + the 3 Cs (WHO SAGE)** — convenience, complacency, confidence. Vaccine hesitancy is not new (Jenner 1796 cowpox skeptics; smallpox riots; OPV pulse-polio resistance in Nigeria 2003-04). The **Vaccine Confidence Project** (Heidi Larson, LSHTM 2010+) globally surveys confidence; her book 'Stuck' (2020) documents drivers (post-truth, mistrust of institutions, distrust of pharma, social-media amplification).\n\n**WHO SAGE (Strategic Advisory Group of Experts on Immunization)** — issues evidence-based recommendations on vaccines + schedules. Independent expert body.\n\n**Vaccination strategies**:\n- **Routine immunization (RI)** through health system.\n- **Supplemental immunization activities (SIAs)** — periodic mass campaigns (measles, polio, MR).\n- **Ring vaccination** — vaccinate contacts of cases + their contacts (smallpox; Ebola rVSV-ZEBOV).\n- **Catch-up + multi-age campaigns** — close immunity gaps.\n- **Targeted high-risk groups** — health workers (HBV), adolescents (HPV), elderly (zoster, influenza, pneumococcal).\n\n**Equity in immunization** — IA2030 (Immunization Agenda 2030, WHO) prioritizes 'zero-dose children' (the ~14 million children annually who receive *no* routine vaccines, concentrated in conflict + remote + urban-poor settings). Equity index: WHO + UNICEF monitor coverage by wealth quintile, urban/rural, sex, region."
     },
     {
       "kind": "text",
-      "title": "Safety monitoring + the cost of false-alarm narratives",
-      "body": "Vaccines are studied in pre-licensure trials (tens of thousands of participants), but rare adverse events (1 in 100,000+) appear only post-deployment. **Pharmacovigilance systems**:\n\n• **VAERS** (US, CDC/FDA): passive reporting; anyone can submit. Sensitive but noisy + low specificity.\n• **VSD** (Vaccine Safety Datalink): cohort of >12M with linked EHR + immunization records; active surveillance with adjusted analyses.\n• **V-Safe** (smartphone post-vaccination check-ins, COVID-era).\n• **EudraVigilance** (EU).\n\nReal vaccine-attributable adverse events:\n• Influenza vaccine + Guillain-Barré: ~1 excess per million doses (Hep B + GBS: equivocal).\n• Yellow fever vaccine + viscerotropic disease: ~1 per 250K doses; mostly elderly + immunocompromised.\n• Rotavirus vaccine (RotaShield, 1999) + intussusception: ~1 per 12K; led to product withdrawal + reformulation.\n• mRNA COVID vaccine + myocarditis: ~1-5 per 100K young men; usually mild + self-limited.\n• Vaxzevria + venous thromboembolism (rare): ~1 per 100K.\n\nDecisions balance risk vs benefit: rotavirus vaccine was withdrawn (mild diarrheal disease vs serious AE) but kept for measles + others (severe disease > rare AE).\n\n**Wakefield 1998 fraud** + MMR-autism panic: a fabricated study claimed MMR → autism; investigation showed Wakefield committed fraud + the study was retracted. Despite multiple large studies (incl. 657K Danish children) showing no association, the misinformation caused measles outbreaks for decades. Misinformation is now a primary determinant of vaccine coverage in many countries.\n\n**Communication challenge**: explain rare adverse events transparently while maintaining trust in beneficial vaccines. Risk-communication is now its own subdiscipline."
+      "title": "Coverage, AEFI surveillance, + the major program success stories",
+      "body": "**Coverage measurement** — multiple methods, often discordant:\n- **Administrative coverage** — doses given / target population. Cheap, real-time, but susceptible to denominator + numerator error (migration; double-counting; eligibility).\n- **Surveys** — DHS (Demographic + Health Surveys; ICF + USAID), MICS (UNICEF), WHO Coverage Cluster Surveys. Household-level home-based-record review + maternal recall. Costly + episodic but valid.\n- **Serosurveys** — measure population antibody prevalence; ground truth for immunity but expensive + sometimes ambiguous (post-vaccine vs post-infection).\n- **Pareto principle (80/20)** — typically 20% of districts contain 80% of unvaccinated children. Drives geographically targeted catch-up.\n- **Equity dashboards** — disaggregate by sex, wealth, urban/rural; identify gaps.\n\n**WUENIC** — WHO + UNICEF Estimates of National Immunization Coverage; consensus-based annual estimates, peer-reviewed, published in WHO Vaccine-Preventable Diseases Monitoring System.\n\n**Adverse Events Following Immunization (AEFI) surveillance**:\n- **Definition** — any adverse event after vaccination, whether causally linked or not.\n- **Reporting systems**: VAERS (US; CDC + FDA passive); V-safe (US; mobile-based active); VSD (Vaccine Safety Datalink, ~14M+ enrollees, active surveillance via 9 integrated US health systems); EudraVigilance (EU); Yellow Card (UK); India national AEFI scheme; Vigibase (WHO global).\n- **Brighton Collaboration** — standardized case definitions for AEFIs (anaphylaxis, encephalitis, Guillain-Barré, intussusception, myocarditis). Enables comparability across systems.\n- **Signal detection** — disproportionality (PRR, ROR), self-controlled case series (Farrington), background-rate comparison. Strict separation between temporal coincidence + causal association.\n- **Risk communication** — narrow window from signal to action; case studies in mistakes (Cutter polio 1955; H1N1 narcolepsy 2009; thiomerosal MMR 1998 Wakefield retraction; Dengvaxia 2017 Philippines; COVID-19 ChAdOx1 thrombosis).\n\n**Major immunization program successes**:\n\n**Smallpox Eradication Programme (SEP)** — WHO 1967-1980, led by D. A. Henderson (US CDC); Frank Fenner (Australian) chaired Global Commission for Certification. Strategy: shift from mass vaccination (impossible to achieve high enough coverage) to **surveillance + containment + ring vaccination** (Foege + Henderson). Bifurcated needles + freeze-dried lyophilized vaccine + heat-stable. Last endemic case Ali Maow Maalin 1977 Somalia; declared eradicated 1980 by 33rd WHA. ROI: $300M campaign saves ~$1B+/yr ever since. Only human disease ever eradicated. Henderson's book 'Smallpox: The Death of a Disease' (2009) is definitive.\n\n**Global Polio Eradication Initiative (GPEI)** — launched 1988 (Rotary + WHO + UNICEF + CDC + Gates Foundation since 2009). Cases reduced from ~350,000 (1988) to <10 wild cases/yr (2020s). WPV2 eradicated 2015; WPV3 2019; WPV1 endemic in Afghanistan + Pakistan only. Mass + supplementary OPV campaigns; switch from tOPV to bOPV 2016 (sync globally to eliminate cVDPV2); novel OPV2 (nOPV2) for cVDPV outbreak response 2020+. Lessons: campaign + RI must coexist; community resistance (Nigeria 2003-04 OPV boycott) costly; surveillance via AFP cases + environmental sewage sampling.\n\n**Measles + rubella (MR) elimination** — Americas region declared measles-free 2016 (briefly lost 2018); WHO 2024 strategy aims for global elimination. Challenges: requires >95% 2-dose coverage; mass migration + conflict create gaps; vaccine hesitancy clusters (Brooklyn 2019, Samoa 2019). MR vaccine durable + cheap; Gavi-supported.\n\n**HPV vaccination — Australia + Rwanda models** — Australia introduced quadrivalent in 2007 + 9-valent 2018; school-based program with ~80% coverage. Brotherton + Garland documented >90% decline in vaccine-type HPV in young women within a decade. Cervical cancer elimination feasible (Hall + Brisson 2019). Rwanda + Bhutan achieved high coverage in LMIC settings via school-based campaigns. WHO 90-70-90 strategy.\n\n**COVID-19 vaccination + COVAX** — 13 EUA vaccines deployed within 12 months; >13 billion doses by 2024. **COVAX** (Gavi + CEPI + WHO) aimed at equitable allocation; fell short of equity goals (LMIC delayed vs HIC) — major lesson for future pandemic preparedness. Operation Warp Speed (US 2020), EUAs, mRNA + viral-vector vaccines as platform technologies. Modeling: Watson + Ghani 2022 Lancet ID estimated >14 million deaths averted in the first year of COVID-19 vaccines."
     },
     {
       "kind": "question",
       "question": {
-        "id": "gd_vaccine_1",
+        "id": "gd_vac_1",
         "kind": "guided_derivation",
-        "question": "Compute vaccine efficacy from RCT data",
-        "goal": "A vaccine trial randomizes 20,000 participants 1:1 vaccine vs placebo. After 6 months, 30 vaccine + 270 placebo participants develop disease. Compute efficacy.",
+        "question": "Designing a measles catch-up campaign in a district with low coverage",
+        "goal": "A district of 200,000 children under 5 has DPT3 coverage 70% + MR1 coverage 55%. There is a measles outbreak in a neighboring district. Plan a catch-up SIA + estimate impact.",
         "steps": [
           {
-            "prompt": "Incidence in vaccine arm?",
-            "motivation": "Cases / participants.",
+            "prompt": "What is the HIT for measles + what coverage does your district currently meet?",
+            "motivation": "Compare to threshold.",
             "accepts": {
               "mode": "math",
               "acceptedAnswers": [
-                "30/10000",
-                "0.003",
-                "0.3%"
+                "HIT ≈ 93-95%; current ≈55% well below"
               ]
             },
             "hints": [
-              "30 cases / 10,000 vaccinated."
+              "HIT = 1 - 1/R₀; vaccine effectiveness 97%."
             ],
-            "reveal": "Vaccine arm incidence = 30 / 10,000 = 0.003 = 0.3%."
+            "reveal": "Measles HIT = 1 - 1/16 ≈ 93.75%. With MR vaccine effectiveness ~97%, target coverage = 93.75/0.97 ≈ 97%. District MR1 of 55% is far below; measles spread is virtually certain on importation."
           },
           {
-            "prompt": "Incidence in placebo arm?",
-            "motivation": "Cases / participants.",
+            "prompt": "What target population for the SIA?",
+            "motivation": "Catch-up + boost.",
             "accepts": {
               "mode": "math",
               "acceptedAnswers": [
-                "270/10000",
-                "0.027",
-                "2.7%"
+                "all children 9 mo - 5 yr or wider; ~200,000 + adolescents"
               ]
             },
             "hints": [
-              "270 / 10,000."
+              "Susceptibility profile."
             ],
-            "reveal": "Placebo arm incidence = 270 / 10,000 = 0.027 = 2.7%."
+            "reveal": "Target all children 9 mo - 5 yr (200k), preferably extended to <15 yr to close cohort gaps. Wide-age-range SIAs are standard when accumulated unvaccinated cohorts pose risk. Coverage target: 95%+ in the SIA. Combine MR or MMR depending on schedule."
           },
           {
-            "prompt": "Vaccine efficacy?",
-            "motivation": "1 − RR.",
+            "prompt": "Estimate doses needed + cold-chain capacity.",
+            "motivation": "Logistics.",
             "accepts": {
               "mode": "math",
               "acceptedAnswers": [
-                "0.889",
-                "89%",
-                "88.9%",
-                "1 - 0.111"
+                "doses 210-220k; wastage adds 10-15%"
               ]
             },
             "hints": [
-              "RR = 0.003/0.027 = 0.111. VE = 1 − RR."
+              "Wastage factor."
             ],
-            "reveal": "VE = 1 − (0.003/0.027) = 1 − 0.111 = 0.889 = 88.9%. Roughly comparable to original Pfizer + Moderna trials (95% efficacy against symptomatic disease)."
+            "reveal": "Doses = target × 1/(1 - wastage). At 10% wastage: 200,000 / 0.9 ≈ 222,000 doses. Plan syringe + safety box supply, cold-chain capacity, transport, supervision teams, AEFI hotline. Pre-position vaccines + microplan by sub-district + dispatch mobile teams to hard-to-reach + nomadic populations."
           },
           {
-            "prompt": "If real-world effectiveness drops to 70% in deployment (variants + waning), how much would case rates drop in a 75%-vaccinated population vs unvaccinated baseline?",
-            "motivation": "Apply effectiveness × coverage.",
+            "prompt": "How would you monitor coverage in real time + verify post-campaign?",
+            "motivation": "Admin + LQAS + serosurvey.",
             "accepts": {
               "mode": "math",
               "acceptedAnswers": [
-                "52.5%",
-                "0.525",
-                "52.5"
+                "admin tally + LQAS (lot quality assurance) + post-campaign coverage survey + serosurvey"
               ]
             },
             "hints": [
-              "Coverage × effectiveness ≈ vaccinated population effectively protected. 0.75 × 0.70 = 0.525."
+              "Triangulation."
             ],
-            "reveal": "Effective protection = 0.75 × 0.70 = 0.525. So if you'd expect 2.7% incidence without vaccine, you'd expect ~2.7% × (1 - 0.525) ≈ 1.28% with this coverage. Net population impact = 52.5% reduction in cases. Even imperfect vaccines + imperfect coverage substantially reduce disease."
+            "reveal": "(a) Daily admin tally vs target; (b) LQAS by sub-district (Lemeshow) to flag low-coverage clusters during the campaign; (c) post-campaign coverage survey (cluster sampling, 30×7 or 30×10) within 4 wk; (d) serosurvey ~6 mo post-campaign to validate. Triangulation avoids over-reliance on admin numbers, which often overestimate. Equity disaggregation by wealth, urban/rural, sex."
+          },
+          {
+            "prompt": "What AEFI monitoring + risk-communication preparation?",
+            "motivation": "Brighton + media.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "passive + active surveillance + Brighton case definitions + rapid response team + risk communication plan"
+              ]
+            },
+            "hints": [
+              "Causality assessment."
+            ],
+            "reveal": "Pre-train clinicians + AEFI focal persons; activate passive surveillance + monitor sentinel sites for serious AEFIs (Brighton definitions for anaphylaxis, encephalitis, seizures); establish national + state AEFI causality-assessment committee; baseline event rates to interpret signals (e.g., febrile seizures ~5/10,000 doses MMR is expected, not concerning); prepare media briefings + spokesperson; partner with community + religious leaders; pre-rehearse vaccine-misinformation responses (Vaccine Confidence Project playbooks)."
           }
         ]
       }
@@ -107,68 +112,55 @@
     {
       "kind": "question",
       "question": {
-        "id": "mc_vaccine_1",
+        "id": "mc_vac_1",
         "kind": "multiple_choice",
-        "question": "Why did COVID-19 mRNA vaccines retain high effectiveness against severe disease but lower effectiveness against symptomatic infection after Omicron emerged?",
+        "question": "Why is the ring-vaccination strategy historically associated with smallpox eradication + the 2014-16 Ebola Guinea trial (rVSV-ZEBOV)?",
         "options": [
-          "mRNA vaccines are random.",
-          "Severe disease protection depends mostly on T-cell + memory B-cell responses targeting conserved epitopes (still recognized in Omicron); symptomatic-infection protection depends more on circulating neutralizing antibodies against spike (heavily mutated in Omicron). Variant-escape mutations affect antibody recognition more than T-cell recognition, decoupling the two metrics.",
-          "Variants only affect children.",
-          "The vaccine was reformulated for Omicron and lost effectiveness."
+          "Random.",
+          "Ring vaccination identifies cases + vaccinates their contacts + contacts-of-contacts. Highly effective when: (a) the disease has a clear case-to-contact transmission chain; (b) vaccine acts fast enough (within incubation period) to prevent secondary cases; (c) routine mass vaccination coverage is infeasible (smallpox campaign was already underway; rVSV-ZEBOV was investigational). Henderson + Foege showed it could eradicate smallpox by interrupting transmission with much less vaccine than mass campaigns. The Henao-Restrepo 2015 Guinea rVSV-ZEBOV trial used a cluster-randomized ring design + showed >97% efficacy.",
+          "Random.",
+          "Magic."
         ],
         "correctIndex": 1,
-        "explanation": "Immune protection has multiple components, each with different correlates of protection:\n\n**Symptomatic infection** correlates closely with **circulating neutralizing antibody (nAb)** titers. nAbs target the spike RBD; Omicron has ~30 spike mutations, including many at nAb epitopes. Result: nAb titers against Omicron are 10-30× lower than against ancestral. Symptomatic infection protection drops to ~30-50%.\n\n**Severe disease** depends more on **T-cell responses** + **memory B-cell responses**. T cells recognize ~10-mer peptides from spike + non-spike proteins; mutations rarely escape all T-cell epitopes simultaneously. Memory B cells diversify antibody repertoire over time + can recognize variants. Severe-disease protection stays high (>85%) for both Pfizer + Moderna against Omicron.\n\nClinical implications:\n- Boosters restore nAb titers → restore symptomatic-infection protection (transiently).\n- Severity protection is durable + doesn't need frequent boosters.\n- Updating vaccine antigen (bivalent boosters; ancestral + Omicron) restores nAb to Omicron lineage.\n\nThis decoupling — symptom protection vs severity protection — was a key public-health communication challenge during 2022. Many headlines reported '50% vaccine effectiveness' (against symptomatic Omicron) without noting 85-95% effectiveness against hospitalization. Clear comms: vaccines still work to prevent serious disease + death."
+        "explanation": "Ring vaccination targets the transmission chain rather than the whole population. Henderson + Foege + the SEP (1967-1980) shifted smallpox strategy from mass vaccination (impossible to achieve ~85% HIT in many settings) to surveillance + containment + ring vaccination — a much more efficient use of vaccine + identified active transmission corridors. The Ebola Guinea ring-vaccination trial (Henao-Restrepo + Henao-Restrepo et al. 2015 Lancet; followed up 2017) used a cluster-randomized stepped-wedge ring design to evaluate rVSV-ZEBOV (Merck) during an active outbreak; showed >97% protective efficacy. Logic: vaccine acts fast (rVSV-ZEBOV in days), disease has clear contact chains, mass vaccination infeasible during emergency. Generalizes to other emergency-use vaccines (Mpox 2022)."
       },
       "hints": [
-        "What does antibody titer correlate with?",
-        "What about T-cells?"
+        "Vaccinate contacts of cases.",
+        "Used when mass coverage is infeasible."
       ],
       "retryUntilCorrect": true,
-      "workedSolution": "Symptomatic infection protection ~ neutralizing antibody titer (heavy spike mutations in Omicron → drops 10-30×). Severe disease protection ~ T-cell + memory B-cell responses (broader epitope coverage; harder for single variant to escape all). Result: severity protection stays high (>85%) while symptom protection drops to ~30-50%. Clinical message: vaccines prevent severe outcomes; updated boosters restore symptom protection."
+      "workedSolution": "Ring vaccination targets contacts of cases + their contacts. Used for smallpox eradication (Henderson + Foege) + Ebola Guinea trial (Henao-Restrepo 2015 rVSV-ZEBOV >97% efficacy). Logic: case-to-contact chains + rapid-acting vaccine + infeasibility of mass campaigns."
     },
     {
       "kind": "question",
       "question": {
-        "id": "mc_vaccine_2",
-        "kind": "multiple_choice",
-        "question": "A 1998 study claimed MMR vaccine causes autism. Subsequent studies (incl. 657K Danish children, 95K matched US children) found no association. Why has the misinformation persisted for 25+ years?",
-        "options": [
-          "The 1998 study was correct and never debunked.",
-          "Loss-aversion bias (parents fear vaccine-attributable harm more than disease-attributable harm); availability bias (vivid anecdotal stories outweigh statistics); confirmation bias (skeptical parents seek confirming evidence); social-media echo chambers amplifying; difficulty of communicating absence-of-evidence. Plus: autism symptoms emerge ~MMR-vaccination age (12-15 mo), making the correlation feel causal.",
-          "Vaccines do cause autism.",
-          "The Danish + US studies were wrong."
-        ],
-        "correctIndex": 1,
-        "explanation": "The Wakefield 1998 paper was retracted in 2010 after investigation revealed:\n- Fabricated data (children's records didn't match published claims).\n- Undisclosed conflicts of interest (Wakefield was paid by lawyers planning to sue MMR manufacturers).\n- 12-child sample, biased recruitment, no controls.\n\nDespite retraction + Wakefield being struck off the UK medical register, the claim persists because:\n\n(1) **Cognitive biases**: loss aversion (vaccine harm feels worse than disease harm even if smaller); availability (Wakefield's anecdotes + vivid testimonials more memorable than statistics); confirmation bias.\n\n(2) **Coincidental timing**: autism symptoms typically emerge 12-24 months — right after MMR. Post-hoc-ergo-propter-hoc reasoning.\n\n(3) **Information ecosystem**: anti-vaccine social media + 'celebrity' endorsements (Jenny McCarthy, others) reached millions. RFK Jr's organization promoted the narrative. Health-misinformation algorithms preferentially circulate emotional content.\n\n(4) **Distrust** of pharma + government drives motivated reasoning.\n\n(5) **Absence-of-evidence is hard**: 'no association in 657K children' is statistically conclusive but doesn't 'feel' like proof.\n\nResults: measles outbreaks (Disneyland 2014, Samoa 2019 — 5700 cases + 83 deaths in 200K population), pertussis resurgence, reduced HPV uptake despite cancer-preventing efficacy. Misinformation has measurable mortality consequences.\n\nModern responses include: pre-bunking (inoculate against misinformation before exposure), trust-building with hesitant communities, narrative-based communication, social-media platform interventions."
-      },
-      "hints": [
-        "Was the original study replicated?",
-        "Why does misinformation persist?"
-      ],
-      "retryUntilCorrect": true,
-      "workedSolution": "Wakefield 1998 was retracted (data fabrication); subsequent studies (incl. 657K Danish children) found no association. Persistence reasons: cognitive biases (loss aversion, availability, confirmation), temporal coincidence (autism + MMR both ~12-24 mo), distrust, social-media amplification, absence-of-evidence hard to communicate. Real consequences: measles outbreaks (Samoa 2019: 83 deaths), pertussis resurgence, reduced HPV uptake. Modern responses include pre-bunking + narrative interventions."
+        "id": "scn_vac_1",
+        "kind": "scenario",
+        "question": "Introducing HPV vaccine in a LMIC: school-based vs facility-based delivery",
+        "prompt": "A LMIC Ministry of Health plans to introduce 1-dose HPV vaccine (WHO SAGE 2022 reduced from 2 doses for 9-14 yr) for girls aged 9-14 (~1.5 million eligible/yr). Discuss: (a) school-based vs facility-based delivery (coverage, equity, out-of-school girls, boys); (b) Gavi co-financing + cold-chain implications; (c) AEFI preparedness + Brighton case definitions; (d) communication strategy + vaccine confidence (Heidi Larson framework — anticipating cancer-prevention messaging, sexual-debut concerns, religious + cultural sensitivities); (e) coverage measurement (school records + DHS + admin); (f) integration with school health + adolescent reproductive health; (g) bridge to 90-70-90 cervical-cancer elimination targets; (h) what specific lessons from Australia (Brotherton + Garland) + Rwanda + Bhutan would you incorporate."
+      }
     },
     {
       "kind": "question",
       "question": {
-        "id": "math_vaccine_1",
+        "id": "math_vac_1",
         "kind": "math_expression",
-        "question": "If a vaccine has 90% efficacy + 80% coverage in a population, what's the effective population protection (fraction of population effectively protected against the disease)?",
+        "question": "Measles vaccine effectiveness against infection is 97% per dose. To achieve a 95% immune population requires what 2-dose MMR coverage? Round to nearest percent.",
         "acceptedAnswers": [
-          "0.72",
-          "72%",
-          "0.8 * 0.9"
+          "98%",
+          "97.9%",
+          "0.95/0.97"
         ],
-        "hint": "Coverage × efficacy."
+        "hint": "Required coverage × 0.97 ≥ 0.95 (assuming 1 dose for simplicity). Coverage ≥ 0.95/0.97 ≈ 0.979 ≈ 98%."
       }
     },
     {
       "kind": "explain_back",
       "question": {
-        "id": "eb_vaccine_1",
+        "id": "eb_vac_1",
         "kind": "explain_back",
-        "prompt": "In ≤120 words, explain to a hesitant parent why their child's risk-benefit calculation for routine childhood vaccines is overwhelmingly favorable. Use specific numbers.",
-        "rubric": "Mentions: vaccine-attributable serious adverse events are very rare (~1 per 10,000-1,000,000 doses, varies by vaccine). Compare to disease-attributable risks: measles complications (~1 in 1000 encephalitis, 1-2 per 1000 deaths in well-nourished settings), pertussis (severe in <6mo, ~1 in 200 mortality in infants), polio paralysis (~1 in 200), pneumococcal disease, rotavirus dehydration. Risk-benefit overwhelmingly favors vaccination. Notes immune system maturity argument: infants tolerate many simultaneous antigens (estimated 100K daily from environment). Mentions herd-protection benefit (~5-10% of population can't vaccinate; depend on herd). Acknowledges legitimate concerns + recommends discussion with pediatrician for personalized info. Concludes that the small, transparent vaccine risks are vastly outweighed by the disease risks they prevent."
+        "prompt": "In ≤120 words, explain why vaccine *confidence* + AEFI surveillance are as important to a successful immunization program as biological efficacy + cold chain — using a contemporary example.",
+        "rubric": "Mentions: high vaccine efficacy is necessary but not sufficient; programs need (a) cold-chain integrity (potency); (b) AEFI surveillance (VAERS, VSD, Brighton Collaboration) to detect rare safety signals + assess causality (Cutter polio 1955, MMR + Wakefield 1998 retracted, COVID-19 ChAdOx1 + VITT); (c) vaccine confidence (3Cs: confidence, complacency, convenience; Heidi Larson Vaccine Confidence Project) — confidence collapses can drop coverage rapidly (Philippines Dengvaxia 2017 → 30% drop in routine immunization). Example: COVID-19 — high vaccine efficacy + cold chain met fragmented confidence; differential uptake across countries + sub-populations widened inequities + extended pandemic. Conclude: a vaccine that nobody takes has 0% effectiveness; confidence + surveillance are co-equal pillars."
       }
     }
   ]

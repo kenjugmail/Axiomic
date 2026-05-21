@@ -1,0 +1,156 @@
+{
+  "slug": "light-spectra-and-telescopes",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Connect the electromagnetic spectrum to astrophysical sources + blackbody laws.",
+      "Apply spectroscopy: Fraunhofer lines, Kirchhoff laws, Doppler shifts, 21-cm.",
+      "Compare optical-design tradeoffs: refractor vs reflector vs Schmidt-Cassegrain vs adaptive + space telescopes."
+    ],
+    "prereqs": [
+      "astronomy-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Electromagnetic spectrum + blackbody radiation",
+      "body": "Astronomy is mostly **photon astronomy** — every wavelength carries different physics + needs different instrumentation.\n\n**EM spectrum windows (by wavelength)**:\n- **Radio** (λ > 1 mm; ν < 300 GHz): 21-cm HI hyperfine, CMB, pulsars, AGN jets, free-free emission. Ground-based; the atmosphere is transparent.\n- **Sub-mm + mm** (0.1-3 mm): cold dust (10-100 K), molecular rotational lines (CO, HCN), CMB. ALMA (Atacama, 5050 m altitude).\n- **Infrared** (0.7-300 μm): warm dust, cool stars, redshifted high-z galaxies, exoplanet atmospheres. JWST (0.6-28 μm); Spitzer (decommissioned).\n- **Visible** (380-750 nm): all classical astronomy. HST optical; ground 8-10m + future ELT-class.\n- **UV** (10-400 nm): hot O + B stars, ISM + IGM absorption, AGN. Space-only (atmosphere absorbs); HST + Astrosat.\n- **X-ray** (0.01-100 keV / 0.01-100 Å): hot plasma (>10⁶ K), accreting compact objects (NS, BH binaries), cluster gas. Chandra, XMM-Newton, NuSTAR, eROSITA, NICER. Space-only.\n- **Gamma-ray** (>100 keV): GRBs, AGN, pulsars, dark-matter (?) annihilation. Fermi-LAT (orbital); HESS, MAGIC, VERITAS, CTA (ground, Cherenkov for TeV).\n\n**Planck blackbody** (1900): spectral radiance B_ν(T) = (2hν³/c²) / (exp(hν/kT) - 1). This single equation describes thermal emission from stars, dust, planets, CMB.\n\n**Wien's displacement law** (1893): λ_max · T = 2.898×10⁻³ m·K. Peak wavelength scales as 1/T.\n- Sun (T = 5778 K): λ_max ≈ 502 nm (yellow-green — why our eyes evolved for visible).\n- Earth (288 K): λ_max ≈ 10 μm (mid-IR — why we don't glow visibly).\n- CMB (2.725 K): λ_max ≈ 1.06 mm (microwave).\n- Hot O star (40000 K): λ_max ≈ 72 nm (extreme UV).\n\n**Stefan-Boltzmann law** (1879/1884): total flux F = σT⁴, where σ = 5.67×10⁻⁸ W/m²/K⁴. Luminosity of spherical star: L = 4πR²σT⁴. Combined with parallax (distance) + apparent flux (magnitude) + spectrum (temperature), gives stellar **radius** + position on HR diagram.\n\n**Rayleigh-Jeans + Wien limits**: at long λ (hν << kT) Planck → B_ν ≈ 2ν²kT/c² (Rayleigh-Jeans — basis of radio astronomy brightness temperature). At short λ (hν >> kT) Planck → exponential cutoff (Wien)."
+    },
+    {
+      "kind": "text",
+      "title": "Spectroscopy: reading the universe's chemistry + motion",
+      "body": "**Fraunhofer lines (1814)**: Joseph von Fraunhofer mapped ~500 dark lines in the solar spectrum, labeled A, B, C, ... K, ... (now thousands measured). Couldn't explain them.\n\n**Bunsen + Kirchhoff (1859, Heidelberg)**: identified Fraunhofer lines as **absorption of specific elements**: Na D-lines (yellow doublet, 589 nm), Ca H + K (UV), H Balmer series, Fe lines. They formulated:\n\n**Kirchhoff's three laws of spectroscopy (1859)**:\n1. A hot dense object (solid, liquid, dense gas) emits a **continuous (blackbody) spectrum**.\n2. A hot diffuse gas emits a discrete **emission-line spectrum** at element-specific wavelengths.\n3. A cool diffuse gas in front of a continuous source absorbs at the same wavelengths → **absorption-line spectrum**.\n\nWith Bunsen + Kirchhoff + quantum mechanics (Bohr 1913, then Schrödinger), we can read:\n- **Composition**: which elements + their abundances (cosmic abundance distribution).\n- **Temperature**: from Boltzmann + Saha equilibrium of line strengths.\n- **Pressure / density**: line broadening (pressure / Stark / collisional).\n- **Magnetic field**: Zeeman splitting.\n- **Velocity**: Doppler shift.\n\n**Doppler shift** (Doppler 1842; astronomical detection Huggins 1868): λ_obs / λ_rest = √((1+β)/(1-β)) ≈ 1 + v/c for v << c. Used for:\n- **Radial velocity (RV)** of stars + galaxies — discovery of exoplanets (51 Peg b, Mayor + Queloz 1995, Nobel 2019), spectroscopic binaries, galaxy rotation curves.\n- **Cosmological redshift** z = (λ_obs - λ_rest)/λ_rest → Hubble's law v = H₀d.\n- **Line-of-sight velocity dispersion** → cluster + galaxy mass.\n\n**Atomic transitions** + **molecular lines**:\n- **Hydrogen** dominates (~75% of baryonic mass): Lyman series (UV: Lyα at 121.6 nm), Balmer (visible: Hα at 656.3 nm, Hβ at 486.1 nm, Hγ at 434.0 nm), Paschen (near-IR).\n- **Forbidden lines** [O III] 5007 Å + [N II] 6548 Å — only seen in low-density nebular gas; diagnose ISM.\n- **21-cm hydrogen** (1.420 GHz hyperfine spin-flip; van de Hulst predicted 1944, Ewen + Purcell + Muller 1951): traces neutral atomic HI throughout galaxy. Allowed first **HI mapping of MW spiral arms** + ultra-deep cosmological surveys (Epoch of Reionization, future SKA).\n- **Molecular lines**: CO J=1→0 (115 GHz, 2.6 mm) traces cold molecular gas (where stars form); HCN, NH₃, water masers, complex organics in star-forming regions + protoplanetary disks. ALMA's primary mission.\n- **Metal lines** ([Fe/H] ratios) trace stellar populations + chemical evolution.\n\n**Line broadening mechanisms** (used as diagnostics):\n- **Thermal Doppler**: width ∝ √(T/m). T~10⁴ K gives ~10 km/s.\n- **Rotational + macroturbulent broadening** in stars.\n- **Pressure broadening** (Stark, van der Waals) in stellar atmospheres.\n- **Natural width** (Lorentzian, hν/τ) — only matters for narrow lasers.\n\n**Spectrographs**: prism + grating (Newton + Fraunhofer); cross-dispersed echelle (high-resolution, R = λ/Δλ ~ 100000 — ESPRESSO, HARPS, EXPRES for exoplanet RV); integral-field units (IFU — KMOS, MUSE, JWST NIRSpec) give 3D data cubes (position + position + wavelength)."
+    },
+    {
+      "kind": "text",
+      "title": "Telescopes: refractors → reflectors → adaptive optics + space",
+      "body": "Astronomers want **light-gathering power** (∝ aperture area) + **angular resolution** (∝ wavelength / aperture, diffraction limit θ ≈ 1.22λ/D) + **spectral coverage**.\n\n**Refractors** (lens-based): Galileo 1609; Lippershey, Kepler. Limitations: **chromatic aberration** (lens index varies with λ → focal length varies → color fringes), heavy + sagging large lenses (Yerkes 40-inch 1897 is the largest practical refractor). Used today mostly in small amateur scopes + spectrograph optical systems.\n\n**Reflectors** (mirror-based): Newton 1668 first practical reflector (avoided chromatic problem). All major modern telescopes are reflectors.\n- **Newtonian**: primary parabolic + flat secondary at 45°.\n- **Cassegrain**: parabolic primary + hyperbolic secondary → focus through hole in primary. Compact + suited for instruments.\n- **Ritchey-Chrétien**: hyperbolic primary + hyperbolic secondary → wider corrected field. HST, JWST, VLT.\n- **Schmidt-Cassegrain** (Bernhard Schmidt 1930): spherical primary + Schmidt corrector plate → very wide field. Survey telescopes + amateur SCTs.\n\n**Largest current ground reflectors**: Keck I/II (10 m segmented, Mauna Kea), VLT (4 × 8.2 m, Paranal), Subaru (8.2 m monolithic), Gemini N + S (8.1 m), GTC (10.4 m, La Palma).\n\n**Extremely large telescopes (ELT-class, 2027-2030)**: **ELT** (39 m, Cerro Armazones), **TMT** (30 m, Mauna Kea — stalled), **GMT** (24.5 m, Las Campanas). Segmented primaries with adaptive optics — 10× HST resolution.\n\n**Adaptive optics (AO)**: atmospheric turbulence smears optical images to ~1 arcsec ('seeing'). AO uses a **wavefront sensor** + **deformable mirror** updated at kHz rates to correct in real time. **Laser guide stars** (sodium-layer LGS at 90 km altitude) provide bright reference for any direction. Achieves near-diffraction-limited imaging (~50 mas at 1 μm on 8-m). Enabled imaging Sgr A* stellar orbits (Genzel + Ghez Nobel 2020), young exoplanets (β Pictoris b, HR 8799).\n\n**Space telescopes**: above atmosphere → no turbulence, no atmospheric absorption (UV, mid-IR, X-ray accessible).\n- **HST** (1990, 2.4 m, LEO, optical/UV/near-IR): 5 servicing missions; rewrote textbooks for 35 years.\n- **JWST** (2022, 6.5 m segmented, L2, 0.6-28 μm): mid-IR + high-z + cold passive cooling.\n- **Roman Space Telescope** (2027, 2.4 m, L2, optical/near-IR): wide-field (100× HST FOV) — dark energy + microlensing + supernovae.\n- **Vera Rubin Observatory + LSST** (2025 first light, ground, 8.4 m, Chile): 9.6 sq deg field, 30-s exposures, ~10 yr survey → 20 billion stars + galaxies + ~10 million transient alerts/yr.\n- **Euclid** (2023, L2, near-IR + visible imaging): dark energy + weak lensing + galaxy clustering.\n- **ATHENA + LISA + HabWorlds + LUVOIR-class**: future flagships.\n\n**Detectors**:\n- **CCDs** (Boyle + Smith 1969, Nobel 2009): silicon-based, quantum efficiency >90% in visible. Replaced photographic plates in 1980s. Read noise <2 e⁻; dark current limits.\n- **CMOS / sCMOS**: newer; lower power + faster + competitive sensitivity. Vera Rubin uses 3.2 Gpix CCD focal plane.\n- **HgCdTe / InSb** for near-IR; bolometers + TES for sub-mm + mm; **microcalorimeters** (Athena XIFU) for X-ray spectroscopy.\n\n**Photometry**: precise flux measurement → light curves. Drives variable-star science (Cepheids, RR Lyrae, asteroseismology), exoplanet transits (Kepler, TESS, PLATO).\n\n**Interferometry** (radio + optical + mm): combine signals from multiple telescopes to synthesize larger effective aperture. **VLA** (Very Large Array, 27 dishes, NM), **ALMA** (66 antennas, Atacama), **VLTI** (4 × 8.2 m + auxiliaries, Paranal), **EHT** (Event Horizon Telescope, planet-scale VLBI at 1.3 mm, M87 BH 2019 + Sgr A* BH 2022). Effective resolution = baseline length / wavelength.\n\nAstronomers now routinely combine **multi-band photometry + spectroscopy + multi-messenger (GW + neutrinos) + machine learning** for the full picture of any source."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_light_1",
+        "kind": "guided_derivation",
+        "question": "Find a star's radius from spectrum + parallax",
+        "goal": "A star has T_eff = 4000 K (from spectrum), apparent bolometric magnitude m_bol = 5.0, parallax 50 mas. Find its luminosity + radius.",
+        "steps": [
+          {
+            "prompt": "Distance from parallax: d (pc) = 1 / p (arcsec). Compute.",
+            "motivation": "Parallax angle ↔ distance.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "d = 1 / 0.050 = 20 pc"
+              ]
+            },
+            "hints": [
+              "1 pc per arcsec."
+            ],
+            "reveal": "p = 50 mas = 0.050 arcsec → d = 1/0.050 = 20 pc."
+          },
+          {
+            "prompt": "Absolute magnitude M = m - 5 log₁₀(d/10 pc). Compute.",
+            "motivation": "Distance modulus.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "M = 5.0 - 5 log₁₀(20/10) = 5.0 - 5(0.301) = 5.0 - 1.505 ≈ 3.5"
+              ]
+            },
+            "hints": [
+              "5 log(2)."
+            ],
+            "reveal": "M_bol = 5.0 - 5 log₁₀(20/10) = 5.0 - 5(0.301) ≈ 3.50."
+          },
+          {
+            "prompt": "Luminosity from absolute magnitude: M_bol☉ = 4.74; L/L☉ = 10^((M_bol☉ - M_bol)/2.5). Compute.",
+            "motivation": "Pogson scale.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "L/L☉ = 10^((4.74 - 3.50)/2.5) = 10^(1.24/2.5) = 10^0.496 ≈ 3.13 L☉"
+              ]
+            },
+            "hints": [
+              "Pogson scale: 5 mag = 100× flux."
+            ],
+            "reveal": "L/L☉ = 10^((4.74 - 3.50)/2.5) = 10^0.496 ≈ 3.13 L☉. The star is ~3× more luminous than the Sun."
+          },
+          {
+            "prompt": "Radius from Stefan-Boltzmann: L = 4πR²σT⁴ → R/R☉ = (L/L☉)^(1/2) × (T☉/T)². Use T☉ = 5778 K.",
+            "motivation": "Combine Stefan-Boltzmann + solar reference.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "R/R☉ = √3.13 × (5778/4000)² = 1.77 × 2.087 ≈ 3.7 R☉"
+              ]
+            },
+            "hints": [
+              "Solar reference: L☉ = 4πR☉²σT☉⁴."
+            ],
+            "reveal": "R/R☉ = √(L/L☉) × (T☉/T)² = √3.13 × (5778/4000)² = 1.77 × 2.087 ≈ 3.7 R☉. Cool (T = 4000 K) + moderately luminous (3 L☉) → modest red giant or subgiant. The full chain — parallax to luminosity to radius — works for any star with measured spectrum + parallax. Gaia has done this for ~10⁹ stars."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_light_1",
+        "kind": "multiple_choice",
+        "question": "Why is the 21-cm hydrogen line so important to radio astronomy even though it's a 'forbidden' (low-probability) transition?",
+        "options": [
+          "Hydrogen is abundant.",
+          "Hydrogen is the most abundant element (~75% by mass) so even a low-probability hyperfine transition produces detectable signal over galactic + cosmological volumes. The 21-cm line lets us map neutral HI in galaxies, trace MW spiral arms (van de Hulst predicted 1944, Ewen + Purcell + Muller detected 1951), study reionization at high z (SKA), + measure rotation curves → dark matter (Rubin + Ford 1970s).",
+          "Hydrogen has a magnetic moment.",
+          "Hydrogen is light."
+        ],
+        "correctIndex": 1,
+        "explanation": "21-cm = 1420 MHz hyperfine spin-flip in neutral H ground state. Spontaneous emission rate ~2.85×10⁻¹⁵ s⁻¹ (mean lifetime ~10⁷ yr per atom — extremely forbidden). But the universe is 75% hydrogen by mass; tracing diffuse HI across galactic + cosmological scales is trivially observable in this single line. Applications: van de Hulst 1944 prediction; Ewen + Purcell + Muller 1951 detection at Harvard; mapped MW spiral arms; later galaxy rotation curves (Rubin + Ford 1970s → first dark-matter evidence); cosmological HI surveys (HIPASS, ALFALFA, SKA's mission); Epoch of Reionization signature at high z (low-frequency surveys MWA, HERA, LOFAR). The 21-cm has been called the 'cosmic Rosetta stone' of radio astronomy."
+      },
+      "hints": [
+        "Forbidden but abundant.",
+        "Maps what large-scale structure?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "21-cm hyperfine transition in HI: forbidden (rate ~10⁻¹⁵ s⁻¹ per atom) but H is ~75% of baryonic mass — so detectable across galaxies + cosmological volumes. van de Hulst 1944 predicted; Ewen + Purcell + Muller 1951 detected. Used for: MW spiral-arm mapping, galaxy rotation curves (Rubin/Ford → dark matter), HI cosmology, EoR (SKA). The single most-used radio astronomy line."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_light_1",
+        "kind": "scenario",
+        "question": "A new 30-m ground telescope (TMT-class) at Mauna Kea + a 6-m space telescope (HWO-class) at L2 are both proposed for the 2030s, each ~$10B. The science target: directly imaging Earth-like exoplanets + characterizing their atmospheres.",
+        "prompt": "Walk through the tradeoffs: (1) light-gathering power scales as D² — ground wins; (2) diffraction limit scales as λ/D — ground wins at fixed λ; (3) atmospheric absorption + turbulence — space wins for UV + mid-IR + image stability; (4) coronagraphy + 10⁻¹⁰ contrast requirement for Earth-Sun analogs — needs picometer wavefront control, much easier in space; (5) lifetime + servicing + launch mass + cost — space sacrifices these. Which telescope wins each criterion? Why does the 2020 Decadal recommend both (Habitable Worlds Observatory + ELT-class ground)?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_light_1",
+        "kind": "math_expression",
+        "question": "Write Wien's displacement law relating peak wavelength to blackbody temperature.",
+        "acceptedAnswers": [
+          "λ_max · T = 2.898 × 10⁻³ m·K",
+          "λ_max T = b",
+          "λ_max = b/T",
+          "λ_max T = 2.898e-3 m K",
+          "λ_max · T = 2898 μm·K"
+        ],
+        "hint": "Wien's constant b ≈ 2.898×10⁻³ m·K = 2898 μm·K."
+      },
+      "workedSolution": "Wien (1893): λ_max · T = b ≈ 2.898×10⁻³ m·K. Examples: Sun T=5778 K → λ_max = 502 nm (yellow-green). Earth T=288 K → 10.06 μm (mid-IR, why JWST MIRI matters + why thermal imagers work). CMB T=2.725 K → 1.06 mm (microwave). Hot O star T=40000 K → 72 nm (EUV)."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_light_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why spectroscopy + multi-wavelength observation are the two most powerful techniques in observational astronomy.",
+        "rubric": "Mentions: spectroscopy decomposes light into wavelength → reads atomic + molecular signatures (Fraunhofer 1814; Bunsen + Kirchhoff 1859 three laws). From single spectrum: composition (which elements + isotopes), temperature (line ratios, Boltzmann + Saha), pressure (line broadening), magnetic field (Zeeman), velocity (Doppler + cosmological redshift), density (forbidden lines). Multi-wavelength: each band reveals different physics — radio (cold gas, HI 21-cm, pulsars), sub-mm + IR (dust + cool stars + high-z), optical + UV (hot stars, AGN), X-ray (hot plasma + compact objects), gamma-ray (non-thermal). Single source observed in 10 bands gives total story (e.g. AGN: thermal disk in UV/X, jet in radio, dust torus in IR, broad-line region in optical, narrow-line + outflow in optical + X). Combined with multi-messenger (GW + neutrinos), spectroscopy + multi-band photometry are the universal toolkit."
+      }
+    }
+  ]
+}

@@ -6,6 +6,7 @@ import {
   forumTopics,
   getDb,
   masteryNodes,
+  masteryPaths,
   petInventory,
   petSkinInventory,
   userAchievements,
@@ -263,6 +264,67 @@ export const ACHIEVEMENTS: Achievement[] = [
   },
 ];
 
+// ---- Path-completion achievements --------------------------------------
+//
+// Generic "completed every node on path X" badge. Generated at module
+// load by reading the mastery_paths table — one achievement per path.
+// New paths added to the seed automatically gain a corresponding
+// achievement on next process boot without code changes here.
+//
+// Slug format: `path_complete_<pathSlug>`. The predicate is a closure
+// over the path slug; reuses the join pattern from countCompletedAtLevel
+// but without the per-level filter.
+
+function pathFullyComplete(db: Db, userId: string, pathSlug: string): boolean {
+  const totalRow = db
+    .select({ n: count() })
+    .from(masteryNodes)
+    .innerJoin(masteryPaths, eq(masteryNodes.pathId, masteryPaths.id))
+    .where(eq(masteryPaths.slug, pathSlug))
+    .get();
+  const total = Number(totalRow?.n ?? 0);
+  if (total === 0) return false;
+  const doneRow = db
+    .select({ n: count() })
+    .from(userProgress)
+    .innerJoin(masteryNodes, eq(userProgress.nodeId, masteryNodes.id))
+    .innerJoin(masteryPaths, eq(masteryNodes.pathId, masteryPaths.id))
+    .where(
+      and(
+        eq(masteryPaths.slug, pathSlug),
+        eq(userProgress.userId, userId),
+        eq(userProgress.completed, true),
+      ),
+    )
+    .get();
+  return Number(doneRow?.n ?? 0) >= total;
+}
+
+let _pathAchievementsLoaded = false;
+function ensurePathAchievements(): void {
+  if (_pathAchievementsLoaded) return;
+  try {
+    const db = getDb();
+    const rows = db.select({ slug: masteryPaths.slug, title: masteryPaths.title }).from(masteryPaths).all();
+    for (const row of rows) {
+      const slug = `path_complete_${row.slug}`;
+      if (BY_SLUG.has(slug)) continue;
+      const ach: Achievement = {
+        slug,
+        title: `${row.title} Master`,
+        description: `Completed every node on the ${row.title} path`,
+        icon: "🏆",
+        predicate: (db, uid) => pathFullyComplete(db, uid, row.slug),
+      };
+      ACHIEVEMENTS.push(ach);
+      BY_SLUG.set(slug, ach);
+    }
+    _pathAchievementsLoaded = true;
+  } catch {
+    // DB not yet initialized (e.g. during seed); will retry on next call
+  }
+}
+
 const BY_SLUG = new Map(ACHIEVEMENTS.map((a) => [a.slug, a]));
 
 export function getAchievement(slug: string): Achievement | undefined {
@@ -294,6 +356,9 @@ export function recordActivity(
 // haven't been awarded before. Returns the list of newly-awarded
 // achievement slugs so the caller can surface a celebration UI.
 export function evaluateAchievements(userId: string, db: Db = getDb()): string[] {
+  // Lazily attach path-complete achievements once the DB is available.
+  ensurePathAchievements();
+
   const earned = new Set(
     db
       .select({ slug: userAchievements.slug })

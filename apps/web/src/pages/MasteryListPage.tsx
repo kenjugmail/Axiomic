@@ -33,12 +33,21 @@ export function MasteryListPage() {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [domain, setDomain] = useState<Domain | "All">("All");
+  const [completion, setCompletion] = useState<Map<string, { completed: number; total: number; fraction: number }>>(new Map());
 
   useEffect(() => {
     api.mastery
       .getPaths()
       .then((data) => setPaths(data.paths))
       .finally(() => setLoading(false));
+    api.mastery
+      .getPathsCompletion()
+      .then((r) => {
+        const m = new Map<string, { completed: number; total: number; fraction: number }>();
+        for (const c of r.completion) m.set(c.pathSlug, c);
+        setCompletion(m);
+      })
+      .catch(() => undefined);
   }, []);
 
   const tagged = useMemo(
@@ -148,6 +157,16 @@ export function MasteryListPage() {
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono">
                       {path._domain}
                     </span>
+                    {(() => {
+                      const c = completion.get(path.slug);
+                      if (!c || c.total === 0 || c.completed === 0) return null;
+                      const pct = Math.round(c.fraction * 100);
+                      return (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${pct === 100 ? "bg-green-500/20 text-green-700 dark:text-green-300" : "bg-primary/15 text-primary"}`}>
+                          {pct === 100 ? "✓ complete" : `${c.completed}/${c.total}`}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <p className="text-muted-foreground text-sm line-clamp-3">{path.description}</p>
                 </div>

@@ -419,6 +419,8 @@ export const api = {
   },
   mastery: {
     getPaths: () => request<MasteryPathsResponse>("/mastery/paths"),
+    getPathsCompletion: () =>
+      request<{ completion: Array<{ pathSlug: string; total: number; completed: number; fraction: number }> }>("/mastery/paths-completion"),
     getPath: (slug: string) =>
       request<MasteryPathResponse>(`/mastery/paths/${slug}`),
     markComplete: (nodeId: string) =>

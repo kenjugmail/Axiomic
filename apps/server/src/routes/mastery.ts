@@ -70,6 +70,40 @@ mastery.get("/paths", async (c) => {
   return c.json({ paths });
 });
 
+// Per-user path completion summary. For each path returns the user's
+// completed-node count + total. Returns empty arrays for anonymous
+// viewers. Used by /discover, /paths, and the progress dashboard to
+// render completion% chips on path cards without N+1 queries.
+mastery.get("/paths-completion", async (c) => {
+  const session = await getSessionUser(c);
+  if (!session) return c.json({ completion: [] });
+  const db = getDb();
+  // One aggregate query: for each path, count nodes total + count
+  // (node × this user's completed progress) where applicable.
+  const rows = db
+    .select({
+      pathSlug: masteryPaths.slug,
+      total: sql<number>`COUNT(${masteryNodes.id})`,
+      completed: sql<number>`SUM(CASE WHEN ${userProgress.completed} = 1 AND ${userProgress.userId} = ${session.id} THEN 1 ELSE 0 END)`,
+    })
+    .from(masteryPaths)
+    .innerJoin(masteryNodes, eq(masteryNodes.pathId, masteryPaths.id))
+    .leftJoin(
+      userProgress,
+      and(eq(userProgress.nodeId, masteryNodes.id), eq(userProgress.userId, session.id)),
+    )
+    .groupBy(masteryPaths.slug)
+    .all();
+  return c.json({
+    completion: rows.map((r) => ({
+      pathSlug: r.pathSlug,
+      total: Number(r.total ?? 0),
+      completed: Number(r.completed ?? 0),
+      fraction: Number(r.total ?? 0) > 0 ? Number(r.completed ?? 0) / Number(r.total) : 0,
+    })),
+  });
+});
+
 // Get mastery path with nodes and progress
 mastery.get("/paths/:slug", async (c) => {
   const slug = c.req.param("slug");
