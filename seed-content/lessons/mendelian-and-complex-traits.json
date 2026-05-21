@@ -1,0 +1,171 @@
+{
+  "slug": "mendelian-and-complex-traits",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Read pedigrees and infer inheritance patterns.",
+      "Distinguish Mendelian from complex traits and reason about their genetic architectures.",
+      "Apply heritability and twin-study logic to estimate genetic contribution."
+    ],
+    "prereqs": [
+      "molecular-genetics-dna-and-rna"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Pedigree analysis and inheritance patterns",
+      "body": "Clinical genetics begins with the **pedigree** — a family tree annotated with phenotype + relationships. Standard symbols: square = male, circle = female, filled = affected, half-filled = carrier, slash = deceased.\n\n**Autosomal dominant (AD)**:\n- Affected in *every generation* (vertical pattern).\n- Both sexes equally affected.\n- Affected parent → ~50% risk per offspring.\n- Examples: Huntington's (*HTT*), Marfan (*FBN1*), neurofibromatosis 1 (*NF1*), familial hypercholesterolemia (*LDLR*), Lynch syndrome (*MLH1/MSH2*).\n- **Penetrance**: BRCA1 → 60-80% lifetime breast cancer (incomplete penetrance). Huntington's ~100% penetrant if survives long enough.\n\n**Autosomal recessive (AR)**:\n- Skips generations; both parents typically unaffected carriers.\n- Both sexes equally affected.\n- Carrier × carrier → 25% affected, 50% carrier, 25% homozygous-normal.\n- Consanguinity ↑ risk dramatically (1st cousin offspring ~3-4× background).\n- Examples: cystic fibrosis (*CFTR* ΔF508), sickle cell (*HBB* Glu6Val), Tay-Sachs (*HEXA*), phenylketonuria (*PAH*), thalassemias (*HBA/HBB*), spinal muscular atrophy (*SMN1*).\n\n**X-linked recessive**:\n- Affected mostly *males* (single X + hemizygous).\n- Skipping generations via carrier females.\n- Affected father → 0 sons affected (gives Y), all daughters carriers.\n- Carrier mother → ~50% sons affected, 50% daughters carriers.\n- Examples: hemophilia A (*F8*) + B (*F9*), Duchenne (*DMD*), red-green color blindness, fragile X (*FMR1*, though heterozygous females can show milder phenotype).\n- **Lyonization**: random X-inactivation in females → mosaicism; rare affected female heterozygotes possible if skewed inactivation.\n\n**X-linked dominant**: rare. Affected father → all daughters affected, no sons. Examples: Rett (*MECP2*; lethal in males in utero usually), hypophosphatemic rickets, fragile X (variable).\n\n**Y-linked**: very rare; passed father-to-son only. *SRY* (sex determination). Most Y has no genes; small fraction (e.g., AZF for spermatogenesis).\n\n**Mitochondrial inheritance**:\n- mtDNA inherited *maternally* (egg cytoplasm).\n- Affected mother → all offspring inherit mutated mtDNA (variable heteroplasmy).\n- Affected father → no transmission.\n- Examples: LHON (Leber's hereditary optic neuropathy), MELAS, MERRF, NARP, Kearns-Sayre.\n- **Heteroplasmy**: cells contain mixture of mutant + wild-type mtDNA; threshold effect (often ~70% mutant) before phenotype.\n\n**Modifiers of classical patterns**:\n- **Penetrance**: P(phenotype | genotype). Reduced penetrance: BRCA1/2 (60-80% breast), HD with intermediate alleles.\n- **Expressivity**: variable severity given expression. Neurofibromatosis 1 wildly variable.\n- **Anticipation**: earlier onset + worse phenotype each generation; classic for repeat expansions (HD, fragile X, DM1, SCAs, C9ORF72).\n- **Imprinting**: parent-of-origin effects. Prader-Willi (paternal 15q11-13 deletion) vs Angelman (maternal same locus).\n- **Mosaicism**: post-zygotic mutation → patches of affected cells. McCune-Albright, Proteus, segmental NF1.\n- **De novo mutations**: not in either parent — explains apparent dominant traits without family history (Cornelia de Lange, achondroplasia, recurring trisomies).\n- **Locus heterogeneity**: different genes → same phenotype (retinitis pigmentosa: >70 genes).\n- **Allelic heterogeneity**: different mutations in same gene → different phenotypes (*LMNA* → cardiomyopathy, muscular dystrophy, lipodystrophy, progeria)."
+    },
+    {
+      "kind": "text",
+      "title": "Mendelian disease catalog and molecular basis",
+      "body": "**Mendelian (single-gene) diseases**: ~7000+ catalogued in **OMIM** (Online Mendelian Inheritance in Man, originally Victor McKusick). Individually rare (<1/2000), collectively common (~1 in 50 births).\n\n**Selected disease deep-dives**:\n\n**Cystic fibrosis** (CFTR, autosomal recessive):\n- *CFTR* on 7q31; encodes cAMP-regulated chloride channel.\n- ΔF508 (3-bp deletion of Phe508 in NBD1) — ~70% of CF alleles in N. Europeans.\n- >2000 variants known; classes I-VI (nonsense, missense/folding, gating, conductance, splice, transcription).\n- ~1/2500 N. European births, much rarer elsewhere.\n- Clinical: thick mucus → progressive lung disease, pancreatic insufficiency, infertility (CBAVD in males).\n- Therapy revolution: Trikafta (Vertex 2019) elexacaftor/tezacaftor/ivacaftor → ~90% of patients, near-normal life expectancy emerging.\n\n**Sickle cell disease** (HBB, autosomal recessive):\n- *HBB* Glu6Val (rs334) → HbS polymerizes when deoxygenated → sickled RBCs → vaso-occlusion + hemolysis.\n- ~1/365 African-American births. Heterozygote advantage vs *Plasmodium falciparum* malaria — selection signature.\n- Carrier frequency >10% in some sub-Saharan African populations.\n- Therapy 2023: **Casgevy** (CRISPR-Cas9 editing BCL11A enhancer → reactivate fetal hemoglobin) + Lyfgenia (lentiviral gene therapy) — first CRISPR-approved drug, FDA Dec 2023.\n\n**Huntington's disease** (HTT, autosomal dominant):\n- CAG repeat in *HTT* exon 1; normal <36, affected ≥40.\n- PolyQ tract aggregates in striatal neurons → chorea + cognitive + psychiatric decline.\n- Anticipation via paternal germline expansion.\n- No disease-modifying therapy as of 2024; ASO + RNAi trials ongoing; tominersen (Roche) failed phase III.\n\n**BRCA1/BRCA2** (autosomal dominant, hereditary breast/ovarian cancer):\n- *BRCA1* on 17q21, *BRCA2* on 13q12. Both required for homologous recombination DSB repair.\n- ~60-80% lifetime breast cancer + 20-40% ovarian for BRCA1; somewhat lower BRCA2 + adds male breast, prostate, pancreatic.\n- Founder mutations: 185delAG + 5382insC in Ashkenazi (~2.5% carrier frequency for BRCA1+2 combined).\n- Mary-Claire King mapped BRCA1 1990 — landmark for genetic-disease gene-finding.\n- Therapy: PARP inhibitors (olaparib, FDA 2014) exploit synthetic lethality — BRCA-deficient cells can't repair PARP-induced DSBs.\n\n**Other classics**:\n- **Phenylketonuria (PAH)**: AR; phenylalanine accumulation → ID without dietary control. Newborn screening since 1960s (Guthrie test) — model success of population screening.\n- **Duchenne muscular dystrophy (DMD)**: X-linked recessive; dystrophin out-of-frame deletions (in-frame deletions → Becker, milder). Exon-skipping antisense oligos (eteplirsen, golodirsen, casimersen) restore reading frame.\n- **Tay-Sachs (HEXA)**: AR; ~1/30 carrier in Ashkenazim. Carrier screening reduced incidence 90% — pioneer for community screening (1971+).\n- **Marfan (FBN1)**: AD connective-tissue disorder; aortic risk.\n- **Familial hypercholesterolemia (LDLR)**: AD; ~1/250 — among most common Mendelian diseases. PCSK9 inhibitors (evolocumab, alirocumab) for severe cases.\n- **Lynch syndrome (MLH1/MSH2/MSH6/PMS2)**: AD MMR-deficiency → colorectal + endometrial cancer; MMR-deficient tumors → high TMB → immunotherapy responsive.\n\n**Gene-discovery history**:\n- Linkage mapping → positional cloning era (1980s-90s): Huntington's (1983 marker, 1993 gene), CFTR (1989 Riordan/Collins), DMD (1986), BRCA1 (King 1990 → 1994 gene), etc.\n- Microarray + NGS era (2000s+): whole-exome sequencing (Bamshad, Shendure 2010+) → routine Mendelian-disease diagnostics; >100 new disease genes per year.\n- Modern: ~70-80% diagnostic yield for clearly-Mendelian presentations in pediatric undiagnosed-disease programs (NIH UDP, Genomics England 100K)."
+    },
+    {
+      "kind": "text",
+      "title": "Complex traits, heritability, and missing heritability",
+      "body": "Most human variation isn't Mendelian. **Complex traits**: height, IQ, BMI, blood pressure, diabetes risk, schizophrenia, coronary artery disease, etc. — **polygenic** (hundreds to thousands of variants) + **multifactorial** (gene-gene + gene-environment).\n\n**Quantitative genetics framework** (Fisher 1918, Wright, Haldane synthesis 1918-1930s):\n- **V_P = V_G + V_E** (+ V_GE interaction).\n- **V_G = V_A + V_D + V_I** (additive + dominance + interaction).\n- **Heritability**: h² = V_A / V_P (narrow-sense; what's transmissible) or H² = V_G / V_P (broad-sense).\n- Heritability is a *population* parameter — depends on environment + allele frequencies.\n- **Examples**: height h² ~0.8; IQ h² ~0.5-0.8 (debated); schizophrenia h² ~0.8; BMI ~0.5-0.7; type 2 diabetes ~0.3-0.7.\n\n**Estimating h² without DNA**:\n- **Parent-offspring regression**: slope of offspring on midparent ≈ h².\n- **Twin studies**: compare MZ (monozygotic, 100% shared) vs DZ (dizygotic, 50% shared) similarity. Falconer's formula: h² ≈ 2(r_MZ - r_DZ). Assumes equal environments — assumption violated in some traits.\n- **Adoption studies**: separate genetic from familial-environmental contribution.\n- **Sibling correlation**, **half-sib**, **pedigree-based mixed models**.\n\n**From DNA: GWAS-based estimates**:\n- **GCTA/GREML** (Yang, Visscher 2010+): mixed-model estimate of total chip heritability h²_SNP (additive contribution captured by genotyped SNPs).\n- **LD-score regression** (Bulik-Sullivan, Neale 2015): heritability + genetic correlation from GWAS summary stats.\n- **Family-based / sib-pair GREML**: avoids confounding with environment.\n\n**Missing heritability** (Manolio + Maher 2008-2010): early GWAS found significant SNPs but explained tiny fraction of trait variance — gap between twin-study h² (~80% for height) and SNP-explained variance (a few % from early GWAS). Hypotheses:\n- **Rare variants** of large effect (whole-exome/genome sequencing).\n- **Structural variants** poorly tagged by SNP arrays.\n- **Many small-effect common variants** (most likely; later GWAS confirmed).\n- **Gene-gene + gene-environment interactions** (limited contribution found).\n- **Epigenetic / transgenerational effects** (controversial).\n- **Inflated twin-study estimates** (assortative mating, indirect genetic effects).\n\nLater GWAS (UK Biobank scale, 10⁶ samples, polygenic models): height h²_SNP ~50% → near-closed gap. Most of 'missing' heritability was in many small-effect common variants.\n\n**Polygenic architecture conclusions** (Boyle, Pritchard *Cell* 2017 'omnigenic' model):\n- Hundreds to thousands of variants contribute.\n- Effect sizes small (each ~0.01-0.5 sd).\n- Most variants in non-coding regulatory regions affecting gene expression.\n- **Core genes** with biological function + **peripheral genes** in cellular networks both contribute.\n- 'Genetics' for complex traits = polygenic score + environment + chance.\n\n**Genotype-environment interaction**:\n- PKU is *Mendelian* but the *disease* is gene-environment: PAH-loss-of-function + phenylalanine-containing diet.\n- Diabetes risk × Western diet.\n- Smoking × COPD susceptibility (SERPINA1 etc.).\n- Cancer × environmental carcinogens.\n\n**Heritability ≠ genetic determinism**:\n- High h² in a population doesn't mean trait is fixed by genes for individuals.\n- Population-specific (changes with environment, allele frequencies).\n- Doesn't address group differences (between-group heritability ≠ within-group).\n- Says nothing about modifiability: PKU is highly heritable yet ID fully preventable via diet."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_gen_3",
+        "kind": "guided_derivation",
+        "question": "Compute trait heritability from twin data",
+        "goal": "A trait shows MZ correlation r_MZ = 0.85, DZ correlation r_DZ = 0.45. Compute narrow-sense heritability via Falconer.",
+        "steps": [
+          {
+            "prompt": "Falconer's formula?",
+            "motivation": "Use 2× the difference.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "h² = 2(r_MZ - r_DZ)",
+                "2(rMZ - rDZ)"
+              ]
+            },
+            "hints": [
+              "Why factor of 2?"
+            ],
+            "reveal": "Falconer: h² ≈ 2(r_MZ − r_DZ). MZ share 100% additive genes; DZ share 50%. Difference reflects half the additive genetic variance; 2× gives h²_A."
+          },
+          {
+            "prompt": "Plug in numbers.",
+            "motivation": "Direct compute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.80",
+                "0.8",
+                "80%"
+              ]
+            },
+            "hints": [
+              "2(0.85 − 0.45)."
+            ],
+            "reveal": "h² = 2(0.85 − 0.45) = 0.80 → 80% narrow-sense heritability."
+          },
+          {
+            "prompt": "What assumptions did we make?",
+            "motivation": "Critical model assumptions.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "equal environments; no GxE; no assortative mating; additivity",
+                "MZ and DZ have equal shared environments"
+              ]
+            },
+            "hints": [
+              "Equal-environments assumption."
+            ],
+            "reveal": "Key assumptions: (1) **equal-environments assumption** — MZ + DZ twins share environment equally (often violated; MZ may be more similarly treated); (2) **no GxE** + no assortative mating; (3) **additivity** (dominance + epistasis ignored); (4) **random mating** in population. Violations → inflated heritability estimates. Modern molecular methods (GCTA/GREML, LD-score, sib-pair GREML) avoid some of these biases."
+          },
+          {
+            "prompt": "Why might GWAS find h²_SNP much less than 0.80?",
+            "motivation": "Missing heritability framing.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "rare variants, SVs, sample size, LD coverage, inflated twin estimate",
+                "many small-effect variants not all captured"
+              ]
+            },
+            "hints": [
+              "What does a SNP chip miss?"
+            ],
+            "reveal": "Missing heritability: (1) **rare variants** (MAF < 1%) not on chip, captured only by sequencing; (2) **structural variants** poorly tagged; (3) **gene-gene + gene-environment** ignored; (4) **inflated twin h²** (equal-environments assumption violated); (5) **insufficient sample size** for thousands of small-effect SNPs to reach genome-wide significance. Later GWAS (UK Biobank scale) closed much of the gap — most missing heritability is many small-effect common variants. Yang/Visscher 2010: GCTA h²_SNP ~50% for height vs ~80% twin-based — substantial but not complete recovery."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_gen_4",
+        "kind": "multiple_choice",
+        "question": "A patient presents with progressive chorea + cognitive decline at age 35. Father had similar symptoms onset at age 50; paternal grandfather at age 60. Most likely diagnosis + mechanism?",
+        "options": [
+          "Random.",
+          "**Huntington's disease (HTT CAG repeat expansion)** with **anticipation** via paternal transmission. *HTT* CAG repeat normally <36; ≥40 causes disease (polyQ tract → toxic huntingtin aggregation in striatal neurons → chorea + cognitive decline + psychiatric symptoms). The *paternal* germline expands more readily than maternal (sperm-cell polymerase slippage at the unstable repeat). Across 3 generations, age of onset decreased 60 → 50 → 35 — classical anticipation. Autosomal dominant with near-complete penetrance once threshold crossed. Genetic test: PCR + fragment-length analysis (or long-read sequencing) of CAG tract in *HTT* exon 1. Genetic counseling complex (predictive testing for asymptomatic at-risk relatives raises ethical issues). No disease-modifying therapy yet; ASO/RNAi trials (tominersen failed P3 2021).",
+          "Random.",
+          "Mitochondrial."
+        ],
+        "correctIndex": 1,
+        "explanation": "Huntington's disease — autosomal dominant CAG repeat expansion in HTT exon 1. Anticipation via paternal germline → earlier + worse onset each generation (60 → 50 → 35). PolyQ tract toxic in striatal neurons. Test: CAG fragment length. No disease-modifying therapy; tominersen ASO failed phase III 2021. Ethical complexity for predictive testing in at-risk family members. Other anticipation disorders: fragile X (CGG, maternal), myotonic dystrophy (CTG), SCAs (CAG), C9ORF72 ALS/FTD."
+      },
+      "hints": [
+        "Anticipation across 3 paternal generations.",
+        "Chorea + cognitive decline."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Huntington's disease (CAG repeat expansion in HTT, AD). Paternal germline expansion → anticipation (onset earlier each generation). PolyQ huntingtin → striatal toxicity → chorea + cognitive + psychiatric symptoms. PCR fragment analysis confirms. No disease-modifying therapy; tominersen failed P3. Genetic counseling for at-risk family."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_gen_3",
+        "kind": "multiple_choice",
+        "question": "A research team claims they have 'proven that schizophrenia is 80% genetic' from a twin study. Best critique?",
+        "options": [
+          "Random.",
+          "**Heritability is a population parameter, not a personal one — and depends on assumptions**. (1) h² ~0.8 means *in this population, under these environmental conditions*, ~80% of phenotypic variance is attributable to additive genetic variance. It does NOT mean any individual is '80% determined by genes' or that schizophrenia is unmodifiable. (2) Twin studies assume **equal environments** for MZ + DZ — often violated (MZ twins treated more similarly). (3) **Assortative mating** + **shared family environment** can inflate estimates. (4) Heritability says nothing about between-group differences (e.g., across countries/eras). (5) **High heritability + treatable**: PKU is highly heritable yet ID fully preventable via diet; schizophrenia heritable but psychosocial interventions + antipsychotics reduce severity. (6) Polygenic risk scores have modest predictive value at individual level (~7-10% variance for schizophrenia even with massive GWAS).",
+          "Heritability is wrong.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Heritability h² is population-level, environment-specific, model-dependent (assumes equal environments, no GxE, additivity). High h² ≠ genetic determinism for individuals: PKU is highly heritable yet ID fully preventable via diet. Polygenic score variance explained much less than twin-study h² (schizophrenia ~7-10% via PRS vs ~80% twin h²). Heritability says nothing about between-group differences or modifiability. Common misinterpretation in popular + clinical communication. Critique should foreground these distinctions."
+      },
+      "hints": [
+        "Is heritability personal or population-level?",
+        "Twin study assumptions?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Heritability is a *population* + *environment*-specific statistic, not a personal one. Twin studies assume equal environments (often violated). High h² ≠ unmodifiable: PKU highly heritable but ID preventable with diet. Polygenic scores have far lower predictive value at individual level. Heritability cannot inform between-group differences or causation. The 'X is N% genetic' framing is misleading."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_gen_2",
+        "kind": "math_expression",
+        "question": "For a Mendelian autosomal recessive disease with carrier frequency q = 1/25 in a population, what fraction of births are affected (q²)? Use Hardy-Weinberg.",
+        "acceptedAnswers": [
+          "1/625",
+          "0.0016",
+          "0.16%"
+        ],
+        "hint": "Carrier frequency 2pq ≈ 2q for rare diseases → if 2q = 1/25 then q = 1/50 and q² = 1/2500. If q itself = 1/25 then q² = 1/625."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_gen_3",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, contrast Mendelian and complex traits in terms of genetic architecture, clinical detectability, and therapeutic strategy.",
+        "rubric": "Mentions: Mendelian — single-gene, large effect, often complete or high penetrance, OMIM catalog 7000+. AD/AR/X-linked/mitochondrial patterns visible in pedigrees. Clinical diagnosis often via NGS exome (~70-80% yield). Therapies: specific (Trikafta for CF ΔF508; Casgevy for sickle cell; PARPi for BRCA; exon-skipping for DMD). Complex (polygenic, multifactorial) — hundreds-thousands of variants each small effect; height h² ~0.8 with ~10000+ contributing SNPs; schizophrenia, diabetes, CAD, BMI similar. Detectability requires GWAS at scale (UK Biobank, FinnGen, MVP); polygenic risk scores from Khera 2018 etc. Therapeutic strategy: lifestyle + environment + targeted molecular interventions (statins for CAD/cholesterol; PCSK9 inhibitors for high-LDL; antipsychotics for schizophrenia); precision medicine emerging. Missing heritability (Manolio 2008): early gap between twin h² + GWAS h²_SNP largely closed by scale + LD coverage; remaining gap is rare variants + SVs + epistasis. Bridge: many 'Mendelian' diseases have complex modifiers (CF severity modified by polygenic background); many 'complex' diseases have rare-variant subsets (FH for hypercholesterolemia)."
+      }
+    }
+  ]
+}

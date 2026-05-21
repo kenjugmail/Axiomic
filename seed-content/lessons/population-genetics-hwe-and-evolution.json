@@ -1,0 +1,173 @@
+{
+  "slug": "population-genetics-hwe-and-evolution",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply Hardy-Weinberg equilibrium and detect departures.",
+      "Reason about mutation, selection, drift, and migration.",
+      "Use neutral theory and coalescent thinking to interpret genomic data."
+    ],
+    "prereqs": [
+      "genome-organization-and-mutations"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Hardy-Weinberg equilibrium: the null model",
+      "body": "**Hardy-Weinberg equilibrium (HWE)** — independent derivations by **G.H. Hardy** (Cambridge mathematician) + **Wilhelm Weinberg** (German physician) in 1908. Resolved a key controversy: critics of Mendelism argued that a dominant allele should increase in frequency each generation. Hardy + Weinberg showed mathematically: *under random mating and no evolutionary forces, allele + genotype frequencies remain constant across generations.*\n\n**Setup**: locus with two alleles A (frequency p) and a (frequency q); p + q = 1.\n\n**HWE genotype frequencies** (random mating, large population):\n- AA: **p²**\n- Aa: **2pq**\n- aa: **q²**\n\nThese sum: p² + 2pq + q² = (p + q)² = 1.\n\n**Assumptions of HWE**:\n1. **Random mating** (panmixia) — no assortative mating, no inbreeding.\n2. **Infinite population size** — no genetic drift.\n3. **No mutation** — allele frequencies don't change.\n4. **No selection** — all genotypes equally fit.\n5. **No migration** (gene flow).\n6. **Diploid sexual** organism, **autosomal** locus, **discrete generations** (or population at equilibrium).\n\n**Why HWE matters as a null hypothesis**:\n- *Departures* from HWE signal evolutionary forces operating.\n- Excess homozygotes → inbreeding, population substructure, selection against heterozygotes.\n- Excess heterozygotes → selection favoring heterozygotes (overdominance), assortative mating for opposite phenotype.\n- HWE *χ²* test detects departures.\n\n**Practical applications**:\n- **Carrier frequency from disease frequency**: cystic fibrosis ~1/2500 → q² = 1/2500 → q = 1/50 → carrier frequency 2pq ≈ 2q = 1/25 in N. Europeans.\n- **HLA typing + transplantation matching**: HWE-based haplotype frequencies.\n- **Forensic identification**: STR allele frequencies → match probabilities (assuming HWE).\n- **QC for genotyping**: variants violating HWE often genotyping errors (excluded from GWAS).\n- **GWAS sample QC**: filter individuals with excess heterozygosity (contamination) or homozygosity (inbreeding).\n\n**Population substructure** (Wahlund effect): mixing two populations with different allele frequencies → apparent heterozygote deficit in the combined sample. Major reason for HWE failure in admixed populations + a source of confounding in case-control GWAS — addressed by principal-components-based ancestry adjustment.\n\n**Inbreeding coefficient F**: probability of identity-by-descent (IBD) at a random locus. F = 1/16 first cousins, 1/4 sibs. Inbreeding genotype frequencies: AA = p² + Fpq; Aa = 2pq(1-F); aa = q² + Fpq. Increases homozygosity → recessive-disease risk."
+    },
+    {
+      "kind": "text",
+      "title": "Forces of evolution: mutation, selection, drift, migration",
+      "body": "**Mutation** introduces new alleles:\n- Rate ~10⁻⁸ per bp per generation (germline).\n- Recurrent mutation alone: forward + reverse mutation rates → equilibrium frequencies. Negligibly slow alone.\n- Combined with other forces → evolutionary dynamics.\n\n**Natural selection**: differential reproductive success.\n- **Selection coefficient s**: reduction in fitness of one genotype relative to reference. Fitness w = 1 - s.\n- **Directional selection**: one allele consistently fitter (positive selection). Lactase persistence (LCT *MCM6*) +5% per generation in dairying populations → near-fixation in ~5000 years.\n- **Balancing selection**: maintains polymorphism. **Heterozygote advantage**: sickle-cell carrier (HbS) resistant to malaria → polymorphism maintained ~10% allele freq in malaria-endemic regions despite lethality of homozygotes. HLA loci: frequency-dependent (rare alleles favored). Other classics: G6PD deficiency, thalassemias.\n- **Purifying / negative selection**: removes deleterious alleles. Most non-synonymous + LoF variants in essential genes.\n- **Background selection + linked selection**: deleterious variants reduce diversity at nearby neutral sites (Charlesworth, Hudson 1990s).\n\n**Genetic drift**: random allele-frequency change due to finite sampling.\n- **Wright-Fisher model** (Sewall Wright + R.A. Fisher 1930s): N diploid individuals, sample 2N gametes each generation. Variance of allele frequency change Var(Δp) = pq/(2N_e).\n- **Effective population size N_e**: idealized population matching observed variance. Humans: long-term N_e ~10000 (small compared to current ~8B census size — reflects ancient bottleneck).\n- **Fixation probability** of new neutral allele: 1/(2N_e). Expected time to fixation: ~4N_e generations.\n- **Bottlenecks** (e.g., out-of-Africa ~70k years ago): N_e collapse → diversity loss + drift dominant; founder effects (Finland, Ashkenazi, French Canadians, Amish, Faroe).\n\n**Migration / gene flow**: movement of alleles between populations.\n- Migration rate m → allele frequencies equilibrate; F_ST (population differentiation) decreases.\n- **Admixture**: hybridization between populations. African Americans ~80% West African + ~20% European ancestry on average; Latino populations ~3-way admixed (European, African, Indigenous American).\n- **Local ancestry inference** (Tractor, RFMix, HAPMIX): assign each genomic segment to ancestral source.\n\n**Non-random mating**:\n- **Assortative mating**: similar phenotypes mate (height ~0.2, education ~0.4). Increases V_A → inflates twin-based heritability estimates.\n- **Disassortative**: dissimilar phenotypes mate. MHC/HLA (rare).\n- **Inbreeding**: kin mating. Increases F → increases homozygosity → recessive disease risk.\n\n**Wright-Fisher model + Kingman's coalescent**:\n- **Coalescent** (Kingman 1982): looking *backward in time*, lineages coalesce at rate proportional to 1/(2N_e). At each generation, two lineages have probability 1/(2N_e) of sharing a common ancestor.\n- Time to most recent common ancestor (TMRCA) for n samples: expected ~4N_e generations (n→∞ approaches 4N_e for two random alleles).\n- Foundation of modern population genetics inference (PSMC, MSMC, ARGweaver, SMC++): recover demographic history from observed genomic patterns.\n\n**Kimura's neutral theory** (Motoo Kimura 1968 *Nature*): most genetic variation is selectively neutral; molecular evolution dominated by drift.\n- **Implication**: rate of substitution = mutation rate, independent of population size (for neutral alleles).\n- Foundation for **molecular clocks** + phylogenetic dating.\n- **Nearly neutral theory** (Ohta 1973): slightly deleterious mutations behave neutrally in small populations (s < 1/(2N_e)) but selected against in large ones. Explains higher accumulation of slightly deleterious variants in small populations.\n- Modern view: synthesis of selection + drift; signatures of both clearly detectable in genomes."
+    },
+    {
+      "kind": "text",
+      "title": "Selection scans and human evolutionary history",
+      "body": "**Detecting selection in genomes**: identify regions where natural selection (or other forces) shaped allele frequencies away from neutral expectations.\n\n**Classes of selection signatures**:\n\n**1. Reduced diversity / extended haplotypes**:\n- **iHS** (integrated haplotype score, Voight + Pritchard 2006): detects ongoing/recent positive selection. Long haplotypes around a putatively-selected allele.\n- **XP-EHH** (cross-population extended haplotype homozygosity): contrast haplotype lengths between populations.\n- **EHH-based methods** detect *partial sweeps* — recent positive selection in progress.\n\n**2. Allele-frequency differentiation between populations**:\n- **F_ST** (Wright's fixation index): variance in allele frequencies between populations / total variance. F_ST = 0 panmixia, F_ST = 1 complete divergence. Human F_ST ~0.10-0.15 globally; ~0.05 within continent.\n- **PBS** (population branch statistic, Yi et al. 2010): three-way F_ST comparison for lineage-specific selection.\n\n**3. Site-frequency spectrum (SFS) skews**:\n- **Tajima's D** (Tajima 1989): compares observed nucleotide diversity (π) to expected from segregating sites (θ_W).\n  - D < 0: excess of rare variants (recent positive selection, population expansion).\n  - D > 0: excess of intermediate frequency variants (balancing selection, population contraction).\n- **Fay + Wu's H**: detects high-frequency derived alleles (post-sweep signature).\n- **SweepFinder**: composite likelihood detection.\n\n**4. Deep-learning + ABC methods**: modern.\n- **diploS/HIC** + **ImaGene** (Schrider, Kern): CNN/RF detection of sweeps from haplotype images.\n- **ABC** (Approximate Bayesian Computation): infer demographic + selection parameters.\n\n**Classic examples of human selection**:\n- **Lactase persistence** (LCT): SNP in *MCM6* enhancer, near-fixed in northern Europeans (LP allele freq ~0.9), independent convergent mutations in East African pastoralists. Strong positive selection, s ~5%, ~5000-10000 years.\n- **Skin pigmentation**: *SLC24A5*, *SLC45A2*, *MFSD12*, *OCA2*, *MC1R* — multiple loci shaped by latitudinal UV gradient. F_ST signatures across continents.\n- **Malaria resistance**: HbS, HbC, HbE, α/β-thalassemias, G6PD-, Duffy-null. Sickle classic heterozygote advantage; multiple convergent solutions.\n- **High-altitude adaptation**: *EPAS1* in Tibetans (Yi et al. 2010 — fastest known selection signature in humans; Denisovan introgression contributed the adaptive variant; PBS huge). *EPAS1/EGLN1* in Andeans (different mechanism). ARNT2 in Ethiopian highlanders.\n- **Diet adaptation**: AMY1 copy-number variation correlates with starch consumption.\n- **Pathogen resistance**: CCR5-Δ32 (HIV resistance; possibly plague selection); HLA diversity maintained by pathogen pressure.\n\n**Human evolutionary history** (genomics-based):\n- **Out-of-Africa** ~60-70 kya: severe bottleneck for non-African populations; reduced diversity outside Africa.\n- **Archaic admixture**: ~2% Neanderthal in non-Africans; ~4% Denisovan in Melanesians + Papuans + some East Asians. Affected immunity (HLA), skin/hair, metabolism. (Pääbo Nobel 2022.)\n- **Recent expansion**: rare-variant excess in expanding populations.\n- **Convergent adaptations**: lactase persistence, skin lightening, malaria resistance evolved independently multiple times.\n\n**Population substructure + admixture**:\n- **PCA** on genotypes (Patterson, Reich 2006): top principal components recapitulate geography (PC1 = north-south Africa or Europe, PC2 = east-west; Novembre + Stephens 2008 *Nature* 'Genes mirror geography in Europe').\n- **ADMIXTURE / STRUCTURE**: model-based ancestry decomposition.\n- **f-statistics** (Patterson, Reich): formal tests for admixture, treeness, gene flow.\n- **D-statistic + ABBA-BABA**: detects archaic introgression.\n\n**Effective vs census population sizes**:\n- Long-term human N_e ~10000 — far smaller than current ~8 × 10⁹.\n- N_e shaped by past bottlenecks, recent rapid expansion.\n- Rapid expansion → enormous excess of rare variants (most variants are very rare); GWAS sees mostly common variants → tip of the iceberg."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_popgen_1",
+        "kind": "guided_derivation",
+        "question": "Apply Hardy-Weinberg to estimate carrier frequency",
+        "goal": "Cystic fibrosis incidence ~1/2500 in N. European population (autosomal recessive). Compute allele frequency + carrier frequency assuming HWE.",
+        "steps": [
+          {
+            "prompt": "Disease incidence ↔ q²; compute q.",
+            "motivation": "Affected = homozygous recessive.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "q = 1/50",
+                "q = 0.02",
+                "sqrt(1/2500) = 1/50"
+              ]
+            },
+            "hints": [
+              "q² = 1/2500."
+            ],
+            "reveal": "q² = 1/2500 → q = √(1/2500) = 1/50 = 0.02. Recessive allele frequency 2%."
+          },
+          {
+            "prompt": "Carrier frequency 2pq?",
+            "motivation": "Heterozygote frequency in HWE.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~1/25",
+                "0.04",
+                "2 × 0.02 × 0.98"
+              ]
+            },
+            "hints": [
+              "p ≈ 1 for rare disease; 2q ≈ carrier."
+            ],
+            "reveal": "Carrier frequency = 2pq ≈ 2 × 0.98 × 0.02 = 0.0392 ≈ 1/25. Roughly 1 in 25 N. Europeans is a CF carrier — clinically actionable for carrier screening before conception."
+          },
+          {
+            "prompt": "Couple where each parent is a carrier — probability of CF child per pregnancy?",
+            "motivation": "Standard Mendelian.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1/4",
+                "0.25",
+                "25%"
+              ]
+            },
+            "hints": [
+              "Aa × Aa Punnett."
+            ],
+            "reveal": "Carrier × carrier → 1/4 affected (aa), 1/2 carrier (Aa), 1/4 unaffected (AA). 25% per pregnancy. Used in preconception/prenatal counseling."
+          },
+          {
+            "prompt": "Why doesn't selection eliminate the CF allele despite ~1/2500 affected (historically reduced fitness)?",
+            "motivation": "Mutation-selection balance + possible heterozygote advantage.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "mutation-selection balance + possible heterozygote advantage",
+                "balanced by mutation rate + heterozygote selection"
+              ]
+            },
+            "hints": [
+              "Why are recessive deleterious alleles persistent?"
+            ],
+            "reveal": "**Mutation-selection balance**: q̂ = √(μ/s) for recessive. With s ~0.5 (pre-modern, CF children rarely reached reproductive age) + μ ~10⁻⁶ → q̂ ~10⁻³, far below observed 0.02. Excess explained by: (1) **heterozygote advantage** — proposed advantages: resistance to cholera (CFTR mediates Cl⁻ secretion), typhoid (Salmonella uses CFTR), tuberculosis; (2) recent **mutation-drift** in N. Europeans (founder effects + bottleneck history); (3) reduced selection in modern medicine. Trikafta now substantially restores fitness."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_popgen_1",
+        "kind": "multiple_choice",
+        "question": "Why does the HbS (sickle-cell) allele persist at ~10% frequency in sub-Saharan African populations despite homozygous lethality (historically)?",
+        "options": [
+          "Random.",
+          "**Heterozygote advantage (balancing selection)** vs *Plasmodium falciparum* malaria. HbS/HbA heterozygotes have reduced parasitemia (sickling stresses parasitized RBCs → cleared by spleen; impaired parasite development in low-oxygen sickled cells). At equilibrium, alleles balance: s_AA from malaria mortality vs s_SS from sickle disease → maintained polymorphism. Classic textbook example of balancing selection; Allison 1954 demonstrated the geographic overlap between HbS + malaria. Similar mechanisms for HbC, HbE, α/β-thalassemias, G6PD deficiency, Duffy-null — multiple convergent malaria-resistance alleles. Equilibrium frequency depends on relative coefficients: q* = s_AA / (s_AA + s_SS) under simple symmetric model.",
+          "Random.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "HbS persistence = heterozygote advantage (balancing selection) vs P. falciparum malaria. HbS/HbA heterozygotes resist parasitemia → reduced mortality; HbS/HbS dies of sickle disease; HbA/HbA unprotected from malaria. Equilibrium frequency ~10% in endemic regions. Allison 1954 demonstrated geographic correlation. Multiple convergent resistance alleles: HbC, HbE, α/β-thalassemia, G6PD deficiency, Duffy-null. Classic example; Lewontin + Hubby 1966 generalized the role of balancing selection in maintaining polymorphism."
+      },
+      "hints": [
+        "What disease selects for HbS carriers?",
+        "Why doesn't selection eliminate a lethal recessive?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Heterozygote advantage (balancing selection) vs P. falciparum malaria. HbS/A resists parasitemia; S/S dies sickle disease; A/A no protection. Equilibrium 10%. Allison 1954 demonstrated geographic overlap. Convergent malaria-resistance alleles: HbC, HbE, thalassemias, G6PD-, Duffy-null."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_popgen_1",
+        "kind": "multiple_choice",
+        "question": "A GWAS in a recently-admixed (e.g., African American) cohort detects a strong association at a SNP with a SNP that mostly tags an *African-ancestry* haplotype. The association disappears when ancestry PCs are included as covariates. Best interpretation?",
+        "options": [
+          "True signal.",
+          "**Confounding by population substructure** (Wahlund-effect-type). The original association reflects correlation between disease prevalence + ancestry proportion rather than the SNP causing disease. When ancestry is accounted for (PCs or local-ancestry inference), the residual association disappears → the SNP isn't causal. This is a classic source of false positives in GWAS — addressed by: (1) **PCA-based covariates** (Patterson + Reich 2006, EIGENSTRAT); (2) **linear mixed models** (BOLT-LMM, SAIGE) accounting for cryptic relatedness + structure; (3) **local-ancestry adjustment** in admixed populations; (4) **GWAS within ancestry strata** + meta-analysis; (5) **family-based / trio designs** robust to structure. Modern GWAS pipelines routinely correct for these; the field initially overestimated effect sizes before adopting them in mid-2000s.",
+          "Random.",
+          "Linkage."
+        ],
+        "correctIndex": 1,
+        "explanation": "Population substructure / admixture confounding. Recently-admixed populations carry haplotype blocks of distinct ancestry; disease prevalence + ancestry proportion correlated → spurious SNP-disease association if SNP merely tags ancestry. Addressed via PCA covariates (Patterson + Reich 2006 EIGENSTRAT), linear mixed models (BOLT-LMM, SAIGE), local-ancestry inference (Tractor, RFMix), within-ancestry analysis. Pre-2006 GWAS often inflated effect sizes; modern pipelines correct routinely. Diversifying GWAS samples + ancestry-aware methods reduce false positives + improve transferability."
+      },
+      "hints": [
+        "What does adding ancestry covariates do?",
+        "Wahlund effect / population stratification."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Population stratification confounding — SNP tags ancestry, ancestry correlates with disease prevalence, not causal SNP. Ancestry PC covariates absorb the confounding. Solution: PCA (Patterson + Reich EIGENSTRAT 2006), linear mixed models (BOLT-LMM, SAIGE), local-ancestry methods, within-ancestry stratification. Pre-2006 GWAS often had inflated effects from uncorrected structure."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_popgen_1",
+        "kind": "math_expression",
+        "question": "A new neutral mutation arises in a population with effective size N_e = 10⁴. What is its probability of eventually fixing (becoming 100% frequency)?",
+        "acceptedAnswers": [
+          "1/(2 × 10⁴) = 5 × 10⁻⁵",
+          "5e-5",
+          "0.00005"
+        ],
+        "hint": "Neutral fixation probability for a new allele = 1/(2N_e) under Wright-Fisher."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_popgen_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how Hardy-Weinberg serves as a null hypothesis from which the five forces of evolution (mutation, selection, drift, migration, non-random mating) deflect populations.",
+        "rubric": "Mentions: Hardy-Weinberg (1908, Hardy + Weinberg independent) — under random mating + infinite population + no mutation/selection/migration, allele frequencies + genotype frequencies (p², 2pq, q²) remain constant across generations. Six (or five) assumptions. Departures signal forces: (1) mutation slowly introduces new alleles ~10⁻⁸/bp/gen; (2) selection (s) — directional (lactase persistence, +5%/gen), balancing (HbS-malaria heterozygote advantage), purifying (most non-syn variants); (3) drift (Wright-Fisher; N_e ~10⁴ for humans long-term); fixation probability 1/(2N_e) for neutral; Kingman coalescent; Kimura neutral theory 1968 ('most variation is neutral'); (4) migration/gene flow → admixture, F_ST decrease; archaic introgression ~2% Neanderthal in non-Africans; (5) non-random mating: inbreeding F → homozygote excess + recessive disease; assortative mating inflates V_A. Practical: HWE used for carrier-frequency estimation (CF q=1/50, carrier 1/25); GWAS QC + ancestry correction (PCA, BOLT-LMM); selection scans (iHS, F_ST, Tajima's D) detect deflection. Foundation of all modern population genetics + clinical genetics + evolutionary analysis."
+      }
+    }
+  ]
+}

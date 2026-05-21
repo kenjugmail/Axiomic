@@ -49,6 +49,9 @@ const ButlerVolmerCurve = lazy(() => import("../../../../packages/viz/src/compon
 const PreferentialAttachment = lazy(() => import("../../../../packages/viz/src/components/PreferentialAttachment").then(m => ({ default: m.PreferentialAttachment })));
 const ZKProofVerification = lazy(() => import("../../../../packages/viz/src/components/ZKProofVerification").then(m => ({ default: m.ZKProofVerification })));
 const RaftLogReplication = lazy(() => import("../../../../packages/viz/src/components/RaftLogReplication").then(m => ({ default: m.RaftLogReplication })));
+const ManhattanPlot = lazy(() => import("../../../../packages/viz/src/components/ManhattanPlot").then(m => ({ default: m.ManhattanPlot })));
+const MacArthurConsumerResource = lazy(() => import("../../../../packages/viz/src/components/MacArthurConsumerResource").then(m => ({ default: m.MacArthurConsumerResource })));
+const KinshipDiagram = lazy(() => import("../../../../packages/viz/src/components/KinshipDiagram").then(m => ({ default: m.KinshipDiagram })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -102,6 +105,9 @@ export const VIZ_NAMES = [
   "preferential-attachment",
   "zk-proof-verification",
   "raft-log-replication",
+  "manhattan-plot",
+  "macarthur-consumer-resource",
+  "kinship-diagram",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -153,6 +159,9 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "preferential-attachment": PreferentialAttachment,
   "zk-proof-verification": ZKProofVerification,
   "raft-log-replication": RaftLogReplication,
+  "manhattan-plot": ManhattanPlot,
+  "macarthur-consumer-resource": MacArthurConsumerResource,
+  "kinship-diagram": KinshipDiagram,
 };
 
 interface VizEmbedProps {

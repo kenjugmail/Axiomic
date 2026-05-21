@@ -1,0 +1,154 @@
+{
+  "slug": "spatial-ecology-and-metapopulations",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Build Levins metapopulation + extensions.",
+      "Distinguish source-sink + landscape ecology.",
+      "Apply island biogeography to reserve design."
+    ],
+    "prereqs": [
+      "population-ecology-and-leslie"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Metapopulations: Levins + colonization-extinction balance",
+      "body": "**Metapopulation** = 'a population of populations' — a set of local populations linked by dispersal, each capable of extinction + recolonization. Term coined by **Richard Levins 1969** *Bull. Ent. Soc. Am.*; landmark synthesis Hanski + Gilpin 1991 *Biol. J. Linn. Soc.*.\n\n**Classical Levins model**: occupancy p(t) = fraction of suitable patches occupied. Dynamics:\n\n  dp/dt = c · p · (1 – p) – e · p\n\nWhere **c = colonization rate** (from occupied to unoccupied patches; ∝ p) and **e = extinction rate** of occupied patches. Equilibrium:\n\n  **p* = 1 – e/c**\n\n**Persistence requires c > e** — colonization rate must exceed extinction rate, otherwise the metapopulation goes extinct even when each individual patch could recover. **Patch-network threshold** drives much of conservation theory.\n\n**Levins's key insight**: A species can persist *regionally* despite local extinctions when dispersal keeps colonization ahead of extinction. Local extinctions are normal + expected.\n\n**Assumptions + extensions**:\n- **Spatially implicit** (Levins): all patches equally connected; ignores geometry. Realistic for small or well-mixed networks.\n- **Spatially explicit** (Hanski 1994 **incidence-function model**): patches have area + position; extinction risk ∝ 1/area; colonization ∝ Σ exp(–α·d_ij) · A_j · p_j. **Ilkka Hanski** + **Glanville fritillary butterfly** (Melitaea cinxia) in the Åland archipelago — 4000+ meadows mapped + monitored since 1991 — became the empirical paradigm. Hanski 1999 *Metapopulation Ecology*.\n- **Stochastic patch occupancy models (SPOM)**: discrete-time analog with environmental + demographic stochasticity.\n- **Mainland-island** (Boorman + Levitt 1973): one large source + many small islands.\n- **Source-sink** (next slide).\n\n**Implications for conservation**:\n- Habitat loss may push c below e → regional extinction even with apparent patches remaining.\n- **Extinction debt** (Tilman 1994; Kuussaari 2009) — destroying habitat triggers delayed extinctions decades later when c falls below threshold.\n- **Connectivity** + corridor + stepping-stone design critical for fragmented landscapes.\n- **Habitat amount hypothesis** (Fahrig 2013): total habitat amount may matter more than configuration for many species — challenges to traditional metapopulation thinking.\n\n**SLOSS debate** revisited via metapopulation theory: Hanski + many showed that for many species, several small patches function as a metapopulation that can outperform one large patch under habitat-loss scenarios — but not always. Resolution is system-specific.\n\n**Modern advances**: graph-theoretic network analysis (Urban + Keitt 2001; Galpern + Manseau 2013), spatial population viability analysis (RAMAS), individual-based models, satellite-derived patch maps + machine learning."
+    },
+    {
+      "kind": "text",
+      "title": "Source-sink + landscape ecology",
+      "body": "**Source-sink dynamics** (**H. Ronald Pulliam 1988** *Am Nat*): Local populations differ in quality. **Sources** have births > deaths (intrinsic r > 0) and export migrants. **Sinks** have births < deaths (r < 0) — they would go extinct locally but are sustained by immigration. Net population trend depends on the balance.\n\n  λ_source > 1 (exports);  λ_sink < 1 (imports)\n\n**Pulliam's central insight**: many sink populations look healthy + viable in isolation but cannot persist without sources. Conservation of an apparently-thriving sink without protecting its source can fail catastrophically.\n\n**Pseudo-sinks** (Watkinson + Sutherland 1995): populations that appear to be sinks because high immigration depresses density below carrying capacity, but become self-sustaining when isolated.\n\n**Ecological traps** (Battin 2004): habitats with attractive cues but low fitness (e.g., bright light to nocturnal insects; agricultural fields to ground-nesting birds with high predation). Sinks that mimic sources.\n\n**Landscape ecology** (**Richard Forman 1986** *Landscape Ecology*; Turner 1989): ecology of spatial pattern + scale. Studies how heterogeneous landscape mosaics + spatial configuration shape ecological processes.\n\n**Key concepts**:\n- **Patch + matrix + corridor**: landscape elements (Forman + Godron 1986).\n- **Patch metrics**: size, shape, edge:area, fragmentation indices (FRAGSTATS).\n- **Connectivity**: structural (physical links) vs functional (organism perception + movement).\n- **Edge effects**: edges differ in microclimate, predation, invasion (Murcia 1995; Laurance + Vasconcelos 2009).\n- **Percolation theory**: critical thresholds in landscape connectivity (Gardner 1987).\n- **Hierarchical patch dynamics** (Wu + Loucks 1995): nested scales.\n\n**Movement ecology** (Nathan 2008 PNAS framework): four components — internal state, motion, navigation, external environment. Tracks dispersal, migration, nomadism. **Telemetry + GPS + ICARUS** (International Cooperation for Animal Research Using Space) tags revolutionize observation.\n\n**Range-size + range-shift dynamics**: leading-edge expansion + trailing-edge contraction under climate change (see frontier lesson).\n\n**Dispersal**: ecological + evolutionary. **Dispersal kernel** k(d) = probability density of moving distance d. Often fat-tailed → long-distance dispersal disproportionately important. Stratified dispersal: short-distance + rare long-distance jumps drive range expansion.\n\n**Allee + density-dependent dispersal**: dispersal can increase or decrease with density depending on resource + social mechanisms.\n\n**Landscape genetics** (Manel 2003; Storfer 2010): combines population genetics with landscape ecology. F_ST + isolation-by-distance + landscape resistance + circuit theory (McRae 2008 Circuitscape) — water-flow metaphor for movement probability across resistance surfaces."
+    },
+    {
+      "kind": "text",
+      "title": "Connectivity + reserve design + island biogeography for conservation",
+      "body": "**Connectivity** = the degree to which a landscape facilitates ecological flows + organism movement. Two components:\n- **Structural connectivity**: physical connectedness of habitat patches (corridors, stepping stones, narrowness of matrix).\n- **Functional connectivity**: actual movement realized by organisms (species-specific; depends on perception + behavior).\n\n**Corridor design** + critique:\n- **Pro**: facilitate dispersal + gene flow + range shifts + recolonization (Beier + Noss 1998 review).\n- **Con**: may also spread fire, disease, invasive species + edge predators (Simberloff 1992).\n- **Linear features + greenways**: highway crossings, riparian corridors, wildlife bridges (Banff Yellowhead; Y2Y Yellowstone-to-Yukon).\n- **Stepping stones**: small patches that link larger ones; lower risk than corridors but require coverage.\n\n**Reserve design principles** (Diamond 1975, later codified):\n1. Large reserves > small (lower extinction).\n2. Connected > isolated (higher colonization).\n3. Compact + circular > linear (less edge).\n4. Multiple replicates > single (insurance).\n5. Corridors > stepping stones > isolated patches.\n\n**Caveats**: principles depend on species + context; metapopulation + landscape framework refined them.\n\n**Systematic Conservation Planning** (Margules + Pressey 2000 *Nature*): software-based reserve selection. **Marxan** + **Zonation** + **prioritizr** optimize: complementarity (additional species per reserve), irreplaceability, persistence, cost. Used worldwide for terrestrial + marine reserve planning. Replaces ad-hoc protected-area design.\n\n**Network ecology approach**: model landscape as a graph; patches = nodes, dispersal probability = edges. **Centrality metrics** (betweenness, eigenvector, current-flow betweenness via Circuitscape) identify keystone patches.\n\n**Climate-smart reserve design**: protect climate refugia + facilitate range shifts via north-south corridors + elevational gradients. **Connectivity targets in 30×30 (Kunming-Montreal Global Biodiversity Framework 2022)**: not just area but **functional ecological connectivity** required.\n\n**UPV (Universal Patch Value)** + **metapopulation capacity** (Hanski + Ovaskainen 2000 *Nature*): single-number summary of how much a habitat network supports metapopulation persistence. Combines area + connectivity + species mobility.\n\n**Hanski 2002 review** + **Hanski + Ovaskainen 2003**: relates metapopulation capacity λ_M to threshold for persistence; quantitative framework for prioritizing patches in a network.\n\n**Island Biogeography for Conservation** (Wilcox 1980 + Simberloff 1988): MacArthur-Wilson principles applied. Larger + less isolated reserves hold more species. SLOSS debate. But systems aren't truly equilibrial + extinction has lags + species differ in vagility — so theory must be adapted.\n\n**Marine reserve design**: marine protected areas (MPAs) + closures use metapopulation + larval dispersal kernels + spillover models (Botsford 2001; Lubchenco; Halpern + Warner). 30×30 target includes 30% of oceans + lands by 2030 — political + scientific synergy."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sp_1",
+        "kind": "guided_derivation",
+        "question": "Derive metapopulation persistence threshold from Levins model",
+        "goal": "Find the equilibrium occupancy + the persistence threshold for a Levins metapopulation.",
+        "steps": [
+          {
+            "prompt": "Start from dp/dt = cp(1–p) – ep. Find dp/dt = 0 equilibria.",
+            "motivation": "Solve for fixed points.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "p* = 0 or p* = 1 – e/c"
+              ]
+            },
+            "hints": [
+              "Factor p · [c(1–p) – e]."
+            ],
+            "reveal": "dp/dt = p · [c(1–p) – e]. Equilibria: p* = 0 (regional extinction) or c(1–p*) = e → p* = 1 – e/c."
+          },
+          {
+            "prompt": "When is p* = 0 stable vs unstable?",
+            "motivation": "Linear stability.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "p*=0 stable iff c < e; unstable iff c > e"
+              ]
+            },
+            "hints": [
+              "Check d(dp/dt)/dp at p=0."
+            ],
+            "reveal": "At p=0: d(dp/dt)/dp = c – e. Stable (negative) when c < e — extinction is attracting. Unstable (positive) when c > e — invasion is possible. Threshold c = e separates persistence from extinction."
+          },
+          {
+            "prompt": "If c = 0.4/yr, e = 0.1/yr, compute p*.",
+            "motivation": "Apply formula.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "p* = 0.75",
+                "75%"
+              ]
+            },
+            "hints": [
+              "1 – 0.1/0.4."
+            ],
+            "reveal": "p* = 1 – 0.1/0.4 = 0.75. At equilibrium, 75% of patches are occupied; the remaining 25% turn over at rate c·p · (1–p) = 0.4·0.75·0.25 = 0.075/yr (balancing extinction at e·p = 0.075/yr)."
+          },
+          {
+            "prompt": "Habitat loss destroys half of patches. Modify model + predict outcome.",
+            "motivation": "Apply to conservation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "habitat amount D = 1–h; modified: dp/dt = cp(D–p) – ep; new p* = D – e/c"
+              ]
+            },
+            "hints": [
+              "Levins-Hanski hybrid with patch destruction h."
+            ],
+            "reveal": "With habitat fraction D = 0.5: dp/dt = cp(D–p) – ep. New p* = D – e/c = 0.5 – 0.25 = 0.25 of original landscape (so 0.25/0.5 = 50% of remaining patches occupied). When D < e/c, p*=0 — extinction threshold. **Extinction debt** (Tilman 1994): if D drops below e/c, persistence is doomed but actual decline can take decades to play out. Foundation of habitat-loss extinction-debt forecasting."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sp_1",
+        "kind": "multiple_choice",
+        "question": "Why did Hanski's Glanville fritillary metapopulation work become a paradigm for spatial ecology?",
+        "options": [
+          "Random.",
+          "Hanski + colleagues mapped + monitored ~4000 meadow patches across the Åland archipelago since 1991 — the largest sustained metapopulation study ever. Field data tested Levins + incidence-function model predictions, identified extinction-colonization dynamics, and linked landscape connectivity to persistence quantitatively. They derived metapopulation capacity λ_M (Hanski + Ovaskainen 2000 Nature) as a one-number summary of network viability. Stochastic patch occupancy models calibrated to data successfully forecast occupancy. The system also revealed Allee effects, genetic + behavioral mechanisms, and ecological-evolutionary coupling (eco-evo). Hanski's framework is now standard for forecasting metapopulation persistence under habitat loss, climate change, + corridor design — used worldwide in butterfly, amphibian, reptile, plant, and small-mammal conservation.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Hanski's 30+-yr Åland fritillary study tested + refined Levins metapopulation theory at scale, gave metapopulation capacity λ_M, and validated stochastic patch occupancy models. Became the empirical paradigm for spatial-ecology forecasting + conservation."
+      },
+      "hints": [
+        "Sustained empirical scale.",
+        "λ_M + incidence function."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Hanski's Åland archipelago Glanville fritillary study (4000+ patches, 30+ yr) tested + validated Levins + incidence-function models, gave metapopulation capacity λ_M (Hanski + Ovaskainen 2000), informed extinction-colonization dynamics + corridor design. Paradigm for spatial-ecology + metapopulation conservation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sp_1",
+        "kind": "scenario",
+        "question": "Designing a corridor under uncertainty",
+        "prompt": "A regional plan would create a 20-km corridor between two protected forests separated by farmland. What metapopulation + landscape + movement-ecology arguments would support or oppose the corridor, and what monitoring would test whether it works?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sp_1",
+        "kind": "math_expression",
+        "question": "A Levins metapopulation has c = 0.5/yr + e = 0.2/yr. Compute equilibrium occupancy p* (as fraction, to 2 decimals).",
+        "acceptedAnswers": [
+          "0.60",
+          "0.6",
+          "60%"
+        ],
+        "hint": "p* = 1 – e/c = 1 – 0.2/0.5 = 0.6. Sixty percent of suitable patches occupied at any time; the remainder represents ongoing colonization + extinction turnover."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sp_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why metapopulation + source-sink + landscape ecology together transformed conservation planning.",
+        "rubric": "Mentions: Levins (1969) metapopulation framework — local extinctions are normal; persistence requires c > e at the network level. Hanski (1994, 1999, 2002) incidence-function model + metapopulation capacity λ_M + Åland fritillary paradigm. Pulliam (1988) source-sink dynamics — net trend depends on sources, sinks can mislead surveys. Forman (1986) landscape ecology — patches + matrix + corridors + connectivity. Tilman (1994) extinction debt + delayed effects of habitat loss. SLOSS debate refined by metapopulation theory. Margules + Pressey (2000) systematic conservation planning. Modern outputs: corridors, climate-smart reserves, marine protected areas, 30×30 target with explicit functional-connectivity requirement, eDNA + GPS-based movement ecology. Conservation moved from species-by-species protection to network-level + landscape-level + functional design."
+      }
+    }
+  ]
+}

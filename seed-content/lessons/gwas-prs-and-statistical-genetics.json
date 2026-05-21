@@ -1,0 +1,182 @@
+{
+  "slug": "gwas-prs-and-statistical-genetics",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Read Manhattan + QQ plots and reason about GWAS architecture.",
+      "Compute and interpret polygenic risk scores.",
+      "Apply statistical-genetic tools: LD-score, MR, fine-mapping, colocalization."
+    ],
+    "prereqs": [
+      "mendelian-and-complex-traits",
+      "population-genetics-hwe-and-evolution"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "GWAS: scanning the genome for associations",
+      "body": "**Genome-wide association study (GWAS)**: regress phenotype on each of millions of SNPs to discover loci associated with the trait. Replaced candidate-gene era (which suffered low reproducibility) starting ~2005-2007.\n\n**Technology stack**:\n- **Genotyping arrays**: ~500K-2M SNPs (Illumina GSA, Affymetrix Axiom, UK Biobank Axiom). Common variants (MAF > 1%). Cheap (~$30-50/sample at scale).\n- **Imputation**: leverage haplotype reference panels (1000 Genomes, HRC, TOPMed) → impute 10M-50M SNPs from chip data via Beagle, Minimac, IMPUTE5. Boosts power + density.\n- **Whole-genome sequencing**: now sub-$100/sample at scale (UK Biobank WGS 500K released 2023; All of Us; gnomAD). Captures rare variants + SVs.\n\n**Statistical model** (logistic for binary, linear for quantitative):\n- Y = β₀ + β_SNP × X_SNP + β_age × age + β_sex × sex + Σ β_PC × PC + ε.\n- Test H₀: β_SNP = 0 via Wald/likelihood ratio.\n- **Genome-wide significance threshold**: **5 × 10⁻⁸** (~Bonferroni correction for ~10⁶ effectively independent tests).\n- **Linear mixed models** (BOLT-LMM, SAIGE, REGENIE, fastGWA) account for relatedness + structure efficiently at biobank scale.\n\n**Visualization**:\n- **Manhattan plot**: −log₁₀(p-value) vs genomic position. Peaks above significance line = associated loci.\n- **QQ plot**: observed vs expected −log₁₀(p). Deviation above 1:1 line indicates real signal; lambda (genomic inflation factor) ~1 means well-controlled; lambda >> 1 suggests confounding.\n- **Locus zoom**: zoomed view around a peak with LD coloring.\n- **LD-score intercept** (Bulik-Sullivan, Neale 2015): distinguishes polygenicity from confounding.\n\n**Linkage disequilibrium (LD)**:\n- Statistical association between alleles at nearby loci due to limited recombination.\n- **r²**: correlation between SNP genotypes. Decays with distance.\n- **LD blocks** (~5-50 kb in non-African populations; smaller in African due to longer recombination history).\n- GWAS finds *tagging SNPs* in LD with causal variant — direct causal SNP often unknown without fine-mapping.\n\n**Biobank era**:\n- **UK Biobank** (Collins, Allen 2006-; data release 2017-): 500K participants, exomes 2020, WGS 2023. Phenotypes via EHR + questionnaires + biomarkers + imaging. Open access for approved researchers.\n- **FinnGen** (2017-): 500K Finns + national health-record linkage; founder population + isolated → unique discovery.\n- **Million Veteran Program** (US VA 2011-): >900K enrolled; major diverse-ancestry cohort.\n- **All of Us** (NIH 2018-): 1M+ goal; diversity-focused.\n- **23andMe research database**: ~12M+ consented genotyped customers; many GWAS published.\n- **BioBank Japan, China Kadoorie Biobank, CARTaGENE, deCODE, Estonian Biobank, BioVU, eMERGE, FinnGen, MGB Biobank**.\n- **Meta-analyses**: GIANT (height, BMI), PGC (psychiatric), CARDIoGRAM (CAD), DIAGRAM (T2D), GLGC (lipids), GTEx, MoTrPAC, ALSPAC.\n\n**GWAS yields** (~2024):\n- >70,000 SNP-trait associations in NHGRI-EBI GWAS Catalog (Buniello + Hindorff).\n- Height: ~12000+ associated loci (Yengo 2022 *Nature* with ~5M samples) explaining ~50% of h²_SNP.\n- Schizophrenia: ~270 loci (PGC3 2022).\n- T2D: ~600 loci.\n- CAD: ~300 loci.\n- ~90% of GWAS hits are in **non-coding regions** — most affect gene expression (eQTLs) or splicing (sQTLs)."
+    },
+    {
+      "kind": "text",
+      "title": "Polygenic risk scores: from variants to predictions",
+      "body": "**Polygenic risk score (PRS, or PGS)**: sum of effect sizes × genotype across many trait-associated variants.\n\nPRS_i = Σ β_j × X_ij\n\nwhere β_j is the effect size (from GWAS) of SNP j + X_ij ∈ {0,1,2} is dosage of effect allele.\n\n**Pipeline**:\n1. **Discovery GWAS** in large cohort → SNP effect sizes β̂_j.\n2. **Adjust for LD**: clump (LD-pruning + significance thresholding); or modern Bayesian methods.\n3. **Score** individuals: PLINK --score or PRSice.\n4. **Evaluate** in independent cohort: r² for quantitative, AUC for binary, hazard ratio for time-to-event.\n\n**Modern PRS methods**:\n- **C+T (clumping + thresholding)**: classic baseline. Choose p-value threshold + r² for clumping.\n- **LDpred / LDpred2** (Vilhjálmsson + Price; Privé 2020): Bayesian; prior on effect-size distribution; uses LD reference.\n- **PRS-CS** (Ge + Smoller 2019): continuous-shrinkage prior; better at sparser architectures.\n- **SBayesR** (Lloyd-Jones + Yang 2019): Bayesian mixture priors.\n- **MegaPRS, LDAK**: SNP-heritability-weighted.\n- **Deep-learning** (Lippert 2017+, Maron 2024): emerging.\n\n**Landmark studies**:\n- **Khera et al. 2018 *Nat Genet***: PRS for CAD, T2D, AF, IBD, breast cancer in UK Biobank — identifies ~8% of population with risk equivalent to monogenic familial hypercholesterolemia. Demonstrated clinical-grade discrimination at extremes.\n- **Mavaddat et al. 2019 (breast cancer)**: 313-SNP PRS — top 1% has ~30% lifetime risk (similar to BRCA carriers' risk modifiers).\n- **Khera 2019 (obesity)**: BMI PRS → top decile +13 kg vs bottom decile.\n- **Genomics PLC, Allelica, Nucleus**: commercial PRS deployments.\n\n**Clinical utility considerations**:\n- **Population-stratified performance**: PRS derived from European GWAS perform ~50% worse in African ancestries, similar attrition for East Asian + South Asian (Martin + Daly 2019 *Nat Genet*).\n- **Why transferability fails**: differing LD patterns + allele frequencies + effect sizes; causal-variant identification + within-ancestry GWAS at scale needed.\n- **Diversity efforts**: All of Us, MVP, H3Africa, China Kadoorie, FinnGen, Estonian Biobank, Three Million African Genomes (3MAG) project.\n- **Cross-ancestry methods**: PRS-CSx (Ruan + Ge 2022), CT-SLEB, TL-PRS — borrow strength across ancestries while preserving target-population fit.\n- **Clinical actions**: most PRS used as risk stratifiers (e.g., earlier screening for high-PRS breast cancer; statin start for high-CAD PRS); not diagnostic.\n- **Embryo screening**: ethically contentious (Lencz et al.; Karavani et al. 2019 cautioned against). Some clinics (Genomic Prediction, Orchid) offer 'polygenic embryo selection' — limited gain at individual level.\n- **Direct-to-consumer**: 23andMe + competitors expanding PRS for traits + diseases.\n\n**Limitations**:\n- Predictive *at the population level* much better than at the individual level.\n- AUC ~0.6-0.7 for most diseases — useful for risk stratification but not diagnosis.\n- Environment + lifestyle remain dominant for most diseases.\n- Subject to selection on environment-genotype interactions, dynastic effects.\n- Cannot capture rare-variant burden (sequencing-based PRS adds these).\n\nPRS represents the predictive translation of complex-trait genetics — works best at extremes + when integrated with conventional risk factors."
+    },
+    {
+      "kind": "text",
+      "title": "Statistical genetics: heritability, MR, fine-mapping, colocalization",
+      "body": "Beyond GWAS + PRS — a toolkit of statistical-genetics methods:\n\n**Heritability from summary statistics**:\n- **LD-score regression** (Bulik-Sullivan, Neale 2015): regress χ² statistic on LD-score → slope = h²_SNP, intercept = inflation (confounding). Works on summary stats; ubiquitous.\n- **GREML / GCTA** (Yang, Visscher 2010+): mixed-model REML estimate from individual data.\n- **HE regression, BOLT-REML, RHE-mc, SumHer**.\n- Partitioned heritability: by chromosome, by functional annotation (S-LDSC; Finucane 2015) — enrichment of h² in coding, enhancers, conserved regions.\n\n**Genetic correlation** (between traits, between populations):\n- **LD-score for genetic correlation** (Bulik-Sullivan 2015): rg between two traits from summary stats.\n- Cross-trait insights: schizophrenia ↔ bipolar rg ~0.7; depression ↔ neuroticism rg ~0.7; T2D ↔ CAD rg ~0.4. Map of psychiatric, metabolic, autoimmune relationships.\n\n**Mendelian randomization (MR)**: causal inference from observational genetic data.\n- **Concept**: genotype randomized at conception (Mendel's law of segregation) → 'natural experiment.' Genetic variants robustly associated with an exposure can be used as **instrumental variables** to test causal effect of exposure on outcome.\n- **Assumptions** (IV): (1) relevance (instrument associated with exposure); (2) independence (no confounder common to instrument + outcome); (3) exclusion restriction (instrument affects outcome only through exposure).\n- **Methods**: inverse-variance weighted (IVW), MR-Egger (Bowden 2015; detects pleiotropy), weighted median, MR-PRESSO, MR-RAPS, two-sample MR.\n- **Examples**: LDL → CAD (causal; statins work). HDL → CAD (not causal; CETP inhibitors failed). BMI → diabetes (causal). C-reactive protein → CAD (not causal; controls inflammation hypothesis).\n- **Limitations**: pleiotropy, weak instruments, dynastic effects, assortative mating.\n\n**Fine-mapping**: identify causal SNP within an associated locus.\n- **CAVIAR** (Hormozdiari 2014): credible-set probabilistic; allows multiple causals.\n- **SuSiE** (Wang + Stephens 2020): sum-of-single-effects regression; clean credible sets.\n- **FINEMAP** (Benner 2016): exhaustive Bayesian search.\n- **PolyFun** (Weissbrod 2020): functionally-informed priors.\n- **Statistical fine-mapping → functional follow-up**: MPRA, STARR-seq, base-editing screens, prime editing for variant-effect mapping.\n\n**Colocalization**: same variant drive eQTL + GWAS signal? Implicates target gene.\n- **coloc** (Giambartolomei 2014, Wallace 2020): Bayesian; PP4 > 0.8 strong evidence.\n- **eCAVIAR, ENLOC, SharePro**: alternatives.\n- **Trans-eQTL + sQTL** colocalization expanding.\n\n**Mendelian disease gene discovery via stats**:\n- **Burden tests** (CMC, SKAT, SKAT-O, ACAT) aggregate rare variants in genes — power-boost when individually too rare.\n- **DeNovoWEST, DenovolyzeR**: de novo enrichment in trios.\n- **Whole-exome at scale**: UK Biobank exomes 500K → many gene-level discoveries; Genebass + AstraZeneca Phewas catalog.\n\n**Pleiotropy + omnigenic model**:\n- **Boyle, Pritchard 2017 *Cell***: 'omnigenic' — most genes expressed in trait-relevant tissue affect trait risk through cellular networks. Core genes + peripheral genes both contribute.\n- Network biology + functional follow-up increasingly integrated with GWAS.\n\n**Phenome-wide association studies (PheWAS)**:\n- Take a variant; scan thousands of phenotypes for association.\n- Identifies pleiotropy + repurposing opportunities.\n- **Open Targets Genetics, GeneAtlas, FinnGen browser**, PhenoScanner.\n\n**Multi-omic integration**:\n- GWAS + eQTL (GTEx, eQTLGen) + sQTL + pQTL + metabolomics → functional gene + pathway prioritization.\n- **TWAS** (transcriptome-wide association studies; Gusev 2016): impute gene expression from GWAS → test gene-level associations.\n- **CWAS, PWAS**: chromatin-wide + protein-wide.\n\n**Future**: closing missing heritability via WGS at scale; cross-ancestry GWAS for equitable PRS; integration with single-cell + spatial transcriptomics; deep-learning models for variant-effect prediction (ESM, AlphaMissense, Enformer); causal-AI + perturbational genomics (Perturb-seq, base-editing screens at scale)."
+    },
+    {
+      "kind": "text",
+      "title": "GWAS in practice: Manhattan plots, signals, and pitfalls",
+      "body": "Below is a typical GWAS visualization — Manhattan plot — exploring the genome-wide association landscape of human height across millions of samples.",
+      "viz": "manhattan-plot",
+      "vizProps": {
+        "phenotype": "height",
+        "studySize": 1000000
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_gwas_1",
+        "kind": "guided_derivation",
+        "question": "Interpret a GWAS p-value + Manhattan plot",
+        "goal": "A SNP shows p = 3 × 10⁻¹⁰ for type 2 diabetes in a study of 500000 individuals. The locus zoom shows ~50 SNPs in LD (r² > 0.8) all with similar p-values. How to interpret?",
+        "steps": [
+          {
+            "prompt": "Is this genome-wide significant?",
+            "motivation": "Compare to threshold.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "yes — passes 5×10⁻⁸",
+                "yes",
+                "genome-wide significant"
+              ]
+            },
+            "hints": [
+              "5×10⁻⁸ is the standard threshold."
+            ],
+            "reveal": "p = 3 × 10⁻¹⁰ << 5 × 10⁻⁸ → genome-wide significant. ~Bonferroni-corrected for ~10⁶ independent tests."
+          },
+          {
+            "prompt": "What does it mean that 50 SNPs in LD all hit similarly?",
+            "motivation": "LD propagates signal.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "associated locus; causal SNP unknown without fine-mapping",
+                "tagging SNPs; need fine-mapping"
+              ]
+            },
+            "hints": [
+              "LD makes SNPs correlated."
+            ],
+            "reveal": "All 50 SNPs are in high LD (r² > 0.8) → they're all *tagging* the same underlying causal variant(s). GWAS associations propagate through LD blocks (~5-50 kb in non-Africans). The 50 hit SNPs constitute the *associated locus*; the *causal variant* is unknown without further analysis. Need fine-mapping (CAVIAR, SuSiE, FINEMAP) to assign credible-set probabilities."
+          },
+          {
+            "prompt": "If the top SNP is in an intron of *TCF7L2*, what does that suggest about mechanism?",
+            "motivation": "Non-coding causal variants act on expression.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "likely regulatory; affects expression/splicing of TCF7L2",
+                "non-coding regulatory variant"
+              ]
+            },
+            "hints": [
+              "What do non-coding variants typically do?"
+            ],
+            "reveal": "*TCF7L2* intronic SNP rs7903146 is the largest-effect common T2D variant. Acts as enhancer variant → reduced *TCF7L2* expression in pancreatic islets → impaired insulin secretion. ~90% of GWAS hits are non-coding; most affect gene expression (eQTLs) or splicing (sQTLs). Functional follow-up: colocalization with islet eQTLs, MPRA, CRISPRi/a, base-editing — confirmed regulatory role for rs7903146 (Grant + Florez 2006; subsequent functional studies)."
+          },
+          {
+            "prompt": "What's the next step to confirm gene-disease causality?",
+            "motivation": "Functional validation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "colocalization with eQTL; MR; functional perturbation",
+                "colocalization + MR + experimental"
+              ]
+            },
+            "hints": [
+              "Multiple converging lines."
+            ],
+            "reveal": "Confirmation strategy: (1) **Colocalization** with islet/liver eQTL (coloc PP4 > 0.8) — same SNP drives GWAS + expression; (2) **Mendelian randomization** if TCF7L2 expression-MR shows causal effect on T2D; (3) **Functional perturbation**: CRISPR base-editing of rs7903146, transgenic mice with the variant, induced pluripotent stem cell → islet differentiation; (4) **Drug-target validation**: TCF7L2-modulating compounds. Iterative GWAS → eQTL → fine-map → functional → target — the modern complex-disease drug-discovery pipeline (Open Targets, etc.)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_gwas_1",
+        "kind": "multiple_choice",
+        "question": "Why do PRSs derived from European-ancestry GWAS perform substantially worse when applied to individuals of African ancestry?",
+        "options": [
+          "Random.",
+          "**Differences in LD patterns, allele frequencies, and effect sizes between ancestries** + **disproportionate European representation in GWAS** create a transferability gap. (1) LD blocks are shorter + different in African populations (recombination has had longer to act in older populations); causal-tagging SNPs in European discovery may not tag the causal variant in Africans. (2) Allele frequencies differ — variants common in Europe may be rare in Africa + vice versa; effect-size estimates are imprecise for rare variants in the discovery cohort. (3) Effect sizes themselves may differ (gene-environment interaction, epistasis, dominance) — though most effects are similar across ancestries. (4) Limited African + Asian GWAS scale → poor representation in discovery. Solutions: diversify cohorts (All of Us, H3Africa, MVP, FinnGen, 3MAG), cross-ancestry methods (PRS-CSx, CT-SLEB, TL-PRS), causal fine-mapping (SuSiE) → ancestry-portable scores. Martin + Daly 2019 *Nat Genet* foundational; major equity concern in genomic medicine.",
+          "Random.",
+          "Genetic differences."
+        ],
+        "correctIndex": 1,
+        "explanation": "PRS transferability gap (Martin + Daly 2019) — European-derived PRS perform ~50% worse in African-ancestry individuals due to: (1) different LD patterns (shorter, different blocks); (2) different allele frequencies; (3) sometimes different effect sizes; (4) disproportionate European representation in discovery cohorts (>80% historically). Solutions: diversify cohorts (All of Us, H3Africa, MVP), cross-ancestry methods (PRS-CSx, CT-SLEB, TL-PRS), causal fine-mapping (SuSiE, PolyFun). Major equity issue in genomic medicine."
+      },
+      "hints": [
+        "What's different about LD across populations?",
+        "Who is in most GWAS samples?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "PRS transferability gap (Martin + Daly 2019) — European-GWAS-derived PRS ~50% worse in African ancestry due to LD differences (shorter blocks, different SNPs tag causal), allele-frequency differences, sometimes effect-size differences, + European overrepresentation in discovery. Solutions: diversify cohorts, cross-ancestry methods (PRS-CSx, CT-SLEB), causal fine-mapping."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_gwas_1",
+        "kind": "multiple_choice",
+        "question": "A clinician is considering using a PRS for breast cancer to decide whether to recommend earlier mammography. The PRS AUC is 0.65. Best framing for the discussion?",
+        "options": [
+          "Random.",
+          "**Risk stratification, not diagnosis** — modest discrimination useful for guiding intensity of screening but not for diagnostic decisions. AUC 0.65 means PRS distinguishes cases from controls modestly; the *extremes* (top 1-5%) often have substantially elevated risk equivalent to known monogenic carriers (Mavaddat 2019 breast 313-SNP PRS: top 1% ~30% lifetime risk). For most of the distribution, additional change in risk is small. Clinical integration: combine PRS + age + family history + lifestyle (Tyrer-Cuzick + IBIS + BOADICEA models incorporate PRS in some implementations). Consider that European-derived PRS may have worse performance in non-European ancestries. Counsel: PRS is one input — incorporates the *direction* of risk but not destiny; lifestyle, environment, individual screening + early detection remain primary tools. Risk-stratified screening trials underway (WISDOM, MyPeBS) test PRS-guided recommendations.",
+          "Random.",
+          "PRS is diagnostic."
+        ],
+        "correctIndex": 1,
+        "explanation": "PRS framed as risk stratifier (not diagnostic). AUC 0.65 = modest. Useful at extremes (top 1-5% often have substantially elevated risk). Mavaddat 2019 313-SNP breast PRS — top 1% ~30% lifetime risk. Clinical integration: combine PRS + age + family history + lifestyle (Tyrer-Cuzick, BOADICEA). Ancestry-portability caveat. Risk-stratified screening trials (WISDOM, MyPeBS) testing utility. Most of population's PRS shift is small."
+      },
+      "hints": [
+        "What does AUC 0.65 mean?",
+        "Tail vs middle of distribution."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "PRS as risk stratifier not diagnostic. AUC 0.65 modest; useful at extremes (top 1-5% ~3-4× population risk; Mavaddat 2019). Integrate with age, family history, Tyrer-Cuzick/BOADICEA. Ancestry-portability caveat. WISDOM + MyPeBS trials test clinical utility. Counsel about combined risk + lifestyle + screening intensity."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_gwas_1",
+        "kind": "math_expression",
+        "question": "GWAS Bonferroni-corrected significance for 10⁶ independent tests (genome-wide) at α = 0.05?",
+        "acceptedAnswers": [
+          "5 × 10⁻⁸",
+          "5e-8",
+          "0.05 / 1e6"
+        ],
+        "hint": "α / m = 0.05 / 10⁶ = 5 × 10⁻⁸ — the standard genome-wide significance threshold."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_gwas_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain the chain from GWAS hit → causal variant → causal gene → therapeutic target, naming the statistical tools at each step.",
+        "rubric": "Mentions: GWAS hits across millions of SNPs at 5×10⁻⁸ threshold; ~70000+ in NHGRI-EBI catalog. ~90% in non-coding regions → tag a causal variant in LD. Step 1 — **fine-mapping** (CAVIAR, SuSiE, FINEMAP, PolyFun) gives credible sets of likely-causal SNPs. Step 2 — **colocalization** (coloc, eCAVIAR) with eQTL/sQTL data from GTEx/eQTLGen → which gene the variant regulates. Step 3 — **TWAS** (Gusev 2016) tests imputed-expression associations gene-level. Step 4 — **Mendelian randomization** (IVW, MR-Egger, MR-PRESSO) tests causal effect of gene/protein on phenotype. Step 5 — functional experiments (CRISPRi/a, base-editing, MPRA, perturb-seq) validate variant effects on gene expression + cellular function. Step 6 — **drug target validation** in animal models + first-in-human trials (Open Targets pipeline). Examples: PCSK9 GWAS → PCSK9 inhibitor (Repatha, Praluent); APOE GWAS → Alzheimer's target; IL23R, TNF, JAK2 hits → drugs. Polygenic risk scores (Khera 2018, PRS-CS, LDpred2) complement by stratifying individuals. LD-score heritability + genetic correlation place the biology in a broader phenome map. Equity: cross-ancestry GWAS + PRS-CSx + diverse biobanks (UKB, FinnGen, MVP, All of Us, H3Africa) close the European-centric gap."
+      }
+    }
+  ]
+}

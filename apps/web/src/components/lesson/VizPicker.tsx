@@ -348,6 +348,27 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🗳️",
     tags: ["distributed-systems", "consensus", "databases"],
   },
+  {
+    name: "manhattan-plot",
+    label: "GWAS Manhattan plot",
+    description: "Pick phenotype + study size; see a simulated -log₁₀(p) Manhattan with the 5×10⁻⁸ genome-wide threshold.",
+    thumb: "🧬",
+    tags: ["genetics", "GWAS", "statistical-genetics", "biology"],
+  },
+  {
+    name: "macarthur-consumer-resource",
+    label: "MacArthur ZNGI",
+    description: "Drag R*₁, R*₂, and supply point; see exclusion, coexistence, or founder-effect outcomes from consumer-resource theory.",
+    thumb: "🌿",
+    tags: ["ecology", "competition", "community-ecology"],
+  },
+  {
+    name: "kinship-diagram",
+    label: "Kinship diagram",
+    description: "Pick a kinship system (Eskimo, Iroquois, Sudanese, Hawaiian); see how the same biology maps to different cultural terms.",
+    thumb: "👪",
+    tags: ["anthropology", "kinship", "social-science"],
+  },
 ];
 
 interface Props {

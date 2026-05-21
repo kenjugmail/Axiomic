@@ -238,6 +238,21 @@ const LazyRaftLogReplication = lazy(() =>
     (m) => ({ default: m.RaftLogReplication }),
   ),
 );
+const LazyManhattanPlot = lazy(() =>
+  import("../../../../../packages/viz/src/components/ManhattanPlot").then(
+    (m) => ({ default: m.ManhattanPlot }),
+  ),
+);
+const LazyMacArthurConsumerResource = lazy(() =>
+  import("../../../../../packages/viz/src/components/MacArthurConsumerResource").then(
+    (m) => ({ default: m.MacArthurConsumerResource }),
+  ),
+);
+const LazyKinshipDiagram = lazy(() =>
+  import("../../../../../packages/viz/src/components/KinshipDiagram").then(
+    (m) => ({ default: m.KinshipDiagram }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -390,6 +405,12 @@ function VizByName({
       return <LazyZKProofVerification {...(props as object)} />;
     case "raft-log-replication":
       return <LazyRaftLogReplication {...(props as object)} />;
+    case "manhattan-plot":
+      return <LazyManhattanPlot {...(props as object)} />;
+    case "macarthur-consumer-resource":
+      return <LazyMacArthurConsumerResource {...(props as object)} />;
+    case "kinship-diagram":
+      return <LazyKinshipDiagram {...(props as object)} />;
     default:
       return null;
   }

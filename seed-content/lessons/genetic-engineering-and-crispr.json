@@ -1,0 +1,170 @@
+{
+  "slug": "genetic-engineering-and-crispr",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Trace the history of recombinant DNA technology.",
+      "Explain CRISPR-Cas9 mechanisms and applications.",
+      "Reason about modern editing approaches and gene therapies."
+    ],
+    "prereqs": [
+      "molecular-genetics-dna-and-rna"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Recombinant DNA: from Berg to Genentech",
+      "body": "**Recombinant DNA**: combining DNA from different sources into a single molecule. Foundational for biotechnology + modern molecular biology.\n\n**1972: First recombinant DNA molecule**. **Paul Berg** (Stanford, Nobel Chemistry 1980) ligated SV40 viral DNA with E. coli λ phage + galactose operon DNA. Used type II restriction enzymes (EcoRI cut by *Eco*RI, discovered by Boyer 1972; HindIII by Hamilton Smith, Nobel 1978; concept by Werner Arber, Nobel 1978). Berg paused experiments over safety concerns — preceded Asilomar.\n\n**1973: Cloning + replication of recombinant DNA**. **Stanley Cohen** (Stanford) + **Herbert Boyer** (UCSF): inserted foreign DNA into a plasmid (pSC101), transformed into *E. coli*, propagated → first gene cloning. Cohen + Boyer (1973-1974 *PNAS*) demonstrated the technology end-to-end. Stanford-UC patent on recombinant DNA generated >$255M in royalties before 1997 expiration — among the most successful biotech patents.\n\n**Asilomar Conference 1975**: Berg, Baltimore, Sydney Brenner, Maxine Singer, others convened to debate safety + ethical implications of recombinant DNA. Self-imposed moratorium on certain experiments; established biosafety guidelines. Foundational example of scientific self-regulation; widely cited as template for governing emerging technology (now invoked for CRISPR + AI).\n\n**1976: Genentech founded** by Boyer + venture capitalist Bob Swanson. First biotech company.\n\n**1977: Somatostatin cloned + expressed in E. coli** (Itakura + Boyer + collaborators). First proof: human peptide could be produced by bacteria.\n\n**1978: Human insulin** cloned + expressed in *E. coli* (Genentech). Replaced animal-sourced insulin (porcine + bovine).\n\n**1982: Humulin** (Eli Lilly + Genentech): first recombinant DNA drug approved by FDA. Revolutionized diabetes care.\n\n**1985-1990s**: floodgate opens — growth hormone (Protropin 1985), tPA (Activase 1987), EPO (Epogen 1989), interferons, monoclonal antibodies (Orthoclone 1986). Biotechnology becomes a major pharmaceutical industry.\n\n**Cloning vector toolkit**:\n- **Plasmids**: pUC, pBR322, modern Gateway/Gibson assembly vectors.\n- **Bacteriophage λ**: longer inserts.\n- **Cosmids, BACs (bacterial artificial chromosomes), YACs (yeast artificial chromosomes)**: 100 kb to 1 Mb inserts.\n- **Expression vectors**: tagged proteins (His, FLAG, GFP), inducible promoters (lac, T7, ara).\n\n**Restriction-modification system biology** — bacterial immunity. Restriction enzymes cut foreign (unmethylated) DNA; modification methylates host DNA to protect. **Werner Arber + Daniel Nathans + Hamilton Smith Nobel 1978** for restriction enzymes — the scissors that enabled molecular biology.\n\n**PCR (Polymerase Chain Reaction)**:\n- **Kary Mullis 1983** (Cetus): conceived during a night drive in California. Exponentially amplify DNA via cycles of denaturation + primer annealing + polymerase extension.\n- Initially used Klenow (re-added each cycle); transformed by **Taq polymerase** from *Thermus aquaticus* (Brock 1969 Yellowstone; Cetus 1988 for PCR) — thermostable enables thermal cycling without enzyme replacement.\n- **Mullis Nobel Chemistry 1993** (shared with Michael Smith for site-directed mutagenesis).\n- Foundational: PCR amplifies tiny DNA samples enabling sequencing, diagnostics, forensics, paternity testing, ancient DNA, COVID-19 testing (RT-PCR), variant calling.\n- Variants: qPCR (quantitative), RT-PCR (reverse transcriptase for RNA), digital PCR, multiplex PCR.\n\n**Sanger sequencing (Frederick Sanger, Nobel Chemistry 1958 for protein sequencing, 1980 for DNA sequencing)**: chain-termination using dideoxynucleotides. Foundation of Human Genome Project (1990-2003). Next-generation sequencing (Solexa/Illumina 2005+, 454, SOLiD) replaced Sanger at scale; modern WGS at <$200/sample."
+    },
+    {
+      "kind": "text",
+      "title": "CRISPR-Cas9: bacterial immunity to genome editing",
+      "body": "**CRISPR** (Clustered Regularly Interspaced Short Palindromic Repeats) — discovered as mysterious repetitive sequences in *E. coli* (Ishino 1987), archaea, + many bacteria. Function unknown for two decades.\n\n**1993-2005: CRISPR discovery + function hypothesis**:\n- **Francisco Mojica** (Universidad de Alicante, 1993-2005): cataloged CRISPR loci across genomes; named CRISPR; 2005 *J. Mol. Evol.* paper proposed CRISPR is an *adaptive immune system* against phages — *spacers* match phage genomes. Founder of the field; criminally underrecognized in the Nobel decisions.\n- **2007: Barrangou + Horvath** (Danisco/DuPont yogurt): experimental demonstration in *Streptococcus thermophilus* — phages added to bacteria → new spacers integrated → phage resistance. Foundation paper.\n- **2008-2010: Mechanistic dissection**. CRISPR transcribed → processed into crRNAs that guide Cas nuclease to cut foreign DNA matching the spacer.\n\n**2012: CRISPR-Cas9 as a programmable nuclease**:\n- **Jennifer Doudna** (Berkeley) + **Emmanuelle Charpentier** (Umeå/MPI). Collaborated remotely 2011-2012; key papers in *Science* June 2012. Showed Cas9 nuclease, guided by a chimeric **single guide RNA (sgRNA)**, cuts DNA at any sequence specified by the sgRNA + a PAM (protospacer adjacent motif, NGG for SpCas9). Simple two-component programmable DNA-cutting system.\n- **Nobel Chemistry 2020**: Doudna + Charpentier. First Nobel awarded to two women in same prize; also first Chemistry Nobel for genome editing.\n\n**2013: CRISPR-Cas9 works in human cells**:\n- **Feng Zhang** (Broad Institute) + **George Church** + **Doudna** lab — multiple groups independently demonstrated CRISPR-Cas9 editing in mammalian cells (January 2013 *Science* papers). Patent battle (Berkeley vs Broad) over eukaryotic editing rights — Broad won initial USPTO interferences (controversial); ongoing.\n- **Open + permissive licensing** via Addgene (founded 2004 by Melina Fan) democratized CRISPR; thousands of labs adopted within months.\n\n**Mechanism**:\n- **Components**:\n  - **Cas9 nuclease** (*S. pyogenes* SpCas9 ~1400 aa; staphylococcal SaCas9 smaller; many orthologs).\n  - **sgRNA** (~100 nt fusion of crRNA + tracrRNA) with ~20-nt spacer targeting genomic site.\n  - **PAM** (NGG for SpCas9; immediately 3' of target on protospacer): essential for binding + cleavage.\n- **Action**: Cas9-sgRNA complex scans genome for PAM; if 20-nt match, Cas9 cuts both strands → **double-strand break (DSB)** 3 bp upstream of PAM.\n- **Cellular repair**:\n  - **NHEJ (Non-Homologous End Joining)**: error-prone → indels → **gene knockout** (frameshift premature stop). Default pathway in most cells.\n  - **HDR (Homology-Directed Repair)**: with a template DNA → **precise editing** (substitution, insertion). Inefficient (<10%); restricted to S/G2.\n  - **MMEJ (Microhomology-Mediated End Joining)**: deletion-prone.\n\n**Beyond cutting**:\n- **dCas9** (catalytically dead Cas9): binds DNA without cutting. Tools:\n  - **CRISPRi** (Qi 2013): dCas9 + KRAB → transcriptional repression.\n  - **CRISPRa**: dCas9 + VP64/p65/Rta (SAM, SunTag) → activation.\n  - **dCas9 + epigenome modifiers**: methylation (DNMT3A), demethylation (TET1), acetylation (p300).\n  - **Cas9 imaging**: dCas9-GFP visualizes genomic loci.\n\n**Other CRISPR systems**:\n- **Cas12 (Cpf1)**: single guide RNA, blunt cuts (Zhang lab).\n- **Cas13**: RNA-targeting (Cas13a/b/d). Diagnostics (SHERLOCK) + RNA editing.\n- **Cascade-Cas3 (type I)**: large complex, processive degradation; less common but expanding.\n- **Cas14 (Cas12f) / IscB / TnpB**: miniature systems for AAV delivery (Zhang, Liu labs 2019+).\n\n**Off-target effects + specificity engineering**:\n- High-fidelity Cas9 variants (eSpCas9, SpCas9-HF1, HypaCas9).\n- Truncated sgRNAs.\n- Paired nickases (Cas9-D10A) for dual cutting.\n- Off-target detection: GUIDE-seq, CIRCLE-seq, DISCOVER-seq.\n\n**CRISPR screens**:\n- **Genome-wide loss-of-function screens** (Wang, Sabatini, Shalem, Zhang 2014+). Lentiviral sgRNA libraries → cells under selection → identify dropouts (essential genes) or enriched (survival).\n- **Perturb-seq + Mosaic-seq**: CRISPR + single-cell RNA-seq → transcriptomic readout per perturbation.\n- **CRISPR base-editor + prime-editor screens** for variant-effect mapping.\n- **In vivo CRISPR screens** in tumors + tissues."
+    },
+    {
+      "kind": "text",
+      "title": "Base editing, prime editing, and gene therapy",
+      "body": "**Limitations of standard CRISPR-Cas9**:\n- DSB → undesirable indels, chromosomal rearrangements, p53 activation.\n- HDR inefficient — making precise edits hard.\n- Off-target editing concerns.\n\nThis spurred a new wave of *precision* editing tools.\n\n**Base editing** (David Liu, Broad 2016+):\n- **Cytosine base editors (CBE)**: dCas9 (or nickase) fused to APOBEC1/AID cytidine deaminase + uracil glycosylase inhibitor → C→T (or G→A on opposite strand). Liu 2016 *Nature*.\n- **Adenine base editors (ABE)**: dCas9 + evolved TadA adenine deaminase → A→G (or T→C). Liu 2017 *Nature*. Required directed evolution of TadA (no natural ADA on ssDNA).\n- **Cytosine→guanine (CGBE)**: 2020+.\n- Single-base point mutations without DSB → much safer.\n- Limitations: editing window ~4-8 nt; bystander edits; PAM constraints.\n\n**Prime editing** (David Liu, Anzalone 2019 *Nature*):\n- **pegRNA** (prime editing guide RNA) carries both target + replacement template.\n- **Cas9 nickase + reverse transcriptase** fusion → nick target strand → reverse-transcribe new sequence from pegRNA into genome.\n- Enables all 12 single-base changes + small insertions + deletions without DSB or donor template.\n- Higher precision but lower efficiency than base editing for matched edits.\n- PE2 → PE3 → PE5 → improved variants.\n\n**Gene therapy: ex vivo + in vivo**:\n\n**Ex vivo gene therapy** (modify cells outside, return to patient):\n- **CAR-T cells** (Carl June, Bruce Levine; Steven Rosenberg; Sadelain, Brentjens, Sloan Kettering): T cells engineered with chimeric antigen receptor recognizing CD19 → kill B-cell leukemia/lymphoma. **Kymriah** (Novartis 2017, first FDA-approved gene therapy + CAR-T) + **Yescarta** (Kite/Gilead 2017) for relapsed B-ALL + lymphoma. Subsequent CAR-Ts for myeloma (CD22, BCMA — Abecma 2021, Carvykti 2022). Auto-immune CAR-T emerging.\n- **CRISPR ex vivo**: edit hematopoietic stem cells from patient → reinfuse.\n  - **Casgevy** (Vertex/CRISPR Tx, FDA Dec 2023): first CRISPR-approved drug. Edits BCL11A enhancer → reactivates fetal hemoglobin (HbF) → treats sickle cell + β-thalassemia.\n  - **Lyfgenia** (bluebird, lentiviral gene addition of HbA-T87Q): same approval window for sickle cell.\n\n**In vivo gene therapy** (deliver to patient directly):\n- **AAV vectors** (adeno-associated virus): small payload (~4.7 kb); ~12+ serotypes (AAV2, AAV5, AAV8, AAV9, AAVrh.10) with tissue tropism. Predominant in-vivo vector.\n  - **Luxturna** (Spark, FDA 2017): voretigene neparvovec — AAV2 carrying RPE65 gene for Leber congenital amaurosis (RPE65-mediated retinal dystrophy). First FDA-approved gene therapy for genetic disease. ~$850000 list price.\n  - **Zolgensma** (Novartis, FDA 2019): onasemnogene abeparvovec — AAV9 carrying SMN1 for spinal muscular atrophy type 1. ~$2.1M list price — at the time most expensive single drug ever.\n  - **Hemgenix** (CSL Behring, FDA 2022): etranacogene dezaparvovec — AAV5 carrying Padua-variant F9 (Factor IX) for hemophilia B. $3.5M list price.\n  - **Roctavian** (BioMarin, FDA 2023): AAV5-FVIII for hemophilia A.\n  - **Elevidys** (Sarepta, FDA 2023): AAV-rh.74 micro-dystrophin for DMD. Controversy over efficacy.\n- **Lipid nanoparticles (LNPs)**: COVID-19 mRNA vaccines (Pfizer-BioNTech, Moderna) demonstrated platform; **Patisiran/Onpattro** (Alnylam 2018, first siRNA drug, LNP for hereditary ATTR amyloidosis).\n- **Lentivirus**: integrating; ex vivo or in vivo. Strimvelis (ADA-SCID 2016), Lyfgenia (sickle cell 2023).\n\n**In vivo CRISPR therapeutics**:\n- **NTLA-2001** (Intellia + Regeneron, in trials): LNP-delivered CRISPR-Cas9 + sgRNA → ATTR amyloidosis (knocks out TTR in liver). Phase 1 data 2021 showed dramatic TTR reduction.\n- **NTLA-2002**: hereditary angioedema.\n- **Editas, Beam Therapeutics, Verve, Prime Medicine, Tessera, Mammoth**: clinical CRISPR + base-editing + prime-editing programs.\n- **Verve Therapeutics**: base-editing PCSK9 for hypercholesterolemia — first in-human base-editing trial 2022.\n\n**Engineered T cells beyond CAR-T**:\n- **TCR-T** (T-cell receptor engineered) — solid tumor targeting.\n- **TIL** (tumor-infiltrating lymphocytes) — Iovance Amtagvi FDA 2024.\n- **Allogeneic CAR-T** (off-the-shelf, often CRISPR-edited to remove TCR/HLA).\n\n**Ethical + access considerations**:\n- Prices: $850K (Luxturna) - $3.5M (Hemgenix) per treatment.\n- Access disparities: Western health systems vs LMICs.\n- Durability: 5-10+ year follow-up data emerging; some loss of efficacy.\n- Germline editing: prohibited in most jurisdictions; He Jiankui 2018 violation (next lesson).\n- Insurance + payer models for one-time curative therapies (outcomes-based pricing, annuities)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_crispr_1",
+        "kind": "guided_derivation",
+        "question": "Design a CRISPR experiment + reason about outcomes",
+        "goal": "You want to knock out a gene in human cells using CRISPR-Cas9. Design the experiment + predict edit outcomes.",
+        "steps": [
+          {
+            "prompt": "What components do you need?",
+            "motivation": "Minimal CRISPR-Cas9 toolkit.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Cas9 nuclease + sgRNA targeting gene + delivery",
+                "Cas9 + 20-nt guide + PAM-adjacent target"
+              ]
+            },
+            "hints": [
+              "Doudna + Charpentier 2012 components."
+            ],
+            "reveal": "Need: (1) **Cas9 nuclease** (SpCas9 most common); (2) **sgRNA** with 20-nt spacer matching genomic target; (3) target must be adjacent to PAM (NGG for SpCas9); (4) delivery (lipofection, electroporation, lentivirus, AAV). For knockout: target an early exon to maximize chance of frameshift premature stop disrupting protein."
+          },
+          {
+            "prompt": "What repair outcomes after Cas9 cuts?",
+            "motivation": "DSB repair pathways.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "NHEJ → indels → frameshift KO; HDR if donor present",
+                "NHEJ predominant; HDR with template"
+              ]
+            },
+            "hints": [
+              "NHEJ vs HDR."
+            ],
+            "reveal": "Cas9 → DSB → repair via NHEJ (error-prone, indels) or HDR (precise, template-dependent, S/G2-restricted, inefficient ~1-10%). For knockout: NHEJ-induced indels → frameshift → premature stop → NMD → protein loss. Outcomes per allele: ~80% indels (mix of small deletions + insertions); ~20% in-frame indels (may retain partial function); occasional large deletions or inversions. Diploid genome → biallelic edit fraction ~50-80% in most experiments."
+          },
+          {
+            "prompt": "How do you confirm + quantify editing?",
+            "motivation": "QC + measurement.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "amplicon sequencing; T7E1 or TIDE; Western for protein",
+                "NGS amplicon + protein assay"
+              ]
+            },
+            "hints": [
+              "What measures DNA + protein effects?"
+            ],
+            "reveal": "Validation: (1) **PCR + amplicon NGS** of target region — read indel spectrum (CRISPResso, CRISPR-DAV); (2) **TIDE/ICE** Sanger-trace decomposition for quick estimate; (3) **T7E1 / Surveyor** mismatch endonuclease assay; (4) **Western blot or flow** for protein loss; (5) **functional readout** (rescue with WT cDNA → restore phenotype). Off-targets: GUIDE-seq, CIRCLE-seq, or whole-genome sequencing."
+          },
+          {
+            "prompt": "How would you use base editing instead for a *precise* C→T edit without indels?",
+            "motivation": "Base editor mechanism.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "CBE: dCas9 + APOBEC cytidine deaminase + UGI",
+                "cytosine base editor"
+              ]
+            },
+            "hints": [
+              "David Liu 2016 CBE."
+            ],
+            "reveal": "**Cytosine base editor (CBE)** (Liu 2016): dCas9 (or nickase) + APOBEC1/AID cytidine deaminase + UGI (uracil glycosylase inhibitor). Cas9 binds target via sgRNA; APOBEC deaminates C → U on the unbound strand within editing window (~4-8 nt); UGI prevents U excision; replication/repair fixes U → T. Outcome: targeted C→T (or G→A on opposite strand). No DSB → less indel/translocation/p53 stress. Bystander C edits in window are a constraint. Adenine base editors (ABE; Liu 2017) achieve A→G via evolved TadA. **Casgevy** uses CRISPR-Cas9 (not base editing) for BCL11A enhancer disruption; **Verve Therapeutics** uses ABE for PCSK9. Liu lab spinouts (Beam, Prime Medicine) commercializing."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_crispr_1",
+        "kind": "multiple_choice",
+        "question": "Why is the 2020 Chemistry Nobel for CRISPR awarded to Doudna + Charpentier, while Mojica (who first described CRISPR + proposed its immune function) was not included?",
+        "options": [
+          "Random.",
+          "**Nobel rules cap recipients at three per category per year**; the committee chose to recognize Doudna + Charpentier's 2012 *Science* demonstration of CRISPR-Cas9 as a programmable two-component DNA-cutting tool — the transformative invention enabling genome editing across biology. **Mojica** (Universidad de Alicante) did the foundational microbiology work 1993-2005 + named CRISPR + proposed immune function (2005 *J. Mol. Evol.*) — he is widely credited as founder. Other major contributors: **Barrangou + Horvath** 2007 experimental demonstration; **Šikšnys** independent 2012 *PNAS* same week as Doudna-Charpentier; **Zhang + Church + Doudna** 2013 mammalian cell editing — patent battle Berkeley vs Broad over eukaryotic rights. Nobel-rules debates: should foundational discoverers always share with translators? Committee choices generate ongoing dispute (cf. Karikó-Weissman 2023 vs many mRNA-vaccine contributors; Pääbo 2022 vs other ancient-DNA pioneers).",
+          "Random.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Nobel rules limit awards to three per category per year. Doudna + Charpentier recognized for 2012 Science demonstration of CRISPR-Cas9 programmable two-component editing. Mojica (1993-2005) is foundational discoverer + immune-function proposer but not included; Barrangou-Horvath (2007 experimental immunity), Šikšnys (2012 independent), Zhang-Church-Doudna (2013 mammalian) also major contributors. Nobel choices generate debate about foundational vs translational recognition (cf. mRNA vaccine Nobel 2023)."
+      },
+      "hints": [
+        "Why was the prize limited?",
+        "Who else contributed?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Nobel rules cap 3 recipients per category per year. Doudna + Charpentier 2012 demonstration of CRISPR-Cas9 as programmable tool. Mojica 1993-2005 founder + immune-function proposer; Barrangou-Horvath 2007 immunity demonstration; Šikšnys 2012 independent; Zhang-Church-Doudna 2013 mammalian editing. Debates over foundational vs translational recognition."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_crispr_1",
+        "kind": "multiple_choice",
+        "question": "A team wants to correct a single point mutation in a patient's hematopoietic stem cells *ex vivo* with minimal indel/chromosomal damage. Which approach is best?",
+        "options": [
+          "Standard Cas9 + HDR template.",
+          "**Adenine or cytosine base editing** (David Liu 2016-2017). Choose ABE if A→G correction is needed; CBE if C→T. Base editors are nickase-or-dCas9 + deaminase fusions — *no DSB*. Avoids the indel/translocation/p53-stress problems of standard Cas9; achieves higher precision than HDR (which has efficiency <10% in HSCs + competes with NHEJ indels). Beam Therapeutics + Verve Therapeutics + Prime Medicine pursuing clinical base-editing programs. For multi-base substitutions or insertions/deletions: **prime editing** (Liu 2019) — nickase + reverse-transcriptase fused to pegRNA. Higher versatility but lower efficiency. Casgevy (CRISPR-Cas9 for BCL11A in sickle cell) uses standard editing intentionally for *knockout* — for *precise correction*, base or prime editing is generally preferable.",
+          "Random.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Base editing (CBE for C→T or ABE for A→G; Liu 2016, 2017) avoids DSB → minimal indels/chromosomal damage + higher precision than HDR. ABE = dCas9 + evolved TadA; CBE = dCas9 + APOBEC + UGI. Beam Tx, Verve Tx, Prime Medicine clinical programs. Casgevy (standard Cas9) intentional knockout of BCL11A enhancer; for *correction* of a point mutation, base/prime editing preferred. Prime editing (Liu 2019) for indels + substitutions; lower efficiency, higher versatility."
+      },
+      "hints": [
+        "What avoids the DSB?",
+        "What enzyme deaminates ssDNA?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Base editing (CBE/ABE, Liu 2016-2017) — nickase or dCas9 + deaminase. No DSB → minimal indels/translocations/p53 stress. ABE for A→G, CBE for C→T. Beam Tx, Verve Tx clinical programs. Prime editing (Liu 2019) for indels + substitutions, lower efficiency, higher versatility."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_crispr_1",
+        "kind": "math_expression",
+        "question": "SpCas9 requires an NGG PAM. For a random 20-nt protospacer, what fraction of genomic sites have a usable PAM (considering both strands)?",
+        "acceptedAnswers": [
+          "~3/8",
+          "0.375",
+          "1/16 per strand × 2 strands × 3 = 3/8"
+        ],
+        "hint": "NGG: probability of GG at position 21-22 = 1/16 per strand. With both strands, effective coverage ~1/8 of all positions for NGG specifically; counting reverse-complement CCN expands to ~1/4 of sites for ~bp resolution. Rough rule of thumb: SpCas9 targetable about every ~8 bp."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_crispr_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain the arc from recombinant DNA (1972-1973) to CRISPR-based gene therapy (Casgevy 2023), naming the technologies + people that made each leap possible.",
+        "rubric": "Mentions: 1972 Paul Berg first recombinant DNA (Nobel 1980); 1973 Cohen + Boyer first cloning; 1975 Asilomar self-regulation; 1976 Genentech founded; 1978 insulin cloned in E. coli; 1982 Humulin FDA-approved (first recombinant drug). PCR 1983 Mullis (Nobel 1993). Restriction enzymes (Arber + Nathans + Smith Nobel 1978). Sanger sequencing → HGP 1990-2003 → NGS 2005+. CRISPR discovery 1993-2005 (Mojica) → 2007 immunity demonstration (Barrangou + Horvath) → 2012 CRISPR-Cas9 programmable nuclease (Doudna + Charpentier, Nobel 2020) → 2013 mammalian editing (Zhang, Church, Doudna). Base editing 2016 (Liu CBE), 2017 (ABE), prime editing 2019. Gene therapy: 2017 Kymriah (first CAR-T) + Luxturna (first FDA-approved gene therapy, AAV-RPE65). 2019 Zolgensma SMA (AAV-SMN1, $2.1M). 2022 Hemgenix hemophilia B. 2023 **Casgevy** (Vertex/CRISPR Tx FDA Dec 2023): first CRISPR-approved drug — edits BCL11A enhancer in HSCs → reactivates fetal hemoglobin → treats sickle cell + β-thalassemia. Lyfgenia same day (lentivirus). Each layer builds on the previous; the cycle from molecular biology to medicine has accelerated from decades to years. Pricing + access remain the next frontier."
+      }
+    }
+  ]
+}
