@@ -1,0 +1,182 @@
+{
+  "slug": "radiocarbon-dating-and-calibration",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Apply ¹⁴C decay.",
+      "Explain calibration.",
+      "Use Bayesian models."
+    ],
+    "prereqs": [
+      "archaeology-foundations-and-stratigraphy"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Radiocarbon dating: the workhorse of archaeology",
+      "body": "**Radiocarbon (¹⁴C) dating** (Libby 1949; Nobel 1960): exploits the fact that living organisms maintain atmospheric ¹⁴C/¹²C ratio via the carbon cycle. At death, uptake stops + ¹⁴C decays back to ¹⁴N (β⁻ emission) with half-life ~5730 yr.\n\n**Production**: cosmic-ray neutrons hit atmospheric ¹⁴N → ¹⁴C → CO₂ → photosynthesis → biosphere → death → decay.\n\n**Decay law**: f(t) = exp(-λt) with λ = ln(2) / T½. Equivalently age = -T½/ln(2) × ln(f).\n\n**Useful range**: ~300-50000 yr BP.\n- After ~50k yr (~10 half-lives), <0.1% remains → below detection.\n- Below ~300 yr, atmospheric ¹⁴C variations (Suess effect from fossil fuels; bomb spike) dominate.\n\n**Conventions**:\n- **BP**: Before Present, where 'present' = AD 1950 (because nuclear-bomb tests inflated ¹⁴C after).\n- **Libby half-life**: 5568 yr (original; still used for reporting consistency).\n- **Cambridge half-life**: 5730 yr (physically correct).\n- **δ¹³C correction**: corrects for isotopic fractionation in plants (C3 vs C4) + sample handling.\n- **AMS (accelerator mass spectrometry)** vs **gas counting**: AMS now dominant; needs only ~1 mg carbon; faster; smaller samples (single seed, single hair).\n\n**What can be dated**: anything with carbon recently in the biosphere.\n- Wood, charcoal, peat, plant remains, seeds.\n- Bone collagen, antler, ivory, shell (with reservoir correction).\n- Cloth, leather, parchment.\n- Mortar (calcium carbonate from atmospheric CO₂ uptake).\n- Foraminifera, coral, gastropod shells.\n\n**Caveats**:\n- **Old wood problem**: tree rings near the heartwood are older than the building's construction year. Always date outer rings or short-lived plants if possible.\n- **Reservoir effects**: marine organisms exchange with ocean DIC (which has older ¹⁴C); freshwater fish may have 'hard water' effect. Marine reservoir correction R + local ΔR.\n- **Contamination**: modern carbon (humic acids, conservator's glues, handling) is the worst-case contaminant; even 1% modern carbon shifts a 30000-BP sample by ~600 yr.",
+      "viz": "radiocarbon-decay",
+      "vizProps": {
+        "fractionRemaining": 0.5,
+        "halfLife": 5730
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Calibration: from radiocarbon years to calendar years",
+      "body": "**Calibration**: atmospheric ¹⁴C wasn't constant over time. Production varies with solar activity + Earth's magnetic field; ocean circulation changes (deep mixing rate) move carbon into + out of the atmosphere. So '¹⁴C years BP' need to be converted to 'calendar years BP' (cal BP) via calibration curves.\n\n**Calibration curves** (IntCal series; updated every ~5-10 years):\n- **Built from**: dendrochronology (tree rings 0-14000 cal BP, sometimes longer), coral U-Th + ¹⁴C, marine sediment foraminifera + paired markers, speleothem U-Th, lake varves.\n- **Current**: IntCal20 (Reimer 2020) + SHCal20 + Marine20 — for Northern + Southern Hemisphere + marine samples.\n- **Plateaus**: regions of the calibration curve where calendar-year change is small for given ¹⁴C change. Notorious 'first millennium BCE Hallstatt plateau' (~2700-2400 cal BP) gives bimodal posterior.\n- **Wiggles**: rapid ¹⁴C swings (e.g., Miyake events from solar superflares 774-775 CE + 993-994 CE + 660 BCE) give unique year-precision matches via 'wiggle-matching.'\n\n**Probability calibration**:\n- Calibrate a Gaussian ¹⁴C measurement (μ ± σ in ¹⁴C BP) onto the curve.\n- Result is a posterior probability distribution over calendar years.\n- Often multi-modal (because curve wiggles cause multiple matches).\n- Report 1σ + 2σ confidence intervals; not 'a single year ± error.'\n\n**Bayesian chronological modeling** (OxCal, BCal, ChronoModel; Bronk Ramsey 2009):\n- Combine multiple ¹⁴C dates + stratigraphic priors (this layer is older than that).\n- Posterior distributions are much tighter than individual calibrations alone.\n- Phases, sequences, boundaries can be modeled.\n- Revolutionary for archaeological chronology in 2000s+ (Bayliss + Whittle 'Histories of the Dead' British Neolithic chronology now resolved to ~25 yr precision).\n- Sensitivity testing + posterior predictive checks needed.\n\n**Pre-bomb / post-bomb**:\n- Pre-1950 calibrations are stable.\n- Post-1950 'bomb spike' from atomic testing inflated atmospheric ¹⁴C ~2× by 1963.\n- Useful for dating recent organic matter (forensic, ivory poaching, tissue turnover, eDNA).\n- 'F14C' = fraction modern carbon; >1 indicates post-bomb."
+    },
+    {
+      "kind": "text",
+      "title": "Famous radiocarbon stories + emerging frontiers",
+      "body": "**Famous radiocarbon controversies + resolutions**:\n- **Shroud of Turin** (1988): three labs (Arizona, Oxford, Zurich) dated to 1260-1390 CE — medieval, not 1st century. Some critics challenge contamination + repair-thread issues; mainstream view holds.\n- **Iceman Ötzi** (1991, dated 1992): ~5300 cal BP (3300 BCE). Bronze Age Alpine traveler.\n- **Dead Sea Scrolls**: late 3rd century BCE to 1st century CE (radiocarbon + paleography agree).\n- **Kennewick Man (Ancient One)**: ~9000 cal BP; led to NAGPRA decisions + reburial after ancient-DNA confirmed Native American ancestry.\n- **Lascaux + Chauvet cave art**: charcoal-pigment dates pushed European cave art back to >30000 cal BP; Chauvet ~36000 cal BP (controversial; some argue younger).\n- **Sahul colonization**: Australian arrival ~65000 cal BP (Madjedbebe; OSL + ¹⁴C combo).\n- **First Americans**: Monte Verde (Chile) ~14500 cal BP; White Sands (NM) footprints ~21k-23k cal BP (2021; OSL + ¹⁴C of seeds; pushing back 'Clovis-first' model).\n- **Stonehenge construction**: phases 5000-4000 cal BP (Bayesian chronological model — Parker Pearson, Bayliss et al.).\n\n**Methodological frontiers**:\n- **AMS miniaturization**: single-grain dating of cremated bone, micro-charcoal, single foraminifera.\n- **Compound-specific dating**: extract + date specific molecules (collagen amino acids, specific lipids) for refined accuracy.\n- **ZooMS (Zooarchaeology by Mass Spectrometry)**: identifies bone fragments by collagen peptides; combined with ¹⁴C.\n- **Single-amino-acid dating** of hydroxyproline: pure collagen → contamination-resistant date.\n- **Miyake-event wiggle matching**: 774-775 CE event in tree rings + archaeological wood → single-year precision. Now used for Viking Newfoundland (L'Anse aux Meadows: 1021 CE pinpointed).\n- **Sediment + paleosol bulk dating**: with caveats.\n\n**Limitations + alternatives**:\n- Beyond ~50 kyr → OSL, U-series, ESR, K/Ar.\n- Inorganic materials → luminescence, K/Ar, paleomag.\n- Carbon-poor matrices → indirect (charcoal in associated context).\n\n**Interpretation principle**: radiocarbon dates ages of carbon fixation (e.g., when a tree was alive), not when an artifact was made/used/deposited. Always reason about the relationship between the dated material + the cultural event of interest. Famous failure mode: dating mortar carbonate that re-equilibrated with cave CO₂ → 'too old' results."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_arch_c14_1",
+        "kind": "guided_derivation",
+        "question": "Calculate the age of a sample",
+        "goal": "AMS reports fraction modern carbon F¹⁴C = 0.250 ± 0.005. Compute conventional ¹⁴C age (yr BP) using Libby half-life 5568.",
+        "steps": [
+          {
+            "prompt": "Decay equation?",
+            "motivation": "Standard form.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "F = exp(-λt) with λ = ln(2)/T½"
+              ]
+            },
+            "hints": [
+              "Exponential decay."
+            ],
+            "reveal": "F¹⁴C = exp(-λt); λ = ln(2)/T½."
+          },
+          {
+            "prompt": "Solve for t with F = 0.25, T½ = 5568?",
+            "motivation": "Take log.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "t = -T½/ln(2) × ln(0.25) = 11136 yr BP",
+                "11136"
+              ]
+            },
+            "hints": [
+              "t = -ln(F) × T½ / ln(2)."
+            ],
+            "reveal": "t = -ln(0.25)/ln(2) × 5568 = 2 × 5568 = 11136 yr BP. (F = 0.25 = (½)² so age = 2 half-lives.)"
+          },
+          {
+            "prompt": "Report with measurement uncertainty?",
+            "motivation": "Propagate σ.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~11136 ± 30 yr BP"
+              ]
+            },
+            "hints": [
+              "σ_t = T½/ln(2) × σ_F/F."
+            ],
+            "reveal": "σ_t ≈ T½/ln(2) × σ_F/F = 8033 × 0.005/0.25 ≈ 160 yr. Report 11140 ± 160 ¹⁴C yr BP (matching reporting conventions of rounding to nearest 10 yr). Note this is uncalibrated; calibration to calendar years requires IntCal20."
+          },
+          {
+            "prompt": "Calibrated calendar age (approximate)?",
+            "motivation": "Apply calibration.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~12950 ± 200 cal BP (Younger Dryas region)",
+                "around 13000 cal BP"
+              ]
+            },
+            "hints": [
+              "IntCal20 around 11000 ¹⁴C BP → ~12900 cal BP."
+            ],
+            "reveal": "11140 ¹⁴C BP on IntCal20 calibrates to ~12950 cal BP (within Younger Dryas climate event). Calendar uncertainty often wider than ¹⁴C uncertainty due to curve plateaus + wiggles. OxCal or PyCalib for production work."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_arch_c14_1",
+        "kind": "multiple_choice",
+        "question": "Why does even 1% modern-carbon contamination cause large age errors on Paleolithic samples?",
+        "options": [
+          "Random.",
+          "Old samples have very little ¹⁴C left. A 30000-BP sample has ~2% original ¹⁴C remaining; adding 1% modern carbon (with 100% modern ¹⁴C) raises measured ¹⁴C to ~3% → calculated age drops to ~28000 BP → 2000 yr too young. The percentage of contamination determines the bias, multiplied by the difference between ages. Older samples → more sensitive. AMS labs use rigorous pretreatment (ABA, ABOX-SC, ultrafiltration of collagen) to remove humic acids + handling contamination. Single-amino-acid dating (hydroxyproline) is now used for Paleolithic bones.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Contamination math: a 30000-BP sample has 2% ¹⁴C; 1% modern carbon → 3% measured → ~28000 BP (2000 yr younger). Older samples are increasingly sensitive. Why pretreatment (ABA, ABOX-SC, ultrafiltration) + compound-specific dating (hydroxyproline) are essential for Paleolithic AMS."
+      },
+      "hints": [
+        "How much ¹⁴C is left at 30000 BP?",
+        "Effect of adding modern carbon."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "A 30000-BP sample has ~2% original ¹⁴C; 1% modern contamination → 3% measured → apparent age ~28000 BP (2000 yr too young). Older samples increasingly sensitive. Modern labs use ABA, ABOX-SC, ultrafiltration pretreatment + single-amino-acid (hydroxyproline) dating for Paleolithic to mitigate."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_arch_c14_1",
+        "kind": "slider",
+        "question": "Drag to the practical ¹⁴C dating range upper limit (yr BP).",
+        "target": {
+          "min": 50000,
+          "max": 50000
+        },
+        "default": 100000,
+        "explanation": "Practical ¹⁴C limit ~50000 yr BP (theoretical ~62000). After ~10 half-lives <0.1% ¹⁴C remains, indistinguishable from contamination + background. Beyond requires OSL, U-series, ESR, or paleomagnetism."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_arch_c14_1",
+        "kind": "sortable",
+        "question": "Order these radiocarbon-dated sites/events chronologically (oldest first).",
+        "items": [
+          {
+            "id": "lascaux",
+            "label": "Lascaux cave paintings (France)"
+          },
+          {
+            "id": "gobekli",
+            "label": "Göbekli Tepe (Turkey)"
+          },
+          {
+            "id": "stonehenge",
+            "label": "Stonehenge sarsen stones erected"
+          },
+          {
+            "id": "tut",
+            "label": "Tutankhamun (Egypt)"
+          },
+          {
+            "id": "vinland",
+            "label": "L'Anse aux Meadows Norse settlement (Newfoundland)"
+          }
+        ],
+        "explanation": "Chronology: Lascaux ~17000 cal BP > Göbekli Tepe ~11000 cal BP > Stonehenge sarsens ~4500 cal BP > Tutankhamun ~3300 cal BP > L'Anse aux Meadows 1021 CE (via Miyake event 993-994 in tree ring). Each precisely dated by ¹⁴C + complementary methods. Demonstrates ¹⁴C's range across human prehistory."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_arch_c14_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why Bayesian chronological modeling (OxCal) transformed archaeological dating.",
+        "rubric": "Mentions: Bayesian modeling combines multiple ¹⁴C dates with stratigraphic priors (this layer above that, this phase before that, this duration ~X years) to produce posterior age distributions much tighter than individual dates. Bronk Ramsey OxCal 2009+; ChronoModel + BCal alternatives. Revolutionary impact: British Neolithic chronology (Bayliss + Whittle 2007 'Histories of the Dead') resolved 1000-yr error bars to ~25 yr for monument-building phases. Stonehenge phases tightly dated. Greek + Roman timelines refined. Single-event boundary dates with explicit probabilities. Requires care: prior misspecification → biased posteriors; sensitivity testing essential; posterior predictive checks. Bayes' theorem applied to chronology converted archaeology from 'centuries-vague' to 'generations-precise.' Combined with Miyake-event wiggle matching + dendro-precision, we now can date major historical events to single calendar years. Concludes: dating + statistics together made chronology one of the most rigorous parts of archaeology."
+      }
+    }
+  ]
+}

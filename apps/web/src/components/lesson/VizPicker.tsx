@@ -250,6 +250,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🦈",
     tags: ["biology", "ecology", "marine-biology", "dynamical-systems"],
   },
+  {
+    name: "radiocarbon-decay",
+    label: "Radiocarbon ¹⁴C decay",
+    description: "Drag fraction remaining; see calendar age, half-life markers, dating-range limit, and famous-era anchors.",
+    thumb: "🏺",
+    tags: ["archaeology", "geology", "physics", "dating-methods"],
+  },
 ];
 
 interface Props {

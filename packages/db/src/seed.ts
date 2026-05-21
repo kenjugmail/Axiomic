@@ -1952,6 +1952,28 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P43 — Archaeologist path. Stratigraphy + radiocarbon (with new
+  // RadiocarbonDecay viz) + lithic technology + bioarchaeology +
+  // aDNA + agriculture origins + state formation/collapse + remote
+  // sensing/GIS + ethics/repatriation/public archaeology. The
+  // archaeology stack end-to-end.
+  seedMasteryPath({
+    slug: "archaeologist",
+    title: "Archaeologist",
+    description:
+      "From archaeological foundations + stratigraphy + Harris matrix through radiocarbon dating + IntCal20 + Bayesian chronological modeling (with interactive ¹⁴C decay viz), lithic technology + chaîne opératoire + Levallois cognition + use-wear, bioarchaeology + stable isotopes + ancient DNA + Pääbo's Nobel + Denisovans, agriculture origins + Neolithic transition + archaeobotany + zooarchaeology, early states + cities + collapse + Maya + Bronze Age, remote sensing + LiDAR + GIS + AI + digital archaeology, and ethics + NAGPRA + community-based + decolonizing archaeology. The archaeology stack end-to-end.",
+    nodes: [
+      { slug: "archaeology-foundations-and-stratigraphy", title: "Foundations + Stratigraphy", level: "apprentice", order: 1, pages: ["disciplines-periods", "harris-matrix", "dating-paradigms"], prereqs: [], description: "Archaeology vs related fields + periodization, stratigraphic principles + Harris matrix + site formation (C/N-transforms), relative vs absolute dating + Bayesian chronology." },
+      { slug: "radiocarbon-dating-and-calibration", title: "Radiocarbon + Calibration", level: "practitioner", order: 2, pages: ["c14-decay", "intcal-bayesian", "famous-frontier"], prereqs: ["archaeology-foundations-and-stratigraphy"], description: "Libby's discovery + decay law + AMS + interactive viz, IntCal20 + OxCal Bayesian modeling + Miyake wiggle-matching, famous cases (Ötzi, Shroud, L'Anse aux Meadows) + AMS frontier." },
+      { slug: "lithic-technology-and-typology", title: "Lithic Technology + Typology", level: "practitioner", order: 3, pages: ["industries-knapping", "chaine-operatoire", "ethnography-experimental"], prereqs: ["archaeology-foundations-and-stratigraphy"], description: "Oldowan → Upper Paleolithic industries + raw materials + knapping, chaîne opératoire + Levallois cognition + use-wear + residues, ethnographic analogy + experimental archaeology + cognitive evolution." },
+      { slug: "bioarchaeology-and-ancient-dna", title: "Bioarchaeology + Ancient DNA", level: "specialist", order: 4, pages: ["osteology-pathology", "isotopes", "adna-revolution"], prereqs: ["archaeology-foundations-and-stratigraphy"], description: "Osteology + paleopathology + paleodemography, δ¹³C/δ¹⁵N/δ¹⁸O/Sr isotopes for diet + mobility, aDNA revolution + Neanderthals + Denisovans + Pääbo Nobel + Reich Lab ethics." },
+      { slug: "agriculture-origins-and-archaeobotany", title: "Agriculture Origins + Archaeobotany", level: "specialist", order: 5, pages: ["neolithic-transition", "archaeobotany-methods", "zooarchaeology-impacts"], prereqs: ["archaeology-foundations-and-stratigraphy"], description: "Vavilov centers + Neolithic Revolution + drivers + domestication syndrome, flotation + phytoliths + macro/microbotanicals + isotopes, zooarchaeology + secondary products + Anthropocene roots." },
+      { slug: "states-cities-and-collapse", title: "States, Cities + Collapse", level: "expert", order: 6, pages: ["urban-revolution", "early-cities", "collapse-resilience"], prereqs: ["agriculture-origins-and-archaeobotany"], description: "Childe + pristine states + Uruk/Indus/Shang/Olmec/Andes, Mohenjo-daro + Teotihuacan + Tenochtitlan + Angkor, Late Bronze Age + Maya + Anasazi + Tainter + transformation reframing." },
+      { slug: "remote-sensing-and-gis", title: "Remote Sensing + GIS", level: "expert", order: 7, pages: ["aerial-lidar-satellite", "gis-spatial", "digital-ai-heritage"], prereqs: ["archaeology-foundations-and-stratigraphy"], description: "Aerial + CORONA + LiDAR (PACUNAM Maya) + geophysics, GIS + viewshed + least-cost + predictive modeling, digital archaeology + AI + 3D + climate-change rescue." },
+      { slug: "ethics-repatriation-and-public-archaeology", title: "Ethics + Repatriation + Public", level: "expert", order: 8, pages: ["stakeholders-repatriation", "ethics-cbpr", "public-future"], prereqs: ["bioarchaeology-and-ancient-dna"], description: "Stakeholders + NAGPRA + Benin Bronzes + antiquities trafficking, codes of ethics + community-based + decolonizing + FAIR/CARE, public archaeology + pseudoarchaeology + Anthropocene-era directions." },
+    ],
+  });
+
   // P42 — Marine Biologist path. Ocean life from microbial to whale
   // through phytoplankton + primary production, predator-prey with
   // new Lotka-Volterra viz, coral reefs + bleaching, fisheries +

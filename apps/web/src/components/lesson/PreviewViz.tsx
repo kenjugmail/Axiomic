@@ -168,6 +168,11 @@ const LazyLotkaVolterra = lazy(() =>
     (m) => ({ default: m.LotkaVolterra }),
   ),
 );
+const LazyRadiocarbonDecay = lazy(() =>
+  import("../../../../../packages/viz/src/components/RadiocarbonDecay").then(
+    (m) => ({ default: m.RadiocarbonDecay }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -292,6 +297,8 @@ function VizByName({
       return <LazyMM1Queue {...(props as object)} />;
     case "lotka-volterra":
       return <LazyLotkaVolterra {...(props as object)} />;
+    case "radiocarbon-decay":
+      return <LazyRadiocarbonDecay {...(props as object)} />;
     default:
       return null;
   }

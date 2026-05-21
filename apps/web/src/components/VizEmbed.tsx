@@ -35,6 +35,7 @@ const HillFunction = lazy(() => import("../../../../packages/viz/src/components/
 const DriftDiffusion = lazy(() => import("../../../../packages/viz/src/components/DriftDiffusion").then(m => ({ default: m.DriftDiffusion })));
 const MM1Queue = lazy(() => import("../../../../packages/viz/src/components/MM1Queue").then(m => ({ default: m.MM1Queue })));
 const LotkaVolterra = lazy(() => import("../../../../packages/viz/src/components/LotkaVolterra").then(m => ({ default: m.LotkaVolterra })));
+const RadiocarbonDecay = lazy(() => import("../../../../packages/viz/src/components/RadiocarbonDecay").then(m => ({ default: m.RadiocarbonDecay })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -74,6 +75,7 @@ export const VIZ_NAMES = [
   "drift-diffusion",
   "mm1-queue",
   "lotka-volterra",
+  "radiocarbon-decay",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -111,6 +113,7 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "drift-diffusion": DriftDiffusion,
   "mm1-queue": MM1Queue,
   "lotka-volterra": LotkaVolterra,
+  "radiocarbon-decay": RadiocarbonDecay,
 };
 
 interface VizEmbedProps {
