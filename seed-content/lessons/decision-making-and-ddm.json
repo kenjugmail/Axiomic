@@ -1,0 +1,224 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Apply drift-diffusion model.",
+      "Reason about speed-accuracy trade-off.",
+      "Connect to neural + clinical applications."
+    ],
+    "prereqs": [
+      "perception-and-vision"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Decision-making: from evidence to action",
+      "body": "**Perceptual decision-making**: detect/categorize signal in noise; produce action. Famous paradigm: **random-dot motion task** (Newsome + Britten 1990s) — subjects + monkeys judge net motion of dots; coherence (signal strength) varied.\n\n**Two complementary measurements**:\n- **Accuracy**: % correct as function of coherence.\n- **Reaction time (RT)**: time to decide.\n\nBoth shaped by signal strength + task demands.\n\n**Speed-accuracy trade-off (SAT)**: faster decisions less accurate. Lower decision threshold → faster + more errors. Higher threshold → slower + fewer errors.\n\n**Signal Detection Theory** (Tanner + Swets 1954): formalism for detection in noise. d' = (mean_signal − mean_noise) / σ. Sensitivity vs bias (criterion).\n\n**Sequential analysis**: optimal procedure (Wald 1945; SPRT) accumulates evidence until threshold reached. Drift-diffusion model approximates this for binary choice + matches human + animal behavior.",
+      "viz": "drift-diffusion",
+      "vizProps": {
+        "v": 1.5,
+        "a": 1,
+        "z": 0,
+        "sigma": 1
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Drift-diffusion model + parameters",
+      "body": "**Drift-diffusion model (DDM)** (Ratcliff 1978; subsequent decades): canonical model of binary decisions.\n\nEvidence x(t) accumulates as random walk + drift:\n  dx/dt = v + σ·noise\n\nDecision when x reaches threshold (+a or -a).\n\n**Parameters**:\n- **v (drift rate)**: signal strength × processing capacity. Higher v → faster + more accurate.\n- **a (threshold)**: decision criterion (speed-accuracy trade-off).\n- **z (start point)**: bias toward one option.\n- **σ (noise)**: intrinsic noise.\n- **Ter (non-decision time)**: stimulus encoding + motor execution.\n\nFits both RT distributions (right-skewed, with tail) + choice proportions.\n\n**Variants + extensions**:\n- Linear ballistic accumulator (LBA): simpler, deterministic + race.\n- Leaky competing accumulator (LCA; Usher + McClelland 2001): more biological.\n- Race / horse-race models.\n- Hierarchical Bayesian DDM (Wiecki 2013).\n\n**Why DDM is influential**:\n- Fits behavioral data remarkably well.\n- Parameters have psychological meaning.\n- Decomposes RT into cognitive vs motor components.\n- Maps onto neural activity.\n- Theoretical optimality under assumptions (SPRT).\n\n**Decision noise**: irreducible variability; even with same stimulus + state, decisions vary. Modeled via stochastic accumulation."
+    },
+    {
+      "kind": "text",
+      "title": "Neural correlates + clinical applications",
+      "body": "**Neural correlates of DDM**:\n- **LIP (lateral intraparietal area, monkey)**: firing rate ramps up during evidence accumulation; reaches threshold at decision (Shadlen + Newsome 2001).\n- **FEF, SC**: motor preparation.\n- **PFC**: bias + control.\n- **Basal ganglia**: action selection.\n- DDM as 'neural-to-behavioral bridge.'\n\n**Imaging in humans**:\n- fMRI: BOLD activity correlates with v (evidence) + a (threshold settings).\n- EEG: centro-parietal positivity (CPP) tracks evidence accumulation.\n- TMS: stimulating motor cortex during accumulation alters thresholds.\n\n**Computational psychiatry**:\n- ADHD: lower drift rate (slower accumulation) + variable.\n- Depression: altered bias toward negative.\n- Schizophrenia: altered noise + thresholds.\n- Parkinson's: bradykinesia explained partly by elevated thresholds.\n- DDM fits provide quantitative biomarkers.\n\n**Value-based decisions**:\n- Same accumulator framework with subjective values as drift rates.\n- Ventromedial PFC encodes value.\n- Strong cross-task generalization.\n\n**Modern + AI integrations**:\n- Deep neural networks + accumulator models combined.\n- Reinforcement learning + decision models.\n- Large-language-model decision evaluation.\n- Foundation models exhibit accumulator-like behavior on some tasks."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cog_ddm_1",
+        "kind": "guided_derivation",
+        "question": "Predict effects of DDM parameter changes",
+        "goal": "Predict effects of (a) doubling drift rate v, (b) doubling threshold a on accuracy + RT.",
+        "steps": [
+          {
+            "prompt": "Effect of doubling drift v on accuracy?",
+            "motivation": "Stronger signal.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "accuracy increases"
+              ]
+            },
+            "hints": [
+              "Higher signal."
+            ],
+            "reveal": "Doubling v: stronger signal → faster + more reliable accumulation → accuracy increases (toward 100% at fixed threshold)."
+          },
+          {
+            "prompt": "Effect of doubling v on RT?",
+            "motivation": "Faster.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "RT decreases"
+              ]
+            },
+            "hints": [
+              "Faster to threshold."
+            ],
+            "reveal": "Doubling v: RT decreases (proportional to 1/v approximately). Faster to threshold."
+          },
+          {
+            "prompt": "Effect of doubling threshold a on accuracy?",
+            "motivation": "More evidence required.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "accuracy increases"
+              ]
+            },
+            "hints": [
+              "More cautious."
+            ],
+            "reveal": "Doubling a: more evidence required → noise has time to average out → accuracy increases."
+          },
+          {
+            "prompt": "Effect on RT?",
+            "motivation": "Slower.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "RT increases (~quadratically)"
+              ]
+            },
+            "hints": [
+              "Slower decisions."
+            ],
+            "reveal": "Doubling a: RT increases substantially (~quadratically; mean RT ∝ a²/v). Speed-accuracy trade-off: thresholds give accuracy at cost of speed."
+          },
+          {
+            "prompt": "What's the implication for cognitive control?",
+            "motivation": "Modulate parameters by context.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "adjust thresholds based on context",
+                "balance speed vs accuracy"
+              ]
+            },
+            "hints": [
+              "Context-dependent."
+            ],
+            "reveal": "Subjects adaptively modulate thresholds: low when speed matters; high when accuracy matters. ACC + DLPFC implement this control. Reward magnitudes + punishment costs influence too. Modern DDM extensions include collapsing thresholds (start cautious, become hasty); time pressure; reward expectations."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_cog_ddm_1",
+        "kind": "drag_classify",
+        "question": "Match each clinical condition to its likely DDM parameter alteration.",
+        "items": [
+          {
+            "id": "adhd-inattentive",
+            "label": "ADHD inattentive type",
+            "bin": "low-drift"
+          },
+          {
+            "id": "adhd-impulsive",
+            "label": "ADHD impulsive subtype",
+            "bin": "low-threshold"
+          },
+          {
+            "id": "obsessive",
+            "label": "Obsessive-compulsive (overly cautious checking)",
+            "bin": "high-threshold"
+          },
+          {
+            "id": "depression-neg",
+            "label": "Depression with negative bias",
+            "bin": "biased-start"
+          },
+          {
+            "id": "parkinsons",
+            "label": "Parkinson's bradykinesia",
+            "bin": "high-threshold"
+          },
+          {
+            "id": "schizophrenia-noise",
+            "label": "Schizophrenia (elevated decision noise)",
+            "bin": "low-drift"
+          }
+        ],
+        "bins": [
+          {
+            "id": "low-drift",
+            "label": "Reduced drift rate (slow accumulation)"
+          },
+          {
+            "id": "low-threshold",
+            "label": "Low threshold (impulsive)"
+          },
+          {
+            "id": "high-threshold",
+            "label": "High threshold (slow + cautious)"
+          },
+          {
+            "id": "biased-start",
+            "label": "Biased start (toward one option)"
+          }
+        ],
+        "explanation": "DDM provides quantitative biomarkers across psychiatric + neurological conditions. ADHD inattentive: low drift (slow processing). Impulsive: low threshold (premature decisions). OCD: high threshold (excessive checking). Depression: biased start point (negative interpretation). Parkinson's: high threshold (bradykinesia). Schizophrenia: variable; often elevated noise + reduced drift. Computational psychiatry uses fits to characterize + treatment response."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cog_ddm_1",
+        "kind": "multiple_choice",
+        "question": "Why is the drift-diffusion model so influential in cognitive neuroscience?",
+        "options": [
+          "Random.",
+          "DDM combines: (1) Quantitative fit to RT distributions + choice proportions; (2) Psychologically meaningful parameters (drift, threshold, bias); (3) Maps onto neural activity (LIP ramping); (4) Provides decomposition of RT into cognitive vs motor; (5) Bridges behavior, theory (SPRT optimality), neuroscience. Influences: computational psychiatry biomarkers, BCI design, ADHD/Parkinson's quantification, decision theory + economics, AI models. Ratcliff + others have built ~50 years of evidence + extensions.",
+          "Random.",
+          "Marketing."
+        ],
+        "correctIndex": 1,
+        "explanation": "DDM (Ratcliff 1978+): fits behavioral data; psychologically meaningful parameters; matches neural firing (LIP, Shadlen + Newsome 2001); bridges behavior + theory + neuroscience. ~50 years of development. Variants + extensions cover many decision tasks. Clinical: computational psychiatry biomarkers across ADHD, OCD, depression, schizophrenia, Parkinson's. Modern: integrated with deep networks + foundation models."
+      },
+      "hints": [
+        "What does it provide?",
+        "What's the bridge?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "DDM (Ratcliff 1978): fits RT + accuracy distributions; parameters psychologically interpretable; matches neural firing (LIP ramping; Shadlen + Newsome 2001); bridges psychology + neuroscience + theory (SPRT optimality). Clinical: biomarkers in ADHD, OCD, depression, schizophrenia, Parkinson's. ~50 years of refinement. Modern: integrated with deep networks."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_cog_ddm_1",
+        "kind": "slider",
+        "question": "Drag to typical psychophysical threshold improvement per doubling of stimulus duration (in %).",
+        "target": {
+          "min": 30,
+          "max": 50
+        },
+        "default": 10,
+        "explanation": "Psychophysical detection thresholds improve ~30-50% per doubling of duration (square-root law for ideal integrators). Consistent with evidence accumulation: more time → more samples → better SNR. DDM predicts this naturally."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cog_ddm_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how the drift-diffusion model exemplifies 'computational' cognitive science.",
+        "rubric": "Mentions: DDM is a formal mathematical model with explicit parameters that map to psychological constructs (signal strength, caution, bias) + neural mechanisms (accumulator firing). Computational cognitive science combines: (1) Mathematical formalism (Bayesian, RL, drift-diffusion); (2) Behavioral fit (RT, accuracy distributions); (3) Neural correspondence (LIP, EEG, fMRI); (4) Clinical applications (psychiatric biomarkers); (5) Theoretical grounding (sequential probability ratio test optimality). Bridges Marr's three levels: computational (what is being computed — evidence accumulation), algorithmic (drift-diffusion), implementational (LIP + other regions). Generalizes to value-based decisions, social choice, memory retrieval. Modern: integrated with deep networks, foundation models, predictive processing. DDM is canonical example of computational cognitive science success: simple model with broad explanatory power + mechanistic insight."
+      }
+    }
+  ]
+}

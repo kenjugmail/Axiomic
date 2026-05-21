@@ -229,6 +229,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🧬",
     tags: ["biology", "cell-biology", "molecular-biology", "biochemistry", "gene-regulation"],
   },
+  {
+    name: "drift-diffusion",
+    label: "Drift-diffusion decision model",
+    description: "Drag drift + threshold + bias + noise; see evidence accumulation trajectories + RT/accuracy.",
+    thumb: "🧠",
+    tags: ["cognitive-science", "psychology", "decision-making", "neuroscience"],
+  },
 ];
 
 interface Props {

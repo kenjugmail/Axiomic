@@ -1952,6 +1952,28 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P40 — Cognitive Scientist path. Perception + attention +
+  // decision-making with new DriftDiffusion viz + memory systems
+  // + language + learning + cognitive control + neuroscience
+  // methods. Distinct from neuro-engineer (which is BCI/implant
+  // focused) and nlp-linguist (which is computational NLP).
+  seedMasteryPath({
+    slug: "cognitive-scientist",
+    title: "Cognitive Scientist",
+    description:
+      "From perception + visual hierarchy + Marr's three levels through attention + working-memory + Baddeley/Cowan, decision-making + drift-diffusion model with interactive viz + speed-accuracy tradeoff + risk + prospect theory, memory systems + episodic/semantic/procedural + reconsolidation + forgetting curves, language + Broca/Wernicke + N400/P600 + LLM comparisons, learning + Rescorla-Wagner + TD + dopamine RPE + intrinsic motivation, cognitive control + PFC + executive function + Stroop + DLPFC/ACC + meta-cognition, and cognitive-neuroscience methods + fMRI/EEG/MEG + intracranial + multivariate decoding + connectomics. The cognitive-science stack end-to-end.",
+    nodes: [
+      { slug: "perception-and-vision", title: "Perception + Vision", level: "apprentice", order: 1, pages: ["marrs-levels", "visual-hierarchy", "illusions-bayes"], prereqs: [], description: "Marr's computational/algorithmic/implementational levels, V1 → IT ventral stream + dorsal stream, perceptual illusions + Bayesian perception + predictive coding." },
+      { slug: "attention-and-working-memory", title: "Attention + Working Memory", level: "practitioner", order: 2, pages: ["attention-types", "wm-models", "limits-bottlenecks"], prereqs: ["perception-and-vision"], description: "Selective + divided + sustained attention + Posner cueing, Baddeley + Cowan WM models, capacity limits + attentional bottlenecks + change blindness." },
+      { slug: "decision-making-and-ddm", title: "Decision Making + DDM", level: "practitioner", order: 3, pages: ["drift-diffusion", "speed-accuracy", "risk-prospect"], prereqs: ["attention-and-working-memory"], description: "Drift-diffusion model + interactive viz + evidence accumulation + boundary, speed-accuracy tradeoff + LIP/FEF neural mechanisms, expected utility vs prospect theory + Kahneman + framing." },
+      { slug: "memory-systems", title: "Memory Systems", level: "specialist", order: 4, pages: ["episodic-semantic-procedural", "consolidation-reconsolidation", "forgetting-distortion"], prereqs: ["perception-and-vision"], description: "Episodic + semantic + procedural + working memory, hippocampus + cortical consolidation + reconsolidation, Ebbinghaus forgetting + false memory + DRM paradigm." },
+      { slug: "language-and-comprehension", title: "Language + Comprehension", level: "specialist", order: 5, pages: ["brain-language-areas", "n400-p600", "llm-comparison"], prereqs: ["attention-and-working-memory"], description: "Broca + Wernicke + arcuate fasciculus + aphasia, N400 semantic + P600 syntactic ERPs, GPT-4-class LLMs vs human language processing + alignment." },
+      { slug: "learning-and-plasticity", title: "Learning + Plasticity", level: "expert", order: 6, pages: ["rescorla-wagner-td", "dopamine-rpe", "intrinsic-motivation"], prereqs: ["decision-making-and-ddm"], description: "Rescorla-Wagner classical + TD learning + Sutton-Barto, dopamine reward prediction error + Schultz, intrinsic motivation + curiosity + exploration-exploitation." },
+      { slug: "cognitive-control-and-pfc", title: "Cognitive Control + PFC", level: "expert", order: 7, pages: ["executive-function", "stroop-flanker", "metacognition"], prereqs: ["attention-and-working-memory", "decision-making-and-ddm"], description: "Executive function + DLPFC/ACC + Miller-Cohen, Stroop + flanker + go/no-go + conflict monitoring, metacognition + confidence + meta-d' + theory of mind." },
+      { slug: "cognitive-neuroscience-methods", title: "Cognitive Neuroscience Methods", level: "expert", order: 8, pages: ["fmri-eeg-meg", "intracranial-tms", "multivariate-connectomics"], prereqs: ["perception-and-vision", "memory-systems"], description: "fMRI BOLD + EEG/MEG + temporal/spatial tradeoffs, intracranial ECoG + single-unit + TMS + causal methods, MVPA + RSA + connectomics + Human Connectome Project." },
+    ],
+  });
+
   // P39 — Cell + Molecular Biologist path. Cell structure + DNA
   // replication + transcription/translation + gene regulation with
   // new HillFunction viz + signal transduction + cell cycle +

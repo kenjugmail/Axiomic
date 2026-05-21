@@ -30,6 +30,7 @@ export { GaussianBeam } from "./components/GaussianBeam";
 export { VowelFormantChart } from "./components/VowelFormantChart";
 export { PhillipsCurve } from "./components/PhillipsCurve";
 export { HillFunction } from "./components/HillFunction";
+export { DriftDiffusion } from "./components/DriftDiffusion";
 export { SoftmaxTemperatureSlider } from "./quiz/SoftmaxTemperatureSlider";
 export { AttentionHeatmapExplorer } from "./quiz/AttentionHeatmapExplorer";
 export { GradientDescent2D } from "./quiz/GradientDescent2D";

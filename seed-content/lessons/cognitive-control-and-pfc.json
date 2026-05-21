@@ -1,0 +1,204 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish executive functions.",
+      "Apply dual-process + biases.",
+      "Connect to clinical + AI applications."
+    ],
+    "prereqs": [
+      "attention-and-working-memory"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Executive function + the PFC",
+      "body": "**Executive function (EF)**: cognitive processes for goal-directed behavior over habits + distractions. Core components (Miyake + Friedman 2000):\n1. **Inhibition**: suppress prepotent responses (Stroop, go/no-go).\n2. **Working-memory updating**: maintain + modify (N-back, running span).\n3. **Set-shifting**: switch between tasks (Wisconsin, task-switching).\n\n**Higher-order**: planning, problem-solving, abstract reasoning, metacognition.\n\n**Prefrontal cortex (PFC) subdivisions**:\n- **Dorsolateral PFC (DLPFC)**: working memory + cognitive control.\n- **Ventromedial PFC (VMPFC) + OFC**: value + reward + decision.\n- **Anterior cingulate cortex (ACC)**: conflict + error monitoring.\n- **Frontal pole**: highest-level + relational.\n- **Inferior frontal gyrus (IFG)**: inhibition + language.\n\n**PFC matures slowly** (until ~25 in humans): explains adolescent risk-taking + executive limits + insurance company brain-development factor.\n\n**PFC damage**:\n- Phineas Gage 1848: railroad spike through PFC; personality changes, planning deficits.\n- Lesion studies (Damasio): VMPFC damage → poor decision-making despite intact intelligence.\n- ADHD: DLPFC + striatum hypofunction.\n- Frontal lobe dementia: progressive personality + executive decline."
+    },
+    {
+      "kind": "text",
+      "title": "Dual-process theory + cognitive biases",
+      "body": "**Dual-process theory** (Kahneman 'Thinking Fast + Slow' 2011 popular):\n- **System 1**: fast, automatic, parallel, intuitive, effortless. Default for routine.\n- **System 2**: slow, deliberate, serial, analytical, effortful. Override System 1.\n\n**Many biases from System-1 dominance**:\n• **Anchoring**: first number heavily influences subsequent estimates.\n• **Availability heuristic**: ease of recall biases probability estimates (terror attacks > car crashes in subjective risk).\n• **Confirmation bias**: seek + interpret evidence supporting prior beliefs.\n• **Hindsight bias**: 'I knew it all along.'\n• **Framing effects**: same info presented differently → different decisions (lives saved vs lost).\n• **Loss aversion**: losses ~2× as impactful as gains (prospect theory; Kahneman + Tversky Nobel 2002).\n• **Endowment effect**: own something → value higher.\n• **Sunk-cost fallacy**: weight already-spent resources.\n• **Base-rate neglect**: ignore priors in favor of specific evidence.\n• **Representativeness**: judge probability by similarity to mental prototype.\n\n**Implications**:\n- Behavioral economics + 'nudge' theory.\n- Public-health communications.\n- Financial decision-making.\n- Medical diagnosis errors.\n- Legal judgments.\n- AI fairness (avoid biases in training data + decisions).\n\n**Modern**: bounded rationality (Simon); ecological rationality (Gigerenzer); LLM biases mirror human ones."
+    },
+    {
+      "kind": "text",
+      "title": "Self-regulation + addiction + therapy",
+      "body": "**Self-regulation**: ability to delay gratification + control impulses.\n\n**Marshmallow test** (Mischel 1972): kids offered 1 marshmallow now or 2 later. Performance predicted later academic + social outcomes (replicated + extended; some controversies about effect sizes + replication).\n\n**Hot vs cold system** (Mischel): hot (limbic, emotional, automatic); cold (PFC, deliberative, controlled). Self-control: cold over hot.\n\n**Addiction**: dysregulated reward + control.\n- Hyperresponsive striatum to cues.\n- Hypoactive PFC (control failure).\n- Dopamine hijack of reward learning.\n- Treatment: combinations of CBT, MAT (methadone, buprenorphine for opioids), naltrexone, gabapentin, etc.\n- Modern: psychedelics (psilocybin-assisted therapy for AUD, smoking), GLP-1 agonists reducing addictive behaviors.\n\n**Clinical therapies for executive dysfunction**:\n- **Cognitive-behavioral therapy (CBT)**: identify + restructure thoughts; behavioral activation.\n- **Mindfulness-based stress reduction (MBSR)**: meta-cognitive awareness.\n- **ADHD pharmacology**: stimulants (methylphenidate, amphetamine) enhance DA + NE in PFC.\n- **Neurofeedback**: real-time brain activity training; mixed evidence.\n\n**Lifestyle factors**:\n- Sleep + exercise + diet + social — all robustly improve executive function.\n- Stress + chronic adversity impair PFC development + function.\n- Mindfulness + meditation: modest evidence for improved self-regulation.\n\n**AI + alignment**:\n- LLM alignment requires similar 'control' over base behaviors.\n- RLHF + Constitutional AI as 'training the System-2.'\n- Self-monitoring + reflection prompts.\n- Modern: reasoning models (o1, Claude 3.5+) show System-2-like deliberation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cog_pfc_1",
+        "kind": "guided_derivation",
+        "question": "Apply prospect theory to a framing example",
+        "goal": "Frame medical-decision in two ways + apply prospect-theory loss aversion.",
+        "steps": [
+          {
+            "prompt": "Frame A: '90% survival rate.' How does System 1 evaluate?",
+            "motivation": "Gain frame.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "favorable",
+                "positive",
+                "patient inclined to accept"
+              ]
+            },
+            "hints": [
+              "Positive framing."
+            ],
+            "reveal": "Gain frame: 90% surviving → System 1 perceives positively → patient/family likely to accept procedure."
+          },
+          {
+            "prompt": "Frame B: '10% mortality rate.' Different effect?",
+            "motivation": "Loss frame.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "less favorable",
+                "more reluctant"
+              ]
+            },
+            "hints": [
+              "Loss framing."
+            ],
+            "reveal": "Loss frame: 10% mortality → emphasizes loss → System 1 perceives more negatively → patient/family more reluctant. **Same statistical information**."
+          },
+          {
+            "prompt": "Why the asymmetry (prospect theory)?",
+            "motivation": "Loss aversion.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "loss aversion: losses ~2× gains in subjective value"
+              ]
+            },
+            "hints": [
+              "Asymmetric value function."
+            ],
+            "reveal": "Prospect theory (Kahneman + Tversky 1979): subjective value asymmetric; losses ~2× gains in impact (kink at reference point). Framing manipulates reference point → activates loss aversion → changes decisions. **Reference-point dependence** is key."
+          },
+          {
+            "prompt": "Clinical implication?",
+            "motivation": "Communicate consistently.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "frame consistently + transparently; consider both frames"
+              ]
+            },
+            "hints": [
+              "Best practices."
+            ],
+            "reveal": "Modern medical-communication best practices: present both frames (90% survive + 10% mortality); use absolute + relative risk; visual aids (icon arrays); avoid manipulating via framing. Shared decision-making + numeracy interventions. Behavioral economics + 'nudges' research informs ethical communication."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_cog_pfc_1",
+        "kind": "drag_classify",
+        "question": "Match each cognitive bias to its underlying mechanism.",
+        "items": [
+          {
+            "id": "fear-of-flying",
+            "label": "Fear of flying despite low crash rate (vivid imagery)",
+            "bin": "availability"
+          },
+          {
+            "id": "first-offer",
+            "label": "First offer in negotiation heavily influences final",
+            "bin": "anchoring"
+          },
+          {
+            "id": "selling-loser-stocks",
+            "label": "Reluctance to sell stocks at a loss",
+            "bin": "loss-aversion"
+          },
+          {
+            "id": "endowment",
+            "label": "Demanding higher price for items you own than offering for same items",
+            "bin": "loss-aversion"
+          },
+          {
+            "id": "echo-chambers",
+            "label": "Reading only sources confirming political views",
+            "bin": "confirmation"
+          },
+          {
+            "id": "recent-news-effect",
+            "label": "Overestimating shark-attack risk after news coverage",
+            "bin": "availability"
+          }
+        ],
+        "bins": [
+          {
+            "id": "availability",
+            "label": "Availability heuristic"
+          },
+          {
+            "id": "anchoring",
+            "label": "Anchoring"
+          },
+          {
+            "id": "loss-aversion",
+            "label": "Loss aversion"
+          },
+          {
+            "id": "confirmation",
+            "label": "Confirmation bias"
+          }
+        ],
+        "explanation": "Cognitive biases by mechanism: availability heuristic (ease of recall biases probability); anchoring (first information influences); loss aversion / endowment (asymmetric losses); confirmation (selective evidence). All System-1-dominant; mitigated by deliberate System-2 + structured decision processes + decision aids. Modern: behavioral economics + nudges + AI-debiasing tools."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cog_pfc_1",
+        "kind": "multiple_choice",
+        "question": "Why is adolescence characterized by increased risk-taking despite peak physical/cognitive abilities?",
+        "options": [
+          "Random.",
+          "Asymmetric maturation: limbic system (reward, emotion) matures faster than PFC (control). Adolescents have intense reward signals but immature inhibition + planning. PFC continues maturing until ~25. Combined with peer influence, identity-formation, novelty-seeking → risk-taking. Drug use, accidents, unprotected sex peak in adolescence. Modern: brain-development science informs juvenile justice + insurance + education policies. Healthy: gradual maturation; risks: chronic adversity disrupts.",
+          "Random.",
+          "Marketing."
+        ],
+        "correctIndex": 1,
+        "explanation": "Adolescent risk-taking: limbic-PFC maturation asymmetry. Reward + emotion regions mature faster; PFC + control until ~25. Peer influence + identity + novelty heighten. Casey + Steinberg + others. Implications: juvenile justice (US Supreme Court Roper v. Simmons + Miller v. Alabama on adolescent culpability), insurance ratings (car insurance jumps at ~25), education (high-school + college design). Modern: brain-imaging studies; longitudinal cohorts (ABCD study)."
+      },
+      "hints": [
+        "What develops asymmetrically?",
+        "What's the implication?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Adolescent risk-taking: limbic + reward systems mature before PFC + control. PFC matures until ~25. Intense rewards + immature inhibition + peer influence + identity-formation → risk-taking. Drug use, accidents, unprotected sex peak. Casey + Steinberg + others. Policy implications: juvenile justice, insurance, education. ABCD study + longitudinal cohorts ongoing."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_cog_pfc_1",
+        "kind": "math_expression",
+        "question": "Prospect theory: subjective value of $100 gain ~1 unit; subjective value of $100 loss ~-2.25 units. Reflection coefficient (utility loss / gain ratio)?",
+        "acceptedAnswers": [
+          "2.25",
+          "2.25:1"
+        ],
+        "hint": "Kahneman + Tversky: λ ≈ 2.25 (range 1.4-4.0 across studies)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cog_pfc_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why understanding cognitive biases is important for AI safety + alignment.",
+        "rubric": "Mentions: humans exhibit predictable biases (loss aversion, anchoring, confirmation, availability) due to System-1 dominance + bounded rationality. AI systems trained on human data + feedback may inherit biases. LLM hallucinations are AI-system-1 dominance. Alignment challenges: (1) humans give biased feedback (RLHF); (2) AI may amplify human biases at scale; (3) AI may exploit human biases (manipulation, dark patterns); (4) AI value-alignment requires understanding nuanced human reasoning. Mitigation: structured reasoning (Chain-of-Thought, debate, deliberation), debiasing techniques, transparency, fairness audits. Modern: Constitutional AI (Anthropic) explicitly designs around principles; o1 + Claude 3.5+ enable System-2-style deliberation. Cognitive-science + AI cross-pollinate: both fields benefit. Concludes: cognitive biases foundational to both human cognition + AI safety; understanding shapes alignment + governance."
+      }
+    }
+  ]
+}

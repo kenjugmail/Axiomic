@@ -143,6 +143,11 @@ const LazyHillFunction = lazy(() =>
     (m) => ({ default: m.HillFunction }),
   ),
 );
+const LazyDriftDiffusion = lazy(() =>
+  import("../../../../../packages/viz/src/components/DriftDiffusion").then(
+    (m) => ({ default: m.DriftDiffusion }),
+  ),
+);
 const LazyDoublePendulum = lazy(() =>
   import("../../../../../packages/viz/src/components/DoublePendulum").then(
     (m) => ({ default: m.DoublePendulum }),
@@ -271,6 +276,8 @@ function VizByName({
       return <LazyPhillipsCurve {...(props as object)} />;
     case "hill-function":
       return <LazyHillFunction {...(props as object)} />;
+    case "drift-diffusion":
+      return <LazyDriftDiffusion {...(props as object)} />;
     default:
       return null;
   }
