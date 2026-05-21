@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Sparkles, AlertTriangle, Check, Copy } from "lucide-react";
+import { Sparkles, AlertTriangle, Check, Copy, Save } from "lucide-react";
 import { api, type MasteryPath } from "../../lib/api";
 import { PreviewViz } from "../../components/lesson/PreviewViz";
 
@@ -28,6 +28,8 @@ export function AuthorLessonPage() {
   const [timeMinutes, setTimeMinutes] = useState(22);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<AuthorResponse | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
 
   useEffect(() => {
     api.mastery.getPaths().then((d) => setPaths(d.paths)).catch(() => undefined);
@@ -91,6 +93,34 @@ export function AuthorLessonPage() {
 
   function copy() {
     if (lessonJSON) void navigator.clipboard?.writeText(lessonJSON);
+  }
+
+  async function saveToFile(overwrite = false) {
+    if (!result?.lesson || !result.valid) return;
+    setSaving(true);
+    setSaveMsg(null);
+    try {
+      const res = await fetch("/api/v1/authoring/save", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ nodeSlug, lesson: result.lesson, overwrite }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSaveMsg({ kind: "ok", text: `Wrote ${data.path} (${data.bytes} bytes)` });
+      } else if (res.status === 409) {
+        if (window.confirm(`${data.error} Overwrite?`)) {
+          await saveToFile(true);
+          return;
+        }
+      } else {
+        setSaveMsg({ kind: "err", text: data.error ?? `HTTP ${res.status}` });
+      }
+    } catch (err) {
+      setSaveMsg({ kind: "err", text: err instanceof Error ? err.message : "request failed" });
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -221,11 +251,24 @@ export function AuthorLessonPage() {
                 </div>
               )}
               <div className="relative">
-                <button onClick={copy} className="absolute top-2 right-2 text-xs px-2 py-1 rounded bg-muted hover:bg-accent flex items-center gap-1">
-                  <Copy className="h-3 w-3" /> copy
-                </button>
+                <div className="absolute top-2 right-2 flex gap-1">
+                  {result.valid && (
+                    <button onClick={() => saveToFile(false)} disabled={saving} className="text-xs px-2 py-1 rounded bg-primary text-primary-foreground hover:opacity-80 disabled:opacity-50 flex items-center gap-1">
+                      <Save className="h-3 w-3" /> {saving ? "saving…" : "save"}
+                    </button>
+                  )}
+                  <button onClick={copy} className="text-xs px-2 py-1 rounded bg-muted hover:bg-accent flex items-center gap-1">
+                    <Copy className="h-3 w-3" /> copy
+                  </button>
+                </div>
                 <pre className="overflow-auto bg-muted/30 border border-border rounded p-3 text-xs font-mono max-h-[600px]">{lessonJSON}</pre>
               </div>
+              {saveMsg && (
+                <div className={`text-xs px-3 py-2 rounded ${saveMsg.kind === "ok" ? "bg-green-500/10 border border-green-500/40 text-green-600" : "bg-destructive/10 border border-destructive/40 text-destructive"}`}>
+                  {saveMsg.kind === "ok" ? <Check className="h-3 w-3 inline mr-1" /> : <AlertTriangle className="h-3 w-3 inline mr-1" />}
+                  {saveMsg.text}
+                </div>
+              )}
             </>
           )}
         </div>

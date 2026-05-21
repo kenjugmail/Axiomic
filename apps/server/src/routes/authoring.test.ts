@@ -90,3 +90,78 @@ describe("/authoring/lesson", () => {
     }
   });
 });
+
+describe("/authoring/save", () => {
+  async function save(body: Record<string, unknown>) {
+    return app.fetch(
+      new Request("http://localhost/api/v1/authoring/save", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      }),
+    );
+  }
+
+  test("rejects with 403 when DEV_AUTH_BYPASS is not set", async () => {
+    const prev = process.env.DEV_AUTH_BYPASS;
+    delete process.env.DEV_AUTH_BYPASS;
+    const res = await save({
+      nodeSlug: "test-save-no-bypass",
+      lesson: { meta: { timeMinutes: 10 }, slides: [{ kind: "text", title: "x", body: "y" }] },
+    });
+    expect(res.status).toBe(403);
+    if (prev !== undefined) process.env.DEV_AUTH_BYPASS = prev;
+  });
+
+  test("rejects invalid slug shape with 400", async () => {
+    process.env.DEV_AUTH_BYPASS = "1";
+    const res = await save({
+      nodeSlug: "Has Caps",
+      lesson: { meta: { timeMinutes: 10 }, slides: [{ kind: "text", title: "x", body: "y" }] },
+    });
+    expect(res.status).toBe(400);
+  });
+
+  test("rejects a lesson that fails schema validation", async () => {
+    process.env.DEV_AUTH_BYPASS = "1";
+    const res = await save({
+      nodeSlug: "test-save-bad-lesson",
+      lesson: { meta: { timeMinutes: 999 }, slides: [] },
+    });
+    expect(res.status).toBe(422);
+    const data = await res.json();
+    expect(data.warnings.length).toBeGreaterThan(0);
+  });
+
+  test("save flow works end-to-end (write + warnings + bytes)", async () => {
+    process.env.DEV_AUTH_BYPASS = "1";
+    const lesson = {
+      meta: { timeMinutes: 12, difficulty: "intermediate", objectives: ["x"], prereqs: [] },
+      slides: [
+        { kind: "text", title: "first concept", body: "body text" },
+        { kind: "text", title: "second concept", body: "more text" },
+        { kind: "text", title: "third concept", body: "even more" },
+      ],
+    };
+    // Use overwrite=true so re-running tests succeeds
+    const res = await save({
+      nodeSlug: "test-save-roundtrip-tmp",
+      lesson,
+      overwrite: true,
+    });
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.path).toContain("test-save-roundtrip-tmp.json");
+    expect(data.bytes).toBeGreaterThan(0);
+    expect(Array.isArray(data.warnings)).toBe(true);
+
+    // Cleanup
+    try {
+      const fs = await import("fs");
+      const path = await import("path");
+      fs.unlinkSync(path.resolve(import.meta.dir, "../../../../seed-content/lessons/test-save-roundtrip-tmp.json"));
+    } catch {
+      void 0;
+    }
+  });
+});

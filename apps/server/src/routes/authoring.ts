@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { readFileSync } from "fs";
-import { join } from "path";
+import { existsSync, readFileSync, writeFileSync } from "fs";
+import { join, resolve } from "path";
 import { getAIProvider } from "@axiomic/ai";
 import { validateLesson } from "../lib/lessonSchema";
 import type { Env } from "../env";
@@ -153,5 +153,67 @@ authoringRouter.post("/lesson", zValidator("json", authorSchema), async (c) => {
     warnings,
     valid: warnings.length === 0,
     rawLength: accumulated.length,
+  });
+});
+
+// ---- Save-to-file ----------------------------------------------------
+//
+// Closes the AI-authoring loop: instead of copy-pasting the generated
+// JSON, the author hits "save" and the server writes the file to
+// seed-content/lessons/<nodeSlug>.json. Gated behind DEV_AUTH_BYPASS=1
+// because writing arbitrary content to the source tree from a web
+// route is dev-time-only — a proper deployment would need an admin
+// role check + a different storage backend.
+
+const saveSchema = z.object({
+  nodeSlug: z.string().min(1).max(100).regex(/^[a-z][a-z0-9-]*$/, "lowercase + hyphens"),
+  lesson: z.unknown(),
+  overwrite: z.boolean().default(false),
+});
+
+const LESSONS_DIR = resolve(import.meta.dir, "../../../../seed-content/lessons");
+
+authoringRouter.post("/save", zValidator("json", saveSchema), async (c) => {
+  if (process.env.DEV_AUTH_BYPASS !== "1") {
+    return c.json(
+      {
+        error:
+          "Save-to-file is dev-only. Run the server with DEV_AUTH_BYPASS=1 to enable.",
+      },
+      403,
+    );
+  }
+  const { nodeSlug, lesson, overwrite } = c.req.valid("json");
+  const warnings = validateLesson(lesson, nodeSlug);
+  if (warnings.length > 0) {
+    return c.json({ error: "Lesson failed schema validation", warnings }, 422);
+  }
+  const target = join(LESSONS_DIR, `${nodeSlug}.json`);
+  // Defense in depth: ensure the resolved path is still inside
+  // LESSONS_DIR even though the regex already prevented path traversal.
+  if (!target.startsWith(LESSONS_DIR + "/")) {
+    return c.json({ error: "Refusing to write outside lessons dir" }, 422);
+  }
+  if (existsSync(target) && !overwrite) {
+    return c.json(
+      {
+        error: `${nodeSlug}.json already exists. Pass overwrite=true to replace.`,
+      },
+      409,
+    );
+  }
+  const body = JSON.stringify(lesson, null, 2) + "\n";
+  try {
+    writeFileSync(target, body, "utf-8");
+  } catch (err) {
+    return c.json(
+      { error: err instanceof Error ? err.message : "write failed" },
+      500,
+    );
+  }
+  return c.json({
+    path: `seed-content/lessons/${nodeSlug}.json`,
+    bytes: body.length,
+    warnings,
   });
 });
