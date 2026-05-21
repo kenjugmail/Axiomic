@@ -1,0 +1,173 @@
+{
+  "slug": "acoustics-and-harmonic-series",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Master the physics of musical sound + Fourier decomposition.",
+      "Explain the harmonic series, timbre, and temperament.",
+      "Connect psychoacoustics (consonance, roughness) to acoustic structure."
+    ],
+    "prereqs": [
+      "music-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Physics of sound: waves, Fourier, and Helmholtz",
+      "body": "**Sound** = longitudinal pressure wave in air (or solid/fluid). Three primary parameters:\n\n- **Frequency** ($f$, Hz) — perceived as pitch. Human range ~20 Hz – 20 kHz, peak sensitivity ~2-5 kHz.\n- **Amplitude** (Pa, or dB SPL) — perceived as loudness. 0 dB SPL ≈ threshold of hearing; 120 dB ≈ pain.\n- **Waveform / spectrum** — shape of one period; perceived as timbre.\n\n**Speed of sound** in dry air at 20 °C: $c \\approx 343$ m/s. **Wavelength** $\\lambda = c/f$ (so 440 Hz A → $\\lambda \\approx 78$ cm).\n\n**Fourier decomposition** (Joseph Fourier, 1822): any periodic signal $x(t)$ with period $T$ decomposes into a sum of sinusoids at integer multiples of the fundamental $f_0 = 1/T$:\n\n$$x(t) = \\sum_{n=0}^{\\infty} a_n \\cos(2\\pi n f_0 t) + b_n \\sin(2\\pi n f_0 t)$$\n\nThe set $\\{a_n, b_n\\}$ — or equivalently magnitude + phase per harmonic — is the **spectrum**. A flute, a violin, and a human voice on the same pitch differ entirely in this spectrum: that difference is **timbre**.\n\n**Hermann von Helmholtz (1821-1894)** — *Die Lehre von den Tonempfindungen als physiologische Grundlage für die Theorie der Musik* (*On the Sensations of Tone*), 1863. The foundational text of modern acoustics + psychoacoustics. Helmholtz:\n\n- Showed that complex tones are sums of pure sines, audible to a trained ear.\n- Built **Helmholtz resonators** — calibrated spheres tuned to specific frequencies — to physically isolate spectral components.\n- Connected timbre to spectrum, dissonance to **beating** between partials.\n- Argued physiologically + psychologically — pioneer of psychoacoustics.\n\nEvery later acoustician (Stumpf, Plomp, Levelt, Sethares, Risset, McAdams) built on Helmholtz."
+    },
+    {
+      "kind": "text",
+      "title": "The harmonic series, temperament, and timbre",
+      "body": "**Harmonic series**: when a string or air column vibrates, it resonates at integer multiples of a fundamental frequency $f_0$. The $n$th harmonic has frequency $n \\cdot f_0$. The first eight harmonics of A2 (110 Hz):\n\n| n | freq (Hz) | musical interval above $f_0$ | nearest note |\n|---|---|---|---|\n| 1 | 110 | unison | A2 |\n| 2 | 220 | octave | A3 |\n| 3 | 330 | octave + perfect fifth | E4 |\n| 4 | 440 | 2 octaves | A4 |\n| 5 | 550 | 2 oct + major third | C♯5 |\n| 6 | 660 | 2 oct + perfect fifth | E5 |\n| 7 | 770 | 2 oct + ~minor seventh (♭) | ≈ G5 (flat) |\n| 8 | 880 | 3 octaves | A5 |\n\nThe **interactive harmonic-series viz** above shows partials + amplitudes for $f_0 = 110$ Hz; toggle harmonics to hear how additive synthesis builds timbres.\n\n**Why this matters**:\n\n- **Timbre** = relative amplitudes of harmonics + their transient + formant structure. A clarinet emphasizes odd harmonics (1, 3, 5, 7) due to its closed-pipe acoustics; a trumpet is rich in all harmonics; a flute approaches a pure sine.\n- **Formants**: fixed resonant frequency bands of the vocal tract (or instrument body) that shape the spectrum independently of pitch. 'ah' vs 'ee' vs 'oo' differ in formant frequencies.\n- **Helmholtz resonators**: bottle resonators emphasizing one band — predecessor of formant theory.\n\n**Just intonation vs equal temperament**:\n\n- **Just intonation**: intervals follow simple integer ratios. Perfect fifth = 3:2; major third = 5:4; minor third = 6:5. Pure ratios match the harmonic series — acoustically perfect, no beating. But you cannot have all keys in tune simultaneously on a fixed-pitch instrument.\n- **Pythagorean tuning**: stack pure 3:2 fifths. 12 fifths ≠ 7 octaves exactly: $(3/2)^{12} = 129.746$ vs $2^7 = 128$. The mismatch — ratio 1.0136 ≈ 23.5 cents — is the **Pythagorean comma**.\n- **Equal temperament**: divide the octave into 12 equal semitones; each = $2^{1/12} \\approx 1.0595$. All keys equally usable, but no interval is purely just (5th 700 cents vs just 701.955; major 3rd 400 cents vs just 386.314 — 14 cents sharp, audibly so).\n- **Well temperaments** (Werckmeister, Kirnberger, Bach's WTC) compromise — each key playable, but with character.\n\nThe trade-off — pure ratios vs key flexibility — is one of the oldest debates in music theory. **Sethares** (*Tuning, Timbre, Spectrum, Scale*, 1998) showed that consonance depends on **how well a scale matches a timbre's harmonic structure** — inharmonic timbres pair with non-Pythagorean scales (gamelan).",
+      "viz": "harmonic-series",
+      "vizProps": {
+        "fundamental": 110,
+        "harmonics": 8
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Psychoacoustics: consonance, roughness, fusion",
+      "body": "**Psychoacoustics** = study of how the auditory system perceives acoustic signals. Bridges physics, physiology (cochlea, auditory cortex), and music theory.\n\n**Carl Stumpf (1848-1936)** — *Tonpsychologie* (1883-1890): consonance arises from **tonal fusion** — two tones that 'blend' into a single percept. Octaves + fifths fuse strongly; sevenths + tritones do not. Inspired Gestalt psychology.\n\n**Helmholtz's beating theory** (1863): dissonance comes from rapid beating between partials of two tones that are close in frequency. Two pure sines 5 Hz apart create 5 Hz beats (perceived as roughness); >~30 Hz they separate into two pitches with characteristic roughness.\n\n**Plomp + Levelt (1965)**: 'Tonal Consonance and Critical Bandwidth' — quantified roughness as function of frequency separation relative to the **critical bandwidth** of the cochlea (~100 Hz at low frequencies, growing logarithmically; ~1/3 octave above 1 kHz). Two partials sound rough when their separation is ~5-50% of the critical bandwidth; consonant when they are far apart or coincident.\n\n**Total dissonance** between two complex tones = sum of pairwise roughness across all partial pairs. **Plot of total dissonance vs interval** for harmonic tones has clear minima at the small-integer ratios (1:1, 2:1, 3:2, 4:3, 5:4) — *psychoacoustic explanation of why Pythagorean intervals sound consonant*. Independent of cultural training — though training shapes preferences.\n\n**William Sethares** (*Tuning, Timbre, Spectrum, Scale*, 1998 + 2004) generalized: change the partials, and the consonant intervals change. Bell-like inharmonic timbres (e.g., gamelan metallophones) have dissonance minima at non-Pythagorean ratios — explaining why slendro + pelog scales sound consonant with gamelan timbres but odd to ears trained on harmonic-instrument scales. **Timbre + tuning co-evolve**.\n\n**Other psychoacoustic phenomena**:\n\n- **Missing fundamental**: a tone with harmonics 200, 300, 400 Hz (no 100 Hz) is heard as pitch 100 Hz. The brain reconstructs the fundamental from the harmonic spacing.\n- **Auditory streaming** (Bregman 1990): the brain groups harmonics + segregates streams (the cocktail-party problem).\n- **Pitch perception**: place + temporal coding in the cochlea (Békésy 1928, Nobel 1961).\n- **Equal loudness curves** (Fletcher-Munson, 1933 → ISO 226): perceived loudness depends on frequency; we are most sensitive at 2-5 kHz.\n- **Masking**: a loud tone hides nearby quieter ones — basis of perceptual audio coding (MP3, AAC, Opus).\n\nFrom Pythagoras's monochord to Plomp-Levelt's roughness curves: a 2500-year conversation between music + physics + perception."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ac_harmonic",
+        "kind": "guided_derivation",
+        "question": "Build a complex tone from the harmonic series",
+        "goal": "Given $f_0 = 110$ Hz, compute the first 6 harmonics + identify their musical intervals above the fundamental.",
+        "steps": [
+          {
+            "prompt": "Harmonic $n$ has frequency $n \\cdot f_0$. List frequencies for $n = 1..6$.",
+            "motivation": "Integer multiples.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "110, 220, 330, 440, 550, 660"
+              ]
+            },
+            "hints": [
+              "Multiply 110 by 1..6."
+            ],
+            "reveal": "$f_1 = 110, f_2 = 220, f_3 = 330, f_4 = 440, f_5 = 550, f_6 = 660$ Hz."
+          },
+          {
+            "prompt": "Identify the interval of harmonic 2 above the fundamental (frequency ratio = 2:1).",
+            "motivation": "Octave.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "octave"
+              ]
+            },
+            "hints": [
+              "Doubling = ?"
+            ],
+            "reveal": "Frequency ratio 2:1 = perfect octave. So harmonic 2 (220 Hz) is one octave above 110 Hz."
+          },
+          {
+            "prompt": "Harmonic 3 (330 Hz) — ratio 3:1 above $f_0$. In cents above harmonic 2 (octave), the perfect fifth is 3:2 → 702 cents. So harmonic 3 is an octave + ?",
+            "motivation": "3:2 fifth.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "perfect fifth"
+              ]
+            },
+            "hints": [
+              "3:2 = ?"
+            ],
+            "reveal": "Harmonic 3 = 3·$f_0$ = $f_0$ × 2 × (3/2). Two factors: an octave + a perfect fifth (ratio 3:2 over the octave). So harmonic 3 is an octave + perfect fifth above the fundamental."
+          },
+          {
+            "prompt": "Harmonic 5 (550 Hz) — ratio 5:1 above $f_0$. Two octaves + ?",
+            "motivation": "5:4 major third.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "major third"
+              ]
+            },
+            "hints": [
+              "5:4 ratio = ?"
+            ],
+            "reveal": "Harmonic 5 = $f_0$ × 4 × (5/4). Four = two octaves; 5:4 = just major third (386 cents — 14 cents flatter than equal-tempered). So harmonic 5 is 2 octaves + major third."
+          },
+          {
+            "prompt": "Why is this series the foundation of timbre?",
+            "motivation": "Spectrum = timbre.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "different relative amplitudes of harmonics produce different timbres"
+              ]
+            },
+            "hints": [
+              "Fourier."
+            ],
+            "reveal": "Any periodic tone is a Fourier sum of harmonics. The amplitudes of harmonic 2, 3, 4, ... relative to the fundamental define the spectrum — and the spectrum (plus transient + formant structure) defines the timbre. A clarinet emphasizes odd harmonics; a flute emphasizes the fundamental + few harmonics; a trumpet has all harmonics. Same pitch, different instruments — all from spectrum."
+          }
+        ],
+        "finalResult": "$$\\boxed{f_n = n \\cdot f_0; \\;\\; \\text{spectrum} = \\{|c_n|\\} \\;\\; \\text{defines timbre}}$$\n\nThe harmonic series is the physical basis for tonal music: consonant intervals (octave 2:1, fifth 3:2, fourth 4:3, major 3rd 5:4) sit in the first few harmonics. Pythagoras heard it on the monochord; Fourier formalized it; Helmholtz tied it to perception; Plomp-Levelt + Sethares quantified consonance via roughness in the critical bandwidth."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ac_temperament",
+        "kind": "multiple_choice",
+        "question": "Why does **equal temperament** dominate Western keyboards even though its intervals are not acoustically pure?",
+        "options": [
+          "It is the simplest tuning to compute.",
+          "Equal temperament divides the octave into 12 equal semitones (each = $2^{1/12}$ ≈ 1.0595), so all 24 major + minor keys are equally usable on a single fixed-pitch instrument. The cost is mistuning: the perfect fifth is 2 cents flat of just (701.955 → 700 cents), the major third is 14 cents sharp of just (386 → 400 cents). Just intonation gives pure intervals in one key but bad ones in distant keys; the Pythagorean comma (the gap between 12 perfect fifths and 7 octaves) makes pure tuning impossible across all keys. Bach's Well-Tempered Clavier demonstrated unequal 'well' temperaments; modern fixed-pitch instruments adopted equal temperament for full key flexibility. String + voice + winds can still adjust microtonally per chord.",
+          "Equal temperament is just-intonation in disguise.",
+          "It eliminates beating between all partials."
+        ],
+        "correctIndex": 1,
+        "explanation": "Equal temperament = 12-TET = octave / 12 equal semitones; each semitone ratio = $2^{1/12}$. All keys equally usable on fixed-pitch instruments; trade-off is that the major third is 14 cents sharp (audibly so) and the fifth is 2 cents flat compared to just. The Pythagorean comma — that 12 just fifths ≠ 7 octaves exactly — guarantees that pure tuning cannot work in all keys at once. Equal temperament resolves this by spreading the comma evenly across all 12 semitones."
+      },
+      "hints": [
+        "What is the Pythagorean comma?",
+        "What does equal temperament gain vs lose?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Equal temperament divides the octave into 12 equal semitones ($2^{1/12}$) so all 24 keys are equally playable on a fixed-pitch instrument. Cost: every interval is slightly mistuned compared to just intonation (M3 is 14 cents sharp, P5 is 2 cents flat). The Pythagorean comma — gap between 12 just fifths and 7 octaves — makes pure tuning across all keys impossible; equal temperament distributes the comma uniformly."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ac_gamelan",
+        "kind": "scenario",
+        "question": "Why does gamelan sound consonant with non-Pythagorean tuning?",
+        "prompt": "Javanese gamelan uses slendro (5-tone, roughly equal divisions of the octave) + pelog (7-tone, irregular) scales — neither matches the just-intonation ratios of the harmonic series. Yet the music sounds richly consonant. Using Sethares's framework, explain why."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ac_comma",
+        "kind": "math_expression",
+        "question": "Compute the **Pythagorean comma**: the ratio $(3/2)^{12} / 2^7$. Express to 4 decimal places.",
+        "acceptedAnswers": [
+          "1.0136",
+          "1.01364",
+          "1.01365"
+        ],
+        "hint": "$(1.5)^{12} = 129.746...$; divide by $128 = 2^7$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ac_psycho",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how the harmonic series + critical-bandwidth roughness explain why Pythagorean small-integer ratios sound consonant — and how Sethares generalizes this to non-harmonic timbres.",
+        "rubric": "Mentions: (1) Fourier — every periodic tone is a sum of harmonics at integer multiples of $f_0$; (2) Helmholtz showed dissonance arises from beating between close partials; (3) Plomp + Levelt quantified roughness as function of frequency separation relative to cochlear critical bandwidth (~1/3 octave above 1 kHz); (4) the total dissonance between two complex tones is the sum of pairwise roughness across all partial pairs; (5) for harmonic timbres, dissonance is minimized exactly at the small-integer ratios (1:1, 2:1, 3:2, 4:3, 5:4) — psychoacoustic reason Pythagorean intervals sound consonant; (6) Sethares — change the partials (inharmonic gamelan bells), and the dissonance minima shift to non-Pythagorean ratios. Tuning + timbre co-evolve. Stumpf's tonal-fusion theory complements the roughness view."
+      }
+    }
+  ]
+}

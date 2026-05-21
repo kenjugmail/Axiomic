@@ -1,0 +1,184 @@
+{
+  "slug": "population-genetics-and-drift",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Derive Hardy-Weinberg and reason about deviations.",
+      "Simulate Wright-Fisher drift and interpret effective population size N_e.",
+      "Explain Kimura's neutral theory, Ohta's nearly-neutral extension, and the Kingman coalescent."
+    ],
+    "prereqs": [
+      "natural-selection-and-adaptation"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Hardy-Weinberg and genetic drift — the Wright-Fisher process",
+      "body": "In 1908 G. H. Hardy (Cambridge mathematician) and Wilhelm Weinberg (German physician) independently derived what is now the foundation of population genetics. For a biallelic locus with allele frequencies p and q = 1 - p, under random mating, **Hardy-Weinberg equilibrium (HWE)** predicts genotype frequencies:\n\n  P(AA) = p²,   P(Aa) = 2pq,   P(aa) = q².\n\n**Assumptions** (the HWE big five):\n1. Random mating with respect to the locus.\n2. No selection (all genotypes equally fit).\n3. No mutation.\n4. No migration (closed population).\n5. Infinite population size (no drift).\n\nWhen any assumption breaks, the population deviates from HWE — and the direction + magnitude of deviation reveals which evolutionary force is operating.\n\n**Chi-square test for HWE**: with N individuals observed at genotype counts (n_AA, n_Aa, n_aa), compute expected counts under HWE (E_AA = Np², etc., where p̂ = (2n_AA + n_Aa) / 2N) and compute χ² = Σ (O - E)² / E. 1 degree of freedom for a biallelic locus (k - 1 - 1 = 1 where k = 3 genotypes; minus 1 for sample size constraint; minus 1 for estimating p). Significant χ² ⇒ HWE rejected ⇒ ask which assumption fails.\n\n**Inbreeding coefficient F** — the probability that two alleles at a locus are identical by descent (IBD). Under inbreeding, genotype frequencies become:\n\n  P(AA) = p² + Fpq,   P(Aa) = 2pq(1 - F),   P(aa) = q² + Fpq.\n\nHeterozygote deficit is the inbreeding signature. F = 1 for fully selfing; F = 0 for random mating; F < 0 for heterozygote excess (negative assortative mating). Wright's **F-statistics** (F_IS within subpopulation, F_ST among subpopulations, F_IT total) decompose population structure.\n\n**Wright-Fisher model** (Wright 1931, Fisher 1930) — the canonical idealization of genetic drift. A diploid population of constant size N produces an infinite gamete pool from which 2N gametes are sampled with replacement to form the next generation. Allele frequency in generation t+1 is binomial:\n\n  2N · p_{t+1} ~ Binomial(2N, p_t).\n\nE[p_{t+1}] = p_t (no directional change); Var[p_{t+1} | p_t] = p_t(1 - p_t) / (2N) (drift variance shrinks with N).\n\n**Eventual fate** — drift drives every locus to fixation (p = 1) or loss (p = 0). Probability of fixation from initial frequency p_0 is u(p_0) = p_0 (Kimura 1962 for neutral alleles). Expected time to fixation conditional on fixation: ~4N generations (Kimura + Ohta 1969). Drift erases polymorphism at rate ~1/(2N) per generation."
+    },
+    {
+      "kind": "text",
+      "title": "Effective population size N_e, bottlenecks, founder effects",
+      "body": "Real populations are not Wright-Fisher idealizations. The **effective population size N_e** is the size of an idealized W-F population that would experience the same magnitude of drift as the real population. N_e is almost always less than the census size N.\n\nFactors reducing N_e relative to N:\n- **Unequal sex ratio**: N_e = 4·N_f·N_m / (N_f + N_m). One male siring all offspring (harems) tanks N_e.\n- **Variance in offspring number**: high reproductive variance ⇒ lower N_e. N_e = 4N / (V_k + 2) for V_k > Poisson (where V_k is variance in offspring number).\n- **Temporal fluctuations** (bottlenecks): harmonic mean dominates. N_e ≈ k / Σ(1/N_t). A single generation at N = 10 amid generations at N = 10000 drags N_e down sharply.\n- **Population subdivision**: with migration rate m and k demes of size N, N_e_total can exceed kN for small m (drift in each deme effectively independent).\n- **Selection at linked loci**: background selection (Charlesworth 1993) and selective sweeps (Maynard Smith + Haigh 1974) reduce N_e at linked neutral sites — `hitchhiking`.\n\nTypical N_e estimates: humans ~10⁴ (low!), *Drosophila melanogaster* ~10⁶, *E. coli* ~10⁸-10⁹. Human N_e of ~10000 — derived from heterozygosity θ = 4N_eμ where θ ≈ 0.001 and per-site μ ≈ 1.25 × 10⁻⁸ per generation — is why humans are genetically remarkably uniform (less diverse than most great-ape species).\n\n**Bottlenecks** — a sharp transient reduction in N. Drift surges; rare alleles lost; heterozygosity falls. Severe bottlenecks leave a signature: site-frequency spectrum (SFS) is depleted of rare variants, then over thousands of generations refills as new mutations arise.\n\n**Founder effects** — a small group colonizes a new region; allele frequencies in the founders may differ wildly from the source population. The founders' genetic composition becomes the new population's starting point.\n\n**Cheetah (*Acinonyx jubatus*)** — extreme low diversity (heterozygosity ~0.0004; ~10× lower than other large cats). Two bottlenecks: end-Pleistocene ~12 kya (great megafaunal extinction; cheetahs nearly extirpated from the Americas + Eurasia), and a recent African bottleneck. Cheetahs accept skin grafts from unrelated conspecifics — essentially MHC-homozygous (O'Brien et al. 1985 *Science*). Recent ancient DNA (Westbury 2018, Prost 2022) refines the bottleneck history.\n\n**Hawaiian honeycreepers (Drepanidini)** — ~50 endemic species, all descended from a single Carpodacine finch colonization ~5-7 Mya. Founder effect launched the radiation; adaptive radiation followed (Pratt 2005, Lerner 2011). Many species now extinct (avian malaria + habitat loss).\n\n**Other classic bottlenecks**: northern elephant seal (down to ~20 individuals in 1890s); American bison; Tasmanian devil (devil facial tumor disease — clonal cancer transmission exploits low MHC diversity); cheetah; takahē; California condor."
+    },
+    {
+      "kind": "text",
+      "title": "Neutral theory, the molecular clock, and the coalescent",
+      "body": "**Motoo Kimura** (1924-1994) — Japanese population geneticist. The **neutral theory of molecular evolution** (1968 *Nature*; expanded in *The Neutral Theory of Molecular Evolution* 1983). Claim: **the vast majority of substitutions in protein and DNA sequences are selectively neutral or nearly so, and their dynamics are governed by drift, not selection.**\n\nKey result: under neutrality, the substitution rate equals the mutation rate. If new mutations arise at rate μ per generation per individual and each has fixation probability 1/(2N) (the neutral expectation), the population-level substitution rate is 2Nμ · 1/(2N) = μ. **N cancels.** Big populations and small populations fix neutral mutations at the same per-generation rate. This is the molecular-clock prediction: divergence proportional to time, not population size.\n\n**Implications**:\n- **Molecular clock** — Zuckerkandl + Pauling 1962, Margoliash 1963. Protein and DNA divergence ~roughly linear in time. Used to date phylogenetic splits (combined with fossils to calibrate). Sarich + Wilson (1967) used immunological distances to date human-chimp split at ~5 Mya — a controversial young date that ancient DNA + better calibrations have confirmed (now ~6-7 Mya).\n- **Polymorphism within species explained**. Heterozygosity θ = 4N_e·μ at equilibrium (Kimura + Crow 1964). Most polymorphism is neutral — drift balanced by mutation.\n- **Selection acts at a minority of sites**, but those sites are visible against the neutral background. Detecting selection becomes a problem of detecting deviations from the neutral expectation — Tajima's D, McDonald-Kreitman, dN/dS = ω, HKA tests.\n\n**Tomoko Ohta** (1933-) — Kimura's student and colleague. The **nearly neutral theory** (1973, 1992). Most amino-acid substitutions are not strictly neutral but **slightly deleterious** with |Ns| ~ 1, so their dynamics depend on N_e:\n- In small populations (humans, N_e ~ 10⁴), drift dominates selection on slightly deleterious mutations — they fix at substantial rates.\n- In large populations (Drosophila, N_e ~ 10⁶), selection efficiently purges slightly deleterious mutations.\n\nPredicts: protein divergence per year (not per generation) should be higher in small-N_e lineages. Empirically confirmed (Kreitman + Akashi 1995; Eyre-Walker + Keightley 2007). Reconciles strict neutralism with observations of selection.\n\n**The coalescent** — **John Kingman** (1982). A revolution in population genetics: instead of forward-time simulation of Wright-Fisher, run time *backward*. For a sample of n alleles, trace lineages back to common ancestors. The Kingman n-coalescent: at each step, pairs of lineages coalesce at rate (k choose 2) / (2N_e) where k is the current number of lineages. Total expected time to most recent common ancestor (TMRCA):\n\n  E[T_MRCA] = 4N_e · (1 - 1/n).\n\nFor n = 2, E[T_MRCA] = 2N_e generations. For large n, approaches 4N_e.\n\nThe coalescent reframes population genetics around genealogies, not allele frequencies. Most modern inference (BEAST for Bayesian phylogenetics, PSMC for demographic history, SMC++, Relate) is built on the coalescent.\n\n**Joseph Felsenstein** (Univ. Washington) — developed the **pruning algorithm** for likelihood on trees (1973, 1981); the foundation of modern phylogenetic inference (next lesson). Felsenstein also wrote the textbook *Inferring Phylogenies* (2003) and the PHYLIP software suite.\n\nThe coalescent + neutral theory + nearly-neutral extensions form the null hypothesis against which selection is detected. Population genetics today is largely an exercise in detecting departures from neutrality."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_pop_hwe_1",
+        "kind": "guided_derivation",
+        "question": "Derive Hardy-Weinberg from random mating",
+        "goal": "Show that under random mating with allele frequencies p and q = 1 - p, one generation produces genotype frequencies (p², 2pq, q²).",
+        "steps": [
+          {
+            "prompt": "In a population with allele frequencies p (A) and q = 1 - p (a), random mating means each offspring receives independent alleles from the gamete pool. What is P(offspring is AA)?",
+            "motivation": "Independent draws.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "p^2",
+                "p²"
+              ]
+            },
+            "hints": [
+              "Each parent independently contributes A with probability p.",
+              "Multiply."
+            ],
+            "reveal": "P(AA) = p · p = p²."
+          },
+          {
+            "prompt": "What is P(offspring is Aa)?",
+            "motivation": "Two orderings.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2pq",
+                "2 * p * q"
+              ]
+            },
+            "hints": [
+              "P(A from mother, a from father) + P(a from mother, A from father).",
+              "= pq + qp = 2pq."
+            ],
+            "reveal": "P(Aa) = pq + qp = 2pq. The factor of 2 accounts for parent-of-origin orderings."
+          },
+          {
+            "prompt": "P(aa)?",
+            "motivation": "Symmetry.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "q^2",
+                "q²"
+              ]
+            },
+            "hints": [
+              "By the same logic as AA."
+            ],
+            "reveal": "P(aa) = q²."
+          },
+          {
+            "prompt": "Check: p² + 2pq + q² = ?",
+            "motivation": "Total probability.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1",
+                "(p+q)^2"
+              ]
+            },
+            "hints": [
+              "Recognize as a perfect square."
+            ],
+            "reveal": "p² + 2pq + q² = (p + q)² = 1². Genotype frequencies sum to 1, confirming the calculation."
+          },
+          {
+            "prompt": "Why does HWE reach equilibrium in one generation rather than many?",
+            "motivation": "Speed of convergence.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "random mating immediately produces the binomial product; no memory of starting genotype frequencies"
+              ]
+            },
+            "hints": [
+              "Allele frequencies in the gamete pool are unchanged by mating.",
+              "Offspring sample from the gamete pool independently."
+            ],
+            "reveal": "Allele frequencies are unchanged by random mating (no selection, no drift, no migration). The gamete pool always carries frequencies (p, q). Offspring genotypes are independent binomial draws. So HWE is reached in **one** generation of random mating, regardless of the parental genotype distribution. This makes HWE testable: significant deviation in one generation reveals non-randomness."
+          }
+        ],
+        "finalResult": "$$\\boxed{P(AA) = p^2, \\quad P(Aa) = 2pq, \\quad P(aa) = q^2}$$\n\nReached in one generation of random mating. Foundational equation of population genetics. Deviations indicate inbreeding, selection, population structure, or assortative mating."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Interactive: Wright-Fisher drift in real time",
+      "body": "The visualization below simulates a Wright-Fisher process with N diploid individuals starting at allele frequency p₀. Each generation, 2N gametes are sampled with replacement from the previous generation's allele pool. Watch how:\n\n- **Small N** (e.g., N = 20) — drift is fast; alleles fix or are lost in tens of generations.\n- **Large N** (e.g., N = 1000) — drift is slow; trajectories meander but rarely fix on this timescale.\n- **Starting near 0.5** — fixation probability is 0.5; the trajectory is symmetric in expectation.\n- **Starting at p₀ = 0.05** — fixation probability is 0.05; most replicates lose the allele.\n\n**Key formulas to verify against the simulation**:\n\n- E[p_{t+1} | p_t] = p_t (drift is unbiased).\n- Var[p_{t+1} | p_t] = p_t(1 - p_t) / (2N).\n- u(p_0) = p_0 (fixation probability of a neutral allele).\n- E[T_fix | fix] ≈ 4N generations conditional on fixation.\n- Heterozygosity decays per generation: H_{t+1} = H_t · (1 - 1/(2N)).\n\nTry running with N = 100, p₀ = 0.5 (default) and observe how many generations elapse before most replicates have fixed or lost the allele. Then change to N = 1000 — drift is ~10× slower.",
+      "viz": "allele-frequency-drift",
+      "vizProps": {
+        "N": 100,
+        "p0": 0.5
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_pop_neut_1",
+        "kind": "multiple_choice",
+        "question": "Kimura's neutral theory predicts the molecular substitution rate equals the mutation rate. Why does the population size N cancel?",
+        "options": [
+          "Coincidence.",
+          "The neutral substitution rate is k = 2N · μ · u where 2N is the number of new mutations entering the population each generation (mutation rate μ per gamete × 2N gametes), and u = 1/(2N) is the fixation probability of a single neutral allele (Kimura 1962, neutral diffusion theory). Multiplying: k = 2N · μ · 1/(2N) = μ. **N cancels exactly**, because larger populations produce proportionally more mutations but each has proportionally lower fixation probability. The per-generation substitution rate equals the per-individual mutation rate, independent of N. This is the molecular clock prediction (Zuckerkandl + Pauling 1962): divergence is proportional to time, not to population size. Empirically the clock is approximately but not exactly true — slowdowns in primates, rate variation across lineages, and Ohta's nearly-neutral effects all create deviations.",
+          "Large populations have higher mutation rates.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "k = (2N new mutations) × (1/(2N) fixation probability) = μ. The 2N cancels because mutation input scales with N while fixation probability scales as 1/N. Molecular clock prediction: substitution rate equals mutation rate, independent of population size. Foundation of neutral theory (Kimura 1968) and the molecular-clock framework (Zuckerkandl + Pauling 1962; Sarich + Wilson 1967).",
+        "hints": [
+          "How many new mutations per generation?",
+          "What's the fixation probability of one?"
+        ],
+        "retryUntilCorrect": true,
+        "workedSolution": "k = 2N · μ · u_neutral = 2Nμ · 1/(2N) = μ. Mutation input (2Nμ) scales with N; fixation probability (1/(2N)) scales as 1/N. They cancel. Molecular clock prediction: substitution rate equals mutation rate, independent of N. Kimura 1968; Zuckerkandl-Pauling 1962."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_pop_ne_1",
+        "kind": "scenario",
+        "question": "Human N_e and the Out-of-Africa bottleneck",
+        "prompt": "Human autosomal heterozygosity θ ≈ 0.0008 and per-site mutation rate μ ≈ 1.25 × 10⁻⁸ per generation. From θ = 4N_e·μ, the implied N_e is ~16000 — far below the census ~8 billion. Walk through (a) what 'effective population size' formally means in this calculation, (b) why human N_e is so low compared to chimpanzees (~21000), gorillas (~25000), and *Drosophila* (~10⁶), (c) how the out-of-Africa bottleneck ~50-70 kya plus ancient population subdivision shape this estimate, and (d) what role PSMC (Li + Durbin 2011) plays in resolving N_e through time from a single diploid genome."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_pop_drift_1",
+        "kind": "math_expression",
+        "question": "Under the Wright-Fisher model with N = 500 diploid individuals and current allele frequency p = 0.4, what is the per-generation variance of the new allele frequency Var[p_{t+1} | p_t]? Report to 5 decimals.",
+        "acceptedAnswers": [
+          "0.00024",
+          ".00024"
+        ],
+        "hint": "Var = p(1-p)/(2N) = 0.4 · 0.6 / 1000."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_pop_coal_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, explain the Kingman coalescent (1982), why it reframed population genetics, and how it connects to modern demographic inference.",
+        "rubric": "Should mention: Kingman 1982 reversed time — instead of forward-time Wright-Fisher simulation of allele frequencies, trace lineages of a sampled set of alleles backward to common ancestors. Pairs of lineages coalesce at rate (k choose 2) / (2N_e). E[T_MRCA] for sample of 2 is 2N_e generations; for n large, ≈ 4N_e. The coalescent is the dual process to W-F drift. Why revolutionary: focuses on genealogies of samples (cheap to simulate, analytic results possible) rather than the entire population. Foundation of modern inference: Felsenstein pruning likelihood; BEAST Bayesian phylogenetics; PSMC + SMC++ + Relate infer N_e(t) from genome-wide patterns; ABC + msprime simulations underpin demographic inference. Combined with neutral theory + Ohta's nearly-neutral extension, the coalescent is the null framework against which selection and demography are jointly inferred."
+      }
+    }
+  ]
+}

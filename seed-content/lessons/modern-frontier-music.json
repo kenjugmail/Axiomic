@@ -1,0 +1,169 @@
+{
+  "slug": "modern-frontier-music",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Survey state-of-the-art AI music generation (Magenta, MuseNet, Jukebox, MusicLM, Suno, Udio).",
+      "Connect Krumhansl-Huron-Margulis-Saffran cognition research to music perception.",
+      "Understand streaming economics + algorithmic recommendation + the future of musicology."
+    ],
+    "prereqs": [
+      "digital-music-and-mir",
+      "ethnomusicology-and-world-music"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "AI music generation: Magenta to Suno",
+      "body": "Algorithmic composition has a long lineage (Xenakis stochastic 1950s, Hiller-Isaacson *Illiac Suite* 1957, Cope EMI 1980s). Deep learning has transformed the field in the past decade.\n\n**Symbolic generation (MIDI / notation level)**:\n\n- **Magenta** (Google Brain, 2016+): open-source library + research project for ML-driven music + art. Magenta released **MelodyRNN**, **PerformanceRNN**, **MusicVAE** (latent-space interpolation between melodies), **Music Transformer** (Vaswani-style attention, 2018; first effective long-context musical attention). Bach Doodle (Google 2019) used a Coconet-based Bach chorale harmonizer for browser-based harmonization of user melodies.\n- **MuseNet** (OpenAI, 2019): GPT-2 architecture trained on multi-instrument MIDI; could generate 4-minute pieces in styles ranging from Bach to The Beatles to Lady Gaga. Foreshadowed audio-domain LLMs.\n- **DeepBach** (Hadjeres + Pachet 2017) — RNN trained on Bach chorales; generates plausible chorale harmonizations.\n- **Music Transformer** (Huang et al. 2018) — relative-attention transformer for long musical sequences; improved coherence over hundreds of bars.\n\n**Raw-audio generation** — the harder problem (audio at 44.1 kHz = 44k samples / sec; long-range structure across minutes).\n\n- **WaveNet** (DeepMind 2016) — autoregressive dilated convolutional model for raw waveform audio. Originally for speech; adapted for piano. Slow inference; parallel WaveNet later sped up.\n- **Jukebox** (OpenAI 2020) — hierarchical VQ-VAE + transformers; could generate raw-audio songs with lyrics + style conditioning. Famously slow + limited fidelity but a landmark — first end-to-end raw-audio neural music generation at song scale.\n- **MusicLM** (Google 2023) — hierarchical text-to-music: AudioLM-style residual transformers on SoundStream tokens. High-quality long-form generation from rich text prompts (genre, instrument, mood, era).\n- **MusicGen** (Meta 2023) — single-stage transformer on EnCodec tokens; open-source.\n- **AudioLDM, Stable Audio (Stability AI)** — diffusion-based; rapid sampling; commercial release.\n- **Suno + Udio** (2023-2024) — consumer-facing AI song generators; full songs with vocals from text prompts. Generated millions of user tracks; ongoing **RIAA copyright lawsuits** (June 2024) — alleging training on copyrighted recordings without license.\n- **Mubert, Boomy, Soundraw, AIVA, Loudly** — commercial AI music platforms targeting royalty-free production music + game audio + social-media soundtracks.\n\n**Ethics + copyright**:\n\n- Training on copyrighted recordings without license raised the central legal question. RIAA suits against Suno + Udio mirror NYT v. OpenAI in text. Defendant claim: fair use (transformative). Plaintiff claim: market substitution + outputs that resemble copyrighted material.\n- 'Style' vs 'work' attribution — ML can mimic specific artists' voices. Drake-Weeknd AI track 'Heart on My Sleeve' (2023) racked up millions of streams before takedown; raised consent + likeness issues for living artists.\n- **Provenance + watermarking**: audio watermarks (Stability, Suno) + content credentials (C2PA). Spotify removed AI-uploaded songs at scale (~7% of catalog churned).\n- **Royalties + labor**: musicians' unions + collecting societies (RIAA, BPI, GEMA) negotiating licensed-training models. NMPA + ASCAP litigating + lobbying.\n- **Cultural questions**: what does it mean to compose? Can AI-generated music be 'authentic'? Echoes earlier debates about player pianos, sampling, MIDI, Auto-Tune. The answers — like always — are still being worked out."
+    },
+    {
+      "kind": "text",
+      "title": "Music perception + cognition: Krumhansl, Huron, Margulis, Saffran",
+      "body": "**Music cognition** = the empirical psychology / neuroscience of musical perception + learning + emotion. Emerged from psychophysics (Stumpf, Helmholtz) + Gestalt psychology + linguistics + 20th-c. cognitive science. Major contributors:\n\n**Carol Krumhansl** (Cornell). *Cognitive Foundations of Musical Pitch* (1990). The **probe-tone method** (Krumhansl + Shepard 1979; Krumhansl + Kessler 1982): play a brief context establishing a key (a scale, a cadence); play a single 'probe' tone; have listeners rate how well it fits. Aggregated ratings yield a **tonal hierarchy** — a 12-vector showing perceived stability of each pitch class in a key. For C major:\n\n$$[C{=}6.35,\\; C\\sharp{=}2.23,\\; D{=}3.48,\\; D\\sharp{=}2.33,\\; E{=}4.38,\\; F{=}4.09,\\; F\\sharp{=}2.52,$$ $$G{=}5.19,\\; G\\sharp{=}2.39,\\; A{=}3.66,\\; A\\sharp{=}2.29,\\; B{=}2.88]$$\n\nThe peaks are at scale degrees 1 (C), 5 (G), 3 (E), 4 (F) — exactly the tonally stable notes. Provided the first empirical evidence that listeners internalize a tonal hierarchy from exposure (statistical learning) rather than via explicit theory. Standard input to key-detection algorithms (Krumhansl-Schmuckler).\n\n**David Huron** (Ohio State). *Sweet Anticipation: Music and the Psychology of Expectation* (2006). **ITPRA theory**:\n\n- **I**magination (anticipating future events).\n- **T**ension (preparing for predicted events).\n- **P**rediction (responses based on prior probability).\n- **R**eaction (immediate response to actual events — physical / emotional jolt).\n- **A**ppraisal (post-event evaluation of meaning + significance).\n\nClaim: musical pleasure arises from the interplay of these five responses — the gap between predicted + actual events drives the emotional dynamics of music. Surprise + confirmation, denial + delay are emotional engines. Drew on extensive behavioral + neural + corpus data (Humdrum / **kern).\n\n**Elizabeth Margulis** (Princeton). *On Repeat: How Music Plays the Mind* (2014). Examines musical **repetition** — why repeated listening + repetition within a piece transforms perception. Repetition shifts attention from semantic / referential listening to absorbed + embodied listening; phrases heard for the 5th time feel different from the 1st. The 'speech-to-song illusion' (Diana Deutsch) — a spoken phrase, repeated unchanged, eventually transforms perceptually into song. Music's universal use of repetition reveals something about how minds attend.\n\n**Jenny Saffran** (Wisconsin). **Statistical learning** experiments — infants (8-month-olds) can extract word-like + tone-like patterns from streams of continuous syllables / tones by tracking transition probabilities (Saffran, Aslin + Newport 1996 *Science*; Saffran 1999). Major evidence that infants learn linguistic + musical structure via implicit statistical computation, before any explicit instruction — supporting innate-mechanism + general-learning hybrid views of musical / linguistic cognition. Massive influence on developmental science + the cognitive view of musicality.\n\n**Other major contributors**: Aniruddh Patel (*Music, Language, and the Brain* 2008), Stefan Koelsch (music + emotion neuroscience), Isabelle Peretz (amusia + congenital tone-deafness), Robert Zatorre (auditory cortex), Mari Riess Jones (attentional rhythm theory), Justin London (*Hearing in Time*, meter cognition).\n\n**What music cognition has shown**: tonal hierarchies are *learned* (cross-cultural variation in tonal-hierarchy peaks matches local musical exposure); expectation drives emotional response; repetition reshapes attention; infants are statistical learners; pitch + rhythm have partly overlapping + partly distinct neural mechanisms; musicianship + active training reshape cortex. Empirical cognitive musicology has become essential context for any theoretical / compositional / pedagogical claim."
+    },
+    {
+      "kind": "text",
+      "title": "Streaming, recommendation, and LLM-augmented musicology",
+      "body": "**The streaming economy** has reshaped the music industry's structure + economics.\n\n**Spotify** (founded 2006, Sweden) launched in 2008 + became the dominant on-demand streaming platform. Apple Music + Amazon Music + YouTube Music + Tidal + Deezer + QQ Music (Tencent, China) + JioSaavn (India) split global markets. Streaming displaced album sales by ~2017; recorded-music revenue has grown again every year since 2015 (RIAA + IFPI data).\n\n**Royalty mathematics**: streams pay tiny per-stream amounts (~$0.003-0.005 per stream on Spotify; varies by territory + subscription tier + label deal). The **pro-rata pool model**: total revenue minus Spotify's cut → distributed by share of total platform streams. Per-stream rates are not fixed — they fluctuate based on total platform listening. Artists campaigning for a **user-centric model** (where each subscriber's payments go only to artists they actually streamed) have so far been unsuccessful at scale; SoundCloud + Deezer experimented.\n\n**Algorithmic recommendation** drives discovery:\n\n- **Spotify's Discover Weekly + Daily Mix + Release Radar** rely on hybrid recommendation (collaborative filtering + content-based audio embeddings + NLP on playlists + reviews).\n- **TikTok** completely reshaped pop discovery c. 2019-2024: viral 15-second clips drive song virality; bypasses traditional radio + playlists + labels. Artists optimize for hook-in-first-7-seconds + dance-trend potential. Songs that 'win' TikTok then climb streaming charts.\n- **YouTube** still dominant for younger listeners; its recommendation feeds video music consumption.\n\n**Creator economy + labels**:\n\n- DIY distribution: DistroKid, TuneCore, CD Baby route independents directly to platforms. Major labels still dominate top streaming charts but indie share has grown.\n- **DSP playlists** (Spotify editorial + algorithmic playlists) became the new gatekeepers — placement on RapCaviar, Today's Top Hits drives streams.\n- **Producer + writer economics**: hit-song economics now sit with writers + producers as much as performers; collab credits multiply.\n\n**Reception of art music**: Holst's *The Planets* (1916) — now ubiquitous via streaming + film score samples (John Williams's *Star Wars* leans heavily on 'Mars'). Orchestral repertoire reaches new audiences via film + game + streaming — Mahler 5 Adagietto + Górecki 3 + Pärt + Reich entered the popular subconscious via film + meditation playlists. Streaming has changed how + when + by whom art music is heard.\n\n**Global music flows**: streaming made K-pop, reggaetón, Afrobeats, Latin trap global. Spotify charts now have weeks where Bad Bunny, Drake, Stray Kids, Burna Boy, Rosalía all appear together. The 'global pop' that emerged is irreducibly hybrid.\n\n**LLM-augmented musicology** — emerging:\n\n- LLMs (Claude, GPT-4, Gemini) summarize repertoire + generate program notes + explain harmonic + formal analyses + help compose lectures.\n- Symbolic + audio analysis pipelines now combine traditional MIR (chroma, beat tracking, structure segmentation) with multimodal models (audio + text) to answer interactive musicological questions ('find me modulations through enharmonic equivalence in late Schubert').\n- Interactive corpora: every Bach + Mozart + Beethoven + Beatles + Bad Bunny + Burna Boy track searchable across audio + symbolic + lyric + chord + tag features.\n- Generative musicology: hypothesize → query corpus → test computationally → refine. The promise (still being realized): empirical musicology at the scale of the canon, with hypothesis testing rather than canonical interpretation.\n\n**Future**: AI as collaborator + tool, not replacement; streaming + recommendation as the dominant transmission channel; global hybrid musics; cognitive + computational musicology converging; classical-music traditions adapting to digital reception. The next generation of musicians + listeners + scholars will work in a fundamentally different musical world than any prior."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_front_ai",
+        "kind": "guided_derivation",
+        "question": "Evaluate an AI-generated song",
+        "goal": "You hear a Suno-generated rock song. Walk through how to evaluate its musical, ethical, and legal status — five dimensions.",
+        "steps": [
+          {
+            "prompt": "Musical: which musical aspects are typically strongest + weakest in current text-to-music models?",
+            "motivation": "Surface vs structure.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "strong: timbre + groove + sound; weak: long-form structure + lyrical coherence + originality"
+              ]
+            },
+            "hints": [
+              "Suno-style models excel at sounds + textures; struggle with form."
+            ],
+            "reveal": "Current models (Suno, Udio, MusicLM, MusicGen) are strong at surface — timbre, instrument quality, groove, mood, genre conventions. Weaker at: large-scale form (verse-chorus-bridge logic over 4 minutes), lyrical coherence (often blurry / generic), genuine surprise (gravitate to genre averages), specific compositional decisions (chord substitutions that show personality)."
+          },
+          {
+            "prompt": "Legal: training data + copyright?",
+            "motivation": "Did the model learn from copyrighted recordings?",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "RIAA suits against Suno + Udio; fair use vs market substitution"
+              ]
+            },
+            "hints": [
+              "Pending lawsuits."
+            ],
+            "reveal": "RIAA (June 2024) sued Suno + Udio alleging training on copyrighted recordings without license — the core legal question. Defendant's likely argument: fair use (transformative). Plaintiff's: market substitution + outputs evoking specific copyrighted works. Outcome will reshape licensing models — possibly toward licensed training pools (analog to compulsory licensing or streaming royalty pool)."
+          },
+          {
+            "prompt": "Ethical: artist consent + likeness?",
+            "motivation": "Living-artist mimicry.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "consent issues when mimicking living artists' voices / styles"
+              ]
+            },
+            "hints": [
+              "Drake-Weeknd AI track 2023."
+            ],
+            "reveal": "AI mimicry of living artists' voices + styles (Drake-Weeknd 'Heart on My Sleeve' 2023; AI 'Oasis' single; deepfake voices for political endorsements) raises consent + likeness + right-of-publicity issues. Some artists (Holly Herndon, Grimes) opt in with licensing structures (Holly+, Elf.Tech). Most artists + unions push for restrictions. Living-artist mimicry without consent is a clearer-cut ethical violation than training-data fair use."
+          },
+          {
+            "prompt": "Cognitive: how do listeners respond?",
+            "motivation": "Repeated exposure + Margulis + Huron predictions.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Margulis: repetition reshapes; Huron ITPRA: surprise drives emotion — AI music often low-surprise"
+              ]
+            },
+            "hints": [
+              "Repetition + expectation."
+            ],
+            "reveal": "Cognitive predictions: (1) Margulis — repetition transforms perception; AI music played enough times can become embodied. (2) Huron ITPRA — emotion comes from expectation gaps; AI music's gravitation to genre averages means lower surprise + thinner emotional dynamics (until prompts push it). (3) Krumhansl tonal hierarchy — listeners hear AI music against their internalized tonal expectations; well-tuned generations meet expectation; sloppy ones don't."
+          },
+          {
+            "prompt": "Economic: streaming + creator economy?",
+            "motivation": "Royalty pool + creator labor.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "pro-rata royalty pool dilution + Spotify removing AI uploads"
+              ]
+            },
+            "hints": [
+              "Pro-rata model implications."
+            ],
+            "reveal": "Streaming's pro-rata pool means each AI-generated track that gets streamed dilutes the per-stream payout to every other artist. Spotify removed ~7% of its catalog (mostly AI uploads + bot-streaming farms) in 2023-24. Distributors (DistroKid, TuneCore) imposing AI-disclosure requirements. The creator-economy fight in coming years: how to share streaming revenue when supply (AI tracks) is effectively unlimited."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{evaluate AI music on: musical} + \\text{legal} + \\text{ethical} + \\text{cognitive} + \\text{economic dimensions}}$$\n\nA Suno song is not just a musical artifact but a multi-axis problem: technically how it works, legally how it was trained, ethically whose voices it mimics, cognitively how listeners receive it, economically how it shifts royalty pools. The field is being negotiated in real time."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_front_saffran",
+        "kind": "multiple_choice",
+        "question": "Why is Saffran et al.'s **statistical learning** experiment (Saffran-Aslin-Newport 1996 *Science*; Saffran 1999) a landmark for music + language cognition?",
+        "options": [
+          "It proved infants are born with full musical knowledge.",
+          "Saffran, Aslin + Newport showed 8-month-old infants can segment continuous streams of syllables (or tones) into 'word-like' units purely by tracking **transition probabilities** — pairs that frequently co-occur vs pairs across boundaries. Within minutes of exposure to a stream, infants distinguish 'words' (high within-transition probability) from 'part-words' (low transition probability across word boundaries). The Saffran 1999 follow-up showed the same with tone sequences — implicit statistical learning of musical structure. Implication: infants extract structure from continuous input by tracking statistics, with no explicit instruction. Major support for general-purpose statistical learning as a key mechanism of musical + linguistic acquisition (not pure innate domain-specific knowledge + not pure tabula rasa). Foundation for the cognitive view of musicality + for modern computational models of music perception.",
+          "It used adult musicians only.",
+          "It rejected Krumhansl's tonal hierarchies."
+        ],
+        "correctIndex": 1,
+        "explanation": "Saffran-Aslin-Newport (1996 *Science*) + Saffran (1999 with tones) showed 8-month-old infants segment continuous syllable / tone streams by tracking transition probabilities. Demonstrated implicit statistical learning as a key mechanism for language + music acquisition without explicit instruction. Cognitive landmark; foundation for the statistical-learning view of musicality."
+      },
+      "hints": [
+        "What did infants do?",
+        "What's transition probability?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Saffran-Aslin-Newport (1996) showed 8-month-old infants extract 'word-like' units from continuous syllable streams by tracking transition probabilities; Saffran (1999) replicated with tones. Demonstrated implicit statistical learning underpins musical + linguistic acquisition. Foundation for cognitive view of musicality."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_front_streaming",
+        "kind": "scenario",
+        "question": "Streaming reshapes the canon",
+        "prompt": "Spotify's algorithmic recommendation + Daily Mix + Discover Weekly + TikTok virality have replaced radio + record-store curation as the dominant discovery mechanism. (a) What music is favored by these systems? (b) Who benefits, who loses? (c) What does this mean for the long tail of repertoire — niche traditions, art music, languages with smaller speaker bases? Draw on Krumhansl, Huron, Margulis as needed."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_front_tonal",
+        "kind": "math_expression",
+        "question": "In Krumhansl-Kessler's C-major tonal-hierarchy vector, the value for **C** is 6.35 and for **F♯** is 2.52. Compute the **ratio** of perceived stability of C over F♯ (to 2 decimal places).",
+        "acceptedAnswers": [
+          "2.52",
+          "2.521",
+          "2.52 to 1"
+        ],
+        "hint": "6.35 / 2.52 = ?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_front_landscape",
+        "kind": "explain_back",
+        "prompt": "In ≤150 words, sketch the current frontier of music technology + cognition + reception. Cover (1) AI music generation + ethics; (2) music cognition findings; (3) streaming economics + algorithmic recommendation; (4) the LLM-augmented future of musicology.",
+        "rubric": "Mentions: (1) AI generation lineage — Magenta (Google), MuseNet (OpenAI 2019), DeepBach, Music Transformer, Jukebox (OpenAI 2020), MusicLM (Google 2023), MusicGen (Meta), Suno + Udio + Mubert (consumer 2023-24); raw-audio diffusion + transformer models; RIAA lawsuits + fair-use vs market-substitution debate; living-artist mimicry consent issues (Drake-Weeknd 2023). (2) Cognition: Krumhansl tonal-hierarchy probe-tone (statistical learning of key); Huron ITPRA expectation theory (Sweet Anticipation 2006) — emotion from prediction gaps; Margulis On Repeat (2014) — repetition reshapes attention + perception; Saffran 1996 + 1999 — infants extract structure from streams via transition probabilities (foundation of cognitive view of musicality). (3) Streaming: Spotify pro-rata pool; ~$0.003-0.005 per stream; per-stream rate floats with total listening; user-centric model proposed; algorithmic recommendation (Discover Weekly + Daily Mix); TikTok-driven virality; creator economy via DistroKid + TuneCore. (4) LLM-augmented musicology: corpus + audio + symbolic + lyric search; hypothesis-test workflows; empirical musicology at canon scale; Holst + Górecki + Reich entering popular subconscious via film / streaming; global music flows + hybrid pop dominate; future = AI + streaming + global music + cognitive science + LLM-augmented analysis converging."
+      }
+    }
+  ]
+}

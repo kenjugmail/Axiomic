@@ -1,0 +1,153 @@
+{
+  "slug": "prokaryote-cell-biology",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Master prokaryote cell-envelope architecture.",
+      "Understand motility, signaling + community behavior.",
+      "Map bacterial genetics + horizontal gene transfer."
+    ],
+    "prereqs": [
+      "microbiology-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Cell envelope: walls, membranes, capsules + Gram architecture",
+      "body": "The **prokaryotic cell envelope** is the layered boundary that defines shape, withstands osmotic pressure (~3-5 atm turgor inside the cell), mediates transport + sensing, anchors motility + secretion machinery, and presents the molecular face that the immune system + antibiotics target.\n\n**Peptidoglycan (murein)** — the load-bearing polymer unique to bacteria:\n- Glycan strands of alternating **N-acetylglucosamine (GlcNAc)** + **N-acetylmuramic acid (MurNAc)**.\n- MurNAc bears a pentapeptide stem (L-Ala – D-Glu – m-DAP or L-Lys – D-Ala – D-Ala) — note the **D-amino acids**, rare in biology.\n- Adjacent stems are **cross-linked**, forming a single covalently bonded macromolecule — the **sacculus** — that encloses the entire cell.\n- Synthesized by **PBPs** (penicillin-binding proteins) — the targets of **β-lactam antibiotics**.\n- **Lysozyme** (Fleming 1922) hydrolyzes GlcNAc-MurNAc bond → cell lysis under hypotonic conditions.\n\n**Gram stain (Hans Christian Gram, 1884)** — the foundational classification:\n- **Gram-positive**: thick (~20-50 nm) peptidoglycan layer **outside** a single (cytoplasmic) membrane. Contains **teichoic acids** + **lipoteichoic acids** (negatively charged polymers traversing the wall) + sometimes a thin S-layer or capsule. Stains purple (retains crystal violet-iodine complex). Examples: *Staphylococcus*, *Streptococcus*, *Bacillus*, *Clostridium*, *Listeria*, *Enterococcus*.\n- **Gram-negative**: thin peptidoglycan (~5-10 nm) sandwiched between **two membranes**:\n  - **Inner (cytoplasmic) membrane** — phospholipid bilayer.\n  - **Periplasm** — gel-like compartment containing peptidoglycan, periplasmic proteins, lipoproteins (Lpp anchored to murein).\n  - **Outer membrane (OM)** — asymmetric: inner leaflet phospholipid, outer leaflet **lipopolysaccharide (LPS) = endotoxin**. Contains **porins** (OmpF, OmpC), **lipoproteins**, **OMPs**.\n  Stains pink (loses crystal violet; counterstained with safranin). Examples: *E. coli*, *Pseudomonas*, *Salmonella*, *Vibrio*, *Helicobacter*, *Neisseria*.\n\n**LPS (lipopolysaccharide)** — the hallmark Gram-negative outer-membrane molecule:\n- **Lipid A** — embedded in OM; the toxic moiety triggering TLR4 + sepsis cascade.\n- **Core oligosaccharide** — conserved sugars (KDO etc.).\n- **O-antigen** — strain-specific polysaccharide; basis of serotyping (e.g., *E. coli* O157:H7).\n\n**Capsules + S-layers**:\n- **Capsules** — polysaccharide outer layer (or sometimes polypeptide, e.g., *Bacillus anthracis* poly-γ-D-glutamate). Major virulence factor: anti-phagocytic, complement resistance, biofilm scaffolding, host attachment. Pneumococcal + meningococcal + Hib vaccines target capsular polysaccharides.\n- **S-layers** — 2D protein crystals covering many archaea + bacteria; functions in shape, sieving, attachment.\n\n**Acid-fast cell envelope (Mycobacteria + Nocardia)**:\n- *Mycobacterium tuberculosis* has a uniquely **thick, waxy, lipid-rich** wall: peptidoglycan covalently linked to **arabinogalactan** + decorated with **mycolic acids** (C₆₀-C₉₀ branched lipids) + glycolipids (TDM, LAM, PIM).\n- The wall makes Mycobacteria **acid-fast** (Ziehl-Neelsen stain), slow-growing (TB doubles every ~24 h vs *E. coli* ~20 min), resistant to lysis, hydrophobic, and intrinsically tolerant to many antibiotics — why TB therapy needs 6+ months of multidrug treatment.\n\n**Archaeal envelopes** are distinct: most lack peptidoglycan (some have **pseudo-murein**) + their membrane lipids are **ether-linked isoprenoid** chains, often **tetraether monolayers** in extremophiles — chemically tougher than ester-linked bacterial/eukaryotic bilayers.\n\n**Inside the envelope**: no nucleus (DNA forms a **nucleoid** condensed by HU, H-NS, IHF, Fis, SMC proteins), no mitochondria/chloroplasts, no membrane-bound organelles (with minor exceptions: magnetosomes, carboxysomes, anammoxosomes), **70S ribosomes** (50S + 30S — targets of macrolides, aminoglycosides, tetracyclines). Cytoskeleton is real but distinct: **FtsZ** (tubulin homolog, Z-ring at division septum), **MreB** (actin homolog, rod-shape maintenance), **CreS / crescentin** (intermediate-filament-like, curved cells)."
+    },
+    {
+      "kind": "text",
+      "title": "Motility, signaling, biofilms + quorum sensing",
+      "body": "**Bacterial motility** is rich + diverse:\n- **Flagellar swimming** — most studied. *E. coli* flagellum: rotary motor in the membrane, hook, helical filament. Driven by **proton-motive force (PMF)** (or Na⁺ gradient in marine bacteria); ~100 Hz rotation; **runs + tumbles** generate biased random walk up chemical gradients.\n- **Twitching motility** — type IV pili extend + retract (the strongest known molecular motor, ~100 pN). *Pseudomonas*, *Neisseria*.\n- **Gliding motility** — surface translocation without flagella (*Myxococcus*, Cytophaga, Flavobacterium); diverse mechanisms.\n- **Spirochete motility** — endoflagella between inner + outer membranes; corkscrew movement (*Borrelia*, *Treponema*, *Leptospira*).\n\n**Chemotaxis** — the molecular basis of motility decisions (**Julius Adler** 1966, building on Engelmann + Pfeffer):\n- *E. coli* swims in **runs** (~1 s, CCW flagellar rotation, bundled flagella) interrupted by **tumbles** (~0.1 s, CW rotation, bundles fly apart, cell randomly reorients).\n- Attractants (sugars, amino acids) lengthen runs up-gradient → biased random walk toward food. Repellents shorten them.\n- **MCPs (methyl-accepting chemotaxis proteins)** — transmembrane receptors (Tar, Tsr, Trg, Tap, Aer) in polar clusters.\n- **Two-component signaling**: receptor-bound histidine kinase **CheA** autophosphorylates → transfers P to response regulator **CheY** → CheY-P binds flagellar motor (FliM/N) → switches to CW (tumble). **CheZ** dephosphorylates CheY (resetting). **CheR + CheB** methylate/demethylate MCPs for adaptation.\n- **Howard Berg** (Caltech, Colorado, Harvard) — built tracking microscopes, dissected motor mechanics, established quantitative single-cell chemotaxis. Established temporal sensing: cells compare attractant concentration **now vs ~1 s ago**.\n\n**Two-component systems (TCS)** — the dominant bacterial signaling architecture:\n- Membrane **sensor histidine kinase** detects stimulus → autophosphorylates on a histidine residue.\n- Phosphotransfer to a cytoplasmic **response regulator** (aspartate residue) → regulator binds DNA + alters transcription (or directly acts on a motor, channel, etc.).\n- Many hundreds in a bacterial genome. Examples: EnvZ-OmpR (osmolarity), PhoR-PhoB (phosphate), VanS-VanR (vancomycin resistance), AgrC-AgrA (Staph quorum sensing).\n- Eukaryotes mostly lack TCSs — making them attractive antibiotic targets in principle.\n\n**Biofilms** — surface-attached microbial communities encased in self-produced extracellular polymeric substance (EPS):\n- Stages: reversible attachment → irreversible attachment → microcolony → mature biofilm with channels + structure → dispersal.\n- EPS = exopolysaccharides + proteins + eDNA + lipids.\n- Mature biofilms exhibit **gradients** (O₂, nutrients, pH) → physiological + genetic heterogeneity → 'persister' cells.\n- **Antibiotic tolerance ~10-1000× planktonic cells**; drives chronic infections (cystic-fibrosis lung *Pseudomonas*, dental plaque, prosthetic joint, catheter, endocarditis vegetations).\n- **Bonnie Bassler** + others showed biofilm formation is socially coordinated via quorum sensing.\n\n**Quorum sensing (QS)** — cell-cell chemical communication enabling density-dependent gene regulation:\n- Cells continuously produce + secrete **autoinducer** molecules; intracellular concentration tracks population density.\n- At a **quorum threshold**, autoinducer binds its receptor (TF or kinase) + flips the regulon: virulence factors, biofilm components, bioluminescence, secondary metabolites, conjugation, sporulation are deployed.\n- First described in *Vibrio fischeri* bioluminescence (**Nealson + Hastings 1970**); molecularly worked out by **Greenberg** + colleagues (the **LuxI/LuxR** system: LuxI synthase makes acyl-homoserine lactone AHL; LuxR receptor binds AHL + activates bioluminescence operon).\n- Gram-negative QS: AHLs (acylated homoserine lactones; chain length encodes specificity). LasI/LasR + RhlI/RhlR in *Pseudomonas aeruginosa* regulate virulence.\n- Gram-positive QS: small peptide autoinducers, often modified (AIP in *Staphylococcus aureus* agr system). Sensed by membrane HK of a two-component system.\n- Interspecies QS: **AI-2 (autoinducer-2)** — universal furanosyl borate diester discovered by **Bonnie Bassler** (Princeton); LuxS-LsrB system in *Vibrio harveyi*, *E. coli*, *Salmonella* + many others.\n- **Quorum quenching** — anti-virulence strategy: hydrolyze AHLs (lactonases), block receptors, disrupt biofilms.\n\n**Sporulation + persister cells**: *Bacillus + Clostridium* form **endospores** — extraordinarily resistant resting forms (heat, dessication, radiation, UV; can survive millions of years). Sporulation cascade: Spo0A master regulator → asymmetric division → engulfment → mature spore with dipicolinic acid + small acid-soluble proteins (SASPs). Non-spore-forming bacteria have **persister cells** — phenotypically dormant, antibiotic-tolerant minority that re-grow after treatment (Kim Lewis foundational work)."
+    },
+    {
+      "kind": "text",
+      "title": "Bacterial genetics, plasmids + horizontal gene transfer",
+      "body": "Bacterial genomes are typically **circular**, ~0.5-15 Mbp, with **>85% coding density** + organized into **operons** — adjacent genes co-transcribed from a single promoter to a polycistronic mRNA, then translated.\n\n**The lac operon (Jacob + Monod 1961)** — the founding model of gene regulation (Nobel 1965):\n- *lacZ* (β-galactosidase), *lacY* (permease), *lacA* (transacetylase) under one promoter.\n- **LacI repressor** binds operator → blocks transcription in absence of lactose.\n- Inducer (allolactose, derived from lactose) binds LacI → repressor falls off → transcription proceeds.\n- **Catabolite repression**: CRP-cAMP binds upstream + activates transcription only when glucose is absent (cAMP high). The **lac** operon is ON only when lactose is present + glucose is not — efficient resource allocation.\n- Established the central concepts of **operator**, **repressor**, **inducer**, **regulon** — generalized to all of biology.\n\n**Plasmids** — extrachromosomal DNA (typically circular, kb-Mb size) that replicates independently:\n- **F plasmid (fertility)**: ~100 kb; carries *tra* genes encoding conjugative machinery.\n- **R plasmids (resistance)**: carry multiple antibiotic-resistance genes; major drivers of AMR spread.\n- **Virulence plasmids**: encode toxins, adhesins, T3SS (Yersinia, Shigella, *E. coli*).\n- **Col plasmids**: bacteriocin production.\n- **Megaplasmids** (>500 kb): essentially second chromosomes in some species (*Rhizobium* symbiotic plasmid).\n- **Cloning + expression vectors**: derived plasmids (pUC, pET, pBR322) drove the recombinant-DNA revolution.\n\n**Horizontal gene transfer (HGT) — three classical mechanisms**:\n\n1. **Transformation** (Griffith 1928; molecular by Avery-MacLeod-McCarty 1944): naked DNA uptake from environment by **competent** cells. Natural competence in *Streptococcus pneumoniae*, *Bacillus subtilis*, *Haemophilus*, *Neisseria*, *Vibrio cholerae*. Specific DNA-uptake sequences in some species (Hin uptake sequence in *Haemophilus*). Major source of evolutionary innovation + antibiotic-resistance acquisition.\n\n2. **Conjugation** (Lederberg + Tatum 1946): direct cell-cell DNA transfer through a **conjugation pilus** (Type IV secretion system-derived). F-plasmid + Ti plasmid + IncP plasmids spread broadly across species. Conjugation crosses species + even kingdom boundaries (Agrobacterium → plants). Major driver of antibiotic-resistance + virulence-gene spread.\n\n3. **Transduction** (Zinder + Lederberg 1952): bacteriophage-mediated transfer. **Generalized** (random host DNA packaged in error) + **specialized** (specific genes adjacent to integrated prophage). Lambda phage carries *bio* + *gal* genes between *E. coli* hosts. Phages package host DNA + deliver to new cells. Phage-encoded toxins: Shiga toxin (Stx) in *E. coli* O157:H7, diphtheria toxin (CTφ-like phage in *Corynebacterium*), cholera toxin (CTXφ in *Vibrio cholerae* — Mekalanos discovery).\n\n**HGT consequences**: bacterial genomes are highly mosaic; ~5-30% of any genome is acquired horizontally. **Pan-genome** concept: the set of all genes ever found in a species — much larger than any single isolate's genome. **Core genome** vs **accessory genome**. *E. coli* pan-genome ~10× a single genome.\n\n**CRISPR-Cas — bacterial adaptive immunity → genome editing revolution**:\n- **Discovery (Mojica 2005)**: bacterial genomes contain **clustered regularly interspaced short palindromic repeats** with spacers matching phage/plasmid sequences. **Francisco Mojica** (University of Alicante) proposed they were an adaptive-immune system against invading nucleic acids.\n- **Mechanism**: invading DNA fragments are integrated as **spacers** between repeats (adaptation). CRISPR array is transcribed + processed into **crRNAs**. **Cas effector(s)** + crRNA recognize matching invader DNA + cleave it.\n- **Cas9 = single-protein RNA-guided dsDNA endonuclease** (Type II system from *Streptococcus pyogenes*). Guide-RNA programmable — became the genome-editing tool of the decade.\n- **Doudna + Charpentier 2012** (Science): demonstrated Cas9 + a chimeric **sgRNA** could cleave any target dsDNA in vitro → portable + programmable. **Nobel Chemistry 2020** (Doudna + Charpentier).\n- **Zhang + Church 2013**: applied CRISPR-Cas9 in mammalian + human cells.\n- **CRISPR-Cas variants**: Cas12 (Cpf1), Cas13 (RNA-targeting → SHERLOCK diagnostics), base editors (Liu lab — single-nucleotide changes without DSB), prime editors. **Charpentier + Doudna's** discovery has produced the first FDA-approved CRISPR therapy (**Casgevy / exa-cel** for sickle-cell + β-thalassemia, 2023).\n- Bacterial original purpose: defense against phages + plasmids. Phages counter-evolve **anti-CRISPR (Acr) proteins** — ongoing arms race.\n\n**Other defense systems beyond CRISPR**: restriction-modification (R-M); abortive infection (Abi); CBASS (cyclic-oligonucleotide-based anti-phage); retrons; DISARM; Thoeris; Pycsar. The 'defense islands' of bacterial genomes are still being mapped (Sorek lab + others); they reveal a vast bacterial-immune repertoire much of which inspired biotech tools (CRISPR was just the first)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_pro_1",
+        "kind": "guided_derivation",
+        "question": "Predict antibiotic targeting from envelope architecture",
+        "goal": "Given an unknown infection, predict which classes of antibiotics will work + why, based on the cell-envelope architecture (Gram-positive, Gram-negative, or acid-fast).",
+        "steps": [
+          {
+            "prompt": "A Gram-positive coccus (Staphylococcus aureus). Which classes are first-line + why?",
+            "motivation": "Thick peptidoglycan, no outer membrane.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "β-lactams (penicillins, cephalosporins) + vancomycin"
+              ]
+            },
+            "hints": [
+              "Peptidoglycan-targeting drugs."
+            ],
+            "reveal": "Gram-positive: thick peptidoglycan accessible from outside. **β-lactams** (penicillins, cephalosporins, carbapenems) acylate PBPs → block cross-linking → autolysin-driven lysis. **Vancomycin** binds D-Ala-D-Ala stem termini → blocks crosslinking; too large to cross Gram-negative OM, so vancomycin works only on Gram-positives. Resistance: MRSA (mecA → PBP2a, low β-lactam affinity); VRE (D-Ala-D-Lac substitution → 1000× lower vanco affinity)."
+          },
+          {
+            "prompt": "A Gram-negative rod (E. coli, Pseudomonas). What changes?",
+            "motivation": "Outer membrane is a barrier.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Need OM penetration; β-lactams must pass porins; vancomycin doesn't work; use β-lactams + aminoglycosides + fluoroquinolones + polymyxins"
+              ]
+            },
+            "hints": [
+              "Outer membrane porins or hydrophobic uptake."
+            ],
+            "reveal": "Gram-negative outer membrane is a permeability barrier. Hydrophilic antibiotics must traverse OM **porins** (OmpF, OmpC) — small β-lactams + fluoroquinolones do; vancomycin does not. **Aminoglycosides** (gentamicin) use self-promoted uptake via LPS interaction + then PMF-driven entry. **Polymyxins** (colistin) disrupt LPS directly → last-resort for MDR Gram-negatives. Resistance: efflux pumps (AcrAB-TolC), porin loss, β-lactamases (TEM, CTX-M, ESBLs, carbapenemases like NDM, KPC, OXA-48), modifying enzymes (aminoglycoside acetyltransferases)."
+          },
+          {
+            "prompt": "Acid-fast (Mycobacterium tuberculosis). Why is TB therapy so different?",
+            "motivation": "Mycolic-acid wall.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Slow growth + waxy lipid wall blocks most drugs; need rifampin + isoniazid + pyrazinamide + ethambutol for 6+ months"
+              ]
+            },
+            "hints": [
+              "TB unique drugs."
+            ],
+            "reveal": "*M. tuberculosis*: thick mycolic-acid wall + slow growth (~24 h/division) + intracellular persistence + dormant subpopulations. Standard regimen: **RIPE — rifampin** (RNA polymerase), **isoniazid** (mycolic-acid synthesis via InhA), **pyrazinamide** (multiple targets, acidic environment), **ethambutol** (arabinogalactan). 6+ months therapy. MDR-TB (RIF + INH resistant) + XDR-TB (additional FQ + aminoglycoside resistance) → second-line drugs (bedaquiline, linezolid, pretomanid, delamanid) + new regimens (BPaLM, BPaL — 6-month all-oral for MDR-TB)."
+          },
+          {
+            "prompt": "If lab reports a Gram-positive but β-lactams + vancomycin fail, what should you suspect?",
+            "motivation": "Resistance reasoning.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Likely VRSA or VISA (rare) or wrong identification; consider linezolid, daptomycin, ceftaroline"
+              ]
+            },
+            "hints": [
+              "Salvage drugs."
+            ],
+            "reveal": "If β-lactams + vancomycin both fail in Gram-positive infection: consider **MRSA + VRSA/VISA** (rare, vanA gene from VRE); switch to **linezolid** (oxazolidinone, 50S blocker), **daptomycin** (lipopeptide, membrane disruption — Gram-positive only), **ceftaroline** (5th-gen cephalosporin with PBP2a affinity), **tedizolid**, **dalbavancin**. Always reconfirm species + susceptibility — clinical microbiology lab is the foundation."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_pro_1",
+        "kind": "multiple_choice",
+        "question": "Why is quorum sensing considered a paradigm-shifting concept in microbiology?",
+        "options": [
+          "Bacteria don't communicate.",
+          "**Quorum sensing (QS)** reframed bacteria from solitary, identical cells into **social organisms** that coordinate behavior at the population level via chemical signals. First described in *Vibrio fischeri* bioluminescence (Nealson + Hastings 1970), molecularly dissected by **Greenberg** (LuxI/LuxR + AHL autoinducers) + by **Bonnie Bassler** (AI-2 interspecies signaling, *Vibrio harveyi*). QS underlies many of the most clinically + ecologically important bacterial behaviors: virulence-factor deployment (only attack when many cells present), biofilm formation, antibiotic + bacteriocin production, conjugation, sporulation, bioluminescence. Therapeutic implication: **quorum quenching** (lactonases that hydrolyze AHLs, receptor antagonists) — disarm pathogens without killing them, reducing selective pressure for resistance. Conceptually, QS bridged microbiology with sociobiology + has become the model for bacterial cooperation, cheating, public goods + multicellularity origins.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Quorum sensing reframed bacteria as social organisms that coordinate behavior chemically. Greenberg + Bassler dissected LuxI/LuxR (AHL) + AI-2 systems. QS controls virulence, biofilms, antibiotics, conjugation, bioluminescence. Therapeutic implication: quorum quenching disarms without killing → may slow resistance evolution. Conceptually links microbiology + sociobiology."
+      },
+      "hints": [
+        "Bacterial communication.",
+        "Greenberg + Bassler."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Quorum sensing (Nealson + Hastings 1970; Greenberg LuxI/LuxR; Bassler AI-2) revealed that bacteria coordinate behavior via secreted autoinducers. Density-dependent activation of virulence, biofilms, antibiotic production. Therapeutic implication: quorum quenching disarms without killing. Reframed bacteria as social organisms."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_pro_1",
+        "kind": "scenario",
+        "question": "Tracking horizontal gene transfer of a resistance gene",
+        "prompt": "A new carbapenem-resistance gene (blaNDM-1) is detected in *Klebsiella pneumoniae* isolates from multiple hospitals on three continents within 12 months. Outline the likely HGT mechanisms (transformation, conjugation, transduction) that could explain rapid global spread, what genomic evidence you would gather to identify them (plasmid typing, IS elements, integrons), and which interventions could slow further spread. Cite specific landmark concepts (Lederberg + Tatum conjugation; Doudna + Charpentier CRISPR as bacterial defense)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_pro_1",
+        "kind": "math_expression",
+        "question": "Name the two-component-system phosphotransfer order (which residue is phosphorylated at each step).",
+        "acceptedAnswers": [
+          "His on sensor kinase → Asp on response regulator",
+          "histidine → aspartate",
+          "HK His-P → RR Asp-P"
+        ],
+        "hint": "His-Asp phosphorelay; very different from eukaryotic Ser/Thr/Tyr kinases."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_pro_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, summarize how a prokaryotic cell is organized + why that organization underlies microbial behavior + therapy.",
+        "rubric": "Mentions: cell envelope architecture — Gram-positive thick peptidoglycan + teichoic acids; Gram-negative inner membrane + thin peptidoglycan + outer membrane with LPS (endotoxin) + porins; acid-fast Mycobacteria with mycolic-acid wall. No nucleus; nucleoid; 70S ribosomes. Motility via flagella (PMF-driven rotary motor; Adler + Berg chemotaxis); twitching pili. Two-component signaling (His-Asp phosphorelay); biofilms with EPS + antibiotic tolerance. Quorum sensing (Bassler + Greenberg, LuxI/R, AHL, AI-2) coordinates population behavior. Bacterial genetics: operons (Jacob-Monod 1961 lac); plasmids; horizontal gene transfer (transformation, conjugation, transduction); CRISPR-Cas as bacterial adaptive immunity (Doudna + Charpentier Nobel 2020) repurposed for genome editing. Concludes: prokaryote architecture sets antibiotic targets + dictates resistance, virulence + social behavior; understanding it is the basis for both basic biology + therapeutics."
+      }
+    }
+  ]
+}

@@ -1,0 +1,159 @@
+{
+  "slug": "natural-selection-and-adaptation",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish directional, stabilizing, disruptive, frequency-dependent, and balancing selection.",
+      "Reason on Wright's adaptive landscapes with peaks, ridges, valleys.",
+      "Connect canonical case studies (peppered moth, Galápagos finches, Anolis, sticklebacks, Lenski LTEE) to selection theory."
+    ],
+    "prereqs": [
+      "evolution-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Modes of selection: directional, stabilizing, disruptive, frequency-dependent, balancing",
+      "body": "Natural selection has a small, finite catalog of modes. Knowing which is operating is the first question in any adaptation study.\n\n**Directional selection** — fitness increases monotonically with trait value (or decreases). The trait mean shifts; variance can shrink as the disadvantaged tail is purged. Classic examples: industrial melanism in *Biston betularia* (Kettlewell 1953-1956), beak depth in Galápagos *Geospiza fortis* during droughts (Grant + Grant 1977 → 2014), antibiotic resistance in bacteria, insecticide resistance in agricultural pests, body size shifts under hunting pressure (Atlantic cod, bighorn rams).\n\n**Stabilizing selection** — intermediate trait values have highest fitness; extremes are penalized. Trait mean stays constant; variance shrinks. Classic: human birth weight (Karn + Penrose 1951) — neonates near 3.5 kg survive best; lighter and heavier infants both have elevated mortality. Also: clutch size in birds (Lack 1947 — Lack clutch maximizes lifetime fitness), gall size in goldenrod gall flies (parasites attack small galls, birds eat large galls; intermediate optimum).\n\n**Disruptive (diversifying) selection** — extremes outperform the mean; variance increases; bimodal distributions emerge. Can drive sympatric speciation. Classic: African finch *Pyrenestes ostrinus* bill polymorphism (Smith 1993) — small bills crack soft seeds, large bills crack hard seeds, intermediates do neither well. Cichlid trophic morphs in Lake Victoria. Apple/hawthorn maggot fly (*Rhagoletis pomonella*; Bush 1969+) — host-race formation under disruptive selection on emergence timing.\n\n**Frequency-dependent selection** — fitness depends on the relative frequency of phenotypes. Negative frequency-dependence (rare-type advantage) maintains polymorphism: scale-eating cichlid *Perissodus microlepis* in Lake Tanganyika (Hori 1993) attacks right or left flank of prey; whichever morph is rarer has higher success because prey are not pre-vigilant. Self-incompatibility alleles in plants, MHC alleles in vertebrates, sex ratios (Fisher 1930 — 1:1 is the frequency-dependent equilibrium). Positive frequency-dependence (common-type advantage) drives fixation of one variant and arises in mimicry, language, and signaling-system evolution.\n\n**Balancing selection** — any mechanism that maintains multiple alleles at intermediate frequency longer than drift would predict. Sub-mechanisms: heterozygote advantage (overdominance), negative frequency-dependence, spatially or temporally varying selection, antagonistic pleiotropy. Canonical heterozygote-advantage case: HbS (sickle-cell) allele at the β-globin locus — HbS/HbS suffers sickle-cell anemia; HbA/HbA dies of malaria in *Plasmodium falciparum* zones; HbA/HbS heterozygotes resist malaria. Heterozygote optimum at p ≈ 0.1-0.2 in West African populations. Allison (1954) — one of the first molecular signatures of natural selection in humans.\n\n**Sexual selection** (Darwin 1871) — overlaps with directional but mating-success-driven, often runaway under Fisherian process (Fisher 1930) or signaling-honest under handicap (Zahavi 1975; Grafen 1990).\n\n**Kin selection** (Hamilton 1964) — inclusive fitness; W. D. Hamilton's r·B > C. Eusociality in Hymenoptera, alarm calls, parental care. Not a separate mode per se but a generalization of how to count offspring.\n\nThe operational test: measure the **selection differential** S (mean of selected parents minus population mean) and **selection gradient** β (regression of fitness on trait value). Lande + Arnold (1983) formalized multivariate selection gradient analysis — the modern toolbox for measuring selection in the wild."
+    },
+    {
+      "kind": "text",
+      "title": "Fitness landscapes: Wright 1932, peaks, ridges, valleys",
+      "body": "**Sewall Wright** (1932) introduced the **adaptive landscape** — perhaps the most influential metaphor in 20th-century biology. The horizontal axes are allele frequencies (or, in a phenotypic version, trait values); the vertical axis is mean population fitness w̄. Populations are imagined as clouds on this surface, evolving uphill under selection.\n\n**Peaks** = local fitness maxima. A population near a peak is pulled upward by selection; small perturbations are corrected.\n\n**Valleys** = local fitness minima. Crossing a valley requires passing through low-fitness genotypes — selection alone cannot do this without help.\n\n**Ridges** = paths between peaks along which fitness does not dip. If they exist, selection can climb from one peak to another with no help from drift. Conrad Waddington's *epigenetic landscape* uses a related but distinct (developmental) metaphor.\n\n**Wright's shifting-balance theory** (SBT) — in small subpopulations, **genetic drift** can push allele frequencies across valleys; once on the new peak, selection takes over; **migration** spreads the better peak across the species. Three phases: (1) drift in small demes; (2) local mass selection toward the new peak; (3) interdeme migration. Fisher disputed SBT (large mass-action populations climb peaks via selection alone), and the empirical importance of SBT remains debated.\n\n**Quantitative-genetic landscape** — Lande (1976, 1979) recast Wright's landscape in continuous trait space. The response to selection equation in multivariate form:\n\n  Δz̄ = G · β\n\nwhere Δz̄ is the change in trait means, G is the additive genetic covariance matrix, and β is the selection gradient (∂ln w̄/∂z). The landscape's local geometry (G) constrains where the population can go even when β points elsewhere — **genetic constraints** on adaptation.\n\n**Holey adaptive landscapes** (Gavrilets 1997) — in high dimensions, neutral or near-neutral networks of similar-fitness genotypes percolate through genotype space. Populations move along ridges without needing to cross valleys. Reconciles drift-vs-selection arguments and explains why crossing valleys may not be required for speciation.\n\n**Empirical fitness landscapes** — direct measurement via deep mutational scanning (DMS). Stiffler + Hekstra + Ranganathan (2015) measured ~all single-point mutants of β-lactamase TEM-1; Bloom lab + Sanjuán + Wright (J. Wright) lab fitness landscapes for influenza HA, HIV protease, GFP, transcription factors. These maps confirm peaks, ridges, neutral networks, and epistasis.\n\n**Epistasis** — fitness effect of allele at locus A depends on allele state at locus B. Magnitude epistasis vs sign epistasis (Weinreich + Watson + Chao 2005) — sign epistasis creates the valleys that make landscapes rugged. Smooth landscapes ⇒ selection climbs the optimum; rugged landscapes ⇒ populations get stranded on suboptimal peaks. The β-lactamase TEM-1 study (Weinreich 2006 *Science*) tracked 5 mutations conferring cefotaxime resistance through the 5! = 120 possible mutational paths and showed only 18 paths were monotonically uphill in fitness — the rest crossed valleys."
+    },
+    {
+      "kind": "text",
+      "title": "Adaptation case studies in the wild and the lab",
+      "body": "The strength of natural selection theory rests on its empirical predictions panning out in real populations.\n\n**Peppered moth (*Biston betularia*)** — Bernard Kettlewell (1953-1956). The carbonaria (dark) morph rose from <1% to >95% in industrial Manchester (1848-1900) as soot blackened tree bark, then crashed after the 1956 Clean Air Act. Kettlewell's mark-recapture experiments showed bird predation as the agent. Decades of attacks on the methodology (Hooper 2002; Coyne) were rebutted by Michael Majerus's massive 2001-2007 Cambridge experiment confirming differential predation. The genetic basis — a transposable-element insertion in the *cortex* gene — was identified by Hof + Saccheri (2016). Textbook example of directional selection on a Mendelian trait.\n\n**Galápagos finches** — Peter Grant and Rosemary Grant, Daphne Major, 1973-present. The Grants individually banded every finch on a 30-hectare island for 40+ years, measured every beak, every brood. During the 1977 drought, small soft seeds vanished; large hard seeds remained; *Geospiza fortis* with deeper beaks survived. Mean beak depth shifted ~0.5 mm in one generation — directional selection in real time, with measured selection differential S ≈ 0.6σ. The 1983 El Niño reversed selection. *40 Years of Evolution* (2014) is the canonical monograph. Heritability h² ≈ 0.65 predicted the response; the response matched prediction.\n\n**Anolis lizards** — Jonathan Losos (Harvard / Washington U). Caribbean anoles have independently evolved the same set of habitat specialists (trunk-ground, trunk-crown, twig, grass-bush, crown-giant ecomorphs) on each of the four Greater Antilles islands. Replicated adaptive radiation; convergent morphology under similar ecological selection. Losos's *Lizards in an Evolutionary Tree* (2009) and field experiments introducing Anolis to small islands (Schoener + Losos) document selection on hindlimb length within years.\n\n**Three-spined stickleback (*Gasterosteus aculeatus*)** — David Kingsley, Dolph Schluter, Catherine Peichel labs. Marine ancestors repeatedly colonize freshwater lakes; lateral plates and pelvic spines are lost. The loss is driven by repeated regulatory deletions at the *Pitx1* gene (Shapiro et al. 2004 *Nature*) — independent populations use the same standing variation. Demonstrates parallel evolution from shared standing variation, not de novo mutation. Schluter's *Ecology of Adaptive Radiation* (2000).\n\n**Drosophila** — vast literature on selection. Hugo de Vries 1900-era mutationism, Morgan school chromosome work, Dobzhansky's *D. pseudoobscura* inversion polymorphisms (1930s-1950s), Dick Lewontin + Hubby's 1966 allozyme studies (first molecular evidence of pervasive polymorphism). Long-term selection experiments on body size, lifespan, sexual selection (Bill Rice, Tracey Chapman). The species is the genetic workhorse of the field.\n\n**Lenski Long-Term Evolution Experiment (LTEE)** — Richard Lenski, Michigan State, 1988-present. Twelve populations of *E. coli* in DM25 minimal-glucose medium, 6.6 generations/day. As of 2024, ~80000 generations (target 100k by 2030). Frozen samples every 500 generations — the **frozen fossil record**. Findings: (i) fitness gains continuous but decelerating (~50% increase in growth rate by 50k generations); (ii) parallel evolution at the same loci (*nadR*, *spoT*, *topA*); (iii) **Cit+ event** — one population evolved citrate utilization around generation 31500 (Blount, Borland, Lenski 2008) — a historical contingency tracked through frozen replays. Co-investigators include Michael Travisano (early years) and Tim Cooper. LTEE is the longest-running explicit evolution experiment ever; comparable in influence to Drosophila genetics.\n\nThese case studies bridge laboratory population genetics (Fisher, Wright, Haldane) and field natural history (Darwin, Wallace, Mayr). Selection is real, measurable, and operates on timescales from generations to deep time."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sel_grad_1",
+        "kind": "guided_derivation",
+        "question": "Derive the multivariate breeder's equation Δz̄ = G·β",
+        "goal": "From the univariate breeder's equation R = h²S, build the multivariate version Lande (1979) used to formalize selection on correlated traits.",
+        "steps": [
+          {
+            "prompt": "Univariate: R = h²·S where R = response (Δz̄), S = selection differential, h² = V_A/V_P. Rewrite with V_A explicit.",
+            "motivation": "Connect to additive genetic variance.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "R = (V_A / V_P) * S"
+              ]
+            },
+            "hints": [
+              "h² = V_A / V_P by definition.",
+              "Substitute."
+            ],
+            "reveal": "R = (V_A / V_P) · S. The narrow-sense heritability is the regression slope of breeding values on phenotype."
+          },
+          {
+            "prompt": "Define the selection gradient β = S/V_P (slope of relative fitness on trait; Lande + Arnold 1983). Substitute.",
+            "motivation": "Replace S with β.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "R = V_A * beta"
+              ]
+            },
+            "hints": [
+              "S = V_P · β.",
+              "Cancel V_P."
+            ],
+            "reveal": "R = V_A · β. The response equals additive genetic variance times the selection gradient."
+          },
+          {
+            "prompt": "For multiple traits z = (z_1, …, z_k)ᵀ, V_A becomes the additive genetic covariance matrix G and β is the vector of selection gradients. Write the vector form.",
+            "motivation": "Multivariate generalization.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Delta z_bar = G * beta",
+                "Δz̄ = G·β"
+              ]
+            },
+            "hints": [
+              "G is k×k; β is k×1.",
+              "Δz̄ is k×1."
+            ],
+            "reveal": "Δz̄ = G · β. The off-diagonal entries of G — genetic covariances between traits — let selection on one trait drag along correlated traits, and conversely constrain the population from moving in a direction G cannot project onto."
+          },
+          {
+            "prompt": "What happens if β points into the null space of G (a direction along which traits have no additive genetic variance)?",
+            "motivation": "Genetic constraints.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "no response; the population cannot evolve in that direction"
+              ]
+            },
+            "hints": [
+              "G · β projects β through G.",
+              "Null space ⇒ zero."
+            ],
+            "reveal": "Δz̄ = G·β = 0 along directions where G has no variance. The population is stuck — a **genetic constraint** on adaptation. Empirically, this is why some lineages fail to evolve obvious adaptations: the genetic variation isn't there. Schluter's 'genetic lines of least resistance' (1996) — populations evolve preferentially along the leading eigenvector of G."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\Delta\\bar{z} = G \\cdot \\beta}$$\n\nLande's (1979) multivariate breeder's equation. The G matrix encodes additive genetic variances + covariances; β is the multivariate selection gradient. Constraints arise from G's geometry: selection cannot move the population in directions orthogonal to G's column space. Foundation of modern quantitative-genetic theory of adaptation."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sel_balanc_1",
+        "kind": "multiple_choice",
+        "question": "Which mechanism maintains the HbS sickle-cell allele at ~10-20% in West African populations despite homozygous lethality?",
+        "options": [
+          "Drift.",
+          "Mutation-selection balance — HbS is reintroduced each generation by mutation at a rate matching selection against it.",
+          "Heterozygote advantage (overdominance): HbA/HbA dies of *Plasmodium falciparum* malaria; HbS/HbS dies of sickle-cell anemia; HbA/HbS is malaria-resistant and viable. The heterozygote has highest fitness, so a stable polymorphism exists. Allison (1954) — one of the first molecular signatures of natural selection in humans. The equilibrium frequency p* = s_AA / (s_AA + s_SS) where s_AA is fitness cost of HbA/HbA in malaria endemic regions and s_SS is fitness cost of HbS/HbS. Empirical p* ≈ 0.1-0.2 matches predicted equilibrium given malaria mortality and sickle-cell mortality. The HbS allele has been independently introduced (or selected to high frequency) ≥5 times in malarial regions — convergent evolution at the molecular level.",
+          "Linkage to a beneficial allele elsewhere on chromosome 11."
+        ],
+        "correctIndex": 2,
+        "explanation": "Heterozygote advantage at HbS — HbA/HbA dies of malaria; HbS/HbS dies of sickle-cell anemia; HbA/HbS is fit and malaria-resistant. Allison (1954). The equilibrium frequency p* = s_AA / (s_AA + s_SS) where s_ii is the fitness cost of homozygote ii. p* ≈ 0.1-0.2 in West African populations matches observation. Classic overdominance maintaining balanced polymorphism — and a foundational example of balancing selection in human population genetics.",
+        "hints": [
+          "Which genotype has highest fitness in malaria zones?",
+          "Why doesn't selection eliminate either allele?"
+        ],
+        "retryUntilCorrect": true,
+        "workedSolution": "Heterozygote advantage (overdominance) at HbS. HbA/HbA dies of malaria, HbS/HbS dies of sickle-cell anemia, HbA/HbS is fit and malaria-resistant. Equilibrium p* = s_AA / (s_AA + s_SS) ≈ 0.1-0.2 matches data. Allison 1954 — foundational example of balancing selection."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sel_lenski_1",
+        "kind": "scenario",
+        "question": "Lenski's Cit+ contingency",
+        "prompt": "Around generation 31500 of the LTEE, one of twelve replicate populations (Ara-3) evolved the ability to use citrate aerobically — a defining trait of *E. coli*'s exclusion from the citrate niche. Blount, Borland, and Lenski (2008) replayed the experiment from frozen ancestors and showed Cit+ re-evolved only from populations after generation 20000. Explain (a) the historical contingency this demonstrates, (b) what 'potentiating' mutations means, and (c) why this matters for Gould's claim that 'replaying the tape of life' would yield a different outcome (*Wonderful Life* 1989)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sel_hsel_1",
+        "kind": "math_expression",
+        "question": "Galápagos *Geospiza fortis* in 1977: selection differential on beak depth S = 0.6 mm, narrow-sense heritability h² = 0.65. By the breeder's equation R = h²·S, what is the predicted response in mm in the next generation?",
+        "acceptedAnswers": [
+          "0.39",
+          ".39",
+          "0.4"
+        ],
+        "hint": "R = h² × S = 0.65 × 0.6."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sel_adapt_1",
+        "kind": "explain_back",
+        "prompt": "In ≤150 words, explain how Wright's 1932 adaptive landscape concept frames evolutionary dynamics, why selection alone cannot always climb to the global optimum, and how empirical fitness landscapes (deep mutational scanning) have recently sharpened the picture.",
+        "rubric": "Should include: Wright (1932) landscape — allele frequencies on horizontal axes, mean population fitness w̄ vertical. Peaks = local maxima, valleys = minima, ridges = high-fitness paths. Selection drives populations uphill but can strand them on local peaks separated from global optimum by valleys. Wright's shifting-balance theory: drift in small demes crosses valleys, then selection + migration spreads improvements. Fisher disputed SBT (mass-action selection is enough in large populations). Lande (1979) recast as continuous quantitative-genetic landscape Δz̄ = G·β with G as additive covariance constraint. Gavrilets (1997) holey landscapes — in high dimensions, neutral networks let populations move without crossing valleys. Deep mutational scanning (TEM β-lactamase Weinreich 2006; influenza HA Bloom; GFP) directly measures fitness for ~all single mutants and confirms sign epistasis, ridges, neutral networks. Empirical landscapes are rugged but with many paths; selection finds local optima but global optimum often unreachable from current state."
+      }
+    }
+  ]
+}

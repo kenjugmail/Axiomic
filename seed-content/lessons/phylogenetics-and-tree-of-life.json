@@ -1,0 +1,169 @@
+{
+  "slug": "phylogenetics-and-tree-of-life",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Compare UPGMA, neighbor-joining, parsimony, maximum likelihood, and Bayesian phylogenetics.",
+      "Calibrate molecular clocks and reason about relaxed-clock models.",
+      "Outline the three-domain tree of life and the role of endosymbiosis and lateral gene transfer."
+    ],
+    "prereqs": [
+      "evolution-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Building trees: distance, parsimony, likelihood, Bayesian",
+      "body": "A **phylogenetic tree** is a hypothesis about the historical relationships among taxa: branching pattern (topology), branch lengths (divergence amounts), and (optionally) calibrated dates. Building one from molecular data is a statistical inference problem with a well-developed toolkit.\n\n**Distance methods** — compute pairwise sequence distances, then build a tree.\n\n*UPGMA* (Unweighted Pair Group Method with Arithmetic mean; Sokal + Michener 1958) — assumes a strict molecular clock (rate constant across lineages). Iteratively join the closest pair, average distances. Produces an ultrametric tree (root equidistant from all leaves). Fast but biased when the clock fails.\n\n*Neighbor-joining* (Naruya Saitou and Masatoshi Nei, 1987) — does not assume a clock. Joins the pair that minimizes total tree length; iteratively rebuilds the distance matrix. Asymptotically consistent and fast (O(n³) in number of taxa). Widely used for large initial trees and as a starting point for likelihood searches.\n\n**Parsimony** — Walter Fitch (1971; the **Fitch algorithm** for the small parsimony problem: given a tree and character states at leaves, find the minimum number of state changes on the tree). The **large parsimony problem** (find the tree minimizing state changes across all topologies) is NP-hard; heuristics include nearest-neighbor interchange (NNI), subtree pruning and regrafting (SPR), and tree bisection and reconnection (TBR). Camin-Sokal (1965), Wagner parsimony, Dollo parsimony. Strong philosophical appeal (Occam's razor), but susceptible to **long-branch attraction** (LBA) when fast-evolving taxa cluster artifactually.\n\n**Maximum likelihood (ML)** — Joseph Felsenstein (1973, 1981). Specify a model of sequence evolution (e.g., Jukes-Cantor 1969 with equal rates; Kimura 80 with transitions/transversions; HKY 1985; F84; GTR with general rate matrix; +Γ rate heterogeneity, +I invariant sites). For a given tree, compute the likelihood L = P(data | tree, model) using Felsenstein's **pruning algorithm** — sum over internal-node states via dynamic programming, traversal in O(n) per tree. Search topology + branch lengths to maximize likelihood. Software: PHYLIP (Felsenstein), RAxML (Stamatakis), IQ-TREE (Minh + Schmidt + Chernomor + Haeseler), PhyML.\n\n**Bayesian phylogenetics** — John Huelsenbeck + Fredrik Ronquist (MrBayes 2001). Posterior over trees: P(tree | data) ∝ P(data | tree) · P(tree). Sample with MCMC (Metropolis-coupled MCMC; Geyer 1991; with temperature ladder for tree-space mixing). Posterior probabilities on clades are natural confidence statements; can integrate over model uncertainty. Software: MrBayes (Huelsenbeck + Ronquist), BEAST (Drummond + Rambaut + Suchard) for time-calibrated trees, RevBayes (Höhna + Heath + Hsiang + Boomsma).\n\n**Bootstrap support** — Felsenstein 1985. Resample sites with replacement, rebuild tree, count clade occurrences. Bootstrap >70-80% commonly treated as well-supported (with caveats about interpretation).\n\n**Comparing methods**: ML and Bayesian are statistically grounded; under correct model, both are consistent + efficient. Parsimony is consistent only under simple models (Felsenstein 1978 showed it can be statistically inconsistent under LBA). Distance + NJ are fast initial estimates. Modern best practice: ML with thorough bootstrap + Bayesian for posterior support."
+    },
+    {
+      "kind": "text",
+      "title": "Molecular clocks: calibrated, relaxed, and Bayesian divergence dating",
+      "body": "**Molecular clock** — Zuckerkandl + Pauling (1962, 1965): protein and DNA sequences diverge at approximately constant rates over time. If true, divergence between two lineages can date their last common ancestor.\n\n**Strict clock** — single rate across all lineages and times. Tests: relative-rate test (Sarich + Wilson 1967) — compares two ingroup taxa to an outgroup; under a clock the two should be equidistant from the outgroup.\n\n**Sarich + Wilson 1967** — used immunological distances (microcomplement fixation) on serum albumins to date the human-chimp split at ~5 Mya, dramatically younger than the ~15-30 Mya commonly accepted from paleontology (the Ramapithecus hypothesis). Initially derided, ultimately vindicated; ancient DNA + sequenced genomes (now ~6-7 Mya) confirm a recent split.\n\n**Local clocks** — different rates on different parts of the tree (Yoder + Yang 2000). Useful when clades have systematically different generation times or DNA-repair rates.\n\n**Relaxed clocks** — Drummond + Rambaut (2007 *BMC Evol Biol*); BEAST (Bayesian Evolutionary Analysis by Sampling Trees). Each branch has its own rate, drawn from a distribution (uncorrelated lognormal is common). Allows rate variation across lineages while still calibrating divergence times via fossil priors. Foundation of modern divergence dating.\n\n**Calibration**:\n- **Fossil calibrations** — minimum age on a clade from oldest unambiguous member. Soft maxima from absence in younger units. Modern practice: fossil-calibrated priors as probability distributions (lognormal, gamma) on node ages.\n- **Geological/biogeographic** — vicariant splits (Panama isthmus ~3 Mya splitting marine sister taxa, Andean uplift, Mediterranean salinity crisis).\n- **Tip dating** — modern (Stadler + Rambaut + Drummond) total-evidence dating uses fossil tips + their morphological data + their geological age, integrated with molecular data.\n\n**Substitution-rate variation** — protein-coding sites vary 1000-fold in rate; histones vs. fibrinopeptides. Pseudogenes evolve faster than coding genes (no selection). rRNA evolves slowly (highly conserved structure); used for deep splits (Woese; see next slide). Different markers for different timescales.\n\n**Calibration uncertainty** — fossil ages have uncertainty; substitution-rate priors have uncertainty; the resulting posterior on divergence times is wider than naive estimates suggest. Modern molecular-clock dates routinely come with 95% HPD intervals spanning tens of Myr for deep nodes.\n\n**Recent examples**:\n- Bird phylogeny (Jarvis et al. 2014 *Science*; Prum et al. 2015) — modern bird orders radiated post-K-Pg.\n- Mammal phylogeny (Bininda-Emonds 2007; dos Reis 2012) — most placental orders pre-date K-Pg (long-fuse model) or originated rapidly after (explosive model); both extant.\n- Plant phylogeny (Magallón 2015; APG IV 2016) — angiosperms ~140-200 Mya.\n- Human-Neanderthal split ~600-800 kya (Prüfer 2014); modern human deep divergences in Africa ~200-300 kya.\n\nMolecular dating, once a curiosity, is now the standard tool for inferring evolutionary timescales across the tree of life."
+    },
+    {
+      "kind": "text",
+      "title": "The tree of life: Woese, endosymbiosis, lateral gene transfer",
+      "body": "**Carl Woese** (1928-2012) — University of Illinois. *Comparative Cataloging of 16S Ribosomal RNAs* (1977 PNAS with George Fox): discovered the **archaea** as a third domain of life, distinct from bacteria. Until then biology recognized two kingdoms (prokaryotes and eukaryotes); Woese showed prokaryotes are actually two ancient lineages, and proposed the **three-domain tree**: Bacteria, Archaea, Eukarya. SSU rRNA (small-subunit ribosomal RNA: 16S in prokaryotes, 18S in eukaryotes) is the universal marker — present in all cellular life, highly conserved at the structural level but with informative variable regions.\n\n**Norman Pace** (University of Colorado, then Berkeley) — pioneered **SSU rRNA environmental surveys** (1985+) using PCR of 16S rRNA directly from environmental DNA. Revealed enormous unsuspected microbial diversity; ~99% of bacteria are unculturable but visible in 16S. Foundation of microbial ecology + the microbiome era.\n\n**Three domains**:\n- **Bacteria** — diverse, including Proteobacteria, Firmicutes, Cyanobacteria, Bacteroidetes, Actinobacteria.\n- **Archaea** — Euryarchaeota (methanogens, halophiles), Crenarchaeota (thermophiles), TACK + DPANN superphyla, **Asgard archaea** (Lokiarchaeota, Thorarchaeota, Heimdallarchaeota, Odinarchaeota; Spang et al. 2015 *Nature* + Zaremba-Niedzwiedzka 2017). Asgards contain eukaryotic signature proteins (ESPs) — actin homologs, ubiquitin pathway, ESCRT machinery.\n- **Eukarya** — protists, fungi, plants, animals. Now thought to have arisen from within Archaea — specifically Asgards. **Eocyte hypothesis** (Lake 1984; resurgent via Asgard data; Williams + Embley + Foster 2013): eukaryotes are a deep branch *inside* Archaea. Three-domain tree gives way to **two-domain** (Bacteria; Archaea-with-Eukarya-nested).\n\n**Lokiarchaeota** (Spang 2015) — first Asgard, discovered in deep-sea sediment near Loki's Castle hydrothermal vent. **Prometheoarchaeum syntrophicum** (Imachi et al. 2020 *Nature*) — first cultured Asgard archaeon; physical demonstration of an organism with eukaryotic-like protrusions.\n\n**Endosymbiotic theory** — **Lynn Margulis** (1967, *Origin of Mitosing Cells*). Mitochondria and chloroplasts originated as engulfed bacteria. Evidence: (1) double membrane (inner = bacterial origin); (2) circular bacterial-style genome; (3) 70S bacterial-style ribosomes; (4) divide by fission; (5) phylogenetically nested within α-proteobacteria (mitochondria) and Cyanobacteria (chloroplasts). Margulis was initially ridiculed; SET (Serial Endosymbiotic Theory) is now textbook truth. **Secondary + tertiary endosymbioses** explain photosynthetic eukaryotes (red and green algal endosymbionts in chromalveolates, dinoflagellates).\n\n**Lateral / horizontal gene transfer (LGT/HGT)** — bacteria and archaea routinely exchange genes (transformation, conjugation, transduction). Antibiotic-resistance genes spread across bacterial taxa within years. In deep evolutionary history, LGT may have been so pervasive that the bacterial 'tree' is better modeled as a **web of life** — **W. Ford Doolittle** (1999 *Science* 'Phylogenetic Classification and the Universal Tree'). The universal tree of life is well-defined for some core informational genes (rRNA, ribosomal proteins) but poorly defined for genes routinely transferred (metabolism, defense). Modern view: a 'tangled' tree with strong vertical-inheritance backbone + significant LGT.\n\n**Eukaryote root** — controversial. Opisthokonts (animals + fungi + their unicellular relatives) and Amoebozoa (slime molds, amoebae) form one supergroup; Archaeplastida (plants + green/red/glaucophyte algae); SAR (Stramenopiles + Alveolates + Rhizaria); Excavata. The root of the eukaryotic tree (Burki 2014; Adl 2019; Schön 2024) has shifted multiple times with new data.\n\nThe tree of life is a major scientific achievement of the last 50 years — built on molecular phylogenetics (Woese, Pace), endosymbiotic theory (Margulis), and the rise of metagenomics + ancient DNA. Tomorrow's challenges: deeper resolution of eukaryote origins, full microbial dark matter, and integration with structural-fold-based phylogenetics enabled by AlphaFold."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_phy_fitch_1",
+        "kind": "guided_derivation",
+        "question": "Apply the Fitch algorithm to score a tree",
+        "goal": "Compute the small-parsimony score on a 4-taxon tree using the Fitch algorithm.",
+        "steps": [
+          {
+            "prompt": "Consider 4 taxa A, B, C, D with character states A=0, B=0, C=1, D=1 on the tree ((A,B),(C,D)). At the internal node joining A,B, take the intersection {0} ∩ {0} = ?",
+            "motivation": "Fitch up-pass: intersect child sets.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "{0}"
+              ]
+            },
+            "hints": [
+              "Intersection of two singletons."
+            ],
+            "reveal": "{0} ∩ {0} = {0}. The (A,B) ancestor state must be 0. No change on edges A-anc or B-anc."
+          },
+          {
+            "prompt": "Internal node joining C,D: {1} ∩ {1} = ?",
+            "motivation": "Same operation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "{1}"
+              ]
+            },
+            "hints": [
+              "Intersection."
+            ],
+            "reveal": "{1} ∩ {1} = {1}. (C,D) ancestor must be 1. No change on C-anc or D-anc edges."
+          },
+          {
+            "prompt": "Root node joining the two internal nodes: {0} ∩ {1} = ?",
+            "motivation": "Intersection empty means a change.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "empty; take union {0,1}; count one change"
+              ]
+            },
+            "hints": [
+              "Empty intersection = forced state change; take union + score 1."
+            ],
+            "reveal": "{0} ∩ {1} = ∅. Take the union {0,1} and score +1 to the parsimony cost. Total parsimony score = 1 change on the central edge."
+          },
+          {
+            "prompt": "Now consider the alternative tree ((A,C),(B,D)) — same data but different topology. Compute parsimony score.",
+            "motivation": "Compare topologies.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2 changes"
+              ]
+            },
+            "hints": [
+              "(A=0, C=1) intersection is empty.",
+              "(B=0, D=1) intersection is empty."
+            ],
+            "reveal": "(A,C) internal node: {0} ∩ {1} = ∅; take {0,1}; +1. (B,D) internal node: {0} ∩ {1} = ∅; take {0,1}; +1. Root joins {0,1} ∩ {0,1} = {0,1}; no additional change. Score = 2. Topology ((A,B),(C,D)) is more parsimonious (1 change) than ((A,C),(B,D)) (2 changes)."
+          },
+          {
+            "prompt": "Identify when parsimony can fail (Felsenstein 1978).",
+            "motivation": "Long-branch attraction.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "long-branch attraction when two fast-evolving lineages share convergent states by chance; parsimony groups them"
+              ]
+            },
+            "hints": [
+              "What pattern do fast-evolving non-sister taxa produce?",
+              "Felsenstein's classic 4-taxon example."
+            ],
+            "reveal": "**Long-branch attraction (LBA)** — Felsenstein (1978) showed parsimony is statistically inconsistent when two non-sister lineages evolve much faster than the other two. Fast lineages converge to similar states by chance; parsimony interprets shared state as homology and groups them artifactually. Maximum likelihood under a correct model is consistent in this regime. Practical implication: parsimony is fine for closely related, slowly evolving data but unreliable for deep divergences with rate heterogeneity. ML + Bayesian methods are preferred for hard phylogenetic problems."
+          }
+        ],
+        "finalResult": "Fitch algorithm: post-order traversal computes child intersections; empty intersection ⇒ union + score +1; total parsimony score is the count of state changes on the tree. Parsimony is fast and intuitive but statistically inconsistent under long-branch attraction (Felsenstein 1978). ML + Bayesian methods, built on Felsenstein's pruning algorithm, are statistically sound under correct models and preferred for deep or rate-heterogeneous problems."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_phy_woese_1",
+        "kind": "multiple_choice",
+        "question": "What was the conceptual significance of Woese + Fox's 1977 discovery of archaea?",
+        "options": [
+          "It added a new bacterial phylum.",
+          "It changed cooking.",
+          "Until 1977 biology divided life into prokaryotes and eukaryotes. Woese + Fox (PNAS 1977) used 16S rRNA cataloging to show that prokaryotes are actually two ancient lineages: Bacteria and Archaea, as divergent from each other as either is from Eukarya. The three-domain tree (Bacteria, Archaea, Eukarya) replaced the prokaryote/eukaryote dichotomy. Subsequent work (Lake's eocyte hypothesis 1984; Spang 2015 *Lokiarchaeota*; Imachi 2020 *Prometheoarchaeum*) further showed eukaryotes are nested within Archaea (specifically Asgards) — the modern **two-domain tree** (Williams + Embley + Foster 2013). Woese also pioneered using SSU rRNA as a universal phylogenetic marker, which Norman Pace then extended to environmental sequencing — the foundation of microbial ecology and the microbiome revolution. Few single discoveries reshaped the tree of life more profoundly.",
+          "It was about ribosomes only."
+        ],
+        "correctIndex": 2,
+        "explanation": "Woese + Fox 1977 reclassified life into three domains (Bacteria, Archaea, Eukarya) using 16S rRNA. Discovered archaea as a third domain previously hidden within 'prokaryotes'. Pioneered SSU rRNA as universal phylogenetic marker, which Pace extended to environmental sequencing. Modern view (Williams + Embley + Foster 2013; Asgard discoveries 2015+): eukaryotes nested within Archaea — a two-domain tree. Foundational discovery for microbial ecology and tree-of-life biology.",
+        "hints": [
+          "How many domains did Woese propose?",
+          "What molecule did he use?"
+        ],
+        "retryUntilCorrect": true,
+        "workedSolution": "Woese + Fox (1977) used 16S rRNA cataloging to show Bacteria and Archaea are separate ancient lineages, reclassifying life into three domains. Pace extended this to environmental sequencing — microbial ecology foundation. Modern Asgard data (Spang 2015, Imachi 2020) shows eukaryotes nested within Archaea — two-domain tree. One of the most profound reorganizations of life's diversity in 20th-century biology."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_phy_lba_1",
+        "kind": "scenario",
+        "question": "Long-branch attraction in microsporidia",
+        "prompt": "Microsporidia are intracellular parasitic fungi with extremely reduced genomes + ultra-fast molecular evolution. Early 16S rRNA + protein-based phylogenies placed them at the base of eukaryotes (deep-branching, near the eukaryote root) — implying they were primitive lineages. Later analyses (Keeling, Hirt) showed microsporidia are derived fungi closely related to *Cryptomycota* and *Aphelida*. Walk through how long-branch attraction explained the original misplacement, what evidence (genome content, gene content of mitochondrial relicts) refuted it, and what general lesson this gives for using rapidly evolving lineages as 'living fossils' of deep history."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_phy_clock_1",
+        "kind": "math_expression",
+        "question": "Under a strict molecular clock, two species diverged at time T and have accumulated d = 0.06 substitutions per site between them (each lineage). The substitution rate is μ = 1.0 × 10⁻⁹ per site per year. What is T in millions of years?",
+        "acceptedAnswers": [
+          "30",
+          "30.0"
+        ],
+        "hint": "T = d / (2μ); divergence accumulates on both lineages."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_phy_lgt_1",
+        "kind": "explain_back",
+        "prompt": "In ≤150 words, explain how lateral gene transfer (LGT) complicates the 'tree of life' for prokaryotes, and how Doolittle's 'web of life' view (1999) and Margulis's endosymbiotic theory (1967) together reshape how we think about the deepest branches.",
+        "rubric": "Should mention: LGT — bacteria and archaea routinely exchange genes (transformation, conjugation, transduction, viral integration). Antibiotic-resistance genes spread across taxa within years. In deep history, LGT may have been so pervasive that a single bifurcating tree mis-describes prokaryotic evolution. Doolittle 1999 'web of life' — gene-tree topologies disagree systematically; different genes have different histories. Vertical inheritance dominates for ribosomal + core informational genes (Woese's SSU rRNA marker remains tree-like); operational + metabolic genes more web-like. Margulis 1967 SET — mitochondria + chloroplasts originated as endosymbiotic bacteria (α-proteobacteria, Cyanobacteria). The eukaryotic cell is itself a chimera of bacterial + archaeal lineages (Asgard host + α-proteobacterial endosymbiont). Modern view: tangled tree with vertical-inheritance backbone visible in SSU rRNA + ribosomal proteins, plus extensive horizontal exchange and endosymbiotic mergers especially in deep evolutionary history."
+      }
+    }
+  ]
+}
