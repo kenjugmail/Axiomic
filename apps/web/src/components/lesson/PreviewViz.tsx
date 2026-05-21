@@ -223,6 +223,21 @@ const LazyButlerVolmerCurve = lazy(() =>
     (m) => ({ default: m.ButlerVolmerCurve }),
   ),
 );
+const LazyPreferentialAttachment = lazy(() =>
+  import("../../../../../packages/viz/src/components/PreferentialAttachment").then(
+    (m) => ({ default: m.PreferentialAttachment }),
+  ),
+);
+const LazyZKProofVerification = lazy(() =>
+  import("../../../../../packages/viz/src/components/ZKProofVerification").then(
+    (m) => ({ default: m.ZKProofVerification }),
+  ),
+);
+const LazyRaftLogReplication = lazy(() =>
+  import("../../../../../packages/viz/src/components/RaftLogReplication").then(
+    (m) => ({ default: m.RaftLogReplication }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -369,6 +384,12 @@ function VizByName({
       return <LazyTanabeSuganoDiagram {...(props as object)} />;
     case "butler-volmer-curve":
       return <LazyButlerVolmerCurve {...(props as object)} />;
+    case "preferential-attachment":
+      return <LazyPreferentialAttachment {...(props as object)} />;
+    case "zk-proof-verification":
+      return <LazyZKProofVerification {...(props as object)} />;
+    case "raft-log-replication":
+      return <LazyRaftLogReplication {...(props as object)} />;
     default:
       return null;
   }

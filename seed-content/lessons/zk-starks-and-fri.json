@@ -1,0 +1,155 @@
+{
+  "slug": "zk-starks-and-fri",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Define STARK and explain transparency + post-quantum security via hash-based commitments.",
+      "Trace the FRI protocol's low-degree testing via Merkle commitments and recursive folding.",
+      "Survey production STARK deployments: StarkWare, RISC Zero, Cairo, Boojum."
+    ],
+    "prereqs": [
+      "zk-snarks-and-arithmetization"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "STARK = Scalable Transparent ARgument of Knowledge",
+      "body": "**STARK (Ben-Sasson, Bentov, Horesh, Riabzev 2018)** — *Scalable Transparent ARgument of Knowledge* — is a class of zero-knowledge proof systems with three defining properties:\n\n- **Scalable**: prover runs in quasi-linear time O(N log² N) where N = computation size; verifier runs in O(log² N). Substantially better than early SNARKs at large N.\n- **Transparent**: **no trusted setup**. Only public randomness needed (in FS, drawn from hash of public inputs). No toxic waste, no powers-of-tau ceremony.\n- **ARgument of Knowledge**: computationally sound, with a knowledge extractor.\n\nA STARK additionally provides **zero-knowledge** in standard ZK-STARK formulations (the original 2018 paper).\n\n**Key innovations** vs SNARKs:\n\n**(1) Hash-based commitments only** — no elliptic curves, no pairings. Built on collision-resistant hashes (Rescue, Poseidon, MiMC, Reinforced Concrete, Keccak/SHA-3). Security reduces to **Merkle tree binding + hash collision resistance**.\n\n**(2) Post-quantum security** — current quantum algorithms (Shor) break ECDLP + RSA but **not generic hash functions**. Grover search at most square-roots hash security. STARK security therefore survives a future quantum computer (with conservative hash output sizes).\n\n**(3) Transparency** — no trusted ceremony. The 'toxic waste problem' (Zcash Sapling Groth16 needed a multi-party ceremony with thousands of participants) doesn't apply. Trust model = randomness from public sources only.\n\n**Trade-offs vs SNARK**:\n\n- **Proof size**: STARKs ~50-200 KB; Groth16 ~200 B; PLONK ~500 B. STARKs are ~250-1000× larger.\n- **Verifier time**: STARK ~10-100 ms; Groth16 ~5 ms. STARKs are slower to verify (but still cheap).\n- **Prover time**: STARKs comparable to or faster than SNARKs at large N (quasi-linear prover).\n- **Recursion**: STARKs can verify STARKs (recursive proofs). Modern systems (Cairo, Boojum) lean on recursion heavily.\n\n**When to choose STARKs**:\n- Want post-quantum guarantees.\n- Hate trusted setups.\n- Large computations where prover time matters.\n- Recursive proving (rollup of rollups).\n\n**When to choose SNARKs**:\n- Need tiny proofs / on-chain gas constrained.\n- Pairings + trusted setup are acceptable.\n- Need fastest verification."
+    },
+    {
+      "kind": "text",
+      "title": "FRI — Fast Reed-Solomon IOP of Proximity",
+      "body": "**FRI (Ben-Sasson, Bentov, Horesh, Riabzev 2018)** is the core polynomial-commitment + low-degree-test underlying every STARK. It tests that a function f: D → F (over a domain D ⊂ F) is **close to** (= within ρ Hamming distance of) a polynomial of degree < d.\n\n**Why low-degree testing?** Polynomial constraints encode the AIR (Algebraic Intermediate Representation) of a computation. If the prover commits to a function claimed to be a low-degree polynomial that satisfies the AIR, a low-degree test catches cheating provers who commit to inconsistent values.\n\n**Reed-Solomon code** RS[F, D, d] = {evaluation tables of polynomials of degree < d over D}. FRI is a **proximity test**: distinguish 'really a low-degree polynomial' from 'far from any such polynomial'.\n\n**The FRI commit phase**:\n\n1. Prover evaluates p(X) on a large evaluation domain D₀ (typically |D₀| = ρ · d for blowup factor ρ = 4 or 8 — the **Reed-Solomon redundancy**).\n2. Prover Merkleizes the evaluation table → root commitment.\n3. Verifier samples random α₀ ∈ F.\n4. Prover folds: split p(X) = p_even(X²) + X · p_odd(X²); set p^(1)(X) = p_even(X) + α₀ · p_odd(X). Now |p^(1)| has degree < d/2 on domain D₁ = {x² : x ∈ D₀} of half size.\n5. Merkleize p^(1) on D₁ → next commitment. Sample α₁.\n6. Repeat log₂(d) rounds; final round commits a constant.\n\n**The FRI query phase** (post-FS challenge):\n\n7. Verifier samples random query positions z ∈ D₀.\n8. For each query, prover reveals (p(z), p(-z)) on D₀, along with the Merkle path, **and** the folded value p^(1)(z²). Verifier checks the folding equation: p^(1)(z²) = (p(z) + p(-z))/2 + α₀ · (p(z) − p(-z))/(2z).\n9. Repeat down the fold chain. Number of queries = O(λ / log ρ) for security parameter λ.\n\n**Soundness**: each query catches a cheating prover (committed to a function far from any low-degree polynomial) with probability ~1 - ρ. log₂(d) folds + ~80 queries → 2^(-80) soundness error. **Concrete cost**: ~80-100 queries × log d Merkle openings = ~10-100 KB proof.\n\n**Variants + improvements**:\n- **DEEP-FRI (Ben-Sasson-Kopparty-Saraf 2020)**: queries from a slightly larger domain → fewer queries for same security.\n- **STIR (Arnon-Chiesa-Fenzi-Yogev 2024)**: shaving more queries via 'stuck' folding.\n- **ECFFT (Ben-Sasson-Carmon-Kopparty-Levit 2022)**: enables FRI over non-smooth orders (no need for 2^k-sized FFT domain).\n- **Plonky2 (Polygon Zero, 2022)**: FRI + Plonkish, recursion-friendly."
+    },
+    {
+      "kind": "text",
+      "title": "Production STARK systems: StarkNet, RISC Zero, Cairo, Boojum",
+      "body": "**StarkWare / StarkNet** (Ben-Sasson et al. 2018+, Israel): pioneered production STARKs. Operates **StarkEx** (per-app rollups: dYdX, Sorare, Immutable X) and **StarkNet** (general-purpose L2 on Ethereum, launched 2021). Both use STARK proofs aggregated + posted to Ethereum L1. Throughput: ~9k TPS on StarkNet (mid-2024).\n\n**Cairo (StarkWare 2020)** — STARK-friendly programming language + VM. Cairo programs compile to a 'CASM' bytecode executed on a custom STARK-provable CPU. **AIR** describes one step of the CPU; provers generate STARKs of arbitrary-length traces. Cairo v1 (2023) is a modern, Rust-inspired language. Cairo 2 + Stwo prover (StarkWare 2024) target much higher prover throughput.\n\n**RISC Zero** (2022+): general-purpose STARK-provable **RISC-V zkVM**. Run any Rust/C/Go program compiled to RISC-V; produce STARK proof of correct execution. ~hash-based + FRI; transparent setup. Used for off-chain ML inference proofs, bridge proofs, gaming, generic verifiable computation.\n\n**Boojum (zkSync Era, Matter Labs 2023)** — Plonkish AIR + FRI with custom optimizations. Powers zkSync Era L2. Combines best of PLONK (custom gates, lookups) with FRI's transparency + recursion.\n\n**Plonky2 (Polygon Zero, 2022)** — Plonkish + FRI over Goldilocks field (p = 2^64 - 2^32 + 1, optimized for 64-bit CPUs). Notable for **fast recursion** (~170 ms to prove a Plonky2 verification). Foundation of Polygon Zero's rollup.\n\n**SP1 (Succinct 2024)** — RISC-V zkVM with focus on developer experience + parallelizable prover. Open source, growing rapidly.\n\n**Jolt (a16z crypto 2024, Thaler et al.)** — RISC-V zkVM using a 'lookup-singularity' approach (everything is a lookup, no traditional R1CS). Different design point; sometimes faster than R1CS-based zkVMs.\n\n**Stone + Stwo (StarkWare 2023, 2024)** — open-source STARK provers, both written in Rust. Stwo uses **Circle STARKs** (Habö̈ck-Levit-Papini-Hopwood 2024) over Mersenne-31 field for massive prover speedups.\n\n**Recursion + aggregation**: production STARKs increasingly use **recursive proofs** — prove that a previous STARK proof is valid, inside a new STARK. Enables: rollups of rollups, compressing many transactions into one final proof, bridging L2 ↔ L1 efficiently. Key milestone: STARK-of-STARK proving is now <1s per recursive layer.\n\n**Hash function for STARKs** — must be efficient inside the arithmetic field. **Poseidon, Rescue, MiMC, Anemoi, Reinforced Concrete** are 'arithmetization-friendly' hashes designed for SNARK/STARK circuits. Trade-off vs traditional (SHA, Keccak): much faster in-circuit but younger cryptanalysis history."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_stark_fri_fold",
+        "kind": "guided_derivation",
+        "question": "Derive the FRI folding equation",
+        "goal": "Given p(X) of degree < d, show how splitting into even/odd parts halves the degree and yields a low-degree test.",
+        "steps": [
+          {
+            "prompt": "Decompose p(X) into even and odd parts.",
+            "motivation": "Even/odd split.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "p(X) = p_even(X^2) + X * p_odd(X^2)"
+              ]
+            },
+            "hints": [
+              "Group even-degree and odd-degree terms."
+            ],
+            "reveal": "Any polynomial p(X) = Σ c_i X^i can be split as p(X) = p_even(X²) + X · p_odd(X²), where p_even(Y) collects even-index coefficients (= c_0 + c_2 Y + c_4 Y² + ...) and p_odd(Y) collects odd-index (= c_1 + c_3 Y + c_5 Y² + ...). Each of p_even, p_odd has degree < d/2."
+          },
+          {
+            "prompt": "Compute p(X) + p(-X) and p(X) - p(-X).",
+            "motivation": "Recover even/odd parts at X² from evaluations at ±X.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "p(X) + p(-X) = 2 p_even(X^2); p(X) - p(-X) = 2 X p_odd(X^2)"
+              ]
+            },
+            "hints": [
+              "Substitute -X."
+            ],
+            "reveal": "p(-X) = p_even(X²) - X · p_odd(X²). Adding: p(X) + p(-X) = 2 p_even(X²). Subtracting: p(X) - p(-X) = 2X · p_odd(X²). Hence p_even(X²) = (p(X) + p(-X))/2 and p_odd(X²) = (p(X) - p(-X))/(2X)."
+          },
+          {
+            "prompt": "Define the folded polynomial p^(1)(Y) using a random challenge α.",
+            "motivation": "Random linear combination.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "p^(1)(Y) = p_even(Y) + alpha * p_odd(Y)"
+              ]
+            },
+            "hints": [
+              "Sample α from verifier; linear combination."
+            ],
+            "reveal": "Folded p^(1)(Y) := p_even(Y) + α · p_odd(Y) — degree < d/2. At a query point z² (verifier picks z), evaluate p^(1)(z²) = p_even(z²) + α · p_odd(z²) = (p(z) + p(-z))/2 + α · (p(z) - p(-z))/(2z). Verifier checks consistency with prover's reveal."
+          },
+          {
+            "prompt": "After log₂(d) rounds, what does the verifier check?",
+            "motivation": "Recursion termination.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "final polynomial has degree < 1, i.e. constant; verifier checks it is a constant"
+              ]
+            },
+            "hints": [
+              "Halving log₂(d) times → degree 0."
+            ],
+            "reveal": "After log₂(d) rounds, degree halves to <1 — a constant. Verifier directly checks the final commitment is a constant + the entire folding chain is consistent at ~80 random query points. Cheating prover (committed to a function far from any degree-<d polynomial) is caught with probability ≥ 1 - (degree/|D|)^queries — yielding 2^(-80) soundness with appropriate parameters."
+          }
+        ],
+        "finalResult": "FRI tests low-degree by recursive folding. Each round halves the degree; ~80 queries achieve 2^(-80) soundness. The foundation of every STARK + Plonky2 + RISC Zero proof."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_stark_transparency",
+        "kind": "multiple_choice",
+        "question": "Why are STARKs called 'transparent', and what is the practical significance?",
+        "options": [
+          "Their proofs are small.",
+          "STARKs require no trusted setup — all randomness comes from public sources (Fiat-Shamir on hashes). No 'toxic waste' to delete, no multi-party ceremony, no risk of compromise via a single dishonest participant. Plus hash-based ⟹ post-quantum.",
+          "Their circuits are easy to audit.",
+          "They are slower than SNARKs."
+        ],
+        "correctIndex": 1,
+        "explanation": "Transparency = no trusted setup. Groth16 (per-circuit) + PLONK/Marlin (universal) require a setup ceremony producing 'toxic waste' (secret τ); if leaked, fake proofs become possible. STARKs use only public randomness (hashes via Fiat-Shamir on public inputs) + Merkle commitments. Trust model: collision resistance of hash + soundness of FRI. Bonus: hash-based STARKs are post-quantum secure (Shor doesn't break hashes; Grover at most square-roots security)."
+      },
+      "hints": [
+        "Setup trust + post-quantum.",
+        "No toxic waste."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "STARKs are transparent (no trusted setup, only hash-based commitments) + post-quantum (hashes survive Shor). Trade-off: proofs larger (~50-200 KB vs Groth16 ~200 B) + verifier slower. Production: StarkWare, RISC Zero, Plonky2, Boojum, SP1, Jolt."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_stark_recursion",
+        "kind": "scenario",
+        "question": "Recursive STARK proofs for rollup-of-rollup architectures",
+        "prompt": "A Layer-3 rollup posts STARK proofs to a Layer-2 rollup, which in turn aggregates them into a single STARK proof posted to Ethereum L1. Explain (1) how recursive STARK verification works, (2) why hash-based provers + FRI make recursion practical, (3) what the bottleneck is and how systems like Plonky2 / Boojum address it."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_stark_queries",
+        "kind": "math_expression",
+        "question": "FRI soundness: with ρ = 1/4 blowup and 80 queries, what is the approximate soundness error?",
+        "acceptedAnswers": [
+          "2^(-80)",
+          "2^-80",
+          "1/2^80",
+          "negligible / about 2^(-80)"
+        ],
+        "hint": "Each query catches cheating with prob ~1 - ρ = 3/4 per query; multiple independent queries → log₂((1/ρ)^queries) bits of security."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "eb_stark",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how STARKs (Ben-Sasson-Bentov-Horesh-Riabzev 2018) achieve transparency + post-quantum security via FRI, and survey production systems.",
+        "rubric": "Mentions: STARK = Scalable Transparent ARgument of Knowledge. Built on AIR arithmetization + FRI low-degree test. FRI commits via Merkle trees over Reed-Solomon evaluations; recursively folds polynomial degree in half each round; ~80 queries at random positions catch cheaters with 2^(-80) probability. **Transparent**: no trusted setup, only public hash randomness. **Post-quantum**: hash-based (Shor doesn't break hashes). Trade-off: 50-200 KB proofs vs Groth16's 200 B. Production: StarkWare (StarkNet, dYdX, Immutable X), RISC Zero zkVM, Cairo language, Boojum (zkSync Era), Plonky2 (Polygon), SP1, Jolt. Recursive proving enables rollup-of-rollups."
+      }
+    }
+  ]
+}

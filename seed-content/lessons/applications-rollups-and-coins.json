@@ -1,0 +1,155 @@
+{
+  "slug": "applications-rollups-and-coins",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Survey ZK rollups: zkSync, Polygon zkEVM, Scroll, StarkNet, Linea + data availability.",
+      "Compare privacy coins + mixers: Zcash (Sapling, Halo, Orchard), Tornado Cash, Monero, and the compliance tension.",
+      "Examine ZK identity systems: Sismo, Polygon ID, WorldID, Semaphore."
+    ],
+    "prereqs": [
+      "zk-snarks-and-arithmetization"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "ZK rollups: zkSync, Polygon zkEVM, Scroll, StarkNet, Linea",
+      "body": "**ZK rollups** are Layer-2 scaling solutions that batch many transactions off-chain, generate a SNARK/STARK proof of correct execution, and post the proof + minimal state data to Layer-1 (Ethereum). L1 verifies the proof in ~10 ms / ~$1 of gas, accepting an entire batch's worth of computation.\n\n**Why ZK rollups beat optimistic rollups**:\n- **Fast finality**: ZK proofs are accepted immediately on L1. Optimistic rollups (Arbitrum, Optimism) require 7-day **challenge windows** for fraud-proof disputes.\n- **No fraud-proof complexity**: ZK rollups don't need watchtowers + fraud-detection infrastructure.\n- **Stronger cryptographic guarantees**: succinct proof of correctness vs trust-but-verify.\n- **Cost**: comparable per-tx cost (~$0.0001-$0.01 depending on data availability).\n\n**Major ZK rollups (2024-25)**:\n\n- **zkSync Era (Matter Labs)** — first general-purpose zkEVM (2023). Uses **Boojum** prover (Plonkish + FRI). EVM compatible. ~1k+ TPS in practice.\n- **Polygon zkEVM** — first **'Type 2' zkEVM** (bytecode-equivalent EVM). Uses Plonky2 → recursive STARKs. **Polygon CDK** + **AggLayer** = unified rollup ecosystem.\n- **Scroll** — Type 2 zkEVM using **Halo2 + KZG**. Launched mainnet 2023. Open-source prover.\n- **StarkNet (StarkWare)** — Cairo language, not EVM-compatible. Uses STARKs end-to-end. ~9k TPS.\n- **Linea (ConsenSys)** — Type 2 zkEVM using PLONK + Vortex. Backed by MetaMask.\n- **Taiko** — Type 1 zkEVM (Ethereum-equivalent at consensus level). Halo2-based.\n- **Aztec** — privacy-preserving rollup using PLONK + UltraPLONK. Noir language. Built-in private contracts.\n\n**zkEVM 'types' (Buterin classification)**:\n- **Type 1**: fully Ethereum-equivalent at consensus + state level. Most expensive to prove (Taiko aims here).\n- **Type 2**: bytecode-equivalent EVM, slightly different state structure. (Polygon zkEVM, Scroll, Linea).\n- **Type 3**: 'mostly EVM' — some opcodes replaced for prover efficiency.\n- **Type 4**: high-level-language compatibility (Solidity → custom IR; e.g. zkSync Era).\n\n**Data availability (DA)**: the rollup must publish enough data for users to reconstruct state. Options:\n- **Rollup (full DA on L1)**: cheapest with EIP-4844 'blob' transactions (~$0.001/tx).\n- **Validium**: DA off-chain (committee or DA layer like Celestia, EigenDA, Avail). Cheaper but weaker security.\n- **Volition**: per-tx choice of rollup or validium (StarkEx supports).\n\n**EIP-4844 'proto-danksharding' (March 2024)**: blob-carrying transactions — cheap, ephemeral DA for rollups; key cost driver. Future: full danksharding with KZG-based DA + DA sampling.\n\n**Recursion + aggregation** (Halo2 accumulation, Plonky2 recursion): aggregate many proofs into one — reduces L1 verification cost further. **AggLayer (Polygon)** + **Hyperchains (zkSync)** = unified state across many rollups."
+    },
+    {
+      "kind": "text",
+      "title": "Privacy coins + mixers: Zcash, Tornado Cash, Monero",
+      "body": "**Zcash (2016, Wilcox-Hopwood-Bowe-Hornby et al.)** — first ZK-based privacy coin. Uses **zk-SNARKs** to hide sender, receiver, and amount in 'shielded' transactions while proving validity (no double-spend, no inflation).\n\n**Zcash protocol evolution**:\n- **Sprout (2016)**: Groth16-style SNARK with BCTV14 setup. Trusted setup (later found to have a vulnerability that didn't compromise mainnet thanks to ongoing migrations).\n- **Sapling (2018)**: Groth16 on BLS12-381. ~2 second proving time on a phone. Major UX leap.\n- **Halo (2020-21)**: **no trusted setup** — recursive proof composition via Halo2 (Bowe, Grigg, Hopwood). Polynomial commitments via IPA, not pairings.\n- **Orchard (2022)**: Halo2 + Pallas/Vesta cycle of curves (Pasta). The current shielded pool.\n\n**Zcash UTXO model**: notes (encrypted commitments to value + recipient address) live in a Merkle tree. Spending = prove in ZK that you know a preimage of a leaf + create new note commitments. Witness: secret key, note plaintext, Merkle path. Public: nullifier, output commitment, balance proof.\n\n**Tornado Cash (2019, Pertsev et al.)** — Ethereum smart-contract mixer using Groth16. Users deposit fixed denominations (0.1, 1, 10, 100 ETH); receive 'note'; later withdraw to a fresh address by proving in ZK that they own one of the deposited notes (without revealing which). Decouples deposit + withdrawal.\n\n**Tornado Cash + sanctions**: in August 2022, U.S. Treasury OFAC sanctioned the Tornado Cash contracts — first time smart-contract code (not a person/entity) was sanctioned. Highly controversial: code is immutable, autonomous; sanctioning code raised First Amendment + technical questions. Developer Alexey Pertsev arrested in Netherlands; convicted 2024 (appeal ongoing). Roman Storm trial 2024-25 in U.S. Frames the **privacy vs compliance tension** of the entire field.\n\n**Monero (2014)** — older privacy coin, not ZK-based originally. Uses **RingCT (Ring Confidential Transactions)** combining **ring signatures** (hide sender among N decoys) + **Pedersen commitments** + **Bulletproofs** for range proofs. Bonneau et al. (2014, 2018) and others have studied Monero's de-anonymization weaknesses (timing analysis, decoy selection, EAE attack). Despite limitations, **Monero is the most-used privacy coin** by transaction volume.\n\n**Privacy vs compliance** — fundamental tension:\n- **Pro-privacy**: financial privacy is a human right; transparent ledgers expose all users.\n- **AML/CFT regulations**: KYC, Travel Rule, FATF guidance require provenance + user identification.\n- **Compliance solutions**: Zcash's **selective disclosure** (viewing keys to reveal to auditors), **Aztec's private+compliant** model, **'compliance proofs'** (prove you're not sanctioned without revealing identity).\n- **De-mixing research**: ChainAnalysis, TRM Labs use heuristics + ML to cluster pseudonymous addresses; partial de-anonymization possible.\n\n**Other privacy systems**:\n- **Aleo** — privacy-preserving smart contracts via zk-SNARKs (Leo language).\n- **Aztec Network** — private DeFi on Ethereum via PLONK.\n- **Iron Fish** — Sapling-style privacy coin.\n- **Penumbra** — private cross-chain via Cosmos."
+    },
+    {
+      "kind": "text",
+      "title": "ZK identity + credentials: Sismo, Polygon ID, WorldID, Semaphore",
+      "body": "**Zero-knowledge identity** = prove attributes about yourself (over 18, citizen of X, verified by Y) without revealing the attribute or your identity. Enables **selective disclosure** + **anonymous credentials**.\n\n**Building blocks**:\n- **Anonymous credentials** (Camenisch-Lysyanskaya 2001): user obtains a signature on attributes; later proves possession of a signature on attributes satisfying a predicate, without revealing the signature or the attributes.\n- **BBS+ signatures** (Boneh-Boyen-Shacham 2004; refined 2008): pairing-based signature scheme supporting efficient ZK proofs of possession + selective disclosure of attributes.\n- **Decentralized Identifiers (DIDs)** + **Verifiable Credentials (VC)** (W3C standards): identity primitives that integrate with ZK proofs.\n\n**Semaphore (Ethereum Foundation, Privacy + Scaling Explorations 2020)** — primitive for anonymous group membership. Users join a group (Merkle tree of identity commitments); later prove 'I'm a member of this group' + signal something without revealing which member. Built on Groth16 + Poseidon. Powers anonymous voting, whistleblowing, polling.\n\n**Sismo (2022)** — ZK-attestation protocol. Users connect data sources (GitHub, Twitter, on-chain history), receive 'ZK badges' attesting to attributes. Share badges privately or selectively. Used for governance, airdrops, gated communities.\n\n**Polygon ID (2022)** — ZK-based identity built on iden3's Circom. Users hold credentials in self-custody wallets, prove statements (e.g., 'I am verified by issuer X') via on-chain Groth16 proofs. Integrates with Polygon's stack.\n\n**WorldID / Worldcoin (Sam Altman, Alex Blania, 2023)** — proof of humanness via iris scan. The **Orb** hardware captures an iris image, derives a unique 'IrisCode'; user gets a Semaphore-style anonymous identity. Highly controversial (privacy of biometric, Orb operator trust, regulatory pushback in Hong Kong, Spain, Germany). But: technically interesting — **WorldID** lets you prove 'I am a unique human' in ZK to any app (Reddit, Discord, governance), preventing sybil attacks without revealing identity.\n\n**Anonymous voting** (Vote.org, MACI by Vitalik + ETH Foundation, 2019; nouns.wtf governance):\n- **MACI (Minimum Anti-Collusion Infrastructure)**: voters encrypt votes; coordinator decrypts + tallies via ZK; voters can replace votes without coordinator learning their final choice → resists vote-buying.\n- **Anonymous voting in DAOs**: combining Semaphore + MACI prevents bribery + tracking.\n\n**Anonymous airdrops + sybil resistance** (Stealthdrop, ZK-airdrop tools): prove eligibility (held token X at block Y) without doxxing your wallet.\n\n**Compliance + KYC**: **zkKYC** systems let regulated entities verify customer attributes (age, residence, sanctions list) via ZK proofs to a regulator. Pioneered by **Polygon ID**, **Civic**, **0xPass**.\n\n**Frontier**: **zk-credentials** for **gov-issued IDs** (EU eIDAS 2.0 mandates ZK-style selective disclosure in EU digital identity wallet by 2026); **privacy-preserving compliance** unifies privacy + regulatory needs."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_apps_rollup_economics",
+        "kind": "guided_derivation",
+        "question": "Compute the cost of an Ethereum tx via a ZK rollup",
+        "goal": "A ZK rollup batches 10,000 transactions, posts proof + blob data to Ethereum. Compute cost per tx vs direct L1.",
+        "steps": [
+          {
+            "prompt": "Ethereum L1 base cost per tx (~21,000 gas at 30 gwei, ETH = $3000). Compute USD cost per tx.",
+            "motivation": "Baseline L1 cost.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "21000 * 30e-9 * 3000 = ~$1.89 per tx"
+              ]
+            },
+            "hints": [
+              "gas × gas_price (in ETH) × ETH_price."
+            ],
+            "reveal": "L1 baseline: 21000 gas × 30 × 10^-9 ETH/gas × $3000/ETH ≈ $1.89 per simple ETH transfer. Smart-contract interactions much more (~$5-50)."
+          },
+          {
+            "prompt": "Rollup batch: assume 10,000 tx batched, proof verification + blob data uses ~500,000 gas total. Compute per-tx cost.",
+            "motivation": "Amortized batch cost.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(500000 * 30e-9 * 3000) / 10000 ≈ $0.0045 per tx"
+              ]
+            },
+            "hints": [
+              "Divide L1 batch cost by batch size."
+            ],
+            "reveal": "Per-tx amortized cost: (500,000 × 30 × 10^-9 × 3000) / 10,000 ≈ $45 / 10,000 ≈ **$0.0045** per tx. Two orders of magnitude cheaper than L1!"
+          },
+          {
+            "prompt": "EIP-4844 blobs reduce per-tx DA cost ~10×. Recompute.",
+            "motivation": "Blob savings.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "about $0.0001-$0.001 per tx after EIP-4844"
+              ]
+            },
+            "hints": [
+              "Blobs reduce DA cost dramatically."
+            ],
+            "reveal": "With EIP-4844 (March 2024): blob data costs ~10× less; per-tx cost drops to **~$0.0001-$0.001**. Major reason zkSync, Scroll, Linea, Polygon zkEVM dropped fees post-Dencun upgrade."
+          },
+          {
+            "prompt": "What's the bottleneck — verification or proving?",
+            "motivation": "Identify scaling limit.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "proving (prover hardware + time); verification is cheap"
+              ]
+            },
+            "hints": [
+              "L1 verification is ~10 ms; what is L2 proving time?"
+            ],
+            "reveal": "**Prover** is the bottleneck. L2 proving takes minutes to hours per batch on commodity hardware (faster with GPU acceleration). Verification on L1 = ~10 ms. So scaling is limited by prover throughput → hardware acceleration (GPU, FPGA, ASIC via Cysic, Ingonyama, Ulvetanna), parallelization, recursive composition (Halo2, Plonky2). Cost decreases ~30%/year as prover hardware improves."
+          }
+        ],
+        "finalResult": "ZK rollups achieve 100-1000× cost reduction vs L1 via batched proof verification + EIP-4844 blobs. Per-tx cost ~$0.0001-$0.005. Bottleneck: prover throughput, addressed by hardware acceleration + recursion."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_apps_compliance",
+        "kind": "multiple_choice",
+        "question": "What is the central tension between ZK-based privacy systems (like Tornado Cash, Zcash) and global financial regulation?",
+        "options": [
+          "ZK proofs are not cryptographically sound.",
+          "Financial privacy via ZK is in tension with AML/CFT regulations (KYC, Travel Rule, FATF) requiring identifiability + provenance. OFAC sanctioned the Tornado Cash smart contracts (2022) — the first time autonomous code was sanctioned. Compliance solutions (selective disclosure, viewing keys, zkKYC) aim to reconcile privacy + auditability.",
+          "Privacy coins are slow.",
+          "Regulators don't understand ZK."
+        ],
+        "correctIndex": 1,
+        "explanation": "ZK-based privacy systems (Tornado Cash, Zcash, Monero) hide tx details by design — directly at odds with AML/CFT regulations (KYC, Travel Rule, FATF). OFAC sanctioned Tornado Cash smart contracts (Aug 2022), arrested developer Alexey Pertsev (convicted 2024 NL); Roman Storm trial 2024-25 in US. Compliance approaches: Zcash viewing keys (selective disclosure to auditors), Aztec's private+compliant model, zkKYC (prove eligibility/attribute without revealing identity), revocable privacy. Active ongoing legal + technical frontier."
+      },
+      "hints": [
+        "Tornado Cash + OFAC + AML.",
+        "Privacy is a design goal; auditability is a regulatory requirement."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "ZK privacy ↔ AML/CFT compliance tension. Tornado Cash sanctioned 2022 (first code-only sanction). Pertsev convicted 2024 NL. Solutions: selective disclosure (Zcash viewing keys), zkKYC, privacy-preserving compliance. Frontier of crypto + regulation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_apps_world_id",
+        "kind": "scenario",
+        "question": "Designing a sybil-resistant anonymous voting system",
+        "prompt": "A DAO wants to enable one-vote-per-human governance, with vote secrecy + sybil resistance. Combine **WorldID** (proof of unique humanness), **Semaphore** (anonymous group membership), and **MACI** (anti-collusion vote submission). Explain how each component contributes + what failure modes remain."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_apps_savings",
+        "kind": "math_expression",
+        "question": "ZK rollup batches 10,000 tx into 1 proof. If L1 verification is 10ms, what is the verification cost per tx?",
+        "acceptedAnswers": [
+          "1 microsecond",
+          "1 µs",
+          "10ms/10000 = 1 microsecond per tx",
+          "0.001 ms"
+        ],
+        "hint": "Amortize 10 ms over 10,000 transactions."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "eb_apps",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, describe the three biggest application categories of ZK proofs today (rollups, privacy coins, identity) and the open technical + regulatory challenges in each.",
+        "rubric": "Mentions: **Rollups**: zkSync, Polygon zkEVM, Scroll, StarkNet, Linea, Taiko — scale Ethereum by batching tx + posting SNARK/STARK proofs. EIP-4844 blob DA, Halo2 accumulation, prover hardware (Cysic, Ingonyama) the frontier. **Privacy coins + mixers**: Zcash (Sapling, Halo, Orchard), Tornado Cash, Monero RingCT. OFAC sanctions on Tornado Cash (2022), Pertsev conviction. Compliance via selective disclosure, viewing keys. **Identity**: Sismo, Polygon ID, WorldID (iris scan), Semaphore. Anonymous credentials (BBS+, Camenisch-Lysyanskaya), MACI for voting. EU eIDAS 2.0 mandates ZK-style selective disclosure. Open challenges: prover throughput, regulatory accommodation, biometric privacy, sybil resistance vs anonymity. Bonneau, Bowe key contributors."
+      }
+    }
+  ]
+}

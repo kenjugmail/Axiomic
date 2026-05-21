@@ -1,0 +1,154 @@
+{
+  "slug": "network-applications-and-frontier",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Survey network applications.",
+      "Explain graph neural networks.",
+      "Frame the network-science frontier."
+    ],
+    "prereqs": [
+      "spreading-and-percolation",
+      "dynamics-on-networks"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Applications: social, biological, infrastructure + economic",
+      "body": "Network science has become a universal lens. Each domain has its own canonical datasets + questions.\n\n**Social networks**:\n- **Twitter / X**: follower graph ~10^8 users; heavy-tailed; small-world (mean path ~4); rich temporal cascades. Used to study information diffusion (Vosoughi + Roy + Aral 2018 Science: false news spreads faster than true), political polarization (Conover 2011), echo chambers (Bakshy + Messing + Adamic 2015 Science).\n- **Facebook**: 3B+ users; mean shortest path ~4.7 (Backstrom et al. 2012). Friendship + interaction networks differ; emotional contagion studies (Kramer + Guillory + Hancock 2014 PNAS controversial).\n- **LinkedIn, Instagram, TikTok**: increasingly studied for professional + recommendation dynamics.\n- **Reddit, GitHub, Wikipedia**: bipartite + collaboration networks; revision histories provide temporal data.\n- **Academic collaboration**: co-authorship networks (Newman 2001 PNAS); scientific impact metrics (h-index, PageRank-based).\n- **Mobile phone records (CDR)**: anonymized population-scale data (Onnela + Saramäki + Hyvönen + Szabó + Lazer + Kaski + Kertész + Barabási 2007 PNAS); used in epidemic modeling, mobility, social-tie strength.\n\n**Biological networks**:\n- **Protein-protein interaction (PPI)**: STRING, BioGRID, IntAct; heavy-tailed; hub proteins essential (centrality-lethality, Jeong + Mason + Barabási + Oltvai 2001 Nature). Disease-gene prediction via network propagation (Cowen + Ideker + Raphael + Sharan 2017 Nature Reviews Genetics).\n- **Brain connectomics**:\n  - **Structural connectomics**: diffusion MRI white-matter tracts. Connectome Project, UK Biobank.\n  - **Functional connectomics**: fMRI BOLD correlations. Yeo + Krienen 7-network parcellation.\n  - **FlyWire** (Princeton/Janelia 2024): full *Drosophila* brain connectome — 130k neurons + 50M synapses. Largest complete reconstructed brain.\n  - **MICrONS** (Allen + Baylor + Princeton 2025): cubic mm of mouse cortex; ~200k neurons + 500M synapses + functional recordings.\n  - **C. elegans** (White et al. 1986, refined Cook et al. 2019): 302 neurons; first connectome.\n  - **Brain networks are small-world + modular + hub-rich** (Bullmore + Sporns 2009 Nature Reviews Neuroscience).\n- **Gene regulatory networks**: TF-target maps; ENCODE, GTEx, ChIP-seq + ATAC-seq. Master regulators are hubs; targets follow heavy-tailed in-degree.\n- **Metabolic networks** (Jeong + Tombor + Albert + Oltvai + Barabási 2000): scale-free; ATP + NADH + water = central hubs.\n- **Ecological networks**: food webs, plant-pollinator (Bascompte + Jordano), parasite-host. Nested mutualism patterns; cascade extinctions.\n\n**Infrastructure networks**:\n- **Power grids**: cascading failures (Italy 2003, India 2012, Texas 2021 winter storm Uri). Buldyrev 2010 interdependent networks framework.\n- **Transportation**: airline (Guimerà + Mossa + Turtschi + Amaral 2005), road (Lammer + Gehlsen + Helbing 2006), rail, subway. Robustness to disruptions; bottleneck identification.\n- **Internet AS topology** (Faloutsos 1999): heavy-tailed; navigable.\n- **Communication networks**: cellular base stations, fiber backbone, undersea cables.\n- **Water + gas distribution**: dependence networks; aging-infrastructure resilience.\n\n**Economic + financial networks**:\n- **Financial systemic risk** (Battiston + Puliga + Kaushik + Tasca + Caldarelli 2012 DebtRank): bank interdependency networks; identifies systemically important banks beyond size alone. Post-2008 regulatory tool (FSB + IMF).\n- **Supply chains** (COVID era 2020-2022): bullwhip + cascade effects; semiconductor + container-shipping shocks revealed previously hidden network fragility (Klimek + Poledna + Thurner 2019).\n- **Trade networks** (WTO data; Cingolani + Squartini + Garlaschelli 2018): country-product bipartite; **economic complexity** (Hidalgo + Hausmann 2009 PNAS Atlas of Economic Complexity); predicts long-run growth.\n- **Cryptocurrency transaction networks**: full ledger graphs; flow tracing, exchange identification.\n- **Interbank lending** + repo markets."
+    },
+    {
+      "kind": "text",
+      "title": "Graph neural networks: geometric deep learning",
+      "body": "**Graph neural networks (GNNs)** = neural networks that operate directly on graph-structured data via **message passing** between neighbors. Modern deep learning's answer to network science.\n\n**Foundational works**:\n- **Sperduti + Starita 1997**: early neural-network-on-graphs.\n- **Scarselli + Gori + Tsoi + Hagenbuchner + Monfardini 2009**: 'graph neural network' formalized.\n- **Bruna + Zaremba + Szlam + LeCun 2014**: spectral GNNs (graph Fourier transform via Laplacian eigenbasis).\n- **Defferrard + Bresson + Vandergheynst 2016 (ChebNet)**: Chebyshev polynomials of Laplacian; localized.\n- **Kipf + Welling 2017 ICLR (GCN)**: simplified spectral GCN; one-line update H' = σ(D^(-1/2) (A+I) D^(-1/2) H W). Foundational; >40,000 citations.\n- **Hamilton + Ying + Leskovec 2017 NeurIPS (GraphSAGE)**: inductive learning; samples + aggregates neighborhoods; scales to large graphs.\n- **Veličković + Cucurull + Casanova + Romero + Liò + Bengio 2018 ICLR (GAT — Graph Attention Networks)**: learnable attention over neighbors; weights matter; influential. (Attention was originally a tool for sequences; GAT brought it to graphs alongside Transformers.)\n- **Xu + Hu + Leskovec + Jegelka 2019 (GIN — Graph Isomorphism Network)**: proves GIN's expressivity matches Weisfeiler-Lehman test.\n- **Bronstein + Bruna + Cohen + Veličković 2021 *Geometric Deep Learning: Grids, Groups, Graphs, Geodesics, + Gauges***: unified framework. Geometric DL = ML where the model's structure respects the data's symmetry group (translation, rotation, permutation). Graphs (permutation), grids (translation), spheres (rotation), manifolds (diffeomorphism). Bronstein's textbook organizes the field.\n\n**Message-passing framework** (Gilmer + Schoenholz + Riley + Vinyals + Dahl 2017 *Neural Message Passing for Quantum Chemistry*): general scheme — each node aggregates messages from neighbors; updates state. Most modern GNNs fit this template.\n\n  m_v^(t+1) = Σ_{u ∈ N(v)} M_t(h_v^(t), h_u^(t), e_uv)\n  h_v^(t+1) = U_t(h_v^(t), m_v^(t+1))\n\n**Permutation invariance + equivariance**: GNNs respect node-labeling symmetry — the function should not depend on arbitrary node ordering.\n\n**Limitations + ongoing research**:\n- **Over-smoothing**: deep GCNs converge to similar embeddings for all nodes (Li + Han + Wu 2018).\n- **Over-squashing** + bottlenecks (Alon + Yahav 2021).\n- **Expressivity** bounded by Weisfeiler-Lehman (1-WL) for most standard GNNs; higher-order WL + subgraph methods to extend.\n- **Long-range dependencies**: hard in standard GNNs; **Graph Transformers** (Ying et al. 2021 Graphormer; Rampášek et al. 2022 GraphGPS) help.\n- **Scalability** to billion-node graphs: GraphSAGE-style sampling, PyG cluster sampling.\n\n**Killer applications**:\n- **AlphaFold 2** (Jumper et al. 2021 Nature): the **pair representation** is essentially a graph-structured tensor; the Evoformer's update rules are message-passing between residue pairs. AlphaFold popularized geometric DL for protein structure.\n- **AlphaFold 3** (Abramson et al. 2024 Nature): proteins + DNA + RNA + ligands; even more graph-flavored.\n- **Drug discovery**: molecular property prediction (Stokes et al. 2020 Cell, halicin antibiotic discovered via GNN); ADMET prediction; virtual screening.\n- **Materials discovery**: Schnet, MACE, NequIP, Allegro, OrbNet — graph-based interatomic potentials with quantum-mechanical accuracy.\n- **Recommendation**: Pinterest PinSage, Alibaba EGES, Twitter graph-based ranking.\n- **Traffic + logistics**: Google Maps ETA models (Derrow-Pinion et al. 2021); Uber surge prediction.\n- **Particle physics**: jet tagging, tracking (Shlomi + Battaglia + Vlimant 2021 review).\n- **Combinatorial optimization** (Khalil + Dai + Zhang + Dilkina + Song 2017): TSP, satisfiability, scheduling.\n- **Knowledge graphs**: TransE, RotatE, embedding-based reasoning; integrated with LLMs (RAG + KG-RAG).\n\n**Libraries**: PyTorch Geometric (PyG; Fey + Lenssen 2019), Deep Graph Library (DGL; AWS + NYU), JAX + Jraph, TensorFlow-GNN, Graphein, OGB benchmark suite."
+    },
+    {
+      "kind": "text",
+      "title": "Network control + the frontier",
+      "body": "**Network control theory** asks: which + how many nodes must we drive externally to steer the whole network to any desired state?\n\n**Liu + Slotine + Barabási (2011 Nature *Controllability of complex networks*)** — landmark paper. Applied classical Kalman controllability (1963) to large directed networks. Key results:\n- **Driver nodes** = minimum set of nodes that must be controlled to make the network fully controllable.\n- Computed via maximum matching on bipartite representation of the network (matched nodes are 'controllable from interiors'; unmatched are driver nodes).\n- Surprising finding: **scale-free networks need MORE driver nodes** than ER (counterintuitive — hubs are not always good control points). Sparse + heterogeneous networks particularly hard to control.\n- Applied to regulatory networks, neural networks, social networks, technological networks; revealed control architectures of biology + industry.\n- >2500 citations.\n\n**Yan + Ren + Lai + Lai 2012**: extension to energy-cost of control.\n\n**Pasqualetti + Zampieri + Bullo 2014**: controllability metrics — minimum control energy, average controllability — give richer pictures than binary controllability.\n\n**Gates + Rocha 2016**: signaling vs energetic costs.\n\n**Control of brain networks** (Gu + Pasqualetti + Cieslak + Telesford + Yu + Kahn + Medaglia + Vettel + Miller + Grafton + Bassett 2015 Nature Communications): structural-connectome controllability + cognition. Specific brain regions are 'driver nodes' enabling state transitions. Implications for deep-brain stimulation, neuromodulation, BCI.\n\n**Frontier areas**:\n\n**1. Quantum networks** (Cuevas + Calabrese + Bianconi 2020; Biamonte + Faccin + de Domenico 2019 *Complex networks from classical to quantum*): the emerging quantum-internet (Wehner + Elkouss + Hanson 2018 Science) is a network where nodes are quantum processors + edges are entanglement-distribution channels. Distinct properties: superposition + entanglement + no-cloning theorem. Modeling routing, percolation, entanglement distillation on networks. China (Micius satellite 2017), EU + US labs developing quantum repeaters.\n\n**2. LLM-as-network + networks-of-LLMs**:\n- **Internal**: attention heads' graphs in transformer models can be analyzed as networks. Mechanistic interpretability work (Olsson + Elhage + Anthropic; Olah + Lieberum; circuits work) treats attention patterns as networks.\n- **External**: multi-agent LLM systems form interaction networks (AutoGen, CrewAI, LangGraph). Emergent collective behavior, cooperation, polarization in LLM-agent societies (Park + O'Brien + Cai + Morris + Liang + Bernstein 2023 generative agents).\n- **Knowledge graphs + LLMs**: hybrid systems where LLMs reason over knowledge graphs (RAG, KG-RAG).\n\n**3. Biological signaling networks**: cell-to-cell + tissue-to-tissue signaling. Multi-organ coordination (gut-brain, gut-immune); Wnt + Notch + Hedgehog + MAPK pathway crosstalk. Network medicine (Barabási + Gulbahce + Loscalzo 2011 Nature Reviews Genetics): map drug-target-disease networks; predict drug repurposing (e.g. COVID-19 efforts). Disease module hypothesis: diseases cluster in network neighborhoods.\n\n**4. Network medicine + precision diagnostics**: Bonferroni-corrected GWAS variants → network propagation → disease modules → drug targets. Companies: Recursion, Insitro, BenevolentAI, OpenTargets.\n\n**5. Climate + Earth-system networks**: climate teleconnections (Donges + Heitzig + Marwan + Kurths 2015) — network analysis of global temperature + circulation fields reveals El Niño dynamics, monsoon shifts, tipping cascades.\n\n**6. Hypergraph + topological deep learning** (Hajij + Zamzmi + Papamarkou + Maroulas + Cai + Ramamurthy + Birdal + Wang 2022 review): combining higher-order interactions with deep learning.\n\n**7. Causal discovery + Granger / transfer-entropy networks**: inferring directed causal structure from observational + interventional data. Pearl + Bareinboim foundations; Tigramite, do-why, EconML libraries.\n\n**Beyond**: Network science continues to integrate with AI, physics, biology + social science — providing the universal mathematical language for complex systems, now scaled by deep learning + LLM-driven exploration."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_app_1",
+        "kind": "guided_derivation",
+        "question": "Derive GCN propagation rule",
+        "goal": "From spectral filtering of Laplacian to Kipf-Welling GCN one-liner H' = σ(D̃^(-1/2) Ã D̃^(-1/2) H W).",
+        "steps": [
+          {
+            "prompt": "Graph Laplacian L = D - A. Normalized: L_sym = I - D^(-1/2) A D^(-1/2). Spectrum?",
+            "motivation": "Eigenbasis of L_sym = graph Fourier basis.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "eigenvalues in [0, 2]; eigenvectors are graph Fourier basis"
+              ]
+            },
+            "hints": [
+              "Symmetric PSD; bound by 2 for normalized."
+            ],
+            "reveal": "L_sym has eigenvalues λ_i ∈ [0, 2] + orthonormal eigenvectors U. Define **graph Fourier transform** x̂ = U^T x; **filter** g_θ(λ) acts diagonally in eigenbasis: g_θ(L_sym) = U·diag(g_θ(λ_1), ..., g_θ(λ_n))·U^T."
+          },
+          {
+            "prompt": "Spectral filtering is O(n³) (eigendecomposition). Defferrard + Bresson + Vandergheynst 2016 used Chebyshev polynomials. Why localized?",
+            "motivation": "Polynomial of L_sym = K-hop neighborhood.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "K-th-order polynomial of L_sym is K-hop localized + computable in O(K m)"
+              ]
+            },
+            "hints": [
+              "L^K_{ij} ≠ 0 only if dist(i,j) ≤ K."
+            ],
+            "reveal": "Spectral filter approximated by Chebyshev polynomial of order K: g_θ ≈ Σ_k θ_k T_k(L_sym). T_k(L_sym) is K-hop-localized (powers of L = neighborhood-step diffusion). O(K·m) cost; no eigendecomposition needed."
+          },
+          {
+            "prompt": "Kipf + Welling (2017) simplify to K = 1, θ_0 = -θ_1 = θ, + add self-loops (renormalization). Derive the propagation rule.",
+            "motivation": "Two-parameter → one-parameter.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "H' = σ(D̃^(-1/2) Ã D̃^(-1/2) H W)"
+              ]
+            },
+            "hints": [
+              "Ã = A + I; D̃ = degree of Ã; H W is feature-channel mixing."
+            ],
+            "reveal": "Kipf + Welling 2017 ICLR: H^(l+1) = σ(D̃^(-1/2) Ã D̃^(-1/2) H^(l) W^(l)) where Ã = A + I (self-loops), D̃ = degree matrix of Ã, W^(l) trainable weight matrix, σ nonlinearity. One simple line — but a milestone in graph deep learning. >40,000 citations. Generalized + extended in GraphSAGE (Hamilton 2017 inductive), GAT (Veličković 2018 attention), Graph Transformers."
+          },
+          {
+            "prompt": "Why is GCN connected to AlphaFold's pair representation?",
+            "motivation": "Graph-structured tensors in protein structure.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "pair representation = residue-residue graph; Evoformer = message-passing between pairs"
+              ]
+            },
+            "hints": [
+              "Pair representation is essentially edge features in a residue graph."
+            ],
+            "reveal": "AlphaFold 2's Evoformer maintains a **pair representation** indexed by residue-residue pairs (i, j) — effectively edge features in a graph over residues. The Evoformer's triangle updates + outer-product mean are sophisticated message-passing operations between residue triples + pairs. Geometric deep learning (Bronstein 2021) is the unifying framework that explains AlphaFold, AF3, RoseTTAFold, Geometric Vector Perceptrons, equivariant GNNs (NequIP, MACE) + the modern molecular / protein DL stack."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_app_1",
+        "kind": "multiple_choice",
+        "question": "Why is Liu-Slotine-Barabási (2011 Nature) controllability of complex networks a foundational result?",
+        "options": [
+          "Random.",
+          "Liu + Slotine + Barabási (2011 Nature *Controllability of complex networks*) applied Kalman classical controllability theory (1963) at scale to large directed networks, deriving the **minimum number of driver nodes** required to steer any state via maximum-matching analysis on the bipartite representation. Their analytical + computational results upended intuitions: (1) **scale-free networks need MORE driver nodes** than ER — heavy-tailed degree distributions don't automatically grant controllability via hubs; (2) **driver nodes are mostly low-degree nodes**, not hubs — leaves are the hardest to influence indirectly; (3) tradeoff between connectivity + controllability has surprising structure. Applied across regulatory networks, neural networks, social networks + infrastructure. >2500 citations. Spawned a subfield: Yan + Ren + Lai (2012) energy of control, Pasqualetti + Zampieri + Bullo (2014) controllability metrics, Gu + Pasqualetti + Bassett 2015 Nature Communications brain-network controllability tied to cognition + neuromodulation, deep-brain stimulation + BCI design. Together with Buldyrev (2010 interdependent) + Barabási-Albert (1999) + Pastor-Satorras (2001 epidemic), one of the four most-cited modern network-science results. Demonstrated that network topology + dynamics interact in deep, counterintuitive ways + that the language of dynamical systems + control theory translates to large-scale empirical networks.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Liu + Slotine + Barabási (2011 Nature) computed minimum driver nodes for controllability via maximum matching on directed networks. Counterintuitive findings: scale-free networks need MORE driver nodes than ER; driver nodes are mostly low-degree, not hubs. Spawned a subfield: energy-cost of control (Yan 2012), controllability metrics (Pasqualetti 2014), brain-network controllability tied to cognition (Gu + Bassett 2015). One of the four most-cited modern network-science results."
+      },
+      "hints": [
+        "Kalman controllability applied to networks.",
+        "Counterintuitive finding about scale-free."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Liu + Slotine + Barabási (2011 Nature) applied Kalman controllability to large directed networks via maximum matching on bipartite representation. Found minimum driver nodes — counterintuitively, scale-free networks need MORE driver nodes than ER + drivers are mostly low-degree. Spawned subfield (energy of control, brain controllability tied to cognition). With Buldyrev 2010 + BA 1999 + Pastor-Satorras 2001, one of the four most-cited modern network-science results."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_app_1",
+        "kind": "scenario",
+        "question": "You're tasked with predicting which drugs to repurpose for a novel disease using network medicine.",
+        "prompt": "Walk through a pipeline that: (a) identifies the disease module on the human protein-protein interaction network (Barabási + Gulbahce + Loscalzo 2011); (b) computes proximity between drug-target sets + disease modules; (c) ranks candidate repurposings; (d) integrates a GNN trained on protein structures (AlphaFold-derived features) + chemical structures (MolGNN). How would you validate via wet-lab + clinical literature? How does this compare to LLM-driven approaches (BenevolentAI's baricitinib in COVID; Stokes et al. 2020 halicin discovery)? Discuss network controllability + driver-node thinking (Liu-Slotine-Barabási 2011) as guidance for drug-target selection."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_app_1",
+        "kind": "math_expression",
+        "question": "Write the Kipf-Welling GCN propagation rule for layer l → l+1 with adjacency A, features H, weights W, self-loops Ã = A + I, D̃ degree of Ã.",
+        "acceptedAnswers": [
+          "H^(l+1) = σ(D̃^(-1/2) Ã D̃^(-1/2) H^(l) W^(l))",
+          "H' = σ(D~^(-1/2) (A+I) D~^(-1/2) H W)",
+          "H_(l+1) = sigma(D~^(-1/2) A~ D~^(-1/2) H_l W_l)"
+        ],
+        "hint": "Symmetric normalization + self-loops + linear projection + nonlinearity."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_app_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how network science became the unifying language of complex systems + the frontier of AI for science.",
+        "rubric": "Mentions: Network science unifies social (Twitter, Facebook), biological (PPI, brain connectome FlyWire/MICrONS, gene regulation, metabolism), infrastructure (power grids cascading failures, transportation, Internet), economic + financial (Battiston DebtRank, supply chains COVID), ecological + climate systems under one mathematical lens. Common measures (degree distribution, clustering, modularity, centrality) + models (ER, WS, BA, configuration, SBM) apply universally. Modern AI integration: graph neural networks — Bronstein + Bruna + Cohen + Veličković 2021 geometric deep learning textbook; message-passing (Gilmer 2017); GCN (Kipf + Welling 2017), GraphSAGE (Hamilton 2017), GAT (Veličković 2018), GIN (Xu 2019), Graph Transformers (Graphormer, GPS). AlphaFold 2 (Jumper 2021 Nature) + AF3 (Abramson 2024) use pair representations + message-passing on residue graphs; halicin antibiotic (Stokes 2020 Cell) discovered via GNN. Network medicine (Barabási + Gulbahce + Loscalzo 2011) drives drug repurposing. Network control (Liu + Slotine + Barabási 2011) identifies driver nodes for steering. Frontier: quantum networks (Wehner 2018), LLM-as-network, multi-agent LLM societies, biological signaling networks, climate teleconnections, topological deep learning (Hajij 2022). Network science remains the universal language of complex systems, now scaled by deep learning + LLM-driven exploration."
+      }
+    }
+  ]
+}

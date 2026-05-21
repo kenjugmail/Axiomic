@@ -1,0 +1,170 @@
+{
+  "slug": "consistency-models",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish strong consistency models.",
+      "Apply weak + session consistency in practice.",
+      "Use CRDTs for coordination-free collaboration."
+    ],
+    "prereqs": [
+      "time-clocks-and-ordering"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Strong consistency: linearizability, sequential, serializability, strict serializability",
+      "body": "**Consistency models** define the contract between a distributed store + its clients: what value reads may return given concurrent writes. They sit on a spectrum from strong (intuitive, expensive) to weak (cheap, surprising).\n\n**Linearizability** (Herlihy + Wing 1990, TOPLAS): each operation appears to take effect **instantaneously** at some point between its invocation + response. Equivalent to a 'single-copy' system + real-time order respected. Properties:\n- **Composability** (local property): a system of linearizable objects is linearizable.\n- **Strongest single-object model**.\n- Implemented via consensus (Paxos, Raft) + lease-based leaders.\n- Examples: etcd, ZooKeeper, Consul, Spanner (with TrueTime).\n\n**Sequential consistency** (Lamport 1979): all processes see operations in **some total order** consistent with each process's program order — but real-time order between processes need **not** be respected.\n- Strictly weaker than linearizability.\n- Compositionality fails — system of sequentially consistent objects need not be sequentially consistent.\n- Classic example: hardware memory models (x86-TSO is close, ARM is weaker).\n\n**Serializability** (Eswaran et al. 1976; Bernstein-Hadzilacos-Goodman 1987): for **transactions** spanning multiple objects, equivalent to **some serial execution**. The 'I' in ACID. Implementations:\n- **Two-phase locking (2PL)**: pessimistic.\n- **Serializable snapshot isolation (SSI)** (Fekete + Cahill 2008, ported to PostgreSQL 9.1).\n- **Optimistic concurrency control**.\n- **MVCC** with conflict checks.\n\n**Strict serializability** = serializability + linearizability = serializable order that respects real-time. The gold standard for transactional systems; offered by Spanner, CockroachDB, FoundationDB.\n\n**Isolation levels** below serializable (ANSI SQL hierarchy):\n- **Read committed** (default in most RDBMSes) — no dirty reads.\n- **Repeatable read** — no non-repeatable reads; allows phantoms (in MySQL InnoDB, RR uses gap locks blocking phantoms).\n- **Snapshot isolation (SI)** — each transaction reads from a snapshot at start time. Avoids most anomalies; permits **write skew** (Berenson et al. 1995).\n- **Serializable snapshot isolation (SSI)** — adds dangerous-structure detection on top of SI.\n\n**Adya's PL hierarchy** (Adya 1999 thesis): rigorous formalization of isolation including PL-1 (no dirty writes) through PL-3 (full serializable) using dependency-graph criteria. Used in Jepsen testing.\n\n**Jepsen** (Kyle Kingsbury): empirical testing of consistency claims — catalogued many databases offering weaker guarantees than they advertised (early MongoDB, Cassandra LWT, CockroachDB pre-2018 anomalies, etc.). 'Hermitage' isolation tests by Bailis.\n\n**ACID vs BASE** (Eric Brewer / Pritchett):\n- **ACID** — atomicity, consistency, isolation, durability. Strong transactional contract.\n- **BASE** — basically available, soft state, eventually consistent. Pragmatic guidance for AP systems."
+    },
+    {
+      "kind": "text",
+      "title": "Weak + session consistency: causal, eventual, read-your-writes, bounded staleness",
+      "body": "**Weak consistency models** sacrifice some guarantees for performance + availability. The richer the model, the harder to implement; the weaker, the easier to reason about anomalies.\n\n**Eventual consistency** (Werner Vogels 2008 ACM Queue, 'Eventually Consistent — Revisited'): if no new updates are made, all replicas eventually return the last updated value. The weakest useful model; implemented by DNS, Dynamo, Cassandra (with quorum=1). Anomalies abundant: stale reads, lost updates, conflicting writes.\n\n**Causal consistency**: operations causally related (via Lamport's →) are observed in causal order on all replicas. Concurrent operations can be observed in any order.\n- Stronger than eventual; cheaper than linearizability.\n- COPS (Lloyd et al. 2011, SOSP), Eiger (Lloyd 2013), AntidoteDB.\n- **Causal+ consistency** = causal + convergent conflict handling (last-writer-wins or CRDT merge).\n- The 'highest consistency available under partition' result (Mahajan-Alvisi-Dahlin 2011, Attiya et al.).\n\n**Session consistency models** (Terry et al. 1994, Bayou, 'Session Guarantees for Weakly Consistent Replicated Data'):\n- **Read-your-writes** (RYW): a session observes its own writes.\n- **Monotonic reads**: successive reads in a session never return older values.\n- **Monotonic writes**: a session's writes are applied in session order.\n- **Writes-follow-reads**: writes after a read are ordered after the read's source write.\n\nThese are **per-session** guarantees + cheap to provide via sticky sessions + per-session vector clocks. Cosmos DB exposes all four explicitly.\n\n**Bounded staleness** (Cosmos DB, Spanner stale reads): reads return data no more than K versions old or T time old. Useful for read-heavy analytics + dashboards where slight staleness is acceptable but unbounded is not.\n\n**PRAM consistency** (Pipelined RAM, Lipton + Sandberg 1988): all processes observe writes from any given process in that process's order — weaker than sequential.\n\n**Cosmos DB's five consistency levels**: strong, bounded staleness, session, consistent prefix, eventual. Explicitly designed to let developers choose the right tradeoff per query. Backed by formal TLA+ specifications.\n\n**The CAP / latency wall** (PACELC, Abadi): every strengthening of consistency costs latency. Strong + serializable usually requires a coordination round-trip; eventual requires none.\n\n**Convergent vs strong eventual consistency** (Shapiro 2011): strong eventual consistency (SEC) means replicas with the same operations applied (in any order) converge to the same state — the CRDT guarantee discussed next slide.\n\n**Real-world consistency choices**:\n- **Bank balance**: strict serializable (CockroachDB, Spanner).\n- **Shopping cart**: read-your-writes + causal (Dynamo).\n- **Social feed**: eventual / consistent-prefix (Cassandra, ScyllaDB).\n- **DNS, BGP**: eventual.\n- **Collaborative editing**: causal + CRDT (Yjs, Automerge).\n- **Configuration / service discovery**: linearizable (etcd, Consul, ZooKeeper)."
+    },
+    {
+      "kind": "text",
+      "title": "CRDTs: coordination-free convergence",
+      "body": "**Conflict-free Replicated Data Types (CRDTs)** (Marc Shapiro et al. 2011, INRIA, 'A comprehensive study of CRDTs'): data structures whose replicas always converge **without coordination**, by construction. The mathematical core: state forms a **join-semilattice** + merge operation is the **least upper bound** (commutative, associative, idempotent).\n\n**Two flavors**:\n- **State-based (CvRDTs)**: replicas exchange full state; merge is LUB. Anti-entropy gossip suffices.\n- **Operation-based (CmRDTs)**: replicas broadcast operations; assume reliable causal-broadcast. Operations must be commutative or causally ordered.\n- **Delta-state CRDTs** (Almeida 2018) — middle ground sending diffs.\n\n**Basic CRDTs**:\n- **G-Counter (grow-only)**: vector of per-replica counters; merge is element-wise max; value is sum.\n- **PN-Counter**: pair of G-Counters (positive + negative) supporting decrement.\n- **G-Set (grow-only set)**: union on merge.\n- **2P-Set**: G-Set + tombstone G-Set; once removed, can't re-add.\n- **OR-Set (Observed-Remove Set)**: tag each add with unique ID; remove only IDs you've observed → can re-add freely.\n- **LWW-Register**: last-writer-wins by timestamp.\n- **MV-Register (multi-value)**: keeps concurrent writes for client-side resolution.\n\n**Sequence CRDTs** (for collaborative editing):\n- **WOOT** (Oster et al. 2006), **Treedoc** (Preguiça 2009), **Logoot**, **RGA (Replicated Growable Array)** (Roh et al. 2011), **Causal Trees**, **Fugue** (recent, Weidner et al. 2023).\n- Each character gets a unique stable position; conflict-free concurrent inserts.\n- Trade-offs: metadata overhead vs ease of integration.\n\n**Map + composite CRDTs**: maps of CRDTs (e.g., OR-Map of LWW-Registers). Riak Data Types, Redis CRDT (Active-Active in Redis Enterprise), Yjs Y.Map.\n\n**Production CRDT systems**:\n- **Riak** (Basho 2009-): one of the first commercial CRDT databases.\n- **Redis Enterprise Active-Active** (CRDB): geo-distributed CRDT-backed Redis.\n- **AntidoteDB**: research CRDT + causal-consistency database.\n- **CosmosDB**: CRDT-backed multi-region writes.\n- **Yjs** (Kevin Jahns) + **Automerge** (Martin Kleppmann): JavaScript CRDT libraries for collaborative apps — power Figma's multiplayer mode, Notion, Linear, Jupyter RTC, Anytype.\n- **CRDT for collaborative documents**: Google Docs uses operational transform (OT); newer apps prefer CRDTs because they tolerate network partitions natively.\n\n**Operational Transform (OT)** (Ellis-Gibbs 1989, Jupiter at Sun, Google Docs/Wave): older alternative to CRDTs requiring a central coordination point for transformation functions. More compact metadata but harder to make peer-to-peer.\n\n**Tradeoffs**:\n- CRDTs: eventual / strong-eventual consistency only; metadata overhead; some operations impossible (e.g., set difference); no global invariants without coordination.\n- For strong invariants (uniqueness, balance ≥ 0), still need consensus or escrow techniques (e.g., reservation pattern).\n\n**Coordination avoidance** (Bailis et al. 2014 'Coordination Avoidance in Database Systems'): characterizes I-confluent invariants achievable without coordination, formalizing what CRDTs naturally express.\n\n**Future**: CRDT research extends to text editing (peritext, formatting), block-based docs (Notion), spatial data, ML model weights (decentralized training)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_consist_1",
+        "kind": "guided_derivation",
+        "question": "Pick a consistency model for three workloads",
+        "goal": "Three workloads: (A) cross-account bank transfer; (B) global product catalog; (C) collaborative whiteboard. Choose + justify a model per workload.",
+        "steps": [
+          {
+            "prompt": "Workload A (bank transfer): which model?",
+            "motivation": "Strong invariant.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "strict serializability (linearizable + serializable)"
+              ]
+            },
+            "hints": [
+              "Money must not be created/destroyed."
+            ],
+            "reveal": "**Strict serializability** (linearizable transactions, ACID). Hard invariant: sum of balances must be conserved + no negative balances. Implementations: Spanner, CockroachDB, FoundationDB — all use consensus (Paxos/Raft) + TrueTime/HLC for cross-shard transactions. Cost: latency for commit-wait; worth it for correctness."
+          },
+          {
+            "prompt": "Workload B (product catalog): which model?",
+            "motivation": "Read-heavy, low write rate, slight staleness OK.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "bounded staleness or eventual with consistent prefix"
+              ]
+            },
+            "hints": [
+              "Read-heavy + occasional updates."
+            ],
+            "reveal": "**Bounded staleness** or **eventual + consistent prefix**. A few seconds of staleness on product info is harmless; rare prices flicker. Cosmos DB's bounded staleness or DynamoDB global tables with eventual reads serve this well. Use a CDN + cache (Cloudflare, Fastly) for further latency reduction. Write the source of truth in a stronger model + push updates via CDC."
+          },
+          {
+            "prompt": "Workload C (collaborative whiteboard): which model + technique?",
+            "motivation": "Coordination-free collaboration.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "causal + CRDT (e.g., Yjs, Automerge); strong eventual consistency"
+              ]
+            },
+            "hints": [
+              "Shapiro 2011."
+            ],
+            "reveal": "**Causal+ consistency with CRDTs**. Use **Yjs** or **Automerge** with a sequence CRDT (RGA/Fugue) for stable per-character IDs; concurrent edits merge automatically. Strong eventual consistency: every replica with the same set of operations converges to the same state. Works offline-first + with intermittent connectivity. Figma + Linear + Notion + Anytype use this pattern."
+          },
+          {
+            "prompt": "What does PACELC tell us about the latency cost?",
+            "motivation": "PACELC reminder.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "stronger consistency → higher latency even outside partitions; weaker → lower latency"
+              ]
+            },
+            "hints": [
+              "Abadi 2010."
+            ],
+            "reveal": "PACELC (Abadi 2010): outside partitions, choose **L**atency or **C**onsistency. Workload A pays latency for strict serializability (Spanner-style commit-wait); Workload B + C avoid coordination per write + run near speed of light. Match the model to the **invariant**: only pay when the invariant requires it."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_consist_1",
+        "kind": "multiple_choice",
+        "question": "Why do Yjs + Automerge use CRDTs instead of operational transform (OT) for collaborative editing?",
+        "options": [
+          "Random.",
+          "**CRDTs** (Shapiro et al. 2011) give **strong eventual consistency** without a central coordination point: any two replicas with the same set of operations applied (in any order) converge to identical state. This makes peer-to-peer + offline-first apps practical — Yjs, Automerge, Figma multiplayer, Linear, Notion, Anytype all rely on this. **OT** (operational transform; Ellis-Gibbs 1989; Google Wave; Google Docs) requires a central server to run transformation functions correctly, making P2P much harder + adding a single coordination point. CRDTs trade more metadata overhead for simpler correctness arguments + better partition tolerance. Modern sequence CRDTs (RGA, Fugue, Yjs's Yata) close the metadata gap. CRDTs also compose into rich data types (Y.Map, Y.Array, Y.XmlFragment), supporting structured docs not just plain text.",
+          "OT is faster.",
+          "Doesn't matter."
+        ],
+        "correctIndex": 1,
+        "explanation": "CRDTs (Shapiro 2011) give strong eventual consistency without central coordination, enabling P2P + offline-first. OT (Ellis-Gibbs 1989, Google Wave) requires a server to apply transforms. Yjs, Automerge, Figma, Linear, Notion all use CRDTs."
+      },
+      "hints": [
+        "P2P + offline-first.",
+        "Where is the coordination point?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "CRDTs converge without coordination (Shapiro 2011) → P2P + offline-first. OT needs central server. Used in Yjs, Automerge, Figma, Linear, Notion."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_consist_1",
+        "kind": "scenario",
+        "question": "A user complains their shopping cart 'lost an item' after they added it on mobile + opened the site on desktop. The store uses Dynamo-style eventual consistency. What's the minimum consistency to fix it?",
+        "options": [
+          "Add **read-your-writes** + **monotonic-reads** session guarantees (Bayou, Terry 1994). Use sticky session routing or per-user causal token; conflicts merge as multi-value or via OR-Set CRDT.",
+          "Switch to strict serializable for all reads.",
+          "Ignore.",
+          "Bigger cache."
+        ],
+        "correctIndex": 0,
+        "explanation": "Read-your-writes + monotonic-reads (Terry 1994, Bayou session guarantees) ensure a user sees their own additions + never sees an older cart. Implement via sticky session, per-user causal token (HLC), or quorum read against the replica that received the write. Dynamo's original paper notes the shopping-cart use case → solved with OR-Set or vector-versioned multi-value reconciliation. No need for global linearizability."
+      },
+      "hints": [
+        "Session guarantees.",
+        "Per-user causal token."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Use read-your-writes + monotonic-reads (Bayou session guarantees, Terry 1994). Implement with sticky session, per-user causal token (HLC), or OR-Set CRDT for cart items."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_consist_1",
+        "kind": "math_expression",
+        "question": "A G-Counter CRDT has 3 replicas with vectors [3, 1, 0], [3, 2, 0], [3, 1, 1]. After merging all three, what is the counter value (sum after element-wise max)?",
+        "acceptedAnswers": [
+          "6",
+          "3 + 2 + 1",
+          "3+2+1"
+        ],
+        "hints": [
+          "Merge is element-wise max.",
+          "Value is the sum of the vector."
+        ],
+        "explanation": "Merge by element-wise max: max(3,3,3)=3, max(1,2,1)=2, max(0,0,1)=1 → merged [3, 2, 1]. Value = 3+2+1 = 6. The G-Counter's join-semilattice + max + sum gives the conflict-free count: each replica records its own contributions; merge takes the maximum it has seen from each replica; the final value sums all contributions exactly once. Property: commutative + associative + idempotent → safe to merge in any order or repeatedly."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_consist_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why CRDTs are an attractive alternative to consensus for collaborative apps.",
+        "rubric": "Mentions: CRDTs (Shapiro 2011) provide **strong eventual consistency** without coordination — replicas with the same operations converge by construction. Built on join-semilattices: merge is commutative + associative + idempotent. Variants: state-based (CvRDT), op-based (CmRDT), delta-state (Almeida 2018). Common types: G-Counter, PN-Counter, G-Set, OR-Set, LWW-Register, MV-Register; sequence CRDTs (RGA, Fugue, Yata) for text. Production use: Riak, Redis Active-Active, Yjs + Automerge powering Figma, Linear, Notion, Anytype. Tradeoffs: metadata overhead; no global invariants (use escrow/reservation when needed); cannot enforce uniqueness without coordination. Compared to consensus (Paxos/Raft) CRDTs need no leader, tolerate partitions, run P2P + offline-first. Compared to OT (Google Docs), CRDTs avoid central transform coordination. Coordination avoidance (Bailis 2014) formally characterizes when CRDTs suffice."
+      }
+    }
+  ]
+}

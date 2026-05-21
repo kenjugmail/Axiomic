@@ -46,6 +46,9 @@ const IceSheetDynamics = lazy(() => import("../../../../packages/viz/src/compone
 const RetrosynthesisTree = lazy(() => import("../../../../packages/viz/src/components/RetrosynthesisTree").then(m => ({ default: m.RetrosynthesisTree })));
 const TanabeSuganoDiagram = lazy(() => import("../../../../packages/viz/src/components/TanabeSuganoDiagram").then(m => ({ default: m.TanabeSuganoDiagram })));
 const ButlerVolmerCurve = lazy(() => import("../../../../packages/viz/src/components/ButlerVolmerCurve").then(m => ({ default: m.ButlerVolmerCurve })));
+const PreferentialAttachment = lazy(() => import("../../../../packages/viz/src/components/PreferentialAttachment").then(m => ({ default: m.PreferentialAttachment })));
+const ZKProofVerification = lazy(() => import("../../../../packages/viz/src/components/ZKProofVerification").then(m => ({ default: m.ZKProofVerification })));
+const RaftLogReplication = lazy(() => import("../../../../packages/viz/src/components/RaftLogReplication").then(m => ({ default: m.RaftLogReplication })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -96,6 +99,9 @@ export const VIZ_NAMES = [
   "retrosynthesis-tree",
   "tanabe-sugano-diagram",
   "butler-volmer-curve",
+  "preferential-attachment",
+  "zk-proof-verification",
+  "raft-log-replication",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -144,6 +150,9 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "retrosynthesis-tree": RetrosynthesisTree,
   "tanabe-sugano-diagram": TanabeSuganoDiagram,
   "butler-volmer-curve": ButlerVolmerCurve,
+  "preferential-attachment": PreferentialAttachment,
+  "zk-proof-verification": ZKProofVerification,
+  "raft-log-replication": RaftLogReplication,
 };
 
 interface VizEmbedProps {

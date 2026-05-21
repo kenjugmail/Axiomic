@@ -327,6 +327,27 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "⚡",
     tags: ["electrochemistry", "kinetics", "batteries", "fuel-cells"],
   },
+  {
+    name: "preferential-attachment",
+    label: "Preferential attachment (BA)",
+    description: "Drag m + steps; watch a Barabási-Albert network grow with scale-free hubs and a power-law degree distribution.",
+    thumb: "🕸️",
+    tags: ["network-science", "graph-theory", "complex-systems"],
+  },
+  {
+    name: "zk-proof-verification",
+    label: "ZK proof flow",
+    description: "Compare Groth16, PLONK, STARK, Bulletproofs; see proof size, verifier time, trusted-setup requirements.",
+    thumb: "🔐",
+    tags: ["cryptography", "zero-knowledge", "blockchain"],
+  },
+  {
+    name: "raft-log-replication",
+    label: "Raft log replication",
+    description: "Drag leader + log + partition; watch quorum-based replication across a 5-node Raft cluster.",
+    thumb: "🗳️",
+    tags: ["distributed-systems", "consensus", "databases"],
+  },
 ];
 
 interface Props {

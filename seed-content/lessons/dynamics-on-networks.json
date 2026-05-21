@@ -1,0 +1,152 @@
+{
+  "slug": "dynamics-on-networks",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Analyze synchronization on networks.",
+      "Survey opinion dynamics.",
+      "Explain cooperation + games on networks."
+    ],
+    "prereqs": [
+      "random-and-small-world-networks"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Kuramoto oscillators + synchronization on networks",
+      "body": "**Synchronization** = collective phase-locking of coupled oscillators. Universal in physics, biology, engineering — fireflies (Buck + Buck 1968), pacemaker cells in the SA node, neurons, power-grid generators, applause, circadian rhythms, laser arrays.\n\n**Kuramoto model** (Yoshiki Kuramoto 1975 *Self-entrainment of a population of coupled non-linear oscillators*):\n\n  dθ_i/dt = ω_i + (K/N) · Σ_j A_ij · sin(θ_j - θ_i)\n\nwhere θ_i = phase of oscillator i, ω_i = intrinsic natural frequency (drawn from g(ω) distribution), K = coupling strength, A_ij = adjacency matrix. Solvable in mean-field limit (all-to-all coupling).\n\n**Order parameter**: r·e^(iψ) = (1/N) · Σ_j e^(iθ_j). r ∈ [0, 1] measures phase coherence. r = 0 incoherent; r = 1 fully synchronized.\n\n**Mean-field result**: continuous phase transition at **critical coupling K_c = 2 / (π · g(0))** for symmetric unimodal g(ω). For K < K_c, r = 0. For K > K_c, r grows as r ~ √(K - K_c) (mean-field critical exponent 1/2). Originally derived by Kuramoto; rigorous proofs by Crawford, Mirollo, Strogatz (1990s).\n\n**On networks** (Restrepo + Ott + Hunt 2005): K_c on heterogeneous network is governed by **largest eigenvalue Λ_max of A**:\n\n  K_c = (2 / (π · g(0))) · (⟨k⟩ / ⟨k²⟩)\n\nfor uncorrelated networks. For scale-free with γ ≤ 3, ⟨k²⟩ diverges → K_c → 0. Synchronization easier on heterogeneous networks (same mathematics as the epidemic threshold).\n\n**Small-world networks** (Watts-Strogatz topology, rewiring p): Barahona + Pecora (2002) showed adding shortcuts dramatically lowers synchronization threshold + improves stability. Real brains exploit this — small-world wiring supports efficient global synchronization (gamma oscillations) with sparse long-range connections.\n\n**Master Stability Function** (Pecora + Carroll 1998 PRL): for identical oscillators with diffusive coupling, stability of the synchronized state factorizes into a function of the **Laplacian eigenvalues** λ_i of the network + the coupling gain. The ratio λ_max / λ_2 (algebraic connectivity / largest eigenvalue) controls synchronizability — smaller ratio = easier sync. Connects spectral graph theory to nonlinear dynamics; foundational.\n\n**Applications**:\n- **Power grids** (Filatrella + Nielsen + Pedersen 2008; Motter et al. 2013): generators modeled as Kuramoto-like; topology affects stability + cascading failures.\n- **Neural synchronization**: gamma + theta + beta rhythms across cortex.\n- **Cardiac pacemaker**: SA-node sync.\n- **Power-system blackouts**: 2003 NE, 2012 India — synchronization breakdown cascades.\n- **Josephson junction arrays**, laser arrays.\n\n**Chimera states** (Kuramoto + Battogtokh 2002; Abrams + Strogatz 2004): coexistence of synchronized + incoherent regions on the same network — a surprising symmetry-breaking phenomenon, observed in brain dynamics + engineered systems."
+    },
+    {
+      "kind": "text",
+      "title": "Opinion dynamics: from DeGroot to echo chambers",
+      "body": "**Opinion dynamics** models how beliefs, preferences + attitudes spread + converge through social networks. Active field bridging sociology + statistical physics.\n\n**DeGroot 1974 *Reaching a consensus***: each agent i has opinion x_i ∈ R. At each step, update via weighted average of neighbors:\n\n  x_i(t+1) = Σ_j w_ij · x_j(t)\n\nwith Σ_j w_ij = 1. Equivalent to a stochastic matrix W applied to opinion vector. If W is connected + aperiodic, opinions converge to a **consensus** = weighted average with weights given by W's left eigenvector. **Cornerstone of social-learning theory**; foundation of distributed averaging (Tsitsiklis 1984), opinion-pooling, decentralized consensus algorithms.\n\n**Voter model** (Holley + Liggett 1975; Clifford + Sudbury 1973): each agent has binary opinion ∈ {0, 1}. At each step, a random agent adopts the opinion of a random neighbor. On infinite lattices in d ≤ 2 dimensions, leads to consensus; in d ≥ 3 + on Erdős-Rényi networks, coexistence persists. On scale-free networks: hubs drive faster consensus + can dominate (Sood + Redner 2005).\n\n**Deffuant bounded-confidence model** (Deffuant + Neau + Amblard + Weisbuch 2000): continuous opinions x_i ∈ [0,1]. Two agents i, j interact only if |x_i - x_j| < ε (confidence threshold). Then x_i, x_j move toward each other. **Result**:\n- Large ε: consensus.\n- Small ε: **clustering into multiple polarized groups** — opinions fragment into 1/(2ε) distinct camps.\n- A simple mechanism producing polarization without any external driving.\n\n**Hegselmann-Krause model** (2002): similar bounded-confidence but each agent averages over all neighbors within ε. Same phase phenomenology.\n\n**Galam sociophysics models** (Serge Galam 1986+; book *Sociophysics* 2012): majority-rule + minority spreading; explained French electoral dynamics + minority opinion takeover. Predicted Trump's 2016 victory ahead of polls.\n\n**Sznajd model** (Sznajd-Weron + Sznajd 2000): pairs of agents with the same opinion convince neighbors; opposite pairs neutralize. Used to model elections + market sentiment.\n\n**Axelrod cultural-drift model** (Axelrod 1997): vector-valued opinions; similarity-based interaction; produces stable cultural domains.\n\n**Echo chambers + filter bubbles** (Pariser 2011; Bakshy + Messing + Adamic 2015 Science Facebook 10M users study):\n- **Algorithmic filtering** (recommendation engines) reinforces existing views.\n- **Homophily**: humans preferentially befriend similar others → network structure already polarized.\n- **Echo chambers**: feedback loops between filtering + homophily → groups become more extreme over time.\n- Empirical evidence: Twitter retweet networks for politics show strong modular separation (Conover 2011); cross-cutting exposure is rare. Less clear for general news consumption (Guess + Lyons + Nyhan + Reifler 2018). Major debate in 2010s political science.\n\n**Modern + open**:\n- **Polarization on social media**: Garimella + De Francisci Morales + Gionis + Mathioudakis 2018; quantifying ideological echo chambers.\n- **Network-rewiring + adversarial filtering** to reduce polarization (Garimella + Gionis 2017).\n- **LLM-driven opinion dynamics**: agents using LLMs + their effect on consensus + polarization is an active research front (2024+)."
+    },
+    {
+      "kind": "text",
+      "title": "Cooperation + game theory on networks",
+      "body": "**Evolutionary game theory on networks** asks: how do strategies (cooperate, defect) spread through a network of interacting agents? Central to evolutionary biology, behavioral economics + sociology.\n\n**Prisoner's Dilemma on networks** (Nowak + May 1992 Nature *Evolutionary games + spatial chaos*): place strategies (Cooperate, Defect) on a 2D lattice; pairs play prisoner's dilemma; agents update to best-performing neighbor's strategy. Result: **cooperation can persist** in spatial domains even when all-to-all rational play predicts pure defection. Defectors form clusters surrounded by cooperators; the boundary dynamics maintain coexistence. Landmark result — challenged neoclassical 'rational defectors' view.\n\n**Nowak's five rules for evolution of cooperation** (Martin Nowak 2006 Science):\n1. **Kin selection** (Hamilton 1964): cooperate with genetic relatives; rb > c.\n2. **Direct reciprocity** (Trivers 1971; Axelrod 1984 *Evolution of Cooperation* tit-for-tat): repeated interactions.\n3. **Indirect reciprocity** (Nowak + Sigmund 1998): reputation-based; w > c/b.\n4. **Network reciprocity** (Nowak + May 1992; Ohtsuki + Hauert + Lieberman + Nowak 2006 Nature): population structure favors cooperation if **b/c > k** where k is mean degree. Mean-field rule discovered analytically; one of the cleanest results in evolutionary game theory.\n5. **Group selection** (Wilson + Wilson 2007).\n\n**Scale-free vs lattice cooperation** (Santos + Pacheco 2005 PRL; Santos + Pacheco + Lenaerts 2006 PNAS): cooperation is **dramatically enhanced** on scale-free networks compared to random / lattice. Hubs anchor cooperation — once a hub becomes cooperator, its many neighbors imitate; defectors who exploit hubs lose access to large neighborhoods. Foundational result.\n\n**Public-goods + snowdrift games** on networks: similar phenomenology; network structure changes equilibrium.\n\n**Structural balance theory** (Fritz Heider 1946 *Attitudes + cognitive organization*; Cartwright + Harary 1956): signed networks (friend +, enemy -) tend toward balance — 'friend of friend is friend' + 'enemy of enemy is friend'. **Balanced triangles**: all + or one + + two -. Imbalanced triangles generate tension. **Triadic closure** drives signed network dynamics.\n\n**Antal + Krapivsky + Redner 2005**: dynamics toward balance on complete graphs; reaches absorbing balanced state.\n\n**Empirical signed networks**: Slashdot, Epinions, Wikipedia editor disputes show statistical signatures of balance (Leskovec + Huttenlocher + Kleinberg 2010 *Predicting positive + negative links in online social networks*).\n\n**Coevolution of games + networks** (Pacheco + Traulsen + Nowak 2006 PRL): allow agents to break + form ties based on payoffs. Cooperation flourishes when agents can rewire away from defectors. Foundation of dynamic-network models.\n\n**Modern + open**:\n- **Network reciprocity in human experiments** (Rand + Arbesman + Christakis 2011 PNAS): static networks don't favor cooperation in real humans; dynamic networks where partners can be rewired do.\n- **Heterogeneous-agent + LLM-driven games**: a frontier area for AI + multi-agent simulations.\n- **Climate-change cooperation games** (Hauert + Holmes + Doebeli 2006; Tavoni + Dannenberg + Kallis + Löschel 2011) on networks of nations.\n- **Cooperation + spite + altruism on heterogeneous networks** + spatial dynamics still active topic."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dyn_1",
+        "kind": "guided_derivation",
+        "question": "Derive Kuramoto K_c on uncorrelated network",
+        "goal": "Show K_c ∝ ⟨k⟩/⟨k²⟩ via mean-field on heterogeneous network.",
+        "steps": [
+          {
+            "prompt": "Heterogeneous mean-field: each oscillator i sees local effective field K · k_i · r̃ where r̃ = (1/⟨k⟩) Σ_k k P(k) r_k. (Friendship-paradox weighting.) Write self-consistency.",
+            "motivation": "Same logic as epidemic.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "r_k = f(K k r̃)"
+              ]
+            },
+            "hints": [
+              "Oscillator with degree k feels K · k · r̃ effective coupling."
+            ],
+            "reveal": "Each node of degree k feels effective coupling K_eff = K · k · r̃ where r̃ is the degree-weighted mean coherence. Self-consistent r_k follows the mean-field Kuramoto solution at K_eff."
+          },
+          {
+            "prompt": "Linearize near r̃ = 0. To leading order r_k = c · K · k · r̃ where c is constant depending on g(0).",
+            "motivation": "Onset of synchronization.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "r_k = (π g(0)/2) K k r̃"
+              ]
+            },
+            "hints": [
+              "From mean-field Kuramoto, near onset r ≈ (πg(0)/2) K (for all-to-all)."
+            ],
+            "reveal": "For mean-field Kuramoto onset r ≈ (π·g(0)/2)·K_eff. So r_k ≈ (π·g(0)/2)·K·k·r̃."
+          },
+          {
+            "prompt": "Substitute into r̃ = (1/⟨k⟩) Σ_k k P(k) r_k.",
+            "motivation": "Self-consistency closes.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "r̃ = (π g(0)/2) K (⟨k²⟩/⟨k⟩) r̃"
+              ]
+            },
+            "hints": [
+              "Pull out r̃ + collect."
+            ],
+            "reveal": "r̃ = (π·g(0)/2)·K·(⟨k²⟩/⟨k⟩)·r̃. Nontrivial solution requires (π·g(0)/2)·K·(⟨k²⟩/⟨k⟩) ≥ 1."
+          },
+          {
+            "prompt": "K_c?",
+            "motivation": "Critical coupling.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "K_c = 2⟨k⟩ / (π g(0) ⟨k²⟩)"
+              ]
+            },
+            "hints": [
+              "Solve for K."
+            ],
+            "reveal": "**K_c = 2·⟨k⟩ / (π·g(0)·⟨k²⟩)** — proportional to ⟨k⟩/⟨k²⟩, the same form as epidemic threshold. Scale-free networks (γ ≤ 3) → K_c → 0 → synchronization easier. Restrepo + Ott + Hunt 2005 PRL gave the rigorous version + spectral form K_c ∝ 1/Λ_max(A)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dyn_1",
+        "kind": "multiple_choice",
+        "question": "Why does cooperation in evolutionary games flourish on networks but collapse in well-mixed populations?",
+        "options": [
+          "Random.",
+          "In well-mixed (all-to-all) populations under Prisoner's Dilemma, defection always dominates cooperation in standard evolutionary dynamics (replicator equation, Moran process) — defectors free-ride on cooperators + outreproduce them. Population structure changes this radically: Nowak + May (1992 Nature *Evolutionary games + spatial chaos*) showed on 2D lattices, cooperators form clusters whose boundaries with defectors fluctuate, sustaining cooperation indefinitely. Ohtsuki + Hauert + Lieberman + Nowak (2006 Nature) proved the analytical rule **b/c > k** (benefit/cost > mean degree) for cooperation to win under death-birth dynamics on regular networks. Santos + Pacheco (2005 PRL; PNAS 2006) extended this to scale-free networks: **cooperation dramatically enhanced**, since hubs anchor cooperators + spread cooperation outward; defectors exploiting hubs lose access to large neighborhoods. Foundational result for network reciprocity, one of Nowak's five rules for evolution of cooperation. Applied to climate-change-mitigation games (Hauert + Holmes + Doebeli 2006), public-goods provision, microbial cooperation, organizational behavior. Empirical human-subject experiments (Rand + Arbesman + Christakis 2011 PNAS) found static networks alone don't sustain cooperation in real humans, but **dynamic networks** where partners can be rewired do — coevolution of games + networks (Pacheco + Traulsen + Nowak 2006) is the modern framework. A canonical example of how topology fundamentally changes dynamics.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "In well-mixed populations, defection dominates under Prisoner's Dilemma. Nowak + May (1992) showed cooperation persists on 2D lattices via cluster dynamics. Ohtsuki + Hauert + Lieberman + Nowak (2006) proved b/c > k rule. Santos + Pacheco (2005) showed cooperation dramatically enhanced on scale-free networks — hubs anchor cooperators. One of Nowak's five rules (kin, direct, indirect, network, group). Rand + Arbesman + Christakis (2011) found dynamic networks (rewiring) work in humans where static don't."
+      },
+      "hints": [
+        "Spatial structure changes dynamics.",
+        "Network reciprocity is one of Nowak's five rules."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Well-mixed: defection dominates. Nowak + May (1992) showed cooperation persists on 2D lattices via cluster boundaries. Ohtsuki et al (2006) derived analytical rule b/c > k. Santos + Pacheco (2005, 2006) extended to scale-free — cooperation dramatically enhanced via hubs. Network reciprocity = one of Nowak's five rules. Empirical: dynamic networks (Rand + Arbesman + Christakis 2011) work in humans."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_dyn_1",
+        "kind": "scenario",
+        "question": "You're studying a 50-node neural circuit modeled as Kuramoto oscillators with heterogeneous frequencies.",
+        "prompt": "Walk through how you'd: (a) identify the synchronization threshold K_c via simulation + spectral analysis of the Laplacian (Restrepo-Ott-Hunt + master stability function Pecora-Carroll); (b) detect chimera states (coexisting synchronized + incoherent regions); (c) test how Watts-Strogatz rewiring of the topology affects K_c (Barahona-Pecora 2002). What insights does this give for understanding pathological neural sync (epilepsy, Parkinson's tremor) + healthy gamma oscillations? Discuss connections to AlphaFold's pair representation + GNN message passing for predicting dynamics."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_dyn_1",
+        "kind": "math_expression",
+        "question": "Write the Kuramoto equation for oscillator i on a network with adjacency A_ij, natural frequency ω_i, coupling K, N nodes.",
+        "acceptedAnswers": [
+          "dθ_i/dt = ω_i + (K/N) Σ_j A_ij sin(θ_j - θ_i)",
+          "dθ_i/dt = ω_i + K/N sum_j A_ij sin(θ_j - θ_i)"
+        ],
+        "hint": "Each oscillator's phase changes due to natural frequency + neighbor-driven coupling."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dyn_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how dynamics on networks differ from dynamics on lattices / well-mixed systems.",
+        "rubric": "Mentions: Network topology controls collective dynamics. Kuramoto synchronization threshold K_c ∝ ⟨k⟩/⟨k²⟩ (Restrepo + Ott + Hunt 2005); for scale-free networks ⟨k²⟩ diverges → K_c → 0, easier sync. Spectrally K_c ∝ 1/Λ_max(A). Master stability function (Pecora + Carroll 1998) factorizes sync stability via Laplacian eigenvalues. Small-world networks (Watts-Strogatz) dramatically reduce K_c — efficient brain gamma oscillations. Opinion dynamics: DeGroot (1974) averaging → consensus; voter model (Holley-Liggett 1975); Deffuant bounded confidence (2000) → polarization without external forcing; Galam sociophysics; echo chambers (Bakshy 2015) from homophily + algorithmic filtering. Games on networks: Nowak + May (1992) lattice cooperation; Ohtsuki + Hauert + Lieberman + Nowak (2006) b/c > k rule; Santos + Pacheco (2005) scale-free amplifies cooperation via hubs. Heider (1946) structural balance + triadic closure. Network reciprocity = one of Nowak's five rules. Modern: dynamic-network coevolution, LLM agents in opinion + cooperation experiments."
+      }
+    }
+  ]
+}

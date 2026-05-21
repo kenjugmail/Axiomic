@@ -1,0 +1,152 @@
+{
+  "slug": "multilayer-temporal-and-higher-order",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Define multilayer + multiplex networks.",
+      "Analyze temporal networks.",
+      "Survey higher-order + simplicial structures."
+    ],
+    "prereqs": [
+      "community-detection-and-modularity"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Multilayer + multiplex networks",
+      "body": "**Multilayer networks**: real systems often have **multiple types** of connections simultaneously. Single-layer (monoplex) abstractions discard crucial structure.\n\n**Boccaletti + Bianconi + Criado + del Genio + Gómez-Gardeñes + Romance + Sendiña-Nadal + Wang + Zanin (2014 Physics Reports *The structure + dynamics of multilayer networks*)** — canonical 122-page review; >5,000 citations.\n\n**Terminology**:\n- **Multiplex**: same node set across layers (e.g. same people on Facebook + Twitter + LinkedIn); each layer has different edge type.\n- **Interconnected / interlayer networks**: distinct node sets per layer + interlayer edges (e.g. air + rail transport networks coupled at transfer stations).\n- **Multidimensional networks**: edges labeled by 'aspects' (time, type, layer).\n- **Multislice / temporal networks**: layers = time snapshots (special case).\n\n**Tensor formalism** (de Domenico + Solé-Ribalta + Cozzo + Kivelä + Moreno + Porter + Gómez + Arenas 2013 PRX *Mathematical formulation of multilayer networks*): generalize adjacency matrix A_ij to fourth-order tensor M^{αβ}_{ij} where α, β index layers + i, j index nodes within layers. Captures all interlayer + intralayer edges in unified algebra. Eigenvalues + eigenvectors of supra-adjacency / supra-Laplacian matrices generalize spectral methods.\n\n**Supra-adjacency matrix**: stack each layer + connect corresponding nodes across layers with interlayer couplings. (n·L) × (n·L) matrix for n nodes + L layers.\n\n**Multiplex centrality**: PageRank, eigenvector centrality generalize but care needed — different layer weights yield different rankings; tensor formulations give principled approaches (de Domenico + Solé-Ribalta + Omodei + Gómez + Arenas 2015).\n\n**Multiplex percolation** (Buldyrev + Parshani + Paul + Stanley + Havlin 2010 Nature *Catastrophic cascade of failures in interdependent networks*): coupled networks (power grid + Internet) show **discontinuous (first-order) percolation transition** vs continuous (second-order) for single networks — small fraction of failures triggers catastrophic collapse. Inspired by 2003 Italy blackout (power grid failure cascaded via SCADA Internet failure). One of the most-cited network-science papers.\n\n**Layer-coupling effects**:\n- **Spreading on multiplex** (Cozzo + Banos + Meloni + Moreno 2013): a disease on layer A + an awareness/immunization process on layer B couple; awareness suppresses spreading.\n- **Multiplex synchronization**: stability + thresholds depend on interlayer coupling strength.\n- **Multilayer communities** (Mucha + Richardson + Macon + Porter + Onnela 2010 Science): generalized modularity Q with interlayer coupling parameter ω; reveals consistent vs layer-specific groups.\n\n**Real multilayer datasets**:\n- **Multimodal transport** (air + rail + road).\n- **Multispecies ecological** (predation + competition + mutualism).\n- **Multi-omics biology** (gene-gene + protein-protein + metabolic).\n- **Brain multiplex** (Battiston + Nicosia + Chavez + Latora 2017): structural + functional layers.\n- **Social multiplex**: Facebook + Twitter + LinkedIn same users.\n\n**Software**: pymnet (Kivelä), multiNetX, MuxViz (de Domenico), igraph + tensorly for tensor analysis."
+    },
+    {
+      "kind": "text",
+      "title": "Temporal networks: when edges have timestamps",
+      "body": "**Temporal networks** (Petter Holme + Jari Saramäki 2012 Physics Reports *Temporal networks*; 2019 book): edges are time-stamped events rather than static links. Crucial for analyzing real systems where **timing + causality matter**.\n\n**Examples**:\n- **Email + phone-call networks**: each communication = timestamped edge.\n- **Sexual contact networks**: pivotal for HIV/STI modeling.\n- **Face-to-face proximity** (SocioPatterns RFID datasets at conferences, schools, hospitals; Cattuto + Van den Broeck + Barrat + Colizza + Pinton + Vespignani 2010).\n- **Citation networks** (asymmetric in time).\n- **Neuronal spike trains** (functional connectivity in time).\n- **Trade + financial transactions**.\n- **Mobile-phone CDR data** (Karsai + Kivelä + Pan + Kaski + Kertész + Barabási + Saramäki 2011): burstiness, temporal correlations.\n- **Twitter retweet cascades**.\n\n**Time-respecting paths** (Kempe + Kleinberg + Kumar 2000): a sequence of edges (i_0, i_1, t_0), (i_1, i_2, t_1), ... with t_0 ≤ t_1 ≤ ... — respects causality. Reachability is **asymmetric** + path lengths between same pair may differ in different directions. Static aggregation **destroys** this asymmetry.\n\n**Temporal motifs** (Paranjape + Benson + Leskovec 2017): generalize Milo-Alon network motifs to temporal subgraphs with edge orderings. Different motif distributions in: email vs trust networks vs face-to-face. Captures dynamical signatures.\n\n**Inter-event time distributions** (Barabási 2005 Nature *The origin of bursts + heavy tails in human dynamics*): time between consecutive activities of an individual follows **heavy-tailed** distribution (~ power law or stretched exponential), not exponential as Poisson processes assume. Bursts of activity separated by long quiet periods. Universal in human behavior — email, calls, web browsing.\n\n**Effect on spreading**:\n- **Burstiness slows spreading** in many regimes (Karsai et al. 2011): long quiet periods between bursts delay outbreaks.\n- But heavy-tailed inter-event times can also create explosive cascades when bursts coincide.\n- **Temporal correlations** (vs random shuffling of timestamps) usually slow spreading + epidemics, but the effect is system-specific.\n\n**Temporal communities + dynamical groups**:\n- **Mucha + Richardson + Macon + Porter + Onnela (2010 Science)**: generalized modularity on temporal multilayer networks with interlayer coupling ω — communities consistent over time vs short-lived.\n- **Sliding-window analysis**: simpler but reveals merging, splitting, birth, death of communities (Palla + Barabási + Vicsek 2007 Nature).\n- **DSBM** (dynamic stochastic block model).\n\n**Inference of dynamics + temporal centrality**:\n- **Temporal PageRank, temporal betweenness**: rank nodes by their role in time-respecting paths.\n- **Tie strength inference**: Onnela 2007 mobile-phone data showed weak ties are crucial for global connectivity but strong ties locally.\n\n**Modern + open**:\n- **Online streaming** algorithms for huge dynamic graphs.\n- **Temporal graph neural networks** (TGN — Rossi et al. 2020; TGAT, DyRep): incorporate time into GNN message passing.\n- **Continuous-time vs discrete-time formulations**.\n- **Granger / transfer-entropy causality on temporal networks**.\n\n**Software**: pathpy (Scholtes), teneto, TGL (Temporal Graph Library), Tigramite for causal discovery."
+    },
+    {
+      "kind": "text",
+      "title": "Higher-order interactions: simplicial complexes, hypergraphs + TDA",
+      "body": "**Beyond pairwise edges**: many real interactions involve **more than two entities** simultaneously — co-authorship of papers (3+ authors), multi-party conversations, protein complexes, multi-gene transcription, ecological mutualism among multiple species. Edges miss these higher-order interactions.\n\n**Hypergraphs** (Berge 1973 *Graphs + Hypergraphs*): generalize edges to **hyperedges** containing any number of nodes. Adjacency tensor of order = max hyperedge size. Modern analytical tools: hypergraph spectral theory, hypergraph Laplacian, hypergraph clustering.\n\n**Simplicial complexes** (algebraic topology): collection of simplices closed under taking faces. A 2-simplex (triangle) implies all three of its edges (1-simplices) + vertices (0-simplices) are included. **Boundary operators** ∂_k: C_k → C_(k-1) satisfy ∂² = 0; homology H_k = ker(∂_k) / im(∂_(k+1)) measures k-dimensional holes.\n\n**Battiston + Cencetti + Iacopini + Latora + Lucas + Patania + Young + Petri (2020 Physics Reports *Networks beyond pairwise interactions*)**: canonical review of higher-order network science. Two key insights:\n- **Higher-order dynamics differ qualitatively** from pairwise approximations: explosive synchronization, bistability, abrupt transitions, qualitatively new collective behaviors.\n- **Many real datasets contain higher-order interactions** that monoplex graphs cannot represent — co-authorship is best modeled as hyperedges.\n\n**Examples of higher-order phenomena**:\n- **Simplicial Kuramoto** (Millán + Restrepo + Torres 2020): higher-order coupling produces explosive synchronization + multistability.\n- **Hypergraph epidemics** (Iacopini + Petri + Barrat + Latora 2019 Nature Communications): contagion via triangles + hyperedges shows abrupt transitions vs gradual onset on pairwise networks.\n- **Hypergraph consensus, voter models, evolutionary games**: novel dynamics.\n\n**Topological Data Analysis (TDA)** (Gunnar Carlsson 2009 *Topology + data*; >7,000 citations) — uses algebraic topology to summarize shape of data.\n\n**Persistent homology**: build a sequence of simplicial complexes from data (e.g. **Vietoris-Rips complex** with growing radius). Track when homology classes (connected components, loops, voids) appear + disappear. **Persistence diagrams** + **barcodes** summarize features that persist across scales. Robust to noise.\n\n**Applications of TDA + persistent homology**:\n- **Image + 3D shape analysis**.\n- **Protein structure** (binding pockets, cavities).\n- **Brain networks** (Sizemore + Phillips-Cremins + Ghrist + Bassett 2019; loops + cavities in functional brain networks correlate with cognition).\n- **Cosmic web** (large-scale structure of universe).\n- **Time-series analysis** (sliding-window TDA).\n- **Genomics**: persistence of recombination events.\n- **Materials science**: detecting defect structures.\n\n**Software**: GUDHI (Inria; reference C++/Python), Ripser (fast persistent homology), giotto-tda, scikit-tda, HyperNetX (LBNL hypergraphs).\n\n**Modern + open**:\n- **Hypergraph neural networks** (Feng + You + Zhang + Ji + Gao 2019; HGNN, HyperGCN): GNNs generalized to hyperedges.\n- **Simplicial neural networks** (Bunch + You + Carlsson + Hamilton 2020).\n- **Cellular complexes + cell complexes** as generalization.\n- **Topological deep learning** (Hajij + Zamzmi + Papamarkou + Maroulas + Cai + Ramamurthy + Birdal + Wang 2022 review): emerging field at the intersection of TDA + ML.\n- **Graph + simplicial GNNs in molecular property prediction, materials discovery**.\n\nHigher-order representations promise to be as transformative as the move from lattices to networks in the 2000s."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ml_1",
+        "kind": "guided_derivation",
+        "question": "Derive supra-adjacency + cascade fragility on interdependent networks",
+        "goal": "Sketch why coupled networks (Buldyrev et al. 2010) have first-order percolation transition.",
+        "steps": [
+          {
+            "prompt": "Two coupled networks A + B; each node in A is paired to one in B. A node functions only if both its copy in A + its copy in B are in their respective giant components. Set up the recursion.",
+            "motivation": "Mutual giant component.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "fraction g_A of A is in giant; require corresponding B-nodes also in giant"
+              ]
+            },
+            "hints": [
+              "Iterate: remove failed nodes in A → some B-counterparts fail → more A fails."
+            ],
+            "reveal": "Iterative cascade: remove fraction (1-p) of A's nodes; compute giant component of remaining; identify corresponding B-nodes whose A-partner failed → remove those from B; recompute B's giant; iterate. Mutual giant = fixed point."
+          },
+          {
+            "prompt": "Single ER network: continuous transition at p_c = 1/⟨k⟩. What happens for two coupled ER networks?",
+            "motivation": "Coupling makes transition abrupt.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "first-order discontinuous transition at p_c higher than single-network"
+              ]
+            },
+            "hints": [
+              "Cascade amplifies failures; mutual giant collapses abruptly."
+            ],
+            "reveal": "Buldyrev et al. 2010 Nature: for two coupled ER networks with mean degree ⟨k⟩, the mutual giant component undergoes a **first-order (discontinuous) phase transition** at p_c ≈ 2.4554/⟨k⟩ — significantly higher than single-network p_c = 1/⟨k⟩. At p_c the giant component drops abruptly to zero. Small additional damage causes catastrophic cascade. Inspired by 2003 Italy blackout (power grid + Internet SCADA coupling)."
+          },
+          {
+            "prompt": "What's the implication for real-world critical infrastructure?",
+            "motivation": "Engineering takeaway.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "design for cascade resilience; avoid tight one-to-one coupling; build redundancy"
+              ]
+            },
+            "hints": [
+              "Reduce dependency degree; randomize coupling; redundant paths."
+            ],
+            "reveal": "Engineering implications: (1) reduce tight one-to-one interlayer coupling; (2) introduce multiple redundant interlayer dependencies; (3) island networks to limit cascade reach; (4) heterogeneous coupling (Parshani + Buldyrev + Havlin 2010) — coupling fraction q matters: low q → continuous; high q → discontinuous; (5) include sequential repair dynamics. Post-2010 literature: coupled-network resilience for power grids, transportation + financial systems (Battiston DebtRank, post-2008 financial-stability work)."
+          },
+          {
+            "prompt": "How does this connect to multilayer-modularity community detection (Mucha 2010)?",
+            "motivation": "Different question; related formalism.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "same supra-Laplacian / supra-adjacency framework; interlayer coupling ω"
+              ]
+            },
+            "hints": [
+              "Both use supra-matrices."
+            ],
+            "reveal": "Mucha + Richardson + Macon + Porter + Onnela (2010 Science) used **supra-adjacency** + generalized modularity to detect communities in multilayer + temporal networks with interlayer coupling parameter ω. Same algebra (tensor / supra-matrices) underlies both percolation + community-detection on multilayer networks. de Domenico + Solé-Ribalta + Cozzo + Kivelä + Moreno + Porter + Gómez + Arenas (2013 PRX) systematized the tensor formalism."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ml_1",
+        "kind": "multiple_choice",
+        "question": "Why are higher-order networks (hypergraphs, simplicial complexes) considered the next frontier of network science?",
+        "options": [
+          "Random.",
+          "Battiston + Cencetti + Iacopini + Latora + Lucas + Patania + Young + Petri (2020 Physics Reports *Networks beyond pairwise interactions*) review showed that **higher-order interactions** (3-body, 4-body, group interactions modeled as hyperedges or simplices) cannot be reduced to pairwise edges without losing essential structure. Real systems with higher-order structure: co-authorship (groups of n authors collaborating), protein complexes (multi-subunit assemblies), multi-party social conversations, ecological mutualism, neural assemblies, gene-regulation triplets. Pairwise approximations miss these. Iacopini + Petri + Barrat + Latora (2019 Nature Communications) showed contagion on hypergraphs displays **abrupt transitions, bistability, hysteresis** absent from pairwise SIS — qualitatively different dynamics. Simplicial Kuramoto (Millán + Restrepo + Torres 2020) shows explosive synchronization. Topological data analysis (Carlsson 2009; >7,000 citations) uses persistent homology to detect loops + voids in data via simplicial complexes — applied to brain networks (Sizemore + Bassett 2019), cosmic web, materials, protein structures. Software: GUDHI, Ripser, HyperNetX. Modern: hypergraph neural networks (HGNN, HyperGCN), simplicial neural networks (Bunch et al. 2020), topological deep learning (Hajij et al. 2022). Higher-order representations promise to be as transformative as the move from lattices to networks in the 2000s — capturing structure ML on flat graphs cannot.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Battiston et al (2020 Physics Reports) showed higher-order interactions (hyperedges, simplices) capture multi-body structure pairwise edges miss. Co-authorship, protein complexes, multi-party conversations. Iacopini et al (2019 Nature Comms) showed contagion on hypergraphs shows abrupt transitions + bistability absent from pairwise SIS. TDA + persistent homology (Carlsson 2009) detects loops + voids via simplicial complexes. Modern hypergraph + simplicial neural networks (Bunch, Hajij 2022 topological DL) extend GNNs."
+      },
+      "hints": [
+        "Pairwise edges don't capture multi-body interactions.",
+        "Dynamics qualitatively differ."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Battiston et al (2020 Physics Reports) showed higher-order interactions on hypergraphs + simplicial complexes capture multi-body structure pairwise edges miss. Iacopini et al (2019 Nature Comms) showed hypergraph contagion has abrupt + bistable transitions; Millán et al (2020) showed explosive synchronization. TDA (Carlsson 2009) detects loops/voids via persistent homology — applied to brain (Sizemore-Bassett), cosmic web. Hypergraph + simplicial neural networks + topological DL (Hajij 2022) are frontier ML."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ml_1",
+        "kind": "scenario",
+        "question": "You're modeling Italy's 2003 blackout: power grid (~3000 generators + substations) coupled to Internet SCADA control network.",
+        "prompt": "Walk through how Buldyrev et al. (2010 Nature) modeled this as interdependent networks + predicted the discontinuous percolation transition at p_c ≈ 2.4554/⟨k⟩. How would you simulate the cascade dynamics + verify against the actual 2003 timeline? What design recommendations follow (redundancy, partial coupling, island-mode operation)? Connect to Battiston + DebtRank (2012) for financial cascades + the post-2010 critical-infrastructure literature. What modern frameworks (HyperNetX, multinetx) would you use?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ml_1",
+        "kind": "math_expression",
+        "question": "Write the supra-adjacency block structure for two coupled networks A + B with interlayer coupling C and intralayer adjacencies A^(1) and A^(2).",
+        "acceptedAnswers": [
+          "[[A^(1), C], [C^T, A^(2)]]",
+          "supra-A = block matrix with A^(1) and A^(2) on diagonal + C off-diagonal"
+        ],
+        "hint": "Block matrix: intralayer on diagonal blocks, interlayer on off-diagonal."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ml_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why multilayer, temporal + higher-order networks are essential frontiers of network science.",
+        "rubric": "Mentions: Single-layer static pairwise graphs miss critical structure. Multilayer / multiplex networks (Boccaletti review 2014; de Domenico tensor formalism 2013 PRX) handle multiple edge types simultaneously; Buldyrev + Parshani + Paul + Stanley + Havlin (2010 Nature) showed interdependent networks have first-order percolation transitions — catastrophic cascades inspired by 2003 Italy blackout; Mucha (2010 Science) generalized modularity to multilayer + temporal communities. Temporal networks (Holme + Saramäki 2012 Physics Reports) — edges have timestamps, time-respecting paths matter, burstiness (Barabási 2005) reshapes spreading; temporal motifs (Paranjape + Benson + Leskovec 2017); SocioPatterns datasets. Higher-order (Battiston et al 2020 Physics Reports): hyperedges + simplicial complexes capture multi-body interactions impossible to express pairwise; hypergraph contagion (Iacopini 2019 Nature Comms) shows abrupt + bistable transitions; simplicial Kuramoto, explosive sync. Topological data analysis (Carlsson 2009) via persistent homology detects loops + voids. Modern ML: hypergraph GNNs, simplicial neural networks, topological deep learning (Hajij 2022). Together they're as transformative as the move from lattices to networks in the 2000s."
+      }
+    }
+  ]
+}
