@@ -20,6 +20,8 @@ import { DiscoverPage } from "./pages/DiscoverPage";
 import { ConceptSearchPage } from "./pages/ConceptSearchPage";
 import { AuthorLessonPage } from "./pages/admin/AuthorLessonPage";
 import { LearnNextPage } from "./pages/LearnNextPage";
+import { JourneysListPage } from "./pages/JourneysListPage";
+import { JourneyDetailPage } from "./pages/JourneyDetailPage";
 import { MasteryPathPage } from "./pages/MasteryPathPage";
 import { ForumListPage } from "./pages/ForumListPage";
 import { NewsListPage } from "./pages/NewsListPage";
@@ -557,6 +559,8 @@ function AppRoutes() {
           <Route path="/concepts/search" element={<ConceptSearchPage />} />
           <Route path="/admin/author/lesson" element={<AuthorLessonPage />} />
           <Route path="/learn-next" element={<LearnNextPage />} />
+          <Route path="/journeys" element={<JourneysListPage />} />
+          <Route path="/journeys/:slug" element={<JourneyDetailPage />} />
           <Route path="/paths/:slug" element={<MasteryPathPage />} />
           <Route
             path="/paths/:pathSlug/lessons/:nodeSlug"

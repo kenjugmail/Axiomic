@@ -170,6 +170,23 @@ export function DiscoverPage() {
         </div>
       ) : (
         <>
+          {/* Journeys rail — curated multi-path sequences */}
+          {query.length === 0 && (
+            <section className="mb-8">
+              <div className="flex items-baseline justify-between mb-3">
+                <h2 className="text-lg font-semibold">Learning journeys</h2>
+                <Link to="/journeys" className="text-xs text-muted-foreground hover:text-foreground">browse all →</Link>
+              </div>
+              <p className="text-xs text-muted-foreground mb-2">Curated multi-path sequences for common research + builder directions.</p>
+              <Link
+                to="/journeys"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded border border-border bg-card hover:bg-accent/40 hover:border-primary/40"
+              >
+                <span>Explore 12 curated journeys →</span>
+              </Link>
+            </section>
+          )}
+
           {/* Recently added rail */}
           {query.length === 0 && (
             <section className="mb-10">
