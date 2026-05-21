@@ -1,0 +1,158 @@
+{
+  "slug": "gis-fundamentals-and-spatial-data",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish vector + raster spatial-data models + their formats.",
+      "Apply core spatial operations (buffer, overlay, dissolve, intersect, union, voronoi).",
+      "Survey the modern GIS ecosystem (PostGIS, GDAL, QGIS, ArcGIS, geopandas, sf, xarray)."
+    ],
+    "prereqs": [
+      "geodesy-coordinate-systems-and-projections"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Vector + raster — two ways to represent the world",
+      "body": "A GIS represents the spatial world in two fundamental models: **vector** (discrete features with geometry + attributes) + **raster** (continuous fields on a regular grid).\n\n**Vector model — features**:\n- A **feature** = geometry + attributes. Geometry types per **OGC Simple Features specification (1999)**: Point, LineString, Polygon, MultiPoint, MultiLineString, MultiPolygon, GeometryCollection. Plus optional Z (elevation), M (measure), curve types.\n- **Topology** — relationships between features. **Egenhofer's 9-intersection model (Egenhofer + Franzosa 1991)** + the related DE-9IM define the 8 topological relations between two polygons: Disjoint, Touches, Overlaps, Contains, Within, Equals, Crosses, Intersects. PostGIS, JTS, GEOS all implement these.\n- **Vector formats**:\n  - **Shapefile (Esri 1990s)** — three+ sidecar files (.shp, .shx, .dbf, .prj, ...); 2 GB limit + 254-char attribute names + ASCII-only DBF. Still ubiquitous despite being officially deprecated; **'switch from Shapefile' campaign** by **switchfromshapefile.org**.\n  - **GeoJSON (RFC 7946, 2016)** — JSON-based; always EPSG:4326 WGS84; web-friendly. Standard for web APIs + small datasets.\n  - **KML (Keyhole / Google)** — XML; styling included; used by Google Earth + many web tools.\n  - **GeoPackage (OGC, 2014)** — SQLite-based open standard; replaces Shapefile for most uses; one file, multiple layers, no size limit, full Unicode.\n  - **FileGeodatabase (Esri)** — directory-based, proprietary but documented.\n  - **FlatGeobuf (2018)** — single binary file; spatially indexed; fast streaming + cloud-native.\n  - **GeoParquet (2022)** — Apache Parquet with geometry; cloud-native + columnar; growing fast for big spatial.\n\n**Raster model — fields**:\n- A **raster** = regular grid of cells (pixels) with values; CRS + affine transform position the grid in space. Each cell represents a value sampled or averaged over its footprint.\n- **Raster formats**:\n  - **GeoTIFF (1995)** — geo-aware TIFF; the de facto standard. Supports tiling, compression (LZW, Deflate, JPEG, ZSTD), overviews (pyramids), multi-band.\n  - **Cloud-Optimized GeoTIFF (COG, 2017+)** — internally tiled + with overviews + structured so HTTP range requests can read sub-regions efficiently. Standard for cloud-native raster.\n  - **NetCDF (Unidata)** — multi-dimensional scientific arrays (time × lat × lon × depth); standard for climate, ocean, atmospheric data.\n  - **HDF5 + HDF-EOS** — used by NASA (MODIS, ASTER); similar to NetCDF, more general.\n  - **Zarr (2018+)** — chunked, compressed, multi-dimensional arrays in cloud object storage. Native to Pangeo + xarray; replaces NetCDF for cloud-scale climate data.\n  - **GRIB** — meteorological standard.\n  - **JPEG2000** — wavelet compression; some satellite formats.\n  - **MBTiles + PMTiles** — tile-based packaging for web (raster + vector).\n- **Mosaic + composites** — large raster collections (e.g., Landsat global archive) are managed as **STAC catalogs** (SpatioTemporal Asset Catalog) — JSON metadata indexes for petabytes of imagery in cloud object stores."
+    },
+    {
+      "kind": "text",
+      "title": "Spatial operations + topology",
+      "body": "**Core vector operations** — the algebra of spatial analysis:\n- **Buffer(geom, distance)** — polygon at fixed distance from geometry. 'All land within 100 m of a river' — pollution buffer, wildlife corridor.\n- **Intersection(A, B)** — geometric AND. 'Forest within protected area'.\n- **Union(A, B)** — geometric OR. 'Total area of forest OR park'.\n- **Difference(A, B)** — A minus B. 'Forest outside protected area'.\n- **Symmetric difference** — XOR.\n- **Dissolve** — merge adjacent features sharing an attribute. 'All county polygons → states'.\n- **Clip** — restrict A to extent of B.\n- **Overlay** — combine A + B into all combinations (intersection of geometries × union of attributes).\n- **Spatial join** — attach attributes of B to A based on spatial relationship (intersects, within, nearest).\n- **Voronoi tessellation (Dirichlet 1850, Voronoi 1908)** — partition the plane into cells closest to each input point. Used for service-area analysis, watershed approximation, Thiessen polygons for climate stations.\n- **Convex hull, concave hull, alpha shape** — bounding shapes.\n- **Centroid, point on surface, simplify, smooth**.\n- **Topology cleaning** — snap, dangle removal, slivers — necessary after digitizing or overlay.\n\n**Egenhofer 9-intersection model**:\n- For two regions $A$ + $B$, consider the intersections of (interior, boundary, exterior) of A with the same of B → 3×3 matrix of empty/non-empty. This gives the 8 fundamental topological relations.\n- The **DE-9IM (Dimensionally Extended 9IM)** generalizes to allow checking dimensionality. Implemented in PostGIS as `ST_Relate` + the named predicates `ST_Contains`, `ST_Intersects`, `ST_Touches`, etc.\n- Foundation of topology-aware GIS + spatial SQL.\n\n**Raster operations**:\n- **Map algebra (Tomlin 1990)** — Dana Tomlin's calculus of layered raster operations: local (per-cell), focal (neighborhood), zonal (per-zone), global. The conceptual foundation of raster GIS.\n- **Resampling** — nearest, bilinear, cubic, Lanczos. Choose based on whether values are categorical or continuous.\n- **Reprojection** — warp from one CRS to another; uses resampling.\n- **Mosaic + clip + composite**.\n- **Statistics + ML** — per-pixel classification (random forest, deep learning), unsupervised clustering, temporal compositing (median-of-year for cloud-free Landsat).\n\n**Topology checks**:\n- Many GIS workflows require topologically clean data. PostGIS `ST_IsValid` + `ST_MakeValid`; QGIS Topology Checker; Esri Topology rules. Common defects: self-intersection, gaps, overlaps, slivers, dangles."
+    },
+    {
+      "kind": "text",
+      "title": "The GIS ecosystem — proprietary, open source, scientific Python",
+      "body": "**Commercial backbone — Esri + others**:\n- **Esri ArcGIS** — dominant commercial GIS for 40 years. ArcGIS Pro (desktop), ArcGIS Online + ArcGIS Enterprise (cloud), ArcGIS Server, ArcGIS Field Maps + Collector (mobile). Used by virtually every U.S. county + many federal agencies. Strong in workflows + cartographic polish + Esri Living Atlas. The **Esri ecosystem** is closed but interoperable via APIs + open formats.\n- Other commercial: **MapInfo (Pitney Bowes)** — strong in marketing GIS; **Manifold**; **Hexagon ERDAS** (raster + photogrammetry); **CARTO** (cloud BI + maps).\n\n**Open-source desktop + libraries**:\n- **QGIS (Gary Sherman 2002+)** — open-source desktop GIS; near-feature-parity with ArcGIS Pro for most workflows; Python plugin ecosystem (~1500 plugins); built on GDAL + GEOS + QT.\n- **GRASS GIS (1982+, US Army CERL → community)** — open-source raster + analysis; classic, deep, slightly intimidating; integrated into QGIS.\n- **GDAL/OGR (Frank Warmerdam 1998+)** — Geospatial Data Abstraction Library; reads/writes ~150 raster + vector formats; the engine under almost every GIS tool. `gdalinfo`, `gdal_translate`, `gdalwarp`, `ogr2ogr` — universal Swiss-army knives.\n- **GEOS (Geometry Engine Open Source)** — C++ port of JTS; underlies PostGIS + Shapely.\n- **PROJ (Frank Warmerdam + others)** — coordinate transformation library; underlies GDAL + every CRS-aware tool.\n- **JTS (Java Topology Suite, Martin Davis)** — Java; original geometry engine.\n\n**Spatial databases**:\n- **PostGIS (2001, Refractions Research → Paul Ramsey + others)** — spatial extension to PostgreSQL. Industry standard for spatial backends; powers OSM, MapBox, Foursquare, government GIS worldwide. Supports vector + raster + 3D + topology + tiger geocoder + pgRouting.\n- **Spatialite** — SQLite + spatial extensions; lightweight + embeddable.\n- **Oracle Spatial**, **SQL Server Spatial**, **MySQL Spatial** — enterprise DB spatial.\n- **DuckDB Spatial (2023+)** — embedded analytics; reads GeoParquet, Shapefile, GeoJSON; emerging as a serverless spatial analysis tool.\n\n**Scientific Python + R — the geocomputational layer**:\n- **geopandas (Python, Kelsey Jordahl + Joris Van den Bossche)** — pandas DataFrames with geometry; reads/writes GDAL-supported formats; spatial joins, dissolves, overlays. The standard for Python vector GIS.\n- **shapely** — Python bindings to GEOS; geometry primitives + operations.\n- **rasterio (Sean Gillies, MapBox)** — Python raster I/O on top of GDAL.\n- **xarray + rioxarray** — N-D labeled arrays with CRS-aware operations; backbone of climate + ocean + atmospheric data analysis. Integrates with **Dask** for out-of-memory processing.\n- **Pangeo** — cloud-native scientific Python stack (xarray + Dask + Zarr + JupyterHub + Kubernetes); the foundation of modern climate + ocean computing on the cloud.\n- **R sf (Edzer Pebesma, Roger Bivand, 2018)** — Simple Features for R; succeeded sp + rgdal. **Pebesma's *Spatial Data Science with R + Python* (2024, free online)** is the modern textbook. R's **stars** is the raster + cube counterpart; **terra** is the modern raster package (Robert Hijmans).\n- **PySAL (Sergio Rey)** — Python spatial analysis library; spatial statistics, regression, clustering.\n- **scikit-mobility, momepy, OSMnx (Geoff Boeing)** — specialized libraries.\n\n**Open data + community**:\n- **OpenStreetMap (2004, Steve Coast)** — crowdsourced world map; >10 million contributors; the most successful VGI project. Data via Overpass API, Geofabrik extracts, Planet OSM.\n- **Natural Earth (Tom Patterson, Nathaniel Vaughn Kelso)** — public-domain world reference data at 1:10M, 1:50M, 1:110M scales; the standard for small-scale base maps.\n- **OpenCage, Pelias, Nominatim** — open-source geocoding.\n- **Overture Maps Foundation (2022, Meta + Microsoft + AWS + TomTom)** — emerging open base-map alternative.\n\nThe modern GIS stack is layered + interoperable: PROJ + GEOS + GDAL → PostGIS + geopandas + QGIS + ArcGIS → JS web maps + Earth Engine + Pangeo cloud notebooks. Choose your level + interoperate freely via standards (OGC, GeoJSON, GeoTIFF, COG, STAC)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_gis_1",
+        "kind": "guided_derivation",
+        "question": "Design a spatial-overlay analysis to find suitable habitat",
+        "goal": "Find areas suitable for endangered tortoise habitat: (a) within 1 km of a perennial stream, (b) on slopes < 15°, (c) inside protected lands, (d) excluding existing roads. Design the spatial operations.",
+        "steps": [
+          {
+            "prompt": "Step 1: build the stream buffer. Which operation + parameters?",
+            "motivation": "Buffer geometry.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Buffer(streams, 1000) — buffer to 1 km",
+                "ST_Buffer(streams, 1000)"
+              ]
+            },
+            "hints": [
+              "Choose an equal-area or local projection so 1 km is meaningful."
+            ],
+            "reveal": "**`ST_Buffer(streams, 1000)`** — reproject streams to a local equal-area CRS (e.g., Albers Equal-Area Conic) so 1 km is a true 1 km on the ground; then buffer. Result: polygon of all area within 1 km of any stream. Optionally `ST_Union` to dissolve overlapping buffers."
+          },
+          {
+            "prompt": "Step 2: derive a slope-mask from the DEM. Operation?",
+            "motivation": "Raster derivation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Compute slope from DEM via gdaldem slope or QGIS Slope; threshold ≤ 15°",
+                "slope raster from DEM, mask ≤ 15°"
+              ]
+            },
+            "hints": [
+              "DEM → slope → threshold."
+            ],
+            "reveal": "Use `gdaldem slope dem.tif slope.tif -compute_edges` (or `terrain` in rasterio, `terra::terrain` in R) to derive slope in degrees per cell. Threshold: cell ≤ 15° → 1 else 0. This gives a binary raster of acceptable slopes."
+          },
+          {
+            "prompt": "Step 3: combine. How do you intersect vector buffer × raster slope × protected polygons × NOT roads?",
+            "motivation": "Cross-model integration.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Polygonize slope mask or rasterize all + multiply rasters; ST_Intersection + ST_Difference of vectors; then mask",
+                "vector intersection + raster mask"
+              ]
+            },
+            "hints": [
+              "Two paths: vectorize raster or rasterize vectors."
+            ],
+            "reveal": "**Two approaches**: (1) **Vectorize the slope mask** (`gdal_polygonize`) + chain vector operations: `ST_Intersection(stream_buffer, protected) - ST_Buffer(roads, 50)` then `ST_Intersection` with vectorized slope-OK polygon. (2) **Rasterize everything** + use raster map algebra: `result = stream_buffer_r × slope_ok × protected_r × NOT(road_buffer_r)`. Choose based on data scale + downstream use. Vector is exact but may be slow; raster is fast but resolution-dependent."
+          },
+          {
+            "prompt": "What CRS choices + topology checks are essential?",
+            "motivation": "Quality control.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "All layers in same CRS (local equal-area); ST_IsValid; resolve slivers; check resampling",
+                "common CRS + topology validation"
+              ]
+            },
+            "hints": [
+              "What goes wrong if CRSs differ?"
+            ],
+            "reveal": "**Common CRS** — reproject all to a local equal-area CRS (e.g., Albers Equal-Area regional or UTM); never overlay across CRSs. **Topology validation** — `ST_IsValid` on every polygon layer; `ST_MakeValid` to fix self-intersection; remove slivers via `ST_Buffer(geom, -ε)` then `ST_Buffer(geom, ε)` or area filtering. **Raster alignment** — ensure DEM + masks share grid origin + cell size; resample to a common grid via `gdalwarp -tr -te`. **Resampling** — bilinear for continuous (slope); nearest for categorical (protected status). The final habitat polygon is only as clean as its weakest input."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_gis_1",
+        "kind": "multiple_choice",
+        "question": "Why has **PostGIS** become the de facto industry-standard spatial database?",
+        "options": [
+          "Random.",
+          "**PostGIS (Refractions Research 2001 → Paul Ramsey + open community)** is the spatial extension to PostgreSQL — open source, free, with feature parity to (and often superiority over) commercial spatial DBs. Reasons for dominance: (1) **OGC Simple Features compliance** — works with all standard formats + GeoJSON + WKT + WKB; (2) **complete spatial SQL** — all DE-9IM predicates (`ST_Intersects`, `ST_Contains`, ...), buffers, overlays, joins, aggregations, plus 3D, topology, raster, pgRouting (Dijkstra etc.), TIGER geocoder; (3) **spatial indexes** — GIST + SP-GIST + BRIN make spatial joins fast on millions of rows; (4) **interoperability** — every major GIS (QGIS, ArcGIS, GeoServer, MapServer, Mapbox, Tableau) connects via OGC standards; (5) **scale** — production deployments serve OSM (~10B nodes), national mapping agencies, ride-sharing (Uber, Lyft), social platforms (Foursquare); (6) **open + free** — no per-seat license, runs anywhere PostgreSQL runs; (7) **strong community + commercial support** (Crunchy Data, EDB). For most spatial backend needs PostGIS is the answer; for cloud-native columnar analytics, **GeoParquet + DuckDB Spatial** is the emerging complement.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "PostGIS (2001) is the spatial extension to PostgreSQL. OGC Simple Features compliant; complete spatial SQL (DE-9IM, buffers, joins); fast spatial indexes (GIST); interoperable with every GIS; scales to billions of features (OSM, Uber); open + free. Industry standard. GeoParquet + DuckDB Spatial is the emerging cloud-native complement."
+      },
+      "hints": [
+        "What does PostGIS provide that proprietary DBs do?",
+        "Who uses it at scale?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "PostGIS (Refractions 2001) is open-source spatial PostgreSQL with OGC-standard spatial SQL, fast spatial indexes, interoperability, scale (OSM, Uber), + free licensing. De facto industry standard. GeoParquet + DuckDB Spatial is the modern cloud-native complement."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_gis_1",
+        "kind": "scenario",
+        "question": "Architecting a national-scale flood-risk GIS",
+        "prompt": "You're chief data architect at a national flood-risk agency producing yearly flood-risk maps for 50 million properties. Your inputs: (a) 1-m USGS 3DEP lidar elevation (~50 TB); (b) FEMA flood zones (vector); (c) USGS stream network NHD + watershed boundaries WBD (vector); (d) tax parcel polygons (~150 M records); (e) Landsat + Sentinel-2 water masks; (f) climate scenario rainfall projections (CMIP6 NetCDF); (g) historical claims data. Design the GIS stack. Address: (1) **storage** — what goes in PostGIS, what in object storage (S3) as COG / GeoParquet / Zarr, what stays as files; (2) **CRS** — uniform USA Contiguous Albers Equal-Area (EPSG:5070) for analysis; UTM zones for local; Web Mercator for display; (3) **scale strategies** — PostGIS spatial indexes + partitioning; cloud-native COG + STAC for raster; Dask + xarray for climate projections; (4) **spatial operations** — flood-zone intersection with parcels (vector overlay at scale); slope + flow-accumulation from DEM (raster); buffer streams + intersect tax parcels; (5) **topology cleaning** — Egenhofer 9-intersection predicates in PostGIS for FEMA boundary validation; (6) **tooling** — GDAL for ETL, PostGIS for OLTP, GeoParquet + DuckDB or BigQuery GIS for OLAP, QGIS + Mapbox for cartography, Earth Engine + Pangeo for raster ML; (7) **output products** — web maps for public, PDF atlas for insurers, parcel-level CSV for risk models. Deliver an architecture diagram + data-pipeline plan + technology-choice rationale tied to **Goodchild GIScience principles**."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_gis_1",
+        "kind": "math_expression",
+        "question": "A 1-km buffer around a stream covers 25 km². If you re-buffer at 2 km, by what factor does the buffer area scale (assume the stream is long + straight, so end caps are negligible)?",
+        "acceptedAnswers": [
+          "2",
+          "2x",
+          "factor of 2",
+          "approximately 2"
+        ],
+        "hint": "For a long straight stream, buffer area ≈ 2 × distance × length. Doubling the buffer distance doubles the area (linear, not quadratic, because the stream is 1D — contrast with point buffers, which scale as $r^2$)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_gis_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, explain (1) the vector + raster data models with formats; (2) core spatial operations + topology; (3) the GIS ecosystem.",
+        "rubric": "Mentions: **Vector model**: discrete features (Point, LineString, Polygon) with geometry + attributes; OGC Simple Features. Formats: Shapefile (deprecated), GeoJSON, KML, GeoPackage, FlatGeobuf, GeoParquet. **Raster model**: regular grid with affine transform + CRS. Formats: GeoTIFF, COG, NetCDF, HDF5, Zarr, GRIB. Mosaics indexed via STAC. **Core operations**: buffer, intersection, union, difference, dissolve, clip, overlay, spatial join, Voronoi. Topology via **Egenhofer 9-intersection (1991)** + DE-9IM. **Map algebra (Tomlin 1990)** for raster: local, focal, zonal, global. **Ecosystem**: PROJ + GEOS + GDAL/OGR (foundation); **PostGIS (2001)** + Spatialite (spatial DB); QGIS + ArcGIS Esri (desktop); **geopandas + shapely + rasterio + xarray + Pangeo** (Python); **R sf (Edzer Pebesma)** + terra (R); Pangeo + Earth Engine + Microsoft Planetary Computer (cloud); OSM + Natural Earth + Overture (open data); cartopy, d3-geo, Leaflet (visualization). Concludes: modern GIS is layered + interoperable via open standards (OGC, GeoJSON, COG, STAC)."
+      }
+    }
+  ]
+}

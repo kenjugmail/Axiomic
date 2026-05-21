@@ -1,0 +1,159 @@
+{
+  "slug": "web-mapping-and-tiles",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Survey web map tile architecture (XYZ slippy maps, raster vs. vector tiles, PMTiles).",
+      "Compare Leaflet, OpenLayers, Mapbox GL JS, MapLibre, deck.gl, Cesium.",
+      "Apply Mapbox Style Spec, OSM tags, Natural Earth, basemap sources."
+    ],
+    "prereqs": [
+      "gis-fundamentals-and-spatial-data"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "From Google Maps 2005 to PMTiles — tile architecture",
+      "body": "**The slippy map revolution (2005-2010)**:\n- Before 2005, web maps were either thin GIS-server applets (ArcIMS, GeoServer WMS) or static images. Slow, ugly, brittle.\n- **Google Maps (February 8, 2005)** launched with three radical ideas: (1) **continuous panning** via mouse drag rather than clickable nav arrows; (2) **AJAX tile loading** — fetch pre-rendered 256×256 PNG tiles on demand; (3) **fixed zoom levels** with consistent tiling pyramid. Lars + Jens Rasmussen + their team at Where 2 Technologies prototyped + were acquired by Google. Google Maps' UI invented the modern web map.\n- **OpenStreetMap (Steve Coast, 2004)** + the OSM tile server adopted the same XYZ tile scheme + made it open. Together, slippy map architecture became the dominant idiom.\n- **OpenLayers (MetaCarta, 2006)** + later **Leaflet (Volodymyr Agafonkin, 2011)** open-sourced the client-side library; both still widely used.\n\n**XYZ tile pyramid**:\n- **Tiles** are square images (typically 256×256 px) keyed by **(z, x, y)**: $z$ is zoom level (0 = world in 1 tile, 1 = 2×2, ..., $z$ = $2^z \\times 2^z$); $x$, $y$ are tile column + row.\n- URL convention: `https://server/{z}/{x}/{y}.png` (TMS reverses Y origin; the XYZ + TMS convention difference is a perennial source of bugs).\n- **Web Mercator EPSG:3857** is the universal tile projection — projects the world into a square at $z = 0$, doubled tile count at each zoom level.\n- Zoom levels 0-22+ in practice; resolution ≈ 156543 / $2^z$ m/pixel at the equator. Z=15 ≈ 5 m/pixel — neighborhood scale.\n- **TileJSON** (TileMill + MapBox, 2011) — JSON metadata describing a tileset (URL template, bounds, zoom range, attribution).\n\n**Raster vs. vector tiles**:\n- **Raster tiles** — pre-rendered PNG/JPEG/WebP. Easy to serve; fixed style at render time; quick to display; large storage for global high-zoom (terabytes).\n- **Vector tiles** — geometric data (points, lines, polygons) sent as **Mapbox Vector Tile (MVT) PBF (Protocol Buffer)** binary. **Style is applied client-side** — the same tile can render in night-mode, dark-mode, hiking-mode, with one tileset. Much smaller storage; supports interactive features (hover, click, label collision); smooth zoom-in via WebGL.\n- **MVT (Mapbox 2014)** is now an **OGC standard (2020)**. Encodes features as triangulated geometry + properties + zoom-level-of-significance.\n- **Vector tile sources** — OpenMapTiles, Mapbox Streets, Esri Vector Basemaps, MapTiler Cloud.\n\n**PMTiles (Brandon Liu, 2022+)**:\n- **PMTiles (Protomaps Tiles)** — a single-file format storing the entire tile pyramid in one binary blob, readable via HTTP range requests directly from object storage (S3, R2, GCS) — **no tile server needed**.\n- **Brandon Liu's Protomaps** project + free Daylight-OSM-based world tileset (~110 GB for global vector tiles) democratized self-hosted maps. Combined with **MapLibre GL JS** + a static S3 bucket, you can serve a global vector base map with zero servers.\n- Companion: **MBTiles** (Mapbox 2011) — SQLite-based tile container, common for offline + on-prem; **COG** for raster tiles.\n\n**Tile serving stack**:\n- **TileServer GL** + **Tegola** + **Mapnik** + **MapServer** + **GeoServer** for self-hosting.\n- **OSRM tile + heatmap tiles** generated from PostGIS via **martin** (Rust tile server).\n- **t-rex, Tippecanoe (Eric Fischer at Mapbox)** for converting GeoJSON → MVT tiles."
+    },
+    {
+      "kind": "text",
+      "title": "Client libraries — Leaflet, OpenLayers, Mapbox GL, MapLibre, deck.gl, Cesium",
+      "body": "**Web map clients**:\n\n**Leaflet (Volodymyr Agafonkin, 2011+)**:\n- **Volodymyr Agafonkin** (Ukrainian engineer, then at MapBox) released Leaflet in 2011. Lightweight (~40 KB), simple API, raster-tile-focused, mobile-friendly. Powers BBC, NASA, GitHub maps, OSM main site, thousands of projects.\n- Best for: static or moderate-traffic raster maps; simple markers + popups; legacy + simple use.\n- Extensions: Leaflet.draw, Leaflet.markercluster, Leaflet.heat, Leaflet.VectorGrid (vector tiles).\n\n**OpenLayers (MetaCarta 2006 → OSGeo)**:\n- Older + more feature-rich than Leaflet. Supports many projections (not just Web Mercator), WMS, WMTS, GeoTIFF, vector + raster, complex styling.\n- Best for: enterprise GIS web apps where you need projection flexibility + advanced features (editing, vector drawing, multiple data sources).\n\n**Mapbox GL JS (Mapbox 2014+)**:\n- WebGL-based vector tile renderer. Smooth pan/zoom, dynamic styling, label collision, 3D extrusions, hillshade. Closed-source since Mapbox v2.0 (2020) license change.\n- The reference implementation for vector-tile rendering. Mapbox Style Spec is the open style language.\n\n**MapLibre GL JS (community fork, 2020+)**:\n- Open-source fork of Mapbox GL JS v1 after the license change. BSD-licensed; community-driven (AWS, Microsoft, Stadia Maps, MapTiler, Felt, etc.).\n- API-compatible with Mapbox GL up to v1.13. The default modern open-source choice for vector tile web maps.\n- Native versions: MapLibre Native (iOS, Android).\n\n**deck.gl (Uber, 2016+)**:\n- WebGL data-viz library for **large-scale geospatial layers** — millions of points, animated flows, hex-bins, GPU-accelerated rendering. Built by Uber Visualization (Nicolas Belmonte + colleagues).\n- Composes with Mapbox / MapLibre as a layer; standalone for visualization-heavy use cases. Used by Uber's data products, Felt, Kepler.gl (also from Uber).\n- Best for: data-heavy visualization, real-time, animated; not for traditional cartographic styling.\n\n**Cesium + CesiumJS (AGI / Cesium GS, 2011+)**:\n- 3D virtual globe in WebGL; supports terrain, 3D Tiles (OGC standard for 3D city models), CZML time-dynamic data, satellite-track visualization.\n- Spinoff from Analytical Graphics Inc.; used in defense, simulation, urban digital twins. Open source (Apache).\n- 3D Tiles successor: **3D Tiles Next** + **3D Gaussian Splat streaming** for photorealism.\n\n**Other notable**:\n- **MapTiler SDK** — commercial wrapper around MapLibre.\n- **Carto + CartoDB** — cloud BI maps + visualization.\n- **Felt** — collaborative map design (consumer + B2B).\n- **Esri ArcGIS JS API** — full Esri ecosystem in browser.\n- **Folium (Python)** — Jupyter-friendly wrapper around Leaflet; rapid prototyping.\n- **kepler.gl** + **deck.gl** for data-heavy maps; **Observable Plot** + **d3-geo** for custom cartography.\n\n**Mapbox Style Spec**:\n- JSON DSL describing map styles — sources, layers, paint, layout, filters, expressions.\n- Adopted by MapLibre, Stadia Maps, MapTiler, Tilezen — the de facto standard.\n- Style libraries: **Positron, Voyager, Dark Matter (CARTO Basemaps)**, **OSM Bright (OSM standard)**, **Toner, Watercolor (Stamen / Stadia)**, **Esri Vector Basemaps**.\n- **Streets, Outdoors, Satellite, Dark, Light** for Mapbox/MapTiler — standard set."
+    },
+    {
+      "kind": "text",
+      "title": "Data sources, performance, + the modern web-map stack",
+      "body": "**Basemap sources**:\n\n**OpenStreetMap (OSM, 2004+, Steve Coast)**:\n- World's largest crowdsourced map database; >10M contributors, billions of nodes + ways.\n- **OSM tags** — key-value attributes on nodes/ways/relations. Schema is community-developed at the **OSM Wiki** + **Map Features** page. Highway classification, amenities, natural features.\n- Data access: **Overpass API** (read-only query), **Geofabrik regional extracts** (.osm.pbf), **Planet OSM** (~80 GB compressed), **OSMnx (Geoff Boeing)** Python street networks.\n- Tile sources: **OSM standard tile server** (rate-limited), **OpenMapTiles** (open vector), **Stadia Maps** (commercial OSM-derived tiles), **Mapbox** (OSM-derived + proprietary).\n\n**Natural Earth (Tom Patterson + Nathaniel Vaughn Kelso, 2009+)**:\n- Public-domain reference vector + raster data at 1:10M, 1:50M, 1:110M scales. Country borders, cities, rivers, lakes, ocean, land cover, shaded relief.\n- The standard reference data for small-scale base maps; used by NYT, Wikipedia, countless atlases.\n\n**Tilezen / Mapzen + Stamen / Stadia Maps**:\n- **Mapzen** (open mapping company, 2013-18) released Tilezen vector tile schema + Pelias geocoder + Valhalla routing; shuttered 2018 but tools live on under **Linux Foundation** governance.\n- **Stamen Design** (now Stamen + Stadia Maps) — beautiful artistic basemaps (Toner, Watercolor, Terrain) plus modern Stadia OSM-based tiles. Watercolor was the iconic Stamen style.\n\n**CARTO basemaps**:\n- **CartoDB / CARTO Basemaps** — Positron + Dark Matter + Voyager. Minimal, modern, popular for data dashboards. CARTO is also a cloud-native spatial BI platform.\n\n**Esri World Imagery + Living Atlas**:\n- Esri's commercial high-resolution global satellite imagery (Maxar, Vivid, USDA NAIP); free in personal use; pay-as-you-go for commercial.\n- **Esri Living Atlas** — thousands of curated layers (demographics, environment, hazards).\n\n**Performance + scale techniques**:\n- **Tile pyramid + zoom levels** — feature simplification at low zoom; full detail at high zoom. **Tippecanoe (Eric Fischer)** simplifies + decimates for MVT generation.\n- **Clustering** — replace overlapping points with summarized markers at low zoom (Leaflet.markercluster, Mapbox cluster, supercluster — also by **Volodymyr Agafonkin**).\n- **Heatmaps** — 2D KDE rendered as raster overlay; Mapbox heatmap layer, deck.gl HeatmapLayer.\n- **Hex-binning** — H3 (Uber, Sahr 2015) hex grid; deck.gl HexagonLayer; aggregates point data at controllable resolution.\n- **WebGL** — GPU rendering of large datasets; **deck.gl, Mapbox GL, MapLibre, CesiumJS, kepler.gl** all use WebGL.\n- **Web Workers + streaming** — offload tile parsing + style application to worker threads.\n- **HTTP/2 + HTTP/3 + CDN** — parallel tile loading; Cloudflare, Fastly common CDNs.\n- **PMTiles + cloud-native** — single-file pyramids on S3 + range requests, no server.\n- **Service Workers** — offline + caching for PWAs.\n\n**Modern web-map architecture**:\n1. **Data sources** — PostGIS + GeoParquet + Zarr.\n2. **Tile generation** — Tippecanoe → MVT → MBTiles or PMTiles.\n3. **Tile storage + serving** — S3 / CloudFront (PMTiles), or martin / Tegola tile servers reading PostGIS live.\n4. **Style** — Mapbox Style JSON; Maputnik or Visual Studio Code editing.\n5. **Client** — MapLibre GL JS (vector) or Leaflet (raster); deck.gl overlay for big data.\n6. **Interactivity** — Mapbox GL feature state + queries; deck.gl picking; MapLibre clustering.\n7. **Analytics + telemetry** — heatmaps + cluster + spatial joins computed on client or via vector tile properties.\n\nThe stack is rich + flexible — from a 200-line Leaflet demo to a Cesium 3D globe to a planet-scale Mapbox commercial deployment, the web-cartography ecosystem has the building blocks for every level of ambition."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_web_1",
+        "kind": "guided_derivation",
+        "question": "How many tiles at zoom 15 cover the contiguous U.S.?",
+        "goal": "The contiguous U.S. roughly spans longitude -125° to -67° + latitude 25° to 49°. At zoom 15 (Web Mercator), estimate how many tiles cover it.",
+        "steps": [
+          {
+            "prompt": "How many tiles exist worldwide at zoom $z$? At z = 15?",
+            "motivation": "Total tile count.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "4^z; at z=15, 4^15 = ~1.07 × 10^9",
+                "~1 billion"
+              ]
+            },
+            "hints": [
+              "$2^z \\times 2^z$."
+            ],
+            "reveal": "$N_{tiles}(z) = 2^z \\times 2^z = 4^z$. At $z = 15$: $4^{15} = 2^{30} \\approx 1.07 \\times 10^9$ — about **a billion tiles** worldwide at zoom 15."
+          },
+          {
+            "prompt": "What fraction of Earth's surface (Web Mercator-projected) is contiguous U.S.?",
+            "motivation": "Areal fraction.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~1-2% of Earth surface; ~2-3% in Web Mercator (latitude-distorted at ~35° N)",
+                "~2%"
+              ]
+            },
+            "hints": [
+              "Continental US ~8 M km²; Earth surface ~510 M km²."
+            ],
+            "reveal": "True area: CONUS ~8 M km² out of 510 M km² Earth → ~1.6%. In Web Mercator coordinates the high latitudes inflate, so the **apparent fraction in the projection** ~2-3% at zoom 15. Estimate ~2.5%."
+          },
+          {
+            "prompt": "Approximate tile count for CONUS at zoom 15.",
+            "motivation": "Multiply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~25 million tiles",
+                "~2 × 10^7",
+                "20-30 million"
+              ]
+            },
+            "hints": [
+              "~1 G × 2.5%."
+            ],
+            "reveal": "$\\sim 1.07 \\times 10^9 \\times 0.025 \\approx 27$ million tiles for CONUS at $z = 15$. **About 25-30 million tiles** — at 50 KB each, ~1.3 TB of raster tiles for one base style at one zoom level. Vector tiles compress better (~10-20× smaller for typical OSM-style data) — **~50-100 GB** of MVT for the same coverage."
+          },
+          {
+            "prompt": "Why is this why PMTiles + vector tiles matter?",
+            "motivation": "Architectural implication.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Storage + bandwidth + servers; PMTiles + vector tiles cut cost; styling client-side allows infinite restyling",
+                "scale economics"
+              ]
+            },
+            "hints": [
+              "What does serving a billion tiles cost?"
+            ],
+            "reveal": "**Scale economics**: serving a billion raster tiles globally requires a CDN + tile cache + render farm — expensive. **Vector tiles** are ~10-20× smaller + allow client-side restyling (dark mode, hiking mode, language). **PMTiles (Brandon Liu, Protomaps)** stores the whole pyramid in one file on S3, served via HTTP range requests — **no tile server, no rendering, no DB** — democratizes self-hosted global maps. Combined with MapLibre GL JS + a static bucket + a free Daylight-OSM PMTiles file (~110 GB), you can serve a global vector basemap for the price of S3 storage + CloudFront egress. This is the modern open web-map stack."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_web_1",
+        "kind": "multiple_choice",
+        "question": "Why have **vector tiles + PMTiles** transformed web cartography?",
+        "options": [
+          "Random.",
+          "**Vector tiles** (Mapbox Vector Tile / MVT, 2014; OGC standard 2020) encode features as geometry + properties in Protocol Buffer binary, **rendered client-side via WebGL**. Advantages over raster tiles: (1) **~10-20× smaller** storage; (2) **client-side styling** — same tileset renders in dark mode, light mode, hiking, satellite-with-labels, with infinite restyling at no server cost; (3) **smooth zoom + label collision** + 3D extrusions via WebGL; (4) **interactivity** — features support hover, click, queryRenderedFeatures; (5) **language switching** via property filters at runtime. **PMTiles (Brandon Liu, Protomaps 2022)** pushes the architecture further: the **entire tile pyramid as a single file** on object storage (S3, R2, GCS), served via HTTP range requests — **no tile server, no database, no rendering** at runtime. Combined with **MapLibre GL JS** (open Mapbox GL fork, 2020) + a Daylight-OSM PMTiles file (~110 GB global vector tiles), a static S3 bucket + CloudFront CDN serve a planet-scale base map for storage cost only. The combination democratizes self-hosted maps: indie developers + NGOs + academics can run global mapping infrastructure that previously required tile servers + render farms + commercial APIs. With vector tiles + PMTiles + MapLibre, the modern web cartography stack is open, cheap, + extensible.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Vector tiles (MVT 2014, OGC 2020) are ~10-20× smaller than raster, support client-side styling (dark/light/hiking from one tileset), smooth WebGL zoom, interactivity, language switching. PMTiles (Brandon Liu / Protomaps 2022) packs entire pyramid in a single file on object storage served via HTTP range requests — no tile server. With MapLibre GL JS (open Mapbox GL fork) + Daylight-OSM PMTiles + static S3, planet-scale base maps cost only storage."
+      },
+      "hints": [
+        "What changed about how styles get applied?",
+        "What does PMTiles eliminate?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Vector tiles (MVT/MapBox 2014, OGC 2020) + client-side rendering: smaller, restylable, smooth, interactive, multilingual. PMTiles (Brandon Liu / Protomaps 2022) packages whole pyramid as single S3 file with HTTP range reads — no tile server. Plus MapLibre GL JS, modern web maps are open, cheap, planet-scale."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_web_1",
+        "kind": "scenario",
+        "question": "Architect a public-interest open web mapping platform",
+        "prompt": "Your civic-tech NGO needs to deploy a free public web map for their region (a metropolitan area, ~5 million people, ~10000 km²) showing real-time air quality, weather, transit, environmental hazards. Budget: minimal. Goal: long-term self-sustainable. Design the architecture. Address: (1) **Basemap choice** — OSM via OpenMapTiles vs. self-hosted PMTiles from Daylight-OSM extract vs. Stadia Maps subscription; tradeoffs; (2) **Tile storage** — static S3 + CloudFront vs. martin tile server reading PostGIS; (3) **Vector vs. raster** — why vector tiles for the basemap + raster tiles for the air-quality overlay (gridded sensor data); (4) **Client library** — **MapLibre GL JS (Volodymyr Agafonkin lineage via fork)** for vector basemap, **deck.gl** for animated transit + flows, optional **Leaflet** fallback for low-power devices; (5) **Style** — Mapbox Style Spec JSON; design Positron-style minimal basemap to let overlays pop; multilingual labels via filter expressions; (6) **Real-time data** — air quality from PurpleAir + AirNow; transit GTFS-Realtime; render via vector tile or GeoJSON via WebSocket; (7) **Performance** — clustering (supercluster), H3 hex-bin (deck.gl HexagonLayer) for aggregations, web workers for heavy parse, CDN cache; (8) **3D + perspective** — terrain via Mapbox Terrain-RGB / MapLibre terrain support, optional Cesium for 3D buildings; (9) **Source attribution** — OSM contributors, Natural Earth, project data; (10) **Sustainability** — minimal infra (static S3 + Cloudflare), no proprietary APIs, open code; Brandon Liu's Protomaps blog posts as a model. Deliver an architecture diagram + a tech-stack summary + a cost estimate."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_web_1",
+        "kind": "math_expression",
+        "question": "At Web Mercator zoom level 12, what is the approximate ground resolution per pixel at the equator (in meters, to nearest meter)?",
+        "acceptedAnswers": [
+          "38",
+          "38 m",
+          "~38",
+          "156543/4096 ≈ 38.2"
+        ],
+        "hint": "Resolution = $156543.03 / 2^z$ m/pixel at the equator. At $z = 12$: $156543 / 4096 \\approx 38$ m/pixel. (At z=15: ~5 m; at z=18: ~0.6 m.) This is the base scale before cos(latitude) Web Mercator scaling."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_web_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, explain (1) the slippy-map tile architecture; (2) raster vs. vector tiles + PMTiles; (3) the modern client + style + data ecosystem.",
+        "rubric": "Mentions: **Slippy maps** invented by **Google Maps 2005** (Lars + Jens Rasmussen): continuous panning + AJAX tile fetch + zoom pyramid. **XYZ tile scheme**: 256×256 tiles keyed by (z, x, y) in Web Mercator EPSG:3857; $4^z$ tiles at level z. **TileJSON** metadata. **Raster tiles** (PNG/JPEG, fixed style) vs. **vector tiles** (MapBox MVT 2014, OGC 2020 — PBF binary, client-side styling, ~10-20× smaller, WebGL rendering, interactive, restylable). **PMTiles (Brandon Liu, Protomaps 2022)** — single-file pyramid on object storage, no tile server. **Clients**: **Leaflet (Volodymyr Agafonkin 2011)** lightweight raster, **OpenLayers** enterprise, **Mapbox GL JS (2014, closed since v2)** + **MapLibre GL JS (open fork 2020)** vector WebGL, **deck.gl (Uber 2016)** big-data WebGL, **Cesium** 3D globe, **Folium** Python prototyping. **Mapbox Style Spec** is the de facto style DSL. **Sources**: **OSM (Steve Coast 2004)** + **Natural Earth (Patterson + Kelso)** + **Stamen / Stadia + CARTO + Esri World Imagery**. **Performance**: vector tiles, clustering (supercluster — Agafonkin), heatmap, H3 hex (Uber), WebGL, CDN. **Modern open stack**: PMTiles on S3 + MapLibre GL JS + Mapbox Style + OSM data = planet-scale free maps."
+      }
+    }
+  ]
+}

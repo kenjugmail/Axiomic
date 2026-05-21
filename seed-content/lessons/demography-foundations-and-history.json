@@ -1,0 +1,167 @@
+{
+  "slug": "demography-foundations-and-history",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Trace demography from Graunt + Malthus + Quetelet to Lotka + Notestein + Coale-Hoover.",
+      "Survey modern frameworks — Caldwell wealth flows + Bongaarts proximate determinants + Lee-Carter forecasting + Vaupel longevity.",
+      "Map the data infrastructure — UN WPP + WFS/DHS + Eurostat + Census Bureau."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Founders: Graunt + Malthus + Quetelet + Lotka + Notestein",
+      "body": "**Demography** = scientific study of human populations: their size, structure, composition, distribution, and the processes — fertility, mortality, migration — that change them. Distinct from epidemiology (disease in populations) and sociology (institutions + relations); demography supplies the denominators on which both depend.\n\n**John Graunt (1620-1674)**: London haberdasher who turned the **Bills of Mortality** into the first quantitative population science. *Natural and Political Observations Made upon the Bills of Mortality* (1662) tabulated London burials + christenings + causes of death across decades; computed crude rates; constructed an implicit life table; estimated London's population by indirect inference; observed sex ratio at birth (~14 boys : 13 girls); identified rural-urban migration. Royal Society elected him 1662 on King Charles II's recommendation. Graunt + William Petty (*Political Arithmetick* 1690) founded statistical demography.\n\n**Edmond Halley (1656-1742)**: built the first proper *cohort life table* from Breslau (Wrocław) parish registers (1693, *Philosophical Transactions*) — used by life-insurance pioneers + still the canonical demonstration of cohort survivorship analysis.\n\n**Thomas Malthus (1766-1834)**: *An Essay on the Principle of Population* (1798, six editions through 1826). Core thesis: population grows geometrically (1, 2, 4, 8 …) while food supply grows arithmetically (1, 2, 3, 4 …) → famine, war, disease, or 'moral restraint' must check growth. Wrong in detail (he underestimated agricultural + demographic transition) but established the **fertility-mortality-resource balance** as the discipline's organizing problem. Influenced Darwin + Wallace; named the *Malthusian trap* still invoked in long-run economic history (Galor + Moav; Clark *Farewell to Alms* 2007).\n\n**Adolphe Quetelet (1796-1874)**: Belgian astronomer-statistician; *Sur l'Homme* (1835) introduced ***l'homme moyen*** (the average man) — the mean of human attributes (height, weight, crime rates, marriage rates) as the central tendency around which a population varies. Foundational for social statistics, BMI (originally Quetelet Index), and the normal-distribution view of populations. Coined *social physics* (which Comte then renamed *sociologie* — see anthropology + sociology paths).\n\n**Alfred Lotka (1880-1949)**: Austro-Hungarian-American chemist + statistician. *Théorie analytique des associations biologiques* (1934/1939) + 1922 paper introduced the **stable-population theory** — a population with constant age-specific fertility + mortality converges to a unique **stable age distribution** + intrinsic growth rate $r$ satisfying the **Lotka equation** $\\int_0^\\infty e^{-r a} \\ell(a) m(a)\\, da = 1$, where $\\ell(a)$ is survivorship + $m(a)$ is age-specific fertility. Stable-population theory remains the analytical backbone of mathematical demography.\n\n**Frank Notestein (1902-1983)** + Office of Population Research (Princeton, founded 1936): articulated the **demographic transition** (1929 implicit; 1945 + 1953 explicit synthesis) — the historical pattern by which societies move from high birth + high death rates (pre-transition) through declining mortality + lagged fertility decline (transition) to low birth + low death rates (post-transition). Notestein founded the UN Population Division (1946) + led Princeton OPR through its golden era. Kingsley Davis, Dudley Kirk, Ansley Coale extended the framework.\n\n**Ansley Coale (1917-2002)** + **Edgar Hoover (1907-1992)**: *Population Growth and Economic Development in Low-Income Countries* (1958) — the **Coale-Hoover model** showing how rapid population growth in developing countries inflates dependency ratios + reduces savings + slows capital deepening. Foundational for the population-development debate + the policy turn of the 1960s-1970s (USAID, World Bank, UNFPA founded 1969).\n\nThis founder generation set the empirical, mathematical, and theoretical agenda — every modern demographic claim traces back to it."
+    },
+    {
+      "kind": "text",
+      "title": "Modern theorists: Caldwell + Bongaarts + Cleland-Wilson + Lee-Carter + Vaupel",
+      "body": "From the 1970s onward, demography became theoretically richer + globally comparative + empirically saturated by large-scale surveys + registers.\n\n**John Caldwell (1928-2016)** — **wealth-flows theory** (1976, 1982 *Theory of Fertility Decline*). Argued the fertility transition reflects a reversal of the **intergenerational flow of wealth**: in pre-transition societies, wealth (labor, goods, support) flows from children to parents → high fertility is rational. As mass schooling, wage labor, and Western-influenced nuclear family norms diffuse, wealth flows reverse (parents invest in children) → fertility falls. Emphasized education + ideational change as drivers rather than narrow economic-incentive models.\n\n**John Bongaarts (b. 1945)** — Population Council. **Proximate-determinants framework** (1978 *Population and Development Review*): only a small number of *proximate* variables — marriage / sexual exposure, contraception, induced abortion, postpartum infecundability (lactational amenorrhea) — directly affect fertility; all distal social + economic factors must operate through these. The Bongaarts decomposition (TFR = TF × $C_m$ × $C_c$ × $C_a$ × $C_i$) lets researchers attribute cross-country fertility differences to specific proximate causes. Lesson 3 develops the equation. Bongaarts later extended to **completed cohort fertility** and **tempo distortion** corrections.\n\n**John Cleland + Christopher Wilson** — *Demographic Studies* (1987) **'Demand theories of the fertility transition: an iconoclastic view.'** Argued that ideational + diffusion factors (not just economic development thresholds) drive fertility decline; cross-cultural patterns in WFS data showed transition onset less correlated with development levels than with cultural-linguistic diffusion zones. Catalyzed the **ideational** turn in fertility theory.\n\n**Ronald Lee (b. 1941) + Lawrence Carter** — *JASA* (1992) **Lee-Carter mortality model**: $\\ln m_{x,t} = a_x + b_x k_t + \\varepsilon_{x,t}$, where $k_t$ is a time-varying mortality index forecast by a random-walk-with-drift ARIMA model. Single dominant SVD component captures most variation in age-specific mortality. Became the dominant probabilistic mortality forecasting framework — used by SSA, UN, Eurostat. Many extensions: Lee-Miller, Booth-Maindonald-Smith, Renshaw-Haberman cohort effects, multi-population Li-Lee.\n\n**James Vaupel (1945-2022)** + Max Planck Institute for Demographic Research (Rostock, founded 1996). Pioneered the **biodemography of longevity**: heterogeneity in frailty (Vaupel-Manton-Stallard 1979); maximum lifespan studies; the Oeppen-Vaupel *Science* (2002) paper **'Broken Limits to Life Expectancy'** showing record female life expectancy has risen ~3 months per calendar year for 160 years without sign of deceleration. Founded the **Human Mortality Database** + **Human Fertility Database** — the discipline's empirical bedrock. Lesson 4 develops longevity.\n\n**Wolfgang Lutz** (IIASA + Wittgenstein Centre) — **probabilistic + multidimensional population projections**; the **low-fertility trap hypothesis** (Lutz + Skirbekk + Testa 2006) — once below ~1.5, fertility may stabilize at low levels through demographic, sociological, economic feedback loops; education + human capital as a separate projection dimension.\n\n**Samuel Preston, Patrick Heuveline, Michel Guillot** *Demography: Measuring and Modeling Population Processes* (2001) — the standard graduate text; codified modern formal demography.\n\nDemography thus blends a small set of identities (the **balancing equation** $P_{t+1} = P_t + B - D + I - E$; the Lotka equation; the cohort-component projection) with rich theory of behavior + institutions + cohorts."
+    },
+    {
+      "kind": "text",
+      "title": "Data infrastructure: UN WPP + DHS + Eurostat + Census Bureau",
+      "body": "Modern demography depends on a global data infrastructure built over 80 years.\n\n**United Nations Population Division** (founded 1946; Notestein the first director): the canonical global authority.\n- **World Population Prospects (WPP)**: biennial revision (most recent WPP 2024) of past + future populations for 237 countries / territories, 1950-2100, by age + sex + 5-year period. Projects under low / medium / high / probabilistic variants. **WPP 2024 medium variant** estimates world population 8.2 B (2025) → 9.7 B (2050) → 10.3 B peak ~2084 → declining thereafter (revised down from earlier projections as fertility falls faster). Lesson 6 develops projection methodology.\n- **World Urbanization Prospects** + **International Migration** datasets.\n\n**World Fertility Survey (WFS, 1972-1984)** + **Demographic and Health Surveys (DHS, 1984-present)**: USAID + ICF International. Standardized retrospective birth-history + reproductive-health surveys in ~90 LMICs; ~400+ surveys; foundation for global fertility + mortality + family-planning research. **MICS** (UNICEF Multiple Indicator Cluster Surveys) is the parallel UNICEF instrument.\n\n**UN Statistical Commission** (founded 1947) + national statistical offices: census + vital-registration coordination.\n\n**Eurostat** (European Commission): harmonized European demographic statistics; **Human Mortality Database** (HMD, jointly with UC Berkeley + MPIDR); **Human Fertility Database** (HFD).\n\n**US Census Bureau**: decennial census (since 1790); American Community Survey (annual, replacing the long form); International Database (population estimates for ~227 countries). NCHS for vital statistics; NHANES + NSFG for fertility + health surveys.\n\n**IPUMS** (University of Minnesota): integrated microdata samples of historical + modern censuses across 100+ countries; the gold standard for cross-national demographic microdata.\n\n**Vital registration**: birth + death + marriage registration. Coverage varies: ~100% in HICs (instant + complete); <40% in much of sub-Saharan Africa (under-registration of births + deaths, esp. infants + adults outside hospital). The **CRVS** (Civil Registration + Vital Statistics) movement (Bloomberg Data for Health, WHO) aims to extend coverage.\n\n**Religious / parish records**: Cambridge Group for the History of Population (Wrigley + Schofield 1981 *Population History of England 1541-1871*) reconstructed pre-statistical demographic history from parish registers via family-reconstitution. Foundational historical demography.\n\n**Modern computational sources**: mobile-phone CDRs (call-detail records) for mobility + migration; satellite + remote-sensing population grids (WorldPop, LandScan, GHS-POP); social-media + web-scraped demographic indicators; digital-trace data (Cesare et al. 2018 *PNAS*) — covered in lesson 8.\n\n**Key academic journals**: *Demography* (PAA); *Population and Development Review* (Population Council); *Population Studies* (LSE); *European Journal of Population*; *Demographic Research* (MPIDR, open-access).\n\n**Major institutions**:\n- Population Council (founded 1952, John D. Rockefeller III).\n- Princeton OPR (1936-).\n- Max Planck Institute for Demographic Research (MPIDR, Rostock, 1996-).\n- IIASA World Population Program (Vienna, Lutz).\n- Wittgenstein Centre.\n- INED (France, 1945-).\n- PAA (Population Association of America, founded 1931); IUSSP (International Union for the Scientific Study of Population, 1928-).\n\nThe rest of the path develops: structure + pyramids (2), fertility (3), mortality + longevity (4), migration (5), projection (6), social demography + family (7), and the computational + AI frontier (8)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dem_foundations_1",
+        "kind": "guided_derivation",
+        "question": "Reason through the demographic transition as Notestein's central framework",
+        "goal": "Reconstruct the four-stage demographic transition (Notestein 1945/1953) + identify its empirical anchors + critiques.",
+        "steps": [
+          {
+            "prompt": "Pre-transition stage — what are the characteristic vital rates?",
+            "motivation": "Set the baseline.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "high crude birth rate ~35-50 per 1000 and high crude death rate ~30-40 per 1000; low slow growth with high volatility"
+              ]
+            },
+            "hints": [
+              "High birth and high death."
+            ],
+            "reveal": "Pre-transition (much of human history, most of the world until ~1750): CBR ~ 35-50 per 1000; CDR ~30-40 per 1000; growth ~0-0.5% / yr with volatility (famines, plagues, wars); life expectancy at birth ~25-35; TFR ~5-7; high infant + child mortality (~25-50% before age 5). Population is regulated by mortality crises (Malthusian preventive + positive checks)."
+          },
+          {
+            "prompt": "Early-transition stage — what changes first + why?",
+            "motivation": "Mortality falls; fertility hasn't yet adjusted.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "mortality falls first due to better food, sanitation, public health, vaccines; fertility remains high; rapid growth"
+              ]
+            },
+            "hints": [
+              "Death rate falls + birth rate stays high."
+            ],
+            "reveal": "Mortality falls first: agricultural productivity (potato + maize diffusion + Borlaug's Green Revolution); sanitation (Snow + Pasteur + Chadwick); vaccines (smallpox 1796 → measles + DPT + polio + EPI 1974); antibiotics (1940s); ORS for diarrheal disease (1970s). CDR drops to ~10-15 per 1000; CBR remains ~35-45. Rapid natural-increase rate ~2-3% / yr → doubling every 25-35 years. Population pyramid becomes wide-based + youth-heavy."
+          },
+          {
+            "prompt": "Late-transition stage — fertility decline. What drives it?",
+            "motivation": "Caldwell + Bongaarts + Cleland-Wilson + Becker theories.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "fertility declines due to mass schooling, child survival, urbanization, contraception, ideational change, rising opportunity costs of childbearing"
+              ]
+            },
+            "hints": [
+              "Multiple economic + cultural drivers."
+            ],
+            "reveal": "Fertility declines (with lag, often 30-100 years after mortality starts falling). Drivers (no consensus on weights): (1) **Caldwell wealth-flows** — children become net economic cost; (2) **Bongaarts proximate determinants** — rising contraceptive prevalence, later marriage, less lactational amenorrhea (with bottle-feeding); (3) **Becker quantity-quality trade-off** — parents invest more per child; (4) **Easterlin relative income**; (5) **Cleland-Wilson ideational diffusion** — cultural diffusion of small-family norm; (6) **rising female education + labor-force participation**. CBR falls to ~12-20; growth slows."
+          },
+          {
+            "prompt": "Post-transition + second demographic transition (SDT) — what's distinctive?",
+            "motivation": "Van de Kaa + Lesthaeghe.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "below-replacement fertility, aging, cohabitation, divorce, delayed childbearing, postmaterialist values"
+              ]
+            },
+            "hints": [
+              "Lesthaeghe-Van de Kaa SDT."
+            ],
+            "reveal": "Post-transition (HICs since ~1965): CBR ~10-12; CDR ~8-12 (rising as population ages); TFR below replacement 2.1, often 1.3-1.7. The **second demographic transition** (Van de Kaa 1987; Lesthaeghe 1995): rising cohabitation + nonmarital childbearing + divorce + below-replacement fertility + delayed family formation + postmaterialist + individualist values (Inglehart). Population aging + immigration become central concerns. Lesson 2 + lesson 7 develop these."
+          },
+          {
+            "prompt": "What are the main critiques of demographic transition theory?",
+            "motivation": "Modern challenges.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "not deterministic, timing varies, sub-Saharan Africa transition slower than predicted, mortality reversals, no universal pathway"
+              ]
+            },
+            "hints": [
+              "Empirical failures + theoretical issues."
+            ],
+            "reveal": "Critiques: (1) not a deterministic law — sub-Saharan Africa's fertility decline has been slower + more uneven than projected (Bongaarts + Casterline 2013); (2) mortality has reversed in places (HIV in sub-Saharan Africa 1990s-2000s; post-Soviet Russia 1990s; US life-expectancy decline 2014-2017 deaths of despair); (3) timing + speed vary by 100+ years across regions — no universal pathway; (4) cultural + ideational + political-economic factors interact with development; (5) Caldwell + Cleland-Wilson + Lesthaeghe + Lutz all offer competing explanations. Modern demography treats transition as a useful empirical generalization, not a law."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dem_foundations_1",
+        "kind": "multiple_choice",
+        "question": "Why is Alfred Lotka's *stable-population theory* (1922) considered the analytical backbone of mathematical demography?",
+        "options": [
+          "Random.",
+          "Lotka (1922) proved that a closed population with constant age-specific fertility + mortality converges, regardless of initial age distribution, to a unique **stable age distribution** with constant intrinsic growth rate $r$ satisfying the **Lotka equation** $\\int_0^\\infty e^{-r a} \\ell(a) m(a)\\, da = 1$, where $\\ell(a)$ is survivorship and $m(a)$ is age-specific fertility. This gave demography (1) a closed-form link between vital rates + population growth + age structure; (2) a definition of *intrinsic* rates of natural increase + replacement (NRR = 1 ↔ r = 0 ↔ TFR ≈ 2.1 with current survivorship); (3) the analytical basis for the cohort-component projection method (Whelpton 1936 + Leslie 1945 matrix); (4) the foundation of formal demography (Coale + Demeny model life tables, Preston-Heuveline-Guillot 2001). Every modern projection + life-table calculation rests on it.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Lotka's stable-population theory (1922 + 1939) proved age distributions converge under constant vital rates + gave the integral equation $\\int e^{-r a} \\ell(a) m(a) da = 1$ relating fertility, mortality, intrinsic growth + age structure. Foundation of cohort-component projection (Whelpton + Leslie) + model life tables (Coale + Demeny) + every modern demographic projection."
+      },
+      "hints": [
+        "What does the Lotka equation relate?",
+        "Why is convergence to a stable distribution useful?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Lotka (1922) proved closed populations with constant age-specific vital rates converge to a unique stable age distribution + constant intrinsic growth rate $r$ satisfying $\\int e^{-r a} \\ell(a) m(a) da = 1$. Foundation of cohort-component projection, NRR, model life tables, and modern formal demography."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_dem_foundations_1",
+        "kind": "scenario",
+        "question": "Reading a national fertility decline through three frameworks",
+        "prompt": "Bangladesh's TFR fell from 6.9 (1971) to ~2.0 (2020). The country remained relatively poor (GDP per capita ~$2500 in 2020) but expanded female schooling, ran the **Matlab** family-planning + maternal-child-health experiment (1977-), and the BRAC + Grameen NGO programs. In ≤200 words, interpret this decline through (a) **Caldwell wealth-flows**, (b) **Bongaarts proximate determinants**, and (c) **Cleland-Wilson ideational diffusion**. Identify two empirical patterns you'd test to discriminate among them + name one dataset (DHS, MICS, Matlab DSS, BDHS) you'd use."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_dem_foundations_1",
+        "kind": "math_expression",
+        "question": "A pre-transition population has CBR = 42 per 1000 + CDR = 36 per 1000. Compute the rate of natural increase (RNI) as a percentage per year.",
+        "acceptedAnswers": [
+          "0.6%",
+          "0.6 %",
+          "0.6 percent",
+          "0.006",
+          "6 per 1000"
+        ],
+        "hint": "RNI = (CBR − CDR) / 1000 expressed as a percentage. $(42 − 36) / 1000 = 0.006 = 0.6\\%$. Pre-transition rates with births ≈ deaths give slow + volatile growth; early transition (mortality fall first) widens the gap to 2-3%."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dem_foundations_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, explain what makes demography a distinct quantitative discipline by naming one core insight from each of Graunt, Malthus, Quetelet, Lotka, and Notestein, plus one modern extension each from Caldwell, Bongaarts, Lee-Carter, and Vaupel.",
+        "rubric": "Mentions: Graunt (1662) — first quantitative population science via the London Bills of Mortality. Malthus (1798) — population vs subsistence balance; the fertility-mortality-resource problem. Quetelet (1835) — *l'homme moyen* + social statistics. Lotka (1922) — stable-population theory + the integral equation $\\int e^{-r a} \\ell(a) m(a) da = 1$. Notestein (1945/1953) — demographic transition framework. Caldwell (1976) — wealth-flows theory of fertility decline. Bongaarts (1978) — proximate-determinants decomposition. Lee-Carter (1992) — probabilistic mortality forecasting. Vaupel (1979+ Oeppen-Vaupel 2002) — biodemography of longevity + broken limits to life expectancy. Concludes: demography unifies identities (balancing equation, life table, cohort-component projection) with theories of behavior + institutions, anchored in vital-registration + census + DHS + WPP data infrastructure — distinct from epidemiology, sociology, and economics yet foundational to all three."
+      }
+    }
+  ]
+}
