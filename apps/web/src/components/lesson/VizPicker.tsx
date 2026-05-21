@@ -264,6 +264,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🧬",
     tags: ["bioinformatics", "computational-biology", "dynamic-programming", "sequence-analysis"],
   },
+  {
+    name: "ramachandran-plot",
+    label: "Ramachandran plot (φ/ψ)",
+    description: "Drag φ/ψ backbone torsions; see allowed regions for α-helix, β-sheet, polyproline-II, and steric-clash zones.",
+    thumb: "🧪",
+    tags: ["structural-biology", "biophysics", "protein-folding", "biochemistry"],
+  },
 ];
 
 interface Props {

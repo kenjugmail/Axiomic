@@ -1,0 +1,156 @@
+{
+  "slug": "structural-biology-foundations",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Survey structural biology methods.",
+      "Distinguish X-ray, NMR, cryo-EM.",
+      "Read a PDB entry."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Structural biology: structure determines function",
+      "body": "**Structural biology** is the experimental + computational discipline that determines + interprets the 3D atomic architecture of biological macromolecules — proteins, nucleic acids, lipids, polysaccharides, and their complexes.\n\n**Central dogma of structure-function**: a macromolecule's 3D structure is the substrate on which biochemistry happens. Enzyme active sites position catalytic residues to within ~0.1 Å; channel selectivity filters discriminate K⁺ from Na⁺ by ångström-scale geometry; antibody combining sites recognize antigens via shape + electrostatic complementarity. Understanding structure unlocks mechanism — and mechanism unlocks therapeutic intervention.\n\n**Historical foundations**:\n- **Pauling + Corey 1951**: predicted the α-helix + β-sheet from peptide-bond planarity + H-bond geometry — using only paper, ruler, and chemical intuition.\n- **Kendrew + Perutz 1958-1960**: first protein crystal structures (sperm-whale myoglobin at 6 Å then 2 Å; horse hemoglobin). Chemistry Nobel 1962. Established X-ray crystallography as the dominant method for the next 50 years.\n- **Watson + Crick + Franklin + Wilkins 1953**: DNA double helix from Franklin's Photograph 51 fiber-diffraction pattern.\n- **Ramachandran 1963**: φ/ψ plot mapping sterically allowed protein backbone torsions.\n\n**Protein Data Bank (PDB)**:\n- Founded 1971 at Brookhaven with 7 structures; now hosted by the wwPDB consortium (RCSB, PDBe, PDBj, BMRB).\n- **~225 000 structures (2024)**, growing ~15k/year.\n- Format: legacy **PDB** (column-fixed text) + modern **mmCIF/PDBx** (CIF dictionary; required for very large structures since 2014).\n- Each entry: coordinates, B-factors, occupancies, header metadata (method, resolution, R-factors, ligands), experimental data (structure factors, NMR restraints, EM maps).\n- Cross-references to UniProt, Pfam, ChEMBL, EMDB (Electron Microscopy Data Bank), BMRB (NMR).\n\n**Why structural biology matters**:\n- **Drug discovery**: ~30% of FDA-approved drugs target GPCRs alone; structure-based design transformed kinase inhibitors (imatinib, erlotinib), HIV protease inhibitors (saquinavir), antivirals (oseltamivir, nirmatrelvir).\n- **Vaccine design**: prefusion-stabilized RSV F + SARS-CoV-2 spike rely on structural insights.\n- **Disease mechanism**: ΔF508 CFTR, sickle hemoglobin, prion conversion, amyloid fibrils.\n- **Protein engineering + design**: de novo binders, enzymes, biosensors.\n\nThe field is now a hybrid of X-ray, NMR, cryo-EM, cryo-ET, mass spec, and computation (AlphaFold) — each method occupying a niche set by sample size, dynamics, resolution, and throughput."
+    },
+    {
+      "kind": "text",
+      "title": "X-ray crystallography: the phase problem + diffraction",
+      "body": "**X-ray crystallography** remains the highest-resolution method for atomic structure: ~70% of all PDB entries.\n\n**The diffraction experiment**:\n1. **Crystallize** the macromolecule — vapor diffusion (hanging/sitting drop), microbatch, LCP for membrane proteins. Sparse-matrix screens (Hampton, Molecular Dimensions) sample thousands of conditions.\n2. **Mount + cryocool** a single crystal in a loop, plunge into liquid N₂ to suppress radiation damage.\n3. **Expose** to X-rays — rotating-anode (Cu Kα 1.54 Å), synchrotron (tunable, brilliant; e.g., APS, DLS, ESRF, SPring-8), or **XFEL** (LCLS, SACLA, European XFEL — femtosecond pulses, serial femtosecond crystallography on microcrystals; 'diffract before destroy').\n4. **Record diffraction**: rotation series of 2D patterns of Bragg spots. Intensities I(h,k,l).\n\n**Bragg's law**: $n\\lambda = 2d \\sin\\theta$. Spots occur where path differences from lattice planes are integer multiples of λ. Resolution d_min = λ / (2 sin θ_max).\n\n**The phase problem**:\n- Detectors record intensities $I = |F|^2$ — magnitude only. The **phases** of the structure factors $F(hkl) = |F|e^{i\\phi}$ are lost.\n- The electron density $\\rho(x,y,z) = \\frac{1}{V}\\sum_{hkl} F(hkl) e^{-2\\pi i (hx+ky+lz)}$ requires phases to compute by inverse Fourier transform.\n- This is structural biology's most fundamental computational problem.\n\n**Phasing methods**:\n- **Molecular replacement (MR)** — by far most common today: use a homologous known structure as a phase model (Phaser, MOLREP). AlphaFold predictions now serve as MR templates routinely.\n- **Isomorphous replacement (MIR/SIR)**: soak crystal in heavy-atom solution (Hg, Pt, Au); differences between native + derivative give heavy-atom positions → phases. Used by Perutz.\n- **Anomalous scattering (SAD/MAD)**: tune X-ray wavelength to absorption edge of Se (selenomethionine) or anomalous scatterer; anomalous differences give phases. Tunable-wavelength synchrotrons enable MAD.\n- **Direct methods (Patterson, Shake-and-Bake)**: ab initio phasing for small molecules + very high-res (≤1.2 Å) macromolecules.\n\n**Refinement + validation**:\n- Refine model against data minimizing $R = \\sum||F_{obs}|-|F_{calc}||/\\sum|F_{obs}|$. R-free uses held-out 5-10% of reflections to prevent over-fitting.\n- Good structures: R/R-free ≈ 0.17/0.22 at 2 Å; bond/angle RMSDs near ideal; Ramachandran outliers <0.3%.\n- Tools: **CCP4**, **PHENIX**, **Coot** (manual model building), **REFMAC**, **Buster**.\n\n**Limitations**: needs crystals (often the bottleneck); crystal packing can perturb conformations; flexible regions invisible; large complexes hard to crystallize; doesn't show dynamics."
+    },
+    {
+      "kind": "text",
+      "title": "NMR + cryo-EM: solution dynamics + the resolution revolution",
+      "body": "**NMR spectroscopy** — atomic structure in solution from nuclear-spin transitions.\n\n**Principle**: nuclei with spin (¹H, ¹³C, ¹⁵N, ³¹P) in a strong magnetic field absorb radiofrequency energy at characteristic chemical shifts depending on local electronic environment. **NOE (Nuclear Overhauser Effect)** distance restraints (<5 Å between protons) plus **J-couplings** (dihedral angles) plus **residual dipolar couplings (RDCs)** (orientational restraints) enable structure calculation by simulated annealing in programs like CYANA, XPLOR-NIH, ARIA.\n\n**Workflow**:\n1. Express + ¹³C/¹⁵N-label protein (uniform or selective; perdeuteration for larger proteins).\n2. Collect multidimensional spectra (¹H-¹⁵N HSQC, HNCA, HNCACB, NOESY-HSQC, etc.).\n3. Assign resonances → restraints → ensemble of structures.\n\n**Wüthrich Nobel 2002** for developing NMR macromolecular structure determination.\n\n**Strengths**: solution conditions (no crystals); native dynamics (relaxation rates, μs-ms motions from CPMG, ns motions from NOE); intrinsically disordered proteins; ligand-binding kinetics + epitope mapping; small membrane proteins in micelles/nanodiscs.\n\n**Limitations**: size — historically <30 kDa, now ~80 kDa with TROSY + perdeuteration; isotope-labeling expense; long data collection; spectral crowding for large proteins.\n\n---\n\n**Cryo-electron microscopy (cryo-EM)** — the dominant method for large complexes since the **'resolution revolution' (~2013)**.\n\n**Principle**: vitrify a thin aqueous sample on a holey grid (plunge into liquid ethane → amorphous ice, preserving native hydration). Image with a transmission electron microscope at cryogenic temperature; collect tens of thousands of 2D projections of individual particles in random orientations; computationally classify + align + reconstruct a 3D Coulomb-potential map.\n\n**What changed in 2013**:\n- **DDD (direct-electron detectors)**: Falcon, K2/K3, DE — much higher DQE than film/CCD; movie-mode imaging enabling motion correction (MotionCor2).\n- **ML-based reconstruction**: RELION (Scheres), cryoSPARC (Punjani) — empirical-Bayesian classification + Maximum-likelihood refinement.\n- **Phase plates**: Volta phase plate boosts low-frequency contrast for small particles.\n- Result: routine 2-4 Å reconstructions of complexes >150 kDa; sub-2 Å for favorable cases (apoferritin at 1.2 Å).\n\n**Nobel 2017**: **Jacques Dubochet** (vitrification), **Joachim Frank** (single-particle reconstruction algorithms), **Richard Henderson** (first atomic-resolution membrane-protein cryo-EM, bacteriorhodopsin).\n\n**Single-particle pipeline**: motion correction → CTF estimation → particle picking (Topaz, crYOLO) → 2D classification → ab initio model → 3D classification → refinement → post-processing → atomic model building (Coot, ChimeraX, Phenix.real_space_refine).\n\n**Cryo-ET (cryo-electron tomography)**: tilt-series of a single thick specimen → 3D tomogram; sub-tomogram averaging extracts repeating particles in situ. Reveals macromolecules inside cells (ribosomes, nuclear pore, mitochondrial complexes).\n\n**Method choice (rule of thumb)**:\n- <30 kDa + soluble + dynamics → NMR.\n- 30-150 kDa + crystallizable → X-ray.\n- >150 kDa or membrane complex → cryo-EM.\n- In cellulo → cryo-ET.\n- Sequence-only target → AlphaFold first, then experiment to confirm + extend."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sbio_found_1",
+        "kind": "guided_derivation",
+        "question": "Choose the right method + interpret resolution",
+        "goal": "You purified a 320 kDa membrane-protein complex that resists crystallization. Pick a method, predict achievable resolution, and reason about Bragg-law geometry at a synchrotron beamline for comparison.",
+        "steps": [
+          {
+            "prompt": "Which experimental method should you try first + why?",
+            "motivation": "Size + membrane character matter.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "cryo-EM single-particle; large + membrane + non-crystallizable favors cryo-EM"
+              ]
+            },
+            "hints": [
+              "What broke open after 2013 for large + membrane complexes?",
+              "Crystallization is the bottleneck — what avoids it?"
+            ],
+            "reveal": "Cryo-EM single-particle analysis. At 320 kDa it is well above the practical minimum (~150 kDa for routine work), can be solubilized in detergent/nanodiscs/SMALPs/amphipols, and avoids crystallization. NMR is too large; X-ray needs crystals it won't form. Use cryoSPARC or RELION, picking ~50-200k particles per dataset."
+          },
+          {
+            "prompt": "Estimate the achievable resolution.",
+            "motivation": "Typical performance for a 320 kDa complex.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2.5 to 3.5 Å",
+                "~3 Å"
+              ]
+            },
+            "hints": [
+              "Modern membrane-complex cryo-EM routinely achieves what range?"
+            ],
+            "reveal": "Realistic target: 2.5-3.5 Å on a Krios with K3 + post-GIF energy filter. Sufficient for confident side-chain placement, ligand binding, and water modeling near 2.5 Å. Heterogeneity is the bigger risk than raw resolution — use 3D classification or cryoSPARC 3DVA to separate conformational states."
+          },
+          {
+            "prompt": "If you had crystals + a synchrotron at λ = 1.0 Å, what is the maximum 2θ scattering angle needed to record 1.5 Å reflections (use Bragg's law)?",
+            "motivation": "Bragg geometry sets detector placement.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2θ ≈ 39°",
+                "θ ≈ 19.5°"
+              ]
+            },
+            "hints": [
+              "$n\\lambda = 2d\\sin\\theta$. Solve for θ then double.",
+              "$\\sin\\theta = \\lambda/(2d) = 1.0/3.0$."
+            ],
+            "reveal": "$\\sin\\theta = \\lambda/(2d_{min}) = 1.0/(2 \\times 1.5) = 0.333$. So θ ≈ 19.47° and 2θ ≈ 38.9°. The detector must intercept spots at least this far from the beam axis — practical limit is set by detector edge + sample-to-detector distance."
+          },
+          {
+            "prompt": "After collecting the cryo-EM map, what validation metrics do you report?",
+            "motivation": "Map + model quality.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "global FSC at 0.143 cutoff for resolution; local resolution; map-model FSC; MolProbity + Ramachandran"
+              ]
+            },
+            "hints": [
+              "Gold-standard FSC; local-resolution maps; geometry validation."
+            ],
+            "reveal": "Report: (1) Gold-standard **FSC = 0.143** cutoff between independently refined half-maps for global resolution; (2) **local-resolution** map (ResMap or RELION local-res) showing core vs flexible peripheries; (3) **map-model FSC** (0.5 cutoff) verifying the atomic model agrees with the map; (4) **MolProbity** score + Ramachandran outliers (<0.3%) + clashscore + rotamer outliers; (5) **EMRinger** for side-chain density agreement at higher resolution; (6) deposited map (EMDB) + model (PDB) + half-maps."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sbio_found_1",
+        "kind": "multiple_choice",
+        "question": "What is the 'phase problem' in X-ray crystallography + why does it matter?",
+        "options": [
+          "Wrong.",
+          "X-ray detectors record diffracted **intensities** $I(hkl) = |F(hkl)|^2$ — they cannot measure the **phase** $\\phi(hkl)$ of each structure factor $F = |F|e^{i\\phi}$ because detection is energy-only + the X-ray oscillation period (~10⁻¹⁹ s) is far too fast for any detector. Yet the electron density $\\rho(\\mathbf{r}) = \\frac{1}{V}\\sum_{hkl} F(hkl) e^{-2\\pi i \\mathbf{h}\\cdot\\mathbf{r}}$ requires both magnitudes + phases via inverse Fourier transform. Without phases, no electron-density map — no atomic model. Solutions: molecular replacement (use a homolog or AlphaFold model as initial phases), heavy-atom isomorphous replacement (MIR), anomalous scattering (SAD/MAD with selenomethionine at tunable synchrotrons), direct methods at very high resolution. Phasing is structural crystallography's deepest computational problem + the historical reason crystallography was so slow before molecular replacement became routine.",
+          "Wrong.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Detectors record only $|F|^2$, losing the phase $\\phi$. The Fourier transform needs both magnitude + phase to compute electron density. Phasing methods: molecular replacement (homolog/AlphaFold template), MIR (heavy atoms), SAD/MAD (anomalous scattering, selenomethionine), direct methods at high res. AlphaFold revolutionized MR templates post-2021."
+      },
+      "hints": [
+        "What does the detector physically measure?",
+        "What's needed for the inverse Fourier transform to electron density?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Detectors record diffracted intensity $|F|^2$ only; X-ray oscillation is too fast to capture phase $\\phi$. Electron density requires both via Fourier transform $\\rho(\\mathbf{r}) = \\sum F(hkl) e^{-2\\pi i \\mathbf{h}\\cdot\\mathbf{r}}$. Phasing methods: molecular replacement (now AlphaFold-driven), MIR heavy atoms, SAD/MAD anomalous, direct methods. Solving the phase problem unlocks the electron-density map + atomic model."
+      },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sbio_found_1",
+        "kind": "scenario",
+        "question": "Reading a PDB entry",
+        "prompt": "You open PDB entry 6VXX (SARS-CoV-2 spike). Header shows: METHOD: ELECTRON MICROSCOPY; RESOLUTION: 2.80 Å; CHAINS A, B, C (~1100 aa each, trimer). REMARK 350 BIOMT lists 3-fold symmetry. SEQADV lists 2P mutations stabilizing prefusion. There are no waters but several glycan chains (NAG, MAN, BMA) at conserved Asn residues. Walk through what each field tells you about the experiment + the biology + what you would do next to (a) check map quality, (b) identify the receptor-binding interface, (c) design a stabilized antigen for vaccine work."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sbio_found_1",
+        "kind": "math_expression",
+        "question": "Bragg's law: at what diffraction angle θ (in degrees) does a synchrotron beamline with λ = 1.0 Å produce a reflection from lattice planes spaced d = 2.0 Å?",
+        "acceptedAnswers": [
+          "14.48",
+          "14.5",
+          "arcsin(0.25)",
+          "θ ≈ 14.5°"
+        ],
+        "hint": "$n\\lambda = 2d \\sin\\theta$ with $n=1$. Solve $\\sin\\theta = \\lambda/(2d) = 0.25$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sbio_found_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how X-ray crystallography, NMR, and cryo-EM occupy complementary niches in modern structural biology — and why no single method dominates.",
+        "rubric": "Mentions: structure-function logic + PDB scale (~225k entries). X-ray: highest resolution (sub-2 Å common); needs crystals; ~70% of PDB; Bragg's law + phase problem; molecular replacement (now AlphaFold-driven), MIR, SAD/MAD. NMR: solution + dynamics + IDPs; Wüthrich Nobel 2002; size-limited (~80 kDa with TROSY/perdeuteration); NOE distance restraints. Cryo-EM: 2013 resolution revolution with DDD detectors + RELION/cryoSPARC ML reconstruction; large complexes + membrane proteins routine; Dubochet/Frank/Henderson Nobel 2017; gold-standard FSC = 0.143. Cryo-ET extends to in-cellulo. Complementarity: each method's bottleneck (crystallizability, tumbling time, size) is another's strength. AlphaFold supplies starting models + phasing templates but does not replace experiment for ligands, dynamics, or interactions. Concludes: the modern toolkit is hybrid + integrative — choose by sample size, dynamics requirement, sample availability, and resolution goal."
+      }
+    }
+  ]
+}

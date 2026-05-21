@@ -1952,6 +1952,32 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P45 — Structural Biologist path. Protein-structure determination
+  // (X-ray, NMR, cryo-EM) through folding + Ramachandran (the viz
+  // anchor) + secondary/tertiary/quaternary structure + membrane
+  // proteins + AlphaFold/RoseTTAFold + protein design (RFdiffusion +
+  // ProteinMPNN) + structure-based drug design + dynamics/ensembles.
+  // The structural-biology stack end-to-end. Distinct from
+  // bioinformatician (sequence-centric) — this path is structure-
+  // centric. Also distinct from biomedical-engineer (devices) and
+  // cell-molecular-biologist (wet-lab cell biology).
+  seedMasteryPath({
+    slug: "structural-biologist",
+    title: "Structural Biologist",
+    description:
+      "From structural-biology foundations + experimental methods (X-ray, NMR, cryo-EM) through protein folding + Anfinsen + Levinthal + chaperones + Ramachandran (with interactive φ/ψ viz), primary→quaternary structure + domains + motifs + intrinsically disordered proteins, membrane proteins + GPCRs + ion channels + bilayer biophysics, AlphaFold 2/3 + RoseTTAFold + ESMFold + accuracy metrics + Nobel 2024, RFdiffusion + ProteinMPNN + de novo enzyme design, structure-based drug design + fragment screening + allostery + cryo-EM-driven therapeutics, and conformational dynamics + MD + AlphaFold-Multistate + cryo-ET + RNA structure. The structural-biology stack end-to-end.",
+    nodes: [
+      { slug: "structural-biology-foundations", title: "Foundations + Methods", level: "apprentice", order: 1, pages: ["field-overview", "x-ray-crystallography", "nmr-and-cryoem"], prereqs: [], description: "What structural biology is vs adjacent fields; X-ray crystallography (Bragg + Patterson + MR + phase problem); NMR + cryo-EM (single-particle + resolution revolution + Henderson/Frank/Dubochet Nobel)." },
+      { slug: "protein-folding-and-ramachandran", title: "Folding + Ramachandran", level: "practitioner", order: 2, pages: ["anfinsen-levinthal", "ramachandran-torsions", "folding-funnels-chaperones"], prereqs: ["structural-biology-foundations"], description: "Anfinsen's dogma + Levinthal paradox + thermodynamic hypothesis; Ramachandran φ/ψ torsions + steric maps + secondary-structure regions (interactive viz); folding funnels + molten globule + chaperones (GroEL/Hsp70) + misfolding diseases (prions, amyloids)." },
+      { slug: "secondary-tertiary-quaternary-structure", title: "Structure Hierarchy + Domains", level: "practitioner", order: 3, pages: ["primary-to-quaternary", "domains-and-motifs", "idps-and-condensates"], prereqs: ["protein-folding-and-ramachandran"], description: "Levels of structure (1°/2°/3°/4°) + α-helix + β-sheet hydrogen-bond patterns + supersecondary motifs; protein domains + Pfam/SCOP/CATH classification + evolutionary modularity; intrinsically disordered proteins + LLPS + biomolecular condensates + p53 + FUS." },
+      { slug: "membrane-proteins-and-channels", title: "Membrane Proteins + Channels", level: "specialist", order: 4, pages: ["bilayer-biophysics", "gpcrs-and-receptors", "channels-and-transporters"], prereqs: ["secondary-tertiary-quaternary-structure"], description: "Lipid bilayer biophysics + hydrophobic matching + α-helical vs β-barrel topologies; GPCRs (rhodopsin + β2AR + Kobilka/Lefkowitz Nobel) + biased agonism + cryo-EM revolution; ion channels (K+, Na+, Ca2+, ClC) + MacKinnon selectivity filter + voltage sensing + transporters." },
+      { slug: "alphafold-and-computational-structure", title: "AlphaFold + Computational Structure", level: "specialist", order: 5, pages: ["history-to-alphafold", "alphafold2-architecture", "alphafold3-roseTTAfold-esm"], prereqs: ["secondary-tertiary-quaternary-structure"], description: "Pre-AlphaFold landscape: CASP + homology modeling + threading + Rosetta + ab initio; AlphaFold 2 architecture (Evoformer + structure module + recycling + pLDDT) + Nobel 2024; AlphaFold 3 (diffusion + ligands/nucleic acids) + RoseTTAFold + ESMFold + OmegaFold + accuracy metrics." },
+      { slug: "protein-design-and-de-novo", title: "Protein Design + De Novo", level: "expert", order: 6, pages: ["rosetta-baker-de-novo", "rfdiffusion-and-protein-mpnn", "applications-binders-enzymes"], prereqs: ["alphafold-and-computational-structure"], description: "Rosetta + Baker-lab de novo design history + Top7 + IL-2 mimics; RFdiffusion (denoising diffusion for backbones) + ProteinMPNN (inverse folding) + ESM-IF; applications: de novo enzymes + binders + flu/SARS vaccines + Baker Nobel 2024." },
+      { slug: "structure-based-drug-design", title: "Structure-Based Drug Design", level: "expert", order: 7, pages: ["sbdd-pipeline", "fragment-and-virtual-screening", "allostery-and-modern-cases"], prereqs: ["membrane-proteins-and-channels", "alphafold-and-computational-structure"], description: "SBDD pipeline: target → structure → hit → lead → drug; fragment-based + virtual screening + free-energy perturbation + docking benchmarks; allosteric drugs + KRAS G12C (sotorasib) + paxlovid + cryo-EM-driven design + GPCR-targeted drugs + DEL libraries." },
+      { slug: "dynamics-ensembles-and-rna", title: "Dynamics + Ensembles + RNA", level: "expert", order: 8, pages: ["md-and-enhanced-sampling", "ensembles-and-multistate", "rna-and-cryo-et"], prereqs: ["alphafold-and-computational-structure"], description: "Molecular dynamics (AMBER, CHARMM, GROMACS, OpenMM) + force fields + enhanced sampling (REMD, metadynamics) + ML potentials (MACE, NequIP); conformational ensembles + AlphaFold-Multistate + ESMFlow + HDX-MS; RNA structure + RNAfold + AlphaFold-RNA + cryo-ET + in-cell structural biology." },
+    ],
+  });
+
   // P44 — Bioinformatician path. Genome anatomy + sequencing through
   // sequence alignment (with new AlignmentMatrix DP viz) + assembly
   // + variant calling + transcriptomics + single-cell + structure

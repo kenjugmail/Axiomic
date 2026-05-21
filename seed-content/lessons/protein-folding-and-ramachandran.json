@@ -1,0 +1,159 @@
+{
+  "slug": "protein-folding-and-ramachandran",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Explain Anfinsen + Levinthal.",
+      "Use Ramachandran maps.",
+      "Diagram folding funnel."
+    ],
+    "prereqs": [
+      "structural-biology-foundations"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Ramachandran torsions + the steric map",
+      "body": "**Ramachandran (1963)**: G. N. Ramachandran + V. Sasisekharan asked a simple question — given the planarity of the peptide bond, what backbone torsions are sterically allowed? The answer became one of the most enduring diagrams in molecular biology.\n\n**Peptide bond geometry**:\n- The peptide bond C(=O)−N has ~40% double-bond character (resonance) → planar; ω torsion essentially fixed at 180° (trans) or 0° (cis, rare except before Pro).\n- The two flexible backbone torsions per residue are **φ (phi)** about N−Cα and **ψ (psi)** about Cα−C.\n- Side chain χ torsions add further degrees of freedom but the backbone is dominated by (φ, ψ).\n\n**Steric exclusion**:\n- For each (φ, ψ) pair, atoms separated by 1-4 bonds are placed in 3D space. Many combinations cause unphysical clashes (atoms <90% of van der Waals contact distance).\n- Ramachandran computed allowed regions by hard-sphere exclusion + later refined with empirical PDB-derived contour maps (**Lovell + Richardson 2003**) using ~100 000 residues from ultra-high-resolution structures.\n\n**Allowed regions of the (φ, ψ) plot**:\n- **α-helix (right-handed)**: φ ≈ −60°, ψ ≈ −45°. Backbone H-bond i → i+4 (C=O of residue i to NH of i+4); 3.6 residues per turn; 1.5 Å rise per residue; 5.4 Å pitch.\n- **β-sheet**: φ ≈ −120°, ψ ≈ +120° (antiparallel slightly tighter, parallel slightly more open). Extended backbone; H-bonds between adjacent strands.\n- **Left-handed α (αL)**: φ ≈ +60°, ψ ≈ +40°. Only stable for **Glycine** (no Cβ steric clash) + occasional non-Gly residues in turns. ~3% of non-Gly residues.\n- **Polyproline II (PPII)**: φ ≈ −75°, ψ ≈ +145°. Common in extended loops + the dominant conformation of disordered proteins.\n- **Forbidden regions**: ~80% of (φ, ψ) space is sterically disallowed.\n\n**The Glycine exception**: with no Cβ side chain, Gly has access to almost the entire (φ, ψ) map — found in tight turns, flexible loops, and helix N-caps. Pro is the opposite: φ is locked near −60° by the pyrrolidine ring; Pro is a helix-disrupter in the middle but a stabilizer at the N-cap.\n\n**Diagnostic use**:\n- Structure validation tools (**MolProbity**, **PROCHECK**, **PHENIX**) flag Ramachandran outliers. A well-refined structure has >98% residues in favored regions + <0.3% outliers (Lovell contours).\n- Outliers near functional sites (active sites, binding loops) can be real strain — common in catalytic residues; many enzymes have a 'Gly-required' outlier in their active site.\n\n**Visualization** φ = −60°, ψ = −45° plots a single point in the α-helix basin — the canonical right-handed helix conformation we use in this slide's interactive Ramachandran plot.",
+      "viz": "ramachandran-plot",
+      "vizProps": {
+        "phi": -60,
+        "psi": -45
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Anfinsen + Levinthal: the folding problem",
+      "body": "**Anfinsen's thermodynamic hypothesis** (Christian Anfinsen 1961; Chemistry Nobel 1972):\n\n**Experimental setup**: ribonuclease A (124 aa, 4 disulfide bonds) was denatured in 8 M urea + reduced with β-mercaptoethanol — losing all enzymatic activity + secondary structure. On dialysis to remove the denaturant + reoxidation, the protein **spontaneously refolded** to its native state, recovering full activity + correctly pairing the 4 disulfides (only 1 in 105 random pairings is correct, so the result was not luck).\n\n**Conclusion**: under physiological solvent conditions, the **native fold is the unique global free-energy minimum** encoded by the amino acid sequence alone. No external information (chaperones, templates) is required.\n\n**Implications**:\n- Predict structure from sequence in principle — the 'protein folding problem' was born.\n- Sequence → structure → function: mutations that change structure change function (sickle cell hemoglobin, ΔF508 CFTR).\n- Enabled de novo design: if nature solves it, computation should be able to as well.\n\n**Levinthal's paradox** (Cyrus Levinthal 1969):\n\nA 150-residue protein with ~3 conformations per backbone torsion has ~$3^{300} \\approx 10^{143}$ — or commonly quoted as ~$10^{300}$ accounting for side chains — possible conformations. Even sampling at picosecond rates ($10^{12}$/s) would require longer than the age of the universe to find the native fold by random search.\n\nYet proteins fold in **μs to seconds**. The paradox: random search is impossible — folding must be guided.\n\n**Resolution**: folding is **not** a random search but a downhill funnel.\n\n**Key folding timescales**:\n- Helix formation: 100 ns.\n- β-hairpin: 1-10 μs.\n- Small single-domain protein (50-100 aa, two-state): 10-1000 μs (villin headpiece HP35 ~10 μs is one of the fastest known).\n- Multi-domain proteins: ms to s.\n- Some require chaperones (GroEL/ES) to avoid aggregation.\n\n**Two-state vs intermediate folding**:\n- Small proteins (chymotrypsin inhibitor 2, λ repressor) fold cooperatively two-state (U → N).\n- Larger proteins populate **molten globule** intermediates: compact, native-like secondary structure but loose side-chain packing.\n- **Φ-value analysis** (Fersht) characterizes transition-state structure via point mutations.\n\n**Key theorists**: **Ken Dill, Peter Wolynes, José Onuchic, Eugene Shakhnovich** developed statistical mechanics of folding; **Martin Karplus, Michael Levitt, Arieh Warshel** (Chemistry Nobel 2013) developed multiscale computational methods underlying all modern simulation."
+    },
+    {
+      "kind": "text",
+      "title": "Folding funnels, chaperones + misfolding diseases",
+      "body": "**Folding funnel hypothesis** (Wolynes, Onuchic, Dill, Bryngelson 1990s):\n\nFree energy is plotted vs conformational entropy. The native state sits at the bottom of a rough but **funnel-shaped** landscape — many high-energy unfolded states collapse into a small set of low-energy near-native states.\n\n**Why a funnel solves Levinthal**:\n- Folding is not a random search but a **biased diffusion** down a multidimensional energy gradient.\n- Many parallel pathways converge on the native state; no single 'folding pathway' is required.\n- Local energetic 'minimally frustrated' interactions reward native-like contacts.\n- Funnel shape is encoded in the sequence — Wolynes's **'minimal frustration principle'**: evolution selected sequences that fold reliably.\n- **Φ-values + ψ-values** + **HX-MS** + **smFRET** + **simulation** (Folding@Home, Anton MD) map experimental + computational folding trajectories.\n\n**Molten globule + intermediates**: partially folded states with native-like secondary structure + collapsed hydrophobic core but loose tertiary packing.\n\n**Molecular chaperones** — cellular folding assistants:\n- **Hsp70 (DnaK in E. coli)** + co-chaperones **Hsp40 (DnaJ)** + **NEFs (GrpE)**: bind exposed hydrophobic stretches on nascent chains; ATP-dependent release.\n- **Hsp60 / GroEL-GroES (chaperonin)** in bacteria, **TRiC/CCT** in eukaryotes: 14-mer barrel; encapsulates substrate in an Anfinsen cage; ATP cycle releases folded protein. ~10-15% of bacterial proteome passes through GroEL.\n- **Hsp90**: late-stage folding + signaling clients (steroid receptors, kinases).\n- **Trigger factor** in bacteria: ribosome-associated co-translational folding.\n- **HSP104 / ClpB**: disaggregases that pull apart aggregates with ATP-driven threading.\n- Heat-shock response: HSF1 transcription factor upregulates chaperones under proteotoxic stress.\n\n**Protein misfolding diseases** (proteinopathies):\n- **Alzheimer's**: amyloid-β (Aβ40/42) plaques + tau neurofibrillary tangles. Anti-Aβ antibodies (aducanumab, lecanemab, donanemab) target aggregates.\n- **Parkinson's**: α-synuclein Lewy bodies; mutations A53T/A30P accelerate aggregation.\n- **Huntington's**: polyQ-expanded huntingtin (>36Q).\n- **Prion diseases** (Stanley Prusiner Nobel 1997): PrPᶜ → PrPˢᶜ conformational conversion; transmissible amyloid (CJD, BSE, scrapie, kuru). The 'protein-only' hypothesis was radical when proposed.\n- **ALS**: SOD1, TDP-43, FUS aggregates.\n- **Type 2 diabetes**: IAPP (islet amyloid polypeptide / amylin) deposits in pancreatic islets.\n- **Transthyretin amyloidosis (ATTR)**: hereditary or wild-type; tafamidis stabilizes the TTR tetramer.\n- **Serpinopathies**: α1-antitrypsin Z mutant polymerizes in hepatocytes.\n\n**Common amyloid signature**: cross-β fibril architecture (~10 nm wide, indefinite length), Congo red + thioflavin S/T stained, similar diffraction pattern (4.7 Å meridional, 10 Å equatorial). Cryo-EM has resolved many amyloid structures atomically since ~2017.\n\n**Therapeutic strategies**: kinetic stabilizers (tafamidis), aggregate clearance antibodies (lecanemab), gene silencing (patisiran for TTR), small molecules disrupting nucleation, designed mini-binders + chaperone potentiators."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_pfold_rama_1",
+        "kind": "guided_derivation",
+        "question": "Reading a Ramachandran plot + classifying residues",
+        "goal": "A peptide has 5 residues with measured (φ, ψ) of: (a) (−60°, −45°), (b) (−120°, +130°), (c) (+60°, +40°), (d) (−75°, +145°), (e) (+80°, −90°). Classify each + decide which violates Lovell contours.",
+        "steps": [
+          {
+            "prompt": "Residue (a) (−60°, −45°) — secondary structure?",
+            "motivation": "Identify the canonical α-helix basin.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "right-handed α-helix"
+              ]
+            },
+            "hints": [
+              "The classical α-helix sits at φ ≈ −60°, ψ ≈ −45°."
+            ],
+            "reveal": "Right-handed α-helix — the deepest favored basin. H-bonds i→i+4; 3.6 residues/turn; 1.5 Å rise."
+          },
+          {
+            "prompt": "Residue (b) (−120°, +130°)?",
+            "motivation": "Upper-left basin.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "β-sheet (or β-strand)"
+              ]
+            },
+            "hints": [
+              "Extended backbone basin in the upper left."
+            ],
+            "reveal": "β-strand. Antiparallel slightly tighter than parallel; both fall in this upper-left basin. Backbones extended; H-bonds between adjacent strands."
+          },
+          {
+            "prompt": "Residue (c) (+60°, +40°) — what + restriction?",
+            "motivation": "Left-handed α basin.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "left-handed α (αL); only allowed for Gly or rare non-Gly in turns"
+              ]
+            },
+            "hints": [
+              "Positive φ basin in the upper-right. Cβ clash limits which residues can sit here."
+            ],
+            "reveal": "Left-handed α (αL). Without a Cβ, Glycine sits here freely. For any other residue this is rare + often a Gly-required functional turn (e.g., βγ-turn). Auto-flag for inspection unless the residue is Gly."
+          },
+          {
+            "prompt": "Residue (d) (−75°, +145°)?",
+            "motivation": "PPII basin.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "polyproline II (PPII)"
+              ]
+            },
+            "hints": [
+              "Extended left-handed helix; common in disordered chains + SH3-binding peptides."
+            ],
+            "reveal": "Polyproline II (PPII). Even non-Pro residues populate this basin in IDPs + extended loops + collagen-like sequences. Recognized by SH3 + WW + EVH1 domains via the consensus PxxP motif."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_pfold_rama_1",
+        "kind": "multiple_choice",
+        "question": "How does the folding-funnel hypothesis resolve Levinthal's paradox?",
+        "options": [
+          "Wrong.",
+          "Levinthal (1969) noted that random sampling of ~10³⁰⁰ conformations cannot find the native fold in observed μs-ms timescales — even at picosecond conformational sampling rates, the search would exceed the age of the universe. The **folding funnel** (Wolynes, Onuchic, Bryngelson, Dill, ~1990s) reframes folding as a **biased diffusion down a free-energy landscape** rather than a random search. The native state sits at a global minimum reached by many parallel pathways through a funnel-shaped landscape. **Minimal frustration**: evolutionarily selected sequences minimize conflicting non-native interactions so the funnel is smooth + favors native contacts. Local hydrophobic collapse, secondary-structure formation, then tertiary packing happen concurrently across many trajectories. There is **no single folding pathway** — the funnel statistical-mechanics view replaces classical reaction-coordinate thinking with an ensemble of converging trajectories. Confirmed by Φ-value analysis (Fersht), HX-MS, smFRET, and large-scale MD on Anton + Folding@Home.",
+          "Wrong.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Folding funnel (Wolynes, Onuchic, Dill, Bryngelson 1990s): folding is biased diffusion down a free-energy landscape, not random search. Minimal-frustration principle: evolved sequences minimize non-native interactions so the funnel is smooth. Many parallel pathways converge on the native minimum. Resolves Levinthal's combinatorial paradox + matches Φ-value, HX-MS, smFRET data."
+      },
+      "hints": [
+        "Why is random sampling impossible in μs timescales?",
+        "What shape does the energy landscape have + who proposed it?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Levinthal: ~10³⁰⁰ conformations × ps sampling > age of universe. Folding funnel (Wolynes/Onuchic/Dill 1990s): biased diffusion down a free-energy gradient with many parallel pathways converging on the native minimum. Minimal frustration: evolved sequences avoid energetic traps. Validated by Φ-values (Fersht), HX-MS, smFRET, MD on Anton + Folding@Home."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_pfold_rama_1",
+        "kind": "scenario",
+        "question": "Diagnose a folding pathology",
+        "prompt": "A 28 kDa designed enzyme expresses well in E. coli but partitions to inclusion bodies. On refolding from urea you recover ~5% active soluble protein + 95% insoluble aggregate that stains with thioflavin T + shows fibrillar morphology by TEM. Mutating two surface-exposed phenylalanines to serine rescues solubility but kills catalysis. Diagnose mechanistically (kinetic vs thermodynamic trap; role of chaperones; what the F→S mutations did) + propose three rescue strategies (co-expression with GroEL/ES, fusion tags, designed mutations guided by AlphaFold + RFdiffusion)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_pfold_rama_1",
+        "kind": "math_expression",
+        "question": "Levinthal estimate — if each of 100 residues has 3 backbone conformations + sampling occurs at $10^{13}$ trials/second, how many seconds to enumerate all states?",
+        "acceptedAnswers": [
+          "3^100 / 1e13",
+          "5.15e34",
+          "~5e34 s",
+          "5.15 × 10^34 seconds"
+        ],
+        "hint": "$N = 3^{100} \\approx 5.15 \\times 10^{47}$; divide by sampling rate $10^{13}$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_pfold_rama_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how Anfinsen's hypothesis, Levinthal's paradox, the folding funnel, and the Ramachandran plot together constitute the conceptual core of protein folding.",
+        "rubric": "Mentions: Anfinsen (1961, Nobel 1972) — ribonuclease refolds spontaneously, sequence encodes the unique native global minimum. Levinthal (1969) — 10³⁰⁰ conformations cannot be searched randomly in μs. Resolution: folding funnel (Wolynes, Onuchic, Dill 1990s) — biased diffusion down a multidimensional free-energy gradient; minimal frustration; many parallel pathways. Ramachandran (1963) — (φ,ψ) torsion map; α-helix at (−60°,−45°), β-sheet at (−120°,+120°), PPII at (−75°,+145°), left-handed α only for Gly; Lovell 2003 PDB-derived contours used by MolProbity validation. Chaperones (Hsp70, GroEL/TRiC, Hsp90) prevent aggregation. Misfolding causes amyloid disease (Alzheimer's Aβ/tau, Parkinson's α-synuclein, prions, type 2 diabetes IAPP). Concludes: the four ideas — Anfinsen's thermodynamic encoding, Levinthal's kinetic impossibility, the funnel's resolution, Ramachandran's local steric map — together let us reason about folding from peptide-bond geometry up to whole-cell proteostasis."
+      }
+    }
+  ]
+}

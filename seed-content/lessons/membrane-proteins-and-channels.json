@@ -1,0 +1,154 @@
+{
+  "slug": "membrane-proteins-and-channels",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Reason about membrane biophysics.",
+      "Decode GPCR signaling.",
+      "Map ion-channel selectivity."
+    ],
+    "prereqs": [
+      "secondary-tertiary-quaternary-structure"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Membrane biophysics: bilayers, topology + the hydrophobic match",
+      "body": "**Membrane proteins** constitute ~25-30% of every proteome + ~60% of approved drug targets. They are also the experimental hardest class: insoluble in aqueous buffer, easily denatured by detergents, and historically resistant to crystallization. The cryo-EM revolution + AlphaFold transformed access to this class after 2013.\n\n**The lipid bilayer**:\n- **Phospholipids** (PC, PE, PS, PI, PG, cardiolipin) self-assemble into a ~30 Å hydrophobic core flanked by ~15 Å polar headgroup regions; total ~50-60 Å bilayer thickness depending on chain length + sterol content.\n- **Cholesterol** modulates fluidity + thickness; lipid rafts enriched in cholesterol + sphingolipids partition specific proteins.\n- **Membrane asymmetry**: PS + PE concentrated on inner leaflet, PC + sphingomyelin on outer; maintained by flippases + scramblases. PS exposure marks apoptosis.\n- **Mosaic model** (Singer + Nicolson 1972): proteins embedded in a fluid sea of lipids; updated with raft heterogeneity, slow-diffusion compartments, lipid annulus around proteins.\n\n**Topology classes**:\n- **α-helical bundles**: TM helices ~20 residues each spanning the bilayer with hydrophobic side chains. Most TM proteins (GPCRs 7TM, ion channels, transporters, rhodopsin, bacteriorhodopsin). 'Positive-inside rule' (von Heijne): cytoplasmic loops enriched in K/R.\n- **β-barrels**: 8-22 antiparallel β-strands forming a closed barrel; found in outer membranes of Gram-negative bacteria + mitochondria + chloroplasts (porins, OmpF, OmpA, VDAC).\n- **Monotopic**: embedded in only one leaflet (cyclooxygenase, prostaglandin synthase).\n- **Lipid-anchored**: GPI, prenyl, palmitoyl, myristoyl anchors (Ras, Src, Hh).\n\n**Hydrophobic matching**:\n- TM helix hydrophobic length must match bilayer hydrophobic thickness. Mismatch → tilting, bilayer deformation, protein clustering.\n- ~20 hydrophobic residues × 1.5 Å rise = ~30 Å matches a typical core. Hydropathy plots (Kyte-Doolittle, Hessa biological scale) predict TM helices.\n- **Aromatic belt**: Trp + Tyr cluster at the bilayer interface (~3 Å above the hydrophobic core) — anchors the protein vertically.\n\n**Lipid annulus + boundary lipids**: a 1-2 lipid-thick shell around each membrane protein with slower diffusion + functional roles (e.g., cardiolipin co-purifies with respiratory complexes, often essential for stability).\n\n**Reconstitution + structural sample prep**:\n- **Detergents**: DDM, LMNG, OG, Triton X-100; solubilize but can denature.\n- **Lipidic cubic phase (LCP)**: bicontinuous meso-phase ideal for GPCR crystallization (Caffrey 1996; enabled β2AR structure 2007).\n- **Nanodiscs** (Sligar 2002): planar lipid disc encapsulated by MSP belts; native-like environment, used routinely for cryo-EM.\n- **SMALPs** (styrene maleic acid lipid particles): extract protein with native lipid annulus without detergent.\n- **Amphipols + saposins**: protein-stabilizing amphipathic polymers.\n- **MARTINI coarse-grained MD**: ~4:1 atomic-to-bead mapping; simulates μs-ms membrane assembly + lipid sorting.\n\n**Why membrane proteins matter for medicine**: ion channels (anesthetics, antiepileptics, antiarrhythmics), GPCRs (~30% of FDA-approved drugs), transporters (SGLT2 inhibitors, SSRI), receptor tyrosine kinases (HER2, EGFR), nuclear-encoded mitochondrial respiratory complexes."
+    },
+    {
+      "kind": "text",
+      "title": "GPCRs: the 7TM signaling superfamily",
+      "body": "**G-protein-coupled receptors (GPCRs)** are the largest membrane protein family — ~800 in humans (~400 olfactory + ~400 non-olfactory). They share a conserved **seven-transmembrane (7TM) α-helical bundle** + couple to heterotrimeric G-proteins (Gαβγ) and/or β-arrestins.\n\n**Classification** (GRAFS):\n- **Class A (Rhodopsin-like)**: ~700 members; rhodopsin, β-adrenergic, opioid, dopamine, serotonin, chemokine, adenosine.\n- **Class B1 (Secretin)**: GLP-1, glucagon, PTH, calcitonin.\n- **Class B2 (Adhesion)**: large extracellular GAIN/GPS domains.\n- **Class C (Glutamate)**: mGluRs, CaSR, GABA-B; large extracellular Venus flytrap domain.\n- **Class F (Frizzled/Smoothened)**: Wnt + Hedgehog signaling.\n\n**Historical milestones**:\n- **Bovine rhodopsin** — first GPCR crystal structure (Palczewski 2000) using LCP-like methods on dark-adapted rhodopsin from rod outer segments.\n- **β2-adrenergic receptor (β2AR)** — first non-rhodopsin GPCR (Rasmussen, Kobilka 2007); breakthrough with T4-lysozyme fusion + LCP + carazolol bound.\n- **β2AR-Gs ternary complex** (Rasmussen + Kobilka 2011) — captured the fully active state.\n- **Robert Lefkowitz + Brian Kobilka — Chemistry Nobel 2012** for GPCR biology + structure.\n- **Cryo-EM revolution post-2017**: dozens of class B + C GPCRs in complex with G-proteins, nanobodies, scFvs, monobodies stabilizing transient active states.\n\n**Signaling logic**:\n- Agonist binds orthosteric pocket → conformational change → outward swing of TM6 ~14 Å → Gα binds intracellular cavity → GDP exchange for GTP → Gα + Gβγ dissociate → downstream effectors.\n- Effectors: **Gαs → adenylate cyclase ↑** (cAMP); **Gαi → adenylate cyclase ↓**; **Gαq → PLCβ → IP3 + DAG → Ca²⁺**; **Gα12/13 → RhoGEFs**; **Gβγ → PI3K, GIRK channels**.\n- **GRKs** phosphorylate active receptor → **β-arrestin** recruitment → desensitization + endocytosis + arrestin-biased signaling (MAPK, Src).\n\n**Biased agonism**:\n- A ligand can preferentially activate G-protein pathway vs β-arrestin pathway (or vice versa).\n- **TRV130 (oliceridine)** — μ-opioid G-protein-biased analgesic; intended to reduce arrestin-mediated respiratory depression (clinical results modest).\n- Structural basis: different conformations of TM5/6/7 differentially recruit Gα vs arrestin.\n\n**Allosteric modulators**:\n- **PAM** (positive allosteric modulator): cinacalcet on CaSR for hyperparathyroidism.\n- **NAM** (negative allosteric modulator): maraviroc on CCR5 for HIV entry.\n- **Bitopic ligands**: span orthosteric + allosteric sites.\n\n**Stabilizing the active state for structure**:\n- **Nanobodies** (Steyaert lab) — camelid single-domain antibodies that lock GPCRs in active conformation (Nb80 on β2AR; Nb35 on Gs).\n- **DARPins, Fabs, monobodies** — alternative stabilizers.\n- **Mini-G proteins** (Tate lab) — engineered minimal Gα that retains GPCR coupling.\n- **Thermostabilizing mutations** (StaR; Heptares).\n\n**Drug discovery impact**: ~30% of FDA-approved drugs target GPCRs (β-blockers, antihistamines, opioids, antipsychotics, SSRIs partially, antiemetics, GLP-1 agonists semaglutide/tirzepatide for obesity + diabetes). Structure-guided design + AF3 for previously-elusive GPCR-effector complexes."
+    },
+    {
+      "kind": "text",
+      "title": "Ion channels + transporters: selectivity, gating, alternating access",
+      "body": "**Ion channels** + **transporters** carry charged species across the bilayer. Channels gate a conductive pore (10⁶-10⁸ ions/s); transporters undergo conformational cycles (10²-10⁴ turnovers/s).\n\n**K⁺ channels — Roderick MacKinnon (Chemistry Nobel 2003)**:\n- **KcsA** (Streptomyces lividans K⁺ channel) — Doyle + MacKinnon 1998 — first ion-channel crystal structure at 3.2 Å.\n- **Selectivity filter**: signature sequence **TVGYG** (T-V-G-Y-G) forms 4 stacked rings of backbone carbonyls coordinating K⁺ in pentagonal geometry — mimicking K⁺'s hydration shell. Dehydration energy of K⁺ is paid by carbonyl coordination; Na⁺ (smaller) cannot achieve optimal geometry → 10 000-fold selectivity for K⁺ over Na⁺.\n- Filter holds 2 K⁺ ions in single-file with water; 'knock-on' permeation (Hodgkin + Keynes 1955 model).\n- Architecture: 4 subunits, each with 2 TM helices flanking a P-loop containing the filter.\n- **Voltage-gated K⁺ (Kv) channels** (Shaker, Kv1.2): 6 TM segments; **S4 voltage sensor** with charged Arg every 3rd residue (gating charge ~12-14 e per channel); S4 'helix-screw' or 'paddle' motion drives gating.\n- **Inward-rectifying (Kir)**, **two-pore (K2P, TREK/TASK)**, **Ca²⁺-activated (BK, SK)** subfamilies.\n\n**Na⁺ + Ca²⁺ channels**:\n- **NaV** (Catterall lab + many cryo-EM groups since 2017): pseudo-tetrameric single-chain channel; 4 homologous domains; targets of local anesthetics (lidocaine), antiepileptics (lamotrigine, carbamazepine), antiarrhythmics.\n- **CaV** (L-type, P/Q, N): targets of dihydropyridines (amlodipine for hypertension), gabapentinoids.\n\n**Ligand-gated channels (pentameric Cys-loop superfamily)**: nAChR (nicotinic ACh receptor — Unwin EM at Torpedo electroplax was seminal), GABA-A (benzodiazepines, propofol), glycine receptor, 5HT3 (ondansetron antiemetic).\n\n**Ionotropic glutamate receptors**: AMPA, NMDA, kainate; ketamine antagonizes NMDA → fast-acting antidepressant.\n\n**Cl⁻ channels (ClC family)**: ClC-1 (myotonia), CFTR (cystic fibrosis — ABC-transporter family but functions as a Cl⁻ channel; ΔF508 mutation rescued by elexacaftor/tezacaftor/ivacaftor — Trikafta).\n\n**Transporters — alternating access**:\n- **MFS (Major Facilitator Superfamily)**: LacY, GLUT1-4 (glucose), SGLT1/2 (Na⁺-glucose cotransport; SGLT2 inhibitors dapagliflozin/empagliflozin for diabetes + heart failure); 12 TM helices in 2 6-TM bundles.\n- **ABC transporters (ATP-Binding Cassette)**: P-glycoprotein/MDR1 (multidrug resistance), CFTR, MRP1; ATP hydrolysis at nucleotide-binding domains drives transport.\n- **Neurotransmitter transporters (SLC6, SLC1)**: SERT, DAT, NET, GAT, GlyT; targets of SSRIs (fluoxetine, sertraline), SNRIs, cocaine, amphetamines.\n- **APC superfamily**: amino acid transporters.\n- **P-type ATPases**: Na⁺/K⁺ ATPase (Skou Nobel 1997; target of digoxin), Ca²⁺ ATPase (SERCA), H⁺/K⁺ ATPase (proton pump inhibitors omeprazole).\n- **F-type + V-type ATPases**: F1Fo ATP synthase (Boyer + Walker Nobel 1997); V-ATPase acidifies lysosomes/endosomes.\n\n**Alternating-access mechanism**: a transporter cycles through outward-facing → occluded → inward-facing states; substrate is exposed alternately to opposite sides; ions/protons/ATP energize the transition. Conformational cycle captured in landmark structures (LacY by Kaback + Iwata 2003; rocker-switch, rocking-bundle, gated-pore variants).\n\n**Mechanosensitive channels**: MscL, Piezo1/2 (Patapoutian Nobel 2021); sense membrane tension via curvature + tension-coupled gating.\n\n**Modern access**: cryo-EM has resolved hundreds of channel + transporter structures since 2017 — many at <3 Å with bound drugs, enabling structure-based design for pain, epilepsy, cardiac arrhythmia, depression, addiction."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_memb_chan_1",
+        "kind": "guided_derivation",
+        "question": "Reason about K⁺ channel selectivity",
+        "goal": "KcsA filter selects K⁺ (1.33 Å) over Na⁺ (0.95 Å) by ~10 000×. Walk through hydration energy + geometric coordination + the dehydration penalty.",
+        "steps": [
+          {
+            "prompt": "Why does an ion need to dehydrate to cross the membrane?",
+            "motivation": "Hydrated radius is too large for the bilayer.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "hydrated ion is too large + too polar to cross the 30 Å hydrophobic core"
+              ]
+            },
+            "hints": [
+              "Hydrated K⁺ radius ≈ 3.3 Å with strong waters; can't fit + can't enter hydrophobic core."
+            ],
+            "reveal": "Bare K⁺ in solution carries a tightly held first hydration shell (~6 waters at ~2.8 Å). The hydrated ion is too polar to cross the ~30 Å hydrophobic core. Channels provide carbonyl-oxygen coordination that mimics water's solvation geometry so the ion can shed waters with low energetic cost."
+          },
+          {
+            "prompt": "How does the TVGYG filter mimic K⁺'s hydration shell?",
+            "motivation": "Backbone carbonyl rings.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "4 stacked rings of 4 backbone carbonyls each coordinate K⁺ in cube-antiprism geometry matching the first hydration shell"
+              ]
+            },
+            "hints": [
+              "Selectivity filter: 4 K⁺ binding sites; each surrounded by 8 carbonyl oxygens."
+            ],
+            "reveal": "The signature TVGYG sequence (one per subunit × 4 subunits) presents 5 stacked rings of 4 carbonyl oxygens, defining 4 K⁺ binding sites. Each K⁺ is coordinated by 8 oxygens in square-antiprism (twisted-cube) geometry at distances closely matching first-shell hydration. K⁺ effectively swaps waters for carbonyls with near-zero energy cost."
+          },
+          {
+            "prompt": "Why does Na⁺ (smaller) fail this geometry?",
+            "motivation": "Geometric mismatch outweighs hydration-energy gain.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Na⁺ is too small to make optimal contact with all 8 carbonyls simultaneously; the partial coordination doesn't compensate for the larger dehydration penalty of Na⁺"
+              ]
+            },
+            "hints": [
+              "Na⁺ is smaller → carbonyls cannot collapse without disrupting H-bonded backbone."
+            ],
+            "reveal": "Na⁺ has a higher hydration energy (smaller + higher charge density). To pay that penalty, the filter would need to collapse around Na⁺ — but the backbone is constrained by the 4-fold symmetry + neighboring H-bonds. Na⁺ ends up under-coordinated (effectively 4-6 carbonyls at suboptimal distance), so the dehydration penalty isn't recovered. Net: K⁺ permeates ~10 000× more efficiently."
+          },
+          {
+            "prompt": "Why does the filter contain 2 K⁺ at once + how is permeation fast?",
+            "motivation": "Knock-on, Coulombic repulsion overcomes binding energy.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "electrostatic repulsion between two bound K⁺ destabilizes binding enough to keep throughput at near diffusion-limited rates"
+              ]
+            },
+            "hints": [
+              "Two ions in single file repel each other → no deep individual energy well."
+            ],
+            "reveal": "Knock-on permeation (Hodgkin + Keynes 1955): 2 K⁺ ions sit in the filter at any time, separated by waters in the canonical view (or directly contacting in the 'hard knock-on' MD picture, Köpfer 2014; Kratochvil 2016). Coulombic repulsion between the two ions shallows the energy landscape so no single binding site dominates — net flux reaches 10⁷-10⁸ ions/s, near the diffusion limit. Selectivity stays high because the geometry test is on every entry attempt."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_memb_chan_1",
+        "kind": "multiple_choice",
+        "question": "Why was the β2-adrenergic receptor's crystal structure such a breakthrough?",
+        "options": [
+          "Wrong.",
+          "Before 2007, the only solved GPCR was bovine **rhodopsin** (Palczewski 2000), which is uniquely stable + abundant in retinal rod outer segments. Other GPCRs were considered nearly impossible to crystallize due to (1) extreme conformational flexibility in solution; (2) low expression in stable form; (3) sensitivity to detergents; (4) need for native-like lipid environment. The Kobilka lab's **β2-adrenergic receptor** (Rasmussen + Kobilka 2007) cracked these via three innovations: **T4-lysozyme fusion** in intracellular loop 3 to add a crystallizable surface; **lipidic cubic phase (LCP)** crystallization providing a near-native membrane environment; and an inverse agonist (**carazolol**) plus an antibody Fab to lock a single conformation. The follow-up **β2AR-Gs ternary complex** (Rasmussen 2011) caught the active state with nanobody Nb80 + Nb35 stabilization. Brian **Kobilka + Robert Lefkowitz won the 2012 Chemistry Nobel** for this work. It opened the floodgates: ~100+ GPCR structures in the next decade; LCP + cryo-EM + nanobodies/Fabs are now the standard playbook, enabling structure-based drug design for ~30% of all FDA-approved drugs.",
+          "Wrong.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "β2AR (Kobilka 2007) broke open the GPCR structural barrier — first non-rhodopsin GPCR. Tricks: T4-lysozyme fusion + LCP crystallization + carazolol + antibody Fab; later Nb80 + Nb35 captured β2AR-Gs ternary complex (2011). Kobilka + Lefkowitz Chemistry Nobel 2012. Enabled structure-based design for ~30% of drugs targeting GPCRs."
+      },
+      "hints": [
+        "What was the only solved GPCR before 2007?",
+        "What three tricks did the Kobilka lab introduce?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Before 2007 only rhodopsin (Palczewski 2000) was solved — uniquely stable. β2AR (Rasmussen + Kobilka 2007) cracked the GPCR barrier with (1) T4-lysozyme fusion in ICL3, (2) LCP crystallization, (3) carazolol + Fab stabilization. β2AR-Gs ternary complex 2011 used Nb80 + Nb35. Kobilka + Lefkowitz Nobel 2012. Enabled structure-based design for ~30% of FDA-approved drugs."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_memb_chan_1",
+        "kind": "scenario",
+        "question": "Design an active-state cryo-EM experiment for a class B GPCR",
+        "prompt": "You want to determine the cryo-EM structure of the GLP-1 receptor bound to semaglutide + heterotrimeric Gs in its active state. The receptor expresses moderately in HEK293-GnTI⁻ cells + is unstable in standard detergents. Outline (a) the construct + tag strategy, (b) the membrane-mimetic system (detergent vs nanodisc vs LMNG-CHS), (c) the complex-stabilizing partners (mini-Gs, Nb35, scFv16, or full heterotrimer), (d) the cryo-EM data-collection + processing pipeline, and (e) two follow-up biophysics experiments to validate the structure's relevance to biased agonism + drug discovery."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_memb_chan_1",
+        "kind": "math_expression",
+        "question": "K⁺ channel turnover: if a K⁺ channel passes 10⁸ ions/s, how many K⁺ ions cross during a 1 ms action potential firing?",
+        "acceptedAnswers": [
+          "100000",
+          "1e5",
+          "10^5",
+          "10^8 × 10^-3 = 10^5"
+        ],
+        "hint": "Multiply rate × time: $10^8 \\times 10^{-3}$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_memb_chan_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why membrane proteins are biology's most pharmacologically important + experimentally hardest class, and how the post-2013 toolkit changed access.",
+        "rubric": "Mentions: ~25-30% of proteomes + ~60% of drug targets — GPCRs (~30% of FDA-approved drugs alone), ion channels (anesthetics, antiarrhythmics), transporters (SSRIs, SGLT2i), RTKs. Experimental difficulty: insoluble, detergent-sensitive, conformationally flexible, hard to crystallize. Pre-2007 only rhodopsin (Palczewski 2000); β2AR breakthrough (Kobilka 2007 + Lefkowitz/Kobilka Nobel 2012) introduced T4L fusion + LCP + Fab/nanobody stabilization. KcsA (MacKinnon 1998 + Chemistry Nobel 2003) explained K⁺ selectivity by TVGYG filter geometric mimicry of hydration shell + knock-on permeation. Cryo-EM resolution revolution (2013, Dubochet/Frank/Henderson Nobel 2017) plus nanodiscs/SMALPs/amphipols/mini-G/Nb35/scFv16 enables routine membrane-complex structures. AlphaFold + AF3 supply initial models even when expression is hard. Concludes: membrane structural biology is now a high-throughput discipline — pharmacology + chemistry leverage these structures directly for biased agonists, allosteric modulators, channel-state-selective drugs."
+      }
+    }
+  ]
+}

@@ -1,0 +1,154 @@
+{
+  "slug": "alphafold-and-computational-structure",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Trace pre-AF history.",
+      "Explain AlphaFold 2 architecture.",
+      "Use AF3 confidence metrics."
+    ],
+    "prereqs": [
+      "secondary-tertiary-quaternary-structure"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "From Anfinsen to CASP14: 60 years of structure prediction",
+      "body": "**The problem**: given amino acid sequence, predict the 3D atomic structure. Anfinsen's hypothesis (1961, Nobel 1972) says the information is there in the sequence — the challenge is reading it.\n\n**CASP (Critical Assessment of Structure Prediction)** — biennial blind benchmark since 1994 (Moult + Fidelis). Organizers release sequences of newly-solved-but-unreleased PDB structures; teams submit predictions; predictions scored vs experiment by **GDT_TS (Global Distance Test - Total Score)**, **TM-score**, **lDDT (local Distance Difference Test)**.\n\n**Pre-deep-learning approaches**:\n- **Homology modeling / comparative modeling**: when query has >30% sequence identity to a PDB template, build by analogy. Tools: **MODELLER** (Sali 1993), **SWISS-MODEL** (Schwede), **Phyre2** (Kelley), **HHpred/HHsearch** (Söding profile-profile alignment). Works well for ~60-70% of human proteome that has a homologous template.\n- **Threading / fold recognition**: 'thread' query sequence through known folds; score by statistical or knowledge-based potential. **I-TASSER** (Zhang lab), **RaptorX**, **HHpred**. Useful for distant homologs (<30% identity).\n- **Fragment assembly / Rosetta** (Baker lab, 1997+): cut query into 9-mers + 3-mers; for each, retrieve compatible PDB fragments by sequence + secondary-structure prediction; assemble via Monte Carlo with simulated annealing using a knowledge-based + physics-based energy function. **Rosetta@home** + **Foldit** crowdsourced versions. Won several CASP rounds for free modeling (no templates).\n- **Ab initio / physics-based MD**: in principle, run molecular dynamics until the protein folds. **Folding@Home** (Pande, distributed computing), **Anton** (D. E. Shaw, custom hardware). Limited to small fast-folders like villin headpiece, BBA5, NTL9 — months of compute for tens of microseconds.\n\n**Coevolution + contact prediction (pre-AlphaFold breakthrough)**:\n- Idea (Lapedes, Marks, Sander, Onuchic ~2010-2014): residues that co-vary across a multiple sequence alignment are likely to be in physical contact (compensatory mutations).\n- Methods: **mfDCA** (mean-field direct coupling analysis), **plmDCA**, **GREMLIN** (Ovchinnikov), **PSICOV** (Jones), **EVfold** (Marks + Sander).\n- Then deep CNNs on coevolution features: **RaptorX-Contact** (Xu 2017), **DeepContact**, **trRosetta** (Yang + Baker 2020) — predict residue-residue distance + orientation distributions, fed to Rosetta or PyRosetta for structure construction.\n\n**CASP score history**:\n- CASP1-CASP12 (1994-2016): median GDT_TS plateau ~30-40 for free modeling, ~70-80 for high-homology targets. Incremental gains of a few percent per round.\n- **CASP13 (2018)**: DeepMind's **AlphaFold 1** (CNN-based contact prediction → Rosetta) wins free-modeling category but margins modest.\n- **CASP14 (Nov 2020)**: **AlphaFold 2** median GDT_TS ~92 across all targets — matching experimental accuracy for ~2/3 of targets. Discontinuous leap: 'the protein folding problem is solved' (CASP organizers).\n\n**Open-source democratization**: ColabFold (Mirdita + Steinegger + Ovchinnikov 2022) made AF2 runnable in a Google Colab notebook with MMseqs2-fast MSAs — minutes per protein on a free GPU. OpenFold + DeepMind code release made retraining + adaptation possible. AFDB (Varadi + Velankar 2022) released >200M predicted structures."
+    },
+    {
+      "kind": "text",
+      "title": "AlphaFold 2 architecture: Evoformer + structure module + confidence",
+      "body": "**AlphaFold 2** (Jumper + Hassabis + Evans + Pritzel + Senior + Žídek + Tunyasuvunakool et al. 2021 *Nature* — 'Highly accurate protein structure prediction with AlphaFold'). DeepMind. **John Jumper + Demis Hassabis Chemistry Nobel 2024** (joint with David Baker).\n\n**Inputs**:\n1. Query amino acid sequence.\n2. **MSA**: thousands of homologous sequences from UniRef + BFD + MGnify metagenomes; coevolutionary signal — when two residues vary in correlated patterns across evolution, they likely contact in 3D.\n3. **Template** structures (optional): top hits from PDB by HHsearch/HHblits.\n\n**Backbone**: **Evoformer** + **Structure module**, end-to-end differentiable trained on PDB structures + then self-distilled on AF predictions of UniRef.\n\n**Evoformer** — 48 transformer-like blocks operating on two representations:\n- **MSA representation** (N_seq × N_res × d_model): row-wise + column-wise attention; outer-product mean updates the pair representation.\n- **Pair representation** (N_res × N_res × d_pair): triangular multiplicative updates + triangular self-attention enforce 3-residue geometric consistency (if i-j + j-k contact, i-k constrained).\n- Communication between MSA + pair representations refines both jointly.\n- Output: refined pair representation encoding distances + orientations + a single-sequence representation.\n\n**Structure module** — produces 3D atom coordinates:\n- **Invariant Point Attention (IPA)**: SE(3)-equivariant attention on residue 'frames' (one per residue: position + orientation), making the network respect rotational + translational invariance.\n- **Iterative refinement**: 8 layers; each updates frames via IPA + computes per-residue local update; explicit gradient on residue placement.\n- **Recycling**: pass predicted structure + pair representation back through Evoformer 3 times — analogous to test-time iteration; major contributor to accuracy.\n- Output: backbone coordinates + χ angles for side chains; converted to all-atom model.\n\n**Confidence metrics**:\n- **pLDDT (predicted Local Distance Difference Test)** per residue 0-100:\n  - >90: very high — backbone + side chains accurate to ~2-3 Å (experimental quality).\n  - 70-90: high — backbone accurate, side chains might be off.\n  - 50-70: low — backbone likely correct but caution.\n  - <50: very low — often **intrinsically disordered** (not a prediction failure but a correct disorder classification).\n- **PAE (Predicted Aligned Error)** N×N matrix: expected error in Å when residue i is used to align residue j; visualized as a heatmap.\n  - Low-PAE blocks along the diagonal = confidently structured domains.\n  - Off-diagonal low-PAE = confident inter-domain orientation.\n  - High off-diagonal PAE = uncertain inter-domain positioning.\n  - Best single metric for assessing **complexes** + multi-domain architecture.\n- **pTM** (predicted TM-score) + **ipTM** (interface pTM, for multimers) — global scores.\n\n**CASP14 result**: median GDT_TS ~92 across all targets; ~2/3 of predictions accurate to ~1 Å Cα RMSD over the global fold; competitive with X-ray crystallography at ~2-3 Å for most folded proteins.\n\n**Why it worked** (Jumper's analysis):\n- Co-evolution + deep MSAs supplied near-physical contact priors.\n- Geometric equivariance preserved 3D structure of attention.\n- End-to-end differentiable training directly on coordinates + structure-aware losses.\n- Recycling iterative refinement.\n- Massive PDB training + self-distillation.\n- Substantial TPU compute (~weeks of training on a TPU pod).\n\n**Limitations**:\n- Single static conformation; no dynamics, allostery, induced fit.\n- Multimers + disorder + post-translationally modified proteins are weaker without AF-Multimer / AF3.\n- Mutational effects often underpredicted (rare large-effect missense).\n- Ligands not modeled in AF2 (fixed by AF3).\n- MSA-dependent — sequences with no homologs (truly novel orphan, viral diversity) are harder."
+    },
+    {
+      "kind": "text",
+      "title": "AlphaFold 3, RoseTTAFold, ESMFold + the open-source explosion",
+      "body": "**AlphaFold 3** (Abramson + Jumper + Hassabis + Adler et al. 2024 *Nature* — 'Accurate structure prediction of biomolecular interactions with AlphaFold 3'):\n- **All-atom diffusion** generative model replacing Evoformer's structure module: trains a diffusion model to denoise atomic coordinates conditioned on a Pairformer (simplified Evoformer).\n- **Universal biomolecular scope**: proteins + DNA + RNA + small-molecule ligands + ions + covalent modifications + glycans — all in a single model.\n- **Multimer + complex prediction** as a first-class operation; ipTM + chain-pair iPTM for interface confidence.\n- Released via the **AlphaFold Server** (Google/Isomorphic Labs); inference code released 2024.\n- Performance: substantially better than docking on protein-ligand benchmarks; better than AF-Multimer on PPIs; matches NMR for many RNAs.\n- **Limitations**: stochastic (run multiple seeds), licensing restrictions on commercial use of the Server, conformational sampling still weak.\n\n**RoseTTAFold** (Baek + Baker + DiMaio + Ovchinnikov et al. 2021 *Science*; same week as AF2):\n- Three-track network: 1D sequence + 2D distance + 3D coordinates pass information bidirectionally.\n- Slightly behind AF2 on global accuracy but freely modifiable + open-source from day one.\n- **RoseTTAFold2** (Baek 2023): closes much of the gap; foundation for **RFdiffusion** + **RFantibody** + **RoseTTAFold All-Atom (RFAA)** + **RoseTTAFold-NA** (nucleic acids).\n- **David Baker shared the Chemistry Nobel 2024** with Hassabis + Jumper for protein design + RoseTTAFold.\n\n**ESMFold** (Lin + Akin + Rao + Hie + Zhu + Lu + Smetanin + Verkuil + Kabeli + Shmueli + dos Santos Costa + Fazel-Zarandi + Sercu + Candido + Rives 2023 *Science*):\n- Replaces the MSA with a **protein language model** (**ESM-2**, 15B parameters, trained on ~65M sequences) embedding.\n- Single-sequence prediction: no MSA search needed → ~60× faster than AF2.\n- Slightly lower accuracy than AF2 (about 5-10% on lDDT) but much faster + works for orphans without homologs.\n- Enabled the **ESM Metagenomic Atlas** (>600M predicted structures, mostly metagenomic — protein universe even bigger than AFDB).\n\n**OpenFold** (Ahdritz + AlQuraishi et al. 2024 *Nature Methods*): community-driven faithful reimplementation of AF2 in PyTorch; retrainable from scratch; transparent for research.\n\n**Boltz-1** (MIT, Wohlwend + Corso + Trippe + Krishnapriyan + Barzilay 2024): fully open AF3-style universal biomolecule predictor; **Boltz-2** adds affinity prediction.\n\n**Chai-1** (Chai Discovery 2024): AF3-class model with bespoke modifications + open weights for non-commercial use.\n\n**AlphaFold Database (AFDB)** (Varadi + Velankar + Tunyasuvunakool 2022 *Nucleic Acids Res*):\n- **>200 million** predicted structures (~every UniProt entry as of mid-2022 — and growing).\n- Searchable by sequence + via **Foldseek** (van Kempen + Steinegger 2023) for structure-based search across both AFDB + PDB at minutes per query.\n- Now central to homology + functional annotation across all of biology.\n\n**Foldseek + structure-based search**:\n- Encodes 3D structure into a **3Di alphabet** + uses Smith-Waterman-like local alignment → blazing fast.\n- 'Structural BLAST': finds remote homologs that sequence search misses.\n- Used for fold-based functional annotation, dark-proteome characterization, evolutionary inference.\n\n**Practical guidance**:\n- **Routine prediction**: ColabFold (AF2 + MMseqs2 MSA) for quick + accurate; ESMFold for orphan or speed-critical.\n- **Multimers/complexes**: AF-Multimer or AF3; check ipTM > 0.6 + low-PAE off-diagonal blocks.\n- **Ligand binding**: AF3, Boltz-1, Chai-1, or classical docking (AutoDock Vina, DiffDock).\n- **Confidence**: always inspect pLDDT + PAE; cross-check with disorder predictors + experimental data when available.\n- **Limitations**: never trust a single static prediction for dynamics, allostery, or induced fit — use MD, ensemble prediction (AlphaFlow, ESMFlow), or experimental validation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_af_arch_1",
+        "kind": "guided_derivation",
+        "question": "Interpret an AF3 prediction of a kinase-substrate complex",
+        "goal": "AF3 predicts a 350 aa kinase bound to a 30 aa substrate peptide. Confidence: kinase pLDDT mean 88; substrate pLDDT 65; ipTM = 0.55; PAE between kinase + substrate ~15 Å; chain-pair iPTM = 0.5. Decide whether to trust the complex, how to follow up, and what each metric tells you.",
+        "steps": [
+          {
+            "prompt": "What does the kinase pLDDT 88 tell you?",
+            "motivation": "Per-residue confidence.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "high backbone + good side-chain confidence; treat the kinase fold as near-experimental"
+              ]
+            },
+            "hints": [
+              "pLDDT > 70 = backbone reliable; > 90 = experimental quality."
+            ],
+            "reveal": "Kinase pLDDT 88 = high confidence — bilobal kinase fold + ATP cleft reliably positioned. Side chains in the core trustworthy; surface loops + flexible regions might still vary. Use this part of the model for hypothesis generation, mutation design, and docking."
+          },
+          {
+            "prompt": "Substrate pLDDT 65 — interpretation?",
+            "motivation": "Borderline confidence.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "low-to-medium; substrate may be flexible or only partially ordered upon binding; backbone path is approximate"
+              ]
+            },
+            "hints": [
+              "Short peptides often score 50-70 even when correctly placed."
+            ],
+            "reveal": "pLDDT 65 = low-medium. For a short substrate peptide this is typical — they bind in extended conformations + may sample multiple registers. The backbone path is approximate; the active-site interaction residues might be correct but the N + C termini of the peptide could be wrong by several Å."
+          },
+          {
+            "prompt": "ipTM = 0.55 + PAE ~15 Å across the kinase-substrate interface — trust the complex?",
+            "motivation": "ipTM threshold for confident interfaces.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "no — ipTM < 0.6 + high inter-chain PAE = low-confidence interface; treat as speculative"
+              ]
+            },
+            "hints": [
+              "ipTM ≥ 0.8 is high confidence; 0.6-0.8 medium; < 0.6 unreliable."
+            ],
+            "reveal": "ipTM 0.55 + 15 Å inter-chain PAE = unreliable interface prediction. The peptide is likely correct in identity but its docking pose is uncertain — could be off by 5-10 Å + the binding register may be wrong. Do not trust specific contacts for mutation design without further evidence."
+          },
+          {
+            "prompt": "What three follow-ups would you do?",
+            "motivation": "Validation strategy.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "run multiple AF3 seeds; cross-check against PDB homologs; validate by mutagenesis + binding assays + ideally cryo-EM or co-crystal"
+              ]
+            },
+            "hints": [
+              "Reduce stochastic variance; check known kinase-substrate motifs; design experiments."
+            ],
+            "reveal": "(1) Run 5-25 AF3 seeds + look for consensus binding pose. (2) Compare to PDB kinase-substrate structures (PKA-PKI, CDK-cyclin-substrate ternaries) for the canonical docking groove + phospho-acceptor positioning. (3) Mutate predicted interface residues + measure binding by ITC, BLI, or activity assay. Ideally co-crystal or cryo-EM of the kinase + a stable substrate mimetic. AF3 is hypothesis-generating; experimental + ensemble methods (AlphaFlow, MD) confirm."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_af_arch_1",
+        "kind": "multiple_choice",
+        "question": "What architectural innovations let AlphaFold 2 break a 60-year prediction plateau?",
+        "options": [
+          "Wrong.",
+          "AlphaFold 2 (Jumper + Hassabis 2021 *Nature*; Chemistry Nobel 2024 with Baker) combined five innovations: (1) **Evoformer** — 48 transformer blocks operating jointly on **MSA representation** + **pair representation**, with **triangular multiplicative updates + triangular attention** enforcing 3-residue geometric consistency that no prior CNN architecture imposed; (2) **Coevolution from deep MSAs** (UniRef + BFD + MGnify) supplied near-physical contact priors — bridging decades of biophysical insight (Lapedes, Marks, Sander, Onuchic, Ovchinnikov) directly into a differentiable network; (3) **Structure module with Invariant Point Attention (IPA)** — SE(3)-equivariant attention on per-residue frames respects 3D symmetry without breaking rotational invariance; (4) **Recycling**: predicted structures + representations fed back through the network 3× → test-time iterative refinement; (5) End-to-end **differentiable training on coordinates** with structure-aware FAPE + auxiliary losses + self-distillation on AF predictions of UniRef. **CASP14 median GDT_TS ~92** matched experiment for ~2/3 of targets. Combined with massive TPU compute + PDB training data, this discontinuous leap unlocked >200M predicted structures (AFDB) + reshaped molecular biology.",
+          "Wrong.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "AF2 innovations: Evoformer (48 blocks; MSA + pair representations; triangular updates + attention); deep MSA coevolution priors; SE(3)-equivariant Structure module with Invariant Point Attention on residue frames; recycling for test-time iteration; end-to-end differentiable coordinate training + FAPE losses + self-distillation. CASP14 median GDT_TS ~92, matching experiment for most targets. Nobel 2024 with Baker."
+      },
+      "hints": [
+        "What are the two representations Evoformer operates on?",
+        "What geometric symmetry does IPA preserve + why does recycling matter?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "AF2 stack: Evoformer (48 blocks on MSA + pair representations, triangular updates + attention enforcing 3-residue geometry); deep MSAs from UniRef/BFD/MGnify giving coevolution priors; Structure module with SE(3)-equivariant Invariant Point Attention on residue frames; recycling (3× test-time iteration); end-to-end FAPE coordinate training + self-distillation. CASP14 median GDT_TS ~92. Jumper + Hassabis Nobel 2024 with Baker."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_af_arch_1",
+        "kind": "scenario",
+        "question": "Choose your structure-prediction toolchain",
+        "prompt": "You need to model: (a) a 250 aa human kinase with many close homologs in PDB; (b) a 1500 aa multi-domain scaffolding protein with one structured domain + a 1200 aa IDR; (c) an orphan archaeal protein with no detectable homologs; (d) a 4-chain protein complex with bound ATP + Mg²⁺; (e) a designed antibody-antigen pair where you need the binding interface. For each, pick the appropriate tool (AF2, AF3, AF-Multimer, ESMFold, RoseTTAFold + RFdiffusion, ColabFold, Boltz-1, Foldseek) + justify based on accuracy/speed/scope. Mention which confidence metrics (pLDDT, PAE, ipTM, chain-pair iPTM) you would inspect."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_af_arch_1",
+        "kind": "math_expression",
+        "question": "AFDB scale — if AFDB has ~2 × 10⁸ structures and ESM Metagenomic Atlas has ~6 × 10⁸ structures, what is the rough total number of computationally predicted structures (order of magnitude)?",
+        "acceptedAnswers": [
+          "8e8",
+          "8 × 10^8",
+          "~1e9",
+          "0.8 billion ≈ 1 billion"
+        ],
+        "hint": "Sum: $2 \\times 10^8 + 6 \\times 10^8 = 8 \\times 10^8$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_af_arch_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how AlphaFold 2 + AlphaFold 3 + the open-source ecosystem transformed structural biology from an experimental bottleneck into a computationally-led discipline.",
+        "rubric": "Mentions: 60-year history: Anfinsen (1961) → CASP plateau ~30-40% GDT for free modeling through CASP12 → AF1 (CASP13 2018) → AF2 (CASP14 2020 median GDT_TS ~92, *Nature* 2021, Jumper + Hassabis Nobel 2024 with Baker). AF2 stack: Evoformer 48 blocks on MSA + pair representations with triangular geometry constraints; MSA coevolution (Lapedes/Marks/Sander/Ovchinnikov); SE(3)-equivariant Structure module with Invariant Point Attention on residue frames; recycling. Confidence: pLDDT, PAE, pTM/ipTM. AF3 (Abramson 2024 *Nature*) extends to all-atom diffusion over proteins + DNA + RNA + ligands + ions. RoseTTAFold (Baker), ESMFold (Meta LM-based, 60× faster, no MSA), OpenFold + Boltz-1 + Chai-1 open weights, ColabFold democratized access. AFDB >200M + ESM Atlas >600M structures + Foldseek for structural BLAST. Transformed drug discovery (templates for previously undruggable targets), functional annotation, evolutionary inference, protein design (RFdiffusion + ProteinMPNN). Limits: static prediction, not dynamics — use ensembles (AlphaFlow, ESMFlow) + experiment. Concludes: AF rates as one of the highest-impact biological methods ever, comparable to PCR + BLAST + NGS, and a paradigm for AI-accelerated science."
+      }
+    }
+  ]
+}

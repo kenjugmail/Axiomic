@@ -37,6 +37,7 @@ const MM1Queue = lazy(() => import("../../../../packages/viz/src/components/MM1Q
 const LotkaVolterra = lazy(() => import("../../../../packages/viz/src/components/LotkaVolterra").then(m => ({ default: m.LotkaVolterra })));
 const RadiocarbonDecay = lazy(() => import("../../../../packages/viz/src/components/RadiocarbonDecay").then(m => ({ default: m.RadiocarbonDecay })));
 const AlignmentMatrix = lazy(() => import("../../../../packages/viz/src/components/AlignmentMatrix").then(m => ({ default: m.AlignmentMatrix })));
+const RamachandranPlot = lazy(() => import("../../../../packages/viz/src/components/RamachandranPlot").then(m => ({ default: m.RamachandranPlot })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -78,6 +79,7 @@ export const VIZ_NAMES = [
   "lotka-volterra",
   "radiocarbon-decay",
   "alignment-matrix",
+  "ramachandran-plot",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -117,6 +119,7 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "lotka-volterra": LotkaVolterra,
   "radiocarbon-decay": RadiocarbonDecay,
   "alignment-matrix": AlignmentMatrix,
+  "ramachandran-plot": RamachandranPlot,
 };
 
 interface VizEmbedProps {

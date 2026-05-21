@@ -178,6 +178,11 @@ const LazyAlignmentMatrix = lazy(() =>
     (m) => ({ default: m.AlignmentMatrix }),
   ),
 );
+const LazyRamachandranPlot = lazy(() =>
+  import("../../../../../packages/viz/src/components/RamachandranPlot").then(
+    (m) => ({ default: m.RamachandranPlot }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -306,6 +311,8 @@ function VizByName({
       return <LazyRadiocarbonDecay {...(props as object)} />;
     case "alignment-matrix":
       return <LazyAlignmentMatrix {...(props as object)} />;
+    case "ramachandran-plot":
+      return <LazyRamachandranPlot {...(props as object)} />;
     default:
       return null;
   }
