@@ -1,0 +1,157 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Distinguish memory systems.",
+      "Apply LTP + consolidation.",
+      "Reason about memory disorders."
+    ],
+    "prereqs": [
+      "attention-and-working-memory"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Memory systems: more than one",
+      "body": "**Major memory systems** (Squire 1992; Tulving):\n\n**Declarative (explicit; medial-temporal lobe + cortex)**:\n• **Episodic**: personal experiences with context (where + when). 'I had pasta last Tuesday.'\n• **Semantic**: facts + concepts. 'Paris is capital of France.'\n\n**Non-declarative (implicit; multiple systems)**:\n• **Procedural** (motor + cognitive skills): striatum + cerebellum. Riding a bike.\n• **Priming + classical conditioning**: neocortex + amygdala.\n• **Habit**: striatum.\n\n**HM patient** (Henry Molaison): bilateral medial-temporal-lobe resection (1953) for epilepsy. Profound anterograde amnesia (no new episodic) + intact semantic + procedural. Established hippocampus role in declarative memory consolidation. Most-studied patient in history.\n\n**Multiple memory systems compete + cooperate**:\n- Knowing route to old job (habit) vs new job (episodic) — habit interferes.\n- O'Keefe + others: place cells; spatial memory.\n- Procedural via striatum; declarative via hippocampus.\n\n**Memory phases**:\n1. **Encoding**: information acquired.\n2. **Storage**: retained over time.\n3. **Consolidation**: stabilized via gradual hippocampal-to-cortical transfer.\n4. **Retrieval**: access stored info.\n5. **Reconsolidation**: re-activation may destabilize + re-stabilize (Nader 2000).\n\nDistortion + false memories possible during retrieval (Loftus)."
+    },
+    {
+      "kind": "text",
+      "title": "LTP + cellular memory",
+      "body": "**Long-term potentiation (LTP)** (Bliss + Lømo 1973): persistent strengthening of synapse after high-frequency stimulation. Foundation of cellular memory.\n\n**Classic LTP at CA3-CA1 hippocampal synapse**:\n1. High-frequency stimulus → glutamate release.\n2. AMPA receptors depolarize.\n3. NMDA receptors open (require both glutamate + depolarization for Mg²⁺ block release).\n4. Ca²⁺ enters via NMDARs.\n5. Activates CaMKII, PKC, PKA, MAPK.\n6. AMPA-receptor trafficking → more AMPARs at synapse.\n7. Synapse stronger.\n\nLater phases (L-LTP): protein synthesis + structural changes. Erasure: depotentiation.\n\n**Long-term depression (LTD)**: opposite; low-frequency stimulation; loss of AMPARs.\n\n**Hebbian rule**: 'Cells that fire together, wire together' (Hebb 1949; concept). NMDA receptor as 'coincidence detector.'\n\n**Spike-timing-dependent plasticity (STDP)**: timing matters; pre-before-post = LTP; post-before-pre = LTD.\n\n**Memory consolidation**:\n- **Synaptic consolidation** (hours): protein synthesis required.\n- **Systems consolidation** (years): hippocampal → cortical transfer (Squire).\n- Sleep + replay essential.\n- Reconsolidation theory: re-activated memories enter labile state → can be modified or strengthened.\n\n**Long-term + ageing**:\n- Memory declines with normal aging.\n- Pathological: Alzheimer's (Aβ + tau, hippocampus + cortex); CTE; dementia.\n- Drugs: cholinesterase inhibitors + memantine modest effect; aducanumab + lecanemab + donanemab (anti-Aβ mAbs) modest effect 2021-23+."
+    },
+    {
+      "kind": "text",
+      "title": "Reconsolidation + false memories + therapy",
+      "body": "**Reconsolidation** (Nader 2000): retrieved memories enter labile state; require protein synthesis to re-stabilize. Implication: long-term memory not permanent — can be modified during recall.\n\n**False memories** (Loftus + others):\n- Misinformation effect: post-event info changes memory.\n- Lost-in-the-mall: people falsely 'remember' fabricated childhood events.\n- Eyewitness testimony unreliable (~25-30% misidentifications).\n- Implications: criminal justice (DNA exoneration via Innocence Project), psychiatry.\n\n**Therapy applications**:\n- PTSD: reconsolidation-based therapy (memory + propranolol; mixed results).\n- MDMA-assisted therapy for PTSD (Mithoefer + others; FDA breakthrough; pending 2024-25 approval).\n- Eye movement desensitization + reprocessing (EMDR).\n- Cognitive-behavioral therapy.\n\n**Memory enhancers**:\n- Practice + retrieval (testing effect).\n- Spaced repetition (Ebbinghaus + Anki).\n- Sleep (consolidation).\n- Mnemonic devices.\n- Exercise + healthy diet.\n- Mild pharma (caffeine).\n\n**Modern + AI**:\n- Foundation-model memory architectures (in-context + retrieval-augmented).\n- Brain-machine interfaces for memory prosthetics (Berger + others; DARPA Restoring Active Memory).\n- Single-neuron studies (Quian Quiroga 'Jennifer Aniston' neurons) in human MTL.\n- Optogenetic memory manipulation in mice (Tonegawa + others)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cog_mem_1",
+        "kind": "guided_derivation",
+        "question": "Trace LTP induction at a hippocampal synapse",
+        "goal": "Walk through molecular events of LTP at CA3-CA1 hippocampal synapse.",
+        "steps": [
+          {
+            "prompt": "Initial glutamate release. Which receptors activated?",
+            "motivation": "AMPA + NMDA.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "AMPA + NMDA"
+              ]
+            },
+            "hints": [
+              "Postsynaptic glutamate."
+            ],
+            "reveal": "AMPA receptors: rapidly activated → Na⁺ + K⁺ flux → depolarization. NMDA receptors: glutamate-bound but Mg²⁺-blocked at rest."
+          },
+          {
+            "prompt": "How does NMDA receptor become unblocked?",
+            "motivation": "Depolarization-gated.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "depolarization removes Mg²⁺ block"
+              ]
+            },
+            "hints": [
+              "Voltage-dependent."
+            ],
+            "reveal": "Depolarization (from AMPA-mediated current) removes Mg²⁺ block from NMDA channel pore. NMDA now passes ions including Ca²⁺ — key signal."
+          },
+          {
+            "prompt": "Why is NMDA called 'coincidence detector'?",
+            "motivation": "Requires both pre + post.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "needs glutamate (presynaptic) + depolarization (postsynaptic)"
+              ]
+            },
+            "hints": [
+              "Two requirements."
+            ],
+            "reveal": "NMDA requires BOTH (1) glutamate from presynaptic + (2) postsynaptic depolarization. Implements Hebbian 'fire together' rule at molecular level — coincidence detector."
+          },
+          {
+            "prompt": "Ca²⁺ does what?",
+            "motivation": "Signaling cascade.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "activates CaMKII → AMPA trafficking + insertion"
+              ]
+            },
+            "hints": [
+              "CaMKII downstream."
+            ],
+            "reveal": "Ca²⁺ activates CaMKII (autophosphorylates, stays active for hours) + other kinases. CaMKII phosphorylates AMPA receptors + signals trafficking machinery to insert more AMPARs into postsynaptic membrane → synapse strengthened. L-LTP requires protein synthesis + structural growth + dendritic-spine changes."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_cog_mem_1",
+        "kind": "slider",
+        "question": "Drag to the approximate number of synapses per human brain neuron.",
+        "target": {
+          "min": 1000,
+          "max": 10000
+        },
+        "default": 100,
+        "explanation": "Average ~7000-10000 synapses per neuron (varies by type). Pyramidal: 5000-15000; granule cells fewer; Purkinje up to 200K. Total brain: ~100 billion neurons × ~7000 synapses ≈ ~10¹⁵ synapses. Each plastic + modifiable — molecular substrate of memory + learning."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cog_mem_1",
+        "kind": "multiple_choice",
+        "question": "Why is sleep critical for memory consolidation?",
+        "options": [
+          "Random.",
+          "During sleep (especially REM + slow-wave): hippocampal-cortical replay of waking experiences; consolidation of long-term memories; synaptic homeostasis (downscaling weak connections); clearance of metabolic waste (glymphatic). Sleep-deprivation impairs memory consolidation: cramming after no sleep → poor retention. Modern: targeted memory reactivation during sleep (sound cues) can enhance specific memories. PTSD + insomnia interact bidirectionally.",
+          "Random.",
+          "Marketing."
+        ],
+        "correctIndex": 1,
+        "explanation": "Sleep + memory: hippocampal replay during slow-wave sleep transfers to cortex; REM consolidates emotional + procedural; synaptic homeostasis (Tononi); glymphatic clearance of waste (Iliff 2012). Targeted memory reactivation (Rasch + Born 2007+) enhances. PTSD + insomnia bidirectional. Sleep is active processing, not passive. Implications for learning + therapy."
+      },
+      "hints": [
+        "What happens during sleep?",
+        "What's hippocampal replay?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Sleep critical: hippocampal replay during slow-wave + REM consolidates memories to cortex; synaptic homeostasis (downscaling); glymphatic waste clearance. Sleep-deprivation impairs consolidation. Targeted memory reactivation (sound cues during sleep) can boost specific memories. PTSD + insomnia bidirectional. Sleep is active processing."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_cog_mem_1",
+        "kind": "math_expression",
+        "question": "Ebbinghaus forgetting curve: ~50% retention after 1 day. Approximate decay constant k (per hour)?",
+        "acceptedAnswers": [
+          "~0.029",
+          "0.029",
+          "ln(2)/24"
+        ],
+        "hint": "exp(-k×24) = 0.5 → k = ln(2)/24 ≈ 0.029."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cog_mem_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why memory is not like a video recorder.",
+        "rubric": "Mentions: memory is reconstructive + constructive, not playback. Each retrieval rebuilds from fragments. Reconsolidation (Nader 2000): retrieved memories enter labile state; can be modified. False memories created via misinformation (Loftus); leading questions, imagery, group discussion. Eyewitness testimony unreliable. Multiple memory systems (episodic, semantic, procedural, priming) interact + sometimes conflict. Distortion + biases shape stored content. Implications: criminal justice (Innocence Project DNA exonerations); therapy (avoid suggesting); historical record (collective memory). Modern: AI memory architectures (in-context + retrieval-augmented) similarly constructive; large-language models hallucinate. Concludes: memory is dynamic reconstruction, not faithful recording; understanding this is fundamental to cognitive science + applied domains."
+      }
+    }
+  ]
+}

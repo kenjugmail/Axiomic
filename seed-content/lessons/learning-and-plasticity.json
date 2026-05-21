@@ -1,0 +1,157 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish classical, operant, statistical learning.",
+      "Apply Hebbian + RL principles.",
+      "Connect to neural plasticity + AI."
+    ],
+    "prereqs": [
+      "memory-systems"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Forms of learning",
+      "body": "**Classical conditioning** (Pavlov 1900s): pair neutral stimulus (CS) with biologically-significant stimulus (US) → CS predicts US. Pavlov's dogs: bell + food → bell salivation.\n\n**Operant conditioning** (Skinner 1930s): reinforcement strengthens behavior; punishment weakens. Reward + punishment learning.\n\n**Schedules of reinforcement**:\n- Continuous: every response rewarded.\n- Variable-ratio: reward after variable number; resistant to extinction.\n- Variable-interval: time-based.\n- Variable schedules sustain behavior — basis of gambling + social media engagement design.\n\n**Statistical / implicit learning**: extraction of regularities without awareness. Babies learn word boundaries from transition probabilities (Saffran 1996). Grammar + categories acquired statistically.\n\n**Reinforcement learning (RL)**: formalism of learning from rewards. Q-learning, policy gradients, actor-critic.\n\n**Dopamine + RPE** (Schultz + Montague 1997): VTA dopamine neurons signal **reward prediction error** (RPE): δ = reward - expected reward. Forms basis of TD-learning in brain.\n- Unexpected reward → dopamine burst.\n- Expected reward → no change.\n- Omitted expected reward → dopamine dip.\n\nFoundational link between RL theory + neural mechanism."
+    },
+    {
+      "kind": "text",
+      "title": "Synaptic plasticity + circuit-level learning",
+      "body": "**Synaptic plasticity** = cellular basis of learning. Multiple forms:\n- LTP (covered in P40 lesson 4): synapse strengthening.\n- LTD: synapse weakening.\n- Homeostatic plasticity: scaling to maintain firing rate.\n- Metaplasticity: plasticity of plasticity.\n\n**Hebbian learning**: pre + post fire together → strengthen.\n\n**Spike-timing-dependent plasticity (STDP)**:\n- Pre-before-post (~10 ms): LTP.\n- Post-before-pre: LTD.\n- Refinement of Hebbian rule.\n\n**Three-factor learning rules**: pre × post × modulator (dopamine, ACh, NE). Brain implements RL via modulated Hebbian learning at synapses.\n\n**Critical periods**: time windows of enhanced plasticity:\n- Visual cortex: ocular dominance ~3 months in humans.\n- Language: ~12-18 years (critical-period hypothesis Lenneberg 1967).\n- Birdsong: sensitive period.\n- Reopening: drugs (e.g., chondroitinase, valproate) + behavioral training can extend.\n\n**Adult neurogenesis**:\n- Hippocampal dentate gyrus: new neurons throughout life.\n- Olfactory bulb (in rodents).\n- Modulated by exercise, learning, antidepressants.\n- Contributes to memory + pattern separation.\n\n**Brain-machine interfaces + plasticity**:\n- Cortical reorganization after limb loss (phantom limbs).\n- Cochlear implant + sensory substitution.\n- Neural prosthetics: brain learns to control."
+    },
+    {
+      "kind": "text",
+      "title": "Skill acquisition + transfer + AI parallels",
+      "body": "**Power law of practice** (Snoddy 1926; Newell + Rosenbloom 1981): RT or errors decrease as power function of practice. Diminishing returns; long tail.\n\n**Skill phases** (Fitts + Posner 1967):\n1. **Cognitive**: explicit rules, slow + effortful.\n2. **Associative**: refining + chunking.\n3. **Autonomous**: fast, automatic, low-attention.\n\n**Deliberate practice** (Ericsson): focused effort on specific weaknesses; expert-level requires ~10K hours (popularized by Gladwell, oversimplified).\n\n**Transfer**:\n- **Near transfer**: similar tasks (chess to chess variants).\n- **Far transfer**: different domains (chess to general reasoning) — usually limited.\n- Cognitive training (brain games) shows limited far transfer.\n- Music training: some debate about IQ + executive transfer.\n\n**Implicit vs explicit learning**:\n- Implicit: gradual + procedural + statistical.\n- Explicit: insight + rule-based.\n- Some skills resist explicit instruction (riding bike).\n\n**Motor learning**:\n- Cerebellum + motor cortex + striatum + parietal coordination.\n- Forward models + prediction errors.\n- Motor adaptation: rapid recalibration to perturbations.\n- Force-field experiments (Shadmehr): brain models limb dynamics.\n\n**AI + learning parallels**:\n- Deep learning + plasticity: backprop ≠ Hebbian but related.\n- Curriculum learning: training-data ordering matters.\n- Meta-learning: learn-to-learn (MAML, REPTILE).\n- Few-shot learning: foundation models + transfer.\n- Catastrophic forgetting: training new tasks erases old (less in humans).\n- Continual learning research: active.\n\n**Modern**: ANN-cortex correspondence; neural decoders; BMI training mutual plasticity (brain + decoder co-adapt)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cog_learn_1",
+        "kind": "guided_derivation",
+        "question": "Compute TD error in classical conditioning",
+        "goal": "Pavlov dog: bell predicts food (reward = 1). Expected value V starts 0. Compute TD error δ + V update across 3 trials.",
+        "steps": [
+          {
+            "prompt": "Trial 1: bell rings, food given. δ = r + γ V(next) - V(current). r=1, V_current=0, V_next=0 (terminal). δ?",
+            "motivation": "Standard TD.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "+1"
+              ]
+            },
+            "hints": [
+              "δ = reward - prediction."
+            ],
+            "reveal": "δ = 1 + 0 - 0 = +1. Unexpected reward; large positive prediction error."
+          },
+          {
+            "prompt": "Learning rate α=0.5. Updated V?",
+            "motivation": "V += α × δ.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.5"
+              ]
+            },
+            "hints": [
+              "0 + 0.5 × 1."
+            ],
+            "reveal": "V_new = V_old + α × δ = 0 + 0.5 × 1 = 0.5."
+          },
+          {
+            "prompt": "Trial 2: bell + food again. δ?",
+            "motivation": "Now expecting some.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "+0.5"
+              ]
+            },
+            "hints": [
+              "r - V_prev."
+            ],
+            "reveal": "δ = 1 + 0 - 0.5 = +0.5. Smaller error; partially predicted. V += 0.5 × 0.5 = 0.25 → V = 0.75."
+          },
+          {
+            "prompt": "Trial 3: bell + food. δ + new V?",
+            "motivation": "Continued.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "δ=+0.25; V=0.875"
+              ]
+            },
+            "hints": [
+              "Smaller error each time."
+            ],
+            "reveal": "δ = 1 - 0.75 = 0.25. V → 0.875. Each trial: prediction error shrinks; V asymptotes to 1 (expected reward). **Dopamine neurons fire pattern**: large burst on trial 1 (unexpected); progressively smaller; eventually no firing at reward (fully predicted). If reward omitted after learning: dopamine dip. Schultz + Montague 1997 mapped this directly to TD-learning theory."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_cog_learn_1",
+        "kind": "slider",
+        "question": "Drag to typical synaptic delay (in ms) for STDP LTP window (pre-before-post).",
+        "target": {
+          "min": 10,
+          "max": 30
+        },
+        "default": 100,
+        "explanation": "STDP LTP window: pre-before-post ≤ ~20-30 ms triggers LTP. Beyond that, less effect or LTD. STDP refines Hebbian learning: timing-precise. Discovered Markram + Sakmann 1997; central to learning theory + neural-network models."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cog_learn_1",
+        "kind": "multiple_choice",
+        "question": "Why does the dopamine reward-prediction-error signal align so closely with reinforcement-learning theory?",
+        "options": [
+          "Coincidence.",
+          "Computational neuroscience + RL theory converged: Sutton + Barto 1980s temporal-difference learning + Schultz + Montague + Dayan 1997 dopamine recordings → striking match. Dopamine neurons fire on UNEXPECTED rewards (positive RPE), pause on omitted (negative RPE), don't fire on fully predicted. Maps to δ in TD-learning. Computational psychiatry uses this: addiction (hyper-RPE), depression (low RPE), schizophrenia (aberrant RPE). Modern: deep RL inspired by + informs neuroscience.",
+          "Marketing.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Dopamine = reward prediction error: Schultz + Montague + Dayan 1997 + Sutton + Barto TD-learning. Dopamine fires on unexpected rewards (positive RPE), pauses on omitted (negative RPE). Maps exactly to TD-learning δ. Foundational link computational neuroscience + RL theory. Clinical: addiction (hyper-RPE), depression (low), schizophrenia. Modern: deep RL agents inspired by + inform brain models."
+      },
+      "hints": [
+        "What does dopamine signal?",
+        "What's the theoretical match?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Schultz + Montague + Dayan 1997: dopamine neurons fire on unexpected rewards (positive RPE), pause on omitted (negative); maps to TD-learning δ. Sutton-Barto TD theory + dopamine recordings converged. Computational psychiatry: addiction hyper-RPE; depression low; schizophrenia aberrant. Modern: deep RL agents inspired + inform brain models. Foundational link between RL theory + neural mechanism."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_cog_learn_1",
+        "kind": "math_expression",
+        "question": "Power law of practice: T(n) = T(1) × n^(-0.3). After 100 trials, what fraction of original time?",
+        "acceptedAnswers": [
+          "~0.25",
+          "0.251",
+          "100^-0.3"
+        ],
+        "hint": "100^(-0.3) ≈ 0.251 (~25% of original)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cog_learn_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how reinforcement learning bridges psychology, neuroscience, + AI.",
+        "rubric": "Mentions: RL formalism (Sutton + Barto 1980s) of agent learning policy via value function from reward. Psychology: Thorndike + Skinner operant conditioning; classical Pavlov. Neuroscience: Schultz + Montague 1997 dopamine = TD reward-prediction-error signal; striatum implements value. AI: DeepMind AlphaGo + Atari + protein-folding via RL; OpenAI GPT-RLHF + Anthropic Constitutional AI; robotics. Modern: deep RL bridges representations + learning. Mutual inspiration: TD-learning from psychology → AI; AlphaGo + dopamine confirms theory; RLHF from psychology + AI → human-aligned AI. Active areas: model-based vs model-free; inverse RL (learn rewards from behavior); meta-RL; multi-agent. Cross-pollination has been remarkable. Concludes: RL is one of computational science's most productive interdisciplinary frameworks."
+      }
+    }
+  ]
+}

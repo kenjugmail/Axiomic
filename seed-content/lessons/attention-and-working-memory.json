@@ -1,0 +1,177 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Distinguish attention forms.",
+      "Apply working-memory models.",
+      "Connect to cognitive control."
+    ],
+    "prereqs": [
+      "perception-and-vision"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Attention: the spotlight + filter",
+      "body": "**Attention**: selective focus on subset of available information. Critical because brain can't process everything simultaneously.\n\n**Major types**:\n• **Selective attention** (where + what): focus on one stimulus among many. Cocktail party effect (Cherry 1953).\n• **Sustained attention**: maintain over time.\n• **Divided attention**: multiple sources (limited).\n• **Bottom-up (exogenous)**: stimulus-driven (sudden movement captures).\n• **Top-down (endogenous)**: goal-driven (looking for keys).\n\n**Models**:\n- **Broadbent's filter (1958)**: early selection, single channel.\n- **Treisman's attenuation (1964)**: graded filter, semantic processing of unattended.\n- **Feature integration theory (Treisman 1980)**: features automatic, conjunctions need attention.\n- **Biased competition (Desimone + Duncan 1995)**: top-down signals bias competition among neural representations.\n\n**Neural correlates**:\n- Frontoparietal network: top-down control.\n- Ventral attention network (TPJ): bottom-up.\n- Pulvinar (thalamus): coordination.\n- Modulates V1+ activity (attention enhances responses).\n\n**Inattentional blindness**: famous gorilla experiment (Simons + Chabris 1999); attention is required for awareness."
+    },
+    {
+      "kind": "text",
+      "title": "Working memory: active maintenance",
+      "body": "**Working memory (WM)**: temporary maintenance + manipulation of information. Distinct from long-term memory.\n\n**Baddeley + Hitch model (1974)**:\n- **Phonological loop**: verbal info; ~2 sec articulatory rehearsal.\n- **Visuospatial sketchpad**: visual + spatial.\n- **Episodic buffer** (added 2000): integrates with LTM.\n- **Central executive**: control + allocation.\n\n**Capacity**:\n- Miller's 'magical number 7±2' (1956); now reduced to ~4 chunks (Cowan 2001).\n- Chunking: combine items into units; expand effective capacity.\n- Limit: not just neurons; control + interference.\n\n**Neural basis**:\n- DLPFC: maintenance via persistent firing.\n- Parietal: spatial attention.\n- Hippocampus: integration with LTM.\n- Dopamine modulates (Cohen + Servan-Schreiber 1992).\n\n**Multi-tasking limits**:\n- Central bottleneck (Pashler).\n- Task-switching costs.\n- Heavy cognitive load → errors.\n- 'Multitasking' largely myth — really task-switching.\n\n**Modern**: WM training (Klingberg) — limited transfer; dual-N-back; controversy. WM declines in aging (Salthouse). WM correlates with IQ + academic + executive function."
+    },
+    {
+      "kind": "text",
+      "title": "Cognitive control + the prefrontal cortex",
+      "body": "**Cognitive control (executive function)**: goal-directed behavior over habits + distractions. Three core processes (Miyake + Friedman):\n1. **Inhibition**: suppress automatic/dominant responses (Stroop, go/no-go).\n2. **Working memory updating**: maintain + modify representations.\n3. **Set-shifting**: switch between tasks (Wisconsin Card Sort).\n\n**Stroop task** (1935): name color of word that spells a different color (RED in blue ink). Conflict between automatic reading + intended color-naming. Increased RT + errors quantify control demands. Anterior cingulate cortex + DLPFC active.\n\n**Wisconsin Card Sorting Test**: sort cards by rule (color/shape/number) that switches; subjects must figure out new rule. Frontal lobe damage → perseveration (sticking to old rule).\n\n**Dual-process theories** (Kahneman 'Thinking Fast + Slow'):\n- **System 1**: fast, automatic, intuitive, parallel, effortless.\n- **System 2**: slow, deliberate, analytic, serial, effortful.\n- Many cognitive biases from System-1 dominance.\n\n**Prefrontal cortex (PFC)**:\n- DLPFC: WM + planning + sequential.\n- VMPFC + OFC: value + reward.\n- ACC: conflict + error monitoring.\n- Frontal pole: relational + meta-cognitive.\n\n**Development**: PFC matures slowly (until ~25); explains adolescent risk-taking + executive limits.\n\n**Disorders**:\n- ADHD: PFC + striatal dysfunction; deficits in inhibition + WM.\n- Frontal lobe damage: famously Phineas Gage 1848.\n- Schizophrenia: WM deficits central."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cog_wm_1",
+        "kind": "guided_derivation",
+        "question": "Apply Stroop task + measure interference",
+        "goal": "Subject takes 0.8 sec to name colors when word matches (RED in red); 1.2 sec when word mismatches (RED in blue). Quantify Stroop effect + control demands.",
+        "steps": [
+          {
+            "prompt": "Stroop interference (mismatch − match)?",
+            "motivation": "Difference.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~400 ms",
+                "1.2 - 0.8 = 0.4"
+              ]
+            },
+            "hints": [
+              "Subtract."
+            ],
+            "reveal": "Stroop interference = 400 ms — RT cost of overriding automatic reading. Larger for highly automated tasks (reading vs less-trained); smaller in children + non-readers."
+          },
+          {
+            "prompt": "Brain regions involved?",
+            "motivation": "Frontal control + sensory.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "DLPFC + ACC + V4 color",
+                "frontal + cingulate + visual"
+              ]
+            },
+            "hints": [
+              "Control + conflict + sensory."
+            ],
+            "reveal": "DLPFC: top-down control of attention + WM; ACC: conflict monitoring; V4 + IT: color + word processing. Stroop activates network of regions. Cognitive-control hierarchy implements override."
+          },
+          {
+            "prompt": "Why is reading automatic but color-naming requires effort?",
+            "motivation": "Automaticity from practice.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "practice → automatic; less automatic skills require attention",
+                "skill acquisition"
+              ]
+            },
+            "hints": [
+              "Practice effect."
+            ],
+            "reveal": "Decades of reading practice → reading is highly automated (involuntary in adults). Color-naming relatively less practiced + voluntary. Automaticity is a function of practice + skill (Shiffrin + Schneider 1977 dual-process). Children + non-readers show smaller Stroop effect because reading not yet automatic."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_cog_wm_1",
+        "kind": "slider",
+        "question": "Drag to modern estimate of working-memory capacity (in chunks).",
+        "target": {
+          "min": 4,
+          "max": 4
+        },
+        "default": 7,
+        "explanation": "Working memory capacity: ~4 chunks (Cowan 2001), down from Miller's 1956 '7±2' which included rehearsal effects. Effective expanded by chunking, mnemonics, schemas. Correlates with IQ + executive function. Declines with age + load."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cog_wm_1",
+        "kind": "multiple_choice",
+        "question": "Why is multitasking really task-switching with cost rather than parallel processing?",
+        "options": [
+          "Random.",
+          "Cognitive bottlenecks (Pashler): perception, response selection, motor execution can be parallelized to a point but central decision/control has serial limits. Switching between tasks incurs preparation + interference costs (~200-500 ms + accuracy drops). Brain can do habituated parallel (talking + walking) but novel + control-demanding tasks compete for limited central resources. 'Heavy multitasker' research: even people who self-identify as good at multitasking perform worse on each task than dedicated single-taskers (Ophir 2009).",
+          "Random.",
+          "Marketing."
+        ],
+        "correctIndex": 1,
+        "explanation": "Multitasking research: central-bottleneck theory (Pashler 1994); task-switching costs (Monsell 2003); heavy-multitasker studies (Ophir + Nass + Wagner 2009) showed reduced performance even on individual tasks. Habituated tasks combine; novel ones compete. Modern: digital distraction + workplace impacts. Limited transfer from multitasking practice."
+      },
+      "hints": [
+        "What's the bottleneck?",
+        "Why are costs incurred?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Multitasking is task-switching with cost: central control has serial bottlenecks (Pashler 1994); switching incurs ~200-500 ms + accuracy loss; novel tasks compete; even self-identified multitaskers perform worse (Ophir 2009). Habituated parallel possible (walking + talking) but cognitive ones don't parallelize. Modern: digital distraction implications."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_cog_wm_1",
+        "kind": "sortable",
+        "question": "Order these tasks by typical cognitive demand (lowest to highest).",
+        "items": [
+          {
+            "id": "habit",
+            "label": "Habitual driving on known route"
+          },
+          {
+            "id": "conversation",
+            "label": "Casual conversation while driving"
+          },
+          {
+            "id": "navigation",
+            "label": "Navigating new GPS route"
+          },
+          {
+            "id": "math-driving",
+            "label": "Mental arithmetic while driving"
+          },
+          {
+            "id": "stroop",
+            "label": "Continuous Stroop task"
+          }
+        ],
+        "explanation": "Cognitive demand hierarchy: habits (low/automatic); paired-habit + simple conversation (moderate); novel tasks (high); high-load tasks (highest). PFC control demands correlate with task novelty + working-memory load + inhibition required."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_cog_wm_1",
+        "kind": "math_expression",
+        "question": "Sternberg memory-scan task: each item to compare adds ~38 ms RT. For set size 6 items, additional RT vs set size 1 (in ms)?",
+        "acceptedAnswers": [
+          "190",
+          "190 ms",
+          "5×38"
+        ],
+        "hint": "5 extra items × 38 ms/item = 190 ms."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cog_wm_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why working memory is the 'workbench' of cognition.",
+        "rubric": "Mentions: working memory holds + manipulates info during complex tasks. Functions: keeps goals active; combines new info with stored knowledge; supports planning + problem-solving + comprehension. Capacity limit (~4 chunks; Cowan 2001) creates bottleneck. Correlates strongly with IQ, academic, executive function. Components: phonological loop, visuospatial sketchpad, episodic buffer, central executive (Baddeley). Neural: DLPFC persistent firing + parietal attention + hippocampus. Disorders: ADHD, schizophrenia, dementia involve WM deficits. Training (dual-N-back, Cogmed) shows limited transfer. Aging: WM declines significantly. Modern: connectivity-based fingerprinting of cognition (Finn 2015); foundation models exhibit WM-like behavior. Concludes: WM is core cognitive resource bridging perception + memory + action; understanding it is foundational to cognitive science + clinical neuroscience + AI."
+      }
+    }
+  ]
+}

@@ -1,0 +1,175 @@
+{
+  "slug": "structure-and-alphafold",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Survey structure methods.",
+      "Explain AlphaFold.",
+      "Apply structure-based reasoning."
+    ],
+    "prereqs": [
+      "sequence-alignment-and-blast"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "From sequence to structure: a 60-year quest",
+      "body": "**Anfinsen's hypothesis** (1961, Nobel 1972): a protein's amino-acid sequence determines its 3D structure (under physiological conditions). The 'protein folding problem' = predict structure from sequence.\n\n**Experimental structure determination**:\n- **X-ray crystallography** (Kendrew + Perutz 1958 myoglobin + hemoglobin; Nobel 1962): crystal + diffraction + phase + model. Dominated for decades. Synchrotron + XFEL sources.\n- **NMR spectroscopy**: solution structures of small-medium proteins. Wüthrich Nobel 2002.\n- **Cryo-electron microscopy (cryo-EM)**: vitrified samples → 2D images → 3D reconstruction. Resolution revolution ~2013 (DDD direct-electron detectors, ML-based reconstruction). Frank + Henderson + Dubochet Nobel 2017. Now routinely produces near-atomic resolution for large complexes (ribosomes, viruses, membrane proteins) without crystallization.\n- **Cryo-ET (cryo-electron tomography)**: in-situ structures of cellular machines.\n- **NMR + MD + integrative methods**: combine multiple sources.\n\n**Protein Data Bank (PDB)**: ~225000 structures (2024); growing ~15k/yr. Foundation of structural biology.\n\n**Levels of structure**:\n- **Primary**: amino acid sequence.\n- **Secondary**: α-helix, β-sheet, loops (DSSP, STRIDE).\n- **Tertiary**: full 3D fold.\n- **Quaternary**: multi-subunit assemblies.\n\n**Computational prediction history**:\n- **Homology modeling / comparative modeling**: align query to template structure; works when >30% sequence identity. Modeller (Sali 1993+), SWISS-MODEL, RoseTTA, Phyre2.\n- **Fragment-based assembly**: Rosetta (Baker lab; 1997+); fragments from PDB; assembled via Monte Carlo + simulated annealing.\n- **Threading / fold recognition**: detect distant homologs without sequence similarity.\n- **CASP (Critical Assessment of Structure Prediction)** biannually since 1994 — open competition driving the field.\n\n**Modeling improvements over decades** (CASP scores stagnant 2000-2018, then exploded with DL)."
+    },
+    {
+      "kind": "text",
+      "title": "AlphaFold: the deep-learning revolution",
+      "body": "**AlphaFold (Jumper + Hassabis et al. 2021 Nature)**: DeepMind's transformer-based protein-structure predictor. CASP14 (Nov 2020) breakthrough: median GDT_TS ~92 (matching experiment quality) vs ~60 for next-best method. Highest-impact biological methods paper since 1989; >20000 citations in 3 years; Demis Hassabis + John Jumper Chemistry Nobel 2024 (joint with David Baker).\n\n**Architecture (simplified)**:\n1. **Evoformer**: 48-block transformer on MSA + pair representations.\n2. **Multiple sequence alignment (MSA)**: thousands of homologs → coevolution signal.\n3. **Pair representation**: residue-residue features (distances, contacts).\n4. **Structure module** (3 iterations): invariant-point attention + iterative refinement to 3D coordinates.\n5. **Confidence prediction**: pLDDT (per-residue) + PAE (pairwise).\n\n**Why it worked**:\n- Massive PDB training data + AF2 also used distillation on AF predictions.\n- End-to-end differentiable: trained to predict coordinates directly.\n- Coevolution from MSAs gives strong contact priors (decades of biophysics insight).\n- Geometric attention preserving SE(3) equivariance.\n- TPU-scale compute.\n\n**AlphaFold Database (AFDB)**: >200M predicted structures (every UniProt entry + more) — covers virtually every known protein. Searchable via Foldseek, fold-comparison tools, FoldDB. Reshapes structural biology.\n\n**AlphaFold-Multimer + AlphaFold 3**:\n- **AF-Multimer**: protein-protein complexes.\n- **AF3** (Abramson + Jumper 2024 Nature): proteins + DNA + RNA + ligands + ions; all-atom prediction; revolutionary for drug discovery + complex biology.\n\n**RoseTTAFold + RoseTTAFold2 + RFdiffusion** (Baker lab):\n- Similar performance to AF2.\n- **RFdiffusion**: generative diffusion model for de novo protein design.\n- Foundation of protein design renaissance.\n\n**ESMFold + Meta**: language-model-based; faster but slightly less accurate than AF.\n\n**OpenFold + Boltz-1 (MIT)**: open-source AF-style models.\n\n**Limitations + caveats**:\n- **Static structures**: prediction is single conformation; not dynamics, allostery, induced fit.\n- **Membrane proteins**: improved but still harder.\n- **Disordered regions**: structures predicted with low pLDDT — actually accurately predicted as disordered.\n- **Mutations + variants**: prediction often robust to single mutations; large effects sometimes missed.\n- **Complexes + interactions**: harder; AF3 + AF-Multimer help.\n- **Confidence interpretation**: pLDDT > 90 high; 70-90 OK; <70 unreliable. PAE for inter-domain confidence."
+    },
+    {
+      "kind": "text",
+      "title": "Protein design + drug discovery + the post-AlphaFold era",
+      "body": "**De novo protein design**: design new proteins not found in nature, with desired function.\n\n**Approaches**:\n- **Rosetta-based** (Baker lab; 2003+): physics + fragment-based design.\n- **RFdiffusion** (Watson + Baker 2023): diffusion model generates novel backbones; design success rates 10-50% by experimental validation.\n- **ProteinMPNN** (Dauparas + Baker 2022): inverse folding (given backbone, design sequence); high success rates.\n- **ESM-Fold + ESMIF**: language-model-based generation + inverse folding.\n- **Boltz-2, Chai-1, AlphaFold 3**: structure-and-affinity prediction → screening.\n- **Generative diffusion + flow matching**: state-of-art generative methods.\n\n**Applications**:\n- **Therapeutic proteins**: engineered enzymes (cancer, metabolic disease), antibodies, miniproteins binding targets.\n- **De novo binders**: small de novo proteins that bind disease targets (Baker lab miniproteins for SARS-CoV-2 spike, IL-23 receptor, etc.).\n- **Enzymes**: redesigned catalysts (luciferases, Diels-Alderases, hydrolases).\n- **Vaccines**: designed antigen scaffolds (mosquirix, RSV pre-fusion F).\n- **Biosensors**: designed proteins detecting target via conformational change.\n- **Industrial enzymes**: plastic-degrading PETases, biofuel enzymes.\n\n**Drug discovery + structure-based design**:\n- **Virtual screening**: dock libraries against target; AutoDock, GLIDE, Gold, ICM, DiffDock (ML-based).\n- **Free energy perturbation (FEP)**: predict relative binding affinity changes; Schrödinger FEP+.\n- **Cryo-EM-driven**: structures inform medicinal chemistry (cancer drugs targeting KRAS G12C, RAS-G12D; GLP-1 receptor agonists for obesity; SARS-CoV-2 antivirals).\n- **AlphaFold for undruggable targets**: provides starting structures previously unavailable.\n- **AlphaFold + ML + generative chem**: emerging integrated pipelines (Insitro, Recursion, Iambic, Isomorphic Labs — Hassabis's company).\n\n**Cryo-EM-driven structural biology**:\n- **Ribosome structures + antibiotic mechanism**.\n- **Membrane proteins + ion channels + GPCRs**: targets of ~30% of all drugs.\n- **Viral structures** (HIV, influenza, coronavirus spike, dengue + Zika E).\n- **Large complexes**: spliceosome, proteasome, replisome, signalosome.\n- **In-situ structures** via cryo-ET (mitochondria, nuclear pore, ER, vesicle trafficking).\n\n**Major resources**:\n- **PDB** (Protein Data Bank): experimental structures.\n- **AFDB** (AlphaFold Database): >200M predicted.\n- **UniProt**: protein sequences + annotations.\n- **InterPro / Pfam**: protein families + domains.\n- **DALI, Foldseek**: structure comparison.\n- **PISA**: interface analysis.\n- **PyMOL, ChimeraX, Mol*, VMD**: visualization.\n- **GROMACS, AMBER, NAMD, OpenMM**: molecular dynamics.\n- **OpenFold + ColabFold + LocalColabFold**: free + open AF prediction.\n\n**The post-AlphaFold era** transformed structural biology from a slow + expensive experimental discipline into a computationally accessible + high-throughput science — but experimental validation + dynamics + interactions remain essential."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bio_str_1",
+        "kind": "guided_derivation",
+        "question": "Interpret an AlphaFold structure prediction",
+        "goal": "Predicted structure shows: pLDDT scores per residue (90+ in middle 200 aa; 30 in N-terminal 60 aa); PAE shows strong cross-domain blocks for two domains. Interpret.",
+        "steps": [
+          {
+            "prompt": "Middle 200 aa with pLDDT > 90 — confident?",
+            "motivation": "High confidence.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "very high confidence; treat as near-experimental accuracy"
+              ]
+            },
+            "hints": [
+              "AF pLDDT scale."
+            ],
+            "reveal": "pLDDT > 90 indicates very-high-confidence structure prediction; AF2 typically as accurate as 2-3 Å X-ray crystallography in this regime. Use it confidently for hypothesis generation, mutational analysis, design."
+          },
+          {
+            "prompt": "N-terminal 60 aa pLDDT ~30 — what does it mean?",
+            "motivation": "Low confidence interpretation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "intrinsically disordered (most likely) or simply hard to predict"
+              ]
+            },
+            "hints": [
+              "pLDDT < 50 = often disordered."
+            ],
+            "reveal": "pLDDT < 50 strongly correlates with intrinsic disorder — AF has learned that disordered regions have low confidence. So the N-terminal 60 aa are likely IDR (intrinsically disordered region). This is biologically informative: IDRs commonly mediate signaling, binding, phase separation, post-translational regulation. Cross-validate with disorder predictors (IUPred3, PONDR) + secondary-structure prediction."
+          },
+          {
+            "prompt": "PAE shows two cross-domain blocks — meaning?",
+            "motivation": "Multi-domain confidence.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "two domains; high intra-domain confidence; inter-domain orientation may or may not be confident"
+              ]
+            },
+            "hints": [
+              "PAE = pairwise alignment error; lower = more confident relative position."
+            ],
+            "reveal": "PAE (predicted aligned error) — low PAE within a block = confident relative positioning of residues. Two distinct blocks = two domains; high inter-domain PAE = relative orientation may not be reliable. Use the individual domains with confidence; treat inter-domain geometry cautiously. AF-Multimer or AF3 may better capture domain orientations + interactions."
+          },
+          {
+            "prompt": "What experimental follow-up?",
+            "motivation": "Validation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "X-ray or cryo-EM if druggable; functional studies + mutational analysis"
+              ]
+            },
+            "hints": [
+              "What confirms structure + function?"
+            ],
+            "reveal": "Experimental validation: X-ray + cryo-EM if novel + druggable; SAXS for solution shape; deuterium-exchange MS for dynamics; functional studies via point mutations guided by AF; potentially designed binders or inhibitors to test model. Cross-check binding partners + complexes via AF-Multimer or AF3. AlphaFold accelerates hypothesis generation but experimental work confirms + extends."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bio_str_1",
+        "kind": "multiple_choice",
+        "question": "Why has AlphaFold been called 'one of the highest-impact biological methods ever published'?",
+        "options": [
+          "Random.",
+          "AlphaFold (Jumper et al. 2021 Nature; Hassabis + Jumper + Baker Chemistry Nobel 2024) solved a 60-year-old grand challenge (Anfinsen 1961 → CASP14 2020). Created AFDB with >200M predicted structures — every known protein. Eliminated structure-prediction bottleneck for most proteins. Transformed: drug discovery (now has starting structures for previously-undruggable targets); functional annotation (predict folds → infer function); de novo protein design (combined with RFdiffusion + ProteinMPNN); evolutionary biology (fold-based phylogeny); rare disease (variant effects on structure); biotechnology + industrial enzymes. Comparable in impact to BLAST, PCR, NGS. Foundation for the new generation of computational + structural biology + a paradigm-shift example of ML solving long-standing scientific problems.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "AlphaFold (2021 Nature; 2024 Chemistry Nobel) solved a 60-year problem (Anfinsen's 1961 protein-folding question). Created AFDB with >200M predicted structures, every known protein. Transformed drug discovery, protein design, functional annotation, evolutionary biology, rare disease, biotech. Paradigm shift for computational + structural biology; among highest-impact biological methods ever, comparable to BLAST/PCR/NGS."
+      },
+      "hints": [
+        "What problem did it solve?",
+        "What's the scale of impact?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "AlphaFold (Jumper et al. 2021 Nature; Hassabis + Jumper + Baker Nobel 2024) solved 60-year-old protein-folding problem (Anfinsen 1961 → CASP14 2020). AFDB has >200M structures. Transformed drug discovery, protein design, functional annotation, evolutionary biology, rare disease. Paradigm shift for computational + structural biology; comparable to BLAST/PCR/NGS in impact."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_bio_str_1",
+        "kind": "slider",
+        "question": "Drag to the approximate number of structures in the AlphaFold Database (millions).",
+        "target": {
+          "min": 200,
+          "max": 250
+        },
+        "default": 10,
+        "explanation": "AFDB has >200M predicted protein structures — virtually every known protein in UniProt. Combined with PDB (~225k experimental), structural coverage is near-complete for natural protein sequences. Now central to drug discovery, protein design, functional annotation, evolutionary biology."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_bio_str_1",
+        "kind": "sortable",
+        "question": "Order these structure-determination methods by typical resolution (lowest to highest atomic detail).",
+        "items": [
+          {
+            "id": "fret",
+            "label": "FRET (distance between fluorophores)"
+          },
+          {
+            "id": "saxs",
+            "label": "SAXS (small-angle X-ray scattering, solution shape)"
+          },
+          {
+            "id": "cryo-em-low",
+            "label": "Cryo-EM at ~6 Å (overall shape)"
+          },
+          {
+            "id": "cryo-em-hi",
+            "label": "Cryo-EM at ~2 Å (near-atomic)"
+          },
+          {
+            "id": "xray",
+            "label": "X-ray crystallography at 1.5 Å (full atomic)"
+          }
+        ],
+        "explanation": "Resolution hierarchy: FRET (~nm scale, distance only) < SAXS (~10-50 Å envelope) < low-res cryo-EM (~6 Å, secondary structure) < high-res cryo-EM (~2 Å, near atomic) < X-ray (~1.5 Å, full atomic). Modern hybrid + integrative methods combine multiple resolutions. AlphaFold predictions are competitive with experimental at ~2-3 Å for most folded proteins."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bio_str_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why the protein-folding problem was considered one of biology's grand challenges + why AlphaFold's solution matters.",
+        "rubric": "Mentions: Anfinsen (1961) showed sequence → structure under physiological conditions, implying we should be able to compute it. But the search space is astronomical (Levinthal's paradox); decades of work in physics-based + statistical methods made incremental progress. CASP (every 2 yr since 1994) tracked progress; median GDT_TS stagnated at ~50-60 for decades. AlphaFold (CASP14 2020 → Nature 2021) achieved median GDT_TS ~92 + matched experimental accuracy for most cases. AFDB with >200M structures eliminated the bottleneck. Why it matters: (1) drug discovery — now has structures for previously-undruggable targets; (2) protein design — combined with RFdiffusion + ProteinMPNN; (3) functional annotation; (4) disease variant interpretation; (5) evolutionary inference; (6) biotechnology + industrial enzymes; (7) accelerated structural biology by orders of magnitude. Sets precedent for ML solving long-standing scientific problems (other examples: weather, materials, fluid dynamics). Concludes: AlphaFold is both a solved grand challenge + a template for AI-accelerated science across disciplines."
+      }
+    }
+  ]
+}

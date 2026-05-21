@@ -1,0 +1,263 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Distinguish derivational + inflectional morphology.",
+      "Reason about isolating/agglutinative/fusional/polysynthetic typology.",
+      "Connect to NLP tokenization + morpheme analysis."
+    ],
+    "prereqs": [
+      "language-structure-foundations"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Morphemes: minimal units of meaning",
+      "body": "**Morpheme** = smallest unit carrying meaning or grammatical function.\n\n**English example**: 'unhappiness' = un- + happy + -ness. Three morphemes.\n\nTwo main types of morphological process:\n• **Derivational**: creates new words. 'happy' (adj) → 'happiness' (noun). Often changes category.\n• **Inflectional**: marks grammatical relations (tense, number, case, gender, person). 'walk' → 'walked' (past tense). Same lemma.\n\n**Affixes** (bound morphemes):\n• **Prefix**: pre-fix (English un-, re-, pre-).\n• **Suffix**: suf-fix (English -ness, -tion, -ed, -s).\n• **Infix**: inside the root (Tagalog -um-, English 'abso-fucking-lutely' = expletive infix).\n• **Circumfix**: wraps the root (German ge...-t past participle: ge-spiel-t).\n• **Reduplication**: copy stem (Tagalog: bili 'buy' → bibili 'will buy').\n\n**Bound vs free morphemes**: 'happy' is free (stands alone); '-ness' is bound. Languages vary in proportion.\n\n**Cumulative morphs vs agglutinative**:\n- Cumulative (fusional, Latin): single morph carries many features. Latin '-orum' = genitive + plural + masculine.\n- Agglutinative (Turkish, Finnish): one morph per feature, transparent. Turkish 'evlerimde' = ev (house) + ler (plural) + im (my) + de (locative)."
+    },
+    {
+      "kind": "text",
+      "title": "Morphological typology",
+      "body": "Languages span a spectrum of morphological complexity:\n\n1. **Isolating / analytic** (Mandarin, Vietnamese, modern English): little inflection; grammatical relations via word order + particles. Vocabulary ratio of morphemes per word ~1.\n   - Mandarin 我吃苹果 'I eat apple' = wo (I) chi (eat) ping-guo (apple).\n   - English: 'I will go to the store tomorrow.' No verb inflection except 3sg + past.\n\n2. **Agglutinative** (Turkish, Finnish, Japanese, Swahili, Quechua, Korean): many morphs per word; transparent boundaries.\n   - Turkish 'evlerimizde' = ev (house) + ler (plural) + imiz (our) + de (in) = 'in our houses.'\n   - Finnish 'taloihinsa' = talo + i + hin + sa = 'into their houses.'\n\n3. **Fusional / inflecting** (Latin, Russian, Sanskrit, modern Romance): morphs encode multiple features; boundaries opaque.\n   - Latin 'amō, amās, amat, amāmus, amātis, amant' = 'I love, you sg love, he loves, we love, you pl love, they love.' Person + number + tense fused.\n   - Russian: rich case system (6 cases × 3 genders).\n\n4. **Polysynthetic** (Inuktitut, Cherokee, Mohawk, Greenlandic, Chukchi): extremely complex; whole sentences encoded in single words.\n   - Greenlandic 'tusaa-nngit-su-usaar-tuaannar-sinnaa-nngi-vip-pu-tit' = 'You can't pretend to not be hearing all the time.' (Loosely.)\n   - Often noun incorporation (object embedded in verb).\n\n**Index of synthesis** (Greenberg 1960): morphemes/word ratio. Isolating ~1.0; English ~1.5; Russian ~3; Sanskrit ~3.5; Turkish ~3.5; Inuktitut ~5+.\n\n**Cross-cutting**: agglutinative vs fusional are orthogonal to synthetic-vs-isolating; describe how clearly affixes can be segmented.\n\nMost languages mixed; English is mostly analytic (lost most Old English inflection) but retains some fusional (he-she pronouns, irregular plurals, irregular past). Pure types are theoretical extremes."
+    },
+    {
+      "kind": "text",
+      "title": "Modern morphological theory + NLP",
+      "body": "**Morpheme-based vs word-based** approaches:\n- Morphemes are theoretical units; sometimes contested whether they exist as such.\n- Word-and-paradigm models: treat words as wholes within paradigms (rows × columns of person/number/tense).\n- Frequency + analogy + neural network models challenge strict morphological decomposition.\n\n**Morphophonology**: phonological rules interacting with morphology.\n- English plural /-z/ → [s] / voiceless _ (cats); [z] / voiced V_ (dogs); [əz] / sibilant _ (foxes).\n- Vowel harmony in Turkish, Finnish: suffix vowels match root vowel (front/back, rounded/unrounded).\n- Umlaut in Germanic: pluralization via vowel alternation (foot/feet).\n\n**Allomorphy**: phonological + lexical variants of one morpheme.\n- 'in-' negation: 'inactive', 'illegal', 'irregular', 'impossible' — assimilation.\n- Suppletion: completely different forms (go/went; good/better/best).\n\n**Morphological productivity**: how readily new words coined.\n- Productive: '-ness' (newness, busyness, OKness).\n- Non-productive: '-th' in 'warmth, length' but not '*newth.'\n- Borrowings + neologisms (selfie, vape, doomscroll).\n\n**Computational morphology**:\n- **Finite-state morphology** (Beesley + Karttunen 2003): FST-based morphological analyzers + generators. Used in: Apple keyboards (Inuktitut), Google search expansion, Helsinki Finite-State Toolkit.\n- **Two-level morphology** (Koskenniemi 1983): rules align surface + lexical levels.\n- **Stemming + lemmatization**: NLP pipeline. Porter stemmer (English heuristic); WordNet lemmatizer; spaCy + Stanford pipelines.\n- **Subword tokenization** (modern NLP): BPE, WordPiece, SentencePiece. Don't claim to be linguistic morphology but capture useful regularities. GPT-3 uses ~50k BPE tokens.\n- **Morpheme-aware embeddings**: explore linguistic structure in vector space. BERT + variants implicit.\n- **Low-resource languages**: morphology critical for languages with little training data; rule-based analyzers + multilingual transfer."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_morph_1",
+        "kind": "guided_derivation",
+        "question": "Analyze Turkish word morphology",
+        "goal": "Decompose the Turkish word 'evlerimizden' (= 'from our houses') into morphemes + identify each.",
+        "steps": [
+          {
+            "prompt": "What's the root meaning 'house'?",
+            "motivation": "Find the lexical root.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ev",
+                "ev (house)"
+              ]
+            },
+            "hints": [
+              "First syllable."
+            ],
+            "reveal": "**ev** = 'house' (the lexical root)."
+          },
+          {
+            "prompt": "What's the plural marker?",
+            "motivation": "Following root.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-ler (plural)",
+                "ler"
+              ]
+            },
+            "hints": [
+              "After root."
+            ],
+            "reveal": "**-ler** = plural marker (vowel-harmony variant: -lar after back vowels, -ler after front vowels). Here 'ev' has front 'e' so -ler."
+          },
+          {
+            "prompt": "'Our' possessive?",
+            "motivation": "Person + number marker.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-imiz (our, 1pl)",
+                "imiz"
+              ]
+            },
+            "hints": [
+              "Possessive."
+            ],
+            "reveal": "**-imiz** = 1pl possessive ('our'). Cross-linguistic agglutinative possessive marking on noun."
+          },
+          {
+            "prompt": "Case marker for 'from'?",
+            "motivation": "Final element.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-den (ablative)",
+                "den"
+              ]
+            },
+            "hints": [
+              "Ablative case."
+            ],
+            "reveal": "**-den** = ablative case ('from'). Vowel-harmony variant: -dan / -den / -tan / -ten based on root vowels + voicing."
+          },
+          {
+            "prompt": "Total: how many morphemes?",
+            "motivation": "Sum.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "4 morphemes",
+                "4"
+              ]
+            },
+            "hints": [
+              "Root + 3 suffixes."
+            ],
+            "reveal": "**4 morphemes**: ev + -ler + -imiz + -den. Index of synthesis = 4 (way above English ~1.5). Transparent agglutinative structure: each affix has clear function + boundary. Compare English 'from our houses' = 4 separate words; Turkish encodes same information in single word.\n\nThis is why finite-state morphology + careful tokenization matter for Turkish NLP — naive word-level tokenization loses huge structure. Modern NLP uses subword (BPE) which captures regularities without explicit morphology."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_morph_1",
+        "kind": "sortable",
+        "question": "Order these languages by morphological complexity (index of synthesis: isolating → polysynthetic).",
+        "items": [
+          {
+            "id": "mandarin",
+            "label": "Mandarin Chinese"
+          },
+          {
+            "id": "english",
+            "label": "Modern English"
+          },
+          {
+            "id": "russian",
+            "label": "Russian"
+          },
+          {
+            "id": "turkish",
+            "label": "Turkish"
+          },
+          {
+            "id": "inuktitut",
+            "label": "Inuktitut (Greenlandic)"
+          }
+        ],
+        "explanation": "Morphological-complexity hierarchy (rough morphemes/word index):\n• **Mandarin**: ~1.0 — analytic/isolating. Almost no inflection; grammar via word order + particles + classifier nouns.\n• **English**: ~1.5 — mostly analytic but retains some inflection (plural -s, past -ed, comparative -er, possessive -'s, person-number on verbs). Heavily reduced from Old English.\n• **Russian**: ~3.0 — fusional (Slavic family). Rich case + gender + aspect system in compact suffixes.\n• **Turkish**: ~3.5 — agglutinative. Multiple transparent suffixes per noun + verb.\n• **Inuktitut / Greenlandic**: ~5+ — polysynthetic. Verbal + nominal incorporation; whole-sentence-as-word.\n\nThis is a useful theoretical scale but real languages mix types. Languages drift along the cline over centuries — Latin (fusional) → Romance (less fusional). English lost inflection from OE; Mandarin lost some from Old Chinese. Polysynthetic vs isolating not a developmental hierarchy — all stable + adequate; reflect different historical + areal pressures."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_morph_1",
+        "kind": "drag_classify",
+        "question": "Classify each English suffix as DERIVATIONAL or INFLECTIONAL.",
+        "items": [
+          {
+            "id": "ness",
+            "label": "-ness (happy → happiness)",
+            "bin": "derivational"
+          },
+          {
+            "id": "tion",
+            "label": "-tion (rotate → rotation)",
+            "bin": "derivational"
+          },
+          {
+            "id": "ly",
+            "label": "-ly (quick → quickly)",
+            "bin": "derivational"
+          },
+          {
+            "id": "able",
+            "label": "-able (read → readable)",
+            "bin": "derivational"
+          },
+          {
+            "id": "plural-s",
+            "label": "-s (cat → cats)",
+            "bin": "inflectional"
+          },
+          {
+            "id": "past-ed",
+            "label": "-ed (walk → walked)",
+            "bin": "inflectional"
+          },
+          {
+            "id": "ing-aux",
+            "label": "-ing (is walking)",
+            "bin": "inflectional"
+          },
+          {
+            "id": "3sg-s",
+            "label": "-s (he walks)",
+            "bin": "inflectional"
+          },
+          {
+            "id": "comparative-er",
+            "label": "-er (big → bigger)",
+            "bin": "inflectional"
+          },
+          {
+            "id": "agent-er",
+            "label": "-er (write → writer)",
+            "bin": "derivational"
+          }
+        ],
+        "bins": [
+          {
+            "id": "derivational",
+            "label": "Derivational (changes category or creates new word)"
+          },
+          {
+            "id": "inflectional",
+            "label": "Inflectional (marks grammatical relation)"
+          }
+        ],
+        "explanation": "Derivational vs inflectional in English (English has just a few inflectional suffixes; most are derivational):\n• **Derivational**: -ness (adj→noun), -tion (verb→noun), -ly (adj→adv), -able (verb→adj), agent -er (verb→noun: writer). Changes category or meaning.\n• **Inflectional**: -s (plural), -ed (past), -ing (progressive), -s (3sg present), -er (comparative on adj), -est (superlative), -'s (possessive). Marks grammatical relations within paradigm.\n\nNote two -er suffixes: agent ('writer' = person who writes) is derivational; comparative ('bigger' = more big) is inflectional. Homographic but functionally distinct.\n\nModern English has only ~8-10 inflectional suffixes (compared to ~50+ in Old English; ~100+ in Sanskrit). English drifted toward isolating typology over 1500 years."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_morph_1",
+        "kind": "multiple_choice",
+        "question": "Why has Modern English lost most of the inflectional morphology Old English had?",
+        "options": [
+          "Random change.",
+          "Multiple factors: (1) phonological erosion of unstressed final syllables (over centuries); (2) contact with Norse (1000-1100 CE) + Norman French (1066+) creating intermediate-fluency-driven simplification; (3) reliance on word order + prepositions shifted; (4) loss of grammatical gender + case happened gradually 1100-1450. End result: ~8-10 inflectional suffixes, compared to ~50+ in Old English. This is the path from synthetic to analytic typology + happens to languages with extensive contact + non-native-speaker simplification pressure.",
+          "English speakers are lazy.",
+          "Required by law."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Old English → Modern English morphological loss**:\n\n*Old English (~700-1100 CE)*:\n- Rich inflection: 4 cases (nominative, accusative, genitive, dative) × 3 genders (masculine, feminine, neuter) × strong/weak adjective paradigms.\n- Verbs: 7 strong-verb classes + weak verbs; subjunctive vs indicative; multiple person + number forms.\n- Synthetic/fusional typology; close to other Germanic languages.\n\n*Decline (1100-1450 CE)*:\n\n1. **Phonological erosion**: unstressed vowel endings (-e, -a, -u) merged + reduced to schwa, then disappeared. 'stānes' → 'stones' lost the genitive distinction over centuries.\n\n2. **Norse contact** (8th-11th century): Vikings settled extensive Danelaw; intermarriage. Old Norse + Old English shared roots but had different inflections → ambiguity → contact-induced simplification. Possible role of pidginization between adult bilinguals.\n\n3. **Norman conquest 1066**: French superstrate. Sustained French rule for ~300 years (with all formal + written language). English became 'low' register; vocabulary borrowed (~40% of modern English from French + Latin); native simplified.\n\n4. **Word-order rigidification**: as inflection eroded, English shifted to fixed SVO word order to maintain comprehension.\n\n5. **Loss of grammatical gender**: by ~1250.\n\n6. **Loss of case system**: dative + accusative merged → nominative vs oblique; case lost on nouns by ~1400; preserved only on pronouns (he/him/his).\n\n7. **Strong/weak verb distinction**: many strong verbs regularized to weak (-ed). 'help/holp/holpen' → 'help/helped/helped' over centuries.\n\n*Modern English inflection*:\n- Noun: -s plural, -'s possessive. (Compare Sanskrit ~8 case forms × 3 numbers × 3 genders.)\n- Verb: -s (3sg present), -ed (past), -ing (progressive), -en (past participle, irregular). And modal auxiliaries do the rest.\n- Adjective: -er (comparative), -est (superlative). No agreement with noun.\n- Pronouns: 3 cases (I/me/my, he/him/his, she/her/hers, etc.).\n\n*Cross-linguistic comparison*:\n- French: lost much of Latin inflection but kept ~6-8 verb tense/mood forms × 6 person/number.\n- German: kept more cases (4) + gender; more synthetic than English.\n- Scandinavian: lost gender + cases similar to English; reduced verb inflection.\n- Romance + Slavic + Greek: retained extensive inflection.\n\n*Why this matters for NLP*:\n- Morphologically poor English easier to model with shallow methods (BoW, n-grams).\n- Morphologically rich languages (Russian, Turkish, Finnish) benefit from morphological awareness or subword tokenization (BPE; many modern NLP systems use SentencePiece).\n- Low-resource languages: morphology is often the bottleneck — limited data + complex morphology.\n\n*Theoretical models*:\n- **Pidginization / creolization** as agent of simplification (Trudgill 2009).\n- **Sapir's drift** (1921): languages have systematic tendencies toward certain typological shifts.\n- **Imperfect L2 acquisition + lifelong contact** drive specific simplification patterns.\n\nLanguage change is one of the most active areas of linguistics + has cognitive + sociological + historical dimensions all together."
+      },
+      "hints": [
+        "What contact languages influenced English?",
+        "What's the path of typological change?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Old English (700-1100) had rich Germanic inflection (4 cases × 3 genders × strong/weak adj/verb). Decline 1100-1450 from: phonological erosion of unstressed endings; Norse contact (Vikings, pidginization); Norman conquest 1066 with French superstrate ~300 yr; loss of grammatical gender ~1250; loss of case ~1400; strong verbs regularized. Modern English: ~10 inflectional suffixes, mostly analytic with fixed word order + auxiliary verbs. Contrast: French/German kept more; Russian/Sanskrit very synthetic. NLP implication: English shallow; morphology-rich languages need subword tokenization or morphological analyzers."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_morph_1",
+        "kind": "math_expression",
+        "question": "Turkish 'evlerimizde' = ev + ler + imiz + de. How many morphemes in this word?",
+        "acceptedAnswers": [
+          "4",
+          "four"
+        ],
+        "hint": "Count: ev (root) + ler (plural) + imiz (our) + de (locative) = 4 morphemes."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_morph_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how morphological structure affects subword tokenization in modern NLP (BPE, WordPiece, SentencePiece).",
+        "rubric": "Mentions: morphologically complex languages (Turkish, Finnish, Inuktitut) produce many word forms from same root + affixes. Naive word-level tokenization → enormous vocabulary + many rare tokens. Subword tokenization (BPE, WordPiece, SentencePiece) breaks words into sub-units based on frequency, capturing morphology indirectly. For English: 'unhappy' → 'un', 'happy' may be discovered. For Turkish: 'evlerimizde' → likely 'ev', 'ler', 'imiz', 'de' (transparent agglutinative). Trade-offs: smaller vocabulary (~30-50k vs millions); generalizes to unseen forms; captures regularities without explicit morphology. Limits: doesn't always align with linguistic morphemes; can split arbitrarily; allomorphy + suppletion not captured. Modern systems (LLMs): mostly use BPE/SentencePiece. Specialized: morpheme-aware tokenizers (Trankit, UDPipe) for morphology-rich + low-resource. Closes: subword tokenization is engineering compromise that works well in practice for many languages but linguistic morphology still relevant + improves low-resource NLP."
+      }
+    }
+  ]
+}

@@ -73,6 +73,81 @@ const LazyROCCurve = lazy(() =>
     (m) => ({ default: m.ROCCurve }),
   ),
 );
+const LazyOrderBook = lazy(() =>
+  import("../../../../../packages/viz/src/components/OrderBook").then(
+    (m) => ({ default: m.OrderBook }),
+  ),
+);
+const LazyMohrsCircle = lazy(() =>
+  import("../../../../../packages/viz/src/components/MohrsCircle").then(
+    (m) => ({ default: m.MohrsCircle }),
+  ),
+);
+const LazyHRDiagram = lazy(() =>
+  import("../../../../../packages/viz/src/components/HRDiagram").then(
+    (m) => ({ default: m.HRDiagram }),
+  ),
+);
+const LazySIRModel = lazy(() =>
+  import("../../../../../packages/viz/src/components/SIRModel").then(
+    (m) => ({ default: m.SIRModel }),
+  ),
+);
+const LazyReactorComparator = lazy(() =>
+  import("../../../../../packages/viz/src/components/ReactorComparator").then(
+    (m) => ({ default: m.ReactorComparator }),
+  ),
+);
+const LazyPointKinetics = lazy(() =>
+  import("../../../../../packages/viz/src/components/PointKinetics").then(
+    (m) => ({ default: m.PointKinetics }),
+  ),
+);
+const LazyOceanTSDiagram = lazy(() =>
+  import("../../../../../packages/viz/src/components/OceanTSDiagram").then(
+    (m) => ({ default: m.OceanTSDiagram }),
+  ),
+);
+const LazyAtmosphericSounding = lazy(() =>
+  import("../../../../../packages/viz/src/components/AtmosphericSounding").then(
+    (m) => ({ default: m.AtmosphericSounding }),
+  ),
+);
+const LazyECGSimulator = lazy(() =>
+  import("../../../../../packages/viz/src/components/ECGSimulator").then(
+    (m) => ({ default: m.ECGSimulator }),
+  ),
+);
+const LazyShannonChannel = lazy(() =>
+  import("../../../../../packages/viz/src/components/ShannonChannel").then(
+    (m) => ({ default: m.ShannonChannel }),
+  ),
+);
+const LazyGaussianBeam = lazy(() =>
+  import("../../../../../packages/viz/src/components/GaussianBeam").then(
+    (m) => ({ default: m.GaussianBeam }),
+  ),
+);
+const LazyVowelFormantChart = lazy(() =>
+  import("../../../../../packages/viz/src/components/VowelFormantChart").then(
+    (m) => ({ default: m.VowelFormantChart }),
+  ),
+);
+const LazyPhillipsCurve = lazy(() =>
+  import("../../../../../packages/viz/src/components/PhillipsCurve").then(
+    (m) => ({ default: m.PhillipsCurve }),
+  ),
+);
+const LazyHillFunction = lazy(() =>
+  import("../../../../../packages/viz/src/components/HillFunction").then(
+    (m) => ({ default: m.HillFunction }),
+  ),
+);
+const LazyDriftDiffusion = lazy(() =>
+  import("../../../../../packages/viz/src/components/DriftDiffusion").then(
+    (m) => ({ default: m.DriftDiffusion }),
+  ),
+);
 const LazyDoublePendulum = lazy(() =>
   import("../../../../../packages/viz/src/components/DoublePendulum").then(
     (m) => ({ default: m.DoublePendulum }),
@@ -81,6 +156,26 @@ const LazyDoublePendulum = lazy(() =>
 const LazyPhasePortrait1D = lazy(() =>
   import("../../../../../packages/viz/src/components/PhasePortrait1D").then(
     (m) => ({ default: m.PhasePortrait1D }),
+  ),
+);
+const LazyMM1Queue = lazy(() =>
+  import("../../../../../packages/viz/src/components/MM1Queue").then(
+    (m) => ({ default: m.MM1Queue }),
+  ),
+);
+const LazyLotkaVolterra = lazy(() =>
+  import("../../../../../packages/viz/src/components/LotkaVolterra").then(
+    (m) => ({ default: m.LotkaVolterra }),
+  ),
+);
+const LazyRadiocarbonDecay = lazy(() =>
+  import("../../../../../packages/viz/src/components/RadiocarbonDecay").then(
+    (m) => ({ default: m.RadiocarbonDecay }),
+  ),
+);
+const LazyAlignmentMatrix = lazy(() =>
+  import("../../../../../packages/viz/src/components/AlignmentMatrix").then(
+    (m) => ({ default: m.AlignmentMatrix }),
   ),
 );
 
@@ -173,6 +268,44 @@ function VizByName({
       return <LazyPKCurve {...(props as object)} />;
     case "roc-curve":
       return <LazyROCCurve {...(props as object)} />;
+    case "order-book":
+      return <LazyOrderBook {...(props as object)} />;
+    case "mohrs-circle":
+      return <LazyMohrsCircle {...(props as object)} />;
+    case "hr-diagram":
+      return <LazyHRDiagram {...(props as object)} />;
+    case "sir-model":
+      return <LazySIRModel {...(props as object)} />;
+    case "reactor-comparator":
+      return <LazyReactorComparator {...(props as object)} />;
+    case "point-kinetics":
+      return <LazyPointKinetics {...(props as object)} />;
+    case "ocean-ts-diagram":
+      return <LazyOceanTSDiagram {...(props as object)} />;
+    case "atmospheric-sounding":
+      return <LazyAtmosphericSounding {...(props as object)} />;
+    case "ecg-simulator":
+      return <LazyECGSimulator {...(props as object)} />;
+    case "shannon-channel":
+      return <LazyShannonChannel {...(props as object)} />;
+    case "gaussian-beam":
+      return <LazyGaussianBeam {...(props as object)} />;
+    case "vowel-formant-chart":
+      return <LazyVowelFormantChart {...(props as object)} />;
+    case "phillips-curve":
+      return <LazyPhillipsCurve {...(props as object)} />;
+    case "hill-function":
+      return <LazyHillFunction {...(props as object)} />;
+    case "drift-diffusion":
+      return <LazyDriftDiffusion {...(props as object)} />;
+    case "mm1-queue":
+      return <LazyMM1Queue {...(props as object)} />;
+    case "lotka-volterra":
+      return <LazyLotkaVolterra {...(props as object)} />;
+    case "radiocarbon-decay":
+      return <LazyRadiocarbonDecay {...(props as object)} />;
+    case "alignment-matrix":
+      return <LazyAlignmentMatrix {...(props as object)} />;
     default:
       return null;
   }

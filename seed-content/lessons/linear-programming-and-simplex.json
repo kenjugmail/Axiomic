@@ -1,0 +1,176 @@
+{
+  "slug": "linear-programming-and-simplex",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Run simplex.",
+      "Derive LP duality.",
+      "Interpret sensitivity."
+    ],
+    "prereqs": [
+      "or-foundations-and-modeling"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Linear programming: the workhorse of OR",
+      "body": "**Linear program (LP)** in standard form:\n  min cᵀ x   subject to   A x = b,  x ≥ 0\n\n(Inequality form converts via slack variables.) Feasible region is a convex polytope; optimum (when finite) is attained at a vertex (basic feasible solution). LP duality (every primal has a dual) underpins economic interpretation.\n\n**Geometry**: each constraint is a half-space; intersection of half-spaces is a polytope; objective is a linear function pushing toward one vertex. Walk along edges to find the corner. \n\n**Why so important?**\n- Convex (any local min = global).\n- Polynomial time (Khachiyan 1979 ellipsoid; Karmarkar 1984 interior-point).\n- Mature solvers (simplex still competitive on most problems).\n- Building block for MIP, conic, nonlinear.\n\n**Classic LP applications**:\n- **Stigler diet (1939)**: minimize cost of foods s.t. nutritional needs. First famous LP.\n- **Transportation**: ship goods from sources to sinks (Hitchcock 1941).\n- **Assignment**: workers to jobs (special case of transportation).\n- **Refinery blending**: continuous mix of crude oils → products.\n- **Portfolio optimization (Markowitz)**: with quadratic cost actually QP, but feasibility = LP.\n- **Network flow**: shortest path / max flow / min-cost flow as LPs."
+    },
+    {
+      "kind": "text",
+      "title": "Simplex algorithm: walking the polytope",
+      "body": "**Simplex** (Dantzig 1947): start at vertex (basic feasible solution); pivot to adjacent vertex that improves objective; repeat until no improving move.\n\n**Mechanics**:\n1. Identify basis B (m linearly independent columns of A); basic vars = B⁻¹ b; non-basics = 0.\n2. Compute reduced cost  c̄ⱼ = cⱼ − cᵦᵀ B⁻¹ Aⱼ  for non-basic j.\n3. If all c̄ⱼ ≥ 0 (for min): optimal.\n4. Else pick entering variable (most negative reduced cost; Dantzig's rule, or steepest edge).\n5. Ratio test → leaving variable (preserves feasibility).\n6. Pivot (update basis); go to 2.\n\n**Pathologies**:\n- **Degeneracy**: multiple bases at same vertex → cycling risk.\n- **Bland's rule** prevents cycling.\n- **Klee-Minty (1972)**: simplex worst-case exponential. In practice nearly always polynomial; smoothed analysis (Spielman + Teng 2001) gives polynomial-expected.\n\n**Interior-point methods (IPM)**:\n- Karmarkar 1984; primal-dual (Mehrotra) standard.\n- Polynomial time guarantee.\n- Often faster on huge sparse problems; simplex faster on warm-starts + small.\n- Modern solvers run both + pick winner ('concurrent solver').\n\n**Pre-solving**: removes redundant constraints, fixes variables, tightens bounds. Often biggest speedup (10-100×) before any pivots."
+    },
+    {
+      "kind": "text",
+      "title": "Duality + sensitivity + shadow prices",
+      "body": "**LP duality**: every primal LP has a dual LP.\n\nPrimal:           Dual:\nmin cᵀ x         max bᵀ y\ns.t. A x ≥ b       s.t. Aᵀ y ≤ c\n     x ≥ 0          y ≥ 0\n\n**Strong duality**: if either has an optimum, both do + values are equal.\n\n**Complementary slackness**: at optimum, xⱼ > 0 ⇒ corresponding dual constraint tight; constraint slack > 0 ⇒ corresponding yᵢ = 0. Tells which constraints + variables are 'active.'\n\n**Shadow prices (dual variables yᵢ)**: marginal value of relaxing right-hand side bᵢ by 1 unit. Economic interpretation: how much would you pay for one more unit of resource i? Vital for decision-makers.\n\n**Reduced costs (c̄ⱼ for non-basic xⱼ)**: how much objective would worsen per unit forced into solution. Or with reverse sign: how much would you need to subsidize this option to make it competitive?\n\n**Sensitivity analysis**: range of cⱼ + bᵢ over which current basis remains optimal. 100% rule etc. Critical when data is uncertain.\n\n**Why duality matters**:\n- Bounds: any feasible primal gives upper bound; any feasible dual gives lower bound (for min).\n- Algorithmic: dual simplex; column generation; cutting planes.\n- Economic: prices in equilibrium.\n- ML: SVM dual is LP/QP; primal-dual methods everywhere."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_or_lp_1",
+        "kind": "guided_derivation",
+        "question": "Solve an LP graphically + write its dual",
+        "goal": "min 2x + 3y, s.t. x + y ≥ 4, 2x + y ≥ 5, x,y ≥ 0. Find optimum + dual.",
+        "steps": [
+          {
+            "prompt": "Vertices of feasible region?",
+            "motivation": "Optimum at a vertex.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(4,0), (1,3), (0,5)"
+              ]
+            },
+            "hints": [
+              "Constraint intersections + axes."
+            ],
+            "reveal": "Vertices: (4,0), (1,3) [where x+y=4 + 2x+y=5 intersect: 2x+y=5, x+y=4 → x=1,y=3], (0,5)."
+          },
+          {
+            "prompt": "Evaluate objective at vertices?",
+            "motivation": "Compare.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(4,0): 8; (1,3): 11; (0,5): 15"
+              ]
+            },
+            "hints": [
+              "Plug in."
+            ],
+            "reveal": "(4,0): 2(4)+3(0)=8; (1,3): 2(1)+3(3)=11; (0,5): 2(0)+3(5)=15."
+          },
+          {
+            "prompt": "Optimal?",
+            "motivation": "Min.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(4,0) with z=8"
+              ]
+            },
+            "hints": [
+              "Smallest."
+            ],
+            "reveal": "Optimum (4,0); z* = 8."
+          },
+          {
+            "prompt": "Dual LP?",
+            "motivation": "Transpose roles.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "max 4 y1 + 5 y2 s.t. y1+2y2≤2, y1+y2≤3, y1,y2≥0"
+              ]
+            },
+            "hints": [
+              "A^T y ≤ c."
+            ],
+            "reveal": "Dual: max 4 y₁ + 5 y₂  s.t. y₁ + 2 y₂ ≤ 2, y₁ + y₂ ≤ 3, y₁, y₂ ≥ 0. Strong duality: dual optimum = 8 too."
+          },
+          {
+            "prompt": "Dual optimum (y₁, y₂)?",
+            "motivation": "Complementary slackness.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(0, 1)",
+                "y1=0, y2=1"
+              ]
+            },
+            "hints": [
+              "x=4 > 0 binds y1+2y2=2; y=0 → y1+y2 ≤ 3 slack."
+            ],
+            "reveal": "x=4>0 → first dual constraint tight: y₁+2y₂=2. y=0 (non-basic) → second dual constraint may be slack. Also y₁ corresponds to slack first primal constraint x+y≥4 (tight at (4,0)? 4+0=4 yes tight) → y₁ free + non-neg. y₂ corresponds to 2x+y≥5 (2(4)+0=8 > 5 → slack) → by complementary slackness y₂=0. So y₁+2(0)=2 → y₁=2? But also we needed y₂=0 → check y₁+y₂≤3 → 2≤3 OK. Dual obj = 4(2)+5(0)=8. ✓ Wait — second primal constraint slack so y₂=0, and y₁=2 from tight first dual constraint y₁+2y₂≤2 binding. Optimum (y₁, y₂)=(2, 0). Shadow price of first constraint = 2: extra unit on RHS reduces objective by 2."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_or_lp_1",
+        "kind": "multiple_choice",
+        "question": "Why is simplex 'exponential in the worst case but fast in practice'?",
+        "options": [
+          "Random.",
+          "Klee-Minty cube (1972) constructs LPs where simplex visits 2ⁿ vertices. But for typical real LPs (sparse, well-structured) simplex visits a polynomial number of pivots — Spielman + Teng's smoothed analysis (2001) explains why: random perturbations of inputs make exponential paths exponentially unlikely. Modern simplex implementations (CPLEX, Gurobi) use sophisticated heuristics (steepest-edge pricing, devex) + pre-solve + crash starts that push performance even further. Interior-point is polynomial guaranteed but per-iteration cost higher; solvers run both concurrently.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Worst-case exponential (Klee-Minty 1972), polynomial in practice (Spielman + Teng smoothed analysis 2001). Modern simplex implementations are highly tuned heuristics that win on most real LPs even though they lack polynomial guarantees."
+      },
+      "hints": [
+        "Worst case vs typical.",
+        "Smoothed analysis."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Klee-Minty cubes force 2ⁿ pivots; real LPs much friendlier. Spielman + Teng smoothed analysis: random perturbation makes exponential paths rare. Modern simplex codes use steepest-edge + pre-solve + warm-start to be highly competitive in practice."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_or_lp_1",
+        "kind": "math_expression",
+        "question": "Number of decision variables in the LP relaxation of an n=20 city traveling salesman problem (TSP) using arc variables xᵢⱼ for each pair (i ≠ j)?",
+        "acceptedAnswers": [
+          "380",
+          "20*19",
+          "n(n-1)"
+        ],
+        "hint": "n(n-1) = 20·19 = 380 directed arcs."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sc_or_lp_1",
+        "kind": "scenario",
+        "question": "A linear programming model for crop allocation reports z* = $4.2M with shadow prices: water $200/acre-foot, fertilizer $50/bag. The farm can buy more water at $150/acre-foot. Should it?",
+        "context": "You are advising the farm on whether to buy more water.",
+        "options": [
+          "No, water is too expensive.",
+          "Yes — shadow price ($200) > purchase price ($150). Each additional acre-foot increases profit by $200 but costs $150, net $50 profit per unit until the shadow price changes (sensitivity range). Buy water until either the shadow price drops below $150 (another constraint binds + dual shifts) or the supply runs out. Fertilizer shadow $50 = market: don't buy more without re-running the model.",
+          "Buy fertilizer instead.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Shadow price is marginal value: $200 > $150 → buy. Up to range limit of sensitivity analysis (where current basis stays optimal). Beyond that, re-solve. Standard sensitivity-analysis interpretation that turns LP outputs into actionable decisions."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_or_lp_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain LP duality + why it matters economically.",
+        "rubric": "Mentions: every primal LP has a dual LP; strong duality says values are equal at optimum. Dual variables (yᵢ) = shadow prices = marginal value of relaxing the iᵗʰ constraint. Reduced costs (c̄ⱼ) for non-basic vars = price needed to make those choices competitive. Economic interpretation: in a competitive market, prices in equilibrium correspond to dual variables; firm should expand resource if shadow price > market price (Lagrangian / arbitrage logic). Complementary slackness: at optimum, either a constraint binds (positive shadow) or a variable is at its bound (zero shadow); both can't be 'active' simultaneously. Algorithmically: dual simplex, column generation (master + sub), primal-dual interior-point all leverage duality. Used in ML (SVM dual is QP), economics (Walrasian equilibrium prices), engineering (Lagrangian relaxation). Concludes: duality is the conceptual core of OR, turning optimization into pricing."
+      }
+    }
+  ]
+}

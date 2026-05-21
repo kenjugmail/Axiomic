@@ -1,0 +1,170 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intro",
+    "objectives": [
+      "Connect nuclear binding energy to fission energy release.",
+      "Distinguish fission, fusion, decay.",
+      "Compute energy per fission + estimate fuel utilization."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Binding energy + the curve of stability",
+      "body": "Atomic nuclei are bound by the strong nuclear force, opposed by Coulomb repulsion. **Binding energy per nucleon** B/A peaks at ~8.8 MeV near iron-56 (Fe-56) — the most tightly bound nucleus. Both heavier nuclei (uranium, plutonium) + lighter ones (hydrogen, helium) have lower B/A.\n\nTwo paths to release energy:\n• **Fission**: split heavy nuclei (U-235, Pu-239) toward Fe-56 → release ΔB/nucleon × number of nucleons.\n• **Fusion**: combine light nuclei (D, T) toward Fe-56 → release even more energy per nucleon.\n\nWeizsäcker semi-empirical mass formula gives B(A,Z) as sum of volume, surface, Coulomb, asymmetry, + pairing terms. Fits the trend within ~1%; deviations come from shell structure (magic numbers 2, 8, 20, 28, 50, 82, 126).\n\nE = Δm c² is exact. For U-235 fission, Δm ≈ 0.18 amu → ~200 MeV per fission (~3.2×10⁻¹¹ J). For comparison: chemical reactions release ~1-10 eV per molecule. **Nuclear is ~10⁸× more energy-dense** than chemical."
+    },
+    {
+      "kind": "text",
+      "title": "The fission process + chain reaction",
+      "body": "**Thermal-neutron fission of U-235**:\n  n + U-235 → U-236* → ~2 fragments + 2-3 fast neutrons + ~200 MeV\n\nFragment distribution is bimodal (light peak ~95, heavy peak ~140) — mass + charge conservation + nuclear shell effects. Famous fragments: Cs-137, Sr-90, I-131, Xe-135, Kr-85 — long-lived isotopes that dominate spent-fuel radioactivity.\n\n**Neutron multiplication**: each fission releases ν ≈ 2.43 neutrons (for U-235 thermal). If on average ≥1 neutron from each fission causes another fission, a **chain reaction** sustains. Otherwise it dies out.\n\n**Cross-sections**: σ has units of area (barns, 10⁻²⁴ cm²). Probability of an interaction = N σ Δx where N is target density. For thermal-neutron fission of U-235: σ_f ≈ 583 barns. For fast neutrons: σ_f ≈ 1.3 barns. **Thermal reactors** moderate fast fission neutrons to thermal energy (E ~ 0.025 eV) where σ_f is huge. **Fast reactors** skip moderation; use higher U-235 enrichment or Pu-239.\n\nU-238 fissions only at fast neutron energies (threshold ~1 MeV); at thermal energies it absorbs neutrons + becomes Pu-239 via β⁻ decay. So thermal reactors 'breed' some Pu-239 from U-238 inadvertently."
+    },
+    {
+      "kind": "text",
+      "title": "Fissile, fertile, decay heat",
+      "body": "**Fissile** isotopes (fission with thermal neutrons): U-235 (~0.72% of natural U), U-233 (made from Th-232), Pu-239 (made from U-238), Pu-241.\n\n**Fertile** isotopes (convert to fissile by neutron capture): U-238 → Pu-239; Th-232 → U-233.\n\n**Breeding ratio**: fissile produced / fissile consumed. >1 = breeder reactor; <1 = burner. Fast spectrum breeders (like Russia's BN-800) can have BR ~1.2; thermal designs typically <1.\n\n**Decay heat**: after shutdown, fission products continue β-decay → heat. Initially ~7% of reactor power; decays as t^-0.2 roughly. After 1 hr: ~1.5%. After 1 day: ~0.6%. After 1 year: ~0.1%.\n\n**This is huge**. A 3000 MW thermal reactor immediately after shutdown still produces 200 MW thermal — must be actively cooled. Loss of cooling = melt. **Fukushima 2011**: tsunami knocked out backup power; decay heat melted 3 cores over hours-days. Decay-heat-driven accidents are the dominant scenario for commercial reactors.\n\nModern designs (Gen III+, Gen IV) emphasize **passive decay-heat removal** — natural circulation, passive cooling tanks, gravity-driven flow — that operate without electricity for ≥3 days. AP1000, ESBWR, BWRX-300, NuScale all use this principle."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fission_1",
+        "kind": "guided_derivation",
+        "question": "Energy yield from U-235 fission",
+        "goal": "Compute energy per fission + per kg of U-235 + compare to coal.",
+        "steps": [
+          {
+            "prompt": "Energy per fission of U-235 in J?",
+            "motivation": "Convert MeV to J.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "3.2e-11",
+                "3.2 × 10⁻¹¹ J"
+              ]
+            },
+            "hints": [
+              "200 MeV × 1.6×10⁻¹³ J/MeV."
+            ],
+            "reveal": "~200 MeV × 1.602×10⁻¹³ J/MeV ≈ 3.2×10⁻¹¹ J per fission."
+          },
+          {
+            "prompt": "Number of U-235 atoms in 1 kg?",
+            "motivation": "Avogadro + mass.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2.56e24",
+                "2.56 × 10²⁴",
+                "6.022e23/0.235"
+              ]
+            },
+            "hints": [
+              "N_A / 0.235 kg/mol = 6.022×10²³ / 0.235."
+            ],
+            "reveal": "N = (6.022×10²³ atoms/mol) / (0.235 kg/mol) = 2.56×10²⁴ atoms/kg."
+          },
+          {
+            "prompt": "Energy per kg of U-235 if fully fissioned?",
+            "motivation": "Multiply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "8.2e13 J",
+                "82 TJ",
+                "23 GWh"
+              ]
+            },
+            "hints": [
+              "3.2×10⁻¹¹ × 2.56×10²⁴."
+            ],
+            "reveal": "E = 8.2×10¹³ J/kg ≈ 82 TJ/kg ≈ 23 GWh thermal. (1 kg = 1 day's output of a 1000 MW reactor at 100% capacity factor + ~33% thermal efficiency)."
+          },
+          {
+            "prompt": "Compare: coal has ~24 MJ/kg combustion. Ratio?",
+            "motivation": "Energy-density ratio.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~3.4 million",
+                "3.4e6",
+                "millions to one"
+              ]
+            },
+            "hints": [
+              "8.2×10¹³ / 2.4×10⁷."
+            ],
+            "reveal": "Ratio ≈ 3.4×10⁶. One kg U-235 = energy of ~3.4 million kg coal = 3000 tonnes. The energy-density argument for nuclear is overwhelming on a per-mass + per-volume basis."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fission_1",
+        "kind": "multiple_choice",
+        "question": "Why does the chain reaction in a typical light-water reactor not spontaneously ignite into a nuclear-bomb-like explosion?",
+        "options": [
+          "LWRs use uranium that's too pure.",
+          "The reactor's k-effective is kept very close to 1 (critical) by control mechanisms; even with a positive reactivity insertion, ν ≈ 2.43 (only ~0.7 net neutrons available per cycle to drive growth in the unmoderated configuration), the fuel is only ~3-5% enriched (vs ~85%+ for weapons), the geometry is wrong (large, water-cooled — boiling water reduces moderation + adds negative feedback), + thermal expansion + Doppler broadening provide rapid negative feedback. Weapons require ~90%+ HEU, precise geometry, + explosive lensing — none of which exist in a reactor.",
+          "There is no chain reaction in reactors.",
+          "Boron is added to all reactor fuel."
+        ],
+        "correctIndex": 1,
+        "explanation": "**LWR fuel** is ~3-5% U-235 (low-enriched uranium, LEU). **Weapons** require ~90% U-235 (highly enriched, HEU). The difference is fundamental.\n\nIn a weapon: rapid assembly of super-critical mass (gun or implosion), prompt-critical chain reaction, ~80 neutron generations × Λ ~ 10 ns each = ~1 μs total. Energy doubles each generation → kilotons in microseconds.\n\nIn an LWR: k_eff ≈ 1.00 + small operating margin. With LEU + water moderation, k_eff cannot exceed ~1.05 even under worst-case scenarios. Negative feedback mechanisms (Doppler broadening of fuel resonances; void coefficient from steam formation) suppress runaway. Geometry isn't designed for prompt-critical chain reaction.\n\n**Worst-case LWR accident** (Three Mile Island, Fukushima, partial Chernobyl-style mechanism): fuel melt + steam explosion + hydrogen explosion. Devastating to the plant + radiological release — but not a nuclear-yield explosion. The Chernobyl explosion was a steam/hydrogen explosion + graphite fire, not a nuclear-yield detonation."
+      },
+      "hints": [
+        "Compare enrichment levels.",
+        "What feedback mechanisms exist?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "LWR fuel: 3-5% U-235 (LEU); weapons: ~90% (HEU). LWR k_eff kept near 1; LEU + water moderation caps it ~1.05; Doppler + void provide negative feedback. Geometry wrong for prompt-critical detonation. Worst-case LWR accident is core melt + steam/H₂ explosion, not nuclear yield. Chernobyl: steam/H₂/graphite, not nuclear detonation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fission_2",
+        "kind": "multiple_choice",
+        "question": "Decay heat after shutdown of a 3000 MW thermal reactor falls to ~0.6% after 1 day. How much power must still be removed at that point?",
+        "options": [
+          "3000 MW.",
+          "~18 MW thermal. Even 1 day after shutdown, the reactor must dissipate ~18 MW — equivalent to a small power plant — purely from fission-product decay. Without forced cooling, fuel can melt within hours (Fukushima Daiichi, March 2011).",
+          "Zero — reactor is fully off.",
+          "300 MW."
+        ],
+        "correctIndex": 1,
+        "explanation": "3000 MW × 0.006 = 18 MW thermal. Even days after SCRAM, decay heat is huge. Without active cooling: water boils away in hours, then fuel temperatures rise, zirconium cladding reacts with steam → hydrogen + heat → cladding failure + fuel melt. The Fukushima Unit 1 sequence: tsunami at 15:37 → backup generators flooded by 15:42 → core uncovered ~5 hr later → fuel melt ~16 hr after tsunami → H₂ explosion in containment building ~24 hr after.\n\nThis is why **decay-heat removal** is the #1 safety priority. Modern Gen III+ designs use passive cooling (gravity-fed water tanks, natural circulation, air cooling) that can remove decay heat for ≥72 hr without any AC power or operator action. NuScale + BWRX-300: passive cooling indefinite (just convection + tanks). AP1000: 72 hr fully passive then needs minimal water makeup."
+      },
+      "hints": [
+        "Multiply 3000 by 0.006.",
+        "What happens if cooling stops?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "3000 × 0.006 = 18 MW thermal. Without cooling, water boils off → fuel uncovered → Zr-steam reaction → H₂ + heat → melt within hours-days. Fukushima Unit 1: tsunami → backup power lost → core uncovered ~5 hr → melt ~16 hr. Modern Gen III+ designs use passive cooling (≥72 hr without AC); SMRs aim for indefinite passive cooling."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fission_1",
+        "kind": "math_expression",
+        "question": "If natural uranium is 0.72 wt% U-235, how many kg of natural U contain 1 kg of U-235?",
+        "acceptedAnswers": [
+          "139",
+          "139 kg",
+          "1/0.0072"
+        ],
+        "hint": "1 / 0.0072 ≈ 139."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fission_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why nuclear energy density (~10⁶× chemical) is both its greatest advantage + its biggest engineering challenge.",
+        "rubric": "Mentions: Δm c² gives ~200 MeV/fission vs ~10 eV/chemical reaction — 10⁷-10⁸× density. Advantages: tiny fuel mass (~1 kg/MW-day vs 3 t coal); concentrated waste; long fuel cycles (18-24 months between refuelings); low operating cost; carbon-free baseload. Challenges: high power density means huge decay heat after shutdown (~7% initially; tens of MW even after days for GW-scale reactor); concentrated radioactivity in waste; fuel cycle complexity (enrichment, reprocessing, repository); proliferation risk from fissile materials; capital cost of containment + safety systems; long licensing + construction (~10 yr). The fundamental engineering problem: maintain controlled chain reaction at precisely the critical condition while ensuring fail-safe heat removal even after shutdown. Modern designs (Gen III+, SMRs) embed passive safety + lower fuel inventories to address the decay-heat challenge structurally."
+      }
+    }
+  ]
+}

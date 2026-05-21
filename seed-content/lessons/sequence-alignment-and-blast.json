@@ -1,0 +1,224 @@
+{
+  "slug": "sequence-alignment-and-blast",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Derive DP alignment.",
+      "Use BLAST.",
+      "Interpret e-values."
+    ],
+    "prereqs": [
+      "bioinformatics-foundations-and-genomes"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Sequence alignment: finding biological signal",
+      "body": "**Sequence alignment**: identifying corresponding positions between two or more biological sequences to infer evolutionary or functional relationships.\n\n**Why alignment matters**:\n- **Homology inference**: similar sequence → likely common ancestor → likely shared function.\n- **Functional annotation**: assign function to new sequence based on aligned characterized homolog.\n- **Variant detection**: align reads to reference to find SNVs + indels.\n- **Comparative genomics**: conserved regions are functional (CNS, exon vs intron, regulatory).\n- **Phylogenetics**: aligned positions → tree.\n- **Drug + protein design**: identify functional regions, motifs.\n\n**Types**:\n- **Pairwise**: two sequences.\n- **Multiple sequence alignment (MSA)**: many sequences (3+); foundation for phylogenetics + profile methods.\n- **Global** (Needleman-Wunsch 1970): align entire length.\n- **Local** (Smith-Waterman 1981): find the best local match.\n- **Semi-global** (overlap, glocal): mixed.\n- **Reference-based** (read alignment): short reads vs reference genome.\n- **De novo** (assembly): no reference; overlap-layout-consensus or de Bruijn graphs.\n\n**Scoring**:\n- **Substitution matrices**: PAM (Dayhoff 1978), BLOSUM (Henikoff 1992). Encode evolutionary probabilities — common substitutions get higher scores.\n- **Gap penalties**: linear (constant per gap), affine (open + extend, like real biology).\n- **Match/mismatch DNA**: usually +1/-1 or +5/-4; BLAST uses simple schemes.\n\n**Computational complexity**:\n- Pairwise DP: O(m·n) time + memory.\n- Memory savings: Hirschberg's O(min(m,n)) memory algorithm.\n- For genome-scale: BLAST + FM-index aligners.\n- MSA: NP-hard in general; use progressive (ClustalW, MAFFT) + iterative (MUSCLE) + consensus (T-Coffee) heuristics.",
+      "viz": "alignment-matrix",
+      "vizProps": {
+        "seq1": "GATTACA",
+        "seq2": "GCATGCU",
+        "match": 1,
+        "mismatch": -1,
+        "gap": -2,
+        "mode": "global"
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Needleman-Wunsch + Smith-Waterman: dynamic programming",
+      "body": "**Needleman-Wunsch** (1970): first DP alignment. Global; align entire sequences end-to-end.\n\nRecurrence:\n  F(i,j) = max( F(i-1,j-1) + s(x_i, y_j),    // match/mismatch\n                F(i-1,j) + g,                  // vertical gap\n                F(i,j-1) + g )                 // horizontal gap\n\nwith boundary F(i,0) = i·g, F(0,j) = j·g.\n\nFill table left-to-right, top-to-bottom. Traceback from F(m,n) gives optimal alignment.\n\nTime + space: O(m·n). For long genomes (gigabases), can't compute full table — use heuristics + indices.\n\n**Smith-Waterman** (1981): local; find best local substring match.\n\nSame recurrence but with the additional option:\n  F(i,j) = max( ..., 0 )\n\nTraceback starts at the max cell anywhere in the table; stops at first 0. Useful for finding conserved domains within otherwise unrelated sequences.\n\n**Affine gap penalty** (Gotoh 1982): real biology has rare gap openings but cheap extension. Replace single g with (open + extend × length). Requires 3 matrices (M, X, Y for diagonal + horizontal + vertical states). Still O(m·n).\n\n**Position-Specific Scoring Matrices (PSSMs)** + **profile alignment**: rather than two sequences, align one sequence vs a profile representing a family. Foundation of PSI-BLAST, profile HMMs (HMMER, Pfam).\n\n**HMM-based**: profile hidden Markov models (HMMER, Eddy); generative models of sequence families; sensitive remote-homology detection.\n\n**Pairwise alignment examples**:\n- Gene paralogs (within species).\n- Orthologs (between species).\n- Cross-species sequence-conservation analysis.\n- Identifying functional domains (Pfam, SMART, InterPro)."
+    },
+    {
+      "kind": "text",
+      "title": "BLAST + heuristic search at scale",
+      "body": "**BLAST (Basic Local Alignment Search Tool)** (Altschul 1990 — among most-cited papers in science; ~100k+ citations):\n\nWhy needed: searching a query against a huge database (e.g., GenBank ~10¹⁴ bp). DP is too slow.\n\n**BLAST heuristic**:\n1. **Seeding**: find short exact matches (k-mers; word size 11 for nucleotide, 3 for protein) between query + database.\n2. **Extension**: extend each seed in both directions until score drops below threshold.\n3. **Score + filter**: retain alignments above threshold; compute e-values.\n4. **Refinement**: report alignments with statistics.\n\n**E-value (expectation value)**:\nProbability that an alignment of equal-or-better score would occur by chance. E = K·m·n·exp(-λS) where m,n = sequence lengths, S = score, K + λ are Karlin-Altschul statistics.\n\nE < 1e-50: essentially identical (highly significant).\nE < 1e-10: very confident homology.\nE < 0.01: probably homologous, check by hand.\nE > 1: not significant; needs more evidence.\n\nE-values depend on database size — larger DBs → larger expected matches by chance.\n\n**BLAST variants**:\n- **blastn**: nucleotide vs nucleotide.\n- **blastp**: protein vs protein.\n- **blastx**: nucleotide query translated 6 frames vs protein.\n- **tblastn**: protein vs translated nucleotide.\n- **tblastx**: translated vs translated.\n- **PSI-BLAST**: position-specific iterated BLAST; build a profile + iterate.\n- **DELTA-BLAST**: starts from CDD profiles for more sensitivity.\n- **MEGABLAST**: optimized for near-identical sequences.\n\n**Modern aligners** (genome scale):\n- **BWA-MEM** (Heng Li 2009-2013): short-read alignment; standard for human.\n- **Bowtie 2**: alternative short-read.\n- **minimap2** (Heng Li 2018): long-read + spliced + assembly-to-assembly; current state-of-art for many alignment tasks.\n- **GraphAligner, vg, GraphTyper**: pangenome graph alignment (T2T era).\n- **DIAMOND** (Buchfink 2014): BLAST-replacement; 1000× faster for protein-vs-protein on big DBs.\n- **MMseqs2**: ultra-fast clustering + search at metagenomic scale.\n\n**Practical advice**:\n- BLAST e-value depends on database size; report database used.\n- Low-complexity filtering (DUST, SEG) prevents repeat-driven false hits.\n- For new genomes: start with BLAST/DIAMOND vs Swiss-Prot for high-quality annotations; expand from there.\n- For metagenomics: MMseqs2 + Kraken2 + sourmash."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bio_align_1",
+        "kind": "guided_derivation",
+        "question": "Walk through a Needleman-Wunsch alignment",
+        "goal": "Align s1 = ACGT, s2 = AGT. Match = +1, mismatch = -1, gap = -2. Compute full DP table + traceback.",
+        "steps": [
+          {
+            "prompt": "Initialize first row + column.",
+            "motivation": "Boundary conditions.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Row 0: 0, -2, -4, -6; Col 0: 0, -2, -4, -6, -8"
+              ]
+            },
+            "hints": [
+              "F(i,0) = i·gap; F(0,j) = j·gap."
+            ],
+            "reveal": "F(0,0)=0; F(1,0)=-2; F(2,0)=-4; F(3,0)=-6; F(4,0)=-8 (for s1=ACGT length 4). F(0,1)=-2; F(0,2)=-4; F(0,3)=-6 (for s2=AGT length 3)."
+          },
+          {
+            "prompt": "Compute F(1,1) (s1[0]=A vs s2[0]=A).",
+            "motivation": "Match case.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1",
+                "F(1,1) = max(0+1, -2-2, -2-2) = 1"
+              ]
+            },
+            "hints": [
+              "F(0,0)+match vs F(0,1)+gap vs F(1,0)+gap."
+            ],
+            "reveal": "F(1,1) = max(F(0,0)+1, F(0,1)+(-2), F(1,0)+(-2)) = max(1, -4, -4) = 1. Match A-A; diagonal traceback."
+          },
+          {
+            "prompt": "Compute F(2,2) (s1[1]=C vs s2[1]=G).",
+            "motivation": "Mismatch case.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-1",
+                "F(2,2) = max(1-1, -1-2, -1-2) = -1"
+              ]
+            },
+            "hints": [
+              "F(1,1)+mismatch vs F(1,2)+gap vs F(2,1)+gap. Need F(1,2)=-1, F(2,1)=-1."
+            ],
+            "reveal": "First F(1,2) = max(-2-1, -2-2, 1-2) = -1; F(2,1) = max(-2-1, 1-2, -4-2) = -1. Then F(2,2) = max(1-1, -1-2, -1-2) = max(0,-3,-3) = 0... let me recalc. F(1,1)=1; F(1,2)=max(F(0,1)+s(C,G)= -2 + -1 = -3, F(0,2)+gap = -4-2 = -6, F(1,1)+gap = 1-2 = -1) = -1. F(2,1)=max(F(1,0)+s(C,A)= -2 + -1 = -3, F(1,1)+gap = 1-2 = -1, F(2,0)+gap = -4-2 = -6) = -1. F(2,2) = max(F(1,1)+s(C,G) = 1-1 = 0, F(1,2)+gap = -1-2 = -3, F(2,1)+gap = -1-2 = -3) = 0."
+          },
+          {
+            "prompt": "Final F(4,3) value + alignment?",
+            "motivation": "Optimal score + traceback.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Score = 1; alignment: A-CGT vs A-GT or ACGT vs A-GT"
+              ]
+            },
+            "hints": [
+              "Trace from F(4,3)."
+            ],
+            "reveal": "Filling rest: F(2,3) = max(F(1,2)+s(C,T)=-1-1=-2, F(1,3)+gap, F(2,2)+gap=0-2=-2) = -2. F(3,2)=max(F(2,1)+s(G,G)=-1+1=0, F(2,2)+gap=0-2=-2, F(3,1)+gap) =0. F(3,3)=max(F(2,2)+s(G,T)=0-1=-1, F(2,3)+gap=-2-2=-4, F(3,2)+gap=0-2=-2)=-1. F(4,3)=max(F(3,2)+s(T,T)=0+1=1, F(3,3)+gap=-1-2=-3, F(4,2)+gap)=1. Traceback A-CGT / A-GT- or ACGT / A-GT (multiple optimal). Final score 1."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bio_align_1",
+        "kind": "multiple_choice",
+        "question": "Why is BLAST a heuristic rather than an exact algorithm?",
+        "options": [
+          "Random.",
+          "Exact pairwise DP (Smith-Waterman) is O(m·n). For a query of 1000 bp against GenBank's ~10¹⁴ bp it would take orders of magnitude longer than practical. BLAST trades guaranteed optimality for speed: (1) seed with short exact word matches (drops obviously poor alignments); (2) extend ungapped then gapped only the seeded regions; (3) statistical filtering by e-value. May miss some genuine homologies (especially highly diverged ones — use PSI-BLAST or HMMER for those). For typical homology search at scale, BLAST's heuristic gives 99%+ of true hits with manageable compute. Modern alternatives (DIAMOND, MMseqs2) push speed further with similar accuracy.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "BLAST heuristic: seed + extend rather than full DP, trading optimality for speed. Indispensable for genome/proteome-scale homology search. May miss highly diverged homologs (use PSI-BLAST or profile HMMs). Modern faster alternatives (DIAMOND, MMseqs2) at metagenomic scales."
+      },
+      "hints": [
+        "Why can't we run Smith-Waterman against GenBank?",
+        "What trade-off does BLAST make?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Exact pairwise DP is O(m·n) — impractical against GenBank's ~10¹⁴ bp. BLAST heuristic: short-word seeding + targeted extension + statistical filtering. Trades optimality for speed; gets 99%+ of true hits manageably. May miss diverged homologs (use PSI-BLAST, profile HMMs). Modern faster alternatives: DIAMOND, MMseqs2 at metagenomic scale."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_bio_align_1",
+        "kind": "slider",
+        "question": "Drag to typical default e-value cutoff for declaring 'significant' BLAST homology.",
+        "target": {
+          "min": 0.001,
+          "max": 0.01
+        },
+        "default": 0.5,
+        "explanation": "BLAST e-value < 0.001-0.01 typically signals significant homology; below 1e-10 high confidence; below 1e-50 near-identity. Above 0.05 hits are likely chance + need manual inspection. Always report the database + size when reporting e-values (they scale with DB size)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_bio_align_1",
+        "kind": "drag_classify",
+        "question": "Match each tool / method to its primary use case.",
+        "items": [
+          {
+            "id": "nw-sw",
+            "label": "Needleman-Wunsch / Smith-Waterman",
+            "bin": "small-pair"
+          },
+          {
+            "id": "emboss",
+            "label": "EMBOSS needle / water",
+            "bin": "small-pair"
+          },
+          {
+            "id": "blast",
+            "label": "BLAST",
+            "bin": "search"
+          },
+          {
+            "id": "diamond",
+            "label": "DIAMOND",
+            "bin": "search"
+          },
+          {
+            "id": "bwa",
+            "label": "BWA-MEM",
+            "bin": "ngs-align"
+          },
+          {
+            "id": "minimap2",
+            "label": "minimap2",
+            "bin": "ngs-align"
+          },
+          {
+            "id": "clustal",
+            "label": "Clustal Omega / ClustalW",
+            "bin": "msa"
+          },
+          {
+            "id": "mafft",
+            "label": "MAFFT / MUSCLE / T-Coffee",
+            "bin": "msa"
+          }
+        ],
+        "bins": [
+          {
+            "id": "small-pair",
+            "label": "Optimal small pairwise"
+          },
+          {
+            "id": "search",
+            "label": "Database search at scale"
+          },
+          {
+            "id": "ngs-align",
+            "label": "NGS read alignment"
+          },
+          {
+            "id": "msa",
+            "label": "Multiple sequence alignment"
+          }
+        ],
+        "explanation": "Alignment tool ecosystem: small-pair (NW/SW + EMBOSS); large search (BLAST + DIAMOND + MMseqs2); NGS read alignment (BWA + Bowtie + minimap2); MSA (Clustal + MAFFT + MUSCLE + T-Coffee). Modern pangenome graph aligners (vg, GraphAligner) emerging for T2T era."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bio_align_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why BLAST is among the most cited papers in science.",
+        "rubric": "Mentions: BLAST (Altschul 1990 + 1997 PSI-BLAST) cited >100000 times — among most-cited papers in any field. Reasons: (1) ubiquity — every molecular biology paper that searches sequences uses BLAST or a descendant; (2) accessibility — free web service at NCBI handles billions of queries; (3) speed + accuracy trade-off — practical for genome-scale data; (4) statistical foundation (Karlin-Altschul e-values) provided rigorous significance; (5) integration into virtually every analysis pipeline; (6) extensions (PSI-BLAST, DELTA-BLAST, DIAMOND) keep the family relevant. From an algorithmic perspective, BLAST embodies the heuristic philosophy: trade some optimality for huge speedup using domain insight (k-mer seeds). Its impact spans molecular biology, evolution, ecology, medicine, biotechnology. Concludes: BLAST is a model citizen of computer-science-meets-biology — algorithmically deep, practically essential, accessible to non-experts, and continuously updated for new technologies."
+      }
+    }
+  ]
+}

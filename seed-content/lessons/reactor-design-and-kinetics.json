@@ -1,0 +1,180 @@
+{
+  "meta": {
+    "timeMinutes": 28,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Distinguish CSTR + PFR + batch + their design equations.",
+      "Apply Arrhenius temperature dependence.",
+      "Reason about selectivity in series + parallel reactions."
+    ],
+    "prereqs": [
+      "mass-and-energy-balances"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Chemical kinetics: rate laws + Arrhenius",
+      "body": "For a reaction aA + bB → cC + dD, the **rate of reaction** −r_A (mol of A consumed per unit volume per unit time) is typically expressed as:\n\n  −r_A = k(T) · C_A^α · C_B^β · ...\n\nwith **reaction orders** α, β (not necessarily integer; determined experimentally) + rate constant k(T).\n\n**Arrhenius equation**: k(T) = A · exp(−E_a / R T)\n\nwhere A is the pre-exponential factor (collision frequency × steric factor), E_a is activation energy, R is gas constant, T is absolute temperature.\n\nImplications:\n• **k roughly doubles per 10 K** for many reactions (E_a ~ 50-100 kJ/mol typical).\n• Plot of ln k vs 1/T is linear; slope = −E_a/R.\n• High E_a → strong temperature dependence; low E_a → weak temperature sensitivity.\n• Catalysts lower E_a → faster reaction at same T.\n\n**Elementary** reactions: rate law has integer orders matching stoichiometry. **Non-elementary**: rate determined by complex mechanism + can have non-integer orders. Always determine experimentally; never assume.\n\n**Reversible reactions**: −r_A = k_f C_A − k_r C_C / K_eq, where K_eq = k_f/k_r is the equilibrium constant from thermodynamics. Far from equilibrium, the forward step dominates; near equilibrium both matter.\n\n**Heterogeneous catalysis**: rate also depends on surface coverage, mass transfer to catalyst, internal diffusion. Often modeled with Langmuir-Hinshelwood kinetics. Rate = k C_A / (1 + K_A C_A) — Michaelis-Menten-like."
+    },
+    {
+      "kind": "text",
+      "title": "Reactor design equations + the CSTR vs PFR comparison",
+      "body": "**CSTR**: V = F_A0 X / (−r_A)|outlet. Constant composition throughout = outlet composition.\n\n**PFR**: V = F_A0 ∫₀ˣ dX / (−r_A). Composition varies along reactor; rate evaluated locally.\n\n**Batch**: t = N_A0 ∫₀ˣ dX / (V · (−r_A)). No flow; time-integrated.\n\nFor first-order kinetics (−r_A = k C_A) + constant volume:\n• CSTR: τ_CSTR = X / (k(1-X))\n• PFR: τ_PFR = (−1/k) ln(1-X) = (1/k) ln(1/(1-X))\n• Batch: t_batch = same as PFR (no flow, same closed-form)\n\nRatio: τ_CSTR / τ_PFR = (X/(1-X)) / ln(1/(1-X)). For X=0.5: 1.0/0.693 = 1.44. For X=0.9: 9/2.303 = 3.91. For X=0.99: 99/4.605 = 21.5.\n\nThe PFR achieves the same conversion with much smaller volume for high conversions + positive-order kinetics. CSTR is volume-inefficient but has advantages: better temperature control (uniform), easier to scale, easier to characterize.\n\n**Reactor selection** heuristics:\n• **Liquid-phase, batch**: pharma, fine chemicals (small volume, mixing-sensitive, frequent product changes)\n• **CSTR**: when isothermal operation is critical (highly exothermic + temperature-sensitive)\n• **PFR (tubular)**: bulk chemicals (ethylene oxide, ammonia, methanol) where high conversion + small volume + plug-flow desirable\n• **Fixed-bed catalytic**: heterogeneous catalysis (hydrogenation, hydrocracking, ammonia synthesis)\n• **Fluidized-bed**: fast catalysis or coking catalysts (FCC in refineries)\n• **Slurry**: liquid + solid catalyst (Fischer-Tropsch)\n\nIn practice: reactor design = kinetics + thermodynamics + transport + materials + economics.",
+      "viz": "reactor-comparator",
+      "vizProps": {
+        "order": 1,
+        "k": 0.5,
+        "tau": 4,
+        "ca0": 1
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Selectivity + multiple reactions",
+      "body": "Real reactor designs rarely involve a single reaction. Multiple reactions compete or sequence:\n\n• **Parallel** (A → B, A → C): selectivity = (r_B)/(r_B + r_C). Choose conditions (T, catalyst, residence time) to favor desired product. Higher E_a for desired reaction → favor high T. Lower-order desired reaction → favor low C_A (lower per-volume rate but higher fractional).\n\n• **Series** (A → B → C): B is intermediate. Max B concentration depends on rate ratio. If desired product is B + you over-run, you destroy it. Optimal τ at max C_B; quench at peak.\n\n• **Series-parallel**: e.g., partial oxidation. Methane to methanol is a famous unsolved problem — at any reasonable conversion, you over-oxidize to CO₂. Selectivity is the holy grail.\n\n**Yield** = (mols desired product produced) / (mols limiting reactant fed). Selectivity-yield tradeoff: high conversion may sacrifice selectivity. Industrial reactors often run at modest conversion + recycle unreacted feed to keep selectivity high. Methanol synthesis: ~10% per-pass conversion, but with separation + recycle, overall yield > 95%.\n\n**Selectivity-control strategies**:\n• Choose catalyst that prefers desired pathway.\n• Operate at lower temperatures if E_a(desired) < E_a(undesired).\n• Limit residence time if undesired reaction is downstream in a series.\n• Lower concentrations / different reactor type if undesired is higher-order.\n• Use semi-batch addition of one reactant to keep it limiting.\n\nReactor + separation systems are co-designed: low conversion + good separation often beats high conversion + poor separation. Modern process synthesis tools (Aspen, Pro/II) optimize them together."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_reactor_1",
+        "kind": "guided_derivation",
+        "question": "Compare CSTR + PFR volumes for the same conversion of a first-order reaction",
+        "goal": "A→B with k = 0.1 min⁻¹ (first-order). Design a reactor to achieve 90% conversion of inlet A at constant volumetric flow rate v₀ = 10 L/min.",
+        "steps": [
+          {
+            "prompt": "Write the PFR design equation for first-order kinetics + integrate to V/v₀.",
+            "motivation": "Standard derivation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "τ = (1/k) ln(1/(1-X))",
+                "τ ln (1/0.1)",
+                "ln(10)/k"
+              ]
+            },
+            "hints": [
+              "dV = F_A0 dX/(-r_A); -r_A = k C_A = k C_A0 (1-X). Integrate from 0 to X."
+            ],
+            "reveal": "V_PFR = F_A0 ∫₀ˣ dX/(k C_A0 (1-X)) = (v₀/k) ln(1/(1-X)). So τ_PFR = V/v₀ = (1/k) ln(1/(1-X)). For X = 0.90, k = 0.1: τ_PFR = (1/0.1) × ln 10 = 23.0 min. V_PFR = 230 L."
+          },
+          {
+            "prompt": "Write CSTR design equation + compute V.",
+            "motivation": "CSTR at outlet conditions.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "τ = X/(k(1-X))",
+                "9/k",
+                "90/k"
+              ]
+            },
+            "hints": [
+              "V = F_A0 X / (-r_A out) = F_A0 X / (k C_A0 (1-X))."
+            ],
+            "reveal": "τ_CSTR = X/(k(1-X)) = 0.9/(0.1 × 0.1) = 90 min. V_CSTR = 900 L — nearly 4× the PFR."
+          },
+          {
+            "prompt": "What's the ratio?",
+            "motivation": "Direct division.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~3.9",
+                "900/230",
+                "ratio ~ 4"
+              ]
+            },
+            "hints": [
+              "900 / 230 ≈ 3.9."
+            ],
+            "reveal": "V_CSTR / V_PFR ≈ 3.91. The PFR needs about 1/4 the volume of a CSTR for the same conversion — a major capital cost advantage for high-conversion applications."
+          },
+          {
+            "prompt": "If you use **2 CSTRs in series** (each with V = 450 L, total 900 L still), what conversion do you get?",
+            "motivation": "Series CSTR design.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "97% conversion",
+                "0.974",
+                "X = 0.974"
+              ]
+            },
+            "hints": [
+              "Solve: 2 stages, each with τ_i = 45 min. (1-X_i) = 1 / (1 + k τ_i) = 1/(1+4.5) = 1/5.5. Overall (1-X) = (1-X_i)² = (1/5.5)² = 0.0331."
+            ],
+            "reveal": "Each stage: (1-X_i) = 1/(1+0.1×45) = 1/5.5. After 2 stages: 1-X_total = (1/5.5)² = 0.0331. So X_total = 0.967 = 96.7%. Series CSTRs approach PFR behavior as N → ∞ (volume identical, conversion approaches PFR). Same volume but split into 2 tanks → noticeably better conversion. 'Cascade of CSTRs' is a common design pattern when single-tank kinetics aren't enough."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_reactor_1",
+        "kind": "multiple_choice",
+        "question": "A liquid-phase reaction has E_a = 80 kJ/mol. By what factor does the rate constant increase when temperature rises from 25 °C to 35 °C?",
+        "options": [
+          "Approximately 1.05× (5% increase).",
+          "Approximately 2.8×. Use ln(k₂/k₁) = (E_a/R) × (1/T₁ − 1/T₂). T₁ = 298 K, T₂ = 308 K. E_a/R = 80000/8.314 ≈ 9622. (1/T₁ − 1/T₂) = (1/298 − 1/308) = 1.09×10⁻⁴. ln(k₂/k₁) = 9622 × 1.09×10⁻⁴ ≈ 1.05. k₂/k₁ = e^1.05 ≈ 2.86. The classic 'rate doubles per 10 K' rule of thumb is actually closer to ~2.5-3× for typical chemistry E_a.",
+          "10× (an order of magnitude).",
+          "It depends on the catalyst."
+        ],
+        "correctIndex": 1,
+        "explanation": "Arrhenius: k = A exp(−E_a/RT). Ratio: k₂/k₁ = exp((E_a/R)(1/T₁ − 1/T₂)).\n\nNumerical: E_a/R = 80,000/8.314 ≈ 9622 K. (1/298 − 1/308) = (308 − 298)/(298 × 308) = 10/91784 = 1.089×10⁻⁴ K⁻¹.\n\nln(k₂/k₁) = 9622 × 1.089×10⁻⁴ ≈ 1.048.\n\nk₂/k₁ = e^1.048 ≈ 2.85.\n\nThe common rule-of-thumb 'rate doubles per 10 K' is an approximation. The actual factor depends on E_a + temperature range:\n• E_a = 50 kJ/mol, 25→35 °C: factor ~1.9 (close to 2×).\n• E_a = 80 kJ/mol: factor ~2.85 (this question).\n• E_a = 150 kJ/mol: factor ~7.3 (cracking, decomposition reactions).\n\nLow E_a (≤30 kJ/mol): mass-transfer-limited reactions, where physics not chemistry sets rate. Catalyst poisoning (need rate fast enough to detect it kinetically).\n\nVery high E_a (≥200 kJ/mol): C-C bond breaking, high-temperature pyrolysis. Slight T changes have dramatic effect.\n\n**Practical**: log(k) vs 1/T is the standard Arrhenius plot. Slope = −E_a/R. Used to extract activation energies from temperature-dependent rate data; key for catalyst design + safety analysis."
+      },
+      "hints": [
+        "Use Arrhenius ratio: ln(k₂/k₁) = (E_a/R)(1/T₁ - 1/T₂).",
+        "Compute numerically."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "k = A exp(-E_a/RT). Ratio: ln(k₂/k₁) = (E_a/R)(1/T₁ - 1/T₂). E_a/R = 9622 K. (1/298 - 1/308) = 1.09×10⁻⁴. ln(k₂/k₁) = 1.05. k₂/k₁ = 2.85. The 'rate doubles per 10 K' rule depends on E_a — for typical chem E_a (50-100 kJ/mol), factor is 2-3×."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_reactor_2",
+        "kind": "multiple_choice",
+        "question": "For a series reaction A→B→C where B is the desired product + both steps are first-order with k₁ < k₂, what's the optimal reactor type?",
+        "options": [
+          "CSTR with long residence time.",
+          "PFR (or batch) with τ chosen at the time of maximum B concentration: τ_opt = ln(k₂/k₁) / (k₂ − k₁). Then quench. Long τ destroys B by over-reaction to C. CSTR also bad because at outlet B is partially consumed; you can't 'stop' at peak B.",
+          "Two CSTRs in series.",
+          "Adiabatic flash drum."
+        ],
+        "correctIndex": 1,
+        "explanation": "Series reaction A→B→C with both first-order rate constants k₁ + k₂:\n\nBatch / PFR (closed-form): C_B(t) = (k₁ C_A0)/(k₂ − k₁) × (e^(−k₁ t) − e^(−k₂ t)).\n\nMaximum at dC_B/dt = 0:\n  t_opt = ln(k₂/k₁) / (k₂ − k₁)\n  C_B,max = C_A0 (k₁/k₂)^(k₂/(k₂−k₁))\n\nKey insight: B is an **intermediate**. Too short τ → not much B formed. Too long → over-consumption to C. There's a sweet spot.\n\n**Why PFR beats CSTR for this**:\n- PFR composition varies along length; you can 'stop' the reaction (quench at exit) at peak B.\n- CSTR operates everywhere at outlet conditions. You can't have peak B at outlet unless you tune τ precisely, but the *average* B inside the tank is lower than peak (because at startup or in dead zones B is less).\n- Batch is equivalent to PFR for this purpose; closed-form solution same.\n\n**Industrial examples**:\n- Methanol → formaldehyde → CO₂: stop at formaldehyde via partial oxidation; selectivity-limited.\n- Methane → methanol → CO + CO₂: famously hard; oxidation always overshoots methanol.\n- Glucose → fructose → HMF: in biorefinery, control HMF stage.\n\n**Quenching strategy**: immediate temperature drop (heat exchanger), dilution, separation, addition of selective inhibitor. Process design wraps the reactor with these.\n\nWhen k₂ ≫ k₁ (B reacts fast), t_opt → 0 + C_B,max → small. Very hard to make B. Improve catalyst to favor B over C, lower T to slow second step more than first, or use different reactor geometry (e.g., membrane reactor to selectively remove B)."
+      },
+      "hints": [
+        "What's the time of max B concentration?",
+        "Can a CSTR stop at peak B?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "A→B→C series with B desired. PFR/batch: closed-form C_B(t) = (k₁/(k₂-k₁))(e^(-k₁t) - e^(-k₂t)). Max at t_opt = ln(k₂/k₁)/(k₂-k₁). Quench at this time. PFR allows quenching; CSTR can't — it operates at outlet. Industrial examples: formaldehyde from methanol partial oxidation; HMF from glucose. Process design includes quench (heat ex, dilution, separation) wrapping the reactor."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_reactor_1",
+        "kind": "math_expression",
+        "question": "A first-order reaction (k = 0.05 min⁻¹) is run in a PFR. What space-time τ (in minutes) is needed for 80% conversion?",
+        "acceptedAnswers": [
+          "~32.2 min",
+          "32.2",
+          "ln(5)/0.05"
+        ],
+        "hint": "τ = (1/k) ln(1/(1-X)) = (1/0.05) × ln(5)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_reactor_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain to a process engineer why understanding the difference between CSTR + PFR + batch is fundamental — and why no single reactor type is universally best.",
+        "rubric": "Mentions: CSTR — well-mixed, uniform composition = outlet, large volume for given conversion, good T control, easy scale, used for highly exothermic / temperature-sensitive reactions. PFR — composition varies along length, smaller volume for given conversion, harder T control, used for bulk chemicals + high conversion. Batch — closed system, time-varying, used in pharma + fine chemicals where small volume + frequent product change. Selection drivers: kinetics (order, reversibility), thermodynamics (heat of reaction, T sensitivity), selectivity (series vs parallel pathways), scale (small batch vs large continuous), catalyst form (homogeneous vs solid). Real plants mix types: tubular cracker + CSTR + separator + recycle. Reactor design = kinetics + thermo + transport + economics, never just one."
+      }
+    }
+  ]
+}

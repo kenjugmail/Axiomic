@@ -1,0 +1,213 @@
+{
+  "slug": "remote-sensing-and-gis",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Use satellite + LiDAR.",
+      "Apply GIS.",
+      "Discuss digital archaeology."
+    ],
+    "prereqs": [
+      "archaeology-foundations-and-stratigraphy"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Remote sensing: seeing what you can't dig",
+      "body": "**Remote sensing in archaeology**: detecting features without excavation. Now central to survey + site discovery + landscape archaeology.\n\n**Aerial photography**:\n- Earliest large-scale archaeological tool (since 1900s; O.G.S. Crawford UK 1920s+ founded the discipline).\n- Reveals crop marks (different ripening over buried features), soil marks, shadow marks (low-angle sun reveals earthworks), parch marks (drought reveals underground structures).\n- Famously: Stonehenge avenue, ancient field systems, Roman roads + camps, archaeological sites in dry regions.\n- Now done with drones (UAVs) at high resolution + low cost.\n\n**Satellite imagery**:\n- Multispectral (Landsat, Sentinel, WorldView, Planet): reveals vegetation health → buried features.\n- Hyperspectral: subtle reflectance signatures.\n- SAR (synthetic aperture radar): cloud-penetrating; sees ground texture.\n- Famous: Sarah Parcak's space archaeology — detection of ~17 pyramids + 1000 tombs in Egypt; SpaceArchaeology.org crowdsourced.\n- CORONA declassified spy satellite imagery from 1960s-70s preserves pre-development landscapes; crucial for Middle East where many sites since destroyed (Casana, Sherratt).\n\n**LiDAR (Light Detection And Ranging)**:\n- Pulses laser from aircraft (or drone, or terrestrial scanner) + measures return → high-resolution DEM (digital elevation model).\n- Penetrates forest canopy → reveals microtopography under vegetation.\n- Revolutionized:\n  - **Maya lowlands** (PACUNAM LiDAR 2018; Canuto + Estrada-Belli): tens of thousands of structures, raised fields, causeways under jungle — Classic Maya population estimates 5-15× higher.\n  - **Angkor** (Khmer): rediscovery of medieval urban grid under forest.\n  - **Stonehenge landscape**: subtle barrows + processions.\n  - **Amazonian geoglyphs + cities** (Iriarte + de Souza 2020): pre-Columbian urbanism in 'Lost Cities of the Amazon.'\n  - **Megalithic landscapes** in Europe.\n\n**Geophysics (ground-based)**:\n- **Magnetometry**: detects burnt features (kilns, hearths), iron, magnetic variations → site plans without excavation.\n- **Ground-penetrating radar (GPR)**: layered reflections → buried structures, graves.\n- **Earth resistance**: walls, ditches show as resistance contrasts.\n- **Electromagnetic induction**.\n- **Seismic refraction** for sub-bottom profiles.\n- Combined surveys map sites before any excavation — minimizes destruction.\n\n**Photogrammetry + structure-from-motion (SfM)**:\n- Many overlapping photos → 3D model.\n- Used for: artifacts, excavation contexts, monuments, drone surveys.\n- Replaces traditional plans + sections in much of modern excavation.\n- Open-source pipelines (Agisoft, RealityCapture, Meshroom)."
+    },
+    {
+      "kind": "text",
+      "title": "GIS + spatial archaeology",
+      "body": "**Geographic Information Systems (GIS)**: spatial-data management + analysis. Standard in archaeology since 1990s.\n\n**Capabilities**:\n- **Site catchment analysis**: what resources + features within walking radius of a site.\n- **Viewshed analysis**: what's visible from a viewpoint (relevant for fortifications, monuments, signaling).\n- **Least-cost path**: modeling movement across terrain (slopes + obstacles).\n- **Density mapping**: kernel-density estimates of site distributions.\n- **Predictive modeling**: where unexcavated sites are likely based on known patterns.\n- **3D + 4D GIS**: temporal data; voxel-based stratigraphy.\n- **Network analysis**: trade routes, settlement networks.\n\n**Key software**:\n- ArcGIS (commercial; Esri).\n- QGIS (open-source).\n- GRASS, SAGA (research).\n- Spatial libraries in R + Python (sf, geopandas, rasterio).\n\n**Famous applications**:\n- **South African coastal MSA** (middle stone age) sites + paleo-shoreline reconstruction.\n- **Hohokam canal systems** (Phoenix area).\n- **Roman road network** + EU site predictions.\n- **Maya regional surveys** + LiDAR integration.\n- **Cahokia + Mississippian network analysis**.\n- **Andean Inca road system** (Qhapaq Ñan) reconstruction.\n\n**Bayesian + ML in spatial archaeology**:\n- Predictive models trained on known sites + environmental features.\n- Deep learning on satellite imagery for site detection (Caspari + Crespo 2019; Orengo 2020 — Indus tells via TensorFlow).\n- Bayesian models combining geophysics + spatial context.\n\n**eDNA + soil chemistry mapping**:\n- Spatial sampling of soils across a site → phosphate maps (former human activity), micro-residues.\n- Lipid biomarkers (faecal sterols mark latrines, ruminant fats mark stables).\n- Whole-site biogeochemistry now possible.\n\n**Landscape archaeology**: study sites in their environmental + cultural context, not as isolated dots. Origins in 1970s-80s; now mainstream with GIS + remote sensing as core tools.\n\n**Open access**:\n- Open Context, tDAR, ArchData, Heritage Gateway — open data repositories.\n- Movement toward FAIR (Findable, Accessible, Interoperable, Reusable) data."
+    },
+    {
+      "kind": "text",
+      "title": "Digital archaeology + AI + ethics",
+      "body": "**Digital archaeology** umbrella covers many emerging tools:\n\n**3D + virtual reality**:\n- Photogrammetry/laser scans of artifacts + sites.\n- Virtual museums + reconstructions (Sketchfab, Smithsonian X3D).\n- Heritage preservation (Palmyra ruins post-ISIS digital reconstruction).\n- Education + accessibility (visit sites virtually).\n- Forensic reconstruction of weathered/fragmentary objects.\n\n**Machine learning + AI**:\n- **Site detection** from satellite + LiDAR (CNNs).\n- **Artifact classification + automated typology** (pottery, lithics).\n- **Glyph + script recognition** (cuneiform, hieroglyphs, undeciphered scripts).\n- **Image-based dating** of ceramics.\n- **Skeletal analysis automation**.\n- **NLP on inscriptions + papyri**.\n- **LLM + multimodal** for assisting interpretation; Ithaca (DeepMind) deciphering Greek inscriptions.\n\n**Crowdsourcing + citizen science**:\n- GlobalXplorer (Parcak): public scans satellite imagery for sites.\n- Zooniverse archaeological projects.\n- Local community survey + monitoring.\n- Anti-looting + monitoring of conflict regions.\n\n**Heritage + ethics in the digital era**:\n- **Repatriation**: NAGPRA + similar laws; ancestral remains + sacred objects return to descendant communities.\n- **Cultural property + antiquities trafficking**: ISIS + other groups loot for revenue; Interpol + UNESCO + Antiquities Coalition.\n- **Indigenous data sovereignty**: data about communities should be controlled by those communities (FAIR + CARE principles).\n- **Decolonizing archaeology** (Atalay; McGuire; Wobst): community-based participatory research, plural narratives, dismantling colonial frameworks.\n- **Public archaeology + heritage education** (Cooney, Smith).\n- **Climate change + archaeology**: sites destroyed by sea-level rise, erosion, permafrost thaw, fire; race to document before loss.\n\n**Major databases + tools**:\n- pleiades (ancient places).\n- IDAI Arachne (German archaeological institute).\n- AHRC + NEH funded digital humanities initiatives.\n- Open Context, tDAR (archaeological data repositories).\n- Pelagios (linked ancient world data).\n- Periodo (period definitions for linked data).\n\n**The digital + AI revolution** is changing what archaeologists can do at scale: from individual site excavations to continent-wide landscape analysis + global pattern detection. The next decade will see more transformation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_arch_rs_1",
+        "kind": "guided_derivation",
+        "question": "Plan a remote-sensing survey",
+        "goal": "Suspected medieval village in dense forest. No surface visibility. Limited budget. Plan a multi-method remote-sensing survey.",
+        "steps": [
+          {
+            "prompt": "First non-invasive step?",
+            "motivation": "Establish landscape context.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "LiDAR + multispectral satellite over study area"
+              ]
+            },
+            "hints": [
+              "Penetrate canopy."
+            ],
+            "reveal": "Airborne LiDAR over study area (a few km²) — penetrates canopy + reveals microtopography (banks, ditches, building platforms, trackways). Multispectral satellite (Sentinel-2 or commercial) shows vegetation differences correlating with buried features. Often the lowest-cost-per-area large-survey method."
+          },
+          {
+            "prompt": "Targeted next step on identified anomalies?",
+            "motivation": "Refine.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "geophysical survey (magnetometry + GPR) over candidate areas"
+              ]
+            },
+            "hints": [
+              "Geophysics."
+            ],
+            "reveal": "Magnetometry (fast, broad coverage; sensitive to burned features, pits, ditches) + ground-penetrating radar (slower, layered detail of walls, floors, graves). Targets identified by LiDAR. Together: site plan with feature types + depths."
+          },
+          {
+            "prompt": "Validation step?",
+            "motivation": "Ground-truth.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "small test excavation or coring on key anomalies"
+              ]
+            },
+            "hints": [
+              "Minimal-impact excavation."
+            ],
+            "reveal": "Targeted test trenches or augered cores on key anomalies to confirm interpretations + recover datable material (radiocarbon, OSL) + finds (pottery, stratigraphy, organic remains). Modern best practice: minimal-intervention with remote-sensing + geophysics doing most of the work + small trenches sampling specific questions."
+          },
+          {
+            "prompt": "Documentation + reporting?",
+            "motivation": "Open + preservation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "3D photogrammetry of features + open-access data archive"
+              ]
+            },
+            "hints": [
+              "Document + share."
+            ],
+            "reveal": "Document everything with photogrammetry/SfM for 3D record; archive raw + processed data (OASIS for UK; Open Context global) with permanent identifiers; publish in peer-reviewed + community-accessible formats; engage local stakeholders. Modern best practice is 'born-open' digital archaeology — born of growing recognition that the public funds + benefits from archaeological work + descendant communities have rights in heritage."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_arch_rs_1",
+        "kind": "multiple_choice",
+        "question": "Why did the 2018 PACUNAM LiDAR survey of the Maya lowlands reshape Maya population estimates?",
+        "options": [
+          "Random.",
+          "Pre-LiDAR estimates assumed scattered farmsteads + cleared centers; visible surface sites + survey transects undercount. The 2018 LiDAR over ~2000 km² of Petén (Canuto, Estrada-Belli et al. Science) revealed: dense urban landscapes around major centers, contiguous causeway networks, agricultural terraces + raised fields on a scale not previously imagined, and tens of thousands of small structures invisible from ground. Population estimates revised upward 5-15× — from low millions to 7-11M in lowlands at Classic-period peak. Implications: more intensive agriculture, more constrained ecology, more dramatic Classic Maya collapse. LiDAR also revealed defensive earthworks reshaping understanding of warfare. Demonstrates LiDAR's transformative effect on landscape archaeology.",
+          "Random.",
+          "False."
+        ],
+        "correctIndex": 1,
+        "explanation": "PACUNAM LiDAR 2018 (Canuto, Estrada-Belli et al. Science) revealed dense pre-Columbian Maya urban + agricultural landscapes invisible from ground; population estimates revised 5-15× upward (to 7-11M lowlands peak). Reshaped understanding of Classic Maya intensification, ecology, warfare, collapse. Foundational demonstration of LiDAR in tropical archaeology."
+      },
+      "hints": [
+        "What does LiDAR see that surveys couldn't?",
+        "Pre vs post LiDAR."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "PACUNAM LiDAR 2018 (Canuto, Estrada-Belli et al. Science) revealed dense urban + agricultural landscapes under Maya rainforest canopy: causeway networks, raised fields, terraces, defensive earthworks, tens of thousands of structures. Population estimates revised 5-15× upward (millions → 7-11M at Classic peak). Transformative for Maya archaeology + demonstrates LiDAR's power in tropical landscapes."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_arch_rs_1",
+        "kind": "slider",
+        "question": "Drag to approximate area (km²) covered by the 2018 PACUNAM Maya LiDAR survey.",
+        "target": {
+          "min": 2000,
+          "max": 2000
+        },
+        "default": 100,
+        "explanation": "PACUNAM LiDAR 2018: ~2100 km² of Maya lowlands surveyed (Canuto, Estrada-Belli et al. Science). Equivalent to centuries of pedestrian survey condensed into days of flight + analysis. Subsequent surveys have expanded coverage. LiDAR is now standard for tropical + densely vegetated archaeological landscapes."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_arch_rs_1",
+        "kind": "drag_classify",
+        "question": "Match each remote-sensing/geophysical method to its primary use.",
+        "items": [
+          {
+            "id": "lidar",
+            "label": "Airborne LiDAR",
+            "bin": "broad"
+          },
+          {
+            "id": "sat-multispec",
+            "label": "Multispectral satellite imagery",
+            "bin": "broad"
+          },
+          {
+            "id": "magnetometry",
+            "label": "Magnetometry survey",
+            "bin": "near-surface"
+          },
+          {
+            "id": "soil-phos",
+            "label": "Soil phosphate mapping",
+            "bin": "near-surface"
+          },
+          {
+            "id": "gpr",
+            "label": "Ground-penetrating radar (GPR)",
+            "bin": "site-detail"
+          },
+          {
+            "id": "resistivity",
+            "label": "Earth resistance survey",
+            "bin": "site-detail"
+          },
+          {
+            "id": "photogrammetry",
+            "label": "Photogrammetry / SfM",
+            "bin": "3d-record"
+          },
+          {
+            "id": "lasers-scan",
+            "label": "Terrestrial laser scanning",
+            "bin": "3d-record"
+          }
+        ],
+        "bins": [
+          {
+            "id": "broad",
+            "label": "Broad landscape survey"
+          },
+          {
+            "id": "near-surface",
+            "label": "Near-surface feature mapping"
+          },
+          {
+            "id": "site-detail",
+            "label": "Site detail without excavation"
+          },
+          {
+            "id": "3d-record",
+            "label": "3D recording"
+          }
+        ],
+        "explanation": "Method specialization: broad survey (LiDAR + satellite for landscape coverage); near-surface mapping (magnetometry, phosphates for shallow features); site detail (GPR, resistance for stratigraphy without excavation); 3D recording (photogrammetry + laser scanning for artifacts, sites, monuments). Modern projects combine multiple methods strategically."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_arch_rs_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why digital + remote-sensing archaeology is also a heritage-preservation tool.",
+        "rubric": "Mentions: many sites are being destroyed faster than they can be excavated — by climate change (coastal erosion, permafrost thaw, fire, drought), conflict (ISIS in Iraq + Syria + Mali, looting in Latin America + Africa), development (highways, dams, urbanization). Remote sensing + LiDAR + photogrammetry + satellite monitoring let archaeologists: (1) document landscapes before destruction (digital preservation); (2) monitor for looting + war damage (CORONA + Sentinel + commercial satellite + ML detection); (3) plan rescue excavation priorities; (4) maintain digital records that survive physical destruction (Palmyra, Mosul Museum reconstructions); (5) engage descendant communities in monitoring + preservation. Climate-change archaeology is now urgent — sites in the Arctic, Mediterranean, Pacific Islands disappearing fast. Modern digital archaeology blurs the line between research + heritage preservation. Concludes: 21st-century archaeology must combine tradition (excavation, finds analysis) with rapid-response digital documentation as the heritage record is being lost faster than it's being studied."
+      }
+    }
+  ]
+}

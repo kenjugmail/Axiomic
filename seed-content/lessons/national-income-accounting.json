@@ -1,0 +1,162 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intro",
+    "objectives": [
+      "Distinguish GDP, GNI, NDP; nominal vs real.",
+      "Apply the income + expenditure + production approaches.",
+      "Reason about GDP limitations."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "GDP, GNI, NDP: measuring an economy",
+      "body": "**Macroeconomics** studies aggregate behavior: total output, employment, inflation, growth. Foundation built ~1930s-40s (Keynes + Kuznets) with national-income accounting.\n\n**GDP (Gross Domestic Product)**: market value of all final goods + services produced within a country in a period (typically year or quarter).\n\nThree equivalent computations:\n• **Production approach**: sum of value added by all firms. GDP = ∑ (output − intermediate inputs).\n• **Expenditure approach**: GDP = C + I + G + (X − M), where C=consumption, I=investment, G=government spending, X=exports, M=imports.\n• **Income approach**: GDP = wages + profits + rents + interest + indirect taxes.\n\nAll three approaches yield the same GDP (definitionally, with some statistical discrepancy in practice).\n\n**Related measures**:\n- **GNI (Gross National Income)**: GDP + net foreign income (from abroad − to abroad). Used by IMF + World Bank.\n- **NDP (Net Domestic Product)**: GDP − depreciation of capital.\n- **NNP (Net National Product)**: GNI − depreciation.\n- **NI (National Income)**: NNP − indirect taxes.\n- **Personal Income (PI)**, **Disposable Income (DI)**: household measures.\n\n**Nominal vs Real**:\n- **Nominal GDP**: in current prices.\n- **Real GDP**: in constant prices (deflated by price index). Removes inflation; comparable over time.\n- **GDP deflator**: price index implicit in real GDP calculation. Nominal/Real × 100.\n- **CPI (Consumer Price Index)**: another price index; weighted basket of household goods. CPI ≠ GDP deflator (CPI doesn't include investment goods + exports; deflator covers all GDP).\n\n**GDP growth rate**: % change in real GDP. Trend ~2% / yr for developed economies; varies more for emerging (1-10%+)."
+    },
+    {
+      "kind": "text",
+      "title": "Limitations + alternatives to GDP",
+      "body": "**What GDP measures well**: economic activity through markets, output produced, value generated.\n\n**What GDP misses**:\n- **Non-market activities**: household production (childcare, cooking, cleaning), volunteer work. Worth ~25% of GDP if priced.\n- **Informal economy**: estimated 5-30% of GDP in many countries.\n- **Quality + variety improvements**: hedonic adjustments + chain-weighting help but imperfect (smartphone vs 1990s phone — same 'price' but different product).\n- **Inequality**: GDP is average; doesn't show distribution.\n- **Environmental damage**: oil spill that costs $1B in cleanup ADDS to GDP (counted as production), not subtracted.\n- **Depletion of natural capital**: extracting oil counts as positive but doesn't subtract the loss of future stock.\n- **Subjective well-being + life satisfaction**.\n- **Health, education, leisure** (partial; some included).\n\n**Alternative + supplementary measures**:\n- **HDI (Human Development Index)**: UN; combines income + life expectancy + education.\n- **GPI (Genuine Progress Indicator)**: adjusts GDP for environment + inequality + non-market.\n- **Inclusive Wealth Index**: capital stocks instead of flows.\n- **Beyond GDP / Stiglitz-Sen-Fitoussi Commission 2009**: well-being + sustainability metrics.\n- **GDP+ adjustments**: NetGDP (subtract environmental damage); Adjusted Net Savings (subtract resource depletion).\n- **OECD Better Life Index**: 11 dimensions.\n- **Gallup Well-Being Index**: subjective.\n- **Bhutan's Gross National Happiness**.\n\n**Modern uses + critiques**:\n- GDP remains workhorse for macroeconomic policy, fiscal/monetary decisions, international comparisons.\n- Critics: distorts policy toward growth at expense of other goods.\n- Defenders: GDP correlates strongly with most outcomes (health, education, infant mortality); no single replacement does what GDP does.\n- Modern practice: GDP + supplementary indicators + sectoral data."
+    },
+    {
+      "kind": "text",
+      "title": "Modern challenges: digital + intangible economy",
+      "body": "The 21st-century economy is increasingly:\n• **Digital**: software, AI, platforms.\n• **Intangible**: brand, knowledge, IP, organizational capital, network effects.\n• **Services-dominant**: ~80% of US GDP services.\n• **Globalized**: complex supply chains; arbitrary attribution to countries.\n\n**GDP measurement challenges**:\n1. **Free digital services**: Google search, Facebook, Wikipedia, ChatGPT — high consumer value, $0 market price. GDP misses entirely. Brynjolfsson + colleagues estimate consumer surplus from digital ~$30K/yr per US household.\n\n2. **Cloud computing + 'as-a-service'**: Capex → opex shift; investment may register as consumption.\n\n3. **Quality improvements + hedonic adjustment**: smartphone of 2024 has dozens of features unimaginable in 2000. Statistical agencies use hedonic pricing to capture; imperfect.\n\n4. **Cross-border tax + transfer-pricing**: multinationals shift profits to low-tax jurisdictions; GDP attribution distorted (Ireland's pharma + tech reporting inflates GDP).\n\n5. **Intangible investment**: R&D, software, brand. SNA 2008 includes R&D + software in GDP (was missed); brand + organizational capital still missing.\n\n6. **Climate + nature**: as above, externalities + depletion missing.\n\n**Modernization efforts**:\n- **System of National Accounts (SNA)** updates every ~25 years; SNA 2008 added R&D; SNA 2025 (in development) addresses globalization, environment, digital.\n- **Beyond GDP** (UN + OECD): well-being + sustainability dashboards.\n- **National Accounts of Well-Being**: explicit measures.\n- **Stern Review** + Dasgupta Review (2021): environmental + nature accounting.\n\n**Practical reading**: when interpreting GDP statistics, check:\n- Real vs nominal.\n- Per-capita vs aggregate.\n- Growth rate vs level.\n- Adjusted for purchasing-power parity (PPP) for cross-country?\n- Coverage of informal + digital sectors."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_nia_1",
+        "kind": "guided_derivation",
+        "question": "Compute GDP via the expenditure approach",
+        "goal": "A small economy has: consumption C=$700B, investment I=$200B, government spending G=$300B, exports X=$150B, imports M=$200B. Compute GDP.",
+        "steps": [
+          {
+            "prompt": "Net exports?",
+            "motivation": "X − M.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-$50B",
+                "-50",
+                "negative 50"
+              ]
+            },
+            "hints": [
+              "Subtract."
+            ],
+            "reveal": "NX = X − M = 150 − 200 = -$50B. Trade deficit."
+          },
+          {
+            "prompt": "GDP = C + I + G + NX?",
+            "motivation": "Apply formula.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "$1150B",
+                "1150"
+              ]
+            },
+            "hints": [
+              "700 + 200 + 300 + (-50)."
+            ],
+            "reveal": "GDP = 700 + 200 + 300 − 50 = $1150B."
+          },
+          {
+            "prompt": "Real GDP if price index = 1.10 vs base year?",
+            "motivation": "Deflate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~$1045B",
+                "1045.5",
+                "1150/1.10"
+              ]
+            },
+            "hints": [
+              "Divide by deflator."
+            ],
+            "reveal": "Real GDP = Nominal / (P/P_base) = 1150 / 1.10 ≈ $1045.5B. The economy's real output is ~$1045B in base-year prices; nominal $1150B reflects 10% inflation."
+          },
+          {
+            "prompt": "If population is 25M, what's per-capita real GDP?",
+            "motivation": "Divide.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~$41,820",
+                "41818",
+                "$41.8K"
+              ]
+            },
+            "hints": [
+              "1045 / 25 million in millions."
+            ],
+            "reveal": "Per-capita real GDP ≈ $1,045B / 25M = $41,820 per person per year. (For reference: US ~$76K; EU avg ~$45K; China ~$13K; India ~$2.5K, 2024 nominal.)"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_nia_1",
+        "kind": "slider",
+        "question": "Drag to the approximate 2023 US nominal GDP (in trillion USD).",
+        "target": {
+          "min": 26,
+          "max": 28
+        },
+        "default": 15,
+        "explanation": "2023 US nominal GDP: ~$27.4T. Other major economies (2023): China $17.7T nominal (~$33T PPP); Germany $4.5T; Japan $4.2T; UK $3.3T; India $3.7T (~$15T PPP); France $3.0T. World total ~$105T. US accounts for ~25% globally. PPP-adjusted China now larger than US."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_nia_1",
+        "kind": "multiple_choice",
+        "question": "Why does an oil spill ADD to GDP rather than subtract from it?",
+        "options": [
+          "Random.",
+          "GDP measures market transactions: cleanup costs, lawsuits, restoration spending are all market activities contributing to GDP. The destruction of natural capital + ecosystem damage are NOT counted. This is a fundamental limitation of GDP — it measures economic activity, not welfare or wealth. Proposed corrections: Net Domestic Product subtracting capital depreciation; Genuine Progress Indicator adjusting for environmental damage; Inclusive Wealth Index tracking stocks. None has replaced GDP for policy.",
+          "GDP measures welfare.",
+          "Required by law."
+        ],
+        "correctIndex": 1,
+        "explanation": "**GDP + environmental damage paradox**:\n\n*The oil-spill example*:\nDeepwater Horizon 2010 oil spill cost ~$60B in cleanup, legal settlements, restoration. All counted as positive GDP contributions:\n- Cleanup contractors hired (services).\n- Lawyers + courts active (services).\n- New equipment manufactured (goods).\n- Restoration ecology employed (services).\n\nNOT counted:\n- ~5M barrels oil released → ecosystem damage.\n- Fish + bird + tourism impacts.\n- Health effects on humans + animals.\n- Loss of natural capital.\n\nNet effect: positive contribution to GDP despite massive welfare loss.\n\n*Why GDP works this way*:\nGDP = market value of goods + services produced. Designed to measure economic activity, not welfare. Externalities (positive or negative) generally invisible unless they trigger market transactions.\n\n*Related problems*:\n\n1. **Resource depletion**: extracting oil counts as positive but doesn't subtract loss of future stock. Net Domestic Product (NDP) attempts via depreciation subtraction but underestimates natural capital.\n\n2. **Pollution costs**: only included if cleanup actually occurs.\n\n3. **Climate change**: future damages not in current GDP; carbon pricing partially internalizes.\n\n4. **Biodiversity loss**: nearly invisible to GDP.\n\n*Proposed corrections + alternatives*:\n\n1. **Green GDP** / **Adjusted Net Savings**: subtract depletion + pollution.\n2. **Inclusive Wealth Index** (UNEP-IWR): track all capital stocks (produced, human, natural).\n3. **Genuine Progress Indicator (GPI)**: adjusts GDP for ~30 factors including environment + inequality.\n4. **System of Environmental-Economic Accounting (SEEA)**: UN framework integrating environment with national accounts.\n5. **Natural Capital Accounting**: country-level (UK, Norway, Australia have programs).\n\n*Why GDP remains primary*:\n\n1. **Comparable across time + countries**: ~75 years of consistent methodology.\n2. **Correlated with welfare proxies** (life expectancy, education, infant mortality) up to mid-income.\n3. **Available + frequent**: quarterly + monthly indicators.\n4. **Policy-friendly**: monetary + fiscal policy targeting GDP.\n\n*Criticisms + modern responses*:\n- Stiglitz-Sen-Fitoussi Commission 2009: 'beyond GDP.'\n- Dasgupta Review 2021: 'economics of biodiversity.'\n- New Zealand 2019: 'Wellbeing Budget.'\n- Bhutan: Gross National Happiness since 1972.\n- OECD: How's Life? + Better Life Index.\n- EU: Beyond GDP + Sustainable Development Goals (SDGs) indicators.\n\n*Practical practice*:\nMost macroeconomic policy still GDP-targeted. Environmental costs increasingly internalized via carbon pricing, taxes, regulation, ESG disclosure. Trend toward 'dual-account' systems: GDP + supplementary environmental + social accounts.\n\nGDP is a great measure for what it measures — but interpreting it as 'welfare' or 'wealth' is a fundamental category error."
+      },
+      "hints": [
+        "What does GDP measure?",
+        "What's excluded?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "GDP measures market transactions; oil-spill cleanup is market activity (counted positive). Ecosystem damage + natural-capital loss not counted. Fundamental limitation: GDP measures activity, not welfare or wealth. Examples: Deepwater Horizon 2010 cleanup ~$60B added to GDP despite ecosystem destruction. Corrections proposed: Green GDP, NDP, Inclusive Wealth Index, GPI, SEEA framework. None has replaced GDP for policy; GDP remains primary due to consistency + comparability + correlation with welfare proxies. Modern: dual-account systems (GDP + environmental + social accounts)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_nia_1",
+        "kind": "math_expression",
+        "question": "Nominal GDP = $1500B; GDP deflator = 125 (2010 base = 100). Real GDP?",
+        "acceptedAnswers": [
+          "$1200B",
+          "1200",
+          "1500/1.25"
+        ],
+        "hint": "Real = Nominal / (deflator/100) = 1500 / 1.25 = 1200."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_nia_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why GDP per capita is a useful but imperfect measure of national well-being.",
+        "rubric": "Mentions: GDP per capita: nominal GDP divided by population. Useful: correlated with welfare proxies (life expectancy, education, infant mortality) particularly up to mid-income range; allows cross-country + cross-time comparison; available quarterly. Limitations: averages out inequality (US has higher GDP per capita than EU but worse life expectancy + health); ignores externalities + nature + non-market activity + leisure; quality + variety improvements imperfectly captured; PPP adjustments matter for cross-country (China $13K nominal but $24K PPP). Modern alternatives: HDI (UN; income+life+education), GPI, OECD Better Life Index, Bhutan GNH, Dasgupta Review natural capital. None has displaced GDP for policy; pragmatic: GDP + supplementary indicators + sectoral metrics. Concludes: GDP is useful summary but interpretation requires care; per-capita helps but ignores distribution + quality + externalities; complementary indicators essential for full welfare assessment."
+      }
+    }
+  ]
+}

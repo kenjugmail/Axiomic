@@ -1,0 +1,164 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish folds, faults, joints.",
+      "Apply Mohr's circle to fault mechanics.",
+      "Reason about brittle vs ductile deformation."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Deformation in the crust: folds + faults + joints",
+      "body": "**Structural geology**: study of rock deformation. Rocks fold, fault, fracture under tectonic stresses over millions of years.\n\n**Stress + strain**:\n- **Stress** (σ): force per area applied to rock (Pa or MPa).\n- **Strain** (ε): fractional deformation (dimensionless).\n- **Elastic**: recoverable. Like a spring.\n- **Plastic** (ductile): permanent change without breaking.\n- **Brittle**: rock fractures suddenly.\n- Crossover: deeper/hotter rocks tend to be ductile; shallow/cold rocks brittle.\n\n**Three types of stress**:\n- **Compression**: squeezing (convergent plate boundaries).\n- **Tension**: pulling apart (divergent boundaries).\n- **Shear**: opposite directions (transform boundaries).\n\n**Folds** (ductile deformation):\n- **Anticline**: arched upward; older rocks in core. Hydrocarbon trap.\n- **Syncline**: trough downward; younger rocks in core.\n- **Monocline**: single bend.\n- **Recumbent fold**: nearly horizontal axial plane; intensely deformed.\n- **Nappe**: large recumbent + thrusted fold, often km-scale.\n- Folds at variable scales: cm (outcrop) to 100s of km (whole mountain ranges).\n\n**Faults** (brittle deformation):\n- **Normal**: hanging wall drops relative to footwall (tension). Found at divergent boundaries.\n- **Reverse / thrust**: hanging wall rises (compression). Found at convergent. Thrusts are low-angle reverse faults.\n- **Strike-slip**: horizontal motion. Found at transform boundaries (San Andreas).\n- Fault planes can be active (earthquakes) or inactive.\n- Fault zones: damage zone of fractured rock around main fault.\n\n**Joints**: fractures without offset (no displacement). Common; result of unloading + cooling + tectonics.\n\n**Foliation**: planar fabric (alignment of platy minerals). In metamorphic rocks. Records directed stress during metamorphism.\n\n**Map view + cross section**: structural geologists work in 3D, mapping outcrops + reconstructing structures."
+    },
+    {
+      "kind": "text",
+      "title": "Mohr's circle + fault mechanics",
+      "body": "**Mohr's circle**: graphical method to analyze stress at any orientation in a 2D stress field. Foundational tool in structural geology + soil mechanics + materials.\n\n**Setup**:\n- Stress tensor in 2D: $\\sigma_x$, $\\sigma_y$, $\\tau_{xy}$.\n- On a plane rotated by angle $\\theta$, normal stress $\\sigma_n$ + shear $\\tau$ vary.\n- Mohr's circle plots all possible ($\\sigma_n$, $\\tau$) combinations as a circle in stress space.\n\n**Circle properties**:\n- **Center**: $C = (\\sigma_x + \\sigma_y)/2$ on $\\sigma_n$ axis.\n- **Radius**: $R = \\sqrt{((\\sigma_x - \\sigma_y)/2)^2 + \\tau_{xy}^2}$.\n- **Principal stresses**: $\\sigma_1 = C + R$ (max), $\\sigma_2 = C - R$ (min). At intersections with $\\sigma$ axis (where $\\tau = 0$).\n- **Maximum shear**: $\\tau_{max} = R$. At top + bottom of circle.\n- **Principal angle**: $\\theta_p = \\frac{1}{2}\\arctan(2\\tau_{xy} / (\\sigma_x - \\sigma_y))$. Orientation of $\\sigma_1$ relative to x-axis.\n\nThe **interactive viz below** lets you drag $\\sigma_x$, $\\sigma_y$, $\\tau_{xy}$, + a rotation angle. Watch the circle reshape + the rotated stress state move on the circle. Principal stresses (green) + max shear (rose) labeled. Try: pure compression ($\\sigma_x > \\sigma_y$, $\\tau_{xy} = 0$) → circle on positive $\\sigma$ axis. Add shear → circle shifts up + tilts. Pure shear → circle straddles axis.\n\n**Coulomb failure criterion**: rocks fail in shear when:\n$$\\tau = c + \\mu (\\sigma_n - p_f)$$\n\nWhere $c$ = cohesion, $\\mu$ = coefficient of internal friction (~0.6-0.85 typical, Byerlee's law), $p_f$ = pore-fluid pressure.\n\n**Effective stress** $\\sigma'_n = \\sigma_n - p_f$. Pore-fluid pressure REDUCES effective normal stress → reduces shear strength.\n\n**Mohr-Coulomb failure**: plot failure envelope (line) on Mohr's circle. If circle TOUCHES failure envelope → faulting occurs.\n\n**Implications**:\n- High pore pressure (water injection, gas) can TRIGGER earthquakes by reducing $\\sigma'_n$. Fracking + wastewater injection have caused induced seismicity.\n- Stress orientation determines fault type:\n  - $\\sigma_1$ vertical (e.g., overburden): normal faults.\n  - $\\sigma_1$ horizontal: reverse/thrust faults.\n  - Intermediate $\\sigma_2$ vertical: strike-slip.\n  - Anderson's faulting theory (1951).\n\n**Apparent vs true dip**:\n- Strike: orientation of fault/bed line.\n- Dip: angle of inclination.\n- Apparent dip (observed in 2D cross-section) often LESS than true dip.",
+      "viz": "mohrs-circle"
+    },
+    {
+      "kind": "text",
+      "title": "Brittle-ductile transition + earthquake nucleation",
+      "body": "**Brittle-ductile transition** (BDT):\n- Shallow crust (~0-15 km): brittle. Rocks fracture. Earthquakes.\n- Deeper crust (~15-40+ km): ductile. Rocks flow. Aseismic.\n- BDT depth depends on T (geothermal gradient) + rock type + strain rate.\n- For quartz: ~300°C; feldspar: ~450°C; olivine: ~600°C.\n- Continental crust BDT: ~15 km typical.\n- Oceanic + subducting slabs: can have brittle behavior to ~700 km (cold slab).\n\n**Earthquake nucleation**:\n- Fault is locked: friction prevents motion.\n- Strain accumulates from plate motion over decades-millennia.\n- When stress exceeds friction: sudden slip = earthquake.\n- Rupture propagates along fault at ~3 km/s (just below shear-wave speed).\n- Slip ranges from cm (small) to ~30+ m (great M9 events).\n\n**Magnitude + slip relationship**:\n- M = (2/3) log(M₀) - 6.07 where M₀ = seismic moment in N·m.\n- M₀ = μ A d (rigidity × area × slip).\n- Each unit M: 32× more energy. M7 vs M6: 32×. M8 vs M6: 1000×.\n- M9 ruptures span 100s of km of fault, with meters of slip.\n\n**Coseismic vs aseismic slip**:\n- **Coseismic**: during earthquake (seconds-minutes).\n- **Postseismic**: slow slip in days-months after.\n- **Interseismic**: strain buildup between events (years-decades).\n- **Aseismic creep**: continuous slow slip without earthquakes (parts of San Andreas).\n- **Slow slip events (SSE)**: weeks-months of episodic slip. Discovered ~2000s. Common in subduction zones. May trigger earthquakes.\n\n**Induced seismicity**:\n- Wastewater injection (Oklahoma boom 2010s).\n- Fracking (direct effect smaller).\n- Reservoir impoundment (large dams).\n- Geothermal (Basel 2006 — induced M3.4, project canceled).\n- Mining (rock burst).\n- Mechanism: pore-fluid pressure reduces effective normal stress → fault slip.\n\n**Earthquake forecasting**:\n- Long-term: seismic-hazard maps based on history + tectonics. Statistical.\n- Short-term: NOT possible reliably. Many decades of attempts; no precursor signals reliably predictive.\n- Earthquake EARLY warning: detect P-waves from epicenter + warn downstream of incoming destructive S-waves (seconds-tens-of-seconds). ShakeAlert (USA West), Japan, Mexico operational.\n\n**Fault classification + analysis**:\n- **Stress transfer**: after one earthquake, stress on adjacent faults changes (Coulomb stress changes). Can promote or inhibit next events.\n- **Stress shadowing**: earthquake REDUCES stress on certain neighboring faults.\n- Famous: North Anatolian fault — successive earthquakes 1939-1999 westward propagation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_geo_mohr_fault",
+        "kind": "guided_derivation",
+        "question": "Determine fault type from stress",
+        "goal": "Stress state: $\\sigma_1 = 100$ MPa (vertical), $\\sigma_2 = 50$ MPa (horizontal). Pore pressure 20 MPa. Predict fault type using Anderson's theory.",
+        "steps": [
+          {
+            "prompt": "Anderson's faulting theory: which stress is vertical determines fault type. $\\sigma_1$ vertical → ?",
+            "motivation": "Apply Anderson.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Strike-slip.",
+                "NORMAL fault. $\\sigma_1$ (max) is vertical, $\\sigma_2$ + $\\sigma_3$ horizontal. Tension favored.",
+                "Thrust.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "σ₁ vertical → normal."
+            ],
+            "reveal": "Normal fault. Anderson: $\\sigma_1$ vertical = extensional regime → normal faulting. (Real: $\\sigma_1$ from gravity in many extensional tectonic settings like East African rift, Basin + Range.)"
+          },
+          {
+            "prompt": "Effective vertical stress: $\\sigma_1' = \\sigma_1 - p_f = ?$",
+            "motivation": "Effective stress.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "80 MPa",
+                "80"
+              ]
+            },
+            "hints": [
+              "100 - 20."
+            ],
+            "reveal": "$\\sigma_1' = 80$ MPa effective."
+          },
+          {
+            "prompt": "Using Mohr-Coulomb: failure when $\\tau = c + \\mu \\sigma_n'$. With $c = 10$ MPa, $\\mu = 0.6$. Maximum shear at center of circle is $R = (\\sigma_1' - \\sigma_3')/2 = (80 - 30)/2 = 25$ MPa. Will it fail?",
+            "motivation": "Compare.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Threshold shear $\\tau = c + \\mu \\sigma_n'$ at critical $\\sigma_n'$ = $(80 + 30)/2 = 55$ MPa → $\\tau_{crit} = 10 + 0.6 \\times 55 = 43$ MPa. Max $\\tau = 25$ < 43. No failure.",
+                "Yes.",
+                "Maybe."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Compare τ to threshold."
+            ],
+            "reveal": "Max shear (25 MPa) < failure threshold (43 MPa). No faulting. To trigger failure: increase $\\sigma_1$ further, decrease $\\sigma_3$, or INCREASE pore pressure (reduces effective normal stress)."
+          },
+          {
+            "prompt": "If wastewater injection raises pore pressure to 50 MPa, recompute.",
+            "motivation": "Induced.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "No effect.",
+                "$\\sigma_1' = 50$, $\\sigma_3' = 0$. New $R = 25$ (same). New center = 25, threshold τ at center: $10 + 0.6 \\times 25 = 25$ MPa. Now $\\tau = \\tau_{crit}$ → fault SLIPS. Induced earthquake.",
+                "Random.",
+                "Doesn't matter."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Reduce effective stress."
+            ],
+            "reveal": "Higher pore pressure reduces effective stress + brings circle closer to failure envelope → fault slips. Mechanism for induced seismicity from wastewater injection (Oklahoma 2010s)."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Faulting: Anderson's theory + Mohr-Coulomb failure with effective stress}}$$ Mohr's circle + Coulomb failure are universal tools. Anderson's faulting theory explains why fault types correlate with tectonic regimes. Pore pressure reduces effective stress + can trigger earthquakes. This is the foundation of fracking-induced seismicity, dam-induced earthquakes, and now CO₂ storage safety assessments. The viz makes the geometric intuition concrete."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_geo_oklahoma",
+        "kind": "multiple_choice",
+        "question": "Oklahoma had ~1 M3+ earthquake per year for decades; 2010-2015 it rose to 500+/year. Cause?",
+        "options": [
+          "Random.",
+          "Wastewater injection: deep disposal wells (from fracking + conventional O&G) raised pore pressure in basement rocks → reduced effective stress on critically-stressed faults → fault slip. Peer-reviewed scientific consensus. Reduced injection volumes brought rates back down by 2018-2020.",
+          "Marketing.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Oklahoma's induced seismicity is a textbook case study. Historically (pre-2009): ~1-2 M3+ events/year. 2010-2015: ramped to 500-900+ M3+ events/year — including M5.0+ events damaging buildings.\n\nCause: deep wastewater injection (disposal of produced water from oil + gas extraction). Pore pressure increased in basement rocks. Mohr-Coulomb mechanism: $\\tau = c + \\mu(\\sigma_n - p_f)$. Higher $p_f$ → lower effective stress → critically-stressed faults slip.\n\nKey faults were already near failure (tectonic stress); injection was the trigger.\n\nRegulatory response: Oklahoma + USGS limited injection volumes + depths starting ~2015. Earthquake rates dropped 75%+ by 2020. Causal link clear.\n\nLessons:\n- Carbon storage + geothermal must consider induced seismicity.\n- Even cold + non-volcanic regions can have earthquake risk.\n- Pore pressure is a controllable variable; regulation works.\n\nSimilar cases: Basel geothermal 2006 (canceled), Switzerland CO₂ sequestration considerations, Pohang Korea EGS 2017."
+      },
+      "hints": [
+        "What caused Oklahoma earthquakes?",
+        "Mechanism?"
+      ],
+      "workedSolution": "Wastewater injection raised pore pressure → reduced effective stress on faults → slip. Mohr-Coulomb mechanism. Rates from ~1/year to 500+/year. Reduced injection brought rates back down. Now regulated. Lessons for carbon storage + geothermal + any large-scale fluid injection.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_geo_byerlee",
+        "kind": "math_expression",
+        "question": "Byerlee friction $\\mu \\approx 0.6$. Effective normal stress 50 MPa. Frictional shear threshold (no cohesion)?",
+        "acceptedAnswers": [
+          "30 MPa",
+          "30"
+        ],
+        "hint": "$\\tau = \\mu \\sigma_n = 30$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_geo_fault",
+        "kind": "scenario",
+        "question": "Field analysis of a fault",
+        "prompt": "You map a thrust fault in the Appalachians with 60° dip. Walk through stress-orientation analysis to infer paleo-tectonic setting."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_geo_struct",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why understanding stress + Mohr's circle is foundational to multiple geological + engineering disciplines.",
+        "rubric": "Mentions that stress state in any direction can be read off a single circle once $\\sigma_x$, $\\sigma_y$, $\\tau_{xy}$ are known; Mohr-Coulomb failure criterion (with effective stress) explains earthquake triggering, slope failure, dam safety, fracking-induced seismicity, soil failure in foundations. The geometry is universal across structural geology + soil mechanics + materials + mining engineering — same circle, same physics, different scales."
+      }
+    }
+  ]
+}

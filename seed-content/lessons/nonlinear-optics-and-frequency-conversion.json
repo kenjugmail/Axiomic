@@ -1,0 +1,179 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish χ⁽²⁾ + χ⁽³⁾ nonlinearities.",
+      "Apply phase matching to SHG + OPO.",
+      "Connect nonlinear optics to comb + supercontinuum."
+    ],
+    "prereqs": [
+      "em-waves-and-maxwell"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Nonlinear polarization: when light is intense enough",
+      "body": "Linear optics: dielectric polarization P ∝ E (small E). For intense E (laser pulses), additional terms emerge:\n\n  P = ε₀ (χ⁽¹⁾ E + χ⁽²⁾ E² + χ⁽³⁾ E³ + ...)\n\n• **χ⁽¹⁾**: linear susceptibility (refractive index, absorption).\n• **χ⁽²⁾**: second-order; non-centrosymmetric crystals only (KDP, LiNbO₃, BBO, KTP). Drives: SHG (frequency doubling), SFG/DFG (sum/difference), OPO, EO modulation, parametric amplification.\n• **χ⁽³⁾**: third-order; all materials (including isotropic fiber + glass). Drives: Kerr effect (intensity-dependent n), SPM/XPM, FWM, third-harmonic generation, Raman, Brillouin.\n\n**Threshold for nonlinear effects**: typically peak intensity ~MW/cm² to GW/cm² depending on χ + material.\n\n**Common nonlinear processes**:\n\n• **Second-harmonic generation (SHG)**: ω + ω → 2ω. Frequency doubling. Nd:YAG 1064 nm → 532 nm green. KTP, BBO, LBO, periodically-poled LN.\n• **Sum-frequency generation (SFG)**: ω₁ + ω₂ → ω₃ = ω₁ + ω₂. Wavelength conversion.\n• **Difference-frequency generation (DFG)**: ω₁ − ω₂ → ω₃. Mid-IR generation from near-IR.\n• **Optical parametric oscillator/amplifier (OPO/OPA)**: pump → signal + idler (ω_p = ω_s + ω_i). Tunable laser output.\n• **Third-harmonic generation (THG)**: ω + ω + ω → 3ω. Often via cascaded SHG + SFG.\n• **Four-wave mixing (FWM)**: in fiber + waveguides.\n• **Kerr effect**: n = n_0 + n_2 I. Self-focusing, SPM, soliton propagation.\n• **High-harmonic generation (HHG)**: extreme nonlinearity in gases; produces XUV + soft X-ray attosecond pulses.\n\n**Phase matching**: critical for efficient conversion. Δk = k_out − k_in = 0 needed for momentum conservation. Achieved by:\n- Birefringent crystals (angle-tuned).\n- Quasi-phase-matching (periodic poling, e.g., PPLN): periodic flipping of χ⁽²⁾ at coherence length.\n- Temperature tuning.\n- Modal phase matching in waveguides."
+    },
+    {
+      "kind": "text",
+      "title": "Frequency combs + supercontinuum + soliton physics",
+      "body": "**Frequency comb** (Hänsch + Hall 2005 Nobel): output of mode-locked laser = comb of equally-spaced frequencies. Each tooth's frequency: f_n = f_ceo + n × f_rep, where f_ceo = carrier-envelope offset, f_rep = repetition rate.\n\nDetermined absolutely once both f_ceo + f_rep are stabilized → optical-frequency ruler.\n\n**Applications**:\n- **Optical atomic clocks**: Sr, Yb lattice clocks at 10⁻¹⁸ precision.\n- **Astronomical spectrographs**: calibrate exoplanet radial-velocity at cm/s precision.\n- **Distance metrology**: μm precision over km.\n- **Telecom calibration**.\n\nGeneration: stable mode-locked laser (Ti:S, fiber-based Er-Yb, OFM-based) + self-referencing via f-2f interferometer + supercontinuum.\n\n**Microresonator combs (Kippenberg 2007+)**: combs from chip-scale optical microresonators (Si₃N₄, SiC, LiNbO₃) pumped by CW laser; Kerr-soliton + cavity-soliton dynamics. Promises compact + low-power + integratable combs. Used in: chip-scale spectroscopy, parallel WDM telecom, lidar.\n\n**Supercontinuum**: extreme spectral broadening of intense ultrashort pulse via χ⁽³⁾ nonlinearity in fiber. Single 1064 nm pulse → 400-2400 nm white-light continuum. Used in: spectroscopy, microscopy, telecom + comb.\n\n**Optical solitons**: pulses where nonlinear self-phase modulation balances anomalous group-velocity dispersion → propagate without distortion in fiber. Discovered 1980; commercial fiber solitons attempted 1990s; replaced by coherent + DSP techniques.\n\n**Attosecond physics**: pulses <10⁻¹⁵ s via high-harmonic generation. Nobel 2023 (Krausz, L'Huillier, Agostini)."
+    },
+    {
+      "kind": "text",
+      "title": "Modern nonlinear optics applications",
+      "body": "**Frequency conversion**:\n- **Green pointers**: 1064 nm Nd:YVO₄ + KTP doubler → 532 nm.\n- **UV via SHG/THG**: 343 nm + 257 nm + 213 nm from Nd:YAG fundamental → photolithography, micromachining.\n- **Mid-IR via OPO**: 800 nm Ti:S → 3-10 µm idler for spectroscopy.\n- **Terahertz**: DFG or photoconductive antennas; security imaging, materials testing.\n\n**Quantum optics**:\n- **Spontaneous parametric down-conversion (SPDC)**: pump photon → signal + idler photon pair; entangled. Generates entangled photon sources (PPKTP, PPLN, BBO). Foundation of QKD + quantum networking + Bell-test experiments.\n- **Squeezed light**: parametric amplifier produces sub-shot-noise quadrature. Used in LIGO since 2019 (~6 dB improvement).\n- **Single-photon sources**: heralded SPDC; quantum dots in microcavities.\n\n**Microscopy + imaging**:\n- **Two-photon microscopy** (Denk 1990): tight-focus IR pulses excite fluorophore at 2× wavelength → confined to focal volume; deep brain imaging.\n- **Coherent anti-Stokes Raman (CARS)**: nonlinear Raman for label-free biology.\n- **Third-harmonic generation (THG) microscopy**: label-free.\n- **SHG microscopy**: collagen + other ordered structures (no fluorescence).\n\n**LIDAR + ranging**:\n- **Wavelength-conversion** for eye-safe operation: 1550 nm via OPO/OPA from 1064 nm pump.\n- **Frequency-modulated CW (FMCW)** lidar: coherent detection of chirped CW; lower power, higher SNR.\n\n**Telecom**:\n- **All-optical wavelength conversion**: SOA-FWM or PPLN-DFG for transparent routing.\n- **Optical phase conjugation**: nonlinear mirror; dispersion compensation.\n- **Parametric amplifiers**: ultra-low-noise gain (sub-quantum-limit noise figures).\n\n**Photonic integrated circuits (PICs)**:\n- LiNbO₃ thin film + PPLN waveguides: ultra-low-power SHG/SFG/DFG on chip.\n- SiN microresonators: Kerr combs + parametric amplification.\n- Heterogeneous integration with InP + GaN sources.\n\n**Strong-field + attosecond physics**: HHG, attosecond pulses, RABBIT, ATAS — probing electron dynamics in atoms + molecules + solids on natural timescales."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_nl_1",
+        "kind": "guided_derivation",
+        "question": "Phase-match SHG of Nd:YAG via birefringence",
+        "goal": "1064 nm → 532 nm in BBO crystal. n_o(1064)=1.654; n_e(532, θ=22.8°)=1.654. Calculate the phase-matching condition.",
+        "steps": [
+          {
+            "prompt": "Type-I SHG phase matching condition?",
+            "motivation": "k_2ω = 2 k_ω.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "n_e(2ω) = n_o(ω)",
+                "indices equal"
+              ]
+            },
+            "hints": [
+              "Momentum conservation: 2 k_ω = k_2ω."
+            ],
+            "reveal": "Type-I: two ordinary-ray fundamentals → one extraordinary-ray second-harmonic. n_e(2ω, θ) = n_o(ω). The extraordinary index varies with crystal angle θ relative to optic axis."
+          },
+          {
+            "prompt": "If n_e(2ω, θ) is wavelength + angle-dependent, what's the angle θ that satisfies n_e(2ω, θ) = n_o(ω) = 1.654 in BBO?",
+            "motivation": "Use given.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~22.8°",
+                "22.8 degrees"
+              ]
+            },
+            "hints": [
+              "From the problem statement."
+            ],
+            "reveal": "θ ≈ 22.8° from the optic axis (Type-I BBO SHG of 1064 nm). The crystal is angle-tuned. Acceptance angle ~0.4 mrad — beam must be well-collimated + crystal precisely aligned."
+          },
+          {
+            "prompt": "Efficiency of conversion (very rough estimate) for 1 mm-long crystal, 5 mm beam diameter, 100 mJ ns-pulse?",
+            "motivation": "Order of magnitude.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~30-60%",
+                "tens of %",
+                "high"
+              ]
+            },
+            "hints": [
+              "Pulse energy concentrated → high intensity in BBO."
+            ],
+            "reveal": "Pulse energy 100 mJ in 5 mm beam in ns → ~50 GW/cm² peak intensity. Combined with 1 mm BBO crystal + Type-I PM → ~30-60% SHG efficiency typical. With 100% conversion possible in principle but limited by walk-off + saturation + back-conversion. Frequency-doubled output: 30-60 mJ at 532 nm. Modern systems use periodically poled lithium niobate (PPLN) for higher efficiency + lower-intensity CW SHG."
+          },
+          {
+            "prompt": "Why doesn't this work in centrosymmetric materials like Si or fused silica?",
+            "motivation": "χ⁽²⁾ symmetry.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "centrosymmetric forbids χ⁽²⁾",
+                "inversion symmetry"
+              ]
+            },
+            "hints": [
+              "χ⁽²⁾ requires non-centrosymmetric medium."
+            ],
+            "reveal": "Centrosymmetric materials have inversion symmetry: r → -r maps medium to itself. Then under inversion E → -E, so P should also map to -P (since P points as the field). But for χ⁽²⁾ term: P_NL = χ⁽²⁾ E² → P_NL → χ⁽²⁾ E² (unchanged). Inversion symmetry requires P_NL → -P_NL → so χ⁽²⁾ = 0. Hence Si, glass, water all have χ⁽²⁾ = 0 in bulk + use χ⁽³⁾ (FWM, Kerr, Raman). BBO, KTP, KDP, LiNbO₃ are non-centrosymmetric → strong χ⁽²⁾."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_nl_1",
+        "kind": "sortable",
+        "question": "Order these nonlinear processes by *order of nonlinearity* (χ⁽n⁾ involved, lowest to highest).",
+        "items": [
+          {
+            "id": "shg",
+            "label": "Second-harmonic generation (SHG)"
+          },
+          {
+            "id": "thg",
+            "label": "Third-harmonic generation (THG)"
+          },
+          {
+            "id": "fwm",
+            "label": "Four-wave mixing (FWM)"
+          },
+          {
+            "id": "fifth-harmonic",
+            "label": "Fifth-harmonic generation"
+          },
+          {
+            "id": "hhg",
+            "label": "High-harmonic generation (HHG)"
+          }
+        ],
+        "explanation": "Nonlinear-optics order classification:\n• **SHG**: χ⁽²⁾ process (ω + ω → 2ω). Requires non-centrosymmetric medium (BBO, KTP, LiNbO₃). Easiest to phase-match.\n• **THG**: χ⁽³⁾ process (ω + ω + ω → 3ω). Possible in all materials. Lower efficiency than SHG.\n• **FWM**: χ⁽³⁾ process (ω₁ + ω₂ → ω₃ + ω₄). Common in fiber, gas, glass. Phase-matched by waveguide engineering.\n• **Fifth-harmonic**: χ⁽⁵⁾ or cascaded χ⁽³⁾. Generates 5ω from ω (e.g., 800 nm → 160 nm).\n• **High-harmonic generation (HHG)**: extreme nonlinearity (n>>5); semi-classical recollision model. Produces XUV + soft X-ray attosecond pulses; foundation of attosecond physics. 2023 Nobel.\n\nHigher order → lower efficiency but reaches shorter wavelengths + ultrafast timescales. Each order is ~3-5 orders of magnitude weaker than the previous in typical media; high intensity (~10¹⁴ W/cm²) compensates."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_nl_1",
+        "kind": "slider",
+        "question": "Drag to the typical SHG conversion efficiency (in %) of a well-designed Q-switched Nd:YAG → 532 nm system.",
+        "target": {
+          "min": 30,
+          "max": 60
+        },
+        "default": 90,
+        "explanation": "Frequency-doubled Nd:YAG (1064 → 532 nm via Type-I KTP or BBO): ~30-60% conversion efficiency for pulsed systems. CW SHG much lower (~1-10% typical) due to lower instantaneous intensity. PPLN waveguides + cavity-enhanced + intracavity SHG can reach 50-80% efficiency at lower peak power. Frequency doubling is so common that green-pointer 532 nm + UV 343/266 nm laser products are commercial."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_nl_1",
+        "kind": "multiple_choice",
+        "question": "What enabled the 2023 Nobel Prize in attosecond physics?",
+        "options": [
+          "New mathematical theory.",
+          "High-harmonic generation (HHG): intense IR laser pulse interacts with noble gas atoms; electrons tunnel ionize + recombine in the strong field, emitting trains of attosecond-duration XUV harmonic bursts. Combined with isolated-attosecond-pulse generation + ATAS/RABBIT measurement techniques, enabled direct probing of electron motion on natural timescales (~25-400 as). Krausz + L'Huillier + Agostini awarded 2023 for this experimental breakthrough; opens window into ultrafast electron dynamics in atoms, molecules, solids.",
+          "Faster lasers.",
+          "Cryogenic detectors."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Attosecond physics + 2023 Nobel**:\n\n*Background*: One attosecond = 10⁻¹⁸ s. Electron motion in atoms is on ~24-400 as timescale (the natural period of valence electrons). To 'photograph' electrons, need pulses shorter than these timescales.\n\n*The breakthrough*: **High-harmonic generation (HHG)**, semi-classical 'three-step model' (Corkum 1993, L'Huillier+ 1988):\n\n1. **Tunnel ionization**: intense IR field (~10¹³-10¹⁴ W/cm²) bends atomic potential → electron tunnels out.\n2. **Acceleration**: electron accelerated by IR field for ~half-cycle.\n3. **Recollision**: electron returns to ion; recombines + emits high-energy XUV photon (single-photon emission of accumulated kinetic energy).\n\nProcess repeats every IR half-cycle → train of attosecond XUV bursts (~10 harmonics around 17th, 21st, 25th, etc.).\n\n*Isolated attosecond pulses*:\n- Polarization gating: rotating polarization restricts HHG to single half-cycle.\n- Few-cycle IR pulses: ~5 fs IR → only one efficient recollision.\n- Result: single 24-400 attosecond XUV pulse.\n\n*Measurement (RABBIT, ATAS)*:\n- **RABBIT** (Reconstruction of Attosecond Beating by Interference of Two-photon transitions): photoionization with attosecond XUV + IR phase-locked → reconstruct photoelectron emission delay.\n- **ATAS** (Attosecond Transient Absorption Spectroscopy): IR pulse modulates XUV-induced transitions; reconstruct electron-state dynamics.\n\n*2023 Nobel laureates*:\n- **Pierre Agostini** (Ohio State): RABBIT method + isolated attosecond pulse 1st experimental observation (2001 paper).\n- **Ferenc Krausz** (Max Planck Quantum Optics): isolated 650-as pulse (2001) + helium-electron dynamics + extending to attosecond solid-state physics.\n- **Anne L'Huillier** (Lund): HHG theory + nonlinear-optics-attosecond intermediate; observed harmonic plateau (1988).\n\n*Applications*:\n\n1. **Electron motion in atoms + molecules**: photoionization delays in argon, neon; many papers.\n2. **Charge migration in molecules**: post-ionization electron dynamics on attoseconds.\n3. **Attosecond chemistry**: bond breaking + formation in real time.\n4. **Solid-state**: band structure + ultrafast carrier dynamics; charge transfer + spin-orbit coupling.\n5. **Quantum tomography of electron wavefunctions**.\n\n*Hardware*:\n- **Ultrafast laser**: Ti:sapphire ~5 fs pulses; OPCPA + neon driven for higher intensity.\n- **HHG cell**: noble gas (Ar, Ne, Xe) flow + tight focus.\n- **XUV spectrometer + detector**.\n- Total facility cost: ~$1-10M; smaller table-top compared to FEL but still complex.\n\n*Comparison to FEL X-ray*:\n- HHG: attoseconds, lower flux, table-top.\n- XFEL (LCLS, EuXFEL): femtoseconds + harder X-ray + huge flux but km-scale facility.\n- Complementary tools for ultrafast science.\n\n*Future*:\n- Higher photon energies (soft X-ray attosecond from ~ 1 keV HHG, mid-IR drivers).\n- Higher repetition rates (kHz → MHz).\n- More compact + commercial systems (Sirius Lasers, Cycle Lasers, KMLabs).\n- Industrial applications (semiconductor metrology, attoscience-inspired ASML EUV LPP, etc.).\n\nAttosecond physics is the cutting edge of ultrafast optics + represents 30+ year experimental + theoretical convergence."
+      },
+      "hints": [
+        "What's the recollision model?",
+        "How are attosecond pulses isolated?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "2023 Nobel for HHG-based attosecond physics. HHG: intense IR pulse tunnel-ionizes atoms; electrons accelerate + recombine emitting XUV harmonic bursts (3-step model, Corkum 1993). Isolated as pulses via polarization gating + few-cycle IR. Measurement: RABBIT + ATAS. Krausz + L'Huillier + Agostini opened window to attosecond electron dynamics in atoms, molecules, solids. Table-top facilities cheaper than XFEL; complementary."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_nl_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why phase matching is essential for efficient nonlinear-optical conversion + what techniques achieve it.",
+        "rubric": "Mentions: nonlinear processes (SHG, SFG, DFG, OPO, FWM) generate new photons at each point along the crystal. For coherent buildup, generated waves must stay in phase with the driving polarization: Δk = k_out − ∑ k_in = 0 (momentum conservation). Phase mismatch causes generated wavelets to interfere destructively; efficiency oscillates as sinc²(Δk L/2). Techniques: (1) Birefringent phase matching: angle-tune n_e(θ) of uniaxial crystal to match n_o (Type I + II). (2) Quasi-phase-matching (QPM): periodically pole the crystal (PPLN, PPKTP) so χ⁽²⁾ flips sign every coherence length → effective momentum compensation; works at any wavelength + uses largest crystal nonlinearity. (3) Modal phase matching in waveguides: different modes have different propagation constants. (4) Temperature tuning. (5) Counter-propagation geometries. Concludes: phase matching is the practical art of nonlinear optics; QPM has revolutionized commercial frequency conversion."
+      }
+    }
+  ]
+}

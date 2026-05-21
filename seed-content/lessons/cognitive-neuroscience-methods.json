@@ -1,0 +1,215 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish neuroimaging modalities.",
+      "Apply multivariate + decoding methods.",
+      "Connect to clinical + AI neuroscience."
+    ],
+    "prereqs": [
+      "perception-and-vision",
+      "memory-systems"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Methods toolkit: from neurons to behavior",
+      "body": "**Spatial + temporal scales** of measurement:\n\n**Single neurons**:\n- **Single-unit recording**: gold standard; electrode in/near neuron; spikes recorded. Hubel + Wiesel Nobel 1981 for V1 single-unit work.\n- **Multi-electrode arrays** (Utah, Neuropixels): 100s-1000s of neurons simultaneously.\n- **Calcium imaging** (2-photon microscopy): visualize 1000s of neurons in living animal; slower (~Hz) than electrophysiology.\n- **Patch clamp**: intracellular recording; channel + synaptic studies.\n\n**Mesoscale (humans + animals)**:\n- **fMRI (BOLD)**: blood-flow proxy for neural activity. ~3-5 mm spatial; 2-3 sec temporal. Whole-brain.\n- **EEG**: scalp electrodes; ms-temporal; cm-spatial. Cheap + portable.\n- **MEG**: magnetic fields from neural currents. Better spatial than EEG.\n- **NIRS**: near-IR; hemodynamics; portable.\n- **ECoG**: electrodes on cortical surface; clinical patients (epilepsy); high resolution.\n- **Stereo-EEG** (sEEG): depth electrodes; epilepsy patients.\n\n**Causal manipulations**:\n- **TMS (transcranial magnetic stimulation)**: induce transient activity in target region. Causal.\n- **Optogenetics** (Deisseroth 2005+): light-activated channels in genetically-defined neurons. Animal models.\n- **DREADDs**: chemogenetic; designer drugs.\n- **Lesion studies + reversible inactivation** (e.g., muscimol): selective inactivation.\n- **TES/tDCS**: transcranial electrical; mild + safer than TMS.\n\n**Behavioral**:\n- Psychophysics; RT + accuracy; eye-tracking; mouse-tracking; speech analysis.\n\n**Modern combination**: multimodal acquisition for richer pictures."
+    },
+    {
+      "kind": "text",
+      "title": "Multivariate + decoding methods",
+      "body": "**Traditional fMRI analysis** (1990s-2000s): univariate, voxel-by-voxel. 'This voxel responds to faces.'\n\n**Multivariate pattern analysis (MVPA)** (Haxby 2001+): pattern of activity across voxels carries information. Use ML classifiers to decode mental content.\n\n**Common methods**:\n- **Pattern classification**: SVM, logistic regression on multi-voxel patterns.\n- **Representational similarity analysis (RSA)**: compare neural similarity matrices to model predictions.\n- **Searchlight**: classify across moving window; find informative regions.\n- **Encoding models**: predict neural response from stimulus features.\n\n**Decoding successes**:\n- Stimulus reconstruction from fMRI: Tang + Huth 2023 reconstructed continuous speech from fMRI BOLD!\n- Visual reconstruction (Naselaris + Gallant): natural images from fMRI.\n- Dream content decoding (Horikawa + Kamitani 2013).\n- Affect + emotion decoding.\n- Memory content decoding (sometimes).\n\n**BCI + decoding**:\n- Motor decoding for prosthetics (BrainGate, Neuralink, Synchron).\n- Speech decoding (Chang + others 2021-23): cortical recordings → real-time speech.\n- Sensory restoration: cochlear implants, retinal implants, somatosensory.\n\n**Modeling neural representations**:\n- Compare brain representations to artificial neural networks (CNN, transformer).\n- ANN-brain correspondence (Yamins + DiCarlo 2014; Schrimpf 2020).\n- Brain-aligned objectives in ML training.\n- Foundation models predict neural responses across many tasks (Schrimpf 2021).\n\n**Modern frontiers**:\n- High-density Neuropixels probes.\n- Wearable EEG + fMRI hardware.\n- Real-time analysis + neurofeedback.\n- BCI + AI integration."
+    },
+    {
+      "kind": "text",
+      "title": "Clinical applications + AI neuroscience",
+      "body": "**Computational psychiatry**: applies cognitive-neuroscience methods to mental disorders. Uses computational models (DDM, RL, Bayesian) as biomarkers.\n\n**Diagnostic + treatment**:\n- **Deep brain stimulation (DBS)**: Parkinson's (subthalamic nucleus), essential tremor (Vim thalamus), dystonia, OCD, depression (some).\n- **Repetitive TMS (rTMS)**: FDA-approved for depression (2008), OCD, smoking cessation.\n- **Closed-loop neurostimulation**: NeuroPace RNS for refractory epilepsy.\n- **MR-guided focused ultrasound**: noninvasive tremor + tumor targeting.\n\n**Brain-machine interfaces (BMI)**:\n- **Restoring function**: motor (BrainGate, Neuralink), communication (speech-BCI, Stentrode), vision (Argus retinal implant).\n- **Augmentation**: long-term goal; ethical debates.\n- **Modern**: ALS + tetraplegia patients controlling robotic arms, mouse cursors, communicate.\n\n**AI + neuroscience cross-pollination**:\n- Deep learning inspired by visual cortex hierarchical processing.\n- Reinforcement learning + dopamine: TD-learning theory ↔ neural mechanism.\n- Attention mechanisms (transformers) inspired by selective attention.\n- Predictive processing (Friston): both brain + LLM architectures.\n- Decoding language from brain activity (Tang + Huth 2023).\n- Cortical activity → speech in real-time (Chang lab UCSF; recent ALS patient communicating).\n- Foundation models as cognitive theory.\n\n**Modern challenges + frontiers**:\n- Whole-brain connectivity (Allen Brain Atlas + Human Connectome Project).\n- Generative models of cognition + behavior.\n- Multi-omic + multi-modal neuroscience.\n- Ethics: brain data privacy, BMI autonomy, neurorights laws (Chile 2021).\n\nCognitive neuroscience: foundational both for understanding mind + for translational medicine + AI alignment."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cog_method_1",
+        "kind": "guided_derivation",
+        "question": "Decode visual category from fMRI activity",
+        "goal": "Plan an MVPA experiment to decode 'faces vs scenes' from fMRI activity.",
+        "steps": [
+          {
+            "prompt": "What's the stimulus design?",
+            "motivation": "Trial structure.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "block + event-related; balanced face + scene blocks",
+                "block design with faces + scenes"
+              ]
+            },
+            "hints": [
+              "Show stimuli."
+            ],
+            "reveal": "Block + event-related design: present face stimuli + scene stimuli in randomized blocks; many trials per category (>50). Fixation baseline. Counter-balance order."
+          },
+          {
+            "prompt": "Brain region(s) to analyze?",
+            "motivation": "ROI selection.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "FFA + PPA + searchlight",
+                "fusiform face area + parahippocampal place area"
+              ]
+            },
+            "hints": [
+              "FFA + PPA + others."
+            ],
+            "reveal": "ROIs: FFA (fusiform face area) — face-selective; PPA (parahippocampal place area) — scene-selective. Also: searchlight (moving window across whole brain) to find informative regions beyond ROIs."
+          },
+          {
+            "prompt": "Classifier setup?",
+            "motivation": "Train + cross-validate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "SVM or logistic regression with cross-validation"
+              ]
+            },
+            "hints": [
+              "ML model + CV."
+            ],
+            "reveal": "Train SVM or logistic regression on voxel activity patterns to discriminate face vs scene trials. Use leave-one-run-out cross-validation: train on subset of runs, test on held-out run. Repeat across all runs. Report mean decoding accuracy + confidence interval."
+          },
+          {
+            "prompt": "Statistics + interpretation?",
+            "motivation": "Significance testing.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "compare to chance via permutation tests; report effect sizes"
+              ]
+            },
+            "hints": [
+              "Permutation tests."
+            ],
+            "reveal": "Compare decoding accuracy to chance (50% for 2-way) via permutation test (shuffle labels + recompute many times → null distribution). Report effect sizes + corrected p-values (FWE or FDR across multiple comparisons). Decoding accuracy in FFA + PPA typically 70-90% for face/scene; well above chance. RSA can compare representational structures."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_cog_method_1",
+        "kind": "drag_classify",
+        "question": "Match each neuroscience method to its primary trade-off.",
+        "items": [
+          {
+            "id": "fmri",
+            "label": "fMRI",
+            "bin": "high-spatial-low-temporal"
+          },
+          {
+            "id": "pet",
+            "label": "PET",
+            "bin": "high-spatial-low-temporal"
+          },
+          {
+            "id": "eeg",
+            "label": "EEG",
+            "bin": "high-temporal-low-spatial"
+          },
+          {
+            "id": "meg",
+            "label": "MEG",
+            "bin": "high-temporal-low-spatial"
+          },
+          {
+            "id": "tms",
+            "label": "TMS",
+            "bin": "causal"
+          },
+          {
+            "id": "optogenetics",
+            "label": "Optogenetics",
+            "bin": "causal"
+          },
+          {
+            "id": "single-unit",
+            "label": "Single-unit electrode recording",
+            "bin": "single-cell"
+          },
+          {
+            "id": "neuropixels",
+            "label": "Neuropixels arrays",
+            "bin": "single-cell"
+          }
+        ],
+        "bins": [
+          {
+            "id": "high-spatial-low-temporal",
+            "label": "High spatial, low temporal"
+          },
+          {
+            "id": "high-temporal-low-spatial",
+            "label": "High temporal, low spatial"
+          },
+          {
+            "id": "causal",
+            "label": "Causal manipulation"
+          },
+          {
+            "id": "single-cell",
+            "label": "Single neurons / spike-level"
+          }
+        ],
+        "explanation": "Method trade-offs: fMRI/PET high spatial + low temporal; EEG/MEG high temporal + low spatial; TMS/optogenetics causal manipulation; single-unit/Neuropixels spike-level. Multimodal combinations (e.g., simultaneous EEG-fMRI) leverage strengths. Modern: fast fMRI (TR <500 ms), multi-echo, accelerated imaging. Single-cell methods: Neuropixels (1000s channels), 2-photon imaging."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cog_method_1",
+        "kind": "multiple_choice",
+        "question": "Why have BCI + neural decoders progressed so rapidly in 2020-2024?",
+        "options": [
+          "Random.",
+          "Combination: (1) Better electrodes (Utah arrays maintained; Neuralink threads with 1024+ channels; Synchron Stentrode); (2) Deep-learning decoders (transformers + RNNs replace older linear methods); (3) Larger datasets; (4) Improved surgical + neurosurgical techniques; (5) Investment + commercial pressure (NeuraLink, Synchron, BlackRock, Paradromics, Precision Neuroscience); (6) FDA breakthrough designations expediting. Recent: ALS + tetraplegia patients communicating via cortical speech BCI (Chang lab + Stanford); cursor + robotic-arm control; mental-imagery decoding (Tang + Huth 2023).",
+          "Random.",
+          "Marketing."
+        ],
+        "correctIndex": 1,
+        "explanation": "BCI progress 2020-2024: better electrodes + deep-learning decoders + data + surgical + investment. Recent: ALS patients communicating via cortical speech BCI (Chang lab UCSF 2023 + Stanford 2023; Pancho Diaz; Casey Harrell); cursor/arm control (BrainGate, Neuralink); imagery decoding (Tang + Huth 2023 fMRI). Companies: Neuralink (Musk; 4+ implants by 2024), Synchron (FDA breakthrough), BlackRock, Paradromics, Precision. Modern: explosive growth; ethical + regulatory frameworks catching up."
+      },
+      "hints": [
+        "What converged?",
+        "What are recent demos?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "BCI 2020-2024: better electrodes (Neuralink, Synchron, Utah persist), deep-learning decoders (transformers), large data, improved surgery, investment + commercial pressure (Neuralink, Synchron, BlackRock, Paradromics, Precision), FDA breakthrough. Recent: ALS patients speech BCI (Chang UCSF 2023, Stanford 2023); cursor/arm control; mental-imagery decoding (Tang + Huth 2023). Ethical + regulatory frameworks catching up."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_cog_method_1",
+        "kind": "slider",
+        "question": "Drag to typical fMRI BOLD temporal resolution (in sec).",
+        "target": {
+          "min": 2,
+          "max": 3
+        },
+        "default": 0.1,
+        "explanation": "Standard fMRI: ~2-3 sec temporal resolution (TR). Multiband + accelerated: ~0.5-1 sec. Slower than neural activity (ms scale) but spans seconds-min processes. Spatial: 2-3 mm. Limitations: hemodynamic delay ~6 sec; spatial blur ~5 mm."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cog_method_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how cognitive neuroscience has reshaped our understanding of mind.",
+        "rubric": "Mentions: 50 years of cognitive neuroscience integrated psychology + neuroscience + computer science. Established: mind has multiple specialized systems (perception, attention, memory, language, executive); brain regions have specialized functions (V1, FFA, hippocampus, PFC, etc.) coordinated in networks; cognition is computational + neural simultaneously (Marr's levels); plasticity throughout life; cognitive biases + System-1/2 architecture. Methods (fMRI, EEG, single-cell, optogenetics, computational models) provide windows into mind. Clinical: psychiatric + neurological disorders increasingly understood as computational dysfunctions; better targeting. AI: cognitive science + deep learning cross-pollinate; foundation models illuminate cognition. Modern: BCI + neural decoding enable communication for ALS + tetraplegia; mental-imagery reconstruction; foundation models as cognitive theory. Concludes: cognitive neuroscience is one of the most active + consequential scientific fields; understanding the mind is humanity's most important question; clinical + AI implications profound. Major themes: hierarchy, prediction, learning, control, plasticity, integration of streams."
+      }
+    }
+  ]
+}

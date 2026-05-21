@@ -1,0 +1,226 @@
+{
+  "slug": "bioinformatics-foundations-and-genomes",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intro",
+    "objectives": [
+      "Frame the field.",
+      "Tour genome anatomy.",
+      "Map data scales."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Bioinformatics: biology as computation",
+      "body": "**Bioinformatics**: the science of storing, retrieving, analyzing, and interpreting biological data — overwhelmingly molecular sequence + structure + functional data. Distinct from but overlapping with **computational biology** (modeling biological systems mathematically + computationally) and **systems biology** (integrative network-level biology).\n\nThe field emerged from molecular biology's need to manage exploding sequence data — first protein sequences (Margaret Dayhoff's atlas 1965, the first sequence database; PAM matrices 1978), then DNA (GenBank 1982), then whole genomes (Haemophilus influenzae 1995 — Venter + Smith, first complete bacterial genome; Saccharomyces cerevisiae 1996, first eukaryote; C. elegans 1998; Drosophila 2000; Human Genome Project draft 2001 / finished 2003 / T2T (telomere-to-telomere) 2022).\n\n**Major sub-fields**:\n- **Sequence analysis**: alignment, motif finding, gene prediction, comparative genomics.\n- **Genomics**: assembly, annotation, comparative + population.\n- **Transcriptomics**: gene expression (microarrays then RNA-seq; single-cell now standard).\n- **Proteomics**: protein identification + quantification (mass spectrometry).\n- **Metagenomics**: communities of organisms (Tara Oceans, Human Microbiome Project).\n- **Structural bioinformatics**: 3D structures (AlphaFold revolution).\n- **Phylogenetics + evolution**: trees, dating, selection.\n- **Population genetics**: variation, ancestry, GWAS.\n- **Clinical / translational**: variant interpretation, pharmacogenomics, oncology.\n- **Synthetic biology + biofoundries**: design + measurement pipelines.\n\n**Why now matters**: NGS (next-generation sequencing) has driven the cost-per-genome curve below Moore's law — from $3B + ~13 years for HGP to <$200 + ~24 hours today. Sequencing is no longer the bottleneck; analysis + interpretation are.\n\n**Major software ecosystems**: BWA + Bowtie + minimap2 (alignment); GATK + DeepVariant (variant calling); STAR + HISAT2 + Salmon + kallisto (transcriptomics); Bioconductor + scverse / scanpy (analysis); IGV (visualization); UCSC + Ensembl + NCBI (data); Nextflow + Snakemake (pipelines); Galaxy (no-code workflows). Cloud-native: Terra, Seven Bridges, DNAnexus."
+    },
+    {
+      "kind": "text",
+      "title": "Genome anatomy: from DNA to RNA to protein",
+      "body": "**Central dogma**: DNA → (transcription) → RNA → (translation) → protein. With many additional regulatory layers + exceptions (reverse transcription, RNA-directed DNA modification, non-coding RNAs, epigenetic inheritance).\n\n**Human genome at a glance**:\n- ~3.1 billion base pairs (haploid).\n- ~20000-25000 protein-coding genes.\n- ~2% protein-coding sequence.\n- ~10% conserved/functional (regulatory + ncRNA).\n- ~50% repetitive elements (LINEs, SINEs, LTRs, simple repeats).\n- 23 chromosomes (22 autosomes + X + Y).\n- ~99.9% identical between any two humans; ~0.1% variation (~3M SNVs + indels + larger).\n\n**Genome structure**:\n- **Genes** (transcribed): promoters + 5'UTR + exons + introns + 3'UTR.\n- **Regulatory elements**: enhancers, silencers, insulators (3D contacts mediated by CTCF, cohesin).\n- **Non-coding RNAs**: rRNA, tRNA, snoRNA, miRNA, lncRNA, circRNA.\n- **Transposable elements (TEs)**: Alu, L1, ERVs; some still active.\n- **Centromeres + telomeres** (T2T resolved 2022 with long-read assemblies).\n- **Heterochromatin**: dense, gene-poor, repetitive; pericentromeric + Y chromosome.\n- **Pseudogenes** (~14000 in humans): non-functional gene copies.\n- **3D organization**: TADs, A/B compartments, loops (Hi-C, micro-C).\n\n**Variation types**:\n- **SNVs (single-nucleotide variants)**: most common; ~3M per individual.\n- **Indels**: insertions + deletions (<50 bp).\n- **SVs (structural variants)**: large duplications, deletions, inversions, translocations.\n- **CNVs**: copy-number variants.\n- **Mobile-element insertions**: active L1, Alu, SVA.\n- **STRs / VNTRs**: short tandem repeats; forensic + disease.\n- **Mosaicism**: post-zygotic variation; tumors.\n\n**Other genomes**:\n- Bacterial: 0.5-10 Mb; 90%+ coding.\n- Yeast: ~12 Mb.\n- Fly: ~140 Mb.\n- Mouse: ~2.5 Gb (similar to human).\n- Maize: ~2.3 Gb; lots of TE.\n- Wheat hexaploid: ~17 Gb.\n- Lungfish + onion: >100 Gb (paradox of size).\n- Largest: Paris japonica plant ~150 Gb.\n\n**FASTA, GFF, BED, VCF, BAM/CRAM, SAM, FASTQ** — core file formats. Master them."
+    },
+    {
+      "kind": "text",
+      "title": "Sequencing technology: short, long, and single-cell",
+      "body": "**Sanger sequencing** (1977, Nobel 1980): chain termination; capillary; long-dominant until ~2008. Still gold standard for small validations.\n\n**Next-generation sequencing (NGS)**:\n- **Illumina** (~2008+ via Solexa acquisition): sequencing-by-synthesis with reversible terminators; 50-300 bp paired-end reads; ~0.1% error rate; very high throughput. Dominant for most applications. NovaSeq, NextSeq, MiSeq + MiSeq i100, NovaSeqX.\n- **Ion Torrent**: H+ detection; cheap; some niche use.\n- **454 (Roche)**: pyrosequencing; discontinued.\n- **DNBSEQ (MGI/BGI)**: rolling-circle nanoball sequencing; cost-competitive with Illumina.\n\n**Long-read / third-generation**:\n- **PacBio (Pacific Biosciences)** HiFi: zero-mode-waveguide single-molecule; 10-25 kb reads, >99% accurate (HiFi CCS). Best for assemblies + structural-variant detection.\n- **Oxford Nanopore (ONT)**: protein nanopore detects current changes as DNA threads through; reads up to Mb-scale; ~95% raw accuracy (improving); MinION palm-sized + portable; PromethION high-throughput.\n\n**Single-cell + spatial**:\n- **scRNA-seq**: droplet-based (10x Genomics Chromium), well-based (Smart-seq), combinatorial indexing (sci-RNA-seq).\n- **scATAC-seq**: chromatin accessibility per cell.\n- **Multi-omics**: CITE-seq, SHARE-seq, multiome.\n- **Spatial transcriptomics**: Visium, Stereo-seq, MERFISH, seqFISH, Slide-seq.\n- **Long-read single-cell**: emerging.\n\n**Cost trajectory**: HGP cost ~$3B + 13 yr (1990-2003); ~$1M / genome in 2008; ~$1000 in 2014; ~$200 in 2024 (Illumina NovaSeqX, MGI). Pace below Moore's law since 2008. Sequencing no longer bottleneck; analysis, sample prep, and ethics are.\n\n**Beyond DNA**:\n- Mass spectrometry for proteomics.\n- Cryo-EM + X-ray crystallography for structure.\n- ATAC-seq, ChIP-seq, Cut&Run for chromatin.\n- Hi-C for 3D contacts.\n- Whole-organism imaging (light sheet, expansion microscopy).\n- Multi-modal integration is the modern frontier."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bio_intro_1",
+        "kind": "guided_derivation",
+        "question": "Estimate the data scale of a typical whole-genome sequencing experiment",
+        "goal": "Compute approximate file sizes + compute time for human-genome 30× short-read sequencing.",
+        "steps": [
+          {
+            "prompt": "Total bases sequenced for 30× human genome?",
+            "motivation": "Coverage × genome size.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~90 Gb (gigabases)",
+                "30 × 3.1 × 10⁹"
+              ]
+            },
+            "hints": [
+              "Multiply."
+            ],
+            "reveal": "30 × 3.1 × 10⁹ bp ≈ 93 Gb (gigabases)."
+          },
+          {
+            "prompt": "FASTQ size (raw reads, gzipped)?",
+            "motivation": "Each base ~1 byte uncompressed; gzip ~3-4× compression.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~25-30 GB gzipped"
+              ]
+            },
+            "hints": [
+              "~90 GB raw, gzip ~3-4×."
+            ],
+            "reveal": "FASTQ contains base + quality score per position + read names. Raw ~180 GB; gzip ~25-30 GB (depending on quality compression). BAM (aligned reads) ~50 GB; CRAM (reference-compressed) ~15-20 GB."
+          },
+          {
+            "prompt": "Alignment time on a modern server (cores × hours)?",
+            "motivation": "Estimate throughput.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "a few hours to ~half a day on 16-32 cores"
+              ]
+            },
+            "hints": [
+              "BWA-MEM 1-3 Gb/hr/core typical."
+            ],
+            "reveal": "BWA-MEM throughput ~1-3 Gb/hour/core. 90 Gb on 16 cores → ~2-6 hours. Modern accelerators (DRAGEN, Parabricks) much faster: minutes."
+          },
+          {
+            "prompt": "Final variant call file (VCF) size?",
+            "motivation": "Compressed.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~100 MB-1 GB (gVCF or single-sample VCF)"
+              ]
+            },
+            "hints": [
+              "~5M variants × ~100 bytes."
+            ],
+            "reveal": "A typical single-sample VCF is ~100 MB-1 GB depending on filters + annotations + indels. gVCF (genomic VCF with all positions) is ~10× larger. Multi-sample joint VCF for population studies scales further."
+          },
+          {
+            "prompt": "Storage strategy?",
+            "motivation": "Lifecycle.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "FASTQ + BAM cold; VCF + analysis warm; cloud-native CRAM increasingly standard"
+              ]
+            },
+            "hints": [
+              "What needs hot access?"
+            ],
+            "reveal": "Modern lifecycle: FASTQ archived (raw evidence); CRAM (reference-compressed BAM) for re-analysis; VCF + annotations for routine work; cloud-native (S3, GCS) with on-demand analysis (Terra, Seven Bridges, DNAnexus). Sequencing a population (e.g., 100k people 30×) needs petabytes."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bio_intro_1",
+        "kind": "multiple_choice",
+        "question": "Why is bioinformatics often described as 'translating biology into computation'?",
+        "options": [
+          "Random.",
+          "Modern biology generates data at scales that humans can't manipulate without computers: genomes (gigabases per sample), transcriptomes (millions of reads × thousands of samples), single-cell atlases (billions of cells), proteomes (millions of peptides), connectomes (petabytes of EM data), structures (databases of millions). Bioinformatics provides: (1) data models (FASTA, VCF, GFF, mzML) to represent biological entities; (2) algorithms (alignment, assembly, clustering) to find patterns; (3) statistical frameworks (GWAS, differential expression, multiple testing) for inference; (4) software ecosystems + pipelines for reproducibility. Together they enable comparative + functional biology at genome + atlas scale.",
+          "Random.",
+          "Translation."
+        ],
+        "correctIndex": 1,
+        "explanation": "Bioinformatics is the algorithmic + data-engineering layer that makes modern data-rich biology possible. From genome assembly to single-cell atlases to AlphaFold, computational methods are central to biological discovery + clinical translation. The field's tools (data models, algorithms, statistics, software) translate biological questions into computable problems."
+      },
+      "hints": [
+        "What scales modern biology operates at.",
+        "What's the computational layer for?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Modern biology generates terabytes-petabytes of data per study: genomes, single-cell atlases, proteomes, structures. Bioinformatics provides data models (FASTA, VCF, mzML), algorithms (alignment, assembly, clustering), statistics (GWAS, differential expression), and pipelines (Nextflow, Snakemake) to make this tractable. Without it, comparative + functional biology at scale wouldn't be possible."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_bio_intro_1",
+        "kind": "slider",
+        "question": "Drag to approximate per-genome sequencing cost in 2024 (USD).",
+        "target": {
+          "min": 200,
+          "max": 600
+        },
+        "default": 10000,
+        "explanation": "Per-genome cost ~$200-600 in 2024 (Illumina NovaSeqX, MGI competition). Down from $3B for the Human Genome Project (1990-2003). Pace exceeded Moore's law since 2008. Sequencing is no longer the bottleneck for genomics; analysis, sample prep, ethical/regulatory, and clinical interpretation are."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_bio_intro_1",
+        "kind": "drag_classify",
+        "question": "Match each file format to its content type.",
+        "items": [
+          {
+            "id": "fastq",
+            "label": "FASTQ",
+            "bin": "raw"
+          },
+          {
+            "id": "fasta",
+            "label": "FASTA (often reference)",
+            "bin": "raw"
+          },
+          {
+            "id": "bam",
+            "label": "BAM / SAM",
+            "bin": "aligned"
+          },
+          {
+            "id": "cram",
+            "label": "CRAM (reference-compressed)",
+            "bin": "aligned"
+          },
+          {
+            "id": "vcf",
+            "label": "VCF / gVCF",
+            "bin": "variants"
+          },
+          {
+            "id": "bcf",
+            "label": "BCF (binary VCF)",
+            "bin": "variants"
+          },
+          {
+            "id": "gff",
+            "label": "GFF3 / GTF",
+            "bin": "features"
+          },
+          {
+            "id": "bed",
+            "label": "BED",
+            "bin": "features"
+          }
+        ],
+        "bins": [
+          {
+            "id": "raw",
+            "label": "Raw reads"
+          },
+          {
+            "id": "aligned",
+            "label": "Aligned reads"
+          },
+          {
+            "id": "variants",
+            "label": "Variants"
+          },
+          {
+            "id": "features",
+            "label": "Genome features / annotations"
+          }
+        ],
+        "explanation": "Bioinformatics file ecosystem: FASTQ/FASTA (sequences); SAM/BAM/CRAM (alignments); VCF/BCF (variants); GFF/GTF/BED (features). Each has standards + tooling. Modern pipelines convert raw → aligned → variants → annotations → reports."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bio_intro_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why the cost-per-genome trajectory drove sequencing from research-only to a routine clinical tool.",
+        "rubric": "Mentions: HGP $3B + 13 yr (1990-2003); $1M per genome 2008; $1000 in 2014; ~$200-600 in 2024. Pace below Moore's law since 2008 due to massively parallel NGS (Illumina, then long-read, then single-cell). Below ~$1000, whole-genome sequencing became viable for clinical settings (rare disease diagnosis, oncology tumor profiling, pharmacogenomics, prenatal testing, infectious disease ID). Specific clinical applications: NICU rapid sequencing (24-48 hr turnaround) for diagnosing rare disorders in neonates; tumor + germline matched pairs for precision oncology; non-invasive prenatal testing (NIPT); pathogen ID for sepsis. Now ~3M genomes sequenced (UK Biobank, All of Us, Genomics England, FinnGen). Sequencing no longer the bottleneck; analysis, interpretation, ethical/regulatory, and clinical actionability are. Concludes: cost decline turned genomics from megaproject science into routine medical infrastructure within ~20 years."
+      }
+    }
+  ]
+}

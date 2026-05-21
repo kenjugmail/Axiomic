@@ -1,0 +1,187 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intro",
+    "objectives": [
+      "Apply mass + energy balances to steady-state systems.",
+      "Distinguish closed, open, batch, semi-batch, CSTR systems.",
+      "Use the general balance equation around a control volume."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The bookkeeping discipline at the heart of ChemE",
+      "body": "Chemical engineering is built on **conservation laws**: mass, energy, momentum. Around any **control volume** (CV) drawn around a piece of equipment, the general balance is:\n\n    Accumulation = In − Out + Generation − Consumption\n\nThis 5-term equation, applied to mass + energy + species + momentum, derives nearly every design equation in the field.\n\n**Steady state**: accumulation = 0. Continuous-process equipment (most industrial plants) operates at steady state most of the time. Batch processes have nonzero accumulation by definition.\n\n**System types** at a glance:\n• **Closed**: no mass crosses boundary (sealed vessel; batch reactor between charges).\n• **Open**: mass crosses boundary (continuous flow systems).\n• **Batch**: closed; properties evolve in time; no flow in/out during reaction.\n• **Semi-batch**: one stream added or removed during the operation (e.g., titration, fed-batch fermentation).\n• **Continuous (CSTR, PFR, mixer)**: open, typically run at steady state.\n\nFor any species i, the **mole balance** at steady state:\n  ṅ_i,in − ṅ_i,out + ∑_reactions ν_i,j r_j V = 0\n\nwhere ν_i,j is stoichiometric coefficient + r_j is rate of reaction j per unit volume. This is the foundation of reactor design."
+    },
+    {
+      "kind": "text",
+      "title": "Energy balance: the first law for flowing systems",
+      "body": "Around an open CV at steady state, the **energy balance** (first law of thermodynamics applied to open systems):\n\n    0 = Q̇ − Ẇ_s + ∑_in ṅᵢ(h + ke + pe)ᵢ − ∑_out ṅᵢ(h + ke + pe)ᵢ\n\nwhere h is specific enthalpy (incl. internal energy + pV work of pushing fluid through boundary), Q̇ is heat added, Ẇ_s is shaft work done **by** the system.\n\nIn most chemical processes, kinetic + potential energy changes are small + drop out. Simplifies to:\n  Q̇ = ∑_out ṅᵢhᵢ − ∑_in ṅᵢhᵢ + Ẇ_s\n\nApplications:\n• **Heat exchanger** (no shaft work): Q̇ = ṁ c_p ΔT for sensible heating; Q̇ = ṁ λ for vaporization.\n• **Adiabatic flame temperature**: Q̇=0, exothermic reaction → calculate outlet T from enthalpy balance.\n• **Distillation reboiler / condenser**: Q̇ determines steam + cooling water duties.\n• **Pump / compressor**: shaft work term dominant; pump-work ≈ V_L ΔP for liquids.\n\nKey insight: enthalpies must be referenced to a **consistent thermodynamic state** (reference T + P + phase). For reactive systems, the enthalpy of reaction ΔH_rxn at the reference state must be included — typically via the **standard heat of reaction** at 25 °C + integrating sensible-heat terms."
+    },
+    {
+      "kind": "text",
+      "title": "Reactor types + the residence-time concept",
+      "body": "Three idealized continuous reactor archetypes:\n\n• **CSTR (continuous stirred-tank)**: well-mixed; outlet composition = vessel composition. Design equation (single reaction A→products): V = F_A0 · X / (−r_A) with −r_A evaluated at outlet conditions.\n• **PFR (plug-flow)**: no axial mixing; composition varies along reactor length. Design equation: V = F_A0 · ∫₀ˣ dX/(−r_A).\n• **Batch**: no flow during reaction; time-integrated. t = N_A0 ∫₀ˣ dX/(V(−r_A)).\n\nFor positive-order kinetics + the same conversion target:\n  V_PFR < V_CSTR (because PFR maintains higher Cₐ on average, so higher rate on average).\n\nThe ratio approaches 1 as kinetics approach zero-order; diverges as order grows.\n\n**Space-time** τ ≡ V/v₀ (reactor volume / inlet volumetric flow). For an isothermal isobaric ideal-gas constant-volumetric-flow system, τ = (mean) residence time. Different from residence-time distribution (RTD) which can be measured by tracer experiments + characterizes deviations from ideal CSTR/PFR.\n\nReal reactors are between these extremes; **dispersion models** + **tanks-in-series models** capture intermediate behavior. CFD increasingly used for complex geometries."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_balances_1",
+        "kind": "guided_derivation",
+        "question": "Steady-state mass balance + heat duty for a continuous evaporator",
+        "goal": "An evaporator concentrates a 10 wt% aqueous salt solution to 30 wt% at steady state. Feed: 1000 kg/h at 25 °C. Pure water vapor leaves overhead at 100 °C; concentrated solution leaves bottoms at 100 °C. Compute mass flows + the heating duty (latent heat of water ~2260 kJ/kg; c_p of solution ~4 kJ/kg·K).",
+        "steps": [
+          {
+            "prompt": "What are the unknowns? Set up overall + salt balances.",
+            "motivation": "Pick a control volume + write 2 equations in 2 unknowns.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "V + B unknowns",
+                "vapor V + bottoms B",
+                "two unknowns"
+              ]
+            },
+            "hints": [
+              "F = V + B (overall); F·x_F = B·x_B (salt only goes to bottoms)."
+            ],
+            "reveal": "CV = entire evaporator. Two unknowns: V (vapor) + B (bottoms). Equations: F = V + B (overall mass) + F·x_F = B·x_B (salt — vapor is pure water)."
+          },
+          {
+            "prompt": "Solve for B from the salt balance.",
+            "motivation": "Direct substitution.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "333.3 kg/h",
+                "1000*0.10/0.30",
+                "333"
+              ]
+            },
+            "hints": [
+              "B = F · x_F / x_B = 1000 × 0.10 / 0.30."
+            ],
+            "reveal": "B = 1000 × 0.10 / 0.30 = 333.3 kg/h."
+          },
+          {
+            "prompt": "Solve for V.",
+            "motivation": "Overall mass balance.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "666.7 kg/h",
+                "667",
+                "1000-333.3"
+              ]
+            },
+            "hints": [
+              "V = F − B = 1000 − 333.3."
+            ],
+            "reveal": "V = 1000 − 333.3 = 666.7 kg/h. So we evaporate ~2/3 of the feed water."
+          },
+          {
+            "prompt": "Energy balance: heat duty Q̇ = (sensible heat to bring feed to 100 °C) + (latent heat to vaporize V). Compute.",
+            "motivation": "Two-term enthalpy change.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1809 MJ/h",
+                "1810",
+                "1808.7 MJ/h"
+              ]
+            },
+            "hints": [
+              "Q̇ = F c_p ΔT + V λ. F=1000, c_p=4, ΔT=75; V=666.7, λ=2260."
+            ],
+            "reveal": "Sensible: 1000 × 4 × 75 = 300,000 kJ/h = 300 MJ/h. Latent: 666.7 × 2260 = 1,506,700 kJ/h = 1507 MJ/h. Total: Q̇ ≈ 1807 MJ/h ≈ 502 kW. Most of the duty is latent heat — vaporization dominates."
+          },
+          {
+            "prompt": "If we use saturated steam at 120 °C (λ ≈ 2200 kJ/kg) to provide this heat, how much steam per hour do we need?",
+            "motivation": "Heat balance on heating side.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~821 kg/h",
+                "821",
+                "822 kg/h"
+              ]
+            },
+            "hints": [
+              "Steam mass flow = Q̇/λ_steam = 1,807,000 / 2200."
+            ],
+            "reveal": "ṁ_steam = 1,807,000 / 2200 ≈ 821 kg/h. So ~0.82 kg steam per kg feed — a typical 'steam economy' for a single-effect evaporator. **Multi-effect evaporators** reuse vapor from one stage as heating in the next, dropping steam consumption to ~0.4 (double) or ~0.25 (triple-effect). Almost all industrial evaporators are multi-effect for energy economy."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_balances_1",
+        "kind": "multiple_choice",
+        "question": "A reactor is operated at steady state but the inlet flow rate doubles abruptly. What happens to the species mass balance during the transient?",
+        "options": [
+          "Nothing — steady-state assumption always holds.",
+          "Accumulation becomes nonzero; the steady-state balance no longer applies until the system reaches a new steady state. Dynamic mass balance: dN_A/dt = ṅ_A,in − ṅ_A,out + r_A V. Transient duration is set by the dominant time constant (often ~3-5 residence times for a CSTR).",
+          "The system shuts down immediately.",
+          "The reaction stops."
+        ],
+        "correctIndex": 1,
+        "explanation": "Steady state means **accumulation = 0** (time derivative of holdup is zero). When a step change in inlet flow happens, the system temporarily has nonzero accumulation — it's storing or releasing mass.\n\nThe **dynamic mass balance** must be solved:\n  dN_A/dt = ṅ_A,in − ṅ_A,out + r_A · V\n\nFor a CSTR with first-order kinetics, this is a first-order linear ODE with time constant τ_eff = V / (v + k V) — roughly the residence time. After ~3-5 × τ_eff, the system settles to a new steady state.\n\n**Why this matters in practice**:\n- Startup transients can last hours (large reactors with slow kinetics).\n- Composition + temperature deviations during transient can be safety-critical.\n- Process control loops are designed around dominant time constants.\n- Surge tanks dampen flow oscillations to keep downstream units near steady state.\n\nDynamic simulation (Aspen Dynamics, gPROMS, custom Python) is required for any rigorous safety + control analysis. The static balance is design-target; the dynamic balance is reality during disturbances."
+      },
+      "hints": [
+        "What term in the balance becomes nonzero?",
+        "How long does the transient last?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Step change in inlet flow → accumulation ≠ 0. Dynamic mass balance: dN_A/dt = ṅ_A,in − ṅ_A,out + r_A V. ODE solution gives time constant ~ residence time. After 3-5 τ the system settles to new steady state. Dynamic analysis is essential for startup, shutdown, + safety analysis; static design is just the target endpoint."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_balances_2",
+        "kind": "multiple_choice",
+        "question": "Why must the standard heat of reaction in an energy balance be referenced to a defined thermodynamic state (T, P, phase)?",
+        "options": [
+          "It is just a convention without physical reason.",
+          "ΔH is a state function; its value depends on the reference state. ΔH_rxn at 25 °C with reactants + products in their standard states is tabulated. To apply it at other conditions, you add sensible-heat enthalpies bringing each species from its actual state to the reference state and back. Skipping this gives wildly wrong heat duties + adiabatic temperatures.",
+          "Heat of reaction is independent of state.",
+          "Standard reference simplifies thermodynamic calculations but is optional."
+        ],
+        "correctIndex": 1,
+        "explanation": "Enthalpy is a **state function** — its absolute value is undefined; only changes matter. Tabulated values (ΔH_f°, ΔH_c, etc.) are referenced to a chosen standard state (typically 25 °C, 1 bar, in a defined phase).\n\nTo compute energy balance for a reactor at, say, 400 °C with gas-phase reactants:\n\n1. **Cool reactants** from 400 °C → 25 °C: subtract ∑ ṅᵢ c_p,i × (400 − 25).\n2. **React at 25 °C**: ΔH_rxn° × ṅ (note: this is per mole of reaction extent).\n3. **Heat products** from 25 °C → 400 °C: add ∑ ṅⱼ c_p,j × (400 − 25).\n4. **Phase change** if any (e.g., latent heat of vaporization).\n\nSum = enthalpy change across reactor. Combined with heat duty Q̇ + shaft work, gives the energy balance.\n\nForgetting steps 1 + 3 is the most common ChemE undergrad mistake: treating ΔH_rxn° as if it applied at the actual reactor temperature. This can give errors of hundreds of kJ/mol — entirely wrong heat duties.\n\nThermodynamics packages (Aspen, HYSYS, ProSim) automate this with Gibbs energy minimization + consistent reference states, but the student must know what's happening to debug."
+      },
+      "hints": [
+        "What kind of function is enthalpy?",
+        "What two steps do you add around the reaction at standard T?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Enthalpy is a state function — only differences are physical. ΔH_rxn° is referenced to 25 °C + standard states. To use at any other state: (1) bring reactants from actual state to reference state (sensible heat), (2) react at reference T using ΔH_rxn°, (3) bring products from reference state to actual state. Sum = enthalpy change. Forgetting (1) + (3) is the most common student mistake; gives errors of hundreds of kJ/mol."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_balances_1",
+        "kind": "math_expression",
+        "question": "A continuous evaporator receives 2000 kg/h of 5 wt% sugar solution + produces 25 wt% concentrate. What's the mass flow rate of vapor (in kg/h)?",
+        "acceptedAnswers": [
+          "1600",
+          "1600 kg/h",
+          "2000 - 400"
+        ],
+        "hint": "Salt balance: 2000 × 0.05 = B × 0.25 → B = 400. V = F − B."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_balances_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain the difference between steady-state + dynamic mass balance to someone designing a CSTR. When does each apply, and what goes wrong if you use the wrong one?",
+        "rubric": "Mentions: steady-state balance sets accumulation = 0 — applies to continuous operation in normal mode + sizes equipment. Dynamic balance keeps the time derivative — applies during startup, shutdown, feed disturbances, safety analysis. Wrong-mode failures: using SS balance during transient can predict zero outlet response (instantaneous) when reality has lag of several residence times → can miss safety-critical excursions. Using dynamic balance for sizing requires integrating ODEs over hours-days → wasteful + obscures key design tradeoffs. Best practice: design with SS balance, validate + size relief with dynamic. Modern process simulators (Aspen Dynamics, gPROMS) routinely simulate both. Notes that residence time τ = V/v controls dynamic-balance timescale."
+      }
+    }
+  ]
+}

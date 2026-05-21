@@ -1952,6 +1952,427 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P44 — Bioinformatician path. Genome anatomy + sequencing through
+  // sequence alignment (with new AlignmentMatrix DP viz) + assembly
+  // + variant calling + transcriptomics + single-cell + structure
+  // (AlphaFold) + phylogenetics + ML in biology + reproducibility +
+  // cloud. The bioinformatics stack end-to-end. Distinct from
+  // cell-molecular-biologist (wet-lab biology) and ai-researcher
+  // (general ML).
+  seedMasteryPath({
+    slug: "bioinformatician",
+    title: "Bioinformatician",
+    description:
+      "From bioinformatics foundations + genome anatomy + sequencing tech through dynamic-programming sequence alignment + BLAST (with interactive Needleman-Wunsch / Smith-Waterman viz), assembly + variant calling + T2T + pangenomes, transcriptomics + single-cell + spatial + Human Cell Atlas, structure + AlphaFold + protein design + cryo-EM, phylogenetics + phylogenomics + population genetics, machine learning + foundation models (ESM + AlphaFold + AlphaMissense + scGPT), and reproducibility + cloud + Nextflow/Snakemake + FAIR data. The bioinformatics stack end-to-end.",
+    nodes: [
+      { slug: "bioinformatics-foundations-and-genomes", title: "Foundations + Genomes", level: "apprentice", order: 1, pages: ["field-overview", "genome-anatomy", "sequencing-tech"], prereqs: [], description: "Bioinformatics vs comp-bio vs systems; genome anatomy (coding, regulatory, repeats, 3D); short/long/single-cell sequencing + cost trajectory + file formats." },
+      { slug: "sequence-alignment-and-blast", title: "Sequence Alignment + BLAST", level: "practitioner", order: 2, pages: ["alignment-foundations", "nw-sw-dp", "blast-heuristic"], prereqs: ["bioinformatics-foundations-and-genomes"], description: "Pairwise/MSA + global/local + scoring (PAM/BLOSUM), Needleman-Wunsch + Smith-Waterman DP + affine gaps + interactive viz, BLAST + e-values + DIAMOND + minimap2." },
+      { slug: "genome-assembly-and-variant-calling", title: "Assembly + Variant Calling", level: "practitioner", order: 3, pages: ["olc-vs-debruijn", "variant-calling", "pangenomes-t2t"], prereqs: ["sequence-alignment-and-blast"], description: "OLC + de Bruijn graphs + N50 + BUSCO + long-read T2T, SNVs/indels/SVs/CNVs + GATK + DeepVariant + Strelka + truth sets, T2T-CHM13 + HPRC pangenome + clinical applications." },
+      { slug: "transcriptomics-and-single-cell", title: "Transcriptomics + Single-Cell", level: "specialist", order: 4, pages: ["bulk-rnaseq", "scrna-pipeline", "de-interpretation"], prereqs: ["genome-assembly-and-variant-calling"], description: "Bulk RNA-seq pipeline + DESeq2 + normalization, scRNA-seq + Seurat/Scanpy + Human Cell Atlas + integration, differential expression + GSEA + pathway interpretation." },
+      { slug: "structure-and-alphafold", title: "Structure + AlphaFold", level: "specialist", order: 5, pages: ["structure-methods", "alphafold-revolution", "protein-design"], prereqs: ["sequence-alignment-and-blast"], description: "X-ray + cryo-EM + NMR + PDB + Anfinsen + CASP, AlphaFold 2/3 + AFDB + Nobel 2024 + RoseTTAFold + ESMFold, RFdiffusion + ProteinMPNN + drug discovery + cryo-EM-driven design." },
+      { slug: "phylogenetics-and-evolution", title: "Phylogenetics + Evolution", level: "expert", order: 6, pages: ["tree-methods", "phylogenomics-ils", "popgen-human"], prereqs: ["sequence-alignment-and-blast"], description: "NJ/ML/Bayesian + substitution models + clocks + bootstrap, phylogenomics + ASTRAL + ILS + introgression + ancient DNA, popgen + selection scans + human migration + biobanks." },
+      { slug: "machine-learning-in-biology", title: "ML in Biology", level: "expert", order: 7, pages: ["ml-survey", "foundation-models", "clinical-ethics"], prereqs: ["transcriptomics-and-single-cell", "structure-and-alphafold"], description: "Classical + DL milestones + GNN + diffusion, ESM + AlphaFold + scGPT + Enformer + AlphaMissense, clinical + pathogen surveillance + drug discovery + ethics + privacy." },
+      { slug: "reproducibility-and-cloud-bioinformatics", title: "Reproducibility + Cloud", level: "expert", order: 8, pages: ["repro-principles", "workflow-managers", "cloud-future"], prereqs: ["genome-assembly-and-variant-calling"], description: "FAIR + Git + containers + archives, Nextflow/nf-core + Snakemake + WDL/CWL + Galaxy, AWS/GCP/Azure + Terra/DNAnexus + AnVIL + federated + foundation-model serving." },
+    ],
+  });
+
+  // P43 — Archaeologist path. Stratigraphy + radiocarbon (with new
+  // RadiocarbonDecay viz) + lithic technology + bioarchaeology +
+  // aDNA + agriculture origins + state formation/collapse + remote
+  // sensing/GIS + ethics/repatriation/public archaeology. The
+  // archaeology stack end-to-end.
+  seedMasteryPath({
+    slug: "archaeologist",
+    title: "Archaeologist",
+    description:
+      "From archaeological foundations + stratigraphy + Harris matrix through radiocarbon dating + IntCal20 + Bayesian chronological modeling (with interactive ¹⁴C decay viz), lithic technology + chaîne opératoire + Levallois cognition + use-wear, bioarchaeology + stable isotopes + ancient DNA + Pääbo's Nobel + Denisovans, agriculture origins + Neolithic transition + archaeobotany + zooarchaeology, early states + cities + collapse + Maya + Bronze Age, remote sensing + LiDAR + GIS + AI + digital archaeology, and ethics + NAGPRA + community-based + decolonizing archaeology. The archaeology stack end-to-end.",
+    nodes: [
+      { slug: "archaeology-foundations-and-stratigraphy", title: "Foundations + Stratigraphy", level: "apprentice", order: 1, pages: ["disciplines-periods", "harris-matrix", "dating-paradigms"], prereqs: [], description: "Archaeology vs related fields + periodization, stratigraphic principles + Harris matrix + site formation (C/N-transforms), relative vs absolute dating + Bayesian chronology." },
+      { slug: "radiocarbon-dating-and-calibration", title: "Radiocarbon + Calibration", level: "practitioner", order: 2, pages: ["c14-decay", "intcal-bayesian", "famous-frontier"], prereqs: ["archaeology-foundations-and-stratigraphy"], description: "Libby's discovery + decay law + AMS + interactive viz, IntCal20 + OxCal Bayesian modeling + Miyake wiggle-matching, famous cases (Ötzi, Shroud, L'Anse aux Meadows) + AMS frontier." },
+      { slug: "lithic-technology-and-typology", title: "Lithic Technology + Typology", level: "practitioner", order: 3, pages: ["industries-knapping", "chaine-operatoire", "ethnography-experimental"], prereqs: ["archaeology-foundations-and-stratigraphy"], description: "Oldowan → Upper Paleolithic industries + raw materials + knapping, chaîne opératoire + Levallois cognition + use-wear + residues, ethnographic analogy + experimental archaeology + cognitive evolution." },
+      { slug: "bioarchaeology-and-ancient-dna", title: "Bioarchaeology + Ancient DNA", level: "specialist", order: 4, pages: ["osteology-pathology", "isotopes", "adna-revolution"], prereqs: ["archaeology-foundations-and-stratigraphy"], description: "Osteology + paleopathology + paleodemography, δ¹³C/δ¹⁵N/δ¹⁸O/Sr isotopes for diet + mobility, aDNA revolution + Neanderthals + Denisovans + Pääbo Nobel + Reich Lab ethics." },
+      { slug: "agriculture-origins-and-archaeobotany", title: "Agriculture Origins + Archaeobotany", level: "specialist", order: 5, pages: ["neolithic-transition", "archaeobotany-methods", "zooarchaeology-impacts"], prereqs: ["archaeology-foundations-and-stratigraphy"], description: "Vavilov centers + Neolithic Revolution + drivers + domestication syndrome, flotation + phytoliths + macro/microbotanicals + isotopes, zooarchaeology + secondary products + Anthropocene roots." },
+      { slug: "states-cities-and-collapse", title: "States, Cities + Collapse", level: "expert", order: 6, pages: ["urban-revolution", "early-cities", "collapse-resilience"], prereqs: ["agriculture-origins-and-archaeobotany"], description: "Childe + pristine states + Uruk/Indus/Shang/Olmec/Andes, Mohenjo-daro + Teotihuacan + Tenochtitlan + Angkor, Late Bronze Age + Maya + Anasazi + Tainter + transformation reframing." },
+      { slug: "remote-sensing-and-gis", title: "Remote Sensing + GIS", level: "expert", order: 7, pages: ["aerial-lidar-satellite", "gis-spatial", "digital-ai-heritage"], prereqs: ["archaeology-foundations-and-stratigraphy"], description: "Aerial + CORONA + LiDAR (PACUNAM Maya) + geophysics, GIS + viewshed + least-cost + predictive modeling, digital archaeology + AI + 3D + climate-change rescue." },
+      { slug: "ethics-repatriation-and-public-archaeology", title: "Ethics + Repatriation + Public", level: "expert", order: 8, pages: ["stakeholders-repatriation", "ethics-cbpr", "public-future"], prereqs: ["bioarchaeology-and-ancient-dna"], description: "Stakeholders + NAGPRA + Benin Bronzes + antiquities trafficking, codes of ethics + community-based + decolonizing + FAIR/CARE, public archaeology + pseudoarchaeology + Anthropocene-era directions." },
+    ],
+  });
+
+  // P42 — Marine Biologist path. Ocean life from microbial to whale
+  // through phytoplankton + primary production, predator-prey with
+  // new Lotka-Volterra viz, coral reefs + bleaching, fisheries +
+  // stock assessment, marine mammals + tetrapod return, OA +
+  // deoxygenation, and ocean conservation + blue economy. The
+  // marine-biology stack end-to-end.
+  seedMasteryPath({
+    slug: "marine-biologist",
+    title: "Marine Biologist",
+    description:
+      "From ocean zones + biodiversity + methods through phytoplankton + Redfield + biological pump + HABs, predator-prey + Lotka-Volterra (with interactive viz) + Schaefer/MSY + regime shifts, coral reefs + zoox symbiosis + bleaching/DHW + restoration, fisheries + VPA + EBFM + MPAs, marine mammals + diving physiology + acoustic culture + conservation, ocean acidification + deoxygenation + the 'deadly trio,' and ocean conservation + BBNJ + 30x30 + blue economy + nature-based solutions. The marine-biology stack end-to-end.",
+    nodes: [
+      { slug: "marine-foundations-and-ocean-life", title: "Marine Foundations + Ocean Life", level: "apprentice", order: 1, pages: ["zones-habitats", "diversity-classification", "methods-frontier"], prereqs: [], description: "Ocean zones (epipelagic → hadal) + habitats (reef/vent/ice), microbes → whales diversity + classification + DNA barcoding, methods from trawls + ROVs to eDNA + Argo + omics + AI." },
+      { slug: "phytoplankton-and-primary-production", title: "Phytoplankton + Primary Production", level: "practitioner", order: 2, pages: ["phyto-groups", "limits-mixing", "bcp-habs-climate"], prereqs: ["marine-foundations-and-ocean-life"], description: "Cyanos + diatoms + dinos + coccoliths + haptos, light + Redfield + Fe + mixing + critical depth, biological carbon pump + HABs + climate change impacts." },
+      { slug: "predator-prey-and-lotka-volterra", title: "Predator-Prey + Lotka-Volterra", level: "practitioner", order: 3, pages: ["population-dynamics", "lv-derivation", "fisheries-regimes"], prereqs: ["marine-foundations-and-ocean-life"], description: "Marine population cycles + Allee + logistic, Lotka-Volterra equations + fixed points + interactive viz + Rosenzweig-MacArthur, Schaefer/MSY + Newfoundland cod + regime shifts." },
+      { slug: "coral-reefs-and-bleaching", title: "Coral Reefs + Bleaching", level: "specialist", order: 4, pages: ["reef-symbiosis", "bleaching-stressors", "restoration-future"], prereqs: ["marine-foundations-and-ocean-life"], description: "Reef types + coral-zoox symbiosis + biodiversity, bleaching mechanism + DHW + mass events 1998-2024 + synergistic stressors, restoration + assisted evolution + IPCC projections + refugia." },
+      { slug: "fisheries-and-stock-assessment", title: "Fisheries + Stock Assessment", level: "specialist", order: 5, pages: ["global-fisheries", "vpa-models", "ebfm-aquaculture-climate"], prereqs: ["predator-prey-and-lotka-volterra"], description: "Global capture + aquaculture + IUU + bycatch, VPA + SCAA + Stock Synthesis + reference points + MSE, EBFM + MPAs + 30x30 + climate range shifts." },
+      { slug: "marine-mammals-and-tetrapod-return", title: "Marine Mammals + Tetrapod Return", level: "expert", order: 6, pages: ["lineages-convergence", "diving-physiology", "acoustics-conservation"], prereqs: ["marine-foundations-and-ocean-life"], description: "Cetaceans + pinnipeds + sirenians + turtles + birds + convergent evolution, diving physiology (O₂ storage + bradycardia + lung collapse), acoustic communication + culture + intelligence + conservation (vaquita + right whale)." },
+      { slug: "ocean-acidification-and-deoxygenation", title: "Ocean Acidification + Deoxygenation", level: "expert", order: 7, pages: ["oa-chemistry", "carbonate-revelle", "deox-deadly-trio"], prereqs: ["phytoplankton-and-primary-production"], description: "OA chemistry + saturation states + calcifier impacts, DIC/TA/Revelle factor + Cant + alkalinity enhancement, deoxygenation + OMZs + coastal dead zones + the deadly trio." },
+      { slug: "ocean-conservation-and-blue-economy", title: "Ocean Conservation + Blue Economy", level: "expert", order: 8, pages: ["anthropocene-threats", "mpas-governance", "restoration-nbs"], prereqs: ["fisheries-and-stock-assessment", "ocean-acidification-and-deoxygenation"], description: "Stacked threats (climate + fishing + pollution + plastic + noise + mining), MPAs + UNCLOS + BBNJ + RFMOs + indigenous-led, blue carbon + restoration + NbS + CDR + offshore wind + sustainable aquaculture." },
+    ],
+  });
+
+  // P41 — Operations Researcher path. LP + MIP + queueing (with
+  // new MM1Queue viz) + network flow + stochastic/robust +
+  // simulation + scheduling/VRP. The applied-optimization stack
+  // behind logistics, airlines, healthcare, supply chain, energy.
+  seedMasteryPath({
+    slug: "operations-researcher",
+    title: "Operations Researcher",
+    description:
+      "From OR foundations + modeling discipline through LP + simplex + duality + sensitivity, integer programming + branch-and-bound + cutting planes, queueing theory + M/M/1 with interactive viz + Little's law + Pollaczek-Khinchine, network flow + Dijkstra + max-flow/min-cut + Hungarian, stochastic + robust + chance-constrained optimization + flaw of averages, discrete-event simulation + Monte Carlo + variance reduction + digital twins, and scheduling + VRP + ALNS + ML-augmented heuristics. The operations-research stack end-to-end.",
+    nodes: [
+      { slug: "or-foundations-and-modeling", title: "OR Foundations + Modeling", level: "apprentice", order: 1, pages: ["or-vs-ml", "modeling-pipeline", "or-pillars"], prereqs: [], description: "OR vs ML vs IE vs systems engineering, modeling pipeline (vars → obj → constraints → solve), pillars (LP/MIP/queueing/simulation/MDP)." },
+      { slug: "linear-programming-and-simplex", title: "Linear Programming + Simplex", level: "practitioner", order: 2, pages: ["lp-geometry", "simplex-ipm", "duality-sensitivity"], prereqs: ["or-foundations-and-modeling"], description: "LP standard form + polytope geometry, simplex + interior-point methods + Klee-Minty pathology, duality + shadow prices + sensitivity analysis." },
+      { slug: "integer-programming-and-branch-bound", title: "Integer Programming + Branch & Bound", level: "practitioner", order: 3, pages: ["mip-basics", "branch-and-cut", "modeling-tricks"], prereqs: ["linear-programming-and-simplex"], description: "MIP classes + 0/1 problems + knapsack/TSP/VRP/facility, branch-and-bound + cutting planes + branch-and-price, big-M + indicators + symmetry breaking + formulation strength." },
+      { slug: "queueing-theory-and-mm1", title: "Queueing Theory + M/M/1", level: "specialist", order: 4, pages: ["queueing-foundations", "mm1-derivation", "littles-law-pk"], prereqs: ["or-foundations-and-modeling"], description: "Erlang origins + Kendall notation + applications, M/M/1 steady state + hockey-stick blowup + interactive viz, Little's law + Pollaczek-Khinchine + variance as enemy." },
+      { slug: "network-flow-and-shortest-path", title: "Network Flow + Shortest Path", level: "specialist", order: 5, pages: ["network-flow-intro", "dijkstra-bellman", "max-flow-assignment"], prereqs: ["linear-programming-and-simplex"], description: "Network-flow LP structure + totally unimodular, Dijkstra + Bellman-Ford + A* + contraction hierarchies, max-flow/min-cut + Hungarian assignment + NRMP." },
+      { slug: "stochastic-and-robust-optimization", title: "Stochastic + Robust Optimization", level: "expert", order: 6, pages: ["uncertainty-paradigms", "robust-cc", "applications-dfl"], prereqs: ["linear-programming-and-simplex"], description: "Stochastic + robust + DRO + chance-constrained, Bertsimas-Sim Γ-budget + CVaR + Wasserstein-DRO, applications + decision-focused learning + RL." },
+      { slug: "simulation-and-monte-carlo", title: "Simulation + Monte Carlo", level: "expert", order: 7, pages: ["simulation-paradigms", "des-mechanics", "mc-optimization"], prereqs: ["queueing-theory-and-mm1"], description: "DES + ABM + Monte Carlo + system dynamics, event calendar + variance reduction (CRN/antithetic/importance/strat), MC integration + optimization-via-simulation + digital twins." },
+      { slug: "scheduling-and-vehicle-routing", title: "Scheduling + Vehicle Routing", level: "expert", order: 8, pages: ["scheduling-classes", "vrp-family", "metaheuristics-ml"], prereqs: ["integer-programming-and-branch-bound"], description: "Single-machine + flow shop + job shop + Johnson's rule, CVRP + VRPTW + Clarke-Wright + ALNS + Lin-Kernighan, metaheuristics + RL/GNN learning-based methods + UPS ORION-scale industrial impact." },
+    ],
+  });
+
+  // P40 — Cognitive Scientist path. Perception + attention +
+  // decision-making with new DriftDiffusion viz + memory systems
+  // + language + learning + cognitive control + neuroscience
+  // methods. Distinct from neuro-engineer (which is BCI/implant
+  // focused) and nlp-linguist (which is computational NLP).
+  seedMasteryPath({
+    slug: "cognitive-scientist",
+    title: "Cognitive Scientist",
+    description:
+      "From perception + visual hierarchy + Marr's three levels through attention + working-memory + Baddeley/Cowan, decision-making + drift-diffusion model with interactive viz + speed-accuracy tradeoff + risk + prospect theory, memory systems + episodic/semantic/procedural + reconsolidation + forgetting curves, language + Broca/Wernicke + N400/P600 + LLM comparisons, learning + Rescorla-Wagner + TD + dopamine RPE + intrinsic motivation, cognitive control + PFC + executive function + Stroop + DLPFC/ACC + meta-cognition, and cognitive-neuroscience methods + fMRI/EEG/MEG + intracranial + multivariate decoding + connectomics. The cognitive-science stack end-to-end.",
+    nodes: [
+      { slug: "perception-and-vision", title: "Perception + Vision", level: "apprentice", order: 1, pages: ["marrs-levels", "visual-hierarchy", "illusions-bayes"], prereqs: [], description: "Marr's computational/algorithmic/implementational levels, V1 → IT ventral stream + dorsal stream, perceptual illusions + Bayesian perception + predictive coding." },
+      { slug: "attention-and-working-memory", title: "Attention + Working Memory", level: "practitioner", order: 2, pages: ["attention-types", "wm-models", "limits-bottlenecks"], prereqs: ["perception-and-vision"], description: "Selective + divided + sustained attention + Posner cueing, Baddeley + Cowan WM models, capacity limits + attentional bottlenecks + change blindness." },
+      { slug: "decision-making-and-ddm", title: "Decision Making + DDM", level: "practitioner", order: 3, pages: ["drift-diffusion", "speed-accuracy", "risk-prospect"], prereqs: ["attention-and-working-memory"], description: "Drift-diffusion model + interactive viz + evidence accumulation + boundary, speed-accuracy tradeoff + LIP/FEF neural mechanisms, expected utility vs prospect theory + Kahneman + framing." },
+      { slug: "memory-systems", title: "Memory Systems", level: "specialist", order: 4, pages: ["episodic-semantic-procedural", "consolidation-reconsolidation", "forgetting-distortion"], prereqs: ["perception-and-vision"], description: "Episodic + semantic + procedural + working memory, hippocampus + cortical consolidation + reconsolidation, Ebbinghaus forgetting + false memory + DRM paradigm." },
+      { slug: "language-and-comprehension", title: "Language + Comprehension", level: "specialist", order: 5, pages: ["brain-language-areas", "n400-p600", "llm-comparison"], prereqs: ["attention-and-working-memory"], description: "Broca + Wernicke + arcuate fasciculus + aphasia, N400 semantic + P600 syntactic ERPs, GPT-4-class LLMs vs human language processing + alignment." },
+      { slug: "learning-and-plasticity", title: "Learning + Plasticity", level: "expert", order: 6, pages: ["rescorla-wagner-td", "dopamine-rpe", "intrinsic-motivation"], prereqs: ["decision-making-and-ddm"], description: "Rescorla-Wagner classical + TD learning + Sutton-Barto, dopamine reward prediction error + Schultz, intrinsic motivation + curiosity + exploration-exploitation." },
+      { slug: "cognitive-control-and-pfc", title: "Cognitive Control + PFC", level: "expert", order: 7, pages: ["executive-function", "stroop-flanker", "metacognition"], prereqs: ["attention-and-working-memory", "decision-making-and-ddm"], description: "Executive function + DLPFC/ACC + Miller-Cohen, Stroop + flanker + go/no-go + conflict monitoring, metacognition + confidence + meta-d' + theory of mind." },
+      { slug: "cognitive-neuroscience-methods", title: "Cognitive Neuroscience Methods", level: "expert", order: 8, pages: ["fmri-eeg-meg", "intracranial-tms", "multivariate-connectomics"], prereqs: ["perception-and-vision", "memory-systems"], description: "fMRI BOLD + EEG/MEG + temporal/spatial tradeoffs, intracranial ECoG + single-unit + TMS + causal methods, MVPA + RSA + connectomics + Human Connectome Project." },
+    ],
+  });
+
+  // P39 — Cell + Molecular Biologist path. Cell structure + DNA
+  // replication + transcription/translation + gene regulation with
+  // new HillFunction viz + signal transduction + cell cycle +
+  // apoptosis + epigenetics. Distinct from comp-biologist (which
+  // is bioinformatics-focused).
+  seedMasteryPath({
+    slug: "cell-molecular-biologist",
+    title: "Cell + Molecular Biologist",
+    description:
+      "From cell structure + organelles + endosymbiosis through DNA replication + repair + telomeres, transcription + translation + alternative splicing, gene regulation with an interactive Hill-function viz + lac operon + GRNs, signal transduction + GPCR/RTK/NHR + MAPK + drug targeting, cell cycle + CDK-cyclin + CDK4/6 inhibitors, apoptosis + venetoclax + immune checkpoints, and epigenetics + histone marks + DNA methylation + epigenetic therapies. The cell + molecular biology stack end-to-end.",
+    nodes: [
+      { slug: "cell-structure-and-organelles", title: "Cell Structure + Organelles", level: "apprentice", order: 1, pages: ["pro-vs-eukaryote", "membrane-transport", "cytoskeleton"], prereqs: [], description: "Prokaryote vs eukaryote + endosymbiosis, plasma membrane + Na/K ATPase + endocytosis, cytoskeleton + motor proteins + cilia." },
+      { slug: "dna-replication-and-repair", title: "DNA Replication + Repair", level: "practitioner", order: 2, pages: ["semi-conservative", "telomeres", "repair-pathways"], prereqs: ["cell-structure-and-organelles"], description: "Replication fork + polymerases + fidelity, telomeres + telomerase + aging + cancer, BER/NER/MMR/HR/NHEJ repair pathways + BRCA + PARP synthetic lethality." },
+      { slug: "transcription-and-translation", title: "Transcription + Translation", level: "practitioner", order: 3, pages: ["pol-machinery", "rna-processing", "ribosome-translation"], prereqs: ["dna-replication-and-repair"], description: "Pol II + GTFs + Mediator, 5' cap + splicing + alternative-splicing + 3' polyA, 80S ribosome + genetic code + NMD." },
+      { slug: "gene-regulation-and-hill", title: "Gene Regulation + Hill Function", level: "specialist", order: 4, pages: ["lac-operon", "hill-cooperativity", "grn-motifs"], prereqs: ["transcription-and-translation"], description: "lac operon + classical regulation, Hill function + cooperativity + interactive viz, gene regulatory network motifs (FFLs, bistability, feedback)." },
+      { slug: "signal-transduction-and-receptors", title: "Signal Transduction + Receptors", level: "specialist", order: 5, pages: ["receptor-classes", "mapk-pi3k", "drug-discovery"], prereqs: ["cell-structure-and-organelles"], description: "GPCR + RTK + NHR + ion channels, MAPK + PI3K + JAK-STAT + Wnt + Notch + Hedgehog cascades, targeted cancer therapies + GLP-1 agonists." },
+      { slug: "cell-cycle-and-mitosis", title: "Cell Cycle + Mitosis", level: "specialist", order: 6, pages: ["phases-mitosis", "cdk-cyclin", "p53-cancer"], prereqs: ["dna-replication-and-repair"], description: "G1/S/G2/M + meiosis, CDK-cyclin + checkpoints + p53/RB, CDK4/6 inhibitors + cancer hallmarks + targeted oncology." },
+      { slug: "apoptosis-and-cancer", title: "Apoptosis + Cancer", level: "expert", order: 7, pages: ["death-types-caspases", "bcl2-venetoclax", "immunotherapy-checkpoints"], prereqs: ["cell-cycle-and-mitosis", "signal-transduction-and-receptors"], description: "Apoptosis + necroptosis + pyroptosis + ferroptosis + autophagy, intrinsic + extrinsic pathways + venetoclax + BCL-2 inhibition, checkpoint inhibitors (PD-1/CTLA-4) + CAR-T + immunotherapy revolution." },
+      { slug: "epigenetics-and-chromatin", title: "Epigenetics + Chromatin", level: "expert", order: 8, pages: ["histone-marks", "dna-methylation", "epigenetic-therapies"], prereqs: ["transcription-and-translation", "cell-cycle-and-mitosis"], description: "Histone modifications + Polycomb/Trithorax + chromatin remodelers, DNA methylation + X-inactivation + epigenetic clocks + iPSCs, DNMT/HDAC/EZH2/IDH inhibitors + aging therapeutics." },
+    ],
+  });
+
+  // P38 — Macroeconomist path. From national-income accounting +
+  // growth theory through IS-LM + money + Phillips curve with new
+  // interactive viz + business cycles + fiscal policy + public debt
+  // + open-economy macro. Distinct from existing financial-engineer
+  // (asset pricing) + quant-trader (markets) paths.
+  seedMasteryPath({
+    slug: "macroeconomist",
+    title: "Macroeconomist",
+    description:
+      "From national-income accounting + GDP measurement through Solow + Romer growth theory + cross-country development, IS-LM + AD-AS + DSGE, money + central banks + Taylor rule + unconventional monetary policy, the Phillips curve with interactive viz + 1970s/2022 inflation episodes + anchored expectations, business cycles + Great Depression/Recession/COVID + soft landings, fiscal multipliers + Ricardian equivalence + austerity-vs-stimulus + debt sustainability, and open-economy macro + exchange rates + impossible trinity + EM crises + USD dominance. The macroeconomics stack end-to-end.",
+    nodes: [
+      { slug: "national-income-accounting", title: "National Income Accounting", level: "apprentice", order: 1, pages: ["gdp-measurement", "nominal-real-pcap", "limitations-alternatives"], prereqs: [], description: "GDP via production/expenditure/income approaches, nominal vs real + per-capita + PPP, limitations + Beyond-GDP indicators." },
+      { slug: "growth-theory-and-development", title: "Growth Theory + Development", level: "practitioner", order: 2, pages: ["solow-model", "endogenous-growth", "cross-country-tfp"], prereqs: ["national-income-accounting"], description: "Solow capital accumulation + steady state, Romer endogenous growth + ideas, TFP + institutions (Acemoglu-Robinson Nobel 2024) + Korean miracle." },
+      { slug: "is-lm-and-aggregate-demand", title: "IS-LM + Aggregate Demand", level: "practitioner", order: 3, pages: ["islm-curves", "ad-as-pdynamics", "modern-dsge"], prereqs: ["national-income-accounting"], description: "IS-LM short-run framework, AD-AS + price dynamics + self-correction, modern DSGE + New Keynesian + HANK." },
+      { slug: "money-and-monetary-policy", title: "Money + Monetary Policy", level: "specialist", order: 4, pages: ["m-aggregates", "central-bank-tools", "taylor-rule-modern"], prereqs: ["is-lm-and-aggregate-demand"], description: "M0/M1/M2 + fractional reserve + CBDC, central-bank tools (rates/OMO/QE/yield curve), Taylor rule + FAIT + 2022 normalization." },
+      { slug: "phillips-curve-and-monetary-policy", title: "Phillips Curve + Inflation", level: "specialist", order: 5, pages: ["expectations-augmented", "great-moderation-2022", "anchoring-credibility"], prereqs: ["money-and-monetary-policy"], description: "Friedman-Phelps expectations-augmented PC + interactive viz, Great Moderation + 2022 inflation surge + Volcker, anchoring + credibility + soft landings." },
+      { slug: "business-cycles-and-recessions", title: "Business Cycles + Recessions", level: "expert", order: 6, pages: ["bc-phases-indicators", "recession-types", "great-depression-recession-covid"], prereqs: ["money-and-monetary-policy"], description: "NBER cycle dating + leading indicators, demand vs supply vs financial recessions, Great Depression + Great Recession + COVID + 2024 soft landing." },
+      { slug: "fiscal-policy-and-public-debt", title: "Fiscal Policy + Public Debt", level: "expert", order: 7, pages: ["multipliers", "debt-sustainability", "austerity-stimulus-mmt"], prereqs: ["is-lm-and-aggregate-demand"], description: "Fiscal multipliers + Ricardian + state-dependence, debt dynamics + r-g + sustainability, austerity vs stimulus + MMT + IRA + CHIPS." },
+      { slug: "open-economy-and-exchange-rates", title: "Open Economy + Exchange Rates", level: "expert", order: 8, pages: ["fx-regimes", "ppp-irp-crises", "usd-dominance"], prereqs: ["money-and-monetary-policy", "fiscal-policy-and-public-debt"], description: "Floating vs fixed + impossible trinity, PPP + IRP + EM crises (Asian 1997, Tequila, Argentina, Turkey), USD reserve dominance + de-dollarization + CBDCs." },
+    ],
+  });
+
+  // P37 — Linguist path (general formal linguistics, distinct from
+  // existing nlp-linguist which is computational). Phonetics +
+  // phonology with new VowelFormantChart viz; morphology; syntax;
+  // semantics; pragmatics; sociolinguistics; historical linguistics.
+  seedMasteryPath({
+    slug: "linguist",
+    title: "Linguist",
+    description:
+      "From Hockett's design features + typological diversity through phonetics + phonology with an interactive IPA vowel formant chart, morphology + agglutinative/fusional/polysynthetic typology, syntax + X-bar + dependency + word-order universals, formal truth-conditional + distributional semantics + lambda calculus + word embeddings, pragmatics + Gricean maxims + speech acts + LLM theory of mind, sociolinguistics + Labovian variation + dialect + AAVE, and historical linguistics + comparative method + Grimm's Law + Indo-European + Bayesian phylogenetics. The general-linguistics stack end-to-end.",
+    nodes: [
+      { slug: "language-structure-foundations", title: "Language Structure + Foundations", level: "apprentice", order: 1, pages: ["hockett-features", "linguistic-levels", "universals-diversity"], prereqs: [], description: "Hockett's design features, linguistic levels (phonetics → pragmatics), universals + cross-linguistic diversity, formal vs functional approaches." },
+      { slug: "phonetics-and-phonology", title: "Phonetics + Phonology", level: "practitioner", order: 2, pages: ["articulatory-ipa", "phoneme-allophone", "acoustic"], prereqs: ["language-structure-foundations"], description: "Articulatory + acoustic phonetics + IPA + interactive vowel chart, phonemes vs allophones + phonological rules + OT, formant analysis + speech perception." },
+      { slug: "morphology-and-word-formation", title: "Morphology + Word Formation", level: "practitioner", order: 3, pages: ["morphemes", "typology", "computational"], prereqs: ["language-structure-foundations"], description: "Derivational + inflectional, isolating → polysynthetic typology + index of synthesis, finite-state + subword tokenization (BPE)." },
+      { slug: "syntax-and-phrase-structure", title: "Syntax + Phrase Structure", level: "specialist", order: 4, pages: ["constituency-dependency", "word-order", "movement-binding"], prereqs: ["language-structure-foundations"], description: "X-bar + dependency, Greenberg word-order universals + Chomsky parameters, movement + binding theory + neural parsing." },
+      { slug: "semantics-meaning-and-truth", title: "Semantics: Meaning + Truth", level: "specialist", order: 5, pages: ["truth-conditional", "lexical-wordnet", "distributional-neural"], prereqs: ["syntax-and-phrase-structure"], description: "Truth-conditional + compositional + lambda + Montague, lexical relations + WordNet + frame semantics, distributional + neural embeddings + CLIP + LLMs." },
+      { slug: "pragmatics-and-discourse", title: "Pragmatics + Discourse", level: "expert", order: 6, pages: ["gricean-speech-acts", "politeness-register", "computational-llm"], prereqs: ["semantics-meaning-and-truth"], description: "Gricean maxims + speech acts + presupposition + implicature, politeness + face + register + honorifics, RSA + LLM ToM + RLHF alignment." },
+      { slug: "sociolinguistics-and-variation", title: "Sociolinguistics + Variation", level: "expert", order: 7, pages: ["labov-variationist", "standard-prestige", "change-revitalization"], prereqs: ["phonetics-and-phonology"], description: "Labov's NYC + variationist methodology, standard + prescriptive vs descriptive + AAVE, apparent-time + language change + endangerment." },
+      { slug: "historical-linguistics-and-reconstruction", title: "Historical Linguistics + Reconstruction", level: "expert", order: 8, pages: ["comparative-method", "ie-families", "phylogenetics"], prereqs: ["phonetics-and-phonology"], description: "Comparative method + Grimm/Verner laws, IE + other families + steppe hypothesis, glottochronology + Bayesian phylogenetics + ancient DNA." },
+    ],
+  });
+
+  // P36 — Photonics Engineer path. EM + Gaussian beams (new
+  // GaussianBeam viz) + lasers/cavities + fiber + photodetectors +
+  // nonlinear optics + photonic ICs + quantum optics. Introduces
+  // 'puzzle_drag_build' question type for optical-system assembly.
+  seedMasteryPath({
+    slug: "photonics-engineer",
+    title: "Photonics Engineer",
+    description:
+      "From Maxwell's equations + Fresnel + dispersion through Gaussian-beam propagation with interactive viz, lasers + cavity design + Michelson interferometer assembly, fiber optics + WDM + EDFA + coherent telecom, photodetectors + SPADs + noise, nonlinear optics + frequency combs + attosecond physics, photonic ICs + Si/InP/SiN/TFLN + co-packaged optics, and quantum optics + entanglement + QKD + Bell tests. The photonics-engineering stack end-to-end.",
+    nodes: [
+      { slug: "em-waves-and-maxwell", title: "EM Waves + Maxwell's Equations", level: "apprentice", order: 1, pages: ["maxwell", "fresnel-coatings", "dispersion-polarization"], prereqs: [], description: "Maxwell's equations, plane-wave + Fresnel coefficients + AR/HR coatings, polarization + birefringence + dispersion + Sellmeier." },
+      { slug: "gaussian-beams-and-diffraction", title: "Gaussian Beams + Diffraction", level: "practitioner", order: 2, pages: ["gaussian-beam-math", "diffraction-limit", "fourier-optics"], prereqs: ["em-waves-and-maxwell"], description: "w(z), z_R, θ_div, M² beam quality + interactive viz, Abbe diffraction limit + Fourier optics + super-resolution." },
+      { slug: "lasers-and-cavity-design", title: "Lasers + Cavity Design", level: "practitioner", order: 3, pages: ["stimulated-emission", "cavity-stability", "cw-pulsed-ultrafast"], prereqs: ["em-waves-and-maxwell"], description: "Einstein A/B + population inversion, resonators + Q + ABCD + cavity stability, CW + Q-switched + mode-locked + CPA + frequency combs." },
+      { slug: "fiber-optics-and-dispersion", title: "Fiber Optics + Dispersion", level: "specialist", order: 4, pages: ["single-multi-mode", "chromatic-dispersion", "wdm-edfa-coherent"], prereqs: ["gaussian-beams-and-diffraction"], description: "Step + graded index + TIR, modal + chromatic + PMD + nonlinear effects, WDM + EDFA + Raman + coherent 100G+ telecom." },
+      { slug: "photodetectors-and-noise", title: "Photodetectors + Noise", level: "specialist", order: 5, pages: ["detector-families", "shot-thermal-noise", "spad-snspd"], prereqs: ["em-waves-and-maxwell"], description: "PIN + APD + SPAD + SNSPD + PMT + SiPM, shot + thermal + dark + amplifier noise, SNR + sensitivity in real systems." },
+      { slug: "nonlinear-optics-and-frequency-conversion", title: "Nonlinear Optics + Frequency Conversion", level: "specialist", order: 6, pages: ["nonlinear-polarization", "phase-matching", "comb-attosecond"], prereqs: ["em-waves-and-maxwell"], description: "χ⁽²⁾ + χ⁽³⁾ processes + phase matching (BPM + QPM/PPLN), frequency combs + supercontinuum + solitons, attosecond physics + 2023 Nobel." },
+      { slug: "photonic-integrated-circuits", title: "Photonic Integrated Circuits", level: "expert", order: 7, pages: ["platforms-siph-inp-sin-tfln", "components", "co-packaged-optics"], prereqs: ["fiber-optics-and-dispersion"], description: "Si + InP + SiN + TFLN platforms + heterogeneous, modulators + lasers + detectors on chip, co-packaged optics + AI accelerator I/O." },
+      { slug: "quantum-optics-and-entanglement", title: "Quantum Optics + Entanglement", level: "expert", order: 8, pages: ["quantum-states", "bell-tests", "qkd-quantum-net"], prereqs: ["em-waves-and-maxwell"], description: "Fock + coherent + squeezed states, Bell theorem + loophole-free tests + 2022 Nobel, BB84/E91 QKD + Beijing-Shanghai + Micius + quantum repeaters." },
+    ],
+  });
+
+  // P35 — Information Theorist path. Entropy + source coding + MI/KL
+  // + channel capacity (with new ShannonChannel viz) + error-correcting
+  // codes + rate-distortion + practical compression + info theory in
+  // ML. Continues 'slider' question type usage.
+  seedMasteryPath({
+    slug: "information-theorist",
+    title: "Information Theorist",
+    description:
+      "From entropy + surprisal through source coding + Huffman/arithmetic/ANS, mutual information + KL divergence, Shannon's noisy-channel theorem with interactive binary-symmetric-channel viz, error-correcting codes (Hamming → Reed-Solomon → LDPC → polar), rate-distortion + perceptual coding, practical compressors (gzip/zstd/xz/brotli), and information theory in ML (cross-entropy, ELBO, InfoNCE, CLIP). The information-theory stack end-to-end.",
+    nodes: [
+      { slug: "entropy-and-surprisal", title: "Entropy + Surprisal", level: "apprentice", order: 1, pages: ["surprisal", "entropy-axioms", "coding-interpretation"], prereqs: [], description: "Surprisal -log p, Shannon entropy H = -∑ p log p, axiomatic derivation, coding-theorem interpretation." },
+      { slug: "source-coding-and-compression", title: "Source Coding + Compression", level: "practitioner", order: 2, pages: ["huffman", "arithmetic-ans", "lz-bwt"], prereqs: ["entropy-and-surprisal"], description: "Huffman + arithmetic + ANS entropy coders, LZ77/LZ78 + BWT dictionary coding, universal coding + neural LM compression." },
+      { slug: "mutual-information-and-kl-divergence", title: "Mutual Info + KL Divergence", level: "practitioner", order: 3, pages: ["mutual-info", "kl-divergence", "information-bottleneck"], prereqs: ["entropy-and-surprisal"], description: "I(X;Y) + KL(P||Q), information bottleneck, cross-entropy + variational inference + MI for representation learning." },
+      { slug: "channel-capacity-and-noisy-channel-theorem", title: "Channel Capacity + Shannon's Theorem", level: "specialist", order: 4, pages: ["bsc-capacity", "shannon-hartley", "multi-user"], prereqs: ["mutual-information-and-kl-divergence"], description: "BSC capacity + interactive viz, Shannon-Hartley + practical wireless/fiber, MIMO + 5G + multi-user info theory." },
+      { slug: "error-correcting-codes", title: "Error-Correcting Codes", level: "expert", order: 5, pages: ["hamming-bch-rs", "convolutional-turbo", "ldpc-polar-neural"], prereqs: ["channel-capacity-and-noisy-channel-theorem"], description: "Hamming + BCH + Reed-Solomon, convolutional + turbo, LDPC + polar + iterative decoding, neural decoders." },
+      { slug: "rate-distortion-and-lossy-compression", title: "Rate-Distortion + Lossy Compression", level: "expert", order: 6, pages: ["rd-function", "jpeg-mp3", "neural-codecs"], prereqs: ["entropy-and-surprisal"], description: "R(D) for Gaussian, JPEG + MP3 + perceptual coding, AVIF + HEIC + neural image codecs." },
+      { slug: "compression-in-practice", title: "Compression in Practice", level: "expert", order: 7, pages: ["gzip-zstd-xz", "columnar-db", "streaming"], prereqs: ["source-coding-and-compression"], description: "gzip/zstd/xz/brotli/LZ4 tradeoffs, columnar databases + Parquet/ORC, streaming + dictionary + parallelism." },
+      { slug: "information-theory-in-ml", title: "Information Theory in ML", level: "expert", order: 8, pages: ["cross-entropy-mle", "elbo-vae", "infonce-clip"], prereqs: ["mutual-information-and-kl-divergence"], description: "Cross-entropy = MLE = KL min, ELBO + VAE + diffusion, InfoNCE + SimCLR + CLIP + multimodal foundations." },
+    ],
+  });
+
+  // P34 — Biomedical Engineer path. Biomechanics + tissue, cardio
+  // hemodynamics, electrophysiology + ECG with new interactive
+  // ECGSimulator viz, medical imaging modalities, biomaterials +
+  // implants, drug-delivery, prosthetics + BMI, regulatory + clinical
+  // translation. Introduces the 'slider' question type (numeric
+  // estimation in a range).
+  seedMasteryPath({
+    slug: "biomedical-engineer",
+    title: "Biomedical Engineer",
+    description:
+      "From biomechanics + tissue properties through cardiovascular hemodynamics + Poiseuille, electrophysiology + the 12-lead ECG with an interactive ECG simulator + clinical-arrhythmia detection, medical imaging (X-ray/CT/MRI/PET/US) + modality selection, biomaterials + implants + the metal-on-metal recall story, controlled-release + LNP/mRNA drug delivery, prosthetics + brain-machine interfaces + Neuralink/Synchron, and FDA pathways + clinical translation + reimbursement. The biomedical-engineering stack end-to-end.",
+    nodes: [
+      { slug: "biomechanics-and-tissue", title: "Biomechanics + Tissue", level: "apprentice", order: 1, pages: ["stress-strain", "tissue-moduli", "stress-shielding"], prereqs: [], description: "Stress + strain in biological tissue, Hooke's law + viscoelasticity, bone + tendon + cartilage, stress-shielding around orthopedic implants." },
+      { slug: "cardiovascular-hemodynamics", title: "Cardiovascular Hemodynamics", level: "practitioner", order: 2, pages: ["poiseuille", "cardiac-cycle-pv-loops", "interventions"], prereqs: ["biomechanics-and-tissue"], description: "Blood flow + Poiseuille 1/r⁴ scaling, P-V loops + ejection fraction + heart failure, stents + TAVR + LVADs." },
+      { slug: "electrophysiology-and-ecg", title: "Electrophysiology + ECG", level: "specialist", order: 3, pages: ["cardiac-action-potential", "12-lead-ecg", "arrhythmias"], prereqs: ["cardiovascular-hemodynamics"], description: "Cardiac action-potential phases + Nernst, the 12-lead ECG with interactive viz, AV block + AFib + STEMI localization." },
+      { slug: "medical-imaging-modalities", title: "Medical Imaging Modalities", level: "specialist", order: 4, pages: ["xray-ct-mri-pet", "resolution-contrast", "modality-selection"], prereqs: [], description: "X-ray + CT + MRI + ultrasound + PET physics, contrast vs resolution vs dose tradeoffs, clinical scenario-to-modality mapping." },
+      { slug: "biomaterials-and-implants", title: "Biomaterials + Implants", level: "specialist", order: 5, pages: ["material-classes", "foreign-body-response", "implant-lifecycle"], prereqs: ["biomechanics-and-tissue"], description: "Metals + polymers + ceramics + composites, foreign-body response + biocompatibility, hip + knee + stents + the MoM recall." },
+      { slug: "drug-delivery-and-controlled-release", title: "Drug Delivery + Controlled Release", level: "specialist", order: 6, pages: ["release-kinetics", "targeting-strategies", "lnp-mrna"], prereqs: [], description: "Controlled-release kinetics (Higuchi + Korsmeyer-Peppas), passive (EPR) + active (ADC) targeting, LNP-mRNA platform success." },
+      { slug: "prosthetics-and-bmi", title: "Prosthetics + Brain-Machine Interfaces", level: "expert", order: 7, pages: ["limb-prosthetics", "bmi-signal-acquisition", "ethics"], prereqs: ["biomechanics-and-tissue", "electrophysiology-and-ecg"], description: "Myoelectric + powered + neural prosthetics, EEG + ECoG + Utah + Neuralink BMI, foreign-body response + ethics." },
+      { slug: "regulatory-and-clinical-translation", title: "Regulatory + Clinical Translation", level: "expert", order: 8, pages: ["fda-pathways", "clinical-trials", "reimbursement"], prereqs: ["biomaterials-and-implants"], description: "Class I/II/III + 510(k) / De Novo / PMA pathways, device trials + RWE, CMS + payer reimbursement + SaMD/AI regulation." },
+    ],
+  });
+
+  // P33 — Atmospheric Scientist path. From atmospheric structure +
+  // composition through radiation + greenhouse, dynamics + circulation,
+  // weather systems, boundary layer + pollution, NWP + ML weather,
+  // severe weather + extremes, and atmospheric chemistry + ozone.
+  // Uses new AtmosphericSounding viz.
+  seedMasteryPath({
+    slug: "atmospheric-scientist",
+    title: "Atmospheric Scientist",
+    description:
+      "From atmospheric layers + composition + barometric formula through Earth's radiation balance + greenhouse + climate sensitivity, geostrophic + Hadley + Ferrel circulation + jets + Rossby waves, mid-latitude + tropical cyclones with interactive atmospheric sounding + CAPE, boundary layer + Pasquill-Gifford air-pollution dispersion + ozone smog, numerical weather prediction + ML revolution (GraphCast), severe weather + attribution science + extreme events, and atmospheric chemistry + the ozone hole + Montreal Protocol. The atmospheric-science stack end-to-end.",
+    nodes: [
+      { slug: "atmospheric-structure-and-composition", title: "Atmospheric Structure + Composition", level: "apprentice", order: 1, pages: ["layers", "composition", "hydrostatic-barometric"], prereqs: [], description: "Troposphere → exosphere; dry-air + trace gases; hydrostatic balance + scale height + barometric formula." },
+      { slug: "radiation-and-greenhouse-effect", title: "Radiation + Greenhouse Effect", level: "practitioner", order: 2, pages: ["radiation-balance", "greenhouse-spectroscopy", "fingerprints"], prereqs: ["atmospheric-structure-and-composition"], description: "Solar + thermal balance, GHG spectroscopy + Revelle factor, climate sensitivity + ECS + stratospheric cooling fingerprint." },
+      { slug: "atmospheric-dynamics-and-circulation", title: "Atmospheric Dynamics + Circulation", level: "practitioner", order: 3, pages: ["geostrophic-thermal-wind", "hadley-ferrel", "jets-rossby"], prereqs: ["atmospheric-structure-and-composition"], description: "Geostrophic + thermal-wind balance, Hadley + Ferrel + Polar cells + Walker, jet streams + Rossby waves + blocking." },
+      { slug: "weather-systems-and-cyclones", title: "Weather Systems + Cyclones", level: "specialist", order: 4, pages: ["extratropical", "tropical", "forecasting"], prereqs: ["atmospheric-dynamics-and-circulation"], description: "Mid-latitude cyclones + baroclinic instability, tropical cyclones + RI + Saffir-Simpson, NWP + ML forecasting." },
+      { slug: "boundary-layer-and-air-pollution", title: "Boundary Layer + Air Pollution", level: "specialist", order: 5, pages: ["pbl-stability", "pollutants-chemistry", "dispersion-inversion"], prereqs: ["atmospheric-dynamics-and-circulation"], description: "Diurnal PBL evolution + stability; primary + secondary pollutants + chemistry; Pasquill-Gifford dispersion + inversions." },
+      { slug: "numerical-weather-prediction", title: "Numerical Weather Prediction", level: "expert", order: 6, pages: ["nwp-anatomy", "chaos-ensembles", "ml-weather"], prereqs: ["atmospheric-dynamics-and-circulation"], description: "Observations + data assimilation + integration; chaos limits + ensembles; ML revolution (GraphCast + Pangu + AIFS)." },
+      { slug: "severe-weather-and-extremes", title: "Severe Weather + Extremes", level: "expert", order: 7, pages: ["convective-severe", "storm-surge", "extremes-attribution"], prereqs: ["weather-systems-and-cyclones"], description: "Supercells + tornadoes + hail; hurricane storm surge + flooding; attribution science + 2021 PNW heat dome." },
+      { slug: "atmospheric-chemistry-and-ozone", title: "Atmospheric Chemistry + Ozone", level: "expert", order: 8, pages: ["stratospheric-ozone", "montreal-protocol", "troposphere-ch4"], prereqs: ["radiation-and-greenhouse-effect", "boundary-layer-and-air-pollution"], description: "Chapman cycle + UV protection; ozone hole + CFCs + Montreal Protocol success; OH chemistry + CH₄ budget + methane pledge." },
+    ],
+  });
+
+  // P32 — Oceanographer path. From physical oceanography through
+  // ocean circulation + currents (uses new OceanTSDiagram viz),
+  // waves + tides, ocean chemistry + acidification, marine
+  // biogeochemistry + nutrients, marine ecosystems + zones,
+  // ENSO + climate coupling, and sea-level rise + ocean warming.
+  // Introduces sortable + drag_classify question types.
+  seedMasteryPath({
+    slug: "oceanographer",
+    title: "Oceanographer",
+    description:
+      "From T-S diagrams + water masses (interactive viz) through wind-driven + thermohaline circulation + AMOC, surface waves + tides + tsunamis, the carbonate system + ocean acidification, marine biogeochemistry + Redfield + carbon pump, vertical + horizontal ecosystem zones + coral reefs, ENSO + Bjerknes feedback + teleconnections, and sea-level rise + ocean heat content + coastal adaptation. The oceanography stack end-to-end.",
+    nodes: [
+      { slug: "physical-oceanography-basics", title: "Physical Oceanography Basics", level: "apprentice", order: 1, pages: ["t-s-density", "water-masses", "vertical-structure"], prereqs: [], description: "T + S + density, T-S diagrams + isopycnals + cabbeling, mixed layer + thermocline + abyssal water." },
+      { slug: "ocean-circulation-and-currents", title: "Ocean Circulation + Currents", level: "practitioner", order: 2, pages: ["wind-driven", "geostrophy-thermal-wind", "amoc-thc"], prereqs: ["physical-oceanography-basics"], description: "Wind-driven gyres + Ekman + western boundary intensification, geostrophy + thermal wind, AMOC + climate coupling." },
+      { slug: "waves-and-tides", title: "Waves + Tides", level: "practitioner", order: 3, pages: ["wave-spectrum", "tides-harmonics", "tsunami-surge"], prereqs: ["physical-oceanography-basics"], description: "Capillary/gravity/swell, tide harmonic decomposition + M2/S2/K1, storm surge + tsunami shoaling + Green's law." },
+      { slug: "ocean-chemistry-and-acidification", title: "Ocean Chemistry + Acidification", level: "practitioner", order: 4, pages: ["major-ions", "carbonate-system", "acidification-impacts"], prereqs: ["physical-oceanography-basics"], description: "Major-ion constancy, carbonate equilibria + Revelle factor + saturation states, OA impacts on calcifiers." },
+      { slug: "marine-biogeochemistry-and-nutrients", title: "Marine Biogeochemistry + Nutrients", level: "specialist", order: 5, pages: ["redfield", "carbon-pumps", "hnlc-iron"], prereqs: ["physical-oceanography-basics", "ocean-chemistry-and-acidification"], description: "Redfield ratio + N/P/Fe limitation, biological + solubility carbon pumps, HNLC regions + iron fertilization + dead zones." },
+      { slug: "marine-ecosystems-and-zones", title: "Marine Ecosystems + Zones", level: "specialist", order: 6, pages: ["vertical-zones", "biomes-reefs", "food-web-decline"], prereqs: ["marine-biogeochemistry-and-nutrients"], description: "Euphotic/mesopelagic/bathypelagic/abyssal, coral reefs + kelp + vents + nurseries, trophic levels + fishing-down + MPAs." },
+      { slug: "el-nino-and-climate-coupling", title: "ENSO + Climate Coupling", level: "expert", order: 7, pages: ["enso-states", "bjerknes-feedback", "teleconnections"], prereqs: ["ocean-circulation-and-currents"], description: "El Niño/La Niña/neutral states, Bjerknes feedback + delayed oscillator, global teleconnections + 2015-16 + 2023-24 super events." },
+      { slug: "sea-level-rise-and-ocean-warming", title: "Sea-Level Rise + Ocean Warming", level: "expert", order: 8, pages: ["ocean-heat-content", "slr-components", "coastal-adaptation"], prereqs: ["physical-oceanography-basics", "ocean-circulation-and-currents"], description: "OHC + Argo + warming trend, SLR components (thermal + glaciers + ice sheets), gravitational fingerprints + adaptation." },
+    ],
+  });
+
+  // P31 — Nuclear Engineer path. From fission fundamentals through
+  // neutron transport + criticality, reactor kinetics + control with
+  // the new interactive PointKinetics viz, thermal-hydraulics +
+  // DNB, reactor types (PWR/BWR/CANDU/SMR/Gen IV/MSR), fuel cycle +
+  // waste, radiation safety + accident lessons (TMI/Chernobyl/
+  // Fukushima), and fusion + future nuclear.
+  seedMasteryPath({
+    slug: "nuclear-engineer",
+    title: "Nuclear Engineer",
+    description:
+      "From fission fundamentals + binding energy through neutron transport + criticality + the four-factor formula, point kinetics + delayed neutrons + the 1$ prompt-critical threshold with an interactive viz, thermal-hydraulics + DNB + LOCA, reactor types (LWR/CANDU/SFR/MSR/SMR/Gen IV), fuel cycle + reprocessing + geological disposal, radiation safety + ALARA + TMI/Chernobyl/Fukushima lessons, and fusion + advanced fission for the future grid. The nuclear-engineering stack end-to-end.",
+    nodes: [
+      { slug: "fission-fundamentals", title: "Fission Fundamentals", level: "apprentice", order: 1, pages: ["binding-energy", "chain-reaction", "decay-heat"], prereqs: [], description: "Binding-energy curve, U-235 fission + 200 MeV/reaction, fissile vs fertile, decay-heat curve + why Fukushima cores melted." },
+      { slug: "neutron-transport-and-criticality", title: "Neutron Transport + Criticality", level: "practitioner", order: 2, pages: ["four-factor", "diffusion-equation", "reactivity-control"], prereqs: ["fission-fundamentals"], description: "k_∞ + four-factor formula, neutron diffusion + buckling, control rods + boron + xenon poisoning." },
+      { slug: "reactor-kinetics-and-control", title: "Reactor Kinetics + Control", level: "specialist", order: 3, pages: ["point-kinetics", "delayed-neutrons", "control-architecture"], prereqs: ["neutron-transport-and-criticality"], description: "Point-kinetics ODEs + interactive viz, delayed-neutron role + 1$ threshold, defense in depth + Chernobyl rod design lesson." },
+      { slug: "thermal-hydraulics", title: "Thermal Hydraulics", level: "specialist", order: 4, pages: ["heat-removal", "dnb-chf", "loca-fukushima"], prereqs: ["fission-fundamentals", "neutron-transport-and-criticality"], description: "Fuel-pin heat conduction + cladding T, boiling regimes + DNBR > 1.3, LOCA sequences + TMI + Fukushima common-mode failure." },
+      { slug: "reactor-types-and-designs", title: "Reactor Types + Designs", level: "specialist", order: 5, pages: ["lwr-pwr-bwr", "candu-fast-msr", "smr-gen-iv"], prereqs: ["thermal-hydraulics"], description: "PWR/BWR dominance, CANDU + fast reactors + MSR, Gen III+ (AP1000, EPR) + Gen IV + SMRs (BWRX-300, Natrium)." },
+      { slug: "fuel-cycle-and-waste", title: "Fuel Cycle + Waste", level: "expert", order: 6, pages: ["enrichment-fabrication", "reprocessing-mox", "geological-repository"], prereqs: ["fission-fundamentals"], description: "Open vs closed fuel cycle, enrichment + SWU, MOX + reprocessing economics, Finnish/Swedish repositories + Yucca politics." },
+      { slug: "radiation-safety-and-accidents", title: "Radiation Safety + Accidents", level: "expert", order: 7, pages: ["dose-units", "alara", "accident-case-studies"], prereqs: ["fission-fundamentals"], description: "α/β/γ/n + Sv units + ALARA, dose limits + 3 R's, TMI/Chernobyl/Fukushima accident sequences + LNT controversy." },
+      { slug: "fusion-and-future-nuclear", title: "Fusion + Future Nuclear", level: "expert", order: 8, pages: ["d-t-fusion", "iter-nif", "fusion-timeline"], prereqs: ["fission-fundamentals", "thermal-hydraulics"], description: "D-T reaction + Lawson criterion, magnetic (ITER, SPARC) vs inertial (NIF 2022 breakeven), commercial fusion 2050-2070 horizon." },
+    ],
+  });
+
+  // P30 — Chemical Engineer path. Mass + energy balances through
+  // fluid mechanics, heat transfer, reactor design with the new
+  // interactive CSTR-vs-PFR viz, distillation + separations, process
+  // control + dynamics, process safety + HAZOP/LOPA, and process
+  // intensification + sustainability + decarbonization.
+  seedMasteryPath({
+    slug: "chemical-engineer",
+    title: "Chemical Engineer",
+    description:
+      "From mass + energy balances through fluid mechanics + transport phenomena, heat-exchanger design + LMTD, reactor design + kinetics with an interactive CSTR-vs-PFR comparison viz, distillation + extraction + membranes, PID + cascade process control, HAZOP + LOPA process safety, and process intensification + LCA + decarbonization pathways. The chemical-engineering stack end-to-end.",
+    nodes: [
+      { slug: "mass-and-energy-balances", title: "Mass + Energy Balances", level: "apprentice", order: 1, pages: ["general-balance", "steady-state", "energy-balance"], prereqs: [], description: "Accumulation = In − Out + Gen − Cons applied to mass + energy; steady-state vs dynamic; reactor + evaporator + heater design balances." },
+      { slug: "fluid-mechanics-and-transport", title: "Fluid Mechanics + Transport", level: "practitioner", order: 2, pages: ["mechanical-energy-balance", "reynolds-number", "transport-analogies"], prereqs: ["mass-and-energy-balances"], description: "Bernoulli + friction-factor + pump sizing; Re + flow regimes; Chilton-Colburn analogy + dimensionless-number culture." },
+      { slug: "heat-transfer-and-exchangers", title: "Heat Transfer + Exchangers", level: "practitioner", order: 3, pages: ["three-modes", "lmtd-sizing", "topology-selection"], prereqs: ["fluid-mechanics-and-transport"], description: "Conduction/convection/radiation; LMTD + UA sizing; S+T vs plate-and-frame + heat-integration via pinch analysis." },
+      { slug: "reactor-design-and-kinetics", title: "Reactor Design + Kinetics", level: "specialist", order: 4, pages: ["arrhenius-rates", "cstr-vs-pfr", "selectivity-multiple-reactions"], prereqs: ["mass-and-energy-balances"], description: "Arrhenius + rate laws; interactive CSTR-vs-PFR viz; selectivity in series + parallel + Damköhler scaling." },
+      { slug: "separations-distillation-and-extraction", title: "Separations: Distillation + Extraction", level: "specialist", order: 5, pages: ["vle-raoult", "mccabe-thiele", "extraction-membranes"], prereqs: ["mass-and-energy-balances"], description: "Raoult's law + relative volatility; McCabe-Thiele + Fenske-Underwood + minimum reflux; extraction + absorption + membranes + RO desalination." },
+      { slug: "process-control-and-dynamics", title: "Process Control + Dynamics", level: "expert", order: 6, pages: ["first-order-fopdt", "pid-tuning", "cascade-mpc"], prereqs: ["mass-and-energy-balances", "reactor-design-and-kinetics"], description: "First-order + FOPDT models; PID + IMC tuning + anti-windup; cascade control + MPC + RGA pairing." },
+      { slug: "process-safety-and-risk", title: "Process Safety + Risk", level: "expert", order: 7, pages: ["historical-incidents", "hazop-lopa", "safety-culture"], prereqs: ["mass-and-energy-balances"], description: "Bhopal + Texas City lessons; HAZOP + LOPA + SIL ratings + Swiss-cheese model; inherent safety + safety culture + PSM." },
+      { slug: "process-intensification-and-sustainability", title: "Process Intensification + Sustainability", level: "expert", order: 8, pages: ["intensification", "lca-boundaries", "decarbonization-pathways"], prereqs: ["mass-and-energy-balances", "reactor-design-and-kinetics", "separations-distillation-and-extraction"], description: "Divided-wall columns + reactive distillation + microreactors; LCA methodology + system-boundary; green H₂ + CCUS + circular feedstocks." },
+    ],
+  });
+
+  // P29 — Epidemiologist path. From foundational measures (incidence,
+  // prevalence, CFR) through interactive SIR compartmental models + R₀,
+  // study designs (cohort, case-control, RCT), outbreak investigation +
+  // surveillance, infectious-disease genomics, causal inference + DAGs,
+  // vaccines + immunization programs, public-health decisions + equity,
+  // and global health + pandemic preparedness.
+  seedMasteryPath({
+    slug: "epidemiologist",
+    title: "Epidemiologist",
+    description:
+      "From the core measures (incidence, prevalence, CFR vs IFR) through compartmental SIR models with an interactive viz, R₀ + herd-immunity threshold, observational + experimental study designs, outbreak investigation + multi-stream surveillance (wastewater, genomic), pathogen genomics + Nextstrain phylogenies, modern causal inference with DAGs + target-trial emulation, vaccine efficacy + safety surveillance, equity-focused public health, and global pandemic preparedness. The epidemiology stack end-to-end.",
+    nodes: [
+      { slug: "epidemiology-foundations", title: "Epidemiology Foundations", level: "apprentice", order: 1, pages: ["incidence-prevalence", "rates-ratios", "epi-curves"], prereqs: [], description: "Incidence vs prevalence, CFR vs IFR, age-adjustment + epi curves + the lag problem." },
+      { slug: "compartmental-models-and-r0", title: "Compartmental Models + R₀", level: "practitioner", order: 2, pages: ["sir-derivation", "herd-immunity", "beyond-sir"], prereqs: ["epidemiology-foundations"], description: "Interactive SIR viz, R₀ derivation + herd-immunity threshold, SEIR + age structure + network models + super-spreaders." },
+      { slug: "study-designs", title: "Study Designs", level: "practitioner", order: 3, pages: ["observational-designs", "rcts", "bias-confounding"], prereqs: ["epidemiology-foundations"], description: "Cohort vs case-control vs cross-sectional, RCT design (blinding + ITT), confounding + bias + DAGs." },
+      { slug: "outbreak-investigation-and-surveillance", title: "Outbreak Investigation + Surveillance", level: "practitioner", order: 4, pages: ["ten-steps", "line-list-attack-rate", "multi-stream-surveillance"], prereqs: ["epidemiology-foundations"], description: "CDC 10-step outbreak framework, line lists + attack-rate tables, modern surveillance (notifiable, syndromic, wastewater, genomic)." },
+      { slug: "infectious-disease-genomics", title: "Infectious Disease Genomics", level: "specialist", order: 5, pages: ["phylogenies", "nextstrain", "transmission-reconstruction"], prereqs: ["compartmental-models-and-r0"], description: "Pathogen WGS + molecular clock, Nextstrain + variant surveillance, outbreak reconstruction + vaccine strain selection." },
+      { slug: "causal-inference-in-epidemiology", title: "Causal Inference + DAGs", level: "specialist", order: 6, pages: ["bradford-hill", "dags-backdoor", "target-trial-emulation"], prereqs: ["study-designs"], description: "Bradford-Hill criteria, DAGs + confounder/collider identification + backdoor criterion, target-trial emulation + Mendelian randomization." },
+      { slug: "vaccines-and-immunization-programs", title: "Vaccines + Immunization Programs", level: "specialist", order: 7, pages: ["vaccine-types", "efficacy-effectiveness", "safety-monitoring"], prereqs: ["compartmental-models-and-r0", "study-designs"], description: "Vaccine types (live/inactivated/mRNA), VE vs effectiveness vs impact, VAERS/VSD safety surveillance + Wakefield's legacy." },
+      { slug: "public-health-decisions-and-equity", title: "Public Health Decisions + Equity", level: "expert", order: 8, pages: ["dalys-qalys", "social-determinants", "intervention-design"], prereqs: ["epidemiology-foundations", "study-designs"], description: "DALYs + QALYs + CEA, social determinants + structural epi, universal vs targeted interventions + Health-in-all-Policies." },
+      { slug: "global-health-and-pandemic-preparedness", title: "Global Health + Pandemic Preparedness", level: "expert", order: 9, pages: ["global-architecture", "preparedness-failures", "one-health"], prereqs: ["compartmental-models-and-r0", "outbreak-investigation-and-surveillance"], description: "WHO/Gavi/Global Fund architecture, why preparedness is hard, One Health + zoonotic spillover prevention." },
+    ],
+  });
+
+  // P28 — Astrophysicist path. From stellar structure + fusion through
+  // HR diagram + stellar evolution (interactive viz), galaxies + dark
+  // matter, big-bang cosmology, black holes + GR, exoplanets +
+  // habitability, gravitational waves + multi-messenger, high-energy
+  // astrophysics, observational astronomy + instruments.
+  seedMasteryPath({
+    slug: "astrophysicist",
+    title: "Astrophysicist",
+    description:
+      "From stellar structure + nuclear fusion through the interactive Hertzsprung-Russell diagram + stellar evolution, galaxies + dark matter, big-bang cosmology + CMB + BBN, black holes + GR + the EHT, exoplanets + biosignatures, gravitational waves + GW170817 + multi-messenger, high-energy astrophysics + UHECRs, and observational astronomy + telescope tradeoffs. The astrophysics stack end-to-end.",
+    nodes: [
+      { slug: "stellar-structure-and-fusion", title: "Stellar Structure + Fusion", level: "apprentice", order: 1, pages: ["hydrostatic-equilibrium", "pp-cno-cycles", "virial-scalings"], prereqs: [], description: "Hydrostatic equilibrium + virial theorem, pp-chain vs CNO cycle, stellar-structure equations + Sun's lifetime." },
+      { slug: "hr-diagram-stellar-evolution", title: "HR Diagram + Stellar Evolution", level: "practitioner", order: 2, pages: ["hr-regions", "mass-luminosity-lifetime", "post-ms-tracks"], prereqs: ["stellar-structure-and-fusion"], description: "Interactive HR diagram viz, L-M-T scalings, post-MS evolution + endpoints (WD/NS/BH), globular-cluster turnoff." },
+      { slug: "galaxies-and-dark-matter", title: "Galaxies + Dark Matter", level: "practitioner", order: 3, pages: ["hubble-sequence", "rotation-curves", "lambda-cdm"], prereqs: ["stellar-structure-and-fusion"], description: "Hubble morphology, Rubin's rotation curves + DM evidence, ΛCDM + cosmic web + MOND tradeoffs." },
+      { slug: "cosmology-and-the-big-bang", title: "Cosmology + Big Bang", level: "specialist", order: 4, pages: ["hubble-law", "cmb-acoustic-peaks", "bbn-deuterium"], prereqs: ["galaxies-and-dark-matter"], description: "Hubble's law + age, CMB acoustic peaks + ΛCDM fits, BBN + D/H baryometer + lithium problem." },
+      { slug: "black-holes-and-general-relativity", title: "Black Holes + GR", level: "specialist", order: 5, pages: ["schwarzschild-radius", "eht-imaging", "kerr-spin"], prereqs: ["stellar-structure-and-fusion"], description: "Schwarzschild radius derivation, EHT image of M87* + Sgr A*, no-hair theorem + Kerr metric + tidal effects." },
+      { slug: "exoplanets-and-habitability", title: "Exoplanets + Habitability", level: "practitioner", order: 6, pages: ["detection-methods", "habitable-zone", "biosignatures-falsepositives"], prereqs: ["stellar-structure-and-fusion"], description: "RV/transit/imaging detection, habitable zone math, atmospheric biosignatures + O2 false positives on M-dwarfs." },
+      { slug: "gravitational-waves-and-multi-messenger", title: "Gravitational Waves + Multi-Messenger", level: "expert", order: 7, pages: ["chirp-mass", "ligo-interferometry", "gw170817"], prereqs: ["black-holes-and-general-relativity"], description: "Chirp mass + Peters-Mathews, LIGO interferometry + noise, GW170817 BNS merger + kilonova + r-process." },
+      { slug: "high-energy-astrophysics", title: "High-Energy Astrophysics", level: "expert", order: 8, pages: ["supernova-types", "agn-eddington", "uhecr-gzk"], prereqs: ["stellar-structure-and-fusion", "galaxies-and-dark-matter"], description: "SNe Ia vs core-collapse, AGN unification + Eddington luminosity, UHECRs + GZK cutoff + Auger." },
+      { slug: "observational-astronomy-and-instruments", title: "Observational Astronomy + Instruments", level: "expert", order: 9, pages: ["em-spectrum", "diffraction-interferometry", "ground-vs-space"], prereqs: ["high-energy-astrophysics"], description: "EM windows + multi-messenger, diffraction limit + VLBI, JWST/Rubin/HWO + ground-space tradeoffs." },
+    ],
+  });
+
+  // P27 — Geologist path. Earth science end-to-end: plate tectonics,
+  // minerals + rocks, structural geology (interactive Mohr's circle
+  // viz), sedimentary systems, earthquakes + seismology, volcanism,
+  // deep time + mass extinctions, economic geology + critical minerals.
+  seedMasteryPath({
+    slug: "geologist",
+    title: "Geologist",
+    description:
+      "From plate tectonics + the unifying theory of Earth through minerals + the rock cycle, structural geology with an interactive Mohr's-circle stress viz, sedimentary systems + facies, earthquake source mechanics + seismic waves, volcanism + magma evolution, deep time + radiometric dating + the Big Five extinctions, and economic geology + the critical-minerals stack (Li, Co, Ni, Cu, REE). The Earth-science stack end-to-end.",
+    nodes: [
+      { slug: "plate-tectonics", title: "Plate Tectonics", level: "apprentice", order: 1, pages: ["lithosphere-asthenosphere", "boundary-types", "hotspots-convection"], prereqs: [], description: "Lithosphere + asthenosphere, divergent + convergent + transform boundaries, hotspots + mantle convection, Wilson cycle." },
+      { slug: "minerals-and-rocks", title: "Minerals + the Rock Cycle", level: "apprentice", order: 2, pages: ["mineral-id", "igneous-classification", "metamorphic-facies"], prereqs: [], description: "Mineral identification + silicate classes, igneous TAS + Bowen's reaction series, sedimentary + metamorphic facies + the rock cycle." },
+      { slug: "structural-geology", title: "Structural Geology + Stress", level: "practitioner", order: 3, pages: ["stress-strain", "mohrs-circle", "folds-faults-coulomb"], prereqs: ["minerals-and-rocks"], description: "Stress + strain tensors, interactive Mohr's circle + Coulomb failure, folds + faults + Anderson's classification + reservoir geomechanics." },
+      { slug: "sedimentary-systems", title: "Sedimentary Systems + Facies", level: "practitioner", order: 4, pages: ["weathering-transport", "facies-walther", "sequence-stratigraphy"], prereqs: ["minerals-and-rocks"], description: "Weathering + Hjulström transport + sorting, depositional environments + Walther's law, sequence stratigraphy + petroleum systems." },
+      { slug: "earthquakes-and-seismology", title: "Earthquakes + Seismology", level: "specialist", order: 5, pages: ["elastic-rebound", "p-s-waves", "magnitude-hazard"], prereqs: ["structural-geology"], description: "Elastic-rebound theory + focal mechanisms, P/S/surface waves + travel-time + tomography, magnitude scales + hazard + early-warning." },
+      { slug: "volcanism-and-magma", title: "Volcanism + Magma", level: "practitioner", order: 6, pages: ["magma-genesis", "eruption-styles-vei", "monitoring-hazards"], prereqs: ["plate-tectonics", "minerals-and-rocks"], description: "Magma genesis + decompression melting, viscosity + volatile content + eruption styles + VEI, monitoring + Pinatubo + super-eruption risk." },
+      { slug: "earth-history-and-deep-time", title: "Deep Time + Earth History", level: "specialist", order: 7, pages: ["radiometric-dating", "geologic-time-scale", "big-five-extinctions"], prereqs: [], description: "Radiometric dating + half-life math, Hadean → Cenozoic narrative, the Big Five mass extinctions + the Anthropocene + Snowball Earth." },
+      { slug: "economic-geology-and-resources", title: "Economic Geology + Resources", level: "expert", order: 8, pages: ["ore-genesis", "critical-minerals", "energy-resources"], prereqs: ["plate-tectonics", "structural-geology"], description: "Porphyry + VMS + SEDEX + epithermal ore genesis, critical minerals (Li, Co, Ni, Cu, REE), petroleum systems + geothermal + CCS + the energy transition." },
+    ],
+  });
+
+  // P26 — Quant Trader path. Systematic trading: strategies,
+  // microstructure (uses OrderBook viz), signals + alpha,
+  // statistical arbitrage, trend + momentum, backtesting,
+  // execution algos, risk + portfolio management.
+  seedMasteryPath({
+    slug: "quant-trader",
+    title: "Quant Trader",
+    description:
+      "From systematic vs discretionary trading + strategy taxonomies through limit-order books + market impact (interactive OrderBook viz), alpha signals + the fundamental law of active management, statistical arbitrage + cointegration, trend + momentum + Almgren-Chriss execution, backtesting + López-de-Prado overfitting, RL execution + VaR + Kelly + LTCM. The systematic-trading stack end-to-end.",
+    nodes: [
+      { slug: "systematic-trading-overview", title: "Systematic Trading Overview", level: "apprentice", order: 1, pages: ["systematic-vs-discretionary", "strategy-taxonomy", "sharpe-firms"], prereqs: [], description: "Systematic vs discretionary, strategy families (trend/mean-revert/factor/HFT), Sharpe + capacity + firm structures." },
+      { slug: "market-microstructure-trading", title: "Market Microstructure (Trading)", level: "practitioner", order: 2, pages: ["lob-orders", "impact-tca", "hft-makers"], prereqs: [], description: "Limit order books + walk-the-book (interactive viz), market impact + square-root law, HFT + makers + dark pools." },
+      { slug: "signals-and-alpha", title: "Signals + Alpha", level: "practitioner", order: 3, pages: ["alpha-sources", "decay-combination", "alt-data-ml"], prereqs: [], description: "Alpha sources + IC/IR, signal decay + combination, alternative data + ML in trading + López-de-Prado." },
+      { slug: "statistical-arbitrage", title: "Statistical Arbitrage", level: "specialist", order: 4, pages: ["pairs-cointegration", "mean-reversion", "factor-regime"], prereqs: [], description: "Pairs trading + Engle-Granger cointegration, mean-reversion strategies, factor models + regime change (Aug 2007 quake)." },
+      { slug: "trend-and-momentum", title: "Trend + Momentum", level: "practitioner", order: 5, pages: ["trend-fundamentals", "ma-breakout", "modern-momentum"], prereqs: [], description: "Time-series + cross-sectional momentum, MA + breakout + vol scaling, crisis alpha (2008, 2022) + risk-parity." },
+      { slug: "backtesting-pitfalls", title: "Backtesting Pitfalls", level: "specialist", order: 6, pages: ["bias-types", "walk-forward-cv", "capacity-gap"], prereqs: [], description: "Survivorship + look-ahead + selection biases, walk-forward + López-de-Prado PBO + Deflated Sharpe, capacity + paper trading." },
+      { slug: "execution-algorithms", title: "Execution Algorithms", level: "specialist", order: 7, pages: ["twap-vwap-is", "sor-dark", "rl-modern"], prereqs: ["market-microstructure-trading"], description: "TWAP/VWAP/IS/POV algorithms, smart order routing + dark pools + IEX, Almgren-Chriss + RL execution (JPMorgan LOXM)." },
+      { slug: "risk-and-portfolio-management", title: "Risk + Portfolio Management", level: "expert", order: 8, pages: ["var-es", "kelly-sizing", "stress-ltcm"], prereqs: [], description: "VaR + Expected Shortfall, Kelly + position sizing + leverage, stress testing + liquidity + the LTCM lesson." },
+    ],
+  });
+
   // P25 — Healthcare ML Engineer path. EHR + coding, medical imaging
   // AI, clinical decision support (uses ROC viz), clinical NLP +
   // ambient scribes, predictive modeling, clinical genomics,

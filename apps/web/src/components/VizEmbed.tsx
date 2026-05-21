@@ -18,6 +18,25 @@ const CarnotCycle = lazy(() => import("../../../../packages/viz/src/components/C
 const BeamDeflection = lazy(() => import("../../../../packages/viz/src/components/BeamDeflection").then(m => ({ default: m.BeamDeflection })));
 const PKCurve = lazy(() => import("../../../../packages/viz/src/components/PKCurve").then(m => ({ default: m.PKCurve })));
 const ROCCurve = lazy(() => import("../../../../packages/viz/src/components/ROCCurve").then(m => ({ default: m.ROCCurve })));
+const OrderBook = lazy(() => import("../../../../packages/viz/src/components/OrderBook").then(m => ({ default: m.OrderBook })));
+const MohrsCircle = lazy(() => import("../../../../packages/viz/src/components/MohrsCircle").then(m => ({ default: m.MohrsCircle })));
+const HRDiagram = lazy(() => import("../../../../packages/viz/src/components/HRDiagram").then(m => ({ default: m.HRDiagram })));
+const SIRModel = lazy(() => import("../../../../packages/viz/src/components/SIRModel").then(m => ({ default: m.SIRModel })));
+const ReactorComparator = lazy(() => import("../../../../packages/viz/src/components/ReactorComparator").then(m => ({ default: m.ReactorComparator })));
+const PointKinetics = lazy(() => import("../../../../packages/viz/src/components/PointKinetics").then(m => ({ default: m.PointKinetics })));
+const OceanTSDiagram = lazy(() => import("../../../../packages/viz/src/components/OceanTSDiagram").then(m => ({ default: m.OceanTSDiagram })));
+const AtmosphericSounding = lazy(() => import("../../../../packages/viz/src/components/AtmosphericSounding").then(m => ({ default: m.AtmosphericSounding })));
+const ECGSimulator = lazy(() => import("../../../../packages/viz/src/components/ECGSimulator").then(m => ({ default: m.ECGSimulator })));
+const ShannonChannel = lazy(() => import("../../../../packages/viz/src/components/ShannonChannel").then(m => ({ default: m.ShannonChannel })));
+const GaussianBeam = lazy(() => import("../../../../packages/viz/src/components/GaussianBeam").then(m => ({ default: m.GaussianBeam })));
+const VowelFormantChart = lazy(() => import("../../../../packages/viz/src/components/VowelFormantChart").then(m => ({ default: m.VowelFormantChart })));
+const PhillipsCurve = lazy(() => import("../../../../packages/viz/src/components/PhillipsCurve").then(m => ({ default: m.PhillipsCurve })));
+const HillFunction = lazy(() => import("../../../../packages/viz/src/components/HillFunction").then(m => ({ default: m.HillFunction })));
+const DriftDiffusion = lazy(() => import("../../../../packages/viz/src/components/DriftDiffusion").then(m => ({ default: m.DriftDiffusion })));
+const MM1Queue = lazy(() => import("../../../../packages/viz/src/components/MM1Queue").then(m => ({ default: m.MM1Queue })));
+const LotkaVolterra = lazy(() => import("../../../../packages/viz/src/components/LotkaVolterra").then(m => ({ default: m.LotkaVolterra })));
+const RadiocarbonDecay = lazy(() => import("../../../../packages/viz/src/components/RadiocarbonDecay").then(m => ({ default: m.RadiocarbonDecay })));
+const AlignmentMatrix = lazy(() => import("../../../../packages/viz/src/components/AlignmentMatrix").then(m => ({ default: m.AlignmentMatrix })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -40,6 +59,25 @@ export const VIZ_NAMES = [
   "beam-deflection",
   "pk-curve",
   "roc-curve",
+  "order-book",
+  "mohrs-circle",
+  "hr-diagram",
+  "sir-model",
+  "reactor-comparator",
+  "point-kinetics",
+  "ocean-ts-diagram",
+  "atmospheric-sounding",
+  "ecg-simulator",
+  "shannon-channel",
+  "gaussian-beam",
+  "vowel-formant-chart",
+  "phillips-curve",
+  "hill-function",
+  "drift-diffusion",
+  "mm1-queue",
+  "lotka-volterra",
+  "radiocarbon-decay",
+  "alignment-matrix",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -60,6 +98,25 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "beam-deflection": BeamDeflection,
   "pk-curve": PKCurve,
   "roc-curve": ROCCurve,
+  "order-book": OrderBook,
+  "mohrs-circle": MohrsCircle,
+  "hr-diagram": HRDiagram,
+  "sir-model": SIRModel,
+  "reactor-comparator": ReactorComparator,
+  "point-kinetics": PointKinetics,
+  "ocean-ts-diagram": OceanTSDiagram,
+  "atmospheric-sounding": AtmosphericSounding,
+  "ecg-simulator": ECGSimulator,
+  "shannon-channel": ShannonChannel,
+  "gaussian-beam": GaussianBeam,
+  "vowel-formant-chart": VowelFormantChart,
+  "phillips-curve": PhillipsCurve,
+  "hill-function": HillFunction,
+  "drift-diffusion": DriftDiffusion,
+  "mm1-queue": MM1Queue,
+  "lotka-volterra": LotkaVolterra,
+  "radiocarbon-decay": RadiocarbonDecay,
+  "alignment-matrix": AlignmentMatrix,
 };
 
 interface VizEmbedProps {

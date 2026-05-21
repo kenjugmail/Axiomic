@@ -1,0 +1,194 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Distinguish cohort, case-control, cross-sectional, RCT.",
+      "Reason about appropriate effect measures per design.",
+      "Identify confounding + bias in published studies."
+    ],
+    "prereqs": [
+      "epidemiology-foundations"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Observational study designs",
+      "body": "Three main observational designs:\n\n• **Cohort study**: define a population of exposed + unexposed; follow them forward in time; observe outcomes. Computes **incidence + relative risk** directly. Strength: clear temporal order (exposure before outcome). Weakness: expensive, long follow-up; rare outcomes need huge samples (Nurses' Health Study: 280,000 women, 40+ years).\n\n• **Case-control study**: identify cases (have the disease) + controls (don't); look backward at exposure status. Computes **odds ratio** (approximates RR for rare diseases). Strength: efficient for rare diseases (lung cancer, rare cancers). Weakness: recall bias (cases recall exposures differently), selection bias (control selection is hard).\n\n• **Cross-sectional**: measure exposure + outcome at the same point in time in a population sample. Computes **prevalence + prevalence ratio**. Strength: cheap, fast. Weakness: cannot establish temporal order — does exposure cause disease, or vice versa?\n\nCohort + case-control are the workhorses for chronic-disease etiology; RCTs are the gold standard for intervention efficacy."
+    },
+    {
+      "kind": "text",
+      "title": "Randomized controlled trials (RCTs)",
+      "body": "**RCT**: investigator randomly assigns participants to treatment vs control; follows for outcome. Random allocation breaks the link between exposure + confounders — so observed differences in outcome (within statistical bounds) can be causally attributed to the intervention.\n\nElements of a well-designed RCT:\n• **Eligibility criteria** define the population.\n• **Randomization** ensures balance on measured + unmeasured confounders (in expectation).\n• **Blinding** of participants (single-blind), of investigators (double-blind), of outcome assessors (triple-blind) — prevents differential treatment + outcome ascertainment.\n• **Allocation concealment** prevents the randomization being subverted (sealed envelopes; centralized randomization).\n• **Intention-to-treat (ITT) analysis**: analyze participants as randomized, not as treated. Preserves the randomization's protection against confounding.\n• **Pre-registration** (ClinicalTrials.gov, AEA registry) reduces publication bias + selective reporting.\n\nVariants: **placebo-controlled** (vs no treatment), **active-controlled** (vs current standard), **cluster RCT** (randomize groups not individuals — schools, clinics). **Crossover** (participant is own control over time). **Adaptive** (interim analyses can adjust arms — see RECOVERY).\n\nWhen feasible + ethical, RCTs trump observational studies for *intervention* questions. They cannot answer *etiology* questions ('what causes disease' rather than 'what cures it') because exposing people to potential harms is unethical."
+    },
+    {
+      "kind": "text",
+      "title": "Confounding, bias, the directed-acyclic-graph approach",
+      "body": "**Confounding**: a third variable Z affects both the exposure X + the outcome Y, biasing the apparent X→Y association. Classic example: alcohol use predicts lung cancer (a confounded association because smoking causes both).\n\n**Adjustment methods**:\n• **Stratification**: split analysis by Z levels; pool with Mantel-Haenszel. Limited to a few Zs.\n• **Multivariable regression**: include Z as covariate in a model relating X to Y.\n• **Propensity scores**: estimate P(X=1|Z), then match / weight / stratify on it.\n• **Inverse probability weighting**: weight observations to balance Z distribution across X levels.\n\n**Other biases**:\n• **Selection bias**: who enters the study isn't representative of target population.\n• **Information / measurement bias**: outcome / exposure mismeasured, possibly differentially.\n• **Recall bias** (case-control): cases recall exposures more than controls.\n• **Immortal-time bias**: time when subjects couldn't have had the event is misclassified.\n• **Lead-time bias** (screening studies): apparent survival improvement just from earlier diagnosis, not from treatment.\n\n**Directed acyclic graphs (DAGs)**: visual notation for causal models. Identifies confounders to adjust for + 'colliders' NOT to adjust for. Greenland-Pearl-Robins framework is the modern epi standard for thinking through causal identification."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_study_design_1",
+        "kind": "guided_derivation",
+        "question": "Identify the study design + bias risks for a proposed COVID-19 vaccine effectiveness analysis",
+        "goal": "You have EHR data on 1 million adults. About 750K received an mRNA vaccine; 250K didn't. You compare COVID-19 hospitalization rates over 12 months. What design is this? What's at risk?",
+        "steps": [
+          {
+            "prompt": "What's the study design here?",
+            "motivation": "Compare cohort vs case-control vs RCT.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "retrospective cohort",
+                "observational cohort",
+                "cohort"
+              ]
+            },
+            "hints": [
+              "You're following people forward in time; exposure (vaccination) was not randomized."
+            ],
+            "reveal": "Retrospective (observational) cohort. Exposure status determined first; outcome followed. Not an RCT (no randomization)."
+          },
+          {
+            "prompt": "What's the primary measure you'd compute?",
+            "motivation": "Compare incidences across exposure groups.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "relative risk",
+                "RR",
+                "risk ratio",
+                "hazard ratio"
+              ]
+            },
+            "hints": [
+              "RR = P(hosp | vax) / P(hosp | unvax). Or hazard ratio if you use time-to-event."
+            ],
+            "reveal": "Relative risk (RR) or hazard ratio (HR). For binary 1-year outcomes, RR or odds ratio; for time-varying risk with censoring, HR from Cox regression."
+          },
+          {
+            "prompt": "What's the biggest confounder threat?",
+            "motivation": "Think about what differs between vaccinated + unvaccinated.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "healthy vaccinee",
+                "healthy-vaccinee effect",
+                "selection bias",
+                "indication"
+              ]
+            },
+            "hints": [
+              "Are the people who chose to get vaccinated similar to those who didn't?"
+            ],
+            "reveal": "**Healthy-vaccinee bias**: vaccinated people tend to be healthier overall (more likely to seek preventive care, have insurance, comply with recommendations, etc.). They may also be more careful (mask use, distancing). Both bias the comparison toward apparent vaccine effectiveness — even if vaccine had zero effect, vaccinated people might be hospitalized less often for COVID + other reasons."
+          },
+          {
+            "prompt": "How would you mitigate it with available techniques?",
+            "motivation": "Apply standard epi tools.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "propensity score",
+                "matching",
+                "adjust covariates",
+                "IPW",
+                "negative control"
+              ]
+            },
+            "hints": [
+              "Standardize on baseline characteristics; use a negative-control outcome."
+            ],
+            "reveal": "Multiple tools: (1) **Propensity score** matching on age, sex, comorbidities, healthcare utilization. (2) **Multivariable regression** adjusting for measured confounders. (3) **Negative control outcomes**: e.g., car-accident hospitalization rates. If vaccinated people also have lower car-accident risk, you have healthy-vaccinee bias. (4) **Negative control exposures**: e.g., compare to flu-vaccine recipients (similar 'healthy vaccinee' but no COVID protection from flu shot). (5) **Self-controlled case series**: each person their own control across time periods — sidesteps fixed confounders."
+          },
+          {
+            "prompt": "Would an RCT have these problems?",
+            "motivation": "Compare to gold standard.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "no, randomization balances",
+                "randomization",
+                "RCT avoids confounding",
+                "no"
+              ]
+            },
+            "hints": [
+              "Random assignment breaks the confound."
+            ],
+            "reveal": "No — random assignment balances measured + unmeasured confounders in expectation. The original Pfizer + Moderna RCTs (40K + 30K participants) showed ~95% efficacy against symptomatic disease. Real-world observational studies must work harder to estimate effectiveness because they can't randomize — but their large samples + diverse populations give complementary information."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_study_design_1",
+        "kind": "multiple_choice",
+        "question": "Why is the Women's Health Initiative (WHI) finding that hormone replacement therapy *increases* cardiovascular risk such a famous epidemiology case study?",
+        "options": [
+          "It demonstrated that observational studies are always wrong.",
+          "Observational cohort studies had found HRT *decreased* CV risk; the RCT (WHI) found the opposite. The discrepancy was driven by 'healthy-user bias' (women who took HRT were healthier on average) + 'compliance bias' (women who took HRT regularly were more health-conscious). The RCT's randomization broke these confounds; the observational studies couldn't.",
+          "WHI used the wrong dose of HRT.",
+          "Cardiovascular outcomes are inherently unmeasurable."
+        ],
+        "correctIndex": 1,
+        "explanation": "1990s observational studies (Nurses' Health Study + others) found HRT users had ~30-50% *lower* coronary heart disease rates than non-users. Conclusion at the time: HRT prevents CHD.\n\nWHI (1991-2005, 161,808 women, RCT) found the opposite: HRT *increased* CHD risk by ~29% in the first year. The discrepancy stunned the field + transformed clinical practice.\n\nThe explanation: HRT users in observational studies were a self-selected, healthier, higher-SES, more-health-conscious cohort. The confounders extended beyond what investigators measured — even with extensive adjustment, the observational comparison was biased.\n\nKey lesson: when feasible, RCTs win. For nutrition, lifestyle, hormones — where most evidence is observational — be cautious about effect estimates. Methods like Mendelian randomization, instrumental variables, target-trial emulation try to close the gap, but RCT is the gold standard for intervention questions."
+      },
+      "hints": [
+        "What did observational vs RCT studies say?",
+        "Why did they differ?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Observational cohort studies of HRT: ~30-50% lower CHD risk. WHI RCT: ~29% higher CHD risk in first year. Discrepancy explained by healthy-user bias (HRT users healthier) + compliance bias (regular users more health-conscious). Randomization breaks these confounds. WHI overturned 20 yr of cardiovascular practice. Modern epi cites this as the canonical 'why RCTs matter' case."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_study_design_2",
+        "kind": "multiple_choice",
+        "question": "A case-control study comparing patients with lung cancer to controls finds smokers have OR = 15 for lung cancer. Should we worry about confounding more than in a cohort study of smokers vs non-smokers?",
+        "options": [
+          "No, case-control studies are immune to confounding.",
+          "Both designs are vulnerable to confounding — the design difference is mostly about efficiency (case-control is faster for rare outcomes) + bias source (case-control is more vulnerable to recall + selection bias of controls; cohort to loss-to-follow-up + differential measurement). Confounders like alcohol, occupation, or income still bias both.",
+          "Cohort studies cannot have confounders.",
+          "Confounding only applies to RCTs."
+        ],
+        "correctIndex": 1,
+        "explanation": "Confounding affects any non-randomized study — both cohort + case-control. The design choice doesn't eliminate confounding; it changes which biases are most threatening.\n\n**Case-control vulnerabilities**:\n- *Recall bias*: cancer patients (cases) recall exposures (smoking history) more carefully than controls.\n- *Control selection bias*: if controls aren't representative of the population that gave rise to cases, OR is biased.\n\n**Cohort vulnerabilities**:\n- *Loss to follow-up*: differential by exposure (smokers may drop out at higher rates).\n- *Outcome measurement*: differential by exposure (smokers might be screened more).\n\nBoth need adjustment for measured confounders + interpretation through DAG-aware causal reasoning. Modern epi treats both designs as causal-inference problems requiring assumptions; the design choice is mostly about feasibility + efficiency, not validity."
+      },
+      "hints": [
+        "Does either design randomize?",
+        "What biases threaten each?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Both observational designs face confounding because neither randomizes. The relative threat of confounding is the same in expectation — the design difference is in efficiency (case-control efficient for rare outcomes), feasibility (cohort needs long follow-up), + bias type (case-control: recall + control selection; cohort: loss-to-follow-up + exposure-dependent measurement). Modern causal-inference framework treats both as requiring assumptions that should be made explicit (e.g., DAGs)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_study_design_1",
+        "kind": "math_expression",
+        "question": "A case-control study has 200 cases + 200 controls. Among cases, 160 are exposed; among controls, 80 are exposed. What's the odds ratio?",
+        "acceptedAnswers": [
+          "6",
+          "6.0",
+          "(160*120)/(40*80)"
+        ],
+        "hint": "OR = (a×d)/(b×c) where a=exposed cases, b=unexposed cases, c=exposed controls, d=unexposed controls."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_study_design_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why an RCT is the 'gold standard' for testing whether an intervention works — and what RCTs *cannot* answer.",
+        "rubric": "Mentions: random allocation breaks confounding between exposure + outcome; balance on measured AND unmeasured confounders in expectation; blinding prevents differential measurement; ITT preserves randomization. What RCTs cannot answer: (a) etiologic / causal-of-harm questions (unethical to randomize people to a harmful exposure); (b) very long-term outcomes (follow-up cost); (c) rare outcomes (sample size); (d) effect heterogeneity across subgroups (often underpowered); (e) external validity (selected population may not generalize). Note that observational designs + emulated target trials + Mendelian randomization fill gaps where RCT is infeasible. Concludes that hierarchy is design + question dependent; RCTs are top of evidence pyramid for *intervention efficacy* specifically."
+      }
+    }
+  ]
+}

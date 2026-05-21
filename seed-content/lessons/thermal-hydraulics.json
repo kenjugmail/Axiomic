@@ -1,0 +1,171 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Compute heat removal in a fuel pin.",
+      "Distinguish boiling regimes + DNB.",
+      "Reason about loss-of-coolant accidents (LOCA)."
+    ],
+    "prereqs": [
+      "fission-fundamentals",
+      "neutron-transport-and-criticality"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Heat generation + removal in a reactor",
+      "body": "Fission energy distribution per ~200 MeV:\n• Kinetic energy of fragments: ~165 MeV (95%, deposited locally as heat)\n• Prompt + delayed neutrons: ~5 MeV (deposited within ~10 cm)\n• Prompt + delayed γ: ~20 MeV (some leakage to coolant)\n• Neutrinos: ~10 MeV (escape unused)\n\n~95% of fission energy heats the fuel pin directly. Must be conducted to the cladding then convected to coolant.\n\n**Typical PWR core**:\n• 50,000-60,000 fuel pins, each ~1 cm OD × ~4 m long\n• Pin power: ~50-100 kW thermal each at peak\n• Linear power: ~17-25 kW/m\n• Core power density: ~100 MW/m³ (vs ~0.1 MW/m³ for coal-fired furnace)\n• Coolant: water at ~155 bar + ~315 °C inlet → ~325 °C outlet\n\nHeat transport chain: fuel UO₂ pellet (~1500 °C centerline) → zircaloy cladding (~350 °C outer surface) → water (~325 °C) → steam generator → secondary loop → turbine → cooling tower / sea.\n\nThermal efficiency: ~33% (limited by Carnot at ~580 K from ~325 °C primary). Gen IV designs aim for higher T (sodium-cooled fast reactors ~500 °C, MSR ~700 °C, very-high-temperature gas reactor ~900 °C) for higher efficiency + hydrogen production."
+    },
+    {
+      "kind": "text",
+      "title": "Boiling regimes + departure from nucleate boiling (DNB)",
+      "body": "Pool boiling curve (Nukiyama 1934) — heat flux q'' vs surface superheat ΔT_sat:\n\n• **Free convection** (low ΔT): laminar/turbulent natural convection; modest h.\n• **Nucleate boiling** (ΔT ~ 5-30 K): bubbles nucleate at surface + carry away heat efficiently. Highest practical h (~10⁴-10⁵ W/m²·K). PWRs operate here in some hot channels; BWRs operate intentionally in nucleate boiling.\n• **Critical heat flux (CHF)** / **Departure from nucleate boiling (DNB)**: at ΔT ~ 30 K + q'' ~ 1-3 MW/m². Above CHF, bubbles coalesce into a vapor film blanketing the surface → h drops 100× → surface temp jumps to ~1000 °C → fuel damage.\n• **Transition boiling** (ΔT 30-100+ K): unstable region; q'' actually decreases as ΔT increases. Avoided.\n• **Film boiling** (very high ΔT): stable vapor film; low h.\n\n**Departure from nucleate boiling ratio (DNBR)** = q''_CHF / q''_local. PWR design limit: DNBR > 1.3 in all hot channels (regulatory; W-3 correlation, NRC SAFER methodology). If exceeded → cladding heatup → potential failure.\n\n**Avoidance**: keep heat flux below CHF with margin; maintain coolant flow + pressure; trip reactor if any safety limit approached.\n\n**Reactivity-power coupling**: nuclear power varies with reactivity, but heat removal capacity is bounded. A reactivity excursion that briefly raises power can push some channels over CHF — fuel failure ensues. This is why limits + alarms are tight + protection systems redundant."
+    },
+    {
+      "kind": "text",
+      "title": "Loss-of-coolant accident (LOCA) sequences",
+      "body": "A **LOCA** = inadvertent loss of reactor coolant from primary system. Classified by break size:\n• **Large-break LOCA (LB-LOCA)**: pipe rupture, ≥10% of pipe area. Pressure drops in seconds → flash boiling → core uncovers in minutes.\n• **Small-break LOCA (SB-LOCA)**: smaller leak, gradual.\n\n**Three Mile Island 1979** sequence (a small-break LOCA exacerbated by operator confusion):\n1. Pressurizer relief valve stuck open after a transient → coolant leak.\n2. Inadequate indication: operators saw 'closed' on PORV despite actually open.\n3. Operators throttled emergency core cooling (HPSI) because of pressurizer misread.\n4. Core uncovered, partial melt.\n5. Hydrogen produced from Zr-water reaction; collected in containment.\n6. No major radiological release (containment held).\n\n**Lessons**:\n- Indication of valve actual position, not just command\n- Operator training + simulators (industry-wide post-TMI)\n- Containment robustness validated\n- Symptom-based emergency procedures (not event-based)\n- Independent Nuclear Regulatory Commission (created from AEC)\n\n**Modern LOCA defense**:\n1. Multiple ECCS injection paths: high-pressure, low-pressure, accumulators\n2. Diverse + redundant pumps\n3. Containment cooling (sprays, fan coolers)\n4. Hydrogen recombiners (avoid H₂ explosion like Fukushima)\n5. Independent backup power (diesels, batteries, station-blackout-rated)\n6. Passive heat sinks (Gen III+): gravity-driven water + air cooling\n\nLOCA + station blackout drive most of the design margin in modern reactors. Probabilistic risk assessment (PRA) quantifies frequency × consequence; modern designs achieve core-damage-frequency < 10⁻⁵/yr — comparable to large-airplane crash."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_th_1",
+        "kind": "guided_derivation",
+        "question": "Compute peak fuel temperature in a PWR pin",
+        "goal": "PWR fuel pin: linear power q' = 25 kW/m. UO₂ pellet radius r_p = 0.4 cm. Zircaloy cladding 0.1 cm thick. Cladding outer T = 350 °C. Estimate fuel centerline temperature. Use k_UO₂ ≈ 3 W/m·K, k_Zr ≈ 18 W/m·K.",
+        "steps": [
+          {
+            "prompt": "Heat flux at cladding outer surface (W/m²)?",
+            "motivation": "q' divided by perimeter.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~7.9e5 W/m²",
+                "790000 W/m²",
+                "25000 / (2π × 0.005)"
+              ]
+            },
+            "hints": [
+              "q'' = q' / (2π r_clad_outer). r_clad_outer = 0.4 + 0.1 = 0.5 cm."
+            ],
+            "reveal": "q'' = 25000 / (2π × 0.005) = 25000 / 0.0314 = 7.96×10⁵ W/m². About 0.8 MW/m² — well below CHF (~3 MW/m²)."
+          },
+          {
+            "prompt": "ΔT across cladding (assume linear, 1D radial)?",
+            "motivation": "Fourier in cylindrical geometry simplified.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~7 K",
+                "7-8 K"
+              ]
+            },
+            "hints": [
+              "ΔT_clad = q'' × Δr/k. q'' average ~ q''_outer; Δr = 0.001 m, k = 18."
+            ],
+            "reveal": "Δr/k = 0.001/18 ≈ 5.6×10⁻⁵. ΔT ≈ q'' × (Δr/k) ≈ 7.96×10⁵ × 5.6×10⁻⁵ ≈ 44 K. With proper cylindrical correction for q' = const linear power: ΔT_clad ≈ q'/(2π k_clad) × ln(r_co/r_ci) ≈ 25000/(2π×18) × ln(0.5/0.4) ≈ 221 × 0.223 ≈ 49 K. Cladding inner T ≈ 350 + 49 = 399 °C."
+          },
+          {
+            "prompt": "ΔT across pellet (centerline to surface)?",
+            "motivation": "Solid cylinder with uniform heat gen.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~660 K",
+                "660-700 K"
+              ]
+            },
+            "hints": [
+              "Solid cylinder with uniform q''': ΔT = q'/(4π k_fuel) gives centerline to surface (independent of radius!)."
+            ],
+            "reveal": "ΔT_pellet = q' / (4π k_fuel) = 25000 / (4π × 3) = 25000 / 37.7 ≈ 663 K. Pellet surface ~ cladding inner T (with small gap conductance) ≈ 400 °C. So centerline T ≈ 400 + 663 = 1063 °C."
+          },
+          {
+            "prompt": "Add fuel-cladding gap (h_gap ~ 5000 W/m²·K) — ΔT_gap?",
+            "motivation": "Convective barrier at gap.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~150-200 K",
+                "180 K"
+              ]
+            },
+            "hints": [
+              "ΔT_gap = q''_pellet / h_gap. q''_pellet = q' / (2π r_p) = 25000 / (2π × 0.004) = 9.95×10⁵ W/m²."
+            ],
+            "reveal": "q''_pellet = 25000 / (2π × 0.004) ≈ 1.0×10⁶ W/m². ΔT_gap = 1.0×10⁶ / 5000 = 200 K. Total: centerline T ≈ 400 + 200 + 663 ≈ 1263 °C. Realistic PWR centerline temps: ~1200-1500 °C at peak power. Far from UO₂ melting point (2865 °C) — safety margin."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_th_1",
+        "kind": "multiple_choice",
+        "question": "Why is Departure from Nucleate Boiling (DNB) so dangerous in a PWR core, even though boiling produces excellent heat transfer in the nucleate regime?",
+        "options": [
+          "DNB is harmless.",
+          "At CHF, vapor coalesces into a stable film that insulates the surface from the bulk fluid. Heat transfer coefficient h drops ~100× → q'' is unchanged → ΔT must jump ~100× to maintain heat removal → cladding T spikes from ~350 °C to ~1000+ °C in milliseconds. Zr-cladding rapidly oxidizes + fails; fuel exposed; runaway cladding failure cascade. Modern PWRs must maintain DNBR > 1.3 in all hot channels under all transients.",
+          "Boiling reduces efficiency.",
+          "DNB only happens in BWRs."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Nucleate boiling**: bubbles nucleate at surface, detach + transport heat via latent heat + agitation. h ~ 10⁵ W/m²·K at q'' ~ 1 MW/m².\n\n**Critical Heat Flux (CHF)**: the maximum q'' that nucleate boiling can sustain. PWR water at ~155 bar + ~325 °C: CHF ~ 3-5 MW/m². Beyond this, bubble production exceeds bubble removal → bubbles merge into a vapor film.\n\n**Film boiling**: stable vapor blanket between surface + bulk fluid. h drops to ~10³ W/m²·K (vapor's poor conductivity). At fixed q'' (set by nuclear heat generation), ΔT must rise ~100× to maintain heat balance.\n\n**Consequence for cladding**:\n- T jumps from ~350 °C to ~1000+ °C in seconds.\n- Zircaloy + steam reaction: Zr + 2H₂O → ZrO₂ + 2H₂ + heat. Auto-catalytic above ~1200 °C.\n- Cladding oxidation + embrittlement.\n- Cladding rupture → fuel exposed to coolant.\n- Once one pin fails, neighbors may fail in cascade.\n\n**Why DNBR > 1.3 in design**: provides margin against measurement uncertainty + transient deviations. If actual CHF / actual flux = 1.3, we're operating 23% below CHF — enough buffer.\n\n**BWR vs PWR**: BWR intentionally operates in nucleate boiling along most of the channel; design accounts for it. PWR is subcooled (T_bulk < T_sat) in most of core; only some hot channels reach saturation in normal operation. Both must avoid CHF.\n\n**Detection + protection**: in-core thermocouples + flow sensors monitor margins; if DNBR approaches limit, automatic protection reduces power or scrams. Real PWRs operate at DNBR ~1.5-2.0 typically; closer to 1.3 in transient.\n\n**Fukushima**: post-shutdown decay heat couldn't escape via normal flow → core boiled dry → CHF + DNB → cladding fails → Zr-steam reaction → H₂ accumulation → H₂ explosion. Classic DNB-induced cascade."
+      },
+      "hints": [
+        "What happens to h above CHF?",
+        "What does that do to cladding T?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "At CHF, vapor coalesces into film blanketing surface. h drops ~100×; with q'' unchanged, ΔT spikes 100×. Cladding T jumps 350°C → 1000+°C in seconds. Zr-steam reaction + cladding rupture + fuel exposed. Design must maintain DNBR > 1.3. Fukushima sequence: decay heat → boiling → CHF → cladding failure → H₂ generation → explosion."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_th_2",
+        "kind": "multiple_choice",
+        "question": "Why did Fukushima Daiichi suffer multiple core melts despite multiple ECCS systems?",
+        "options": [
+          "Operators failed to push the right buttons.",
+          "All ECCS systems shared a common dependency: AC power. The tsunami flooded the diesel generator rooms (below seawall design level), disabling all AC sources simultaneously — a common-mode failure. With no AC, no ECCS pumps; with no pumps, no decay-heat removal; with no decay-heat removal, core uncovered in ~5 hr → fuel melt + H₂ generation + ultimately containment breach. Post-Fukushima FLEX (Diverse + Flexible Coping Strategies) added portable equipment + non-AC water sources to prevent common-mode failures.",
+          "ECCS doesn't actually work.",
+          "The plant was sabotaged."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Fukushima Daiichi sequence (Mar 11-15, 2011)**:\n\n1. **9.1-magnitude earthquake** (14:46 JST). Reactors automatically scrammed. Offsite power lost (transformer + line damage).\n2. **Emergency diesel generators (EDG) started** (~30 sec). 13 EDGs across 6 units, designed for 7-day operation. Decay-heat removal continued.\n3. **Tsunami arrives** (15:36-15:37). Wave height 13-15 m vs design 6 m + seawall 10 m. Flooded turbine buildings + EDG rooms + switchgear.\n4. **All EDGs lost** within 4 min of tsunami. Battery-powered systems gave 4-8 hr depending on unit.\n5. **Loss of ECCS** in Units 1, 2, 4 within hours; Unit 3 isolation cooling lasted ~36 hr.\n6. **Core uncover + melt**: Unit 1 ~5 hr post-tsunami; Units 2, 3 within 24-72 hr.\n7. **Hydrogen explosions** (Units 1, 3, 4 reactor buildings) Mar 12-15. H₂ from Zr-steam reaction migrated to reactor building tops; ignited at unknown source.\n8. **Containment breaches** released radioactive material (mostly Cs-137, I-131) to atmosphere + ocean.\n\n**Common-mode failure**: tsunami simultaneously disabled all backup power. ECCS redundancy assumed independent component failures; common-mode (single external event hitting all) bypassed redundancy.\n\n**Post-Fukushima lessons** (US FLEX program, EU stress tests, Japan reactors):\n- Portable equipment (mobile diesel, pumps, batteries) staged off-site + elevated.\n- Alternative water sources (firefighting connections, fresh tank, seawater).\n- Hardened venting paths to relieve containment pressure controllably.\n- Hydrogen mitigation: passive recombiners in containment + reactor building.\n- Long-term station-blackout coping: ≥72 hr without any AC or operator action.\n- Re-evaluation of external-hazard envelopes: seismic + flood + wind reassessed using newer data.\n- Spent-fuel pool elevation + cooling redundancy.\n\n**Gen III+ designs** (AP1000, ESBWR, etc.) inherently address Fukushima-class events: gravity-driven cooling, passive containment cooling, ≥72 hr fully passive. Gen IV designs aim for **indefinite** passive cooling — physically impossible to melt regardless of any failure.\n\nThe lesson: defense in depth requires *diverse* + *independent* layers, not just redundant ones. Common-mode failures undermine redundancy; only diversity defeats common-mode."
+      },
+      "hints": [
+        "What did all ECCS systems share?",
+        "What's a common-mode failure?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "All ECCS depended on AC power. Tsunami flooded EDG rooms → all AC lost simultaneously → ECCS pumps disabled → decay heat couldn't be removed → core uncovered + melted → H₂ generation → explosions. Common-mode failure defeated redundancy. Post-Fukushima FLEX: portable equipment, alternative water sources, hardened venting, hydrogen recombiners, ≥72 hr station-blackout coping, diversity not just redundancy. Gen III+ designs build in 72 hr passive cooling."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_th_1",
+        "kind": "math_expression",
+        "question": "PWR coolant flows at 18,000 kg/s with c_p = 5.2 kJ/kg·K. Inlet T = 290 °C; outlet T = 325 °C. What's the core thermal power in MW?",
+        "acceptedAnswers": [
+          "3276 MW",
+          "3280",
+          "3276"
+        ],
+        "hint": "Q̇ = ṁ c_p ΔT = 18000 × 5200 × 35."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_th_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why decay heat — only ~1% of operating power after a day — drove the Fukushima core melts despite multiple safety systems.",
+        "rubric": "Mentions: decay heat scales with reactor power (Fukushima Unit 1: 1380 MW thermal → 6-8 MW decay heat after 1 day). Without cooling, this heat goes into the water (heats + boils it), then into fuel (heats it past melting). Timescale: 5-10 hr from uncovered core to melt. ECCS designed to remove this heat — but all ECCS shared dependency on AC power. Tsunami knocked out all AC → common-mode failure → ECCS unavailable. Once cooling lost, even small decay heat (~0.5-1% of nominal) is enough to melt fuel within hours. Lesson: defense in depth needs diversity (different power sources, different physics) not just redundancy (multiple copies). Modern Gen III+ designs use gravity, natural circulation, + passive heat sinks for ≥72 hr without any AC, breaking the common-mode failure mode that defeated Fukushima."
+      }
+    }
+  ]
+}

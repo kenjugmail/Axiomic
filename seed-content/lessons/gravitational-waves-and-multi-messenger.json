@@ -1,0 +1,165 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Connect chirp signals to compact binary inspiral.",
+      "Explain how LIGO interferometers measure strain.",
+      "Reason about multi-messenger astrophysics + GW170817."
+    ],
+    "prereqs": [
+      "black-holes-and-general-relativity"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Gravitational waves: ripples in spacetime",
+      "body": "**Gravitational waves** are propagating perturbations of spacetime metric, predicted by GR (Einstein 1916). Any accelerating mass with a time-varying *quadrupole moment* radiates GWs. The lowest-order radiation is **quadrupole** (no dipole — momentum conservation kills it).\n\nGW amplitude is characterized by the dimensionless **strain** h = ΔL/L — the fractional change in length between two test masses. For compact binary inspirals at cosmological distances, h ~ 10⁻²¹ at peak — so for a 4-km interferometer arm, ΔL ~ 4×10⁻¹⁸ m (~1/1000 of a proton's radius).\n\nGWs carry energy; for a binary inspiral the rate is dE/dt = (32/5) c⁵/G · (G M_chirp / c³)^(10/3) ω^(10/3) — Peters-Mathews 1963 formula. Energy loss drives the binary's separation to shrink, frequency to chirp upward → characteristic 'chirp' waveform.\n\n**First indirect detection**: Hulse-Taylor binary pulsar (1974-onwards) — orbit shrinks at exactly the rate predicted by GW emission (1993 Nobel).\n\n**First direct detection**: LIGO's GW150914 (14 Sep 2015, announced Feb 2016): a merger of 36 + 29 M☉ BHs into a 62 M☉ BH at z = 0.09, releasing 3 M☉ × c² of GW energy in ~0.2 s. 2017 Nobel to Weiss + Barish + Thorne."
+    },
+    {
+      "kind": "text",
+      "title": "How LIGO works",
+      "body": "**LIGO** = Laser Interferometer GW Observatory. Two L-shaped 4-km interferometers (Hanford WA, Livingston LA) — separation enables coincidence + sky localization. **Virgo** (Italy, 3 km) added in 2017; **KAGRA** (Japan, 3 km, underground, cryogenic) joined recently.\n\nA passing GW *differentially* stretches one arm + compresses the other. A laser beam split between the arms recombines with a phase shift proportional to ΔL_x − ΔL_y. Output at the dark fringe ⇒ photon counts ∝ h².\n\nNoise floor: (1) **seismic** (<10 Hz, suspension + isolation), (2) **thermal** (mirrors + suspension, cryogenic + low-loss materials), (3) **quantum shot noise** (>200 Hz, squeezed light reduces it). Effective sensitivity: 10⁻²³ strain near peak sensitivity (~100 Hz).\n\n**Range**: Advanced LIGO detects BBH mergers (30 M☉ + 30 M☉) out to ~3 Gpc — a substantial fraction of the observable universe. BNS mergers (~1.4 + 1.4 M☉) out to ~150 Mpc.\n\nDetected events (through 2026): ~200+ compact-binary mergers, dominantly BBHs, with a handful of NS-BH and BNS systems. Population statistics now constrain BH mass distributions, formation channels, spin correlations."
+    },
+    {
+      "kind": "text",
+      "title": "GW170817 + multi-messenger astrophysics",
+      "body": "**GW170817** (17 Aug 2017): LIGO + Virgo detected the first **binary-neutron-star (BNS) merger** at 40 Mpc. The chirp lasted ~100 s in band; total masses ~1.17 + 1.6 M☉.\n\n1.7 seconds after merger: Fermi + INTEGRAL γ-ray satellites detected a short gamma-ray burst (GRB 170817A) in the same sky region. Hours later: optical, infrared, UV, X-ray, radio counterparts identified in galaxy NGC 4993. The **kilonova** AT2017gfo had distinctive spectral signatures of **r-process nucleosynthesis** — confirming that NS mergers are a (perhaps *the*) site of heavy-element (Au, Pt, U, lanthanides) production in the universe.\n\nScientific harvest from a single event:\n• First direct evidence of GWs from a BNS merger.\n• First simultaneous detection of GWs + EM radiation.\n• Constrained the speed of GWs to within 1 part in 10¹⁵ of c (= speed of light).\n• Ruled out many modified-gravity theories that predicted v_GW ≠ c.\n• Confirmed BNS mergers produce short GRBs.\n• Confirmed r-process nucleosynthesis: NS mergers produce ~0.05 M☉ of heavy elements per event.\n• Independent measure of Hubble constant via 'standard sirens' (distance from GW amplitude + host redshift): H_0 ≈ 70 km/s/Mpc — could resolve Hubble tension with more events.\n\nNo BNS merger has been clearly detected since (despite higher LIGO sensitivity), making GW170817 a unicorn event — but the playbook is set."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_gravitational_waves_and_multi_messenger_1",
+        "kind": "guided_derivation",
+        "question": "Derive the chirp mass from inspiral waveform",
+        "goal": "GR predicts the GW frequency f and its time derivative df/dt for a binary inspiral. They combine into a single quantity — the **chirp mass M_c** — that fully determines the leading-order waveform.",
+        "steps": [
+          {
+            "prompt": "Quadrupole formula gives dE/dt ∝ −M² ω^(10/3) × (function of mass ratio). Combining with Kepler (ω² R³ = G M_tot) + binding energy E ∝ −M²/R: the chirp rate is df/dt = (96/5)·π^(8/3)·(G M_c / c³)^(5/3) · f^(11/3). What's the chirp mass M_c in terms of the component masses m_1, m_2?",
+            "motivation": "This is a standard symmetric combination.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "M_c = (m_1 m_2)^(3/5) / (m_1 + m_2)^(1/5)."
+              ]
+            },
+            "hints": [
+              "This is a standard symmetric combination."
+            ],
+            "reveal": "M_c = (m_1 m_2)^(3/5) / (m_1 + m_2)^(1/5)."
+          },
+          {
+            "prompt": "GW150914: f went from ~35 Hz to ~250 Hz over ~0.2 s. Estimate df/dt at f = 100 Hz.",
+            "motivation": "Average rate over the chirp.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Rough: df/dt ≈ (250 − 35)/0.2 ≈ 1000 Hz/s at peak. At earlier times (lower f), df/dt was much smaller; at peak (~150 Hz), df/dt is sharply spiked."
+              ]
+            },
+            "hints": [
+              "Average rate over the chirp."
+            ],
+            "reveal": "Rough: df/dt ≈ (250 − 35)/0.2 ≈ 1000 Hz/s at peak. At earlier times (lower f), df/dt was much smaller; at peak (~150 Hz), df/dt is sharply spiked."
+          },
+          {
+            "prompt": "Invert M_c = [df/dt × 5/(96 π^(8/3)) × f^(−11/3)]^(3/5) × c³/G. Set f = 100 Hz, df/dt = 100 Hz/s (more representative of mid-inspiral). Compute M_c in solar masses.",
+            "motivation": "Match to known GW150914 values.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Numerically (standard formula): M_c ≈ 30 M☉ for GW150914. The component masses, ~36 + 29 M☉, give M_c = (36·29)^(3/5)/(65)^(1/5) ≈ (1044)^0.6 / (65)^0.2 ≈ 65.4 / 2.30 ≈ 28.4 M☉ — consistent."
+              ]
+            },
+            "hints": [
+              "Match to known GW150914 values."
+            ],
+            "reveal": "Numerically (standard formula): M_c ≈ 30 M☉ for GW150914. The component masses, ~36 + 29 M☉, give M_c = (36·29)^(3/5)/(65)^(1/5) ≈ (1044)^0.6 / (65)^0.2 ≈ 65.4 / 2.30 ≈ 28.4 M☉ — consistent."
+          },
+          {
+            "prompt": "Why is the chirp mass measurable better than individual component masses?",
+            "motivation": "Think about what determines the leading-order waveform.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "The leading-order inspiral waveform is *fully determined* by M_c — every individual mass dependence enters only through M_c. So measuring the inspiral phase evolution constrains M_c tightly (~1% precision). Individual masses + spins enter at higher post-Newtonian orders + are degenerate with each other, requiring high-SNR detection of late-inspiral + merger to separate. This is why the early LIGO BBH papers quoted M_c with smaller uncertainty than individual m_1, m_2."
+              ]
+            },
+            "hints": [
+              "Think about what determines the leading-order waveform."
+            ],
+            "reveal": "The leading-order inspiral waveform is *fully determined* by M_c — every individual mass dependence enters only through M_c. So measuring the inspiral phase evolution constrains M_c tightly (~1% precision). Individual masses + spins enter at higher post-Newtonian orders + are degenerate with each other, requiring high-SNR detection of late-inspiral + merger to separate. This is why the early LIGO BBH papers quoted M_c with smaller uncertainty than individual m_1, m_2."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_gravitational_waves_and_multi_messenger_2",
+        "kind": "multiple_choice",
+        "question": "Why couldn't LIGO have detected the gravitational waves from the 1054 AD supernova that created the Crab Nebula?",
+        "options": [
+          "It wasn't a binary system — the GW signal from a single star's collapse is much weaker than from a coalescing binary.",
+          "LIGO can't detect signals more than a few decades old.",
+          "The Crab Nebula is too distant.",
+          "LIGO is sensitive only to frequencies above 100 GHz."
+        ],
+        "correctIndex": 0,
+        "explanation": "Correct. Core-collapse SNe emit GWs but at much lower amplitude than compact binary mergers because (a) the asymmetric quadrupole moment is small (~10% of inertial energy), (b) the emission is broad-band + decoherent, not chirp-like, (c) total GW energy is ~10⁻⁴ M☉c² vs the 3 M☉c² of GW150914. At ~2 kpc the Crab signal would be ~h ~ 10⁻²² — below LIGO's pre-2015 design sensitivity + still difficult today.\n\nOther options: LIGO can't detect signals more than a few decades old.: GWs travel at c. The Crab SN 1054 AD GW signal *arrived* in 1054 AD too — long before LIGO existed. LIGO detects GW events as they happen. Past events are unrecoverable. | The Crab Nebula is too distant.: Crab is only 2 kpc away — extremely close in GW terms. A BBH merger at 2 kpc would be ridiculously loud (h ~ 10⁻¹⁵, way above saturation). | LIGO is sensitive only to frequencies above 100 GHz.: LIGO band is 10 Hz - 5 kHz, not GHz. The supernova GW spectrum overlaps LIGO's band (~kHz)."
+      },
+      "hints": [
+        "The supernova event itself is gone — but think about why we couldn't detect SN GWs from past events even if LIGO had existed."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Two reasons: (a) The 1054 GW signal passed by Earth in 1054 — we'd have had to be running an interferometer then. (b) Even if we ran one now + caught a Crab-like SN, the GW emission from core-collapse is ~10⁴× weaker than from a BBH merger of similar mass. SN-1987A (in the LMC, 50 kpc) is the closest naked-eye SN since 1604; if LIGO had been operational then, GWs from it would have been at the very edge of detectability. The next nearby SN will be a major event for both EM + GW astronomy."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_gravitational_waves_and_multi_messenger_3",
+        "kind": "multiple_choice",
+        "question": "A binary neutron star merger occurs at distance 100 Mpc. Estimate the GW strain at peak. Use h ~ (G M_c / c²) (G M_c / c²)^(5/6) / (r × c) × ω^(2/3) — peak ω ~ 1 kHz × 2π.",
+        "options": [
+          "h ~ 10⁻²¹ — comfortably above LIGO's noise floor.",
+          "h ~ 10⁻¹⁵ — saturates the detector.",
+          "h ~ 10⁻²⁸ — below LIGO sensitivity.",
+          "Cannot estimate without knowing the spin parameters."
+        ],
+        "correctIndex": 0,
+        "explanation": "Correct. For BNS with M_c ≈ 1.2 M☉, at 100 Mpc, peak h ~ 5×10⁻²² near merger. LIGO's design noise floor at 100 Hz is h ~ 4×10⁻²³ per √Hz. With ~10² cycles in band, SNR ~ h × √(N cycles) / h_n ~ 30 — easily detectable.\n\nOther options: h ~ 10⁻¹⁵ — saturates the detector.: Way too large; would require unphysical proximity (~tens of pc). | h ~ 10⁻²⁸ — below LIGO sensitivity.: Too small; underestimates GW emission from neutron-star mass scales. | Cannot estimate without knowing the spin parameters.: Spin enters at higher post-Newtonian orders; the leading-order amplitude is set by M_c + frequency + distance. Spins refine the waveform but don't change the order-of-magnitude amplitude."
+      },
+      "hints": [
+        "Use the leading-order chirp amplitude formula."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "M_c = 1.2 M☉ = 2.4×10³⁰ kg. GM_c/c² = 1.78 km. Distance 100 Mpc = 3.086×10²⁴ m. At ω = 2π × 1000 rad/s, f^(2/3) ≈ 100. Plugging in: h ≈ 10⁻²² × √(small factor) ≈ 5×10⁻²². With LIGO sensitivity h_noise(f=1kHz) ≈ 10⁻²³/√Hz × √(bandwidth) ≈ 10⁻²² in a 100 Hz band — so SNR ~ 5 in band, and ~30 over the full chirp. GW170817 (at 40 Mpc) had peak h ≈ 4×10⁻²² and SNR ≈ 32 — consistent with this scaling."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_gravitational_waves_and_multi_messenger_4",
+        "kind": "math_expression",
+        "question": "Two compact objects with masses 30 + 30 M☉ merge. What's the chirp mass M_c in solar masses? Use M_c = (m_1 m_2)^(3/5) / (m_1 + m_2)^(1/5).",
+        "acceptedAnswers": [
+          "26.1",
+          "26",
+          "26.12",
+          "26.07"
+        ],
+        "hint": "M_c = (m_1 m_2)^(3/5) / (m_1 + m_2)^(1/5) — for equal masses, simplifies to M_c = m/2^(1/5)."
+      },
+      "workedSolution": "For m_1 = m_2 = m, M_c = m² ^(3/5) / (2m)^(1/5) = m^(6/5) / (2m)^(1/5) = m / 2^(1/5) ≈ m × 0.871. So 30 × 0.871 ≈ 26.1 M☉."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_gravitational_waves_and_multi_messenger_5",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain to a curious 16-year-old: what *is* a gravitational wave, and why did detecting one matter?",
+        "rubric": "A ripple in the shape of spacetime — a passing wave very slightly stretches + squeezes distances along perpendicular directions. Predicted by Einstein in 1916 from GR; very weak — the strain h ~ ΔL/L ~ 10⁻²¹ is undetectable except with km-scale laser interferometers. Detected directly for the first time in 2015 (GW150914) from a binary BH merger — 100 years after prediction. Why it matters: (1) confirms GR's most extreme prediction; (2) opens a *new sense* — we can now 'hear' the universe via spacetime distortions, not just 'see' it with EM radiation; (3) lets us detect events invisible to EM (BBH mergers don't emit light); (4) gives independent measures of cosmological distances ('standard sirens') + tests GR in strong gravity."
+      }
+    }
+  ]
+}

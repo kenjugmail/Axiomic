@@ -1,0 +1,178 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Distinguish single-mode + multi-mode fiber.",
+      "Apply chromatic + modal dispersion.",
+      "Reason about WDM + amplifiers + telecom limits."
+    ],
+    "prereqs": [
+      "gaussian-beams-and-diffraction"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Optical fiber: total internal reflection in glass",
+      "body": "**Optical fiber**: thin (~125 µm) silica strand with core (higher index) + cladding (lower). Light propagates by TIR within core.\n\n**Step-index profile**: core has uniform n_core; cladding uniform n_clad. Most common.\n**Graded-index**: n decreases continuously from center; reduces modal dispersion.\n\n**V-number (normalized frequency)**: V = (2π a / λ) × NA, where a = core radius, NA = √(n_core² − n_clad²).\n- V < 2.405: single-mode (only LP_01 mode supported).\n- V > 2.405: multi-mode (multiple LP_lm modes).\n\n**Single-mode fiber (SMF)**:\n- Core ~8-10 µm; NA ~0.12-0.14.\n- ~1.5 dB/km loss at 1550 nm.\n- Used for: long-haul telecom, fiber lasers, low-noise sensing.\n\n**Multi-mode fiber (MMF)**:\n- Core 50-62.5 µm; NA ~0.2.\n- ~3 dB/km loss at 850 nm.\n- Used for: short-distance (data center, building), high-power industrial.\n\n**Attenuation windows**:\n- 800-900 nm: ~3 dB/km; Si-photodetector compatible; data center.\n- 1300 nm: ~0.4 dB/km; zero-dispersion in standard SMF.\n- 1550 nm: ~0.2 dB/km; **lowest-loss window**; long-haul telecom; EDFA amplification.\n- 1625-1675 nm: extended bands (S, C, L, U).\n\n**Loss mechanisms**:\n- Rayleigh scattering (~1/λ⁴): dominant in visible + near-IR.\n- OH absorption (~1380 nm 'water peak'): mostly eliminated in modern fiber.\n- Bend loss: macrobend (>10 mm radius) + microbend.\n- Splice + connector loss: ~0.05-0.5 dB per joint.\n\nFiber is the lowest-loss communication medium known — ~0.2 dB/km vs ~1-10 dB/km coaxial or hundreds of dB/km wireless."
+    },
+    {
+      "kind": "text",
+      "title": "Dispersion: pulse broadening in fiber",
+      "body": "**Dispersion** causes pulse broadening — limits bandwidth-distance product.\n\n**Modal dispersion** (multimode only): different modes have different group velocities → different arrival times. Step-index MMF: ~30 ns/km. Graded-index MMF: ~1 ns/km. Limits to short distances (~100 m at 10 Gbps).\n\n**Chromatic dispersion**: different wavelengths propagate at different speeds in glass.\n- **Material dispersion**: n(λ) of silica.\n- **Waveguide dispersion**: mode-effective-index depends on fiber geometry.\n- Total chromatic dispersion D measured in ps/(nm·km).\n- **Zero-dispersion wavelength** for standard SMF: ~1310 nm. Telecom prefers 1550 nm (lowest loss) where D ≈ +17 ps/(nm·km).\n\n**Dispersion management**:\n- **Dispersion-shifted fiber (DSF)**: zero-D at 1550 nm. Tested but underperforms due to nonlinear effects.\n- **Non-zero dispersion-shifted (NZDSF)**: small positive or negative D at 1550 to minimize nonlinear-cross-talk.\n- **Dispersion-compensating fiber (DCF)**: high negative D to cancel positive D of standard SMF after long runs.\n- **Fiber Bragg gratings**: chirped grating provides wavelength-dependent delay → dispersion compensation.\n- **Electronic dispersion compensation**: at digital signal processing in coherent receivers; standard in 100G+ telecom.\n\n**Polarization-mode dispersion (PMD)**: random birefringence; pulse split between polarizations. Typically 0.1-1 ps/√km. Limits 40G+ over long distance.\n\n**Nonlinear effects** at high power:\n- **Self-phase modulation (SPM)**: refractive index depends on intensity; pulse chirps itself.\n- **Cross-phase modulation (XPM)**: between WDM channels.\n- **Four-wave mixing (FWM)**: three frequencies combine to produce a fourth.\n- **Brillouin + Raman scattering**: photon-phonon interactions; useful for amplification (Raman amps) but also loss + crosstalk."
+    },
+    {
+      "kind": "text",
+      "title": "WDM + EDFA + coherent + 100G+",
+      "body": "**Wavelength-division multiplexing (WDM)**: multiple wavelengths share one fiber.\n- **DWDM (dense WDM)**: ITU-grid 50 or 100 GHz spacing; 80-96 channels in C-band (~1530-1565 nm).\n- **CWDM (coarse)**: 20 nm spacing; cheaper components; metro networks.\n- Total capacity: 100s of Tbps per fiber routinely.\n\n**EDFA (Erbium-Doped Fiber Amplifier)**: Er-doped fiber section pumped at 980 or 1480 nm; provides ~25-30 dB gain across C-band. Enables fiber spans of 80-100+ km without optical-electrical-optical conversion. Revolutionized long-haul telecom (1990s onwards). Enabled transatlantic + transpacific cables at Tbps + ultimately Pbps capacity.\n\n**Raman amplifiers**: distributed gain via stimulated Raman scattering using a co/counter-pumped fiber. Lower-noise alternative to EDFA; used in modern coherent + transoceanic links.\n\n**Modulation formats**:\n- **OOK (on-off keying)**: simplest; 10G era.\n- **PAM4**: 4-level intensity; 100G data-center.\n- **DP-QPSK** (dual-pol QPSK): coherent; 100G ULH telecom 2010s.\n- **DP-16QAM**: 200G.\n- **DP-64QAM**: 400-600G; Nyquist + complex DSP.\n- **DP-256QAM**: 800-1.6T+; near-Shannon-limit.\n\n**Coherent detection**: I + Q + polarization demodulated; digital signal processing for chromatic dispersion, PMD, polarization tracking, equalization, phase tracking. Used in modern 100G+. Replaced direct-detection for long-haul.\n\n**Submarine cables**: ~10s Tbps per cable; 10-20 fiber pairs; 80-100 km repeater spacing with EDFA. ~500 cables connect global internet; ~95% of intercontinental traffic.\n\n**Modern records**:\n- Lab: ~150 Tbps over single fiber via massive WDM + DP-256QAM (NTT 2024).\n- Commercial: ~12 Tbps per fiber + getting denser.\n- Per-strand capacity has doubled every ~2.5 years historically.\n- Limits: spectral bandwidth of EDFA (~10 THz), Shannon limit of nonlinear fiber, fiber-count + space-division multiplexing.\n\n**Beyond standard fiber**:\n- **Multi-core fiber (MCF)**: multiple cores in single cladding; parallel WDM channels.\n- **Few-mode fiber (FMF)**: 2-20 modes used in parallel; mode-division multiplexing.\n- **Hollow-core fiber**: light in air (lower nonlinearity + dispersion); commercial in latency-critical (HFT, satellite-uplink) since ~2020.\n- **Anti-resonant + photonic-bandgap** designs."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fiber_1",
+        "kind": "guided_derivation",
+        "question": "Compute bandwidth × distance product for a fiber link",
+        "goal": "Standard SMF at 1550 nm has chromatic dispersion D = 17 ps/(nm·km). A 10 Gbps NRZ signal has spectral width ~10 GHz = 0.08 nm at 1550 nm. Find max distance before pulse spreading equals bit period (100 ps).",
+        "steps": [
+          {
+            "prompt": "Pulse spread per km at given spectral width?",
+            "motivation": "D × Δλ.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~1.36 ps/km",
+                "17 × 0.08"
+              ]
+            },
+            "hints": [
+              "D × spectral width."
+            ],
+            "reveal": "Pulse spread = 17 × 0.08 = 1.36 ps/km."
+          },
+          {
+            "prompt": "Maximum distance such that spread ≤ 100 ps (bit period for 10 Gbps)?",
+            "motivation": "Divide.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~74 km",
+                "100 / 1.36"
+              ]
+            },
+            "hints": [
+              "100 / 1.36."
+            ],
+            "reveal": "Max distance ≈ 100 ps / 1.36 ps/km ≈ 73.5 km. Beyond this, intersymbol interference (ISI) degrades signal."
+          },
+          {
+            "prompt": "How would you extend the reach to 1000 km at 10 Gbps?",
+            "motivation": "Compensation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "DCF or electronic compensation",
+                "compensate dispersion"
+              ]
+            },
+            "hints": [
+              "Dispersion compensation."
+            ],
+            "reveal": "**Dispersion-compensating fiber (DCF)**: insert ~12 km of DCF with D = -100 ps/(nm·km) to cancel the +17 × 1000 = 17000 ps/(nm) accumulated. Or use **electronic dispersion compensation** in coherent receiver (modern 100G+ has 100k+ taps of digital FFE/DFE). Both common."
+          },
+          {
+            "prompt": "Why is the same bandwidth-distance limit much worse at 40 Gbps?",
+            "motivation": "Spectral width scales with rate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "bit period × 16",
+                "scales 16x worse"
+              ]
+            },
+            "hints": [
+              "40 Gbps spectral width is 4× wider, bit period 4× shorter."
+            ],
+            "reveal": "At 40 Gbps: spectral width 4× wider (0.32 nm); pulse-spread per km is 4× (5.44 ps/km); bit period is 4× shorter (25 ps). Max distance = 25/5.44 ≈ 4.6 km — 16× worse than 10 Gbps. Hence aggressive dispersion compensation required at 40G+; coherent + DSP becomes standard at 100G+."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_fiber_1",
+        "kind": "sortable",
+        "question": "Order these fiber-optic wavelength bands by *propagation loss* in standard silica fiber (lowest to highest).",
+        "items": [
+          {
+            "id": "1550",
+            "label": "1550 nm (C-band)"
+          },
+          {
+            "id": "1310",
+            "label": "1310 nm (O-band)"
+          },
+          {
+            "id": "850",
+            "label": "850 nm (VCSEL window)"
+          },
+          {
+            "id": "1380",
+            "label": "1380 nm (water peak, legacy)"
+          },
+          {
+            "id": "visible",
+            "label": "Visible (~600 nm)"
+          }
+        ],
+        "explanation": "Silica-fiber attenuation:\n• **1550 nm (C-band)**: ~0.2 dB/km — lowest. Telecom workhorse; EDFA-compatible.\n• **1310 nm (O-band)**: ~0.4 dB/km. Zero-dispersion in standard SMF; metro + data-center.\n• **850 nm (VCSEL window)**: ~3 dB/km. Multimode fiber + GaAs VCSELs; short reach.\n• **1380 nm (water peak)**: ~1-5 dB/km in legacy fiber; mostly eliminated in modern fiber (low-water-peak SMF, OFS AllWave, Corning SMF-28e).\n• **Visible (~600 nm)**: ~10 dB/km — Rayleigh scattering dominates; impractical for telecom.\n\nFundamental limit at long wavelengths: Si-O infrared absorption beyond ~2 µm. Long-term fluoride + chalcogenide fiber research pushes to ~3 µm. Hollow-core fiber bypasses limits via air-guided light."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_fiber_1",
+        "kind": "slider",
+        "question": "Drag to the standard SMF attenuation (in dB/km) at 1550 nm.",
+        "target": {
+          "min": 0.18,
+          "max": 0.22
+        },
+        "default": 1,
+        "explanation": "Standard SMF at 1550 nm: ~0.18-0.22 dB/km — the lowest-loss wavelength in silica. Translates to ~10× signal reduction per 50 km without amplification. Modern ULL (ultra-low-loss) fiber (Corning Vascade, SMF-28 ULL): ~0.16-0.17 dB/km. Hollow-core fiber: ~0.5-1 dB/km but lower nonlinearity + dispersion. The 1550 nm window opened ~$1T-of-fiber-deployed industry over 30+ years."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fiber_1",
+        "kind": "multiple_choice",
+        "question": "Why is coherent detection (vs direct detection) the standard for modern 100G+ optical communication?",
+        "options": [
+          "Coherent is required by law.",
+          "Coherent detection (I + Q + dual-polarization + local oscillator) captures full optical field (amplitude + phase + 2 polarizations), enabling: (1) higher-order modulation (16/64/256 QAM) → more bits/symbol; (2) digital signal processing for chromatic dispersion + PMD compensation in DSP rather than expensive optical equipment; (3) better sensitivity (near shot-noise limit). Combined with photonic ICs (CMOS-integrated coherent transceivers), enables 100G/400G/800G/1.6T in compact pluggable form factor.",
+          "Coherent is simpler.",
+          "Random adoption."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Coherent detection revolution** (2010-onwards in telecom):\n\n*Direct detection (legacy)*:\n- Photodiode produces current ∝ |E|² (intensity only); phase lost.\n- Modulation: NRZ, RZ, PAM (intensity).\n- Limited spectral efficiency (~1-2 bits/symbol).\n- 10G + early 40G ULH.\n\n*Coherent detection*:\n- Local oscillator (LO) laser at TX-side wavelength.\n- 90° optical hybrid + balanced photodetectors → I + Q components of signal.\n- Polarization-diversity (PDM/DP) → 2× channels.\n- ADCs sample I + Q in both polarizations at ~100 GS/s.\n- DSP equalizes + decodes everything.\n\n*Why coherent enabled 100G+*:\n\n1. **Higher-order modulation**: DP-QPSK (4 bits/symbol) → DP-16QAM (8 bits) → DP-64QAM (12) → DP-256QAM (16). Same baud rate, more bits.\n\n2. **DSP-based equalization**: chromatic dispersion compensation electronically (huge filters in software; cost in DSP gates not in optics + DCF spools).\n\n3. **PMD compensation**: dynamic; classical compensator was bulky + expensive.\n\n4. **Near-shot-noise sensitivity**: LO heterodyning provides photon-shot-noise-limited reception. ~3 dB better than direct detection.\n\n5. **Forward error correction (FEC)**: hard + soft decisions enable strong codes (LDPC) → near-Shannon limit on noisy channels.\n\n6. **Carrier phase recovery**: laser linewidth tolerance via DSP.\n\n*Industry milestones*:\n- 2010: 100G DP-QPSK coherent first commercial (Nortel/Ciena).\n- 2014: 200G DP-16QAM.\n- 2017: 400G DP-16QAM in OpenROADM specs.\n- 2020+: 800G/1.6T coherent; high-Baud (~96 Gbaud) DSP ASICs.\n- 2024: 1.6T pluggable transceivers.\n\n*Coherent in DCI + metro*:\n- ZR + ZR+ coherent pluggables (QSFP-DD/OSFP form factor): 400G + 800G; cheaper LO + cooler operation; data-center interconnect (DCI).\n- ZR400 widely deployed since 2022; ZR800 + ZR1600 emerging.\n\n*PIC (photonic integrated circuit) coherent*:\n- All optics on InP or Si photonic chip: LO, modulator, hybrid, photodetectors.\n- Replaces ~30 discrete components with one chip.\n- Enables low-cost + compact + low-power.\n\n*DSP ASICs*:\n- Modern coherent DSP: 7nm + 5nm CMOS; ~100 TOPS; ~10 W per channel.\n- Marvell, Acacia, Inphi (Marvell), Ciena, Nokia, Cisco, Broadcom all compete.\n\n*Beyond coherent*:\n- **Self-coherent (Kramers-Kronig)**: simpler optical with KK relation reconstructing phase. DCI + short-reach.\n- **Hollow-core + few-mode**: physical-layer evolution.\n\nCoherent + DSP is the workhorse of all modern Tbps + Pbps optical communication. Without it, the current 100T-class fibers + global data-center scale-out would be impossible."
+      },
+      "hints": [
+        "What does coherent capture?",
+        "Why does it enable higher modulation?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Coherent detection: full optical field (I, Q, both polarizations) via local oscillator + 90° hybrid + balanced photodetectors. Enables: high-order modulation (DP-QPSK→16/64/256-QAM = more bits/symbol); DSP-based chromatic dispersion + PMD compensation; near-shot-noise sensitivity; strong FEC. 100G first commercial 2010; 1.6T pluggable 2024. PIC-coherent + DSP ASICs in 5nm CMOS now standard. Without coherent, modern 100T-class fibers impossible."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fiber_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how fiber optics enabled the modern internet.",
+        "rubric": "Mentions: fiber's combination of: (1) very low loss (~0.2 dB/km at 1550 nm) → long spans; (2) huge bandwidth (THz of available spectrum); (3) electrical isolation; (4) low cost per bit. WDM allows 100s of wavelengths in single fiber → 10s of Tbps/fiber commercially, 150+ Tbps in lab. EDFA + Raman amplifiers (1990s) replaced expensive O-E-O regenerators → enabled multi-1000 km transcontinental + transoceanic spans. Coherent + DSP (2010s) drove spectral efficiency to near-Shannon. Submarine cables (~500 active, 100s Tbps each) carry 95% of intercontinental traffic. Cost: $30-40/km (long-haul fiber install). Cumulative installed: ~5 billion km globally. Without fiber: no streaming, no cloud, no global SaaS, no AI-training data-center networks (NVLink, ZR pluggables, 800G DCI). Concludes: fiber optics is invisible infrastructure of the digital age; ~$1T cumulative investment; doubled capacity every ~2.5 yr for decades."
+      }
+    }
+  ]
+}

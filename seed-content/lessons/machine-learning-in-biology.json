@@ -1,0 +1,190 @@
+{
+  "slug": "machine-learning-in-biology",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Survey ML in genomics.",
+      "Apply standard tasks.",
+      "Recognize foundation models."
+    ],
+    "prereqs": [
+      "transcriptomics-and-single-cell",
+      "structure-and-alphafold"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Machine learning in biology: a brief survey",
+      "body": "**Machine learning in biology** has gone from niche to dominant in ~15 years. Key drivers: data explosion (NGS, single-cell, structures, imaging, EHR), compute (GPUs/TPUs), open-source toolkits (TensorFlow, PyTorch, scikit-learn, biopython), open data + benchmarks.\n\n**Classical ML in bioinformatics** (pre-deep-learning era):\n- **Random forests + gradient boosting**: ChIP-seq peak calling, variant impact (CADD, REVEL), drug-target prediction.\n- **SVMs**: protein secondary structure, gene prediction, MS classification.\n- **HMMs**: gene prediction (AUGUSTUS, GENSCAN), protein domain models (Pfam, HMMER), motif discovery.\n- **Bayesian + MCMC**: phylogenetics (BEAST), population genetics (PSMC), variant calling.\n- **Mixture models + Gaussian mixtures**: flow-cytometry gating, scRNA clustering (early), genotype calling.\n- **Hierarchical clustering + k-means**: gene-expression clustering.\n\n**Deep learning revolution (~2014+)**:\n- **CNNs**: DNA motif discovery (DeepBind, Basset, Basenji, Enformer); protein structure prediction (AlphaFold's evoformer also uses attention).\n- **RNNs / LSTMs**: protein sequence modeling (UniRep, ELMo for biology).\n- **Transformers**: ESM, ProtTrans, scGPT, geneformer, AlphaFold; foundation models for sequence-as-text.\n- **GNNs (graph neural networks)**: molecule property prediction (PotentialNet, MPNN); protein-protein interactions; pathway reasoning.\n- **Diffusion models + flow matching**: protein design (RFdiffusion, Chroma); molecular generation; image generation in microscopy.\n- **VAEs + autoencoders**: scRNA-seq integration (scVI), embedding learning.\n- **GANs**: synthetic medical images + augmentation.\n\n**Tasks where ML excels** (and where it doesn't):\n- **Pattern recognition** in noisy high-dim data — yes.\n- **Prediction from sequence/structure/image** — yes.\n- **Causal inference** — no (still needs experiments).\n- **Mechanistic understanding** — partial (interpretability research).\n- **Rare-event detection** + outlier — yes with care.\n- **Combining multiple modalities** — increasingly yes."
+    },
+    {
+      "kind": "text",
+      "title": "Foundation models for biology",
+      "body": "**Foundation models**: large pre-trained models adaptable to many downstream tasks via fine-tuning, prompting, or feature extraction. Originated in NLP (BERT, GPT). Now central to biology.\n\n**Protein language models (pLMs)**:\n- **ESM family** (Meta; Rives 2019+; ESM-2, ESM-3, ESM-Cambrian): masked-language-model on ~250M+ protein sequences. ESM-3: multimodal sequence + structure + function tokens (Hayes 2024). ESM-IF for inverse folding.\n- **ProtTrans, ProtBERT, ProtGPT2**: alternatives.\n- **Applications**: protein function prediction, secondary structure, contact maps, fitness landscapes, design.\n- **Embeddings → property prediction**: powerful + transferable.\n\n**Structure models**:\n- **AlphaFold + AlphaFold 3** (DeepMind): protein structure + multimer + DNA/RNA/ligand prediction.\n- **RoseTTAFold + RFdiffusion** (Baker): structure + de novo design.\n- **ESMFold** (Meta): faster + LM-based.\n- **Boltz-1 + Chai-1 + OpenFold**: open-source.\n\n**Single-cell + genomics foundation models**:\n- **scGPT** (Cui 2023): GPT-style on millions of cells; cell-type annotation, perturbation, response prediction.\n- **Geneformer** (Theodoris 2023 Nature): BERT-style on millions of cells.\n- **scFoundation, scELMo, scMulan**: alternatives.\n- **Enformer** (DeepMind 2021 Nat. Methods): transformer for ~200kb genomic context; predicts gene expression from sequence; SOTA in 2021. AlphaGenome 2025.\n- **Borzoi + DREAM challenge** models: cis-regulatory.\n\n**Genome + variant interpretation**:\n- **AlphaMissense** (Cheng 2023 Science): predicts pathogenicity of missense variants; outperforms previous methods.\n- **PrimateAI, EVE, SpliceAI**: variant-effect predictors.\n- **CADD, REVEL**: ensemble approaches.\n\n**Molecular + drug discovery**:\n- **GNN models for drug-target affinity**: DeepDTA, Boltz-2.\n- **Generative chemistry**: REINVENT, Chemformer, GenChem, MolDiff, equivariant DL for 3D molecules (E(3)NN).\n- **Free energy + binding**: Schrödinger FEP, Boltz-2.\n- **Cell-painting + Perturb-seq foundation models**: phenotype prediction.\n\n**Multi-modal + integrative**:\n- **CLIP-style models for biology**: combine image + sequence + structure (BioCLIP, Phenotype-CLIP).\n- **Cross-modal alignment**: ChatBio, BioBLT.\n\n**Biology-specific challenges**:\n- Smaller datasets compared to NLP/CV.\n- Need physically-aware architectures (SE(3) equivariance, mass conservation, thermodynamic consistency).\n- Out-of-distribution generalization to new proteins/cells/diseases.\n- Interpretability for clinical decisions.\n- Evaluation: holdout sets need to be diverse enough."
+    },
+    {
+      "kind": "text",
+      "title": "Clinical + practical considerations",
+      "body": "**Genomic medicine + AI**:\n- **AlphaMissense + clinical variant interpretation**: ACMG-AMP integrating ML predictions.\n- **Polygenic risk scores (PRS)**: aggregate effects of millions of variants; new ML-based.\n- **Pharmacogenomics**: CYP variants → drug dosing (CPIC guidelines).\n- **Genomic newborn screening**: clinical decision support with ML.\n- **Tumor genomics**: ML for variant filtering, neoantigen prediction (e.g., NetMHC, MHCflurry), MSI/TMB scoring.\n- **Liquid biopsy + ctDNA**: ML for low-frequency variant detection.\n- **Pathology**: digital pathology ML (PathAI, Paige, Tempus, AlphaPath).\n- **Radiology + genomics integration**: imaging genomics + radiogenomics.\n\n**Pathogen surveillance + epidemiology**:\n- **SARS-CoV-2 + COVID-19**: real-time sequencing + variant tracking (Pango, Nextstrain, GISAID); ML for variant emergence.\n- **Influenza + flu surveillance**: NextFlu, Nextstrain.\n- **HIV resistance**: drug resistance prediction.\n- **Mycobacterium tuberculosis**: ML for drug resistance.\n- **Foodborne + outbreak source tracking**: SNP-based ML.\n- **Antimicrobial resistance (AMR)**: ML on resistome.\n\n**Drug discovery + design**:\n- **Target identification**: omics + GWAS + AI integration (Open Targets, Mendelian randomization).\n- **Hit + lead discovery**: virtual screening + ML.\n- **Lead optimization**: FEP + ML scoring.\n- **De novo protein binders**: RFdiffusion + ProteinMPNN.\n- **Antibody discovery**: ABlooper, IgFold, BioPhi + humanization.\n- **Generative chemistry**: REINVENT, Chemformer.\n- **AI in clinical trial design + patient stratification**.\n\n**Ethical + societal considerations**:\n- **Data bias**: GWAS over-represents European-ancestry; ML inherits. AlphaMissense + others trained on diverse data improving.\n- **Privacy + GDPR + HIPAA**: federated learning, differential privacy.\n- **Equity in genomic medicine**: PRS accuracy varies by ancestry; ongoing improvement.\n- **Dual-use risk**: pathogen design, bioweapons potential (covered in biosecurity policy).\n- **Explainability for clinical decisions**.\n- **Algorithmic harm**: discrimination, denial of care.\n\n**Reproducibility + open science**:\n- Pre-registration, open code, model cards, datasheets, FAIR data.\n- ELIXIR (Europe), NIH STRIDES, EOSC infrastructure.\n- Open foundation models: ESM, scGPT, OpenFold, Boltz, Chai — accelerating community innovation.\n- AlphaFold + AFDB open + transformative example.\n\n**Modern bioinformatics jobs** span: industry (biotech, pharma, dx labs, AI/biology startups), academia, clinical labs, government (NIH, CDC, USDA, regulatory), open-science nonprofits. Skill stack: programming (Python, R, command-line), statistics, ML, domain biology, communication, ethics. Highly interdisciplinary."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bio_ml_1",
+        "kind": "guided_derivation",
+        "question": "Critique an ML genomics study",
+        "goal": "Study claims 95% accuracy predicting drug response from gene expression in 500 patients. What questions would you ask?",
+        "steps": [
+          {
+            "prompt": "What's the test set?",
+            "motivation": "Avoid data leakage.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "held-out patients never seen during training (not just held-out genes)"
+              ]
+            },
+            "hints": [
+              "Patient-wise vs feature-wise split."
+            ],
+            "reveal": "Critical: split by patients, not by genes or random rows. Same patient appearing in train + test → data leakage; model 'memorizes.' Use leave-one-out or stratified k-fold by patient. Also: external validation on a separate cohort essential — same-institution often optimistic. AML or breast-cancer ML reproducibility crises ~2015-2020 highlighted this."
+          },
+          {
+            "prompt": "Class balance + baseline?",
+            "motivation": "Is 95% really good?",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "report baseline (majority class) + sensitivity/specificity/AUC, not just accuracy"
+              ]
+            },
+            "hints": [
+              "Imbalanced classes."
+            ],
+            "reveal": "If 80% of patients respond + 20% don't, predicting 'response' for everyone gives 80% accuracy. 95% may be small lift. Report: balanced accuracy, AUROC, AUPRC, sensitivity, specificity, NPV, PPV. For imbalanced data, accuracy alone misleading. Confidence intervals matter."
+          },
+          {
+            "prompt": "External validation?",
+            "motivation": "Generalization.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "validate on an independent cohort from a different institution, ideally different population"
+              ]
+            },
+            "hints": [
+              "Same data twice ≠ generalization."
+            ],
+            "reveal": "External validation: test on independent cohort, different institution, ideally different ancestry/population/year. Reveals batch effects, site biases, population shifts. Major reason many published ML genomics models don't replicate in clinical settings. PRS especially: ancestry-specific accuracy gaps."
+          },
+          {
+            "prompt": "Feature interpretability + biology?",
+            "motivation": "Black-box concerns.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "report important features + check biology; share model + code; consider attention maps + SHAP"
+              ]
+            },
+            "hints": [
+              "What features matter?"
+            ],
+            "reveal": "Interpretability: report most-important genes (SHAP, attention, integrated gradients); check whether they match known biology of drug response (target gene, pathway); share model + code (FAIR + reproducibility); include uncertainty estimates. Pure black boxes are increasingly unwelcome in clinical contexts — regulators (FDA, EMA) require explainability + risk assessment."
+          },
+          {
+            "prompt": "Patient privacy + ethics?",
+            "motivation": "Real-world considerations.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "data sharing under privacy + consent; ancestry diversity; equity"
+              ]
+            },
+            "hints": [
+              "Beyond accuracy."
+            ],
+            "reveal": "Privacy: federated learning, differential privacy, controlled access (dbGaP). Consent + IRB documentation. Ancestry diversity in training + validation. Equity considerations: model failures in underrepresented populations cause harm. FDA + EMA Software-as-a-Medical-Device + AI/ML guidance. Model cards, datasheets, bias audits increasingly expected."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bio_ml_1",
+        "kind": "multiple_choice",
+        "question": "Why are protein language models (ESM, ProtTrans) so successful despite no explicit physics?",
+        "options": [
+          "Random.",
+          "Protein sequences carry evolutionary information: each position's amino-acid identity reflects coevolution with structural + functional neighbors. Masked-language-model training on millions of sequences (UniRef, OAS) implicitly learns: (1) per-position substitution preferences (~PAM/BLOSUM); (2) pairwise coevolution → contact maps; (3) structural propensities (secondary structure, fold class); (4) functional constraints (active sites, binding interfaces). When fine-tuned or used as embeddings, these models transfer well to: structure prediction (ESMFold), function annotation, variant-effect prediction, design (ESM-IF inverse folding). Combined with physics-aware architectures (SE(3) equivariance in some methods), pLMs are now foundational. Physics + ML synthesis (e.g., AlphaFold's evoformer + structure module) is the leading paradigm.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Protein language models (ESM, ProtTrans) trained on millions of natural protein sequences implicitly learn coevolution + substitution preferences + structural propensities + functional constraints. These transfer to structure prediction, function annotation, variant-effect, design. ML + physics-aware architecture synthesis is current foundation; ESM family + AlphaFold + RoseTTAFold the leading examples."
+      },
+      "hints": [
+        "What information is in protein sequence?",
+        "What do MLMs learn?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Protein language models (ESM, ProtTrans) learn from coevolution + substitution preferences + structural propensities + functional constraints implicit in millions of natural sequences. Transfer to structure prediction (ESMFold), function annotation, variant-effect, design. Best results combine pLMs with physics-aware architectures (SE(3) equivariance). Foundation of post-AlphaFold computational biology."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_bio_ml_1",
+        "kind": "slider",
+        "question": "Drag to the approximate number of protein sequences in UniRef50 (used to train ESM).",
+        "target": {
+          "min": 50,
+          "max": 65
+        },
+        "default": 5,
+        "explanation": "UniRef50 (UniProt clustered at 50% identity) has ~50-65M sequences (growing). Used as primary training data for protein language models (ESM, ProtTrans, ProtBERT). UniRef90 is larger; UniRef100 is unclustered. Combined with metagenomic + viral databases, protein-sequence corpora exceed 1B sequences."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_bio_ml_1",
+        "kind": "sortable",
+        "question": "Order these biology ML milestones chronologically.",
+        "items": [
+          {
+            "id": "deepbind",
+            "label": "DeepBind (Alipanahi 2015): CNN for DNA-protein binding"
+          },
+          {
+            "id": "esm1",
+            "label": "ESM-1b protein language model (Rives 2021)"
+          },
+          {
+            "id": "alphafold2",
+            "label": "AlphaFold 2 + AFDB (Jumper 2021)"
+          },
+          {
+            "id": "alphamissense",
+            "label": "AlphaMissense variant pathogenicity (Cheng 2023)"
+          },
+          {
+            "id": "alphafold3",
+            "label": "AlphaFold 3 multimodal (Abramson 2024)"
+          }
+        ],
+        "explanation": "Biology ML milestones: DeepBind 2015 (DNA-protein CNN); ESM-1b 2021 (protein LM); AlphaFold 2 + AFDB 2021 (structures); AlphaMissense 2023 (variants); AlphaFold 3 2024 (proteins + DNA/RNA/ligands). Each pushed the boundary of what's predictable from sequence; pace accelerating with foundation models + multi-modal architectures."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bio_ml_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why bioinformatics + ML are increasingly central to drug discovery + precision medicine.",
+        "rubric": "Mentions: drug discovery + precision medicine require: (1) target identification (GWAS + omics + Mendelian randomization); (2) target validation (functional genomics + Perturb-seq + CRISPR screens); (3) structure-based design (AlphaFold + AF3 unlocks previously-undruggable targets); (4) virtual screening + lead optimization (DiffDock, Boltz-2, FEP-ML hybrids); (5) toxicity + ADMET prediction (ML); (6) variant interpretation (AlphaMissense, REVEL, CADD); (7) patient stratification + biomarkers (ML on clinical + omics); (8) pharmacogenomics (CYP variants → dosing); (9) clinical-trial enrichment + adaptive designs. Industry: Insitro, Recursion, Iambic, Isomorphic, Genentech, AbCellera. Trajectory: ML + biology integration cuts drug discovery costs + timelines + improves attrition rates. UK Biobank + FinnGen + All of Us + similar at scale provide training data for next-generation. Concludes: bioinformatics + ML are not adjuncts but the new core of drug discovery + precision medicine — the next decade's value creation in biotech increasingly flows through computational + ML methods."
+      }
+    }
+  ]
+}

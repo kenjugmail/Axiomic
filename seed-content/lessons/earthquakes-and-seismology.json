@@ -1,0 +1,142 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "specialist",
+    "objectives": [
+      "Distinguish P + S + surface waves.",
+      "Compute magnitude + energy.",
+      "Reason about hazard + early warning."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Seismic waves + Earth's interior",
+      "body": "**Seismic waves**: elastic energy from earthquakes propagating through Earth.\n\n**Body waves** (through Earth interior):\n- **P-waves (Primary, compressional)**: particles move parallel to direction. Like sound. Travel through solid + liquid. Speed: ~6 km/s in crust, 13 km/s in mantle, 8 km/s in outer core (slower in liquid).\n- **S-waves (Secondary, shear)**: particles move perpendicular to direction. CANNOT travel through liquid (no shear strength). Speed: ~3.5 km/s crust, 7 km/s mantle. Don't penetrate outer core → 'S-wave shadow zone' between 105° and 180° from epicenter.\n\n**Surface waves** (along Earth's surface):\n- **Rayleigh**: rolling motion like ocean waves. Cause most ground shaking damage.\n- **Love**: side-to-side horizontal motion.\n- Slower than body waves but larger amplitude at surface.\n- Travel mainly along surface; attenuate with depth.\n\n**Travel times**: P arrives first, then S, then surface waves. Time difference between P + S used to locate earthquake (one station gives distance via $\\Delta t \\approx \\Delta_{PS} \\times 8$ km/s; three stations triangulate hypocenter).\n\n**Seismic shadow zones** reveal Earth's interior:\n- Outer core liquid: S-wave shadow proved liquid outer core.\n- Inner core solid: P-wave refraction patterns proved solid inner core.\n- Compositional layering identified by velocity discontinuities (Moho, 410, 660, CMB, ICB).\n\n**Seismic moment** $M_0$: physical measure of earthquake size.\n$$M_0 = \\mu A d$$\nWhere $\\mu$ = shear modulus (rigidity, ~30 GPa for crust), $A$ = fault rupture area, $d$ = average slip.\n\n**Moment magnitude** $M_w$:\n$$M_w = (2/3) \\log_{10}(M_0) - 6.07$$\n\n(M_0 in N·m). The MODERN standard for measuring large earthquakes.\n\n**Other magnitude scales**:\n- **Richter (ML)**: original (1935); from amplitude on Wood-Anderson seismograph. Saturates above M~7.\n- **mb (body wave)**: from P-wave amplitude. Saturates above M~7.\n- **Ms (surface wave)**: from surface waves. Saturates above M~8.\n- **Mw**: doesn't saturate; valid for all sizes.\n\n**Energy released**: each unit of magnitude = ~32× more energy.\n- M6: ~10¹⁴ J (energy of ~30 KT TNT).\n- M7: ~10¹⁵.5 J (~1 MT TNT).\n- M8: ~10¹⁷ J (~32 MT TNT).\n- M9: ~10¹⁸.5 J (~1 GT TNT). Comparable to nuclear arsenals.\n\n**Largest recorded earthquakes**:\n- 1960 Valdivia, Chile: M9.5 (largest instrumentally measured).\n- 1964 Alaska: M9.2.\n- 2004 Sumatra-Andaman: M9.1-9.3.\n- 2011 Tohoku, Japan: M9.0-9.1.\n- 2010 Maule, Chile: M8.8.\n- 2005 Sumatra (March): M8.6.\n- 1957 Aleutian: M8.6."
+    },
+    {
+      "kind": "text",
+      "title": "Magnitude + intensity + ground motion",
+      "body": "**Magnitude vs intensity**:\n- **Magnitude**: scalar measure of earthquake SOURCE strength. Single value per earthquake.\n- **Intensity**: shaking + damage at a specific LOCATION. Varies with distance, geology, structures.\n\n**Modified Mercalli Intensity (MMI)** scale (1931): I-XII based on observed effects.\n- I-IV: not felt or barely felt.\n- V-VI: felt by all; light damage.\n- VII-VIII: moderate-heavy damage.\n- IX-X: many buildings destroyed.\n- XI-XII: near-total destruction.\n\n**Peak Ground Acceleration (PGA)**: maximum acceleration at site, in g (acceleration of gravity).\n- 0.01-0.05 g: light shaking.\n- 0.1-0.3 g: damaging.\n- 0.5-1.0 g: severe.\n- >1 g: extreme (vertical accelerations can exceed 1g in very strong shaking — objects briefly weightless).\n\n**PGV (Peak Ground Velocity)**: peak particle velocity, cm/s. Correlates with damage to LONG-PERIOD structures (tall buildings, bridges).\n\n**Spectral acceleration**: response of structure with natural period T to ground motion. Critical for building design.\n\n**Ground Motion Prediction Equations (GMPEs)**: empirical relations predicting PGA + PGV + Sa as function of magnitude + distance + site conditions.\n\n**Site effects + amplification**:\n- Soft soils amplify ground motion (resonance): Mexico City 1985 (clay basin amplified shaking from M8.0 400 km away → catastrophic damage).\n- Topographic effects: ridges amplify.\n- Basin effects: trapped waves bounce + amplify.\n- Site classification: NEHRP A (rock) through F (soft soil); building codes specify factors.\n\n**Liquefaction**: covered in soil-mechanics lesson. Saturated loose sand loses strength + behaves as liquid during shaking.\n\n**Tsunami**: ocean wave from displacement.\n- Triggered by megathrust earthquakes, large submarine landslides, volcanic events.\n- Travel at jet speed (700+ km/h) in open ocean; height 1-2 m there.\n- Compress + amplify on shoaling; 10-30+ m at coast.\n- Famous: 2004 Indian Ocean (>230K dead), 2011 Tohoku Japan (~16K dead + Fukushima nuclear accident), 1755 Lisbon, 1960 Chile (felt Pacific-wide).\n- Tsunami warning systems: detect via DART buoys (Deep-ocean Assessment + Reporting of Tsunamis); warn coastlines downstream.\n\n**Tsunamigenic vs non-tsunamigenic earthquakes**: shallow + offshore + thrust mechanism = tsunamigenic. Deep or strike-slip = not.\n\n**Seismic hazard**:\n- Probabilistic Seismic Hazard Analysis (PSHA): integrates fault sources + GMPEs to produce hazard maps showing % chance of exceeding given PGA in given period.\n- USGS National Seismic Hazard Maps (USA): updated periodically.\n- Building codes (ASCE 7, IBC) reference these for design.\n- Insurance pricing based on these."
+    },
+    {
+      "kind": "text",
+      "title": "Earthquake hazards + early warning + the modern picture",
+      "body": "**Earthquake hazards**:\n- **Ground shaking**: dominant cause of damage. Building collapse, falling objects.\n- **Liquefaction**: ground failure.\n- **Landslides**: triggered by shaking.\n- **Tsunamis** (offshore megathrust).\n- **Surface rupture**: along fault. Can split structures crossing it.\n- **Fire**: utility damage + gas leaks. San Francisco 1906 fire killed many more than the quake.\n\n**Earthquake early warning (EEW)**:\n- Concept: P-waves travel faster than S-waves + surface waves (which cause damage). Detect P at epicenter; warn distant locations of incoming S.\n- Window: seconds to tens of seconds depending on distance.\n- Use: stop trains, halt elevators, alarms in schools + hospitals, automatic shutoffs.\n\n**Operational EEW systems**:\n- **Japan**: JMA EEW. World's most advanced. Operational since 2007.\n- **Mexico**: SASMEX (Mexico City early warning since 1991 — first nationwide).\n- **USA West Coast**: ShakeAlert (USGS + UC Berkeley + Caltech + others). Public-facing 2019+. Mobile alerts.\n- **Taiwan, S Korea, Italy, Romania, Israel**: regional systems.\n- **Mobile apps**: MyShake (Berkeley), Earthquake Network, Google's Android EEW.\n\n**Earthquake prediction** (different from early warning):\n- Long-term forecasting: probabilistic. Hazard maps. ~30-year forecasts feasible.\n- Short-term prediction (days-weeks): NOT possible reliably. Many attempts; no precursor signal reliable.\n- Most consequential research: Parkfield (CA) prediction experiment; 1985 forecast of M6 by 1993; event came in 2004 (within window but well past prediction).\n\n**Mitigation**:\n- **Building codes**: seismic design. Massive impact on saved lives. USA west coast IBC / ASCE 7. Japan + Chile have strict codes.\n- **Retrofit**: upgrade older buildings (base isolation, shear walls, fiber-reinforcement).\n- **Land-use planning**: avoid building on faults + soft soils + liquefaction-prone zones.\n- **Education + drills**: 'Drop, Cover, Hold On'. Great California ShakeOut.\n- **Insurance**: California Earthquake Authority + private insurers.\n- **Tsunami evacuation routes + sirens**.\n- **Critical infrastructure**: hospitals, fire stations, schools designed to operational continuity, not just life safety.\n\n**Recent significant events**:\n- 2010 Haiti M7.0: ~230K dead. Poor construction; lack of seismic codes.\n- 2010 Chile M8.8: ~525 dead. Strict codes worked.\n- 2011 Tohoku M9.0 + tsunami: ~16K dead. Fukushima nuclear accident.\n- 2015 Nepal M7.8: ~9K dead.\n- 2023 Turkey-Syria M7.8 + M7.5 doublet: ~60K dead. Building-code enforcement issues.\n- 2024 Noto Peninsula Japan M7.6: ~250 dead. Tsunami small.\n\n**Modern frontiers**:\n- **Machine learning for earthquake monitoring**: detecting events in noisy data (Earthquake Transformer, PhaseNet). Catalog completeness vastly improved.\n- **Slow slip events + creep**: detected by GPS + InSAR. May modulate earthquake risk.\n- **Earthquake nowcasting**: combining EEW + rapid finite-fault models.\n- **Underwater seismometers**: DART + new fiber-optic distributed acoustic sensing (DAS).\n- **Climate change interactions**: warming alters glacial isostatic adjustment, may modulate seismicity slightly."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_geo_magnitude",
+        "kind": "guided_derivation",
+        "question": "Compare earthquake energies",
+        "goal": "M7.5 vs M5.5 earthquake. Energy ratio?",
+        "steps": [
+          {
+            "prompt": "Each unit M = 32× energy. M7.5 vs M5.5 = 2 units. Ratio?",
+            "motivation": "Multiplicative.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~1000x",
+                "1024",
+                "32^2"
+              ]
+            },
+            "hints": [
+              "$32^2 = 1024$."
+            ],
+            "reveal": "~1000× (32² = 1024). M7.5 releases 1000× the seismic energy of M5.5."
+          },
+          {
+            "prompt": "M9 (e.g., Tohoku 2011) vs M6 (typical damaging quake). Energy ratio?",
+            "motivation": "Same calc.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~32000",
+                "32^3",
+                "~32768"
+              ]
+            },
+            "hints": [
+              "$32^3 = 32768$."
+            ],
+            "reveal": "~32,000×. One M9 has as much energy as ~32,000 M6 events. Why megathrusts cause regional + global damage."
+          },
+          {
+            "prompt": "Magnitude formula: $M_w = (2/3) \\log(M_0) - 6.07$. If $M_0$ doubles, how does $M_w$ change?",
+            "motivation": "Log scaling.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "+0.2",
+                "increases by 0.2",
+                "0.2 increase"
+              ]
+            },
+            "hints": [
+              "$(2/3)\\log 2 = 0.2$."
+            ],
+            "reveal": "+0.2 magnitude. Each 0.2 magnitude unit = doubling of moment. Each 0.6 magnitude = 10×. Each 2 magnitude = 1000× moment + ~1000× energy."
+          }
+        ],
+        "finalResult": "$$\\boxed{M \\text{ scale: each unit} = 32\\times \\text{ energy; logarithmic}}$$ Magnitude is logarithmic in BOTH moment (the size of fault rupture × slip × rigidity) + energy. M9 events are 1 million × larger than M3 events. The largest earthquakes (M9+) require thousands of km² of fault + meters of slip — only at megathrust subduction zones. Mw is the modern measure; doesn't saturate."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_geo_eew",
+        "kind": "multiple_choice",
+        "question": "Why is earthquake EARLY WARNING (e.g., ShakeAlert) different from earthquake PREDICTION?",
+        "options": [
+          "Random.",
+          "Early warning = AFTER earthquake starts; detect P-waves at epicenter + warn distant locations of incoming damaging S-waves (seconds to tens of seconds lead time). Prediction = BEFORE earthquake; forecast time + place + magnitude. Early warning is operational; prediction remains unreliable.",
+          "Same thing.",
+          "Marketing."
+        ],
+        "correctIndex": 1,
+        "explanation": "Critical distinction:\n\n**Early warning**: detect P-wave arrival at epicenter (fastest wave); calculate magnitude + location quickly; warn distant locations BEFORE S-waves + surface waves (slower but damaging) arrive. Window: seconds to tens of seconds.\n- Tokyo from a distant M7 in Pacific: 30-60s warning.\n- Adjacent city to epicenter: 5-10s.\n- Directly at epicenter: 0s (P + S arrive almost together).\n\n**Prediction**: forecast WHEN + WHERE earthquakes will happen BEFORE any wave is detected. Days-weeks-months ahead.\n\nEEW is OPERATIONAL: Japan (since 2007), Mexico (since 1991), USA West Coast (ShakeAlert since 2019), Taiwan, etc. Has saved lives by triggering automatic train stops, elevators, surgeries, gas valves.\n\nPrediction remains UNRELIABLE despite decades of research. No precursor signal (radon, animal behavior, foreshocks, deformation) has proven reliable. Probabilistic long-term forecasts (30-year probabilities) are achievable; deterministic short-term predictions are not.\n\nSeparate but complementary: early warning works WITHIN minutes of an event; probabilistic forecasting informs building codes + insurance + land use decades ahead."
+      },
+      "hints": [
+        "Difference?",
+        "Status?"
+      ],
+      "workedSolution": "Early warning = after earthquake starts, warn downstream of incoming damaging waves. Seconds-tens-of-seconds window. Operational (Japan, Mexico, USA West, Taiwan). Prediction = before earthquake; forecast when + where. Not reliable despite decades of research. Probabilistic long-term forecasts: achievable + used for codes + insurance.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_geo_ps",
+        "kind": "math_expression",
+        "question": "P-S arrival difference at a station: 8 seconds. Approximate distance to epicenter (using ~8 km/s rule)?",
+        "acceptedAnswers": [
+          "~64 km",
+          "64"
+        ],
+        "hint": "$\\Delta t \\times 8$ km/s."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_geo_cascadia",
+        "kind": "scenario",
+        "question": "Cascadia subduction zone hazard",
+        "prompt": "Pacific Northwest USA faces 30% probability of M8-9 megathrust event in next 50 years. Walk through hazard, infrastructure preparedness, evacuation planning."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_geo_quake",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why earthquakes are catastrophic AND inevitable in plate-tectonic settings.",
+        "rubric": "Mentions that plate motion accumulates elastic strain across locked faults at constant rate (cm/year); strain releases periodically as earthquakes; rate of plate motion + fault length determine event size; hence inevitable at active boundaries. Preparation (building codes, EEW, education, insurance, retrofit) saves lives + property; prediction remains unreliable. Engineering + planning reduce impact; tectonics can't be stopped."
+      }
+    }
+  ]
+}

@@ -1,0 +1,185 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intro",
+    "objectives": [
+      "Distinguish atmospheric layers + their thermal structure.",
+      "Apply hydrostatic balance + the barometric formula.",
+      "Reason about composition + greenhouse-active gases."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The atmosphere in layers",
+      "body": "Earth's atmosphere extends from surface to ~1000 km, with mass concentrated in the lowest 30 km. Layers defined by temperature gradient reversal:\n\n• **Troposphere** (0-11 km mid-latitude; 0-17 km tropics; 0-8 km polar): T decreases ~6.5 K/km with altitude. Contains ~80% of atmospheric mass + nearly all weather. **Tropopause**: cold-point boundary, T ~ -56 °C.\n• **Stratosphere** (11-50 km): T increases with altitude (inverted from troposphere). Heating from O₃ absorption of UV. Stable; little vertical mixing. Contains the ozone layer (~20-30 km).\n• **Mesosphere** (50-85 km): T decreases again to ~-90 °C — coldest part of atmosphere. Meteors burn up here.\n• **Thermosphere** (85-600 km): T rises to 1000+ °C (low-density gas; high kinetic energy per particle). Aurora region; ISS orbit (~400 km).\n• **Exosphere** (>600 km): transitions to interplanetary space.\n\n**Tropopause height** varies: ~17 km tropics (high convection); ~7-8 km poles; rises with global warming (~50 m/decade observed). Determines depth of weather domain.\n\n**Layered T structure consequences**:\n- Stratosphere stability → minimal vertical exchange with troposphere; long-lived tracers stay in their layer.\n- Polar vortex stratospheric circulation (winter only).\n- Quasi-biennial Oscillation (QBO): ~2-year reversal of equatorial stratospheric winds — only known periodic atmospheric phenomenon."
+    },
+    {
+      "kind": "text",
+      "title": "Composition + the dry-air assumption",
+      "body": "**Dry-air composition** (% by volume):\n- N₂: 78.09%\n- O₂: 20.95%\n- Ar: 0.93%\n- CO₂: ~420 ppm (0.042%, rising ~2.5 ppm/yr)\n- Trace: Ne (18 ppm), He (5 ppm), CH₄ (1.9 ppm), Kr, H₂, N₂O, ...\n\n**Water vapor (H₂O)**: highly variable, 0-4% by volume. Concentrated in lower troposphere; very dry at altitude.\n\n**Aerosols**: solid + liquid particles (dust, sulfate, soot, sea salt, organic). Concentrations vary 10⁹ × across locations. Scatter light, nucleate cloud droplets, affect radiation balance.\n\n**Why these specific gases**:\n- N₂ + O₂: chemically robust against breakdown; Earth's oxygen evolved via photosynthesis (Great Oxygenation Event ~2.4 Gyr ago); without life, atmosphere would be CO₂-dominated like Venus + Mars.\n- Trace gases (CO₂, H₂O, CH₄, N₂O, O₃): **greenhouse-active** — absorb infrared. Despite low concentration, dominate radiative balance.\n\n**Greenhouse forcing** (relative contribution to natural greenhouse effect, ~33 °C warming):\n- H₂O: ~60% (most important; varies with T → strong positive feedback)\n- CO₂: ~25% (well-mixed; the lever for climate change)\n- CH₄, N₂O, O₃: ~15% combined\n\n**Anthropogenic CO₂ rise** (280 ppm preindustrial → 420 ppm 2024) drives additional ~+1.1 °C global warming. Climate sensitivity (T change per 2× CO₂): ~3 °C (IPCC AR6 best estimate)."
+    },
+    {
+      "kind": "text",
+      "title": "Hydrostatic balance + the barometric formula",
+      "body": "**Hydrostatic balance**: pressure gradient balances gravity for non-moving (or slowly-moving) air.\n\n  dP/dz = -ρ g\n\nCombined with ideal gas law P = ρ R T / M (R = universal gas constant, M = molar mass of air):\n\n  dP/P = -(M g / R T) dz\n\nIf T = const (isothermal atmosphere — approximation):\n\n  P(z) = P₀ exp(-z / H)\n\nwhere **scale height** H = R T / (M g) ≈ 8.4 km at T = 287 K. Pressure halves every ~5.5 km; drops by e ≈ 2.7× every 8.4 km. \n\nDensity follows similarly: ρ(z) = ρ₀ exp(-z/H).\n\nFor variable T (real atmosphere): integrate numerically. The U.S. Standard Atmosphere + the ICAO Standard Atmosphere are reference profiles used in aviation + meteorology.\n\n**Standard atmosphere benchmarks**:\n- Surface: P = 1013.25 hPa, ρ = 1.225 kg/m³\n- 5500 m (~half-pressure): P ~ 500 hPa\n- 11 km (tropopause): P = 226 hPa = 0.22 atm\n- 18 km (max balloon altitude): P = 75 hPa\n- 25 km (Concorde cruise): P = 26 hPa\n- 100 km (Karman line): P ~10⁻³ Pa\n\n**Why pressure matters**: drives wind (pressure gradient force), determines air density (affects everything from aircraft lift to weather forecasting), governs ozone chemistry (3-body reactions need density), affects spectroscopy (line broadening).",
+      "viz": "atmospheric-sounding",
+      "vizProps": {
+        "surfaceT": 25,
+        "surfaceTd": 20
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_atm_struct_1",
+        "kind": "guided_derivation",
+        "question": "Derive the scale height + use it to estimate pressure at altitude",
+        "goal": "Derive scale height H for an isothermal atmosphere + estimate pressure at Denver (1600 m altitude) given T = 280 K + sea-level P = 1013 hPa.",
+        "steps": [
+          {
+            "prompt": "Set up hydrostatic balance + ideal gas to get dP/dz.",
+            "motivation": "Standard derivation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "dP/dz = -Mg P/RT",
+                "isothermal expression"
+              ]
+            },
+            "hints": [
+              "P = ρ RT/M + dP/dz = -ρ g."
+            ],
+            "reveal": "dP/dz = -ρ g = -(M P / RT) g. Separable ODE."
+          },
+          {
+            "prompt": "Compute scale height H = RT / (Mg). Use R = 8.314 J/mol/K, M = 0.029 kg/mol, g = 9.81.",
+            "motivation": "Plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~8.18 km",
+                "8200 m",
+                "8.2 km"
+              ]
+            },
+            "hints": [
+              "8.314 × 280 / (0.029 × 9.81) = 2328 / 0.2845 = 8183 m."
+            ],
+            "reveal": "H = 8.314 × 280 / (0.029 × 9.81) ≈ 8.18 km. ('Scale height' is the e-folding length of pressure.)"
+          },
+          {
+            "prompt": "Pressure at 1600 m using P(z) = P₀ exp(-z/H)?",
+            "motivation": "Apply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~835 hPa",
+                "835",
+                "1013 × exp(-1600/8180)"
+              ]
+            },
+            "hints": [
+              "1013 × exp(-0.1956) = 1013 × 0.822."
+            ],
+            "reveal": "P(1600 m) = 1013 × exp(-1600/8180) = 1013 × exp(-0.1956) = 1013 × 0.822 ≈ 833 hPa. Matches actual Denver ~840 hPa (varies with weather; slightly higher T)."
+          },
+          {
+            "prompt": "What does this mean for aircraft + breathing?",
+            "motivation": "Practical implications.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "thinner air, less O₂",
+                "altitude effect",
+                "lower P → less lift + O₂ per breath"
+              ]
+            },
+            "hints": [
+              "What changes physiologically?"
+            ],
+            "reveal": "At Denver: ~82% of sea-level air pressure → ~82% O₂ partial pressure → reduced oxygen uptake. Acclimation: ~weeks for hematocrit to rise. Aircraft: wings produce less lift; engines less power → longer runway needed. Commercial airliners at 30,000 ft = 9000 m: P ~ 350 hPa (~1/3 atm). Cabin pressurized to ~8000 ft equivalent (~750 hPa) for passenger comfort."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_atm_struct_1",
+        "kind": "sortable",
+        "question": "Order the atmospheric layers from surface upward (lowest to highest).",
+        "items": [
+          {
+            "id": "troposphere",
+            "label": "Troposphere (0-11 km mid-lat)"
+          },
+          {
+            "id": "stratosphere",
+            "label": "Stratosphere (11-50 km)"
+          },
+          {
+            "id": "mesosphere",
+            "label": "Mesosphere (50-85 km)"
+          },
+          {
+            "id": "thermosphere",
+            "label": "Thermosphere (85-600 km)"
+          },
+          {
+            "id": "exosphere",
+            "label": "Exosphere (>600 km)"
+          }
+        ],
+        "explanation": "The atmosphere has 4 main layers based on temperature gradient reversal (plus the exosphere where atoms can escape into space):\n• **Troposphere**: T decreases with height (-6.5 K/km on average). Contains weather + ~80% of atmospheric mass. Top: tropopause.\n• **Stratosphere**: T increases due to O₃ absorption of UV. Stable; long residence times for aerosols, CFCs. Ozone layer at ~20-30 km.\n• **Mesosphere**: T decreases again to ~-90 °C. Meteors burn up here. Atmospheric pressure ~10⁻³ atm.\n• **Thermosphere**: T rises to 1000+ °C (low-density; high kinetic energy per particle). ISS orbit, aurora.\n• **Exosphere**: H + He atoms can escape Earth's gravity.\n\nLayer names + heights are anthropogenic conventions; the underlying physics is gradient reversals + radiation absorption."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_atm_struct_1",
+        "kind": "multiple_choice",
+        "question": "Why does temperature INCREASE with altitude in the stratosphere, unlike the troposphere?",
+        "options": [
+          "The sun heats the stratosphere from above.",
+          "Ozone (O₃) in the stratosphere absorbs ultraviolet radiation, heating the air. Maximum heating occurs near the O₃ concentration peak at ~25 km, where T rises to ~-15 °C. Below + above, less O₃ → less UV heating → cooler. The inversion makes stratosphere highly stable (no convection); long-lived chemical species persist + the polar ozone hole forms in winter.",
+          "Cosmic rays heat the stratosphere.",
+          "Stratosphere has more greenhouse gases."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Stratospheric heating** is driven by ozone (O₃) absorption of UV radiation in the Hartley + Huggins + Chappuis bands (200-300 nm UV-B + UV-C).\n\nMechanism:\n1. O₃ absorbs UV photon → photodissociation: O₃ + hν → O₂ + O.\n2. Subsequent O + O₂ → O₃ recombination releases kinetic energy → local heating.\n3. Net cycle: UV absorbed + dissipated as heat.\n\n**Vertical heating profile**:\n- 50 km: low O₃ + low density → little heating (transition to mesosphere).\n- 25 km: peak O₃ concentration → maximum heating.\n- 15 km: O₃ tapering off → low heating.\n- 10 km: troposphere → no significant O₃ → no UV heating.\n\n**Consequences**:\n- T increases from ~-56 °C (tropopause) to ~-15 °C (stratopause).\n- Strongly stable stratification → minimal vertical mixing.\n- Long-lived species (CFCs, N₂O, SF₆) persist in stratosphere for decades — drove ozone-hole chemistry.\n- Volcanic sulfate aerosols injected into stratosphere stay aloft for ~1-3 years → global cooling (Pinatubo 1991: -0.5 °C for ~2 yr).\n\n**Stratosphere-troposphere coupling**:\n- Brewer-Dobson circulation: rising air at tropics, descent at high latitudes; carries trace gases.\n- Sudden stratospheric warmings (SSWs): polar vortex disrupted → ripples down to troposphere within weeks; affect mid-latitude weather.\n- QBO (Quasi-Biennial Oscillation): equatorial stratospheric winds reverse ~26 months → affects tropical convection + ENSO.\n\nObservational evidence: temperature profiles via radiosondes (since 1940s), satellite limb-sounding (MLS, SABER). UV absorption directly measured via spectroscopy. Ozone column from Dobson + Brewer instruments since 1920s."
+      },
+      "hints": [
+        "What absorbs UV in the stratosphere?",
+        "Where is the heating maximum?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Ozone in the stratosphere absorbs UV → heats the air. Peak heating ~25 km (peak O₃). Inversion: T -56 °C tropopause → -15 °C stratopause. Stable layer; long-lived species persist; volcanic aerosols stay ~1-3 yr; polar ozone hole forms in winter. SSWs + QBO + Brewer-Dobson circulation are stratosphere-specific dynamics that couple back to weather."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_atm_struct_1",
+        "kind": "math_expression",
+        "question": "Air pressure at sea level is 1013 hPa, scale height 8.4 km. What's the pressure at 8.4 km altitude?",
+        "acceptedAnswers": [
+          "~373 hPa",
+          "1013/e",
+          "372.6",
+          "373"
+        ],
+        "hint": "P(8.4 km) = P₀ / e ≈ 1013/2.718 ≈ 373 hPa."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_atm_struct_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why the lowest 11 km of atmosphere — the troposphere — produces all weather, while the layers above are stable + relatively boring (climatologically speaking).",
+        "rubric": "Mentions: troposphere has lapse rate -6.5 K/km — surface warmer than top → buoyantly unstable; convection mixes air vertically; lifts moisture; condenses into clouds → precipitation. Contains ~80% of atmospheric mass + nearly all water vapor. Stratosphere + above have T inversions → strongly stable → no convection → no weather (except volcanic plumes occasionally penetrate). Troposphere dynamics: Hadley cell (tropics), Ferrel + Polar cells (midlat + high), jet streams at top, eddies + cyclones; everything visible from satellites + felt on ground. Tropopause acts as 'lid' — most water condenses out before reaching stratosphere; rare overshooting tops penetrate stratosphere briefly. Air conditioning of planetary surface depends on tropospheric circulation; climate change is largely a tropospheric phenomenon, though stratospheric responses (cooling) are observed signatures of CO₂ forcing."
+      }
+    }
+  ]
+}

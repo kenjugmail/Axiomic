@@ -1,0 +1,200 @@
+{
+  "meta": {
+    "timeMinutes": 30,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Derive the SIR ODEs from mass-action assumptions.",
+      "Interpret R₀ + herd-immunity threshold quantitatively.",
+      "Compare deterministic + stochastic + network approaches."
+    ],
+    "prereqs": [
+      "epidemiology-foundations"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The SIR model + mass-action mixing",
+      "body": "**Compartmental models** divide a population into mutually-exclusive disease states + write equations for the flows between them. The simplest: **SIR**.\n\n• **S** (susceptible): can catch the disease.\n• **I** (infected/infectious): currently sick + can transmit.\n• **R** (recovered, immune): no longer susceptible (or dead — doesn't matter for transmission dynamics).\n\nMass-action assumption: each infectious person contacts each susceptible at rate β (combining contact rate + per-contact transmission probability). Then dS/dt = −β S I / N. Recovery: each infected person recovers at rate γ ≡ 1/(mean infectious period). dI/dt = β S I / N − γ I. dR/dt = γ I.\n\nThree parameters: β (transmission rate), γ (recovery rate), N (population). Often re-expressed via **R₀ = β/γ**: the basic reproductive number, the expected number of secondary cases from one infected person in a fully susceptible population.\n\nKnown R₀ values: measles 12-18, polio 5-7, smallpox 3-6, COVID-19 (ancestral) 2-3, flu 1-2, Ebola 1-2. Driven by biology (infectivity, latency) + behavior (contact patterns).",
+      "viz": "sir-model",
+      "vizProps": {
+        "r0": 2.5,
+        "infectiousDays": 7,
+        "vaccinated": 0,
+        "initialInfected": 0.001
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Herd immunity + the effective R",
+      "body": "**Herd-immunity threshold (HIT)**: the fraction of the population needing immunity to prevent sustained transmission. From SIR: each infected person now contacts only S/N susceptibles on average. The **effective R**: R_eff = R₀ × (S/N). Sustained transmission stops when R_eff < 1, i.e., S/N < 1/R₀, i.e., immune fraction ≥ **1 − 1/R₀**.\n\nFor measles (R₀ = 15): HIT = 1 − 1/15 ≈ 93%. Hence the public health goal of >95% MMR coverage to prevent outbreaks. Dropping below 93% — even by a few percent — turns measles back from contained to epidemic.\n\nFor COVID-19 (R₀ ≈ 2.5 ancestral): HIT ≈ 60%. With Delta (R₀ ≈ 5-6): ~80%. Variants kept raising the bar; combined with waning vaccine-induced immunity, the 'herd immunity goal' kept slipping out of reach.\n\nCaveats: R_eff is not just S-dependent. **Behavior changes** (distancing, masks) reduce β temporarily. **Variant evolution** raises R₀. **Heterogeneous mixing** (some people contact many; most contact few) means HIT in the highly-mixing subgroup matters more than the population average. Real-world HIT often differs from the simple 1 − 1/R₀ formula."
+    },
+    {
+      "kind": "text",
+      "title": "Beyond SIR: SEIR, age-structure, networks, stochasticity",
+      "body": "Real diseases motivate richer models:\n\n• **SEIR**: adds an **Exposed** (latent, infected but not yet infectious) compartment. Captures incubation period. Relevant when latent period is long compared to infectious period (HIV, TB).\n• **Age-structured SIR**: separate compartments per age group with explicit contact matrix (e.g., POLYMOD survey for Europe). Captures the fact that children mix with children, elderly with elderly, mixing only partially across.\n• **Network models**: individuals are nodes; transmission only along edges. Captures clustering, super-spreaders, contact-network topology. Helps explain why COVID-19 outbreaks were driven by ~10% of infected (super-spreading events).\n• **Stochastic models**: small numbers (early outbreak, extinction) need probabilistic treatment. Branching processes / Gillespie algorithm. The deterministic SIR predicts smooth growth from any infected individual — but a single infected person *might* fail to transmit by chance.\n• **Spatial models**: gravity / radiation models for human mobility (commuting, air travel). Used for global pandemic simulations (GLEAM, EpiCast).\n\nEach added complexity buys realism but costs identifiability + tractability. A common modeling principle: start with the simplest model that explains the phenomenon; add complexity only when needed."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_compartmental_1",
+        "kind": "guided_derivation",
+        "question": "Derive the herd-immunity threshold for measles from R₀ = 15",
+        "goal": "Show why measles needs >93% vaccination coverage + connect to the effective R.",
+        "steps": [
+          {
+            "prompt": "Define R_eff in terms of R₀ + the susceptible fraction.",
+            "motivation": "Account for the fact that only susceptibles can be infected.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "R_eff = R0 * S/N",
+                "R_eff = R0 (1-immune)",
+                "R_0 * S/N"
+              ]
+            },
+            "hints": [
+              "Each infected meets S/N susceptibles, multiplying by transmission per contact gives R0 × S/N."
+            ],
+            "reveal": "R_eff(t) = R₀ × S(t)/N. As people become immune (recover or vaccinate), S/N falls + R_eff falls."
+          },
+          {
+            "prompt": "What value of S/N makes R_eff = 1 (transmission just barely sustained)?",
+            "motivation": "Find the critical susceptible fraction.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1/R0",
+                "1/15",
+                "0.0667",
+                "6.67%"
+              ]
+            },
+            "hints": [
+              "Set R₀ × S/N = 1 ⇒ S/N = 1/R₀."
+            ],
+            "reveal": "S/N = 1/R₀ = 1/15 ≈ 0.0667 = 6.67%. Below this S/N, R_eff < 1 + the disease cannot sustain transmission."
+          },
+          {
+            "prompt": "What's the immune fraction at this threshold?",
+            "motivation": "1 - susceptible fraction.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "14/15",
+                "0.933",
+                "93.3%",
+                "1-1/15"
+              ]
+            },
+            "hints": [
+              "1 − 1/R₀."
+            ],
+            "reveal": "Immune fraction = 1 − 1/R₀ = 14/15 ≈ 93.3%. This is the herd-immunity threshold for measles."
+          },
+          {
+            "prompt": "Why does vaccination coverage need to be even higher than the HIT in practice?",
+            "motivation": "Vaccine efficacy, heterogeneous mixing.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "vaccine efficacy < 100%",
+                "imperfect vaccine",
+                "heterogeneous mixing",
+                "<100% efficacy"
+              ]
+            },
+            "hints": [
+              "Coverage ≠ immunity if vaccine isn't 100% effective."
+            ],
+            "reveal": "MMR efficacy is ~97% (2 doses). So 95% coverage × 97% efficacy = 92% effective immunity — barely above HIT. Also, heterogeneous mixing means that the children-children network can have local R_eff > 1 even when the population average is below HIT. CDC targets >95% coverage to maintain safety margin + handle local pockets of refusal."
+          },
+          {
+            "prompt": "What happens when MMR coverage drops to 88% in a community? Apply your model.",
+            "motivation": "Predict outbreak risk + size.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "outbreak",
+                "epidemic",
+                "R_eff > 1"
+              ]
+            },
+            "hints": [
+              "Compute R_eff at this coverage level."
+            ],
+            "reveal": "Effective immunity ≈ 0.88 × 0.97 = 85%. S/N ≈ 15% ⇒ R_eff = 15 × 0.15 ≈ 2.25 — disease can spread. Recent measles outbreaks (e.g., Disneyland 2014, NY 2018-19, Samoa 2019 — 5700 cases + 83 deaths) hit exactly when coverage dropped in pockets to ~80-85% via anti-vaccine misinformation. Mathematics is unforgiving: small drops in coverage produce large outbreaks for highly-transmissible diseases."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_compartmental_1",
+        "kind": "multiple_choice",
+        "question": "Why did COVID-19 'herd immunity' never materialize as predicted at ~60% (R₀ ≈ 2.5 ancestral)?",
+        "options": [
+          "The original R₀ estimates were wrong; the true R₀ was 0.5.",
+          "Variants (Alpha, Delta, Omicron) increased R₀ to 5-10, raising HIT to ~80-90%; vaccine + infection immunity waned over months; heterogeneous mixing meant local R_eff could exceed 1 even when global immunity was high. The simple 1−1/R₀ threshold assumes static R₀ + uniform mixing + permanent immunity — none held.",
+          "Herd immunity is a hoax with no real meaning.",
+          "Population-wide vaccination was never achieved."
+        ],
+        "correctIndex": 1,
+        "explanation": "Three reasons the simple HIT formula failed for COVID-19:\n\n(1) **R₀ is not constant**. Each variant raised R₀: ancestral ~2.5 → Alpha 4 → Delta 5-6 → Omicron BA.1 ~8-10. HIT rose from ~60% to ~85-90% — a moving target.\n\n(2) **Immunity wanes**. Antibody titers from vaccination or natural infection drop substantially over 6-12 months. People who 'count' as immune at month 6 may be re-susceptible at month 12. The HIT calculation assumes permanent immunity.\n\n(3) **Heterogeneous mixing**. Even 85% population immunity doesn't prevent outbreaks in subnetworks (schools, workplaces, religious communities) where local coverage is lower. The HIT formula assumes well-mixed populations; real populations have clusters.\n\nLesson: HIT is a *necessary* but not *sufficient* condition for elimination. It's a useful guidepost, not a guarantee. Endemic equilibrium (smaller but persistent transmission) is more realistic for respiratory viruses with these dynamics."
+      },
+      "hints": [
+        "Did R₀ stay constant?",
+        "Did immunity last forever?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "1 − 1/R₀ assumes (i) R₀ fixed, (ii) immunity permanent, (iii) homogeneous mixing. COVID violated all three. Variants raised R₀; vaccine-induced + infection-induced immunity waned over months; mixing was clustered. Result: endemic equilibrium with periodic waves, not classical 'herd immunity.'"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_compartmental_2",
+        "kind": "multiple_choice",
+        "question": "A super-spreading event accounts for the majority of secondary cases in many COVID-19 clusters. What model feature captures this?",
+        "options": [
+          "Higher β for the entire population.",
+          "Over-dispersion: the *distribution* of secondary cases per infected is skewed (most infect 0-1, a few infect 20+). Captured by negative-binomial models with low dispersion parameter k. SIR's mass-action assumption implies Poisson distribution (mean = variance), inadequate for super-spreading.",
+          "Mass-action transmission with higher R₀.",
+          "Adding more compartments (SEIR, SEIRS)."
+        ],
+        "correctIndex": 1,
+        "explanation": "Mass-action SIR implies homogeneous transmission per case — equivalent to Poisson(R) per case. Empirically (Lloyd-Smith+ 2005), real outbreaks show *over-dispersion*: most cases produce 0-1 secondary, a few produce 20+. The shape parameter **k** of the negative-binomial captures this; lower k means more dispersion.\n\nSARS-CoV-1: k ≈ 0.16 (extreme over-dispersion, super-spreaders dominate).\nCOVID-19: k ≈ 0.1-0.5 depending on setting.\nFlu: k ≈ 1-2 (moderate).\nMeasles: k ≈ 0.5-1 (some over-dispersion).\n\nImplication for control: when k is small, focusing interventions on high-risk events (large gatherings, poor ventilation) is more effective than uniform measures. Contact tracing also works *better* at low k — extinct most chains by interrupting just super-spreaders.\n\nMass-action SIR misses this entirely. Network models + branching-process formulations are needed for accurate dynamics of low-k diseases. The 'overdispersion principle' underlies why backward contact tracing (find the source of *your* infection, not who you spread to) is so much more efficient than forward tracing for SARS-like diseases."
+      },
+      "hints": [
+        "Is the variance of secondary cases per infected case as small as Poisson?",
+        "What's the role of dispersion parameter k?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Mass-action gives Poisson-distributed secondary cases. Reality has heavy tails — most infected produce 0-1 secondary, a few 20+. Modeled with negative-binomial; dispersion k captures over-dispersion. COVID's k ≈ 0.1-0.5 means super-spreading is structural. Implications: focus on settings + behaviors that drive outliers, use backward tracing, accept that average R doesn't capture full dynamics."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_compartmental_1",
+        "kind": "math_expression",
+        "question": "A disease has R₀ = 4. What's the herd-immunity threshold as a fraction of the population?",
+        "acceptedAnswers": [
+          "0.75",
+          "75%",
+          "3/4",
+          "0.750"
+        ],
+        "hint": "HIT = 1 − 1/R₀."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_compartmental_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain the SIR model + R₀ to a curious public-health policymaker. What can policy levers actually change, and how do they map to model parameters?",
+        "rubric": "Mentions: S/I/R compartments + flows; β = transmission rate, γ = recovery rate, R₀ = β/γ. Policy levers map to parameters: vaccination + natural immunity reduce S (move S→R); social distancing + masks + ventilation reduce β; testing + isolation + paid sick leave shorten infectious time → raises γ; antivirals shorten infectiousness or reduce severity. Note that R_eff = R₀ × S/N is what governs the epidemic's trajectory in real time. HIT = 1−1/R₀ is necessary but not sufficient — variants, waning immunity, heterogeneous mixing complicate the simple picture. Real outbreaks need over-dispersion + network models for super-spreading-dominated diseases (COVID, SARS)."
+      }
+    }
+  ]
+}

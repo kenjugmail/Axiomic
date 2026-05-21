@@ -1,0 +1,223 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Distinguish photodiode + APD + SPAD + PMT.",
+      "Reason about shot, thermal, dark-current noise.",
+      "Connect SNR to detector + system design."
+    ],
+    "prereqs": [
+      "em-waves-and-maxwell"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Photodetector families",
+      "body": "**Photodetectors** convert optical signals to electrical. Key families:\n\n• **Photodiode (PD)**: p-n or PIN junction; absorbed photon creates electron-hole pair, swept by field. Si (400-1100 nm); InGaAs (900-1700 nm); Ge (800-1700 nm). Response: ~0.5-0.9 A/W (Si); responsivity = ηe/hν.\n\n• **Avalanche photodiode (APD)**: photodiode with internal carrier multiplication via impact ionization. Gain M ~10-100. SNR-improved vs photodiode but adds excess-noise factor. Used in low-light fiber receivers.\n\n• **Single-photon avalanche diode (SPAD)**: APD biased above breakdown; single photon triggers avalanche; counts photons. Used in: LIDAR, quantum cryptography, low-light imaging, neuroscience.\n\n• **Photomultiplier tube (PMT)**: photocathode + dynode chain; ~10⁶× gain. Vacuum tube. Used: low-light + fast (~ns) measurement; replaced by SPAD + SiPM in many applications.\n\n• **Silicon photomultiplier (SiPM)**: array of SPADs operated in Geiger mode; sum gives photon count. Compact + cheap. Used: PET imaging, lidar, particle physics.\n\n• **Charge-coupled device (CCD)** + **CMOS image sensor**: arrays of photodiodes. Smartphone cameras, scientific imaging. CMOS dominant since ~2010 for cost + low-power.\n\n• **Bolometers + thermopiles**: thermal detectors; slow; broadband; used for IR + THz.\n\n• **HgCdTe + InSb detectors**: mid-IR (~3-12 µm). Cooled; expensive; military + scientific.\n\n• **Superconducting nanowire single-photon detector (SNSPD)**: highest efficiency (>95%) single-photon detection; needs ~4K cryocooling. Quantum + telecom research.\n\n**Responsivity**: R = (η × e) / (h ν). For Si at 800 nm, η = 90%: R ≈ 0.58 A/W (vs theoretical 0.65 A/W at η=1)."
+    },
+    {
+      "kind": "text",
+      "title": "Noise sources + the SNR limit",
+      "body": "Detector + system noise has 5 main contributions:\n\n• **Shot noise**: discrete photon arrivals (or electron-hole creation). Poisson statistics. RMS current σ_shot = √(2 e I_total Δf), where I = signal + dark current, Δf = bandwidth. Cannot be reduced (fundamental).\n\n• **Thermal (Johnson-Nyquist) noise** in load resistor: σ_thermal = √(4 k_B T Δf / R). Larger R → less thermal noise but slower bandwidth.\n\n• **Dark current**: leakage when no light; thermally generated carriers. Si photodiode: pA-nA at room T. APD: nA at gain.\n\n• **Excess noise** (APD multiplication): excess-noise factor F(M); for M=10 in Si, F ≈ 6.\n\n• **Amplifier noise**: input-referred current noise of TIA (transimpedance amp).\n\n**Noise equivalent power (NEP)**: signal power at which SNR = 1 (in 1 Hz BW). Lower is better. Si photodiode: ~10⁻¹⁴ W/√Hz; SNSPD: ~10⁻¹⁸ W/√Hz.\n\n**SNR**: signal current / total noise. For shot-noise-limited detection of N photons:\n  SNR = √N (square-root scaling).\n\nSo distinguishing 100 photons from 0: SNR = 10 (excellent). 10,000 photons: SNR = 100. Photon-counting detectors operate in this regime.\n\n**Cryogenic detectors** (SNSPD, TES): reduce thermal noise to negligible; near-shot-noise limited. Used in quantum networking, deep-space optical communication, axion + dark-matter searches.\n\n**Detection-limit hierarchy**:\n1. Photon noise (shot): fundamental.\n2. Dark current: temperature-reduction helps.\n3. Thermal: cooling + good electronics.\n4. Amplifier: low-noise design.\n5. RIN (relative intensity noise) of source: stabilize laser."
+    },
+    {
+      "kind": "text",
+      "title": "Detector applications + selection",
+      "body": "Picking the right detector:\n\n**Visible imaging (smartphone, scientific)**:\n- CMOS image sensor; back-side illuminated (BSI) → high QE.\n- Si quantum efficiency peaks 50-90% at 500-600 nm.\n- Recent: stacked-die designs (Sony Exmor); single-pixel-level analog gain.\n\n**Fiber telecom (1300-1550 nm)**:\n- PIN photodiodes (Ge, InGaAs).\n- APDs for low-light (long-reach receivers).\n- 100G+ coherent: balanced photodiodes + 90° hybrid + 100 GS/s ADCs.\n\n**LIDAR (autonomous vehicles, geomatics)**:\n- SPAD/SiPM at 905 nm (Si) or 1550 nm (InGaAs).\n- Direct time-of-flight: photon timing → distance.\n- Indirect time-of-flight: phase shift of modulated CW.\n- Flash + scanning systems.\n\n**Scientific spectroscopy**:\n- Cooled CCD/CMOS for visible.\n- InGaAs array for SWIR.\n- HgCdTe for mid-IR.\n- Bolometer / thermopile for far-IR / THz.\n\n**Single-photon (quantum, astronomy)**:\n- Si SPAD for visible (η~70%).\n- SNSPD for telecom (η~95%) — best efficiency + low timing jitter.\n- TES (transition-edge sensor): photon-number resolving.\n\n**X-ray / gamma**:\n- Si + Ge for X-ray spectroscopy (NDA-controlled).\n- HPGe (high-purity Ge) for high-resolution gamma.\n- Sodium iodide + LSO for radiation therapy + PET.\n\n**Mid + far-IR**:\n- HgCdTe (cooled).\n- InSb (cooled).\n- Microbolometer arrays (uncooled): FLIR thermal cameras.\n\n**Specialized**:\n- **PMT**: large-area + fast; scintillator + Cherenkov; legacy.\n- **Streak camera**: ultrafast (~ps timing) imaging.\n- **Spectrograph + CCD**: standard for spectral measurements."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_pd_1",
+        "kind": "guided_derivation",
+        "question": "Compute SNR for a Si photodiode receiver",
+        "goal": "A Si PIN photodiode at 850 nm sees 1 µW optical power; responsivity 0.55 A/W; load resistor 50 Ω; T = 300 K; bandwidth 100 MHz; dark current 1 nA.",
+        "steps": [
+          {
+            "prompt": "Signal photocurrent?",
+            "motivation": "Apply R × P.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~550 nA",
+                "0.55 µA",
+                "0.55 × 1e-6"
+              ]
+            },
+            "hints": [
+              "I_s = R × P."
+            ],
+            "reveal": "I_s = 0.55 A/W × 1×10⁻⁶ W = 5.5×10⁻⁷ A = 550 nA."
+          },
+          {
+            "prompt": "Shot-noise current (using total I)?",
+            "motivation": "Standard formula.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~13.3 nA",
+                "√(2 e × 551e-9 × 1e8)",
+                "13.3 nA"
+              ]
+            },
+            "hints": [
+              "√(2 × 1.6e-19 × 5.51e-7 × 1e8)."
+            ],
+            "reveal": "σ_shot = √(2 × 1.6×10⁻¹⁹ × 5.51×10⁻⁷ × 10⁸) = √(1.76×10⁻¹⁷) ≈ 1.33×10⁻⁸ A = 13.3 nA."
+          },
+          {
+            "prompt": "Thermal-noise current?",
+            "motivation": "Johnson-Nyquist.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~18.2 µA",
+                "√(4 k_B T / R × Δf)"
+              ]
+            },
+            "hints": [
+              "√(4 × 1.38e-23 × 300 / 50 × 1e8)."
+            ],
+            "reveal": "σ_thermal = √(4 × 1.38×10⁻²³ × 300 / 50 × 10⁸) = √(3.31×10⁻¹⁴) ≈ 1.82×10⁻⁷ A = 182 nA. (50 Ω load with 100 MHz BW.)"
+          },
+          {
+            "prompt": "Dominant noise + SNR?",
+            "motivation": "Compare.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "thermal-noise-limited; SNR ~ 3.0",
+                "SNR ≈ 3"
+              ]
+            },
+            "hints": [
+              "Shot << thermal here."
+            ],
+            "reveal": "Thermal dominates (182 nA >> 13.3 nA). Total noise ≈ 182 nA. SNR = 550 / 182 ≈ 3.0 → ~10 dB SNR. Limited by thermal in 50 Ω load + 100 MHz BW. To improve: cool detector (negligible at 300 K vs cryo); use transimpedance amp with low input-referred current noise; switch to APD with internal gain (improves SNR despite multiplication noise); raise load resistance (slower bandwidth). For DC + low-bandwidth: shot-noise-limited at this signal level."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_pd_1",
+        "kind": "slider",
+        "question": "Drag to the typical responsivity (in A/W) of a Si photodiode at 850 nm.",
+        "target": {
+          "min": 0.45,
+          "max": 0.6
+        },
+        "default": 1.5,
+        "explanation": "Si photodiode at 850 nm: responsivity ~0.5-0.6 A/W (η ~75-90%). Theoretical max R = e/(hν) = 0.68 A/W at 850 nm. For comparison: Ge at 1550 nm ~0.8 A/W (lower bandgap); InGaAs at 1550 nm ~0.8-1.0 A/W. PMT effective responsivity 10⁵-10⁶ A/W (high gain) but only ~30% QE at peak."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_pd_1",
+        "kind": "drag_classify",
+        "question": "Match each detector to its primary application domain.",
+        "items": [
+          {
+            "id": "cmos-sensor",
+            "label": "CMOS image sensor (smartphone)",
+            "bin": "imaging"
+          },
+          {
+            "id": "ingaas-pin",
+            "label": "InGaAs PIN photodiode (100G coherent)",
+            "bin": "telecom"
+          },
+          {
+            "id": "snspd",
+            "label": "Superconducting nanowire detector (SNSPD)",
+            "bin": "low-light"
+          },
+          {
+            "id": "spad-array",
+            "label": "SPAD array (lidar, neuroscience)",
+            "bin": "low-light"
+          },
+          {
+            "id": "microbolometer",
+            "label": "Uncooled microbolometer (FLIR thermal cam)",
+            "bin": "thermal-ir"
+          },
+          {
+            "id": "hgcdte",
+            "label": "HgCdTe (cooled mid-IR imager)",
+            "bin": "thermal-ir"
+          },
+          {
+            "id": "ccd-scientific",
+            "label": "Scientific cooled CCD",
+            "bin": "imaging"
+          },
+          {
+            "id": "apd-receiver",
+            "label": "APD long-haul fiber receiver",
+            "bin": "telecom"
+          },
+          {
+            "id": "sipm",
+            "label": "SiPM (PET imaging, particle physics)",
+            "bin": "low-light"
+          }
+        ],
+        "bins": [
+          {
+            "id": "imaging",
+            "label": "Visible imaging"
+          },
+          {
+            "id": "telecom",
+            "label": "Fiber-optic telecom"
+          },
+          {
+            "id": "low-light",
+            "label": "Single-photon / low-light"
+          },
+          {
+            "id": "thermal-ir",
+            "label": "Thermal / mid-IR imaging"
+          }
+        ],
+        "explanation": "Detector selection by application:\n• **Visible imaging**: CMOS for cameras + smartphones (cheap, low-power, megapixel); CCD for scientific (low-noise, high-QE).\n• **Telecom**: PIN photodiodes (Ge, InGaAs) for short reach; APDs for long-reach; balanced photodetectors + 90° hybrids for coherent.\n• **Single-photon / low-light**: SPADs (Si, InGaAs for telecom); SNSPDs (best efficiency, cryogenic); SiPMs (large-area integrated SPADs); PMTs (legacy, still in particle physics).\n• **Thermal / mid-IR**: microbolometers (uncooled, FLIR); HgCdTe + InSb (cooled, scientific + military).\n\nEach combines: spectral range + speed + sensitivity + cost + size. Photonics-engineering choice is multi-dimensional. Modern trend: photonic-integrated detectors on Si or SiN + monolithic with electronics → low-cost integration."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_pd_1",
+        "kind": "multiple_choice",
+        "question": "Why have SPADs (single-photon avalanche diodes) become foundational for LIDAR + quantum?",
+        "options": [
+          "SPADs are simple.",
+          "SPADs detect single photons with ~ps timing resolution + Geiger-mode operation (avalanche fires on any photon). Used in time-of-flight LIDAR (autonomous-vehicle range), TCSPC (fluorescence lifetime imaging), quantum cryptography (BB84), quantum networking. Recent: large SPAD arrays (Sony IMX459/479 LIDAR sensors with thousands of SPADs); Si SPAD efficiency ~70%; InGaAs SPAD for telecom-wavelength quantum.",
+          "SPADs replace LEDs.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "**SPADs (Single-Photon Avalanche Diodes)**:\n\n*Operation*: photodiode biased above breakdown (Geiger mode). Single absorbed photon → avalanche → mA-level pulse. Quenching circuit resets after each detection.\n\n*Key specs*:\n- **Photon Detection Efficiency (PDE)**: 30-70% (Si, 500-900 nm); 10-30% (InGaAs, 1550 nm); 95%+ (SNSPD, cryogenic).\n- **Timing jitter**: 20-200 ps (Si SPAD); 50-100 ps (InGaAs); <10 ps (SNSPD).\n- **Dark count rate (DCR)**: 10-1000 cps (Si); 1000-10⁴ cps (InGaAs); <1 cps (SNSPD).\n- **Afterpulsing**: probability of false counts following an avalanche; lower-resolution timer of SPAD count rate.\n\n*Applications*:\n\n1. **LIDAR**: time-of-flight photon ranging.\n   - Direct ToF: send pulse, measure return time; resolution ~3 mm/100 ps.\n   - Indirect ToF: phase shift of modulated signal.\n   - Sony IMX459 (2021): 256×189 SPAD array for automotive lidar.\n   - Apple iPad Pro + iPhone Pro: SPAD-based LiDAR for AR/depth.\n   - Solid-state automotive lidar (Velodyne, Innoviz, Aeva, Luminar): SPAD or APD + CMOS.\n\n2. **Quantum cryptography**:\n   - BB84 + variants: receive single photons in 2 polarization bases.\n   - QKD networks: city-scale (Tokyo, Vienna, China backbone) + satellite (Micius 2017).\n   - SPADs at 850 nm (Si) or 1550 nm (InGaAs) depending on link.\n\n3. **Fluorescence-lifetime imaging microscopy (FLIM)**:\n   - TCSPC (time-correlated single-photon counting).\n   - Determine fluorophore lifetime → distinguish bound/unbound state, microenvironment.\n\n4. **Time-of-flight 3D imaging**:\n   - Gating + sub-cm range resolution.\n   - Indoor scene reconstruction, biomedical.\n\n5. **Particle physics + biology**:\n   - Cherenkov detectors.\n   - DNA sequencing (Nanopore + PacBio use photon-counting variants).\n\n6. **Quantum networking + computing**:\n   - Photonic qubit detection.\n   - Bell-state measurements + entanglement-swapping.\n\n7. **Astronomy**:\n   - Faint-target imaging.\n   - Lucky-imaging post-processing.\n\n*Recent advances*:\n- **CMOS SPAD arrays**: monolithic 256×256+ on standard 65nm/40nm/28nm CMOS; cheap + scalable.\n- **InGaAs SPAD arrays**: 32×32 + bigger emerging; cooled to suppress dark counts.\n- **Free-running operation**: traditional gated; new TDM-quenched variants for arrays.\n- **Time-skew correction**: digital calibration of per-pixel timing offsets.\n- **3D-stacking**: optical SPAD die + CMOS readout die (Sony, ams).\n\n*Limits*:\n- Geometric fill factor: SPAD active region only ~10-30% of pixel area.\n- Dark counts limit sensitivity; cooling helps.\n- Afterpulsing.\n- Saturation at high photon rates.\n\n*Future*:\n- Megapixel SPAD arrays (research direction).\n- Higher-fill-factor designs.\n- Compatible with CMOS processes for cheaper manufacturing.\n- Integration with timing electronics + ML for noise reduction.\n\nSPAD + SNSPD have re-enabled photon-counting at scale; foundation of modern quantum + lidar industries."
+      },
+      "hints": [
+        "What are SPAD operating modes?",
+        "Where are they deployed?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "SPADs (Geiger-mode avalanche photodiodes): single-photon detection with ps timing resolution. PDE 30-70% (Si), 10-30% (InGaAs), 95%+ (SNSPD cryo). Applications: LIDAR (automotive, AR/depth sensors), TCSPC + FLIM, quantum cryptography (BB84, QKD), time-of-flight 3D, particle physics, astronomy, quantum networking. CMOS SPAD arrays (Sony IMX459, Apple LiDAR) enable mass deployment. Limits: dark counts, afterpulsing, fill factor; future: megapixel + higher efficiency + cheaper manufacturing."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_pd_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why photodetector noise + sensitivity ultimately limit how far + fast + low-light optical communications + sensing can go.",
+        "rubric": "Mentions: any photodetector adds shot + thermal + dark + amplifier noise. Shot noise (∝ √I) is fundamental; cannot be reduced. Total noise determines minimum detectable signal — limits range (fiber spans, lidar range, telescope sensitivity), bandwidth (faster needs lower noise per Hz), low-light scenarios (single-photon counting, faint-object imaging, biomedical). Modern engineering: cool detector (reduce dark + thermal); use APD/SPAD/SNSPD (internal gain or photon-counting); design TIA with sub-pA/√Hz current noise; use coherent detection (LO heterodyne to shot-noise limit). Limits: deep-space optical (~10⁻¹⁸ W/m²), single-photon QKD (Bell experiments), low-light biomedical (10-100 photons per pixel imaging). Hardware + protocol co-evolution: every dB of detector improvement enables longer reach + faster rate. Concludes: photodetector engineering is invisible foundation of every optical system."
+      }
+    }
+  ]
+}

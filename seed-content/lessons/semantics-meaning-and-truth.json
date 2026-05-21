@@ -1,0 +1,159 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply truth-conditional + compositional semantics.",
+      "Distinguish lexical + compositional meaning.",
+      "Connect to distributional + neural semantics."
+    ],
+    "prereqs": [
+      "syntax-and-phrase-structure"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Truth-conditional semantics: meaning as truth conditions",
+      "body": "**Semantics** = study of meaning. **Pragmatics** = meaning in context (next lesson).\n\n**Truth-conditional semantics** (Frege, Tarski, Davidson, Montague, ...): meaning of a sentence = its truth conditions (under which conditions is it true?).\n\nFor 'The cat is on the mat':\n- True iff there exists x such that x is a cat ∧ exists y such that y is a mat ∧ x is on y.\n- Formal logic: ∃x∃y [Cat(x) ∧ Mat(y) ∧ On(x, y)].\n\n**Compositionality** (Frege): meaning of a complex expression is determined by meanings of its parts + how they combine. Foundational principle. \n\n**Lambda calculus** (Church 1932, used by Montague 1970): formal apparatus for compositional semantics.\n- 'cat' = λx. cat(x) (function: 'x is a cat?').\n- 'is on the mat' = λy. on(y, mat).\n- 'the cat is on the mat' = (λx. on(x, mat))(THE cat) — function application.\n\n**Type theory in semantics** (Montague Grammar):\n- e: entity (Susan, the cat).\n- t: truth value (true, false).\n- ⟨e, t⟩: function from entity to truth value (predicate).\n- ⟨⟨e, t⟩, t⟩: function from predicate to truth value (quantifier).\n- Higher orders for more complex categories.\n\n**Quantifiers + scope**:\n- 'Every student read a book.' Ambiguous:\n  ∀x [student(x) → ∃y [book(y) ∧ read(x, y)]]   (each student a possibly-different book)\n  ∃y [book(y) ∧ ∀x [student(x) → read(x, y)]]   (one book read by all students)\n- Scope ambiguity central to formal semantics.\n\n**Modal + intensional logic**: necessity (□), possibility (◇), knowledge, belief, time. Possible-worlds semantics (Kripke 1959): meaning = function from worlds to extensions."
+    },
+    {
+      "kind": "text",
+      "title": "Lexical semantics + WordNet",
+      "body": "**Lexical semantics**: meaning of individual words + relations among words.\n\n**Semantic relations**:\n- **Synonymy**: same meaning ('big' ~ 'large').\n- **Antonymy**: opposite (good/bad).\n- **Hyponymy**: subset (dog hyponym of mammal).\n- **Hypernymy**: superset (mammal hypernym of dog).\n- **Meronymy**: part-of (wheel meronym of car).\n- **Polysemy**: multiple related senses ('bank' of river vs financial; 'mouth' of person vs river).\n- **Homonymy**: unrelated same form ('bat' animal vs bat sports).\n\n**WordNet** (Princeton, Miller 1985+): lexical database for English (now multilingual versions). Words organized into synsets (synonym sets); synsets linked by relations.\n\n**Frame semantics** (Fillmore 1976+): word meanings activate cognitive frames. 'buy' frame: buyer + seller + goods + money.\n\n**Decompositional semantics**: \n- 'kill' = CAUSE_BECOME_NOT_ALIVE.\n- 'eat' = INCORPORATE_FOOD.\n- Aspectual structure (durative, achievement, accomplishment).\n\n**Logical metonymy + coercion**: 'I finished the book' (= reading the book).\n\n**Argument structure**: thematic roles (Agent, Patient, Theme, Goal, Beneficiary). Foundational for verb semantics + frame semantics + semantic-role labeling in NLP.\n\n**Cross-linguistic lexical variation**:\n- Color terms (Berlin + Kay 1969): universal hierarchy.\n- Body parts.\n- Kinship terms.\n- 'eat' + 'drink' often single verb in some languages.\n- Time expressions vary widely."
+    },
+    {
+      "kind": "text",
+      "title": "Distributional semantics + neural word embeddings",
+      "body": "**Distributional hypothesis** (Harris 1954, Firth 1957): 'You shall know a word by the company it keeps.' Word meaning emerges from contexts in which it appears.\n\n**Lexical semantics from corpora**:\n- Co-occurrence counts: word × context matrix.\n- **Latent Semantic Analysis (LSA)** (Deerwester+ 1990): SVD on document-term matrix.\n- **Topic models** (LDA, Blei+ 2003): probabilistic.\n- **Pointwise mutual information (PMI)** + variants for word similarity.\n\n**Neural word embeddings** (2013 revolution):\n- **Word2Vec** (Mikolov+ 2013): skip-gram + CBOW; predicts context from word or vice versa. ~100-300 dim dense vectors.\n- **GloVe** (Pennington+ 2014): global co-occurrence factorization.\n- **FastText** (Bojanowski+ 2016): subword embeddings → handles OOV + morphology.\n- Resulting vectors capture: similarity (cosine), analogy (king − man + woman ≈ queen), clusters (semantic + syntactic).\n\n**Contextual embeddings** (2018+):\n- **ELMo** (Peters+ 2018): bi-LSTM language model.\n- **BERT** (Devlin+ 2018): bidirectional transformer; masked language modeling.\n- **GPT** (Radford+ 2018+): autoregressive transformer.\n- **T5, RoBERTa, mBERT, XLM-R, LLaMA, GPT-4**: ever-larger + better.\n- Same word has different embedding in different contexts (polysemy handled).\n\n**Modern LLMs as semantic models**:\n- Lexical-similarity probes.\n- Conceptual knowledge in latent space.\n- Sentence + document embeddings (SBERT, OpenAI ada-002, Cohere embed).\n- Multilingual + cross-lingual transfer.\n- Semantic search at scale.\n\n**Critiques + limitations**:\n- 'Stochastic parrots' (Bender + Gebru 2021): LLMs learn distribution, not grounded meaning.\n- Reference resolution: do LLMs really understand what words refer to?\n- Embodied cognition: meaning may require sensory + motor grounding.\n- Recent: vision-language models (CLIP, GPT-4V, LLaVA) bridge sensory grounding.\n\n**Distributional vs truth-conditional**:\n- Truth-conditional: precise + compositional but requires formal apparatus.\n- Distributional: empirical + scalable but loses precise logical content.\n- Modern hybrid: neural + symbolic, distributional semantics + formal logic, semantic parsing into logical forms."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sem_1",
+        "kind": "guided_derivation",
+        "question": "Apply compositional semantics to a simple sentence",
+        "goal": "Compute the truth conditions of 'Every dog likes some cat' compositionally + identify scope ambiguity.",
+        "steps": [
+          {
+            "prompt": "Lambda translation of 'every dog'?",
+            "motivation": "Universal quantifier over dogs.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "λP. ∀x [dog(x) → P(x)]"
+              ]
+            },
+            "hints": [
+              "Generalized quantifier."
+            ],
+            "reveal": "'every dog' = λP. ∀x [dog(x) → P(x)]. Type ⟨⟨e, t⟩, t⟩ (function from predicate to truth value)."
+          },
+          {
+            "prompt": "Lambda translation of 'some cat'?",
+            "motivation": "Existential.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "λP. ∃y [cat(y) ∧ P(y)]"
+              ]
+            },
+            "hints": [
+              "Existential quantifier."
+            ],
+            "reveal": "'some cat' = λP. ∃y [cat(y) ∧ P(y)]."
+          },
+          {
+            "prompt": "'likes' translation?",
+            "motivation": "Two-argument predicate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "λx λy. likes(y, x)",
+                "transitive verb"
+              ]
+            },
+            "hints": [
+              "Subject acts on object."
+            ],
+            "reveal": "'likes' = λx λy. likes(y, x). Type ⟨e, ⟨e, t⟩⟩. Note: object first by convention (curried)."
+          },
+          {
+            "prompt": "Compose 'likes some cat'.",
+            "motivation": "Apply 'some cat' to 'likes'.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "λy. ∃z [cat(z) ∧ likes(y, z)]"
+              ]
+            },
+            "hints": [
+              "Apply object."
+            ],
+            "reveal": "After type-shift / lifting + function application: 'likes some cat' = λy. ∃z [cat(z) ∧ likes(y, z)]. 'y likes some cat.'"
+          },
+          {
+            "prompt": "Compose 'every dog likes some cat'. Result?",
+            "motivation": "Apply subject.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "∀x [dog(x) → ∃z [cat(z) ∧ likes(x, z)]]",
+                "wide-scope universal reading"
+              ]
+            },
+            "hints": [
+              "Plug 'every dog' as subject."
+            ],
+            "reveal": "Surface scope (∀ > ∃): ∀x [dog(x) → ∃z [cat(z) ∧ likes(x, z)]]. 'For every dog, there exists some cat that the dog likes.' Each dog may like a different cat.\n\nInverse scope (∃ > ∀): ∃z [cat(z) ∧ ∀x [dog(x) → likes(x, z)]]. 'There exists a particular cat such that every dog likes that cat.' The same cat liked by all.\n\nQuantifier scope ambiguity: pragmatically + cognitively + grammatically determined which reading is preferred (typically surface = ∀ > ∃ for 'every X likes some Y' but context can flip)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_sem_1",
+        "kind": "slider",
+        "question": "Drag to the typical dimensionality of word embeddings in production-grade Word2Vec/GloVe systems.",
+        "target": {
+          "min": 200,
+          "max": 400
+        },
+        "default": 50,
+        "explanation": "Production word embeddings: ~200-400 dimensions (Word2Vec 300; GloVe 300; FastText 300). Smaller (50-100): faster + cheaper but lower-quality. Larger (>500): diminishing returns. Modern contextual (BERT, GPT): 768-12288 dimensions; layer-dependent. Sentence embeddings (SBERT, OpenAI ada-002): 384-1536 dim. Multilingual: 768-1024."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sem_1",
+        "kind": "multiple_choice",
+        "question": "Why have word embeddings (Word2Vec, GloVe, BERT contextual) become foundational for NLP?",
+        "options": [
+          "Marketing.",
+          "Distributional hypothesis: meaning emerges from context. Word embeddings convert words into dense vectors where semantic similarity = vector proximity. Captures: synonymy, analogy, hyponymy, polysemy (contextual versions). Drop-in feature for downstream NLP tasks (classification, NER, sentiment, semantic search). Replaced sparse bag-of-words + handcrafted features. Modern LLMs (BERT, GPT-4) build on contextual embedding insight at scale.",
+          "Random.",
+          "Required by standards."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Word embeddings revolution + foundation of modern NLP**:\n\n*Pre-embedding NLP* (1990s-early 2010s):\n- Bag-of-words representations (sparse, high-dim).\n- Handcrafted features (POS tags, NER, syntactic).\n- Per-task feature engineering.\n- Limited transfer between tasks.\n\n*Word2Vec breakthrough* (Mikolov+ 2013):\n- Skip-gram + CBOW: shallow neural network predicts word↔context.\n- Dense vectors (~300 dim) capture semantic + syntactic regularities.\n- **Vector arithmetic**: king − man + woman ≈ queen.\n- Cosine similarity = semantic similarity.\n- Pre-trained embeddings (Google News, Wikipedia) freely available.\n\n*Properties*:\n1. **Compactness**: 300 dims vs 100k+ vocabulary in one-hot.\n2. **Generalization**: similar words have similar vectors.\n3. **Transfer**: pre-trained embeddings boost downstream tasks (classification, NER, sentiment).\n4. **Compositionality** (partial): average word vectors approximates phrase meaning.\n5. **Multilinguality** (later): cross-lingual embeddings.\n\n*Limitations of static embeddings*:\n- Single vector per word; ignores polysemy ('bank' financial vs river).\n- No context sensitivity.\n- Solved by contextual embeddings.\n\n*Contextual embeddings* (2018+):\n- ELMo: bi-LSTM contextualizes word.\n- BERT: bidirectional transformer; masked language modeling.\n- GPT: autoregressive transformer.\n- Same word has different embedding in different sentences.\n- State-of-the-art on virtually every NLP benchmark.\n\n*Sentence + document embeddings*:\n- SBERT (Reimers + Gurevych 2019): siamese BERT for sentence pairs.\n- OpenAI ada-002, text-embedding-3.\n- Cohere embed.\n- Used for: semantic search, RAG (retrieval-augmented generation), clustering.\n\n*Multimodal embeddings*:\n- CLIP (Radford+ 2021): image + text in shared space.\n- ImageBind: video, audio, text, depth, IMU.\n- Foundation for: search, generation, multimodal LLMs (GPT-4V, LLaVA, Gemini).\n\n*Theoretical foundations*:\n- **Distributional hypothesis** (Harris 1954, Firth 1957): meaning from co-occurrence.\n- Mathematical: PMI matrix factorization (Levy + Goldberg 2014) explains why Word2Vec works.\n- Connection to information theory + statistical physics.\n\n*Critiques (Bender + Koller 2020, 'Climbing toward NLU')*:\n- LLMs learn form, not meaning?\n- Reference + grounding require world knowledge.\n- 'Octopus argument': purely text-trained model can't truly understand meaning.\n- Counter-argument: meaning emerges from rich enough distributional + multimodal training.\n- Active debate; emergent capability literature.\n\n*Modern practice*:\n- Static embeddings: GloVe, Word2Vec, FastText. Used in lightweight applications.\n- Contextual: BERT family, GPT family. Standard for high-performance.\n- LLMs (GPT-4, LLaMA, Claude, Gemini): produce embeddings as side-effect; massive scale.\n- Embedding services: OpenAI, Cohere, HuggingFace.\n\n*Applications*:\n- Search (Google, Bing semantic search since 2019).\n- Translation (Google Translate Neural, 2016 onwards).\n- Question answering, summarization, code generation.\n- Recommendation systems (sentence embeddings of products + users).\n- Clustering + classification.\n- Few-shot learning + transfer.\n\nWord embeddings are arguably the most consequential single NLP innovation of the past 15 years; foundation of everything afterwards."
+      },
+      "hints": [
+        "What does distributional hypothesis say?",
+        "Why are vectors better than one-hot?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Word embeddings convert words to dense vectors capturing semantic similarity = vector proximity. Distributional hypothesis (Harris 1954): meaning from co-occurrence. Word2Vec (Mikolov 2013): 300-dim vectors; analogy (king-man+woman≈queen); transfer across tasks. Replaced sparse bag-of-words + handcrafted features. Contextual (BERT, GPT): same word different embedding per context; SOTA on every NLP benchmark. Sentence + document + multimodal extensions. Foundation of modern LLMs + search + translation + recommendation. Critiques: form vs meaning debate (Bender + Koller 2020); active research."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sem_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how formal (truth-conditional) semantics + distributional (vector) semantics complement each other in modern NLP.",
+        "rubric": "Mentions: formal/truth-conditional semantics (Frege, Montague, Tarski): precise, compositional, supports logical inference + quantifier scope + intensionality + modality. Strength: deductive + rigorous; weakness: brittle, doesn't scale to open-domain. Distributional/neural semantics (Word2Vec, BERT, LLMs): empirical, scalable, captures soft + graded meaning; weakness: doesn't natively support logical inference or scope ambiguity. Hybrid approaches: semantic parsing (NL → logical form via neural parser; then logical inference); LLM + symbolic-tool augmentation (Toolformer, ReAct, Plan-and-Solve); neuro-symbolic AI; vector-based reasoning + formal verification. Modern frontier: combine LLM general-purpose reasoning with formal-semantics-grounded reasoning for verifiable + scalable NLP. Examples: math reasoning (LLM + theorem-prover); code generation (LLM + execution); legal/medical (LLM + structured knowledge bases). Concludes: not either-or; complementary tools with growing integration."
+      }
+    }
+  ]
+}

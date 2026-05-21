@@ -1,0 +1,165 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Distinguish radial-velocity vs transit detection methods.",
+      "Compute the habitable zone for a star of given luminosity.",
+      "Interpret atmospheric biosignatures + their false positives."
+    ],
+    "prereqs": [
+      "stellar-structure-and-fusion"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Exoplanet detection methods",
+      "body": "By 2026 we know ~5800 confirmed exoplanets across ~4200 systems. Four primary detection methods, each with biases:\n\n• **Radial velocity** (RV / Doppler): stellar spectral lines wobble by Δv = (M_p/M_*)·v_orb due to the planet pulling the star. Biased toward massive planets close to small stars. Hot Jupiters dominate early surveys (51 Peg b, Mayor + Queloz 1995, Nobel 2019).\n• **Transit**: planet crosses stellar disk, drops flux by (R_p/R_*)². Biased toward large planets + edge-on orbits. **Kepler** (2009-2018): ~2700 confirmed planets, statistical census. **TESS** (2018-): brightest stars + best follow-up targets. **JWST**: atmospheric characterization.\n• **Direct imaging**: very rare — only works for young, hot, wide-separation planets (HR 8799, β Pic b).\n• **Gravitational microlensing**: works for very far / very low-mass planets; statistical only.\n\nCombining methods constrains both **mass** (RV) and **radius** (transit) ⇒ **density**, which constrains composition (gas giant vs rocky vs water world)."
+    },
+    {
+      "kind": "text",
+      "title": "The habitable zone",
+      "body": "**Habitable zone** (HZ): orbital region where surface liquid water can plausibly exist on an Earth-like planet (right atmospheric pressure, sufficient greenhouse, etc.). Approximate inner + outer edges depend on stellar luminosity:\n\nInner edge (runaway greenhouse, ~Venus): a_HZ_in ≈ √(L/L☉) × 0.95 AU.\nOuter edge (CO₂ condensation, ~Mars): a_HZ_out ≈ √(L/L☉) × 1.67 AU.\n\nFor the Sun: HZ ≈ 0.95 - 1.67 AU. Earth at 1.0 AU is well within.\n\nFor a 0.2 M☉ M dwarf (L ≈ 0.005 L☉): HZ ≈ 0.07 - 0.12 AU — much tighter + closer to the star. Implications: HZ planets are tidally locked + bathed in stellar flares. **TRAPPIST-1** (M8 dwarf, L = 0.0005 L☉): 7 Earth-sized planets, 3-4 in the HZ — but the star erupts violently. Habitability is *plausible* but the radiation environment is hostile.\n\nHabitable ≠ inhabited. Real habitability also depends on planetary mass (atmosphere retention), magnetic field, plate tectonics, water inventory, atmosphere composition, and a stable orbit over Gyrs — none of which we can yet measure remotely."
+    },
+    {
+      "kind": "text",
+      "title": "Atmospheric biosignatures + false positives",
+      "body": "Robust biosignatures (in principle): atmospheric **O₂ + CH₄** simultaneously, far from chemical equilibrium (Earth: O₂ + CH₄ should react to CO₂ + H₂O in ~10 yr — their coexistence requires a continuous biological source).\n\nWeaker biomarkers: O₃, N₂O, CHCl₃, and the **'red edge'** of vegetation reflectance.\n\n**False positives** (abiotic O₂):\n• Photolysis of H₂O in stratosphere + H escape → O₂ buildup (especially for M-dwarf planets with high XUV flux).\n• Photolysis of CO₂ → CO + O₂ on dry desert planets.\n• Loss of H from runaway-greenhouse early planets.\n\nMitigation: jointly observe O₂ + CH₄ + N₂; the combination is much harder to explain abiotically.\n\n**JWST** transmission spectroscopy has detected H₂O, CO₂, CH₄, SO₂ in several giant exoplanet atmospheres. For Earth-sized HZ planets (e.g., TRAPPIST-1d, e), JWST is just on the edge of detecting major atmospheric species; biosignature detection awaits future missions (HWO / LUVOIR-class, ARIEL).\n\nThe field is currently at the 'precursor' stage: cataloguing atmospheres, ruling out abiotic alternatives, calibrating false-positive rates. A confirmed biosignature detection would likely require *multiple* independent lines of evidence."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_exoplanets_and_habitability_1",
+        "kind": "guided_derivation",
+        "question": "Compute the radial velocity wobble Earth induces on the Sun",
+        "goal": "Estimate the RV signal a Sun-Earth analog system would produce, observed from outside.",
+        "steps": [
+          {
+            "prompt": "Centre of mass: M_Sun · r_Sun = M_Earth · r_Earth (both measured from the COM). What's the Sun's distance from COM?",
+            "motivation": "Mass ratio × Earth's orbital radius.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "r_Sun = M_Earth/M_Sun × a = (3×10⁻⁶) × 1 AU ≈ 450 km."
+              ]
+            },
+            "hints": [
+              "Mass ratio × Earth's orbital radius."
+            ],
+            "reveal": "r_Sun = M_Earth/M_Sun × a = (3×10⁻⁶) × 1 AU ≈ 450 km."
+          },
+          {
+            "prompt": "The Sun orbits this COM with period 1 yr. What's its orbital speed?",
+            "motivation": "Standard v = circumference / period.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "v = 2π r_Sun / T = 2π × 450000 / (3.15×10⁷) ≈ 0.09 m/s = 9 cm/s."
+              ]
+            },
+            "hints": [
+              "Standard v = circumference / period."
+            ],
+            "reveal": "v = 2π r_Sun / T = 2π × 450000 / (3.15×10⁷) ≈ 0.09 m/s = 9 cm/s."
+          },
+          {
+            "prompt": "Current best precision of high-resolution spectrographs (ESPRESSO at the VLT)?",
+            "motivation": "Order of magnitude.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~10 cm/s under ideal conditions; ~30 cm/s realistically. The 9 cm/s 'Earth analog' signal is right at the detection floor — currently inaccessible to any single observation but potentially recoverable with many years of careful monitoring + stellar-activity decorrelation."
+              ]
+            },
+            "hints": [
+              "Order of magnitude."
+            ],
+            "reveal": "~10 cm/s under ideal conditions; ~30 cm/s realistically. The 9 cm/s 'Earth analog' signal is right at the detection floor — currently inaccessible to any single observation but potentially recoverable with many years of careful monitoring + stellar-activity decorrelation."
+          },
+          {
+            "prompt": "What does this tell you about the discovery bias toward 'hot Jupiters'?",
+            "motivation": "Detectability scaling vs Δv.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "RV signal scales as M_p × a^(−1/2). A Jupiter-mass planet (300× Earth) at 0.05 AU (50× closer) gives Δv ~ 300 × √20 ≈ 1300× Earth's signal ≈ 120 m/s — easy to detect with 1990s tech. Hot Jupiters dominated early discoveries because they were *easy*, not because they're common. Statistical surveys (Kepler) now show hot Jupiters are < 1% of planetary systems; rocky planets are far more common but harder to detect."
+              ]
+            },
+            "hints": [
+              "Detectability scaling vs Δv."
+            ],
+            "reveal": "RV signal scales as M_p × a^(−1/2). A Jupiter-mass planet (300× Earth) at 0.05 AU (50× closer) gives Δv ~ 300 × √20 ≈ 1300× Earth's signal ≈ 120 m/s — easy to detect with 1990s tech. Hot Jupiters dominated early discoveries because they were *easy*, not because they're common. Statistical surveys (Kepler) now show hot Jupiters are < 1% of planetary systems; rocky planets are far more common but harder to detect."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_exoplanets_and_habitability_2",
+        "kind": "multiple_choice",
+        "question": "Why does the transit method preferentially detect planets close to their host stars?",
+        "options": [
+          "Close-in planets have larger physical radii.",
+          "Geometric transit probability scales as R_*/a, plus close-in planets have higher orbital frequency (more transits per unit time).",
+          "Close-in planets have hotter atmospheres + more pronounced spectroscopic features.",
+          "Stellar activity erases transits at large orbital periods."
+        ],
+        "correctIndex": 1,
+        "explanation": "Correct. (1) Transit probability ≈ R_*/a — Earth at 1 AU transits the Sun from a randomly oriented observer only ~0.5% of the time; a hot Jupiter at 0.05 AU transits ~10%. (2) Hot Jupiters orbit in days, so a 4-year mission like Kepler sees hundreds of transits; Earth-analogs around Sun-like stars transit once a year, so you need ≥3 years to detect 3 transits. Both effects strongly bias surveys toward close-in planets.\n\nOther options: Close-in planets have larger physical radii.: Hot Jupiters have radii of ~1 R_Jup ≈ Jupiter — no larger than cold gas giants. Radius isn't the issue. | Close-in planets have hotter atmospheres + more pronounced s: True for transmission spectroscopy of *characterization*, not for the initial *detection* of transits. | Stellar activity erases transits at large orbital periods.: Stellar activity adds noise but doesn't preferentially erase transits at large a. The dominant transit biases are geometric + temporal."
+      },
+      "hints": [
+        "Geometry + observation duration both favor short-period planets."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Transit probability = R_* / a (for circular orbits, randomly oriented). Sun-Earth: R☉/AU ≈ 0.005 = 0.5%. So even if every star has an Earth-analog, you'd see transits in only ~1 in 200. Combined with the temporal requirement (≥3 transits for detection ⇒ for Sun-Earth, ≥3 yr baseline), Kepler's confirmed catalog is biased ~100× toward short-period planets. Statistical de-biasing → η_Earth (frequency of Earth-analogs in HZ) ≈ 0.1-0.2 per Sun-like star — surprisingly high."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_exoplanets_and_habitability_3",
+        "kind": "multiple_choice",
+        "question": "JWST transmission spectroscopy of a habitable-zone exoplanet reveals strong CO₂ + H₂O absorption, plus a small amount of O₂. The planet orbits an M dwarf with high XUV flux. Is this strong evidence for life?",
+        "options": [
+          "Yes — O₂ + H₂O together is a classic biosignature.",
+          "No — M-dwarf planets can produce abiotic O₂ via H₂O photolysis + H escape; without CH₄ as a co-marker, the signal is ambiguous.",
+          "Yes — H₂O is mandatory for life, and we've seen it directly.",
+          "No — JWST cannot detect atmospheric species reliably."
+        ],
+        "correctIndex": 1,
+        "explanation": "Correct. M dwarfs emit intense XUV that dissociates H₂O → H₂ + O₂ in the upper atmosphere. The H₂ escapes (lighter, easier to lose); O₂ accumulates *abiotically*. So O₂ + H₂O on an M-dwarf planet has a well-known false-positive pathway. To rule it out, you'd want (a) co-existing CH₄ (which O₂ should destroy on a short timescale, so its presence requires continuous source); (b) evidence the planet has been desiccated (water-loss history); (c) absence of CO from CO₂ photolysis. Single biomarker detections on M-dwarf planets must be treated cautiously.\n\nOther options: Yes — O₂ + H₂O together is a classic biosignature.: Premature. The classic biosignature requires O₂ + CH₄ (out of equilibrium); just O₂ + H₂O has well-known abiotic origins, especially around M dwarfs. | Yes — H₂O is mandatory for life, and we've seen it directly.: H₂O alone is not a biosignature — it's common in cold + cool environments throughout the solar system + exoplanet population. Mars + Europa + Enceladus all have H₂O. It's a necessary condition for life-as-we-know-it, not a marker of life. | No — JWST cannot detect atmospheric species reliably.: JWST has reliably detected H₂O, CO₂, CH₄, SO₂, and other species in multiple exoplanet atmospheres since 2022. The question is interpretation, not detection capability."
+      },
+      "hints": [
+        "Think about how O₂ can form without life on M-dwarf planets."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Domagal-Goldman+ 2014 + Meadows+ 2018 catalog the leading abiotic-O₂ pathways: (1) H₂O photolysis + H escape (early in M-dwarf history when XUV is highest, can build up bar-level O₂ over Gyrs); (2) CO₂ photolysis without efficient CO recombination (desert / dry-planet scenario); (3) post-runaway-greenhouse water loss. The 'gold standard' biosignature is the *simultaneous* presence of strongly oxidizing (O₂, O₃) + strongly reducing (CH₄, NH₃) species in chemical disequilibrium — combined with contextual evidence (planetary age, water inventory, host star history). Single-species detections are precursor data; biosignature *claims* require a full atmospheric story."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_exoplanets_and_habitability_4",
+        "kind": "math_expression",
+        "question": "Estimate the inner edge of the habitable zone (in AU) for an F5V star with L = 3 L☉. Use a_HZ_in ≈ 0.95 √(L/L☉) AU.",
+        "acceptedAnswers": [
+          "1.645",
+          "1.65",
+          "1.64",
+          "1.64545"
+        ],
+        "hint": "Plug in L = 3."
+      },
+      "workedSolution": "a_HZ_in = 0.95 × √3 = 0.95 × 1.732 ≈ 1.645 AU. The HZ for an F5V star extends from ~1.65 to ~2.9 AU. An Earth analog in this system would need to orbit ~50% farther out than Earth — and the higher UV flux would put more selective pressure on UV-shielding biology."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_exoplanets_and_habitability_5",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why finding a 'second Earth' is much harder than just finding a planet of the right size + temperature.",
+        "rubric": "Size + temperature alone don't determine habitability; many other factors matter. Atmospheric composition: too thin (no greenhouse, frozen), too thick (Venus-style runaway), wrong composition (no O₂ if no oxygenic photosynthesis, no CH₄ buffer). Geological activity: plate tectonics + volcanism regulate carbon cycle over Gyrs (Earth's thermostat); without it, climate is unstable. Magnetic field: protects atmosphere from stellar wind stripping (Mars failed; lost atmosphere). Stellar environment: M-dwarf flares strip atmospheres + may sterilize surface; tidally locked planets have extreme weather. Time: life on Earth took ~Gyr to emerge + Gyrs more to oxygenate atmosphere; need stable conditions on those timescales. Biosignatures remotely accessible to us are limited; need both right physics + right chemistry + right history."
+      }
+    }
+  ]
+}

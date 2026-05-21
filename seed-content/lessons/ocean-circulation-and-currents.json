@@ -1,0 +1,182 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Distinguish wind-driven + thermohaline circulation.",
+      "Apply Ekman + geostrophic balances.",
+      "Reason about AMOC + climate coupling."
+    ],
+    "prereqs": [
+      "physical-oceanography-basics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Wind-driven surface circulation",
+      "body": "**Surface currents** are driven primarily by wind stress, modified by Earth's rotation (Coriolis effect):\n\n• **Equator** (0° lat): no Coriolis → wind stress directly drives surface currents (Equatorial Currents).\n• **Mid-latitudes** (30°): Coriolis deflects flow ~45° right of wind in Northern Hemisphere (left in S). Ekman transport (depth-averaged) is 90° to right.\n• **Subtropical gyres** (30°N + 30°S): wind stress curl drives clockwise circulation (NH; CCW in SH). Gulf Stream (W. Atlantic), Kuroshio (W. Pacific), Brazil + Agulhas Currents on western boundaries — fast + narrow (~50 km wide, 1-2 m/s).\n• **Subpolar gyres** (60°): cyclonic; Labrador + Norwegian Currents.\n• **Antarctic Circumpolar Current (ACC)**: only current that circles globe; ~125 Sv (1 Sv = 10⁶ m³/s).\n\n**Western boundary intensification** (Stommel 1948): wind-stress curl from trade winds + westerlies, combined with Coriolis variation with latitude (β-effect), forces gyres' return flow into intense narrow western boundary currents. Gulf Stream peaks at 100 Sv off Cape Hatteras.\n\n**Ekman spiral + transport**: wind drives surface layer 45° from wind direction; each successive layer rotates slightly more + slower. Net depth-integrated Ekman transport is 90° from wind. Drives **upwelling** at coasts where Ekman transport pushes water offshore (California, Peru, Benguela coasts) — nutrient-rich → productive fisheries."
+    },
+    {
+      "kind": "text",
+      "title": "Geostrophic balance + thermal wind",
+      "body": "Away from boundaries + over time scales > a day, ocean currents are in **geostrophic balance**: pressure gradient force balances Coriolis. \n\n  f × v_geo = (1/ρ) ∇P\n\nIn the open ocean: currents flow along sea-surface-height contours (high SSH to the right in NH). Satellite altimetry (TOPEX/Poseidon, Jason series) measures SSH to ±2 cm → maps geostrophic currents.\n\n**Thermal wind balance** (combination of geostrophic + hydrostatic): \n\n  ∂v/∂z = (g / f ρ_0) × ∂ρ/∂x\n\nVertical current shear is set by horizontal density gradients. So mapping ocean density (T + S vs depth) lets us infer currents from depth profiles — used since Sverdrup era.\n\n**Sverdrup transport**: meridional transport across mid-ocean ≈ wind stress curl / β × f. Predicts gyre interior; western boundary currents close the budget.",
+      "viz": "ocean-ts-diagram"
+    },
+    {
+      "kind": "text",
+      "title": "Thermohaline circulation + AMOC",
+      "body": "**Thermohaline circulation (THC)** is the deep, density-driven 'global conveyor belt':\n\n1. North Atlantic: surface water cools + sinks (NADW formation, ~15 Sv).\n2. NADW flows southward at ~2-4 km depth along Atlantic deep western boundary.\n3. Joins Antarctic Circumpolar Current; mixes with AABW (forms in Weddell + Ross Seas, ~8-10 Sv).\n4. Upwells diffusely across Indian + Pacific Oceans (slow, ~25-50 m/yr) + intensely near ACC.\n5. Surface return flow back to N. Atlantic via Indonesian Throughflow, Agulhas leakage, Gulf Stream system.\n\nRound-trip time: ~1000-2000 years.\n\n**Atlantic Meridional Overturning Circulation (AMOC)**: specifically the Atlantic part. Transports ~1.3 PW (10¹⁵ W) heat northward — comparable to atmospheric meridional heat transport at 30°N. Northwest Europe is 5-10 °C warmer than equivalent latitudes in NA because of AMOC heat transport.\n\n**Climate-change concerns**:\n• Increased freshwater input (Greenland ice melt + Arctic precipitation) reduces N. Atlantic surface salinity → weakens NADW formation.\n• Direct observations (RAPID array since 2004): AMOC has decreased ~15% since 1950s; ~3 Sv weakening detected.\n• Tipping point: full AMOC collapse possible if forcing exceeds threshold. Last collapse: ~12.9 kyr ago (Younger Dryas), N. hemisphere cooled 5-10 °C in decades.\n• IPCC AR6: high confidence in AMOC weakening this century; low confidence in collapse before 2100.\n• Consequences if collapse: drastic NW Europe cooling, tropical rainfall shifts, ocean carbon uptake declines."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_circ_1",
+        "kind": "guided_derivation",
+        "question": "Compute Ekman transport for coastal upwelling",
+        "goal": "California coast: 35°N. Equatorward wind stress τ = 0.1 Pa during summer. Estimate Ekman transport + the upwelling that results.",
+        "steps": [
+          {
+            "prompt": "Compute Coriolis parameter at 35°N. f = 2 Ω sin φ, Ω = 7.27×10⁻⁵ rad/s.",
+            "motivation": "Standard formula.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~8.3e-5",
+                "8.34e-5",
+                "8.3 × 10⁻⁵ 1/s"
+              ]
+            },
+            "hints": [
+              "2 × 7.27×10⁻⁵ × sin 35° = 1.454×10⁻⁴ × 0.574 = 8.34×10⁻⁵."
+            ],
+            "reveal": "f = 2 × 7.27×10⁻⁵ × sin 35° ≈ 8.34×10⁻⁵ rad/s."
+          },
+          {
+            "prompt": "Compute Ekman transport per unit length of coast: M_E = τ / (ρ_0 × f). ρ_0 ≈ 1025 kg/m³.",
+            "motivation": "Steady-state Ekman.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~1.17 m²/s",
+                "1.17"
+              ]
+            },
+            "hints": [
+              "0.1 / (1025 × 8.34×10⁻⁵) = 0.1 / 0.0855 ≈ 1.17."
+            ],
+            "reveal": "M_E = 0.1 / (1025 × 8.34×10⁻⁵) ≈ 1.17 m²/s. Net transport directed 90° to the right of wind in NH — so equatorward wind drives transport offshore (westward off California). Surface water flows offshore; replacement water upwells from below."
+          },
+          {
+            "prompt": "If this Ekman transport persists over a coast 1000 km long, what's the volume transport in Sv?",
+            "motivation": "Multiply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~1.17 Sv",
+                "1.17",
+                "1.2 Sv"
+              ]
+            },
+            "hints": [
+              "1.17 m²/s × 10⁶ m = 1.17×10⁶ m³/s = 1.17 Sv."
+            ],
+            "reveal": "1.17 Sv (~1.17 million m³/s) offshore Ekman transport along the California coast. Replacement: deep cold nutrient-rich water upwells — sets up the productive California Current ecosystem (sardines, anchovies, plankton blooms, fisheries)."
+          },
+          {
+            "prompt": "What happens during El Niño?",
+            "motivation": "Connect to climate variability.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "wind weakens → less upwelling → SST rises → ecosystem collapse",
+                "El Niño weakens upwelling",
+                "warm anomaly"
+              ]
+            },
+            "hints": [
+              "Equatorial winds + Walker circulation."
+            ],
+            "reveal": "El Niño weakens equatorial trade winds + the South American coastal upwelling that normally drives high productivity. Warm surface waters persist; thermocline deepens; cold nutrient-rich water can't reach surface. Anchovy populations collapse; bird + marine-mammal die-offs (Peru); fish stocks fail. Ripple effects: tropical Pacific precipitation shifts (drought in Australia, floods in South America); global temperature spike (El Niño years are typically global-temperature records). Inter-annual ENSO oscillation drives much of global climate variability."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_circ_1",
+        "kind": "sortable",
+        "question": "Order these ocean circulation cells by their *typical residence time / overturning timescale* (fastest to slowest).",
+        "items": [
+          {
+            "id": "mixed-layer",
+            "label": "Surface mixed layer (wind-mixed)"
+          },
+          {
+            "id": "gyre",
+            "label": "Subtropical gyre (Gulf Stream, etc.)"
+          },
+          {
+            "id": "acc",
+            "label": "Antarctic Circumpolar Current (ACC)"
+          },
+          {
+            "id": "amoc-upper",
+            "label": "AMOC upper limb (Gulf Stream → NADW formation)"
+          },
+          {
+            "id": "thc-deep",
+            "label": "Global thermohaline conveyor (deep)"
+          }
+        ],
+        "explanation": "Timescales: Mixed layer mixing ~days-weeks (wind-driven turbulent mixing). Subtropical gyres ~years-decade (~1000s of km, m/s currents). ACC overturning ~decades to century. AMOC upper limb ~50-100 years. Global thermohaline conveyor ~1000-2000 years (ages of deep water as measured by ¹⁴C). This wide separation of timescales (days to millennia) means ocean circulation has nested 'memory' — surface forcing is felt immediately + atmospheric weather, but deep ocean carries climate signals from centuries past. Climate models must capture all scales."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_circ_1",
+        "kind": "multiple_choice",
+        "question": "Why is Northwest Europe (e.g., London, 51°N) ~5-10 °C warmer in winter than equivalent latitudes in N. America (e.g., Labrador, 51°N)?",
+        "options": [
+          "Europe has more sunshine.",
+          "The North Atlantic AMOC transports ~1.3 PW of heat northward — warm Gulf Stream + Norwegian Current waters carry tropical heat to NW Europe. Without AMOC, NW Europe would be 5-10 °C colder, similar to Labrador (which is in the cold Labrador Current path). Additionally, prevailing westerly winds pick up heat + moisture from the warm ocean + deliver it to Europe.",
+          "Europe is at lower elevation.",
+          "Solar heating differs between continents at the same latitude."
+        ],
+        "correctIndex": 1,
+        "explanation": "**NW Europe warming sources**:\n\n1. **AMOC heat transport**: ~1.3 PW (1.3 × 10¹⁵ W) of meridional ocean heat transport across 30°N. Roughly half of the heat that *should* be transported by atmospheric circulation alone (Hadley + Ferrel cells). Concentrated in NA + NW Europe due to Atlantic basin geometry.\n2. **Gulf Stream + North Atlantic Drift**: warm surface waters from tropical/subtropical Atlantic carry heat poleward.\n3. **Norwegian Atlantic Current**: extends into Nordic Seas, keeping ports ice-free year-round (Murmansk, Bergen).\n4. **Westerly winds** transport heat + moisture from the warm ocean to the European landmass — pre-warmed air.\n\n**Comparison N. America at same latitude**:\n- Labrador Current: cold + flowing southward along NA east coast.\n- Polar continental air masses unmodified by warm water (no eastward warm-current intermediary).\n- Result: 50-51°N in NA = -20 to -30 °C winters in interior; 50-51°N in NW Europe = 0-5 °C winters.\n\n**AMOC weakening scenario**:\n- Direct cooling: 2-5 °C drop in NW Europe over decades.\n- Indirect: storm-track shifts; precipitation reorganization; agriculture + infrastructure impacts.\n- Probabilistic risk: IPCC AR6 says full collapse 'very unlikely' before 2100, but not negligible (some studies suggest 10-20% probability of collapse in 21st century). Beyond 2100: high uncertainty.\n- 'AMOC tipping' is one of the most-studied climate tipping points; would have global consequences (also tropical rainfall shifts, ocean carbon uptake decline, sea-level redistribution).\n\nResearch: RAPID array (mooring across 26.5°N) measures AMOC since 2004; 15% decrease detected. Reconstructions from ocean sediments suggest AMOC at multi-millennium low in 21st century — concerning trajectory."
+      },
+      "hints": [
+        "What heat transport mechanism is at work?",
+        "Compare to Labrador at same latitude."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "AMOC transports ~1.3 PW heat northward via Gulf Stream + N. Atlantic Drift + Norwegian Atlantic Current. NW Europe receives this heat + westerly winds redistribute it inland. N. America at same latitude sees cold Labrador Current + polar continental air — 5-10 °C colder. AMOC collapse would cool NW Europe substantially. RAPID array detects 15% AMOC weakening since 2004; IPCC views full collapse before 2100 as 'very unlikely' but possible."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_circ_1",
+        "kind": "math_expression",
+        "question": "Coriolis parameter f at latitude 60°N? Use f = 2 Ω sin φ, Ω = 7.27×10⁻⁵ rad/s.",
+        "acceptedAnswers": [
+          "1.26e-4",
+          "1.26 × 10⁻⁴",
+          "~1.26e-4 rad/s"
+        ],
+        "hint": "2 × 7.27e-5 × sin 60° = 1.454e-4 × 0.866."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_circ_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how the ocean's global circulation acts as a 'climate flywheel' — buffering atmospheric variability but also transmitting climate signals across centuries.",
+        "rubric": "Mentions: ocean heat capacity ~1000× atmospheric per unit volume; >90% of recent global warming has gone into the ocean. Surface ocean responds to atmospheric forcing on weeks-decade. Deep ocean responds on centuries-millennia. Heat + carbon stored in deep ocean buffers atmospheric anomalies but releases slowly. Climate-change implication: even if emissions stopped today, deep ocean would continue adjusting for centuries (committed warming, sea-level rise). Climate-natural-variability: ENSO, AMOC, PDO oscillations transmit climate signals on years-to-centuries timescales. Conclusion: ocean simultaneously stabilizes climate (huge heat capacity) + introduces multi-decadal/centennial variability. Modern climate science treats ocean + atmosphere as a coupled system; can't model one without the other."
+      }
+    }
+  ]
+}

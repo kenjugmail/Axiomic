@@ -1,0 +1,189 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Walk through the 10 steps of an outbreak investigation.",
+      "Apply line lists + epi curves + attack-rate tables.",
+      "Distinguish reportable disease + syndromic + sentinel surveillance."
+    ],
+    "prereqs": [
+      "epidemiology-foundations"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Outbreak investigation: the 10-step framework",
+      "body": "When an outbreak is reported, public-health epidemiologists follow a standardized investigation framework (CDC's '10 steps'):\n\n1. **Prepare for fieldwork** (logistics, IRB if research, multidisciplinary team).\n2. **Establish the existence of an outbreak** — is the observed count above expected baseline?\n3. **Verify the diagnosis** — confirm cases via lab testing, clinical criteria.\n4. **Construct a working case definition** — clinical + lab + temporal + geographic.\n5. **Find cases systematically + record information** (line list).\n6. **Perform descriptive epidemiology** (epi curve, place, person).\n7. **Develop hypotheses** about source + mode of transmission.\n8. **Evaluate hypotheses analytically** (cohort or case-control study).\n9. **Refine hypotheses + carry out additional studies** (environmental, lab, food chain).\n10. **Implement control + prevention measures**; **communicate findings**.\n\nClassic example: a chipotle Salmonella outbreak. (1) Local restaurant cluster reported; (2) cases exceed expected; (3) lab confirms Salmonella serotype; (4) define a case (specific PFGE pattern); (5) interview affected patrons; (6) plot cases over time + location; (7) hypothesize specific food item; (8) case-control: cases ate item X more than controls (OR > 5); (9) trace item X to supplier + farm; (10) recall + closure."
+    },
+    {
+      "kind": "text",
+      "title": "Line lists + attack-rate tables",
+      "body": "A **line list** is a row-per-case data structure: ID, date of onset, age, sex, geography, exposures, clinical, outcome. The investigation's central artifact.\n\nFrom the line list you build:\n• **Epi curves** (cases by date of onset).\n• **Attack-rate tables**: cross-tabulate cases vs total exposed for each suspected exposure.\n\n**Attack-rate** for an exposure: cases-among-exposed / total-exposed. Comparing across exposures identifies the likely source.\n\nExample table (foodborne):\n```\nFood      Ill among ate   Ill among didn't eat   AR (ate)   AR (didn't)   RR\nChicken     30/50             5/30                 60%        17%         3.6\nSalad        8/40            27/40                 20%        68%         0.3\nDessert     15/30            20/50                 50%        40%         1.25\n```\nChicken has high AR among eaters + low AR among non-eaters ⇒ likely source. Salad shows protective association (lower AR among eaters) — likely a non-causal correlation (people who ate salad ate less chicken). \n\nThis 'cohort study within the outbreak' design is fast + powerful for foodborne / point-source outbreaks where a small population is exposed at a known event."
+    },
+    {
+      "kind": "text",
+      "title": "Modern surveillance systems",
+      "body": "**Surveillance** = ongoing systematic collection, analysis, + dissemination of health data for public health action.\n\nTypes:\n• **Notifiable / reportable disease surveillance**: clinicians + labs report specific diseases (TB, HIV, measles, syphilis, etc.) to health departments. List varies by jurisdiction; CDC's nationally notifiable lists are coordinated through CSTE.\n• **Sentinel surveillance**: select sites report on common conditions (ILI from sentinel providers, influenza-like illness through ILINet).\n• **Syndromic surveillance**: ED chief complaints, OTC drug sales, school absenteeism, web search queries — leading indicators not requiring diagnosis.\n• **Genomic surveillance**: routine sequencing of pathogens (SARS-CoV-2 variants, flu strain selection for vaccine, foodborne outbreak fingerprinting). GISAID, PulseNet.\n• **Wastewater surveillance**: detect viral RNA in sewage. Leading indicator (people shed before symptomatic). Active for COVID, polio, RSV.\n• **Mortality surveillance**: excess deaths above expected baselines. Key for detecting under-counted outbreaks.\n\nModern public-health relies on **multi-stream surveillance**: combine signals from many sources to triangulate. The CDC's CFA (Center for Forecasting + Outbreak Analytics) was created post-COVID to coordinate these streams.\n\n**Privacy + data-sharing** tensions are persistent. Sharing person-level data has legal + ethical constraints (HIPAA, GDPR); aggregate dashboards (CDC COVID Data Tracker) balance access with privacy."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_outbreak_1",
+        "kind": "guided_derivation",
+        "question": "Walk through an outbreak investigation: a hepatitis A cluster at a college dining hall",
+        "goal": "30 students at a college developed jaundice + lab-confirmed hepatitis A in early November. Cases were students who ate at the central dining hall.",
+        "steps": [
+          {
+            "prompt": "Step 1-2: confirm outbreak + verify diagnoses. Background US hepatitis A rate ~0.5 per 100K per year. The college has 5,000 students. Is 30 cases over a month above expected?",
+            "motivation": "Compare observed to expected.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "yes",
+                "way above expected",
+                "above expected"
+              ]
+            },
+            "hints": [
+              "Expected ~5000 × 0.5/100K × 1/12 = 0.02 cases/month. 30 ≫ 0.02. Outbreak."
+            ],
+            "reveal": "Expected ~0.02 cases/month. Observed: 30. Ratio ~1500×. Clearly outbreak. Lab confirmation (anti-HAV IgM positive) verifies diagnoses."
+          },
+          {
+            "prompt": "Step 4: develop a case definition. What's a reasonable one?",
+            "motivation": "Operational, sensitive, specific.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "lab-confirmed hep A + dining hall exposure",
+                "anti-HAV IgM positive + symptoms onset Oct-Nov"
+              ]
+            },
+            "hints": [
+              "Combine clinical + lab + temporal + spatial criteria."
+            ],
+            "reveal": "Confirmed case: jaundice or transaminase elevation + anti-HAV IgM positive + symptom onset between Oct 1 + Nov 30, in a student / staff / regular patron of the central dining hall. Probable: clinical illness without lab. Suspected: jaundice without specific exposure. Tiered case definitions balance sensitivity (don't miss real cases) vs specificity (don't pollute with false positives)."
+          },
+          {
+            "prompt": "Step 6: plot the epi curve. Cases (date of onset) are: 10/15 (1), 10/22 (2), 10/29 (5), 11/5 (12), 11/12 (8), 11/19 (2). What shape does this suggest?",
+            "motivation": "Compare to common-source point vs propagated.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "common source point",
+                "point source",
+                "common-source"
+              ]
+            },
+            "hints": [
+              "The curve has one peak followed by decay — consistent with a single exposure event."
+            ],
+            "reveal": "Common-source point. The rise + decay span ~5 weeks. Hep A incubation period is 15-50 days; so the source exposure was 2-7 weeks before the peak — roughly mid-October. A single contaminated event around then is likely."
+          },
+          {
+            "prompt": "Step 7-8: hypothesis + analysis. Interviews of cases reveal 95% ate the salad bar in mid-October. A case-control study compares to non-ill students. Among 30 cases, 28/30 ate salad bar; among 50 controls, 15/50 ate salad bar. OR?",
+            "motivation": "Standard 2×2 OR.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~33",
+                "32.7",
+                "(28*35)/(2*15)"
+              ]
+            },
+            "hints": [
+              "a=28, b=2, c=15, d=35. OR = ad/bc = 28×35 / 2×15."
+            ],
+            "reveal": "OR = (28×35)/(2×15) = 980/30 ≈ 32.7. Strong evidence salad-bar exposure is associated. Combined with epi-curve timing + biological plausibility (hep A is faeco-orally transmitted via contaminated food, often produce), salad bar contamination is the working hypothesis."
+          },
+          {
+            "prompt": "Step 9-10: refining + control. What follow-up would you do?",
+            "motivation": "Trace, intervene, prevent.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "trace food handler infection",
+                "test food handlers",
+                "issue immune globulin"
+              ]
+            },
+            "hints": [
+              "Source + intervention together."
+            ],
+            "reveal": "Trace-back: test salad-bar food handlers for asymptomatic hep A infection (hep A often shed before symptoms). Trace produce supplier. Inspect food prep. Intervention: (a) issue **post-exposure prophylaxis** (hep A vaccine or immune globulin within 14 days of exposure) to potentially exposed but not yet infected students; (b) close + sanitize salad bar; (c) reinforce hand hygiene; (d) communicate publicly + via campus health. Mandatory hep A reporting at county + state public-health departments. Many real outbreaks have been traced to single asymptomatic food handlers in this pattern."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_outbreak_1",
+        "kind": "multiple_choice",
+        "question": "Why did wastewater surveillance for SARS-CoV-2 become a critical surveillance stream during the pandemic?",
+        "options": [
+          "It is the only valid way to detect COVID-19.",
+          "It captures population-level shedding without depending on testing behavior; it is a leading indicator (shedding precedes symptoms + healthcare-seeking); it covers everyone in the catchment regardless of insurance, healthcare access, or symptoms; it scales cheaply once infrastructure is in place. Trade-offs: cannot identify individuals; signal noisy in small catchments; interpretation requires lab calibration.",
+          "It replaces clinical testing entirely.",
+          "It only works in summer."
+        ],
+        "correctIndex": 1,
+        "explanation": "Wastewater surveillance scaled rapidly because:\n\n(1) **Independent of testing behavior**. When clinical testing dropped (people stopped testing, at-home tests didn't report), wastewater kept measuring. Critical for detecting variant waves.\n\n(2) **Leading indicator**. SARS-CoV-2 RNA is shed 1-2 days before symptoms; wastewater signal precedes clinical cases by ~5 days typically.\n\n(3) **Population-scale denominator**. Captures the whole sewershed, including asymptomatic + people who never test. Eliminates the bias from differential testing access.\n\n(4) **Variant detection via sequencing**. Wastewater sequencing detects variants days/weeks before clinical samples accumulate.\n\nLimitations: cannot identify individuals; small communities have noisy signal; viral shedding kinetics vary by variant; calibration to case counts is imperfect. Still, CDC's NWSS now covers ~140 million Americans + provides a real-time public-health signal that complements clinical testing.\n\nGeneralization: wastewater also detects polio (a key tool for global polio eradication), RSV, mpox, influenza. The field has been transformed since 2020."
+      },
+      "hints": [
+        "What's it independent of?",
+        "When does the signal arrive?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Wastewater captures pre-symptomatic shedding + everyone in catchment without depending on testing access. Leading indicator (~5 days before clinical), population-scale denominator, scalable, useful for variant tracking. Limits: no individual ID, noisy in small catchments, calibration tricky. Now widely used for polio, RSV, mpox, flu in addition to COVID."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_outbreak_2",
+        "kind": "multiple_choice",
+        "question": "A foodborne outbreak investigation finds: 60% of cases ate vanilla ice cream; 40% of controls ate vanilla ice cream. Should you immediately conclude ice cream is the source?",
+        "options": [
+          "Yes — 60% > 40%, source identified.",
+          "Not yet. Compute the OR (~2.25) + test the difference statistically. But also: many foods are correlated; vanilla ice cream may simply be a proxy for the actual contaminated food. Look at attack-rate ratios for *all* foods together; the food with the highest AR-among-exposed combined with the lowest AR-among-unexposed is the most likely source.",
+          "No, ice cream is never a source of outbreaks.",
+          "Yes, but only if cases are female."
+        ],
+        "correctIndex": 1,
+        "explanation": "60% vs 40% ⇒ OR ≈ 2.25 (or RR ≈ 1.5 if outcome's not rare). Statistically detectable in a moderate sample, but **moderate effect size**.\n\nIn outbreak investigation, the *index of suspicion* for a food source is highest when:\n• AR among consumers is high (>50% typical).\n• AR among non-consumers is low (<20% typical).\n• The ratio is large (RR > 3 or OR > 5).\n• Biology + epi-curve timing match.\n\nA 60%/40% split is suspicious but weak. In foodborne investigations, the actual contaminated food often shows attack rates like 80%/15% — a much larger ratio. Vanilla ice cream might just be co-served with the actual contaminated item.\n\nThe analytic step is: compute attack rates for *every* food. The one with the largest, most discriminating ratio (+ biological plausibility, + matching incubation timing) is the leading hypothesis. Multivariable logistic regression with all foods controls for correlations.\n\nReal example: a salmonella outbreak in 1985 implicated ice cream initially, but tracing showed contaminated lecithin. Tracing the supplier — not just the served food — closes the gap from suspicion to confirmation."
+      },
+      "hints": [
+        "What's the OR? Is it big?",
+        "What about co-served items?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "60/40 split gives OR ≈ 2.25 — modest. Outbreak attack rates of the true source are typically 80%/15% or larger. Co-served foods are correlated; the implicated food may be a proxy. Solution: compute AR for all foods, find the one with highest AR ratio + biological plausibility, then trace supply chain."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_outbreak_1",
+        "kind": "math_expression",
+        "question": "In an outbreak of 200 cases over 4 weeks in a city of 2,000,000, what's the cumulative attack rate?",
+        "acceptedAnswers": [
+          "0.0001",
+          "0.01%",
+          "1 per 10000",
+          "100/1000000"
+        ],
+        "hint": "Cases / population."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_outbreak_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, walk through how you would investigate a cluster of 8 mysterious pneumonia cases in adults from the same office building over 2 weeks. What's your top-line plan?",
+        "rubric": "Mentions: (1) confirm outbreak — 8 in 2 wks at one location exceeds expected; (2) establish case definition (clinical + spatial + temporal); (3) verify diagnoses with lab (Legionella urinary antigen would be high on differential for office cluster — recall Philadelphia 1976); (4) construct line list — onset, age, location in building, smoking, exposures; (5) descriptive epi — common-source vs propagated; (6) environmental investigation — cooling towers, plumbing, HVAC; (7) hypothesis-driven cohort/case-control among employees; (8) analytic confirm with OR/RR; (9) trace + intervene (shock chlorination of water if Legionella confirmed); (10) report + communicate. Notes that Legionella is the historically most likely cause for office-building pneumonia clusters; air-conditioning + cooling-tower contamination drives most modern outbreaks. Closes by emphasizing public-health surveillance + reporting are mandatory."
+      }
+    }
+  ]
+}

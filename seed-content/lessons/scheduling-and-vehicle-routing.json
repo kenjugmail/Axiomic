@@ -1,0 +1,213 @@
+{
+  "slug": "scheduling-and-vehicle-routing",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish scheduling classes.",
+      "Apply VRP models.",
+      "Run a heuristic."
+    ],
+    "prereqs": [
+      "integer-programming-and-branch-bound"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Scheduling: ordering jobs on machines",
+      "body": "**Scheduling**: assign jobs to machines + time slots subject to constraints; optimize objective (makespan, tardiness, lateness, cost).\n\n**3-field notation (Graham α | β | γ)**:\n- α = machine environment (1, P_m parallel identical, F flow shop, J job shop, O open shop).\n- β = job characteristics (release dates, due dates, precedence, preemption, setups).\n- γ = objective (Cmax makespan, ΣwⱼCⱼ weighted completion, Lmax max lateness, ΣTⱼ tardiness).\n\n**Classic results**:\n- **1 || ΣwⱼCⱼ** (weighted shortest processing time): sort by w/p descending.\n- **1 || Lmax** (EDD; earliest due date).\n- **P_m || Cmax** NP-hard; LPT heuristic (longest processing time first) ~4/3-optimal.\n- **F_2 || Cmax** (Johnson's rule 1954): optimal in O(n log n) for 2-machine flow shop.\n- **F_m || Cmax** NP-hard for m ≥ 3.\n- **J_3 || Cmax** NP-hard (job shop).\n\n**Job-shop scheduling**: each job has sequence of operations on different machines. Famous benchmark: FT06, LA01. Disjunctive graph formulation; MIP + heuristic (shifting bottleneck, tabu search, GA).\n\n**Online + real-time scheduling**: jobs arrive over time; cloud + manufacturing + ER triage. Use list-scheduling + reactive heuristics. Competitive analysis (LPT 4/3 — Graham 1969).\n\n**Modern applications**:\n- Semiconductor fab WIP scheduling.\n- Airline crew + aircraft.\n- Hospital OR slot allocation.\n- Cloud batch jobs (YARN, Kubernetes scheduler).\n- Surgical scheduling.\n- Project management (resource-constrained PSP)."
+    },
+    {
+      "kind": "text",
+      "title": "Vehicle routing: the VRP family",
+      "body": "**Vehicle routing problem (VRP)**: K vehicles from depot visit N customers + return; min total distance (or time, cost). Capacitated VRP (CVRP) adds vehicle capacity Q + customer demands. Time-window VRP (VRPTW) adds delivery windows. Pickup + delivery (VRPPD). Dial-a-ride. Stochastic + dynamic VRP.\n\n**MIP formulation** (CVRP): binary xᵢⱼ for arcs; subtour elimination (DFJ) or flow-based (MTZ); capacity constraints.\n\n**Algorithms**:\n- **Exact**: branch-and-cut-and-price; column generation with shortest-path subproblem; works for ~100-200 customers in CVRPTW (Concorde for TSP-only).\n- **Heuristics**: \n  - Savings algorithm (Clarke-Wright 1964): merge routes greedy by savings.\n  - Sweep algorithm: angle-sort customers around depot.\n  - 2-opt, 3-opt: arc-swap local search.\n  - Lin-Kernighan: deep variable-depth local search (sub-second for huge TSPs).\n- **Metaheuristics**: \n  - Tabu search (Glover 1986).\n  - Genetic algorithms.\n  - Simulated annealing.\n  - Adaptive large neighborhood search (ALNS) — destroy + rebuild large neighborhoods; state-of-art on VRP.\n  - Ant colony optimization.\n- **Learning-based**: graph neural networks (GNN) + RL + attention models (Kool 2019, Bengio + others).\n\n**Real industrial systems**: UPS ORION saves ~10M gallons/year; Amazon last-mile; Uber rides + Eats; FedEx Express; Walmart trucking. All combine MIP + heuristics + dynamic re-routing.\n\n**Pickup + delivery variants**: ride-sharing (UberX Pool), package + dial-a-ride hybrids, autonomous-vehicle fleets."
+    },
+    {
+      "kind": "text",
+      "title": "Heuristics + metaheuristics + learning-based",
+      "body": "**When exact MIP is too slow** (large + tight-time problems), heuristics + metaheuristics deliver near-optimal solutions fast.\n\n**Construction heuristics**:\n- Greedy / nearest-neighbor (poor for TSP but starting point).\n- Savings (Clarke-Wright).\n- Insertion (cheapest, farthest, regret).\n\n**Local search**:\n- **2-opt**: swap two arcs.\n- **3-opt**: more flexibility.\n- **Or-opt**: move 1-3 consecutive customers.\n- **Lin-Kernighan**: variable-depth; current best for TSP heuristic.\n\n**Metaheuristics**: escape local optima.\n- **Simulated annealing** (Kirkpatrick 1983): accept worse with prob e^(-Δ/T); cool T.\n- **Tabu search** (Glover 1986): forbid recent moves to escape cycles.\n- **Genetic algorithms** (Holland 1975): population + crossover + mutation.\n- **Evolutionary strategies / CMA-ES**: continuous.\n- **Ant colony optimization** (Dorigo 1992): pheromone-guided.\n- **Particle swarm**.\n- **GRASP** (greedy randomized adaptive search).\n- **VNS** (variable neighborhood search).\n- **ALNS** (adaptive large neighborhood search) — current state-of-art on routing.\n\n**ML + RL for combinatorial optimization (mid-2010s+)**:\n- **Pointer networks** (Vinyals 2015): RNN attention solves TSP.\n- **Attention models** (Kool 2019): transformer-style; competitive with hand-engineered heuristics.\n- **Graph neural networks**: learn embeddings of nodes/arcs.\n- **RL for branching** (Khalil + others): learn branching rules.\n- **Differentiable optimization**: backprop through LP/QP layers.\n- **Decision diagrams + dual bound learning**.\n\n**Hybrid**: ML predicts (good branches, primal heuristic candidates, warm starts); MIP solver guarantees optimality. End-to-end learning to optimize is an active research frontier."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_or_sched_1",
+        "kind": "guided_derivation",
+        "question": "Apply Johnson's rule to a 2-machine flow shop",
+        "goal": "5 jobs on machines M1 then M2. (p1, p2): J1(4,3), J2(7,2), J3(2,5), J4(6,4), J5(3,6). Find optimal sequence + makespan.",
+        "steps": [
+          {
+            "prompt": "Johnson's rule?",
+            "motivation": "Partition + sort.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "partition into sets where min(p1,p2) is on M1 or M2; sort first set ascending p1; sort second descending p2"
+              ]
+            },
+            "hints": [
+              "Min on M1 → schedule early; min on M2 → schedule late."
+            ],
+            "reveal": "Johnson's rule (1954): partition jobs into Set A (where min(p1,p2) = p1) + Set B (where min(p1,p2) = p2). Sort A by p1 ascending; sort B by p2 descending. Sequence = A then B."
+          },
+          {
+            "prompt": "Classify each job?",
+            "motivation": "Apply partition.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "A: J3(2,5), J5(3,6); B: J1(4,3), J2(7,2), J4(6,4)"
+              ]
+            },
+            "hints": [
+              "Compare p1 + p2."
+            ],
+            "reveal": "J1: min=3 on M2 → B. J2: min=2 on M2 → B. J3: min=2 on M1 → A. J4: min=4 on M2 → B. J5: min=3 on M1 → A. A={J3, J5}; B={J1, J2, J4}."
+          },
+          {
+            "prompt": "Sort + concatenate?",
+            "motivation": "Order A asc by p1; B desc by p2.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "J3, J5, J4, J1, J2"
+              ]
+            },
+            "hints": [
+              "A: ascending p1; B: descending p2."
+            ],
+            "reveal": "A sorted asc p1: J3(2), J5(3). B sorted desc p2: J4(4), J1(3), J2(2). Sequence = J3, J5, J4, J1, J2."
+          },
+          {
+            "prompt": "Makespan?",
+            "motivation": "Compute Gantt.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~26"
+              ]
+            },
+            "hints": [
+              "Schedule M1 then M2 with min idle."
+            ],
+            "reveal": "M1 schedule: J3[0,2], J5[2,5], J4[5,11], J1[11,15], J2[15,22]. M2 schedule: J3[2,7], J5[7,13], J4[13,17], J1[17,20], J2[22,24]. Makespan = max completion on M2 = 24. (Johnson's rule guarantees optimal for 2-machine flow shop in O(n log n).)"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_or_sched_1",
+        "kind": "multiple_choice",
+        "question": "Why have learning-based methods (RL, GNN) struggled to dominate classical OR heuristics?",
+        "options": [
+          "No struggle.",
+          "Several reasons: (1) classical heuristics (Lin-Kernighan, ALNS, Concorde) are extremely tuned — hard to beat without specialized data; (2) generalization across problem sizes + distributions is fragile (neural model trained on 100-city TSP often fails on 500); (3) commercial solvers (Gurobi, CPLEX) leverage decades of refinement + give optimality certificates; (4) ML lacks bounds + interpretability ops users need; (5) compute cost of training vs solving deterministically. But neural methods excel as primal heuristics + branching rules + warm starts + new problem variants — hybrid (ML + classical) is current frontier. Pure ML may dominate on specific operational regimes (dispatch, online matching).",
+          "Magic.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "ML + RL for combinatorial optimization is active but classical heuristics + solvers remain hard to beat for static benchmarks. Hybrid (ML predicts branching/warm-start; solver guarantees optimality) is the productive direction. ML may dominate operational decisions (dispatch, dynamic re-routing) where speed + adaptability outweigh certified optimality."
+      },
+      "hints": [
+        "Maturity of classical methods.",
+        "Generalization + bounds."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Classical OR heuristics + solvers are highly tuned + give optimality bounds; ML methods struggle with generalization across sizes/distributions + lack certificates. Hybrid (ML for branching, warm starts, primal heuristics; MIP solver for optimality) is current productive direction; pure ML dominates online operational decisions (ride dispatch, dynamic VRP)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_or_sched_1",
+        "kind": "slider",
+        "question": "Drag to typical fuel-savings from UPS ORION routing system (millions of gallons per year).",
+        "target": {
+          "min": 10,
+          "max": 10
+        },
+        "default": 100,
+        "explanation": "UPS ORION optimization system reportedly saves ~10 million gallons of fuel per year — about $300-400M annually — by avoiding unnecessary left turns + optimizing driver routes via OR. Famous example of OR's industrial impact."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_or_sched_1",
+        "kind": "drag_classify",
+        "question": "Classify each problem by its primary OR formulation.",
+        "items": [
+          {
+            "id": "or-table",
+            "label": "Hospital OR slot order",
+            "bin": "single-mac"
+          },
+          {
+            "id": "weighted-sum",
+            "label": "Min weighted sum completion times",
+            "bin": "single-mac"
+          },
+          {
+            "id": "auto-paint",
+            "label": "Auto-paint line sequence",
+            "bin": "flow-shop"
+          },
+          {
+            "id": "semi-fab",
+            "label": "Semiconductor fab flow",
+            "bin": "flow-shop"
+          },
+          {
+            "id": "ups-delivery",
+            "label": "UPS package delivery routing",
+            "bin": "vrp"
+          },
+          {
+            "id": "uber-rides",
+            "label": "Uber ride dispatch",
+            "bin": "vrp"
+          },
+          {
+            "id": "construction",
+            "label": "Construction project with crews",
+            "bin": "project"
+          },
+          {
+            "id": "software-rel",
+            "label": "Software-release sprint planning",
+            "bin": "project"
+          }
+        ],
+        "bins": [
+          {
+            "id": "single-mac",
+            "label": "Single-machine scheduling"
+          },
+          {
+            "id": "flow-shop",
+            "label": "Flow shop (sequence on multiple machines)"
+          },
+          {
+            "id": "vrp",
+            "label": "Vehicle routing"
+          },
+          {
+            "id": "project",
+            "label": "Project / resource-constrained scheduling"
+          }
+        ],
+        "explanation": "Picking the right framework: single-machine = order matters but only one resource; flow shop = sequence across multiple machines; VRP = vehicles + routes; project = resource-constrained with precedence. Each has its own classic algorithms (EDD, Johnson, savings, CPM)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_or_sched_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why vehicle routing problems are 'too important to solve perfectly.'",
+        "rubric": "Mentions: VRP NP-hard; exact MIP solves ~200-300 customer instances (with column generation). Real industrial fleets handle thousands daily with time windows, capacities, driver hours, dynamic re-routing. Practical answer: high-quality heuristics + metaheuristics (Lin-Kernighan, ALNS, GA, tabu) deliver near-optimal in seconds; exact methods used for sub-problems + benchmarks. Production: UPS ORION saves ~10M gallons/year using OR + heuristics + dynamic re-routing; Amazon last-mile uses ML + OR hybrid; ride-share (Uber, Lyft) does online dispatch with millisecond budget. Trade-off: 5% optimality gap is cheap; missing service-level commitments + late deliveries is expensive. Modern: ML-augmented (GNN + attention) heuristics + decision-focused learning offer further improvements. Concludes: VRP exemplifies OR's 'practical optimality' — near-optimal in production tempo is more valuable than exact optimality run overnight."
+      }
+    }
+  ]
+}

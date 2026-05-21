@@ -1,0 +1,194 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Apply IS-LM model to short-run macro.",
+      "Reason about AD-AS framework.",
+      "Connect to fiscal + monetary policy."
+    ],
+    "prereqs": [
+      "national-income-accounting"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "IS-LM: workhorse short-run model",
+      "body": "**IS-LM model** (Hicks 1937): standard short-run macro framework. Despite limitations, foundational pedagogical tool + widely used.\n\nTwo curves in (real interest rate r, output Y) space:\n\n**IS curve** (goods market equilibrium): combinations where planned spending = output.\n  Y = C(Y − T) + I(r) + G + NX\n\nDownward-sloping: lower r → more investment → higher Y. Shifts with fiscal policy (G, T) + autonomous demand changes.\n\n**LM curve** (money market equilibrium): combinations where money demand = money supply.\n  M/P = L(r, Y)\n\nUpward-sloping: higher Y → more money demand → higher r needed to clear. Shifts with monetary policy (M).\n\n**Equilibrium**: intersection of IS + LM. Determines r* + Y*.\n\n**Policy effects**:\n- **Fiscal expansion** (↑G or ↓T): IS shifts right. Y rises, r rises (crowding out).\n- **Monetary expansion** (↑M): LM shifts right (or down). Y rises, r falls.\n- **Tight money + loose fiscal**: combination matters; Reagan 1980s.\n- **Liquidity trap** (r ≈ 0 ZLB): LM flat; monetary ineffective; fiscal full multiplier.\n\n**Limitations**:\n- Static, no dynamics.\n- Doesn't explicitly model expectations (Lucas critique).\n- Treats price level as fixed (short-run only).\n- Aggregated; no sectoral.\n\n**Modern extensions**:\n- **New Keynesian DSGE models** (Smets-Wouters; Federal Reserve FRB/US): formal microfoundations + rational expectations + nominal rigidities.\n- **Forward-looking IS** + Taylor rule + Phillips curve = 3-equation New Keynesian.\n- **Heterogeneous-agent models** (HANK): include household + firm heterogeneity for distributional effects."
+    },
+    {
+      "kind": "text",
+      "title": "AD-AS: long-run + price-level dynamics",
+      "body": "**Aggregate Demand (AD) + Aggregate Supply (AS)** framework adds price level dynamics.\n\n**AD curve**: combinations of P + Y at which goods + money markets clear. Downward-sloping in P:\n- Real-balance (Pigou) effect: lower P → higher real wealth → higher consumption.\n- Interest-rate effect: lower P → higher real money supply → lower r → more I.\n- Net-export effect: lower P → cheaper exports → more X.\n\n**SRAS (short-run AS)**: positively-sloped. Higher P → firms produce more (sticky wages, menu costs).\n\n**LRAS (long-run AS)**: vertical at Y* = potential output. Determined by capital + labor + technology, not P.\n\n**Equilibrium**: AD ∩ SRAS for short run; AD ∩ LRAS for long run.\n\n**Shocks + dynamics**:\n- **Aggregate-demand shock** (positive): AD shifts right. Short run: Y + P rise. Long run: Y returns to potential, P stays higher.\n- **Negative supply shock** (oil price spike): SRAS shifts left. P rises, Y falls. Stagflation.\n- **Productivity shock** (positive): LRAS shifts right. Long-run Y rises.\n\n**Inflation dynamics**: in AD-AS framework, sustained inflation requires repeated AD shocks (over-stimulation) or sustained money growth.\n\n**Self-correction**: if Y > Y*, eventually wages + prices rise; SRAS shifts left; equilibrium returns to Y*.\n\n**Why P + W are sticky** (Keynesian foundations):\n- Menu costs (literally repricing menus).\n- Wage contracts (often multi-year).\n- Coordination failures.\n- Implicit contracts.\n- Behavioral rigidities (Reuters surveys of pricing).\n\nNew Keynesian models (Calvo, Taylor pricing) formalize this.\n\n**Liquidity trap revisited**: when r = 0 lower bound, monetary policy can't lower r further. AD shocks have less effect. Japan 1995-onwards, US + EU 2008-2015, COVID 2020. Solutions: forward guidance, QE, fiscal policy."
+    },
+    {
+      "kind": "text",
+      "title": "Modern macroeconomics + DSGE",
+      "body": "**Dynamic Stochastic General Equilibrium (DSGE)** models: workhorse modern macro for central-bank policy analysis.\n\nFeatures:\n- **Microfoundations**: representative households + firms with optimization problems.\n- **Rational expectations**: agents form expectations using model.\n- **Nominal rigidities**: sticky prices + wages (Calvo, Rotemberg).\n- **Shocks**: technology, monetary, fiscal, preference, mark-up.\n- **Equilibrium**: simultaneously clear all markets given shocks.\n- **Calibration + Bayesian estimation**.\n\n**Key models**:\n- **Smets-Wouters 2003, 2007**: ECB workhorse. Medium-scale euro-area DSGE.\n- **Federal Reserve FRB/US**: large-scale US model used by FOMC.\n- **Christiano-Eichenbaum-Evans 2005**: foundational New Keynesian.\n- **Adolfson-Laséen-Lindé-Villani (Ramses)**: Riksbank (Sweden).\n- **NK with HANK**: Heterogeneous Agent New Keynesian (Kaplan-Moll-Violante 2018). Captures distribution.\n\n**Critique + alternative approaches**:\n- 2008 financial crisis: many DSGE models missed risk + financial-sector mechanisms.\n- Post-2008 revisions: add financial frictions (Bernanke-Gertler-Gilchrist financial accelerator; Gertler-Kiyotaki banking).\n- HANK models add inequality + distribution.\n- Behavioral approaches: bounded rationality, sentiment.\n- Big-data + ML methods complement DSGE.\n- Some economists (Romer 2016 'The Trouble with Macroeconomics'): DSGE methodologically problematic.\n\n**Practical policy use**:\n- Central banks use DSGE as one input + many other models + judgment.\n- Forecasting: combined with VARs, time-series, expert judgment.\n- Counterfactual analysis: 'what if we raise rates?' simulated in DSGE.\n- Communication: stylized facts about transmission mechanisms.\n\n**Modern challenges**:\n- ZLB modeling.\n- Heterogeneity (firms, households).\n- Climate-macro interactions (DSGE-climate models emerging).\n- Geopolitics + supply chains.\n- AI productivity effects."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_islm_1",
+        "kind": "guided_derivation",
+        "question": "Trace fiscal expansion through IS-LM",
+        "goal": "Government increases G by $100B. Walk through the IS-LM effects + estimate the equilibrium changes assuming MPC = 0.6.",
+        "steps": [
+          {
+            "prompt": "Initial shift in IS curve?",
+            "motivation": "Government-spending multiplier.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "right by ΔG × multiplier",
+                "fiscal multiplier 2.5"
+              ]
+            },
+            "hints": [
+              "Multiplier = 1/(1-MPC) initially."
+            ],
+            "reveal": "Simple multiplier = 1 / (1 − MPC) = 1 / 0.4 = 2.5. So IS shifts right by ΔY = 100 × 2.5 = $250B at given r."
+          },
+          {
+            "prompt": "But r will rise. Why?",
+            "motivation": "Money demand rises with Y.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "higher Y → higher money demand → higher r",
+                "LM is upward-sloping"
+              ]
+            },
+            "hints": [
+              "LM curve."
+            ],
+            "reveal": "As Y rises, money demand L(r, Y) rises → for fixed M supply, r must rise to clear. This 'crowds out' some private investment, reducing the multiplier effect on Y."
+          },
+          {
+            "prompt": "Final equilibrium ΔY vs initial ΔY?",
+            "motivation": "Smaller due to crowding out.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "smaller",
+                "less than 250",
+                "crowding out reduces effect"
+              ]
+            },
+            "hints": [
+              "Investment falls as r rises."
+            ],
+            "reveal": "Final ΔY < initial 250 due to crowding out via higher r. Estimating: depends on slopes of IS + LM. If sensitive: ΔY may only be 100-150 (much crowding). If insensitive: closer to 250. Empirical: US fiscal multipliers ~0.5-2.0 depending on conditions (recession vs boom; monetary accommodation)."
+          },
+          {
+            "prompt": "At Zero Lower Bound (ZLB), what's the multiplier?",
+            "motivation": "LM is flat at ZLB.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "full multiplier ~ 2.5",
+                "higher multiplier",
+                "no crowding out"
+              ]
+            },
+            "hints": [
+              "No r increase."
+            ],
+            "reveal": "At ZLB: LM curve flat (r can't rise below 0); IS shift produces full multiplier effect on Y without crowding out. ΔY ≈ 2.5 × ΔG = $250B. Fiscal policy especially effective in liquidity trap. This was the case in 2008-2015 + COVID 2020 — supported large fiscal expansions despite normally moderate multipliers. Christina Romer + others argued for larger 2009 stimulus on this basis."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_islm_1",
+        "kind": "slider",
+        "question": "Drag to a typical estimate of the US government-spending multiplier in normal times (not ZLB).",
+        "target": {
+          "min": 0.8,
+          "max": 1.2
+        },
+        "default": 3,
+        "explanation": "US fiscal multiplier estimates: ~0.8-1.2 in normal times; ~1.5-2.5 in recessions or ZLB conditions. Tax multipliers slightly smaller. Auerbach + Gorodnichenko 2012 + others document state-dependence. Higher multipliers when: monetary policy accommodative, slack in economy, ZLB, household borrowing constraints binding."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_islm_1",
+        "kind": "sortable",
+        "question": "Order these policy responses by typical effectiveness in deep recession with monetary policy at zero-lower-bound (ZLB).",
+        "items": [
+          {
+            "id": "monetary-traditional",
+            "label": "Conventional monetary policy (lowering interest rates further)"
+          },
+          {
+            "id": "forward-guidance",
+            "label": "Forward guidance (promise to keep rates low)"
+          },
+          {
+            "id": "qe",
+            "label": "Quantitative easing (asset purchases)"
+          },
+          {
+            "id": "fiscal-stimulus",
+            "label": "Direct fiscal stimulus (spending + tax cuts)"
+          },
+          {
+            "id": "automatic-stabilizers",
+            "label": "Automatic stabilizers (UI + transfers expanding)"
+          }
+        ],
+        "explanation": "ZLB policy effectiveness (rough hierarchy):\n• **Conventional monetary policy**: effective in normal times but constrained at ZLB. Cannot lower rates further.\n• **Forward guidance**: signal low rates for extended period. Some effect (anchoring expectations) but limited.\n• **Quantitative easing (QE)**: bond purchases lower long-term yields + drive asset prices. Modest macro effect; significant asset-price effect.\n• **Fiscal stimulus (direct spending + tax cuts)**: most effective at ZLB because no crowding out. Full multiplier. 2009 ARRA, 2020 CARES.\n• **Automatic stabilizers**: UI + Medicaid + SNAP automatically expand in recession. Reliable + immediate; design varies by country.\n\nAt ZLB, fiscal policy becomes dominant tool; central banks complement via QE + forward guidance. This is the modern consensus from 2008 + 2020 experience."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_islm_1",
+        "kind": "multiple_choice",
+        "question": "Why have central banks (Fed, ECB, BOJ) shifted toward quantitative easing + forward guidance since 2008?",
+        "options": [
+          "Random.",
+          "Conventional monetary policy (interest-rate adjustment) hit the zero-lower-bound (ZLB) — can't lower nominal rates below 0 effectively. Beyond ZLB, central banks turned to: (1) Forward guidance — commit to low rates for extended period (anchors expectations); (2) QE — buy long-term bonds, MBS, corporate bonds to lower term + risk premia + lower long-term yields; (3) Negative rates (BOJ, ECB); (4) Yield-curve control (BOJ since 2016). Effective but with limits + side effects (asset bubbles, inequality, distorted bond markets). Modern central banks have expanded toolkits substantially.",
+          "Marketing.",
+          "Required by law."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Unconventional monetary policy era + ZLB**:\n\n*Pre-2008 paradigm*:\n- Fed funds rate as main lever.\n- Taylor rule guidance.\n- ~1-1.5% policy rate during recessions; ~5% during booms.\n\n*2008 crisis + ZLB*:\n- Fed cut to 0-0.25% by December 2008.\n- ECB to 0% by 2014; BOJ at zero since 1995.\n- Conventional policy exhausted.\n\n*Unconventional tools*:\n\n1. **Forward guidance**:\n   - Promise low rates for extended period.\n   - 'Calendar-based' (until specific date) or 'state-contingent' (until unemployment < X).\n   - Anchors expectations → influences long-term yields.\n\n2. **Quantitative easing (QE)**:\n   - Large-scale purchase of long-term Treasuries + MBS.\n   - Fed balance sheet: $900B (2007) → $4.5T (2014) → $9T (2022).\n   - Lowers term premium + supports asset prices.\n   - 'Reflexive' effects: signals continued accommodation.\n\n3. **Credit easing**:\n   - Buy specific assets (corporate bonds, ETFs).\n   - BOJ: ETFs since 2013.\n   - Fed 2020: Main Street + corporate bond facilities.\n\n4. **Negative rates**:\n   - ECB -0.5%, BOJ -0.1%, Swiss -0.75%.\n   - Penalize bank deposits at central bank.\n   - Effects modest; political + technical limits.\n\n5. **Yield-curve control (YCC)**:\n   - BOJ since 2016: target 10Y yield 0% (with band).\n   - Strong commitment + flexibility.\n   - Phased out 2024.\n\n*Theoretical foundations*:\n- Krugman 1998 + Eggertsson + others: 'liquidity trap' analysis.\n- Romer + Romer + others: empirical analysis.\n- Bernanke + Yellen + Powell: practical implementation.\n- 'Reaching for yield' + financial-stability concerns.\n\n*Effects*:\n- **Asset prices**: stocks + housing + bonds boosted.\n- **Wealth inequality**: asset-holding households benefited.\n- **Inflation**: persistently below target 2008-2020; surge 2021-22 from fiscal + supply.\n- **Output**: avoided deeper recessions; gradual recovery.\n\n*Critiques*:\n- Limited macro effect for cost (Wallace neutrality).\n- Asset bubbles + financial-stability risks.\n- Distorted bond markets (BOJ owned ~50% of JGBs).\n- Distributional effects (wealth inequality).\n- Exit challenges (taper tantrum 2013).\n\n*Post-2022 normalization*:\n- Fed + ECB rapid rate hikes 2022-23.\n- Inflation 5-9% triggered swift unwind.\n- Balance-sheet reduction.\n- BOJ exited YCC + negative rates 2024.\n\n*Modern toolkit*:\n- Rates remain primary tool.\n- QE + QT as supplementary.\n- Forward guidance for expectation management.\n- Standing facilities (RRP at Fed, RPA at ECB) for short-rate control.\n- Macroprudential coordination.\n\n*Looking ahead*:\n- Lower neutral rate (R*) suggests ZLB will return.\n- Climate + green transitions: climate-aware monetary policy?\n- Digital + CBDCs: payment-system implications.\n- AI + productivity: forecasting + transmission mechanisms.\n\nUnconventional policy is now mainstream toolkit; central banks have learned + expanded; new challenges + tools continue to emerge."
+      },
+      "hints": [
+        "What's ZLB?",
+        "What are unconventional tools?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Post-2008 ZLB (zero lower bound): can't lower nominal rates below 0 effectively. Central banks turned to: forward guidance (commit to low rates); QE (buy long-term bonds, MBS); negative rates (BOJ, ECB, Swiss); yield-curve control (BOJ since 2016). Effective but with limits + side effects (asset bubbles, inequality, distortions). Modern toolkit much broader. 2022-23 rapid normalization as inflation surged. Future: lower neutral rate suggests ZLB returns; climate + AI considerations."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_islm_1",
+        "kind": "math_expression",
+        "question": "Simple Keynesian multiplier with MPC = 0.75?",
+        "acceptedAnswers": [
+          "4",
+          "1/0.25",
+          "1/(1-0.75)"
+        ],
+        "hint": "1 / (1 - MPC) = 1/0.25 = 4."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_islm_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why IS-LM remains a useful pedagogical model despite being 'dead' according to formal macroeconomic theory.",
+        "rubric": "Mentions: IS-LM (Hicks 1937) provides intuitive visualization of fiscal-monetary interaction + crowding out + ZLB implications. Limitations: static, no expectations, fixed P, no microfoundations. Modern formal models (DSGE, HANK) more rigorous + capture: rational expectations, sticky prices microfounded (Calvo), heterogeneity, financial frictions. Why IS-LM persists: communicates intuition to non-economists + students; central-bank presentations frequently use it; captures key features in 2 lines; modern New Keynesian collapses to 3-eq system (IS, Phillips curve, Taylor rule) that's IS-LM-like. Different audiences: economists use DSGE for forecasting; IS-LM for explaining to public; both retained in toolkit. Concludes: simple models valuable for intuition + complex models for precision; both essential in macroeconomic communication + analysis."
+      }
+    }
+  ]
+}

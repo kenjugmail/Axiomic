@@ -1,0 +1,177 @@
+{
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply DALYs + QALYs in burden + cost-effectiveness analysis.",
+      "Recognize structural determinants of health.",
+      "Reason about equity-focused public-health interventions."
+    ],
+    "prereqs": [
+      "epidemiology-foundations",
+      "study-designs"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Population-health metrics: DALYs, QALYs, life-expectancy gaps",
+      "body": "Beyond crude mortality, modern public health uses **composite metrics**:\n\n• **DALY (disability-adjusted life year)**: years of life lost (YLL) + years lived with disability (YLD), weighted. 1 DALY = 1 lost year of healthy life. Disease burden: malaria ~50M DALYs/yr; cardiovascular ~330M/yr; mental disorders ~125M/yr.\n• **QALY (quality-adjusted life year)**: years × utility weight (0 = dead, 1 = perfect health). Used in cost-effectiveness analysis: a $50,000/QALY threshold is common in HTA decisions.\n• **HALE (healthy life expectancy)**: years lived in 'full' health.\n\n**Global Burden of Disease** study (IHME, since 1990) provides comparable estimates across countries + time. Top global contributors to DALYs: cardiovascular disease, neoplasms, neonatal disorders, lower respiratory infections, mental disorders, diabetes.\n\n**Life expectancy** gaps are stark: ~85 yr (Japan, Switzerland) vs ~55 yr (some sub-Saharan countries). Within high-income countries: US life expectancy ~76 yr but ~83 yr in some affluent zip codes vs ~71 yr in adjacent disadvantaged ones — a 12-yr gap within 5 miles. This is the **'place-effect' on health**."
+    },
+    {
+      "kind": "text",
+      "title": "Social determinants + structural epidemiology",
+      "body": "**Social determinants of health (SDOH)**: structural conditions that shape disease distribution far more than individual risk factors. WHO framework: structural drivers (socioeconomic + political context) → intermediate determinants (material circumstances, behavior, biology) → health outcomes.\n\nSpecific SDOH:\n• **Income + wealth**: lifetime mortality risk varies ~10× between income quintiles.\n• **Education**: each year of education reduces all-cause mortality ~5-10%.\n• **Race + ethnicity**: in the US, Black infant mortality is 2.3× white; Black life expectancy ~4 yr shorter (2020s).\n• **Housing**: lead exposure (Flint), housing instability, overcrowding.\n• **Food security**: food deserts correlate with diabetes, hypertension.\n• **Environmental exposures**: air pollution (PM2.5), water quality, hazardous-waste sites.\n• **Healthcare access**: insurance, geographic proximity, language services.\n\n**Structural racism** as a public-health framework (Hardeman+ 2016, NEJM): emphasizes that race-based health disparities reflect policies (redlining, school segregation, mass incarceration) + their downstream effects, not biology. Modern epidemiology increasingly engages with social epidemiology, life-course epi, + the **fundamental causes** framework (Link + Phelan 1995): SES is a fundamental cause that operates through changing intermediate mechanisms over generations.\n\nInterventions targeting only proximate causes (e.g., asthma inhalers) miss the structural drivers (housing quality, air pollution). Effective public health works across multiple levels."
+    },
+    {
+      "kind": "text",
+      "title": "Equity-focused intervention design + the precision public health debate",
+      "body": "Two contrasting paradigms:\n\n**Universal interventions** (e.g., national vaccination, fluoridated water, smoke-free laws): same access for all. Easier to implement; risks 'inverse equity' if benefits accrue more to advantaged groups (who adopt earlier + comply better).\n\n**Targeted interventions** (e.g., MOMS Partnership home-visiting for high-risk pregnancies, lead remediation in old housing, harm-reduction services in opioid-affected communities): focus resources where disparities are largest. May reduce gaps; risk stigmatization + service-delivery challenges.\n\n**Proportionate universalism** (Marmot Review): combine universal + targeted — interventions for everyone, with intensity proportional to need.\n\n**Precision public health** uses individual-level data (genomic, behavioral, geographic) to tailor interventions. Promise: more efficient. Risks: (1) reinforces individual-responsibility framing; (2) data inequalities (some populations are well-genotyped, others not) lead to differential benefit; (3) deflects attention from structural drivers.\n\n**Health-in-all-policies (HiAP)**: institutionalize health considerations in policy across sectors (housing, education, transportation, criminal justice) — not just health-department work.\n\nClassic case: **smoking** policy. From 1960s individual education → 1980s tax increases + smoke-free laws → 2000s flavor bans + advertising restrictions. Smoking prevalence fell from ~42% (1965) to ~12% (2020s) via multi-level intervention. Now applied to obesity, opioids, vaping.\n\nNo intervention is value-free; all involve tradeoffs about which inequities to prioritize, what costs to incur, + whose voices count in decisions. Modern public health treats values + ethics as explicit dimensions of policy."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_public_health_1",
+        "kind": "guided_derivation",
+        "question": "Apply cost-effectiveness analysis to a hypothetical national vaccination program",
+        "goal": "Vaccinating 1M children costs $20M + prevents 8,000 cases of severe rotavirus + 50 deaths over their lifetime. Average QALY gain per case prevented: 0.4. Per death prevented: 25 QALYs.",
+        "steps": [
+          {
+            "prompt": "Total QALYs gained?",
+            "motivation": "Sum across cases + deaths.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "4450",
+                "4450 QALY",
+                "8000*0.4 + 50*25"
+              ]
+            },
+            "hints": [
+              "8000 cases × 0.4 + 50 deaths × 25 QALYs."
+            ],
+            "reveal": "8,000 × 0.4 = 3,200 from cases prevented. 50 × 25 = 1,250 from deaths prevented. Total = 4,450 QALYs."
+          },
+          {
+            "prompt": "Cost per QALY?",
+            "motivation": "Total cost / QALYs.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "$4494",
+                "4494",
+                "20000000/4450",
+                "~$4500"
+              ]
+            },
+            "hints": [
+              "$20M / 4,450."
+            ],
+            "reveal": "$20,000,000 / 4,450 ≈ $4,494 per QALY. Well below the typical $50,000-100,000/QALY threshold used by HTA agencies. Cost-effective."
+          },
+          {
+            "prompt": "What if the program disproportionately benefits low-income children (where rotavirus burden is higher + access to care lower)? Should that change the analysis?",
+            "motivation": "Equity weighting.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "yes equity weight",
+                "equity considerations matter",
+                "favor program",
+                "raise priority"
+              ]
+            },
+            "hints": [
+              "Equity weighting in cost-effectiveness analysis."
+            ],
+            "reveal": "Modern CEA can include equity weights or 'extended cost-effectiveness analysis' (ECEA) that explicitly values reducing disparities. If the program reduces a known disparity (rotavirus mortality is concentrated in lower-income communities), equity-weighted CEA gives even more favorable results. Some jurisdictions formally include this; others leave equity to a separate decision step."
+          },
+          {
+            "prompt": "What are the limits of this kind of analysis?",
+            "motivation": "Identify what CEA omits.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "doesn't capture all values",
+                "ethics, sovereignty, autonomy",
+                "indirect effects",
+                "spillovers"
+              ]
+            },
+            "hints": [
+              "Think about what isn't in the QALY framework."
+            ],
+            "reveal": "CEA captures: health outcomes, cost. CEA omits: (1) **distributional concerns** (who gets the benefit); (2) **process values** (autonomy, dignity, fairness); (3) **catastrophic risks** (severely-undervalued); (4) **non-health benefits** (caregiver welfare, productivity); (5) **spillovers** (herd immunity may make program more valuable); (6) **uncertainty** about parameters. Used as one input to decision-making, not the sole criterion. WHO + many HTA agencies combine CEA with budget impact, equity, ethics, sustainability."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_public_health_1",
+        "kind": "multiple_choice",
+        "question": "Two interventions cost $1M each. Intervention A gives 100 QALYs gained, primarily to high-income people. Intervention B gives 80 QALYs gained, primarily to low-income people with much worse baseline health. Which has higher value?",
+        "options": [
+          "A — more QALYs is always better.",
+          "Cannot be answered by standard CEA alone — B may have higher value under equity-weighting frameworks that put more weight on health gains for the disadvantaged. Different ethical frameworks give different answers; the choice involves normative judgments about distributive justice.",
+          "B — equity always trumps efficiency.",
+          "Neither — both should be cancelled."
+        ],
+        "correctIndex": 1,
+        "explanation": "Standard CEA: cost/QALY of A = $10K, B = $12.5K. A is more cost-effective. Cancel B?\n\nEquity-weighted CEA: explicitly weight QALYs gained by disadvantaged populations more heavily. Some frameworks use multiplicative weights (1.5-2× for severely disadvantaged); others use lexicographic priority (worst-off first); others use 'social welfare functions' that aggregate utility with concavity (decreasing marginal utility of health).\n\nUnder a 1.5× equity weight for B's beneficiaries: B's effective QALYs = 80 × 1.5 = 120 > A's 100. Now B is preferred.\n\nThis isn't 'right vs wrong' — it's about whose values guide allocation. Different societies + institutional contexts adopt different frameworks:\n- **UK NICE**: officially equity-neutral; some flexibility for severity.\n- **WHO-CHOICE**: explicit equity weighting in some applications.\n- **Norway**: weights based on remaining QALYs without intervention.\n- **Brazil's SUS**: explicit equity goals built into priority-setting.\n\nReal-world decisions involve CEA + budget impact + political + ethical analysis. CEA is one input — increasingly recognized as insufficient on its own. The field has shifted from 'just optimize the QALY function' to 'CEA informs but doesn't determine; decisions require explicit values.'"
+      },
+      "hints": [
+        "Are all QALYs equal?",
+        "What's the ethics of distribution?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Standard CEA: A is more cost-effective ($10K vs $12.5K per QALY). Equity-weighted CEA: B's QALYs may be weighted up due to disadvantaged recipients; e.g., 1.5× weight → 120 effective vs 100. Different frameworks give different answers; choice involves explicit value judgments about distributive justice. Real decisions combine CEA with ethics + politics + budget. CEA is necessary but not sufficient for population priority-setting."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_public_health_2",
+        "kind": "multiple_choice",
+        "question": "Why does life expectancy vary 10+ years between adjacent US zip codes despite the same national healthcare system + same medications?",
+        "options": [
+          "Genetic differences.",
+          "Healthcare access is one factor; bigger drivers are 'upstream' social determinants (income, education, housing, environmental exposures, food security, neighborhood violence, chronic stress + adverse childhood experiences). Individual healthcare interventions can't compensate for structural conditions. Place-based + structural interventions (housing, education, income) have larger health impacts than additional medical care for many outcomes.",
+          "Self-selection: healthier people move to better zip codes.",
+          "Random variation."
+        ],
+        "correctIndex": 1,
+        "explanation": "Healthcare access matters, but a meta-meta-finding from social epidemiology: ~10-20% of health outcomes are determined by medical care; ~30-50% by social + economic factors; ~20% by behaviors (which are themselves shaped by social context); ~10% by physical environment; ~10% by genetics.\n\nClassic studies:\n- Whitehall Studies (Marmot, 1970s-): UK civil servants have step-wise mortality gradient by occupation grade, even though all have NHS healthcare.\n- US life-expectancy mapping (Chetty+ 2016): ~14 yr life-expectancy gap between richest + poorest 1% of US men; within geographies, low-income outcomes vary enormously based on community characteristics.\n- COVID-19: mortality rate 2-3× higher in Black, Hispanic, Indigenous US populations; partly mediated by occupation exposure, housing density, comorbidity prevalence (themselves SDOH-driven).\n\nUpstream interventions:\n- **Housing**: Moving To Opportunity studies show modest health benefits.\n- **Income transfers**: Earned Income Tax Credit linked to improved infant outcomes.\n- **Education**: Each additional year associated with ~6 mo life expectancy.\n- **Lead remediation**: meaningful + lifelong impact on cognitive + behavioral outcomes.\n- **Smoke-free housing**: indoor air-quality, cardiovascular events.\n\nThe insight: medical care is necessary but insufficient. The biggest health gains in the 21st century may come from policy outside the health sector — housing, education, criminal justice, tax policy — operationalized through Health in All Policies (HiAP) approaches. This is what 'public health' really means at population scale."
+      },
+      "hints": [
+        "What fraction of health is determined by medical care?",
+        "What are upstream factors?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Healthcare = 10-20% of health outcomes. Social + economic factors = 30-50%. Behaviors (shaped by social context) = 20%. Environment = 10%. Genes = 10%. Place effects (zip code gaps) reflect upstream determinants: income, education, housing, food security, environmental exposures, neighborhood violence, chronic stress. Healthcare alone can't compensate. Upstream interventions (housing, income, education) often have larger impact than additional medical care. Modern public health operates through Health-in-all-Policies, not just health-department work."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_public_health_1",
+        "kind": "math_expression",
+        "question": "A pediatric program costs $500K + averts 200 hospitalizations + extends 10 children's lives by ~50 yr each on average. If each prevented hospitalization is worth 0.5 QALYs + each life-year saved is 1 QALY, what's the cost per QALY?",
+        "acceptedAnswers": [
+          "$833",
+          "833",
+          "500000/600"
+        ],
+        "hint": "Total QALYs = 200×0.5 + 10×50 = 600. Cost per QALY = $500K / 600."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_public_health_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why a public-health professional cannot rely on RCTs alone to know what interventions work at population scale. What other evidence + reasoning is needed?",
+        "rubric": "Mentions: RCTs answer 'does this intervention work in controlled conditions?' but population-scale effectiveness depends on (a) external validity / generalization to diverse real-world populations; (b) implementation feasibility (cost, training, infrastructure); (c) equity impact (does the intervention reduce or amplify disparities?); (d) interaction with social context + other interventions; (e) sustainability over time; (f) ethical + political acceptability. Other evidence: real-world evidence (registries, target-trial emulation); cost-effectiveness analysis; community-based participatory research; qualitative methods (lived experience); historical natural experiments; ecological studies. Concludes: modern public health treats RCT as one input + integrates many evidence types into context-specific decisions. The discipline has matured from 'find a magic bullet' to 'navigate complex causes in complex systems.'"
+      }
+    }
+  ]
+}

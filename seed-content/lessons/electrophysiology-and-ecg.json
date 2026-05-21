@@ -1,0 +1,189 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Apply Nernst + Hodgkin-Huxley to cardiac action potential.",
+      "Interpret the standard 12-lead ECG.",
+      "Connect arrhythmias to clinical signs."
+    ],
+    "prereqs": [
+      "cardiovascular-hemodynamics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Cardiac action potential + Nernst",
+      "body": "Heart cells have specialized action potentials with distinct phases (ventricular myocyte, ~300 ms):\n• **Phase 0** (depolarization): rapid Na⁺ inflow → membrane potential rises from -90 to +30 mV. Driven by voltage-gated Na channels.\n• **Phase 1** (early repolarization): brief K⁺ efflux + Cl⁻ shifts.\n• **Phase 2** (plateau, ~200 ms): Ca²⁺ inflow balances K⁺ outflow → sustained depolarization. This long plateau is unique to cardiac cells + allows full ventricular contraction.\n• **Phase 3** (repolarization): K⁺ outflow dominates as Ca²⁺ channels close.\n• **Phase 4** (resting): membrane back to -90 mV; ATP-driven Na/K pump restores ion gradients.\n\n**Nernst equation** for an ion X:\n  E_X = (RT/zF) × ln([X]_out/[X]_in)\n\nAt 37 °C: E_K ≈ -94 mV; E_Na ≈ +65 mV; E_Ca ≈ +130 mV.\n\n**Resting potential** of -85 to -90 mV is dominated by K⁺ permeability + close to E_K.\n\n**Action-potential propagation**: gap junctions connect adjacent myocytes electrically → conduction velocity ~1 m/s in ventricle. Specialized **conduction system**:\n- Sinoatrial (SA) node: pacemaker; ~60-100 bpm intrinsic.\n- Atrioventricular (AV) node: 0.1-s delay between atria + ventricles.\n- Bundle of His + Purkinje fibers: fast conduction throughout ventricles for synchronized contraction (conduction velocity ~4 m/s).\n\nDysfunction at each level produces characteristic arrhythmias."
+    },
+    {
+      "kind": "text",
+      "title": "12-lead ECG: leads + waveform",
+      "body": "**ECG** records electrical activity of the heart from the body surface. The 12-lead system:\n• **Limb leads** (Einthoven 1903): I, II, III + augmented aVR, aVL, aVF.\n• **Precordial leads**: V1-V6 across the chest.\n\nEach lead has a view of the heart from a different angle → can localize abnormalities.\n\n**Standard PQRST waveform** (1 cardiac cycle):\n• **P-wave**: atrial depolarization (~80 ms, 0.1-0.3 mV amplitude).\n• **PR interval**: P-wave start to QRS start (~120-200 ms). Measures AV-node delay.\n• **QRS complex**: ventricular depolarization (~80-120 ms, 1-2 mV).\n• **ST segment**: plateau between QRS + T (~80 ms, should be isoelectric).\n• **T-wave**: ventricular repolarization (~150-200 ms, 0.2-0.5 mV; opposite polarity to QRS in many leads).\n• **QT interval**: QRS start to T end (~350-450 ms, varies with HR; QTc corrected formulae).\n\n**Normal ECG features**:\n- Sinus rhythm: regular, P before every QRS, normal PR + QRS + QT.\n- Heart rate 60-100 bpm.\n- ST isoelectric.\n- T-wave concordant with QRS (positive in lead II usually).",
+      "viz": "ecg-simulator",
+      "vizProps": {
+        "hr": 72,
+        "prMs": 160,
+        "stMm": 0,
+        "tInverted": false,
+        "blockDegree": 0
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Arrhythmias + clinical interpretation",
+      "body": "**Conduction abnormalities**:\n• **1st-degree AV block**: PR > 200 ms; every P followed by QRS. Often benign.\n• **2nd-degree AV block** Mobitz I (Wenckebach): progressive PR prolongation → dropped QRS. Usually node-level.\n• **2nd-degree AV block** Mobitz II: fixed PR; intermittent dropped QRS. Below-node lesion; can progress to complete block.\n• **3rd-degree (complete) AV block**: P + QRS completely dissociated. Pacemaker required.\n• **Bundle branch block (BBB)**: QRS > 120 ms; right (RBBB) vs left (LBBB) by morphology in V1-V6.\n\n**Tachyarrhythmias**:\n• **Sinus tachycardia**: rate >100; normal P + QRS. Physiological (exercise, fever) or pathological.\n• **Atrial fibrillation (AFib)**: irregularly irregular; no discernible P-waves. ~30 million globally; major stroke risk.\n• **Atrial flutter**: sawtooth P-waves; usually 2:1 or 4:1 AV conduction.\n• **SVT (supraventricular tachycardia)**: narrow QRS, rapid rate.\n• **Ventricular tachycardia (VT)**: wide QRS, rate 100+. Hemodynamic instability; can degenerate into VF.\n• **Ventricular fibrillation (VF)**: chaotic + lethal; immediate defibrillation required.\n\n**Ischemic ECG signs**:\n- **ST elevation**: STEMI (transmural infarct); ≥1 mm in 2 contiguous limb leads or ≥2 mm in precordial. Localized by leads:\n  - II, III, aVF: inferior (right coronary).\n  - V1-V2: septal.\n  - V3-V4: anterior.\n  - V5-V6: lateral.\n- **ST depression**: subendocardial ischemia or NSTEMI.\n- **T-wave inversion**: ischemia, esp. with hyperacute T-waves preceding STEMI.\n- **Q-waves**: pathological deep Q in established old infarct.\n- **LBBB obscures** ischemic changes; new LBBB = STEMI equivalent.\n\n**Long QT** (>460 ms): congenital or acquired (drugs, electrolyte abnormalities) → risk for torsades de pointes + sudden cardiac death."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ecg_1",
+        "kind": "guided_derivation",
+        "question": "Read an ECG: 1st-degree AV block detection",
+        "goal": "An ECG shows: rate 65 bpm, P before every QRS, PR interval consistently 280 ms, QRS duration 90 ms, ST isoelectric. Diagnose.",
+        "steps": [
+          {
+            "prompt": "Is the rate normal?",
+            "motivation": "60-100 bpm = normal sinus.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "yes",
+                "normal",
+                "65 is normal"
+              ]
+            },
+            "hints": [
+              "60-100 bpm."
+            ],
+            "reveal": "Yes — 65 bpm is in normal sinus rhythm range."
+          },
+          {
+            "prompt": "Is the PR interval normal?",
+            "motivation": "Reference: 120-200 ms.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "no, prolonged",
+                "no",
+                "280 is too long"
+              ]
+            },
+            "hints": [
+              "Normal PR: 120-200 ms."
+            ],
+            "reveal": "No — 280 ms is prolonged beyond normal upper limit of 200 ms. PR > 200 ms = AV-node conduction delay."
+          },
+          {
+            "prompt": "Is every P-wave followed by a QRS?",
+            "motivation": "Distinguish from 2nd-degree.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "yes",
+                "1:1 conduction"
+              ]
+            },
+            "hints": [
+              "No dropped beats."
+            ],
+            "reveal": "Yes — 1:1 P:QRS conduction (no dropped beats)."
+          },
+          {
+            "prompt": "Diagnosis?",
+            "motivation": "Synthesize.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1st-degree AV block",
+                "first-degree AV block",
+                "1° AV block"
+              ]
+            },
+            "hints": [
+              "Prolonged PR + 1:1 conduction."
+            ],
+            "reveal": "**1st-degree AV block** (PR > 200 ms with 1:1 conduction). Often benign — common in athletes, elderly. Causes: AV-node fibrosis, drugs (beta-blockers, CCBs, digoxin), Lyme disease, ischemia. No treatment needed unless symptomatic or progressing."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ecg_1",
+        "kind": "multiple_choice",
+        "question": "A patient presents with crushing chest pain. ECG shows ST elevation in leads II, III, aVF. Which coronary artery is most likely occluded?",
+        "options": [
+          "Left anterior descending (LAD).",
+          "Right coronary artery (RCA). Inferior wall of left ventricle is supplied by RCA in ~85% of people (right-dominant circulation). ST elevation in II, III, aVF (inferior leads) indicates inferior MI. Treatment: rapid PCI within 90 minutes of presentation (door-to-balloon time). Add right-sided leads (V4R) to assess RV involvement; RV infarct (~30% of inferior MI) requires fluids + avoiding nitrates.",
+          "Circumflex.",
+          "Both LAD + LCX."
+        ],
+        "correctIndex": 1,
+        "explanation": "**ECG-anatomy mapping for STEMI localization**:\n\n| Leads | Wall | Artery |\n|---|---|---|\n| II, III, aVF | Inferior | RCA (85% right-dominant) or LCX (15% left-dominant) |\n| V1, V2 | Septum | Proximal LAD (septal branches) |\n| V3, V4 | Anterior | LAD (mid) |\n| V5, V6 | Lateral | LCX or distal LAD |\n| V7-V9 (posterior) | Posterior | Distal RCA or LCX |\n| aVR (with diffuse ST depression) | Left main | LM disease (urgent) |\n\n**RCA territory** (inferior wall):\n- Inferior wall LV (lateral III, II, aVF)\n- Right ventricle (V4R)\n- Posterior wall (V7-V9; reciprocal ST depression in V1-V3)\n- AV node (RCA supplies AV node in ~90% — RCA occlusion often causes 2°/3° AV block transiently)\n- Sinus node (~60% RCA)\n\n**Clinical management of STEMI**:\n1. **Time critical**: 'time is muscle' — every 30 min delay = ~7% increase in 1-year mortality.\n2. **Aspirin + P2Y12 inhibitor** (clopidogrel, ticagrelor, prasugrel) loaded.\n3. **Anticoagulation** (heparin, bivalirudin).\n4. **Primary PCI** within 90 min of first medical contact (door-to-balloon). Drug-eluting stent in culprit lesion.\n5. **Thrombolytics** (TNK, alteplase) if PCI unavailable + within 12 hr of symptom onset.\n6. **Post-MI**: beta-blocker, ACEi/ARB, statin, dual antiplatelet (DAPT) for 12+ months, MRA if HFrEF.\n7. **Cardiac rehabilitation**.\n\n**Mortality trends**: 30-day STEMI mortality fell from ~30% (1960s, no reperfusion) to ~5-7% (modern, with primary PCI). Massive impact of timely intervention + protocol-driven care."
+      },
+      "hints": [
+        "Which leads view the inferior wall?",
+        "What artery supplies it?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Inferior wall ST elevation (II, III, aVF) → RCA in 85% of patients (right-dominant circulation; LCX 15% in left-dominant). Treatment: primary PCI within 90 min. Assess RV involvement (V4R; ~30% of inferior MI); RV infarct requires fluids + nitrate avoidance. AV-node compromise common (RCA supplies AV node in ~90%); transient heart block requires monitoring."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_ecg_1",
+        "kind": "slider",
+        "question": "Drag the slider to the upper limit of a normal PR interval (in ms).",
+        "target": {
+          "min": 200,
+          "max": 200
+        },
+        "default": 150,
+        "explanation": "Normal PR interval: 120-200 ms. > 200 ms = 1st-degree AV block. The PR interval measures conduction time from atrial depolarization (P-wave start) through AV node to ventricular depolarization (QRS start). AV node introduces ~100 ms delay; rest is conduction through atria + His-Purkinje system."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_ecg_1",
+        "kind": "sortable",
+        "question": "Order these arrhythmias by typical *clinical urgency* (least urgent to most urgent / lethal).",
+        "items": [
+          {
+            "id": "1st-degree",
+            "label": "1st-degree AV block (PR > 200 ms, 1:1 conduction)"
+          },
+          {
+            "id": "sinus-tachycardia",
+            "label": "Sinus tachycardia (rate 105 from exercise)"
+          },
+          {
+            "id": "afib",
+            "label": "Atrial fibrillation, rate-controlled"
+          },
+          {
+            "id": "stemi",
+            "label": "STEMI (acute MI with ST elevation)"
+          },
+          {
+            "id": "vfib",
+            "label": "Ventricular fibrillation"
+          }
+        ],
+        "explanation": "Clinical urgency hierarchy:\n• **1st-degree AV block**: often benign; observe, treat underlying cause if any.\n• **Sinus tachycardia**: physiological (exercise, anxiety, fever) or pathological (sepsis, anemia, dehydration); rate-control underlying cause.\n• **AFib (rate-controlled)**: stable; manage rate (beta-blocker, CCB) + anticoagulate to prevent stroke (CHADS-Vasc score → DOAC).\n• **STEMI**: 'time is muscle'; primary PCI within 90 min. Every minute saved heart muscle. Life-threatening.\n• **VFib**: lethal arrhythmia; immediate defibrillation (within minutes of arrest). Without defibrillation: 100% mortality. With prompt AED: 50-70% survival.\n\nLearning to triage ECG findings + correlate with clinical context is core of emergency + critical care. Modern AI-augmented systems (Apple Watch, KardiaMobile) detect AFib + bradycardia in patients before symptoms; have prevented strokes + improved early detection."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ecg_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how the long action-potential plateau in cardiac cells (vs neurons) prevents tetanic contraction of the heart.",
+        "rubric": "Mentions: cardiac AP has ~200 ms plateau (Phase 2) maintained by Ca²⁺ inflow + K⁺ outflow balance. During plateau, voltage-gated Na channels are inactivated → cell is in absolute refractory period. Cannot be restimulated until plateau ends + channels recover (~300 ms total refractory). Compared to skeletal muscle: brief AP (~5 ms); summation + tetanic contractions possible with rapid stimulation. Why heart needs this: must contract once per cycle, fully relax + refill before next contraction. Tetanic heart contraction would prevent filling → no cardiac output → death. Long plateau is evolutionary solution. Some drugs target this: Class III antiarrhythmics (amiodarone, sotalol) prolong AP + QT; useful for some arrhythmias but risk torsades de pointes."
+      }
+    }
+  ]
+}

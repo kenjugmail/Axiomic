@@ -1,0 +1,164 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Distinguish biomaterial classes + properties.",
+      "Reason about biocompatibility + foreign-body response.",
+      "Connect implant design to clinical outcomes."
+    ],
+    "prereqs": [
+      "biomechanics-and-tissue"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Biomaterial classes",
+      "body": "**Metals**:\n• **Titanium + alloys** (Ti-6Al-4V, Ti-13Nb-13Zr): low E (60-110 GPa, closer to bone), corrosion-resistant via TiO₂ passive layer, osseo-integrative. Workhorse of orthopedics + dental.\n• **Stainless steel** (316L): cheaper, higher E (200 GPa) → more stress shielding. Trauma plates, internal fixation.\n• **Cobalt-chrome (CoCr)**: very hard, wear-resistant; used for bearing surfaces (femoral heads, knee femoral components). Wear-debris (Co + Cr ions) can cause local + systemic inflammatory reactions ('metal-on-metal' hip recall scandal 2010-2013).\n• **Magnesium alloys** (Mg-Zn-Ca): biodegradable; intended dissolution. Emerging area; orthopedic + cardiovascular stents.\n• **Nitinol** (Ni-Ti): shape memory + superelastic. Stents (self-expanding), guidewires, dental.\n\n**Polymers**:\n• **UHMWPE** (ultra-high molecular weight polyethylene): joint bearing surface (acetabular cups, tibial inserts). Wear creates debris → osteolysis. Cross-linked variants (XLPE) reduce wear.\n• **PEEK** (polyetheretherketone): E ~ 4 GPa; radiolucent; spinal fusion cages.\n• **Silicone**: breast implants, hand joint replacements.\n• **PLA + PLGA**: biodegradable; sutures, drug-delivery scaffolds.\n• **PMMA** (bone cement): polymerized in situ; fixation of hip + knee components.\n\n**Ceramics**:\n• **Hydroxyapatite (HA)**: bioactive coating on Ti implants; promotes osseo-integration.\n• **Alumina + zirconia**: very hard + low wear; ceramic-on-ceramic hips.\n• **Bioactive glass**: bonds to bone (silica + phosphate + sodium).\n\n**Composites**: combinations (carbon-fiber-reinforced PEEK, e.g.) for tailored stiffness + strength."
+    },
+    {
+      "kind": "text",
+      "title": "Biocompatibility + foreign-body response",
+      "body": "When any non-self material implanted, the body responds. **Foreign body response (FBR)** is the conserved sequence:\n\n1. **Acute inflammation** (minutes-days): neutrophils + macrophages.\n2. **Chronic inflammation** (weeks): persistent macrophages + lymphocytes.\n3. **Granulation tissue + giant cells** (1-3 wk): fused macrophages around implant.\n4. **Fibrous encapsulation** (months): collagen-rich capsule isolates implant from surrounding tissue.\n\n**Implications**: capsule can:\n- Reduce sensor sensitivity (glucose sensors, deep-brain electrodes).\n- Cause contraction (breast implants, leading to capsular contracture).\n- Isolate drug-delivery (slowing release).\n- Cause chronic pain.\n\n**Optimal biocompatibility**:\n- Minimize FBR magnitude.\n- Choose materials with low protein-adsorption.\n- Coatings: PEG, zwitterionic, heparin reduce FBR.\n- Surface topography: nanopatterned + porous surfaces can integrate better.\n- Drug-releasing coatings: dexamethasone (anti-inflammatory) on neural electrodes.\n\n**Biocompatibility testing** (ISO 10993):\n- In vitro: cytotoxicity (cell culture), genotoxicity, hemocompatibility.\n- In vivo: implant studies in animals (rats, rabbits, sheep, dogs, pigs).\n- Clinical: post-market surveillance.\n\n**Failure modes**:\n- Infection (biofilm formation on implant; ~1-2% joint replacements; treatment: 2-stage revision + antibiotics).\n- Aseptic loosening (mechanical + biological cascade).\n- Wear debris (osteolysis, metallosis).\n- Mechanical failure (fatigue fracture).\n- Allergy (Ni in alloys, polymer additives)."
+    },
+    {
+      "kind": "text",
+      "title": "Implant design + clinical lifecycle",
+      "body": "**Hip + knee replacement** (~3 million/yr globally):\n• Hip: femoral stem (Ti or CoCr) + femoral head (CoCr or ceramic) + acetabular cup (Ti shell with XLPE or ceramic liner).\n• Knee: femoral component (CoCr) + tibial component (Ti with XLPE insert) + patellar button.\n• Lifetime: typical ~15-25 years; younger patients require revision.\n\n**Dental implants** (~5 million/yr): Ti screws into mandible/maxilla; crown attached. 95% 10-yr survival.\n\n**Cardiovascular stents**: balloon-expanded CoCr or self-expanding nitinol. Drug-eluting variants (sirolimus, paclitaxel, everolimus) reduce restenosis from ~30% to ~5%.\n\n**Pacemakers + ICDs**: Li-iodide battery + Ti can + leads. ~1.5 million implanted/yr globally. Newer: leadless pacemakers (Micra) implanted directly in RV.\n\n**Cochlear implants**: electrode array in cochlea + external sound processor. ~1 million users; restores hearing in profound deafness.\n\n**Deep brain stimulation (DBS)**: electrodes in basal ganglia for Parkinson's, essential tremor, dystonia. ~200,000 implants since 1997.\n\n**Retinal implants**: Argus II + ongoing trials.\n\n**Brain-machine interfaces**: Utah array, Neuralink, Synchron — emerging; very early clinical.\n\n**Drug-delivery implants**: Norplant + Implanon contraceptives; intraocular drug-releasing devices; subcutaneous (e.g., naltrexone for opioid use disorder).\n\n**Tissue engineering + regenerative**:\n- Skin substitutes (Apligraf, Dermagraft) for burns/ulcers.\n- Engineered cartilage (autologous chondrocyte implantation).\n- 3D-printed scaffolds (PLA, alginate) for tissue regeneration; clinical trials.\n\n**Regulatory + commercial**: FDA 510(k) (predicate equivalence; faster) vs PMA (premarket approval; rigorous; required for high-risk Class III) vs Breakthrough Device pathway. Post-market surveillance + recalls (FDA MAUDE database). Average implant company R&D-to-market: 5-15 yr + $50-500M."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bio_implant_1",
+        "kind": "guided_derivation",
+        "question": "Design a total hip replacement for a young athlete",
+        "goal": "Patient: 35-yo runner with osteoarthritis from prior trauma. Requires hip replacement. Choose materials + design for ~30-50 yr expected use.",
+        "steps": [
+          {
+            "prompt": "What's the design priority?",
+            "motivation": "Trade-offs.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "longevity + activity + low wear",
+                "long lifespan",
+                "high activity tolerance"
+              ]
+            },
+            "hints": [
+              "Young + active."
+            ],
+            "reveal": "Priorities: (1) very long lifespan (30+ years; revision in elderly is risky); (2) wear resistance (high-activity loading); (3) low stress-shielding; (4) bone preservation for future revisions."
+          },
+          {
+            "prompt": "Femoral head + acetabular liner: standard CoCr-on-XLPE vs ceramic-on-ceramic vs ceramic-on-XLPE?",
+            "motivation": "Wear-rate comparison.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ceramic-on-ceramic for low wear",
+                "ceramic-on-ceramic",
+                "ceramic-ceramic"
+              ]
+            },
+            "hints": [
+              "Ceramic-on-ceramic has lowest wear rate."
+            ],
+            "reveal": "**Ceramic-on-ceramic** (e.g., zirconia-toughened alumina): wear rates ~10×-100× lower than CoCr-on-XLPE. Almost no detectable wear after 20 years. Trade-offs: more expensive; small risk of ceramic fracture (~0.01-0.1%); 'squeaking' in some cases; complex revision if ceramic failure."
+          },
+          {
+            "prompt": "Femoral stem material?",
+            "motivation": "Bone-preserving.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Ti alloy + porous coating",
+                "porous Ti",
+                "Ti-13Nb-13Zr"
+              ]
+            },
+            "hints": [
+              "Lower-E Ti + porous for ingrowth."
+            ],
+            "reveal": "**Titanium alloy** (Ti-6Al-4V or lower-modulus β-Ti like Ti-13Nb-13Zr) with **porous coating** (sintered beads, plasma-sprayed Ti, or 3D-printed lattice) for bone ingrowth + osseointegration. Cementless fixation in young patient (cement fatigues over decades; cementless allows biologic fixation + future revision)."
+          },
+          {
+            "prompt": "Activity restrictions + lifetime expectations?",
+            "motivation": "Counsel patient.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~25-30 yr expected",
+                "moderate activity restrictions",
+                "no high-impact contact sport"
+              ]
+            },
+            "hints": [
+              "High-impact sports stress all wear surfaces."
+            ],
+            "reveal": "**Lifetime expectation**: 25-30 years with modern ceramic-on-ceramic + Ti porous-stem cementless THR — but uncertain at this experience horizon. **Activity**: moderate-impact sports OK (cycling, swimming, hiking, skiing); avoid high-impact contact sports + repeated cyclic high-load activities (running marathons, jumping sports). Future revisions: more difficult; potential need for custom revision components. Younger patient = higher revision rate over lifetime; counsel about lifetime + activity tradeoffs explicitly. Some surgeons offer hip resurfacing (Birmingham) for very-young + active, preserving more bone — but metal-on-metal concerns post-2010 recalls limit adoption."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_bio_implant_1",
+        "kind": "slider",
+        "question": "Drag the slider to estimate the typical lifespan (in years) of a modern hip-replacement implant in a 70-yo patient.",
+        "target": {
+          "min": 18,
+          "max": 22
+        },
+        "default": 10,
+        "explanation": "Modern cementless hip replacements in elderly patients: 20-year survival ~80-90% (i.e., median lifespan well >20 years). Younger + more active patients have higher revision rates; ceramic-on-ceramic + XLPE bearings extending lifespan further. Registry data (Australia, UK, Sweden, US) tracks outcomes by implant model + patient + surgical factors."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bio_implant_1",
+        "kind": "multiple_choice",
+        "question": "Why did metal-on-metal (MoM) hip-replacement designs face widespread recalls in 2010-2013?",
+        "options": [
+          "MoM was illegal.",
+          "MoM articulation produces nanoparticle metal debris (Co + Cr ions). Most patients tolerated; a subset developed adverse local tissue reactions (ALTR / pseudotumors) + systemic concerns. Some designs (DePuy ASR, Stryker Rejuvenate) had higher failure rates (~15-30% at 5-7 years vs <5% for non-MoM). Recalled by FDA. Lessons: rigorous post-market surveillance critical; some implant designs failed despite FDA 510(k) clearance based on predicate equivalence.",
+          "MoM caused immediate death.",
+          "MoM was made of toxic material."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Metal-on-metal (MoM) hip-replacement debacle (2010-2013)**:\n\n*Design intent*: MoM (CoCr-on-CoCr) promised lower wear than CoCr-on-XLPE + larger heads → reduced dislocation risk + more anatomic feel. Particularly attractive for younger active patients.\n\n*What went wrong*:\n1. **Higher-than-expected wear** in some designs; nanoparticle metal debris (Co + Cr ions) released.\n2. **Adverse local tissue reactions (ALTR) / pseudotumors**: inflammatory + cystic masses around implants in 1-5% of patients. Some required complex revision.\n3. **Systemic concerns**: elevated serum Co + Cr; possible cardiotoxicity at high levels (still being characterized).\n4. **Specific failed designs**:\n   - DePuy ASR (2003-2010): ~93,000 implants; ~13-30% revision at 5-7 years (depending on cohort). FDA recall 2010. Massive litigation.\n   - Stryker Rejuvenate + ABG II modular stems: corrosion at neck-stem junction. Recall 2012.\n5. **510(k) clearance pathway controversy**: many MoM designs cleared based on 'substantial equivalence' to predicates, without robust clinical data. Showed weakness of predicate-equivalence reasoning for novel articulation.\n\n*Regulatory response*:\n- FDA reclassified MoM total hips as Class III (PMA required) in 2016.\n- Manufacturers withdrew most MoM products.\n- Mandatory post-market surveillance + registry participation.\n- Stronger pre-market clinical data for novel articulations.\n\n*Lessons for biomaterials*:\n- Even chemically biocompatible materials can fail biologically if debris generation differs from predicate.\n- Long-term outcomes (>10 yr) cannot be predicted from short-term studies.\n- Post-market surveillance + registry-based research critical (Australian + UK + Swedish hip registries identified MoM problems before FDA acted).\n- Patient blood monitoring (Co + Cr) for MoM recipients ongoing.\n\n*Hip resurfacing (a related design)*: Birmingham hip resurfacing still used in selected younger male patients; lower revision rates than total MoM hip in registry data. Used cautiously.\n\n*Current standard*: ceramic-on-ceramic or ceramic-on-XLPE for young patients; CoCr-on-XLPE for elderly. MoM essentially abandoned for primary THR."
+      },
+      "hints": [
+        "What did MoM articulation produce?",
+        "How did regulators respond?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "MoM (CoCr-on-CoCr) produces nanoparticle metal debris (Co + Cr ions); most tolerated but ~1-5% developed adverse local tissue reactions / pseudotumors. Specific designs (DePuy ASR, Stryker Rejuvenate) had failure rates ~15-30% at 5-7 yr. Recalled 2010-2013. Lessons: 510(k) predicate equivalence inadequate for novel articulations; registry-based post-market surveillance critical; FDA reclassified MoM as Class III in 2016. Current standard: ceramic-on-ceramic or ceramic-on-XLPE for young; CoCr-on-XLPE for elderly."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_bio_implant_1",
+        "kind": "math_expression",
+        "question": "If a hip-implant wear rate is 0.1 mm/yr + revision is recommended at 5 mm cumulative wear, how many years until revision?",
+        "acceptedAnswers": [
+          "50",
+          "50 years"
+        ],
+        "hint": "5 / 0.1 = 50."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bio_implant_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why biocompatibility testing (ISO 10993) is necessary but not sufficient for a successful implant.",
+        "rubric": "Mentions: ISO 10993 covers cytotoxicity, sensitization, irritation, genotoxicity, hemocompatibility, implantation studies — standard in vitro + in vivo testing. Necessary: ensures material doesn't cause acute biological harm or systemic toxicity. Not sufficient because: real-world implants face mechanical loading + wear (debris generation not in initial testing); long-term degradation; specific anatomical sites + interfaces; infection; patient variability (genetic, comorbidities); surgical technique. Sufficient design requires: extensive bench mechanical + fatigue testing; long-term animal studies; phased clinical trials; registry-based post-market surveillance. Lessons from MoM hips, breast-implant ALCL, DBS lead failures — material-level biocompatibility passed, but long-term mechanical or biological behavior surprised. Modern philosophy: combine ISO 10993 + mechanical reliability + post-market vigilance + adaptive design + early-warning safety reporting."
+      }
+    }
+  ]
+}

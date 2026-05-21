@@ -1,0 +1,161 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intro",
+    "objectives": [
+      "Define Shannon entropy as expected surprisal.",
+      "Compute H for discrete distributions.",
+      "Reason about coding implications of entropy."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Shannon's idea: information as reduction of uncertainty",
+      "body": "**Information theory** (Shannon 1948 'A Mathematical Theory of Communication') quantifies how much information a message conveys + how much can be transmitted reliably over noisy channels. Foundation of modern communications, data compression, machine learning, cryptography, statistical mechanics.\n\n**Surprisal** of an event with probability p: I(p) = log(1/p) = −log p.\n\nIntuition: rare events (low p) are surprising (high I); certain events (p=1) carry no information (I=0).\n\nLog base matters by convention:\n- log₂ → information in **bits**.\n- ln → **nats**.\n- log₁₀ → **hartleys/dits** (rare).\n\nProperties:\n- I(p) ≥ 0.\n- I(1) = 0.\n- I(p) → ∞ as p → 0.\n- I(p₁ × p₂) = I(p₁) + I(p₂) — independent events sum.\n\n**Entropy** H(X) = E[I(X)] = −∑ p(x) log p(x) over outcomes x of random variable X.\n\nInterpretations:\n1. Expected surprisal per observation.\n2. Average number of bits needed to encode an observation optimally.\n3. Measure of uncertainty about X.\n4. Number of effective outcomes (perplexity = 2^H).\n5. Channel capacity bound (more later)."
+    },
+    {
+      "kind": "text",
+      "title": "Computing entropy: examples",
+      "body": "**Coin flips**:\n- Fair (p = 0.5): H = -0.5 log 0.5 - 0.5 log 0.5 = 1 bit. Maximum for binary.\n- Biased (p = 0.9): H = -0.9 log 0.9 - 0.1 log 0.1 ≈ 0.47 bits.\n- Trick (p = 1.0): H = 0 bits.\n\n**Die rolls**:\n- Fair 6-sided: H = log₂ 6 ≈ 2.585 bits. (Equivalent to ~3 binary questions.)\n- Loaded (e.g., 0.5 on '6'): H ≈ 1.79 bits.\n\n**English letters**:\n- 26 letters uniform: H = log₂ 26 ≈ 4.7 bits.\n- Actual English letter frequencies (e = 12.7%, t = 9%, a = 8%, etc.): H ≈ 4.2 bits.\n- Including spaces + punctuation + cases: H ~ 5 bits per character.\n- With word/grammatical structure: H ~ 1-2 bits per character (Shannon's 1951 experiment estimated ~1 bit).\n\n**General**:\n- **Uniform distribution** over N outcomes: H = log₂ N. Maximum entropy for given support.\n- **Determinism** (one p = 1, others = 0): H = 0.\n- Any deviation from uniform reduces H.\n\n**Maximum entropy** principle (Jaynes 1957): among distributions satisfying given constraints, choose the one with maximum entropy. Justifies Gaussian (max entropy given variance), exponential (max entropy given mean), uniform (max entropy given support).\n\n**Joint + conditional entropy**:\n- H(X, Y) = -∑∑ p(x,y) log p(x,y)\n- H(Y|X) = H(X,Y) - H(X)\n- Chain rule: H(X,Y) = H(X) + H(Y|X)\n\n**Independence**: X⊥Y ⟹ H(X,Y) = H(X) + H(Y), H(Y|X) = H(Y)."
+    },
+    {
+      "kind": "text",
+      "title": "Why entropy is the right measure: coding interpretation",
+      "body": "**Shannon's source coding theorem** (1948): for a source with entropy H, you cannot losslessly compress to fewer than H bits per symbol on average. Conversely, you can approach H arbitrarily closely.\n\n*Lower bound*: any uniquely-decodable code C has expected length L = E[ℓ(C(x))] ≥ H(X).\n\n*Upper bound*: optimal codes (Huffman, arithmetic) achieve L < H(X) + 1 bit (Huffman) or L → H(X) as block size grows (arithmetic).\n\n**Example**: 4 symbols with probabilities {0.5, 0.25, 0.125, 0.125}. Entropy H = 0.5×1 + 0.25×2 + 2×(0.125×3) = 1.75 bits. Huffman code: '0', '10', '110', '111' with lengths 1, 2, 3, 3. Expected length = 1.75 bits — exactly entropy. Perfect.\n\n**Counter-example**: 4 symbols with probabilities {0.5, 0.5, 0, 0}. Entropy H = 1 bit. Naive 2-bit encoding wastes 1 bit/symbol. Optimal: '0', '1' (drop unused symbols) = 1 bit/symbol.\n\n**Asymptotic equipartition property (AEP)**: for long sequences from a source, almost all sequences are 'typical' with probability ~ 2^(-nH). Lossless compression of n-length sequences requires ~nH bits.\n\n**Implications**:\n- Lower entropy → better compression possible. English: ~6× compressible.\n- Random data: cannot be compressed. (Pigeonhole: can't squeeze N bits into <N bits losslessly for all inputs.)\n- A 'good' compressor on a particular source achieves near-entropy bitrate.\n- Detecting non-uniformity → discovers compressible patterns.\n\n**Why this matters**: foundation for understanding what compression can possibly achieve + designing optimal codes."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ent_1",
+        "kind": "guided_derivation",
+        "question": "Compute entropy of a 4-symbol distribution",
+        "goal": "Find H of a source emitting symbols A, B, C, D with probabilities 0.4, 0.3, 0.2, 0.1.",
+        "steps": [
+          {
+            "prompt": "Surprisal of each symbol?",
+            "motivation": "I(p) = -log₂ p.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1.32, 1.74, 2.32, 3.32 bits",
+                "log₂(1/0.4) etc"
+              ]
+            },
+            "hints": [
+              "-log₂ p for each."
+            ],
+            "reveal": "I(A) = -log₂(0.4) ≈ 1.32 bits; I(B) ≈ 1.74; I(C) ≈ 2.32; I(D) ≈ 3.32 bits."
+          },
+          {
+            "prompt": "Weighted-average surprisal = entropy H?",
+            "motivation": "Sum p × I.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~1.846 bits",
+                "1.85",
+                "1.85 bits"
+              ]
+            },
+            "hints": [
+              "0.4 × 1.32 + 0.3 × 1.74 + 0.2 × 2.32 + 0.1 × 3.32."
+            ],
+            "reveal": "H = 0.4 × 1.32 + 0.3 × 1.74 + 0.2 × 2.32 + 0.1 × 3.32 ≈ 0.529 + 0.522 + 0.464 + 0.332 = 1.85 bits/symbol."
+          },
+          {
+            "prompt": "Compare to uniform max entropy (4 symbols).",
+            "motivation": "Inefficiency due to non-uniformity.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "log₂ 4 = 2",
+                "2 bits"
+              ]
+            },
+            "hints": [
+              "log₂ 4 = 2."
+            ],
+            "reveal": "Uniform max = log₂ 4 = 2 bits. Our distribution is 1.85 bits → ~7.5% less than max. The skew (A more common) makes outcomes more predictable on average."
+          },
+          {
+            "prompt": "Theoretical best compression for this source?",
+            "motivation": "Apply Shannon source-coding theorem.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~1.85 bits/symbol",
+                "1.85",
+                "approach entropy"
+              ]
+            },
+            "hints": [
+              "Compression bound = entropy."
+            ],
+            "reveal": "Best lossless compression: ~1.85 bits/symbol on average. Arithmetic coding can approach this. Huffman gets ~1.9 bits (limited by integer code lengths). Modern coders (range coder, ANS, neural) within 0.5% of entropy."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_ent_1",
+        "kind": "slider",
+        "question": "Drag the slider to the entropy (in bits) of a fair 8-sided die.",
+        "target": {
+          "min": 3,
+          "max": 3
+        },
+        "default": 2,
+        "explanation": "Fair n-sided die: H = log₂(n). For n=8: H = 3 bits. Other examples: fair coin H=1; fair 6-die H≈2.58; fair 10-sided die H≈3.32. Adding any bias to the distribution reduces entropy below log₂(n). Uniform is always max entropy for a given support."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ent_1",
+        "kind": "multiple_choice",
+        "question": "Why does Shannon entropy take the form H = -∑ p log p (and no other functional form)?",
+        "options": [
+          "Convention.",
+          "Shannon derived it as the unique functional satisfying 4 axioms: (1) continuity in probabilities; (2) maximal at uniform distribution; (3) additive for independent events (H(X,Y) = H(X) + H(Y) when X⊥Y); (4) consistent with grouping (entropy of compound event = entropy of grouping plus expected entropy within groups). These uniquely determine H = -∑ p log p up to choice of log base.",
+          "Random choice.",
+          "Mathematically equivalent to variance."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Shannon's axiomatic derivation** (Shannon 1948, formalized + tightened by Khinchin + Faddeev):\n\nThe entropy H(p₁, ..., p_n) must satisfy:\n\n1. **Continuity**: small change in p_i → small change in H.\n2. **Monotonicity**: H(1/n, ..., 1/n) increases with n (more outcomes → more uncertainty).\n3. **Additivity / Compositionality**: if outcome decomposes into sub-outcomes, total entropy is sum (no information lost in grouping). Formally: H(p₁q, p₁(1-q), p₂) = H(p₁ + p₂, ...) + p₁ × H(q, 1-q).\n\nThe unique solution: H = -K ∑ p_i log p_i, where K is a positive constant (sets units; log base sets bits vs nats).\n\n**Alternative equivalent characterizations**:\n- Maximum-entropy principle (Jaynes 1957): unique distribution given constraints.\n- Connection to thermodynamic entropy (Boltzmann): S = -k_B ∑ p_i ln p_i.\n- Connection to Kolmogorov-Chaitin complexity: expected K-complexity of sequence ~ entropy.\n- Connection to type theory in information theory (typical sequences of length n have prob ~2^(-nH)).\n\n**Why not variance, range, IQR, etc.**: variance has wrong invariances (depends on outcome labeling); range ignores probabilities; IQR ignores distribution shape. Entropy is the *unique* coherent measure of uncertainty satisfying compositionality.\n\n**Connections to other fields**:\n- Statistical mechanics: Boltzmann's H-theorem; second law of thermodynamics.\n- Bayesian inference: cross-entropy = -E[log q] is the negative log-likelihood; minimizing it = maximum likelihood.\n- ML losses: cross-entropy loss in classification.\n- Decision theory: Bayes-optimal classification minimizes Bayes error related to H(Y|X).\n- Cryptography: maximum-entropy keys = unguessable.\n\nShannon-style axiomatic derivations are a hallmark of mathematical-physics-style reasoning: define the desired properties + derive the unique functional form."
+      },
+      "hints": [
+        "What axioms did Shannon use?",
+        "Why not variance?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Shannon derived H = -∑ p log p from 4 axioms: continuity, monotonicity, additivity (independent events sum), compositionality (groupings preserved). The unique solution is -∑ p log p × K (positive constant, sets units). Variance/range fail compositionality + invariance. Connects to statistical mechanics (Boltzmann), Bayesian inference (cross-entropy = NLL), ML (CE loss), thermodynamics (2nd law). Axiomatic derivation is hallmark of mathematical physics; pins functional form uniquely from desired properties."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ent_1",
+        "kind": "math_expression",
+        "question": "Compute the entropy (in bits) of a coin with p(heads)=0.25.",
+        "acceptedAnswers": [
+          "0.811",
+          "~0.81 bits",
+          "H(0.25)"
+        ],
+        "hint": "H = -0.25 log₂ 0.25 - 0.75 log₂ 0.75 = 0.25 × 2 + 0.75 × 0.415 ≈ 0.811."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ent_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why entropy quantifies 'uncertainty' rather than 'amount of stuff' or 'complexity'.",
+        "rubric": "Mentions: entropy is a property of a *probability distribution*, not of a single observation. Quantifies expected surprisal: average bits needed to encode the next outcome optimally. Uniform distributions maximize entropy (no preferred outcome → max uncertainty); peaked distributions have low entropy (near-deterministic). Distinct from: (1) 'amount of stuff' (depends on units + scale); (2) Kolmogorov complexity (intrinsic complexity of a single string; uncomputable in general); (3) variance (statistical spread on numeric scale, depends on outcome labeling). Entropy is invariant to relabeling outcomes — relabel 'red'→'1' makes no difference. Three distinct concepts: entropy (distribution-level uncertainty), K-complexity (object-level complexity), variance (scale-level spread). For a fair coin: H=1 bit per flip; total entropy of n flips is n bits (additive). Equivalence: H = log₂(perplexity) = expected nats × ln 2."
+      }
+    }
+  ]
+}

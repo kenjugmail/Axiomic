@@ -1,0 +1,170 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Apply Gaussian-beam math (w, z_R, θ).",
+      "Reason about diffraction limits + beam quality.",
+      "Design simple optical systems."
+    ],
+    "prereqs": [
+      "em-waves-and-maxwell"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Gaussian beams: the basic free-space mode",
+      "body": "Laser output beams are well-described as **Gaussian beams** — a specific transverse mode with Gaussian-intensity profile. Solution of paraxial Helmholtz equation:\n\n  I(r, z) = I₀ (w₀/w(z))² exp(-2 r² / w(z)²)\n\nwith:\n- **Waist** w₀: minimum radius (1/e² intensity) at z = 0.\n- **Beam radius w(z)** = w₀ √(1 + (z/z_R)²).\n- **Rayleigh length** z_R = π w₀² / λ.\n- **Divergence half-angle** θ = λ / (π w₀) (far-field).\n- **Radius of curvature** R(z) = z (1 + (z_R/z)²).\n- **Gouy phase** Φ(z) = arctan(z/z_R).\n\n**Key intuition**:\n- Tight focus (small w₀) → short Rayleigh range + fast divergence.\n- Collimated (large w₀) → long Rayleigh + slow divergence.\n- Product w₀ × θ = λ/π is a beam-quality invariant.\n\n**M² (beam-quality factor)**:\n- M² = 1: perfect TEM_00 (Gaussian).\n- M² > 1: real-world beams. He-Ne lasers ~ 1.05; high-power solid-state ~1.3; multimode fiber ~10-100.\n- Effective divergence θ = M² × λ / (π w₀).\n- Tight focusing limit: spot size ∝ M² × λ × f-number.\n\n**Higher-order modes**: TEM_mn — Hermite-Gaussian (rectangular symmetry) or Laguerre-Gaussian (cylindrical). Cavities + fibers can support multiple modes. Donut beam (LG_01) carries orbital angular momentum.",
+      "viz": "gaussian-beam",
+      "vizProps": {
+        "w0": 50,
+        "lambda": 1064
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Diffraction: Fraunhofer + the limit of resolution",
+      "body": "**Huygens-Fresnel principle**: each point on a wavefront is a source of secondary spherical wavelets. Net wave = superposition. Underlies all diffraction + interference.\n\n**Fraunhofer (far-field) diffraction** of an aperture of size D: spot size on a screen at distance z is θ × z ≈ (λ / D) × z. So light cannot be confined to angular spread smaller than ~ λ/D.\n\n**Examples**:\n- Single slit (width a): central maximum width ~ 2λ/a. First null at sin θ = λ/a.\n- Circular aperture (diameter D): Airy disk; first null at sin θ = 1.22 λ/D.\n- N-slit grating: principal maxima at d sin θ = mλ; spectrometer dispersion.\n\n**Abbe diffraction limit**: minimum resolvable feature ~ λ / (2 NA), where NA = n sin α (numerical aperture of focusing optic). For visible (λ = 500 nm) + immersion microscopy (NA = 1.4): ~180 nm — sub-wavelength diffraction limit.\n\n**Beating the diffraction limit** (super-resolution):\n- STED, PALM/STORM, SIM: fluorescence techniques exploiting nonlinearity to reach ~20-50 nm. (Hell + Betzig + Moerner, Nobel 2014.)\n- Near-field (NSOM): probe within ~λ/10 of surface.\n- Electron + X-ray microscopy: shorter λ → finer resolution.\n- Plasmonics + metamaterials: sub-wavelength imaging in specific regimes.\n\n**Photolithography wavelength evolution**:\n- 248 nm (KrF excimer): 130 nm features.\n- 193 nm (ArF excimer) + immersion + double patterning: 22-10 nm features.\n- 13.5 nm EUV (extreme UV): current leading-edge (TSMC 3nm, 2nm in development).\n- Computational lithography: optical proximity correction, source-mask optimization.\n\nEach generation of EUV requires order-of-magnitude infrastructure improvement: laser-produced plasma source, multilayer Mo/Si reflective optics, all-vacuum operation, ~$200M lithography tools (ASML)."
+    },
+    {
+      "kind": "text",
+      "title": "Imaging + Fourier optics",
+      "body": "**Fourier optics** (Goodman 1968 textbook): treat optical systems as Fourier transformers. Free-space propagation = phase shift in spatial-frequency domain. Thin lens = spatial Fourier transform between front + back focal planes.\n\n**Key results**:\n- Diffraction pattern of an aperture is its Fourier transform.\n- Image at back focal plane of a lens = Fourier transform of object at front focal plane.\n- 4-f imaging system: two lenses spaced by 4f; image is inverted; can manipulate Fourier plane between for filtering.\n- Spatial filtering: block high frequencies in Fourier plane → low-pass (smooth) image; block DC → edge detection.\n- Coherent vs incoherent imaging: coherent = amplitude; incoherent = intensity (averages over phase fluctuations).\n\n**Modulation transfer function (MTF)**: how an optical system attenuates spatial frequencies. Used to characterize: lenses, cameras, displays, image-sensor systems.\n\n**Computational imaging**:\n- Coded apertures (single-pixel cameras, ghost imaging).\n- Plenoptic cameras (light-field).\n- Phase retrieval (in-line holography, ptychography).\n- Computational lithography (OPC, ILT, source-mask optimization).\n- ML-driven image reconstruction (deep deconvolution; SR; denoising).\n\n**Holography** (Gabor 1948, Nobel 1971): record interference pattern of object beam + reference beam on photosensitive medium. Replay with reference reconstructs 3D image. Modern: digital holography (CMOS + computation), dynamic holographic displays (research)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_gauss_1",
+        "kind": "guided_derivation",
+        "question": "Design a Gaussian-beam focusing system",
+        "goal": "A 1 mm-diameter collimated laser at λ=1064 nm needs to be focused to a 10 µm spot. What focal length lens is needed?",
+        "steps": [
+          {
+            "prompt": "Input beam waist?",
+            "motivation": "Beam radius before lens.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.5 mm",
+                "500 µm",
+                "1 mm / 2"
+              ]
+            },
+            "hints": [
+              "Diameter / 2."
+            ],
+            "reveal": "w_in = 0.5 mm = 500 µm (assumed Gaussian intensity profile; w₀ at 1/e²)."
+          },
+          {
+            "prompt": "Target focal spot waist?",
+            "motivation": "10 µm spot.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "5 µm",
+                "10/2"
+              ]
+            },
+            "hints": [
+              "Half of diameter."
+            ],
+            "reveal": "w_focus = 5 µm."
+          },
+          {
+            "prompt": "For a Gaussian beam at the back focal plane of a lens, w_focus ≈ λ f / (π w_in). Solve for f.",
+            "motivation": "Apply formula.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~7.4 mm",
+                "f ≈ 7.4 mm",
+                "(π × 500e-6 × 5e-6) / 1064e-9"
+              ]
+            },
+            "hints": [
+              "f = π w_in w_focus / λ = π × 5e-4 × 5e-6 / 1064e-9."
+            ],
+            "reveal": "f = π × w_in × w_focus / λ = π × 500e-6 × 5e-6 / 1064e-9 ≈ 7.4 × 10⁻³ m = 7.4 mm."
+          },
+          {
+            "prompt": "Required NA of the lens?",
+            "motivation": "NA = sin(angle).",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~0.068",
+                "NA ≈ 0.07",
+                "0.5 / 7.4"
+              ]
+            },
+            "hints": [
+              "NA = w_in / f for thin lens."
+            ],
+            "reveal": "NA = w_in / f ≈ 500e-6 / 7.4e-3 ≈ 0.068. Modest NA; readily achievable with off-the-shelf optics. For tighter focus (e.g., to 1 µm spot), would need ~0.5 NA microscope objective."
+          },
+          {
+            "prompt": "Rayleigh length at focus?",
+            "motivation": "Standard formula.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~74 µm",
+                "z_R = π × 25 / 1.064 (µm)"
+              ]
+            },
+            "hints": [
+              "π w_focus² / λ."
+            ],
+            "reveal": "z_R = π × (5e-6)² / 1064e-9 ≈ 73.8 µm. Focal-spot region: roughly 2 × z_R ≈ 150 µm depth-of-field. Tight focus → short depth-of-field — standard trade-off in laser cutting, photolithography, microscopy."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_gauss_1",
+        "kind": "slider",
+        "question": "Drag to the diffraction-limited spot size (in nm) for visible light (λ = 500 nm) through a high-NA microscope objective (NA = 1.4).",
+        "target": {
+          "min": 175,
+          "max": 200
+        },
+        "default": 1000,
+        "explanation": "Abbe diffraction limit: d ≈ λ / (2 NA) = 500 / 2.8 ≈ 180 nm. Real microscope objectives achieve ~200-250 nm in practice (limited by other factors). Super-resolution (STED, PALM/STORM, SIM): 20-100 nm via nonlinear fluorescence techniques. Electron microscopy: ~0.1 nm via λ ~ 0.01 nm electrons. X-ray microscopy: ~10 nm."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_gauss_1",
+        "kind": "multiple_choice",
+        "question": "Why is M² (beam-quality factor) such a critical metric for industrial + scientific lasers?",
+        "options": [
+          "Marketing.",
+          "M² quantifies how close a real beam is to ideal Gaussian. M² ≈ 1: tightly focusable, well-collimated; M² > 1: cannot be focused to diffraction-limited spot. Tight focus limit scales as M². For laser cutting / drilling / micromachining / surgery / photolithography, brightness (power × beam-quality) drives processing speed + precision. M² determines: minimum spot size achievable; maximum standoff distance for collimated delivery; coupling efficiency into single-mode fiber; resolution in laser-scanning systems.",
+          "M² is irrelevant.",
+          "Required by law."
+        ],
+        "correctIndex": 1,
+        "explanation": "**M² (beam-quality factor)**:\n\n*Definition*: ratio of beam-divergence × waist product to the ideal-Gaussian product (λ/π). M² = 1 means ideal TEM_00 mode.\n\n*Real values*:\n- Single-mode He-Ne laser: ~1.05.\n- Diode-pumped solid-state (DPSS) Nd:YAG: ~1.1-1.3.\n- Fiber laser, single-mode: ~1.05.\n- High-power industrial fiber laser (multi-mode): ~1.5-3.\n- Multimode fiber-coupled diode: ~10-100.\n- High-power CO₂ laser: ~1.1-1.5.\n\n*Why it matters*:\n\n1. **Tight focusing**:\n  Spot size ∝ M² × λ × f-number\n  Higher M² → larger spot at given lens. For laser cutting: smaller spot = higher intensity = faster cutting + finer features.\n\n2. **Standoff working distance**:\n  Collimation maintained for ~ Rayleigh range × M². Higher M² → shorter usable beam path. Laser welding, marking, surface treatment.\n\n3. **Single-mode fiber coupling**:\n  Efficient only for M² ~ 1. Multimode beams couple to multimode fiber (with mode-scrambling issues) or require complex shaping.\n\n4. **Scanning-system resolution**:\n  In laser-scanning microscopy + photolithography: M² determines spot size + resolution + depth of focus.\n\n5. **Beam combining**:\n  Spectral or coherent combining of many lasers preserves total power only when sub-beams have good M². Cooler-running multimode beams sacrifice quality for power.\n\n*Brightness*: P / (λ² × M⁴) — figure of merit combining power + quality. Determines processing rate in industrial laser systems. Recent improvements: high-power single-mode fiber lasers (IPG, Coherent) achieved 100s-kW at M² ~ 1.3 — game-changer for laser cutting + welding.\n\n*Trade-offs*:\n- Increasing power often degrades M² (thermal lensing, multimode oscillation).\n- Active beam-shaping (deformable mirrors, mode-cleaning fiber) restores quality at cost of power.\n- Different applications value M² vs raw power vs cost differently.\n\nIndustrial laser specs always include M² alongside power; without M², power figures alone are misleading."
+      },
+      "hints": [
+        "What does M² affect quantitatively?",
+        "Why is brightness P/M⁴ important?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "M² (beam-quality factor): ratio of real beam parameter product to ideal Gaussian. M² = 1 = ideal; M² > 1 = degraded focusability. Tight focus + collimation + fiber coupling + scanning resolution all scale with M². Brightness P/(λ² M⁴) is the figure of merit for industrial laser applications. Modern high-power single-mode fiber lasers (M²~1.3 at >100 kW) revolutionized laser cutting/welding by maintaining both power + quality."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_gauss_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why the diffraction limit is both a fundamental constraint + a useful design tool.",
+        "rubric": "Mentions: Abbe diffraction limit d ~ λ / (2 NA) sets fundamental spot size for far-field imaging + focusing. Constraint: cannot focus light tighter than ~λ/2 with normal optics. Design implication: shorter λ + higher NA give finer resolution → semiconductor lithography moved from 365 nm → 248 nm → 193 nm → 13.5 nm EUV (each generation reduces feature size). Microscopy: oil-immersion (NA 1.4 → 250 nm); super-resolution techniques exploit nonlinearity to bypass via switchable fluorophores. Modern photolithography: 193nm + multiple patterning + EUV + computational reach ~3-2 nm transistor features. Beyond diffraction: near-field, electron + X-ray. Concludes: diffraction is fundamental constraint that drives wavelength + NA engineering; super-resolution is loophole; entire semiconductor industry organized around continued battle."
+      }
+    }
+  ]
+}

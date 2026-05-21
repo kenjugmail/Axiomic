@@ -1,0 +1,163 @@
+{
+  "meta": {
+    "timeMinutes": 28,
+    "difficulty": "intermediate",
+    "objectives": [
+      "State Hubble's law + derive an age estimate from H_0.",
+      "Connect CMB observations to early-universe physics.",
+      "Explain why BBN + CMB jointly constrain the baryon density."
+    ],
+    "prereqs": [
+      "galaxies-and-dark-matter"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Hubble's law + the expanding universe",
+      "body": "Hubble (1929): galaxies' redshifts increase linearly with distance — **v = H_0 d**. The Hubble constant H_0 has units of 1/time. Current best value (2024 consensus): H_0 ≈ 67-74 km/s/Mpc, with a persistent ~5σ **'Hubble tension'** between early-universe (CMB → ~67.4) and late-universe (Cepheid+SNe Ia → ~73.0) measurements.\n\nNaively: t_H = 1/H_0 ≈ 14 Gyr — the Hubble time, a rough age of the universe. ΛCDM + measured composition gives a refined age of **13.79 ± 0.02 Gyr**.\n\nThe redshift z = (λ_obs − λ_rest)/λ_rest is **cosmological** — not Doppler. Space itself stretches; photons travelling through it stretch with it. For z ≫ 1, 1 + z = a_now / a_emit (scale factor ratio). At z = 1100 (CMB era): the universe was ~1100× smaller in linear extent."
+    },
+    {
+      "kind": "text",
+      "title": "The cosmic microwave background",
+      "body": "Predicted by Gamow + Alpher + Herman (1948); discovered by Penzias + Wilson (1965) as an inexplicable 4 K excess noise in a Bell Labs radio antenna. The **CMB** is a 2.725 K thermal blackbody filling all of space; the most perfect blackbody ever observed.\n\nIt's the relic radiation from the **recombination** era at t ≈ 380,000 years, z ≈ 1100, when the universe had cooled enough for free electrons + protons to recombine into neutral hydrogen — letting photons stream freely for the first time. The 2.725 K we measure is the redshifted 3000 K thermal field from that moment.\n\nThe CMB has tiny anisotropies (ΔT/T ~ 10⁻⁵) carrying enormous information: COBE (1992 Nobel) found them; WMAP + Planck mapped them to exquisite precision. The angular power spectrum has a sequence of **acoustic peaks** whose positions + heights constrain: Ω_total, Ω_b, Ω_m, Ω_Λ, H_0, the scalar spectral index n_s, and more. ΛCDM emerged as the standard model of cosmology mostly from CMB fits."
+    },
+    {
+      "kind": "text",
+      "title": "Big Bang Nucleosynthesis (BBN)",
+      "body": "Between t ~ 1 second and ~20 minutes, the universe was hot (10⁹ - 10¹⁰ K) + dense enough for nuclear reactions: protons + neutrons fused into light nuclei. By t = 20 min, expansion cooled everything below the fusion threshold; primordial element abundances were locked in.\n\nBBN predicts: **~75% H, ~25% ⁴He** (by mass), plus trace **D (2H), ³He, ⁷Li** at parts per ~10⁵. These are *the* primordial abundances; everything heavier (C, N, O, etc.) was made later in stars + supernovae.\n\nThe match between BBN predictions + observed light-element abundances (deuterium especially is a sensitive 'baryometer') gives Ω_b ≈ 0.05 — independently of the CMB. Two completely orthogonal probes (BBN at t ~ 100 s + CMB at t ~ 380 kyr) yield the same baryon density to within ~5%. This is among the cleanest cosmological agreements + a major triumph of the Big Bang model.\n\n**Lithium problem**: predicted ⁷Li is ~3× observed — a persistent ~3σ tension, possibly resolved by stellar destruction or BBN refinements."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cosmology_and_the_big_bang_1",
+        "kind": "guided_derivation",
+        "question": "Derive the age of the universe in a matter-only universe",
+        "goal": "Assume the universe contains only matter (no Λ, no radiation). The Friedmann equation gives H² = (8πG/3)ρ_m and ρ_m ∝ a⁻³.",
+        "steps": [
+          {
+            "prompt": "Show H = H_0 (a/a_0)^(−3/2) where a_0 is the current scale factor.",
+            "motivation": "Sub ρ_m ∝ a⁻³ into Friedmann.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "H² ∝ ρ_m ∝ a⁻³, so H ∝ a^(−3/2). Normalizing at today: H = H_0 (a/a_0)^(−3/2)."
+              ]
+            },
+            "hints": [
+              "Sub ρ_m ∝ a⁻³ into Friedmann."
+            ],
+            "reveal": "H² ∝ ρ_m ∝ a⁻³, so H ∝ a^(−3/2). Normalizing at today: H = H_0 (a/a_0)^(−3/2)."
+          },
+          {
+            "prompt": "H = (1/a)(da/dt). Solve the ODE da/dt = H_0 a (a/a_0)^(−3/2) = H_0 a_0^(3/2) a^(−1/2).",
+            "motivation": "Separate variables.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Separate: a^(1/2) da = H_0 a_0^(3/2) dt. Integrate: (2/3) a^(3/2) = H_0 a_0^(3/2) t. Sub t = t_0 (today): a = a_0 ⇒ (2/3) a_0^(3/2) = H_0 a_0^(3/2) t_0 ⇒ t_0 = 2/(3 H_0)."
+              ]
+            },
+            "hints": [
+              "Separate variables."
+            ],
+            "reveal": "Separate: a^(1/2) da = H_0 a_0^(3/2) dt. Integrate: (2/3) a^(3/2) = H_0 a_0^(3/2) t. Sub t = t_0 (today): a = a_0 ⇒ (2/3) a_0^(3/2) = H_0 a_0^(3/2) t_0 ⇒ t_0 = 2/(3 H_0)."
+          },
+          {
+            "prompt": "With H_0 = 70 km/s/Mpc, convert 1/H_0 to Gyr, then compute t_0 = 2/(3H_0).",
+            "motivation": "1 Mpc ≈ 3.086×10¹⁹ km.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1/H_0 = 1 Mpc / 70 km/s = 3.086×10¹⁹ km / 70 km/s = 4.41×10¹⁷ s ≈ 13.97 Gyr. So t_0 = (2/3) × 13.97 ≈ 9.31 Gyr."
+              ]
+            },
+            "hints": [
+              "1 Mpc ≈ 3.086×10¹⁹ km."
+            ],
+            "reveal": "1/H_0 = 1 Mpc / 70 km/s = 3.086×10¹⁹ km / 70 km/s = 4.41×10¹⁷ s ≈ 13.97 Gyr. So t_0 = (2/3) × 13.97 ≈ 9.31 Gyr."
+          },
+          {
+            "prompt": "The real measured age is ~13.8 Gyr — much closer to 1/H_0 itself than 2/(3 H_0). What's wrong with the matter-only model?",
+            "motivation": "What did we omit?",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "We ignored dark energy (Λ). In ΛCDM, the universe has been *accelerating* for the last ~5 Gyr because Λ drives da/dt up. Including Λ ≈ 0.69, t_0 ≈ 13.8 Gyr — closer to 1/H_0 because acceleration means t_0 > 2/(3 H_0). The fact that the simple matter-only estimate underpredicts age by ~30% was one of the early hints of dark energy (alongside Type Ia SNe at z ~ 1)."
+              ]
+            },
+            "hints": [
+              "What did we omit?"
+            ],
+            "reveal": "We ignored dark energy (Λ). In ΛCDM, the universe has been *accelerating* for the last ~5 Gyr because Λ drives da/dt up. Including Λ ≈ 0.69, t_0 ≈ 13.8 Gyr — closer to 1/H_0 because acceleration means t_0 > 2/(3 H_0). The fact that the simple matter-only estimate underpredicts age by ~30% was one of the early hints of dark energy (alongside Type Ia SNe at z ~ 1)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cosmology_and_the_big_bang_2",
+        "kind": "multiple_choice",
+        "question": "What does the position of the first acoustic peak in the CMB angular power spectrum (~ℓ ≈ 220, ~1° on the sky) primarily measure?",
+        "options": [
+          "The baryon-to-photon ratio η.",
+          "The total energy density of the universe, indicating spatial geometry (flat vs curved).",
+          "The mass of the neutrino species.",
+          "The Hubble constant H_0 directly."
+        ],
+        "correctIndex": 1,
+        "explanation": "Correct. The angular size of the sound horizon at recombination is a standard ruler. In a flat universe, it subtends ~1°; in a closed universe it appears larger (peak at smaller ℓ); in an open universe smaller (peak at larger ℓ). Observed first-peak position at ℓ ≈ 220 ⇒ universe is **flat** to within ~0.5% (Ω_total = 1.000 ± 0.005).\n\nOther options: The baryon-to-photon ratio η.: η is constrained mostly by *peak height ratios* (2nd to 1st peak ratio gauges baryon loading), not the first peak's position. | The mass of the neutrino species.: Neutrino masses affect structure formation + the damping tail of the CMB, not the first peak's position. | The Hubble constant H_0 directly.: H_0 is constrained by combining CMB peaks with priors / other data (baryon acoustic oscillations, supernovae). The first peak's position alone constrains geometry × distance to last-scattering, not H_0 alone."
+      },
+      "hints": [
+        "Think 'standard ruler' subtending an angle — what determines that angle?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "The sound horizon at recombination (~150 Mpc comoving) is the maximum distance acoustic waves in the photon-baryon plasma could have traveled by t = 380 kyr — a calculable physical length. Its angular extent on the sky depends on the cosmic distance to z = 1100, which depends on the universe's spatial curvature. In flat ΛCDM the predicted angular size is ~0.86°, corresponding to ℓ ≈ 220 in the power spectrum. The observed ℓ_1 = 220 ± 1 nails Ω_total = 1.000 ± 0.005 — pinning the universe as spatially flat at the percent level."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_cosmology_and_the_big_bang_3",
+        "kind": "multiple_choice",
+        "question": "You measure the deuterium-to-hydrogen ratio D/H in a high-redshift quasar absorption system (a primordial gas cloud) and find D/H = 2.5×10⁻⁵. What can you infer?",
+        "options": [
+          "The baryon density of the universe, independent of CMB measurements.",
+          "The Hubble constant H_0 directly.",
+          "The neutrino mass.",
+          "The total matter density Ω_m."
+        ],
+        "correctIndex": 0,
+        "explanation": "Correct. D/H is the most sensitive primordial-abundance probe of baryon density because deuterium is fragile — burned in stellar interiors, never made there. D/H reflects exclusively BBN; higher Ω_b ⇒ faster D destruction by D+p→³He+γ ⇒ less D survives. D/H = 2.5×10⁻⁵ ⇒ Ω_b h² ≈ 0.022, matching CMB-derived value to within ~5%. This independent agreement is one of the strongest tests of ΛCDM + the Big Bang model.\n\nOther options: The Hubble constant H_0 directly.: D/H doesn't constrain H_0 — it constrains Ω_b. H_0 comes from independent measurements. | The neutrino mass.: BBN constraints on N_eff (effective number of relativistic species) loosely bound neutrino properties, but D/H doesn't pin down ν masses directly. | The total matter density Ω_m.: Ω_m includes dark matter, which doesn't participate in BBN. D/H probes only the baryonic component Ω_b."
+      },
+      "hints": [
+        "What makes D special among primordial isotopes?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Deuterium is the most fragile primordial isotope: stellar nucleosynthesis destroys it (it's instantly burned via D+p→³He). So any D/H you measure in cosmologically pristine gas reflects BBN with no later contamination — making D/H the cleanest 'baryometer.' Theory: D/H ∝ (η_baryon)^(−1.6). Measurement: D/H = (2.5 ± 0.1)×10⁻⁵ in high-z DLAs ⇒ Ω_b h² = 0.0222 ± 0.0005. Planck CMB: Ω_b h² = 0.0224 ± 0.0001. Agreement at < 1σ between probes separated by 300,000 years and a vast difference in physics — a remarkable concordance test."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_cosmology_and_the_big_bang_4",
+        "kind": "math_expression",
+        "question": "A galaxy is observed at redshift z = 0.5. By what factor was the universe smaller (in linear scale) when its light was emitted? (Answer the ratio a_now / a_emit.)",
+        "acceptedAnswers": [
+          "1.5",
+          "1.50"
+        ],
+        "hint": "1 + z = a_now / a_emit."
+      },
+      "workedSolution": "1 + z = 1.5, so the universe was 1.5× smaller in linear extent at emission (i.e., a_emit = a_now / 1.5). Photon wavelengths have stretched by 50% en route. This is *not* a Doppler shift; it's the expansion of space itself."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cosmology_and_the_big_bang_5",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain the 'big-bang model' to a curious 16-year-old. What evidence supports it? What are the most fundamental open questions?",
+        "rubric": "Universe began ~13.8 Gyr ago in a hot, dense state; has expanded + cooled since. Three pillars of evidence: (1) Hubble's law — galaxies recede with v=H_0 d; (2) CMB — 2.725 K blackbody relic from t=380 kyr; (3) BBN — light-element abundances (H, He, D, Li) match nuclear-rate calculations at t~1 sec. Open questions: nature of dark matter (~27%); nature of dark energy (~68%, causes accelerated expansion); origin of initial perturbations (inflation? bounce? something stranger?); Hubble tension; matter-antimatter asymmetry. Big Bang is not a 'beginning' question — it's a model from t > 10⁻³² s onward. What happened *at* t=0 is unknown."
+      }
+    }
+  ]
+}

@@ -1,0 +1,212 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intro",
+    "objectives": [
+      "Distinguish bottom-up + top-down perception.",
+      "Trace visual hierarchy V1 → IT.",
+      "Apply Bayesian perception."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Cognitive science: the science of mind",
+      "body": "**Cognitive science**: interdisciplinary study of mind + intelligence. Five core fields: psychology, neuroscience, linguistics, philosophy, computer science (CS+AI). Foundational period 1950s-60s with cognitive revolution overturning behaviorism. Marr's three levels of analysis (1982): computational (what + why); algorithmic (how processed); implementational (physical substrate).\n\n**Key methods**: behavioral experiments (RT + accuracy); psychophysics (just-noticeable differences, signal detection theory); neuroimaging (EEG, MEG, fMRI, TMS, ECoG, single-unit); computational modeling (ACT-R, neural networks, Bayesian, RL); brain stimulation; lesion studies.\n\n**Recent revolutions**: deep learning + neural network models (~2012-); Bayesian cognitive science (Tenenbaum + others 2000s); active inference + predictive processing (Friston 2010s); large-language-model-based cognitive models (2020s)."
+    },
+    {
+      "kind": "text",
+      "title": "Visual hierarchy + the ventral + dorsal streams",
+      "body": "**Visual processing**: retina → LGN (thalamus) → V1 → V2 → V4 → IT (ventral 'what' stream) + MT/MST → parietal (dorsal 'where/how' stream). Hierarchical processing.\n\n**Receptive-field properties**:\n- Retinal ganglion cells: center-surround.\n- V1 simple cells: oriented edges (Hubel + Wiesel Nobel 1981).\n- V1 complex cells: oriented edges + position-invariance.\n- V2 + V4: more complex (contours, color, texture).\n- IT: object selectivity (face cells, place cells, body cells).\n- FFA (fusiform face area; Kanwisher 1997): face-selective.\n- PPA (parahippocampal place area): scene-selective.\n\n**Two streams (Ungerleider + Mishkin 1982)**:\n- **Ventral 'what'**: object identification + recognition.\n- **Dorsal 'where' or 'how'**: spatial location + action guidance.\n- Patients with damage dissociate: ventral lesion → agnosia; dorsal → optic ataxia.\n\n**Deep neural networks (DNNs) + visual cortex**: AlexNet 2012 + later showed striking match between DNN feature hierarchy + ventral stream. Yamins + DiCarlo 2014: CNN units predict V4 + IT neuron responses. Modern: foundation models match cortex even better."
+    },
+    {
+      "kind": "text",
+      "title": "Bayesian perception + prediction",
+      "body": "**Bayesian perception** (Helmholtz 1860s; Geisler 2003+; Tenenbaum + Yuille; Friston): perception is unconscious inference combining sensory likelihood + prior expectations:\n\n  P(world | sensory) ∝ P(sensory | world) × P(world)\n\nExplains: optical illusions (priors override sensory); shape-from-shading; depth perception; multi-sensory integration (Ernst + Banks 2002 MLE).\n\n**Predictive processing / active inference** (Friston 2010s, Clark 2013): brain is a 'prediction machine.' Top-down predictions about sensory inputs; bottom-up prediction errors update beliefs. Minimize free energy = prediction-error surprise.\n\n**Hierarchical Bayesian models**: cortical hierarchy implements iterative belief-updating. Each level predicts next; prediction errors propagate up.\n\n**Examples + applications**:\n- Hollow-mask illusion: prior for convex faces overrides depth cues.\n- Cocktail party problem: priors aid selection.\n- Hallucinations: aberrant priors (predictive-coding theory of schizophrenia).\n- Autism: weak priors → overdependence on bottom-up sensory.\n- Modern: large-language + multimodal models as Bayesian predictors."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cog_perc_1",
+        "kind": "guided_derivation",
+        "question": "Apply Bayesian inference to a perceptual task",
+        "goal": "You see a tree silhouette in dim light. Compute posterior probability it's a person.",
+        "steps": [
+          {
+            "prompt": "Prior P(person at this location, time, context)?",
+            "motivation": "Base rate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "very low (e.g., 0.001 in remote area)"
+              ]
+            },
+            "hints": [
+              "Where + when."
+            ],
+            "reveal": "P(person) ≈ 0.001 (1/1000) in remote area; higher in urban setting."
+          },
+          {
+            "prompt": "Likelihood P(silhouette | person)?",
+            "motivation": "How well does data match.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "high (~0.7)"
+              ]
+            },
+            "hints": [
+              "Person could produce that silhouette."
+            ],
+            "reveal": "P(silhouette | person) ≈ 0.7."
+          },
+          {
+            "prompt": "Likelihood P(silhouette | tree)?",
+            "motivation": "Trees can also produce this.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~0.3 (less specific match but trees common)"
+              ]
+            },
+            "hints": [
+              "Many things make silhouettes."
+            ],
+            "reveal": "P(silhouette | tree) ≈ 0.3 (broader category)."
+          },
+          {
+            "prompt": "P(tree at location) ≈ 0.999 (in remote area). Posterior P(person | silhouette)?",
+            "motivation": "Bayes.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~0.0023",
+                "0.002",
+                "0.7×0.001 / (0.7×0.001 + 0.3×0.999)"
+              ]
+            },
+            "hints": [
+              "P(person|s) = P(s|p)P(p)/(P(s|p)P(p)+P(s|t)P(t))."
+            ],
+            "reveal": "P(person | silhouette) = 0.7×0.001 / (0.7×0.001 + 0.3×0.999) ≈ 0.0023 ≈ 0.23%. Despite strong likelihood match, low prior dominates → silhouette likely a tree. Captures human perceptual inference: priors heavily influence interpretation. Same data + different priors → different perceptions (e.g., bear vs rock at dusk)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_cog_perc_1",
+        "kind": "drag_classify",
+        "question": "Match each region/area to its functional specialization.",
+        "items": [
+          {
+            "id": "v1-edges",
+            "label": "Orientation-selective edges",
+            "bin": "early-visual"
+          },
+          {
+            "id": "v1-motion",
+            "label": "Motion processing",
+            "bin": "early-visual"
+          },
+          {
+            "id": "ffa",
+            "label": "Face identification (FFA)",
+            "bin": "object-recog"
+          },
+          {
+            "id": "ppa",
+            "label": "Scene + place recognition (PPA)",
+            "bin": "object-recog"
+          },
+          {
+            "id": "mt",
+            "label": "Visual motion (area MT/V5)",
+            "bin": "spatial"
+          },
+          {
+            "id": "parietal-grasp",
+            "label": "Reaching + grasping (parietal)",
+            "bin": "spatial"
+          },
+          {
+            "id": "dlpfc",
+            "label": "Working memory (DLPFC)",
+            "bin": "decision"
+          },
+          {
+            "id": "vmpfc",
+            "label": "Value-based choice (VMPFC)",
+            "bin": "decision"
+          }
+        ],
+        "bins": [
+          {
+            "id": "early-visual",
+            "label": "Early visual (V1-V2)"
+          },
+          {
+            "id": "object-recog",
+            "label": "Object/face recognition (IT/FFA)"
+          },
+          {
+            "id": "spatial",
+            "label": "Spatial / action (parietal/MT)"
+          },
+          {
+            "id": "decision",
+            "label": "Decision-making (PFC)"
+          }
+        ],
+        "explanation": "Cortical visual + cognitive specialization: V1-V2 early features; IT/FFA object/face identity; MT/parietal motion + action; PFC decision + control. Hierarchy + parallel streams established by lesion studies, single-unit recordings, fMRI, modern decoding methods."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cog_perc_1",
+        "kind": "multiple_choice",
+        "question": "Why do deep neural networks (DNNs) match visual-cortex responses so closely?",
+        "options": [
+          "Random.",
+          "DNNs trained on object-recognition tasks (ImageNet, etc.) learn hierarchical feature representations (edges → textures → parts → objects) similar to what evolution + experience built in visual cortex. Yamins + DiCarlo 2014, Khaligh-Razavi + Kriegeskorte: CNN units predict V4 + IT neuron firing better than any other model. Suggests: (1) object recognition is the dominant computational task; (2) hierarchical feature learning is the natural solution; (3) DNNs are useful models of cortical computation. Modern: foundation models + brain-aligned objectives.",
+          "Random.",
+          "Coincidence."
+        ],
+        "correctIndex": 1,
+        "explanation": "DNNs trained on object recognition learn hierarchical features that match cortical responses. Yamins + DiCarlo 2014 (V4 + IT prediction); Khaligh-Razavi 2014; many follow-ups. Provides: model of cortical computation; predictions for new stimuli; bridge between psychology + neuroscience + ML. Limitations: DNNs differ in some details (texture bias, adversarial examples). Modern: brain-aligned objectives, vision-language models, ANNs as theory."
+      },
+      "hints": [
+        "What do CNNs learn?",
+        "Why hierarchical?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "DNNs (Yamins + DiCarlo 2014) trained on object recognition (ImageNet) learn hierarchical features matching V1 → V4 → IT cortex; predict neuron firing better than other models. Suggests object recognition is dominant evolutionary task + hierarchical learning natural solution. ANN-as-theory framework: DNNs as cortical models."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_cog_perc_1",
+        "kind": "slider",
+        "question": "Drag to the approximate retinal ganglion cell count per eye (in millions).",
+        "target": {
+          "min": 1,
+          "max": 1.5
+        },
+        "default": 50,
+        "explanation": "Each retina: ~1-1.5 million ganglion cells. Each carries info to brain via optic nerve. Compares: ~100 million rods + 5 million cones in retina (compressed); ~100 billion neurons total in brain."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cog_perc_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why optical illusions reveal important truths about visual perception.",
+        "rubric": "Mentions: optical illusions exploit assumptions/priors brain uses to interpret ambiguous sensory input. Examples: Müller-Lyer (length depends on context arrows; 3D-depth-inference priors); Necker cube (bistable percept; brain picks one interpretation); checker-shadow (lightness constancy via illumination priors); hollow-mask (convex-face prior overrides depth cues). Reveal: perception is constructive + inferential, not passive recording; priors shape what we see; ambiguities resolved via Bayesian-like inference. Modern: predictive-processing framework (Friston, Clark) explains illusions as prediction-error minimization under priors. Implications for neuroscience (hierarchical generative models); psychiatry (aberrant priors in hallucinations); ML (vision models). Concludes: illusions are not perceptual failures but features of efficient inference that usually works."
+      }
+    }
+  ]
+}

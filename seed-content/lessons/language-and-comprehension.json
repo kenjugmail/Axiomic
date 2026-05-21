@@ -1,0 +1,208 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Distinguish language brain areas.",
+      "Apply parsing + comprehension theories.",
+      "Connect to LLMs + cognitive linguistics."
+    ],
+    "prereqs": [
+      "perception-and-vision"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Language in the brain",
+      "body": "**Classical model** (Wernicke-Lichtheim 1870s):\n- **Broca's area** (left inferior frontal): production; lesion → effortful speech, agrammatism (Broca's aphasia).\n- **Wernicke's area** (left temporal): comprehension; lesion → fluent but nonsensical speech (Wernicke's aphasia).\n- **Arcuate fasciculus**: connects them.\n\n**Modern view (Hickok + Poeppel 2007 dual-stream)**:\n- **Ventral stream** (temporal): sound → meaning.\n- **Dorsal stream** (parietal-frontal): sound → articulatory.\n\nNetworks extend beyond classical areas: bilateral involvement; frontal lobe + temporal + parietal + cerebellum + basal ganglia.\n\n**Functional MRI + ECoG**: localize linguistic processes precisely.\n- Inferior frontal: syntax + working memory.\n- Anterior temporal: semantic.\n- Posterior superior temporal: phonological.\n- Angular gyrus: integration."
+    },
+    {
+      "kind": "text",
+      "title": "Sentence parsing + comprehension",
+      "body": "**Sentence comprehension**: real-time integration of lexical + syntactic + semantic + pragmatic information.\n\n**Garden-path sentences** (covered in P37): 'The horse raced past the barn fell.' Parser commits early + must reanalyze. Reveals greedy + local parsing strategy.\n\n**Comprehension theories**:\n- **Serial / good-enough** (Frazier + Rayner): single parse at a time.\n- **Parallel / constraint-based** (MacDonald): multiple analyses ranked by probabilities.\n- **Bayesian sentence processing**: integrate prior + sensory + context.\n\n**Surprisal theory** (Hale + Levy 2008): reading time at each word ∝ -log P(word | context). Predicts: high-surprisal words read longer. Computed from language models. Modern: GPT-3+ surprisal correlates well with human reading times.\n\n**N400 ERP component**: brain response to semantic anomaly at ~400 ms post-word. Larger for unexpected words ('I take coffee with cream + dogs').\n\n**P600**: syntactic + grammatical anomaly + reanalysis.\n\n**Comprehension of complex constructions**:\n- Center-embedded: 'The mouse the cat the dog chased ate ran' → unparseable beyond 2-3 levels.\n- Object-relative: harder than subject-relative.\n- Long-distance dependencies: working-memory-demanding.\n\n**Cross-linguistic differences**: head-final languages (Japanese, Turkish) require waiting for verb; head-initial (English) get verb early."
+    },
+    {
+      "kind": "text",
+      "title": "LLMs + the nature of language",
+      "body": "**Large language models (LLMs)** (GPT family, LLaMA, Claude, Gemini, Mistral): massive transformer networks trained on text.\n\n**Capabilities (as of 2025)**:\n- Fluent generation across topics + languages.\n- Few-shot + zero-shot task learning.\n- Reasoning (especially with chain-of-thought).\n- Code generation.\n- Translation, summarization, QA.\n- Theory-of-mind tasks (partially).\n- Multimodal extensions (GPT-4V, Gemini, Claude vision).\n\n**LLMs as cognitive models** (active debate):\n- **Pro**: predict human reading times via surprisal; show structural understanding; capture pragmatics; emergent capabilities.\n- **Con**: not embodied; lack grounded experience; hallucinate; lack persistent memory; differ in some patterns (e.g., systematic generalization).\n- 'Stochastic parrots' (Bender + Gebru 2021): learn form, not meaning?\n- 'Symbol grounding problem' (Searle's Chinese Room): is language without world reference meaningful?\n\n**Cognitive linguistics**:\n- Cognitive Grammar (Langacker).\n- Construction Grammar (Goldberg).\n- Embodied cognition: meaning grounded in sensorimotor experience.\n- Conceptual metaphor (Lakoff + Johnson 1980): abstract concepts via concrete domains ('argument is war').\n\n**Modern frontiers**:\n- Multimodal language: vision + language + audio.\n- Code-switching + bilingualism.\n- Neural decoding of language from brain activity (Tang + Huth 2023; semantic reconstruction from fMRI).\n- BCI for communication (Synchron Stentrode; Neuralink; Tang lab speech decoder).\n\nLanguage processing remains a foundational area; LLMs both accelerate progress + raise questions about cognition vs language."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cog_lang_1",
+        "kind": "guided_derivation",
+        "question": "Apply surprisal theory to predict reading times",
+        "goal": "Compare reading times for 'I love coffee with cream' vs 'I love coffee with dogs.' Apply surprisal theory.",
+        "steps": [
+          {
+            "prompt": "Word with high surprisal?",
+            "motivation": "Unexpected.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "dogs"
+              ]
+            },
+            "hints": [
+              "Unexpected continuation."
+            ],
+            "reveal": "'Dogs' is highly unexpected after 'coffee with' (which usually takes cream/milk/sugar). Cream is high-probability; dogs low."
+          },
+          {
+            "prompt": "Surprisal value approximate?",
+            "motivation": "From LM probability.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~12-15 bits for 'dogs'; ~1-2 bits for 'cream'",
+                "much higher"
+              ]
+            },
+            "hints": [
+              "LM perplexity."
+            ],
+            "reveal": "Cream after 'coffee with': P~0.5; surprisal ~1 bit. Dogs after 'coffee with': P~0.0001; surprisal ~13 bits. ~10× longer reading time predicted."
+          },
+          {
+            "prompt": "What ERP component would peak at 'dogs'?",
+            "motivation": "Semantic anomaly.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "N400"
+              ]
+            },
+            "hints": [
+              "~400 ms post-word."
+            ],
+            "reveal": "**N400 ERP**: brain response to semantic anomaly at ~400 ms post-word onset. Larger for unexpected/anomalous words. Kutas + Hillyard 1980. Robust cross-linguistic effect; differentiates semantic vs syntactic processing."
+          },
+          {
+            "prompt": "How would LLM surprisal compare?",
+            "motivation": "LLM evaluation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "high LLM surprisal for 'dogs'; correlates with human reading time + N400"
+              ]
+            },
+            "hints": [
+              "LLM as model."
+            ],
+            "reveal": "LLM surprisal correlates remarkably well with human reading times + N400 amplitude. Hierarchically structured LLMs (transformer architectures) capture syntactic + semantic context. LLM surprisal increasingly used as theoretical tool for sentence processing."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_cog_lang_1",
+        "kind": "drag_classify",
+        "question": "Match each brain region to its linguistic role.",
+        "items": [
+          {
+            "id": "speech-production",
+            "label": "Speech production",
+            "bin": "broca"
+          },
+          {
+            "id": "syntax",
+            "label": "Syntactic processing",
+            "bin": "broca"
+          },
+          {
+            "id": "phonology",
+            "label": "Phonological processing",
+            "bin": "wernicke"
+          },
+          {
+            "id": "lexical",
+            "label": "Lexical access / word recognition",
+            "bin": "wernicke"
+          },
+          {
+            "id": "semantic-hub",
+            "label": "Semantic / conceptual hub",
+            "bin": "anterior-temporal"
+          },
+          {
+            "id": "metaphor",
+            "label": "Metaphor + integration",
+            "bin": "angular"
+          },
+          {
+            "id": "comprehension",
+            "label": "Comprehension monitoring",
+            "bin": "angular"
+          }
+        ],
+        "bins": [
+          {
+            "id": "broca",
+            "label": "Broca's area / IFG"
+          },
+          {
+            "id": "wernicke",
+            "label": "Wernicke's area / posterior STG"
+          },
+          {
+            "id": "anterior-temporal",
+            "label": "Anterior temporal lobe"
+          },
+          {
+            "id": "angular",
+            "label": "Angular gyrus"
+          }
+        ],
+        "explanation": "Language regions: Broca's (IFG): syntax + production + WM. Wernicke's (posterior STG): phonology + lexical. Anterior temporal: semantic hub (semantic dementia damages). Angular gyrus: cross-modal integration + metaphor + comprehension. Modern dual-stream (Hickok + Poeppel 2007): ventral comprehension; dorsal production. Bilateral but left-dominant. Bilingual + sign-language brains follow similar patterns."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cog_lang_1",
+        "kind": "multiple_choice",
+        "question": "Why do LLMs hallucinate (produce confidently false statements)?",
+        "options": [
+          "Random.",
+          "LLMs are trained to predict next token statistically — produce plausible continuations regardless of factuality. No internal model of truth/world; no mechanism distinguishing 'know' from 'don't know'; no grounded experience. Confabulation common; consistent with training-distribution patterns. Mitigation: retrieval-augmented generation (RAG); citation generation; tool use (calculators, search); calibration (estimate confidence); fine-tuning with truthful examples; RLHF. Active research area; reduces but doesn't eliminate.",
+          "Random.",
+          "Marketing."
+        ],
+        "correctIndex": 1,
+        "explanation": "LLM hallucination: trained to predict tokens statistically; no truth model; confabulates plausible content. Mitigation: retrieval-augmented generation (RAG), citation, tool use, calibration, fine-tuning, RLHF. Reduces but doesn't eliminate. Active research. Implications: LLMs need verification for factual claims; not yet reliable for unsupervised knowledge work in high-stakes domains."
+      },
+      "hints": [
+        "What does LLM training optimize?",
+        "Why does it lead to false content?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "LLMs trained to predict next token statistically → produce plausible but possibly false continuations; no truth model; confabulate. Mitigation: RAG, citations, tool use, calibration, fine-tuning, RLHF. Active area; not yet eliminated. Implications: verification needed for factual claims in high-stakes domains."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_cog_lang_1",
+        "kind": "slider",
+        "question": "Drag to typical age (in months) when children produce first multi-word utterances.",
+        "target": {
+          "min": 18,
+          "max": 24
+        },
+        "default": 12,
+        "explanation": "First multi-word utterances: ~18-24 months ('Daddy go', 'more milk'). Earlier: single words ~12 months; babbling ~6-9 months. Two-word stage → grammatical sentences ~3 years. Cross-cultural consistent. Critical period for language acquisition (Lenneberg)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cog_lang_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how LLMs have changed cognitive linguistics + language processing research.",
+        "rubric": "Mentions: LLMs (GPT, LLaMA, Claude, Gemini) trained on massive text exhibit capabilities once thought to require human cognition: surprisal predictions match human reading times + N400; structural understanding in probing studies; pragmatic reasoning; few-shot generalization. Cognitive linguistics impact: testable models of comprehension + production; benchmark for theories; surprisal theory operationalized; transfer learning between humans + models. Methodology: LLMs as cognitive models (Lucas + Goodman 2023); LLM surprisal in psycholinguistic studies; LLMs as participants in experiments. Limitations: LLMs not embodied; hallucinate; differ on systematic generalization; lack persistent memory; 'stochastic parrots' debate. Modern: vision-language models grounding; brain-LLM correspondence studies (Schrimpf 2021); BCI language decoders. Concludes: LLMs both accelerate cognitive linguistics research + raise foundational questions about language + cognition + meaning."
+      }
+    }
+  ]
+}

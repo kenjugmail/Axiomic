@@ -1,0 +1,195 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Trace cell-cycle phases + checkpoints.",
+      "Apply CDK-cyclin regulation.",
+      "Reason about cancer + chromosome biology."
+    ],
+    "prereqs": [
+      "dna-replication-and-repair"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Cell-cycle phases",
+      "body": "**Cell cycle**: ordered progression from one cell division to next. Four phases:\n\n• **G1 (Gap 1)**: cell growth + preparation for DNA replication. Variable length (hours to lifetime in non-dividing cells). G1 → S transition is restriction point — once past, committed to division.\n• **S (Synthesis)**: DNA replication. ~6-8 hr in human cells.\n• **G2 (Gap 2)**: growth + preparation for mitosis. ~3-4 hr.\n• **M (Mitosis + Cytokinesis)**: chromosome segregation + cell division. ~1 hr.\n\nTotal typical human cell cycle: ~24 hr. Bacteria: 20-30 min.\n\n**G0 (Gap 0 / quiescence)**: non-dividing state; cells exit cycle. Can re-enter G1 if stimulated.\n\n**Mitosis subphases**:\n1. **Prophase**: chromatin condenses; nuclear envelope breaks down; centrosomes move to poles.\n2. **Prometaphase**: kinetochores form at centromeres; microtubules attach.\n3. **Metaphase**: chromosomes aligned at metaphase plate.\n4. **Anaphase**: sister chromatids separate; APC/C-mediated separase cleavage of cohesin.\n5. **Telophase**: nuclear envelopes reform; chromosomes decondense.\n6. **Cytokinesis**: contractile ring (actin + myosin) constricts; cell physically divides.\n\n**Meiosis**: distinct from mitosis. One round of replication + two divisions → 4 haploid gametes. Recombination + independent assortment generate genetic diversity. Errors in meiosis I + II lead to aneuploidy (Down syndrome trisomy 21, Turner X0, Klinefelter XXY)."
+    },
+    {
+      "kind": "text",
+      "title": "CDK-cyclin regulation",
+      "body": "**Cyclin-dependent kinases (CDKs)**: Ser/Thr kinases that drive cell-cycle progression. Activity controlled by cyclins (regulatory subunits).\n\n**Major CDK-cyclin pairs**:\n- G1: CDK4/6 + cyclin D; CDK2 + cyclin E.\n- S: CDK2 + cyclin A.\n- G2/M: CDK1 + cyclin B (mitotic CDK).\n\n**Cyclin levels** oscillate; CDK levels constant.\n\n**CDK regulation** (multiple levels):\n1. **Cyclin binding** (activating).\n2. **Phosphorylation** by CDK-activating kinase (CAK; activating).\n3. **Inhibitory phosphorylation** by Wee1 (inhibiting; Thr14, Tyr15).\n4. **CDK inhibitors** (CKIs):\n   - p21/CDKN1A: p53-induced; broadly inhibits.\n   - p27/CDKN1B: TGFβ-induced; G1 inhibitor.\n   - p16/CDKN2A: senescence + tumor suppressor.\n   - INK4 family (p16, p15, p18, p19): CDK4/6 selective.\n\n**Checkpoints** (Hartwell, Nurse, Hunt Nobel 2001):\n- **G1/S checkpoint**: DNA-damage check; nutrient/growth-factor check. p53-RB pathway.\n- **Intra-S checkpoint**: replication-stress check. ATR-CHK1.\n- **G2/M checkpoint**: DNA-damage check before mitosis. ATM-CHK2.\n- **Spindle assembly checkpoint (SAC)**: all kinetochores attached before anaphase. APC/C inhibition by Mad2 + Bub3.\n\n**p53 — the guardian**: tumor suppressor; activated by DNA damage; induces p21 (CDK inhibitor), arrest, repair, apoptosis. ~50% of cancers have p53 mutations.\n\n**Retinoblastoma (RB) protein**: cell-cycle gatekeeper.\n- Hypophosphorylated RB: binds + inactivates E2F transcription factors → G1 arrest.\n- CDK4/6-cyclin D phosphorylates RB → releases E2F → S-phase gene expression.\n- RB mutations: retinoblastoma (1st identified tumor suppressor; Knudson two-hit hypothesis 1971).\n\n**CDK4/6 inhibitors** (palbociclib, ribociclib, abemaciclib 2015+): block CDK4/6-cyclin D activity → arrest cancer cells with intact RB pathway. Approved for HR+ HER2- breast cancer; transformed standard-of-care."
+    },
+    {
+      "kind": "text",
+      "title": "Cancer + the hallmarks",
+      "body": "**Cancer**: uncontrolled cell division + invasion. Cell-cycle dysregulation is fundamental.\n\n**Hallmarks of cancer** (Hanahan + Weinberg 2000, 2011, 2022):\n1. **Sustained proliferative signaling** (oncogene activation: RAS, EGFR, BRAF).\n2. **Evading growth suppressors** (tumor-suppressor loss: p53, RB, PTEN, APC).\n3. **Resisting cell death** (Bcl-2 family dysregulation; apoptosis evasion).\n4. **Enabling replicative immortality** (telomerase reactivation).\n5. **Inducing angiogenesis** (VEGF; targeted by bevacizumab).\n6. **Activating invasion + metastasis** (EMT, MMPs).\n7. **Reprogramming energy metabolism** (Warburg effect: glycolysis in O₂).\n8. **Evading immune destruction** (PD-L1; targeted by checkpoint inhibitors).\n9. **Genome instability + mutation** (DNA repair defects; chromosomal instability).\n10. **Tumor-promoting inflammation** (TNFα, IL-6, etc.).\n\n2022 updates: phenotypic plasticity, non-mutational reprogramming, polymorphic microbiomes, senescent cells as drivers.\n\n**Tumor-suppressor genes (TSGs)** vs **oncogenes**:\n- TSGs: loss-of-function (Knudson two-hit). p53, RB, APC, PTEN, BRCA1/2.\n- Oncogenes: gain-of-function (one allele enough). RAS, MYC, BCL2, ERBB2.\n\n**Driver vs passenger mutations**:\n- Driver: causally contribute (~5-10 per tumor).\n- Passenger: random + non-functional.\n- Modern sequencing identifies + classifies (TCGA, ICGC, COSMIC catalog).\n\n**Chromosomal instability + aneuploidy**:\n- Most cancers have abnormal karyotypes.\n- SAC defects allow missegregation.\n- Some cancers driven by specific aneuploidies (HER2 amplification + chromosome 17q gain in breast).\n\n**Cancer therapy modalities**:\n- Surgery + radiation + classical chemotherapy.\n- Targeted: kinase inhibitors, mAbs, ADCs (P34).\n- Immunotherapy: checkpoint inhibitors, CAR-T.\n- Combination: standard now for many cancers.\n\n**CDK4/6 inhibitors in clinical practice**:\n- Palbociclib + letrozole or fulvestrant for HR+ HER2- breast cancer.\n- Doubled progression-free survival.\n- $10B+ market.\n- Now standard first-line for advanced HR+ breast cancer.\n\n**Senolytics + senescence-targeted therapies** emerging."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cycle_1",
+        "kind": "guided_derivation",
+        "question": "Trace G1 → S transition",
+        "goal": "How does a quiescent cell decide to divide upon growth-factor stimulation?",
+        "steps": [
+          {
+            "prompt": "Growth factor binds RTK; what happens to MAPK + PI3K?",
+            "motivation": "Pathway activation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "activate"
+              ]
+            },
+            "hints": [
+              "Both proliferative."
+            ],
+            "reveal": "Growth-factor receptor → MAPK (via RAS) + PI3K-AKT → activate both pathways → drive G1 progression."
+          },
+          {
+            "prompt": "Which cyclin is induced?",
+            "motivation": "G1 cyclin.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "cyclin D"
+              ]
+            },
+            "hints": [
+              "G1 cyclin."
+            ],
+            "reveal": "**Cyclin D**: MYC + other TFs induce cyclin D1 expression. Cyclin D binds CDK4/6."
+          },
+          {
+            "prompt": "Active CDK4/6-cyclin D does what to RB?",
+            "motivation": "Phosphorylation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "phosphorylates RB",
+                "hyperphosphorylates RB"
+              ]
+            },
+            "hints": [
+              "Hyper-P RB."
+            ],
+            "reveal": "CDK4/6-cyclin D hyperphosphorylates RB. Phosphorylated RB releases E2F transcription factors."
+          },
+          {
+            "prompt": "What does free E2F do?",
+            "motivation": "Drive S-phase genes.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "activates S-phase genes including cyclin E + DNA-replication machinery",
+                "S-phase genes"
+              ]
+            },
+            "hints": [
+              "S-phase TFs."
+            ],
+            "reveal": "Free E2F activates transcription of: cyclin E (further drives RB hyperphosphorylation + commits to S phase); DNA polymerases + replication factors (MCM proteins, ORC); thymidylate synthase + nucleotide synthesis enzymes. Cell commits to division."
+          },
+          {
+            "prompt": "What checkpoint controls whether to proceed?",
+            "motivation": "Restriction point.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "restriction point / G1-S checkpoint",
+                "p53 + RB"
+              ]
+            },
+            "hints": [
+              "G1-S decision."
+            ],
+            "reveal": "**Restriction point** (Pardee 1974): late G1; commit-to-divide threshold. Beyond it, cycle continues without growth factors. p53-RB pathway monitors DNA damage + signals; CDK inhibitors p21 + p27 + p16 can block. Cancer often mutates this circuit — p53 loss + RB loss + p16 loss or CDK4 amplification or cyclin D overexpression. CDK4/6 inhibitors (palbociclib) target this dysregulation in cancers with intact RB."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_cycle_1",
+        "kind": "sortable",
+        "question": "Order these cell-cycle events (early to late).",
+        "items": [
+          {
+            "id": "g1-growth",
+            "label": "G1: cell grows + RTK activation"
+          },
+          {
+            "id": "g1s-restriction",
+            "label": "G1-S restriction point + CDK4/6-cyclin D activation"
+          },
+          {
+            "id": "s-phase",
+            "label": "S phase: DNA replication"
+          },
+          {
+            "id": "g2",
+            "label": "G2: continued growth + DNA-damage check"
+          },
+          {
+            "id": "m-phase",
+            "label": "Mitosis: chromosome segregation + cytokinesis"
+          },
+          {
+            "id": "g0-or-restart",
+            "label": "G0 quiescence (or next G1)"
+          }
+        ],
+        "explanation": "Cell-cycle progression: G1 → restriction point → S → G2 → M → G0 (or restart G1). Each transition controlled by CDK-cyclin oscillations + checkpoints. Major regulatory transitions: G1-S restriction (RB-E2F, CDK4/6-cyclin D); S-phase entry + completion; G2-M (CDK1-cyclin B); metaphase-anaphase (APC/C + separase). Cancer disrupts these; targeted therapies exploit (CDK4/6 inhibitors palbociclib for breast cancer)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cycle_1",
+        "kind": "multiple_choice",
+        "question": "Why are CDK4/6 inhibitors (palbociclib, ribociclib, abemaciclib) so effective in HR+ HER2- breast cancer?",
+        "options": [
+          "Random.",
+          "HR+ (estrogen receptor-positive) breast cancers depend on cyclin D-CDK4/6 axis for proliferation. Endocrine therapy (aromatase inhibitors, tamoxifen) inhibits estrogen signaling but doesn't shut down cyclin D fully. CDK4/6 inhibitors directly block this pathway downstream → arrest cancer cells with intact RB. Combination with endocrine therapy dramatically improves PFS (~doubled in trials like PALOMA, MONALEESA, MONARCH). $10B+ market. Standard of care since 2015+.",
+          "Marketing.",
+          "Required."
+        ],
+        "correctIndex": 1,
+        "explanation": "CDK4/6 inhibitors target cyclin D-CDK4/6 axis essential in HR+ breast cancer. Combination with endocrine therapy: PALOMA, MONALEESA, MONARCH trials showed ~doubled PFS. Palbociclib (Ibrance 2015), ribociclib (Kisqali 2017), abemaciclib (Verzenio 2017) FDA-approved. Standard of care HR+ HER2- advanced breast cancer first-line. Side effects: neutropenia (cytostatic), fatigue. Modern: extension to adjuvant settings (monarchE 2020); combinations with mTOR/PI3K inhibitors. Lessons in targeted oncology: combine targeted + endocrine; PFS doubled; biomarkers (HR+, RB-intact)."
+      },
+      "hints": [
+        "What's the dependency?",
+        "Why combine with endocrine therapy?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "HR+ breast cancer depends on cyclin D-CDK4/6 for proliferation. Endocrine therapy reduces estrogen signaling but cyclin D persists. CDK4/6 inhibitors directly block cyclin D-CDK4/6 → RB-mediated arrest in RB-intact tumors. Combination doubled PFS (PALOMA, MONALEESA, MONARCH trials). $10B+ market 2015+; standard of care. Adjuvant approvals (monarchE) extending to early disease. Lessons: combine targeted + endocrine; biomarker-guided (HR+, RB+)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_cycle_1",
+        "kind": "slider",
+        "question": "Drag to typical duration (in hours) of a human cell cycle.",
+        "target": {
+          "min": 20,
+          "max": 28
+        },
+        "default": 6,
+        "explanation": "Typical human cell cycle: ~24 hr (range 16-30 depending on cell type). G1 most variable (hours to lifelong G0); S ~6-8 hr; G2 ~3-4 hr; M ~1 hr. Embryonic cells faster (~6-12 hr); some stem cells slower; neurons + cardiomyocytes G0 for life. Bacteria: 20-30 min cell cycle (E. coli optimal); yeast ~90 min."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cycle_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why p53 is called 'the guardian of the genome.'",
+        "rubric": "Mentions: p53 (TP53) is tumor suppressor activated by stress (DNA damage, oncogene activation, hypoxia, ribosomal stress, replication stress). Activated p53: induces p21 (CDK inhibitor) → cell cycle arrest; induces DNA repair genes; induces pro-apoptotic genes (PUMA, NOXA, BAX) → apoptosis if damage severe; induces ferroptosis genes. Acts as decision hub: repair-or-die. Mutations in ~50% of cancers (most-mutated single gene); loss enables genomic instability + cancer progression. Inherited Li-Fraumeni syndrome: TP53 germline mutation; high cancer susceptibility. Modern: drugs activating p53 (MDM2 inhibitors like idasanutlin); reactivation of mutant p53 (APR-246); p53-based cancer vaccines. Concludes: p53 is core cellular decision-maker for genomic integrity; loss is hallmark of cancer."
+      }
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "specialist",
+    "objectives": [
+      "List major backtesting biases.",
+      "Apply walk-forward + cross-validation.",
+      "Reason about overfitting + capacity."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Survivorship + look-ahead + selection biases",
+      "body": "**Backtest**: simulated strategy performance on historical data. Critical for vetting; full of pitfalls.\n\n**Major biases**:\n\n**Survivorship bias**:\n- Use ONLY companies still alive today → ignore the ones that went bankrupt/delisted.\n- INFLATES backtest returns.\n- Fix: point-in-time databases including delisted companies. CRSP (US equities, includes delisted), Compustat with point-in-time data.\n\n**Look-ahead bias**:\n- Use information NOT available at trading time.\n- Subtle: stock splits adjusted backward, earnings data using restated numbers, future macro data.\n- Fix: use ONLY information available at the moment of trade. Strict timestamps.\n\n**Selection bias**:\n- Train on chosen subset (e.g., highly-liquid names, those with all data) → not representative.\n- Fix: define universe at point-in-time, before knowing what survived.\n\n**Time-stamping errors**:\n- Earnings data: reported AFTER period-end. Trading based on it at the right delay matters.\n- News data: must be available at the trade time, not just published before period-end.\n- FX prices: market closure across regions.\n\n**Vendor data restatements**: Bloomberg + Refinitiv + others occasionally restate historical data. Backtests using current snapshots leak future restatements.\n\n**Reverse causation**: easy to confuse correlation + causation. Predictive at one period may be coincident at another.\n\n**Black swan / fat tail**:\n- Historical data may not include extreme regimes.\n- Backtest may understate risk.\n- Stress test with scenarios (2008, 2020, etc.).\n\n**Transaction costs underestimated**:\n- Backtest at mid-price + ignore impact = overstate returns.\n- Use realistic slippage, commission, impact models.\n- Bid-ask + impact often consume 30-70% of theoretical alpha for small strategies.\n\n**Capacity ignored**:\n- Backtest with small notional → seemingly good Sharpe.\n- Live trading with realistic size → impact destroys edge.\n\n**Common signs of overfitting**:\n- Suspiciously high Sharpe (3+).\n- Performance varies wildly with small parameter changes.\n- Many parameters tuned.\n- Live performance < backtest by huge margin."
+    },
+    {
+      "kind": "text",
+      "title": "Walk-forward + cross-validation + the rigor",
+      "body": "**Walk-forward analysis**: train on past, test on future, rolling.\n\n**Procedure**:\n1. Define in-sample period (e.g., 2010-2015) + out-of-sample (2016).\n2. Train model on in-sample.\n3. Test on out-of-sample.\n4. Walk forward: in-sample becomes 2010-2016; out-of-sample 2017.\n5. Repeat.\n\n**Benefits**: tests robustness to time-varying conditions. Approximates live deployment.\n\n**Drawbacks**: limited data in many periods. Sensitive to specific period chosen.\n\n**Expanding window vs rolling window**:\n- Expanding: in-sample grows over time.\n- Rolling: in-sample fixed-length window.\n- Choice depends on belief about parameter stability.\n\n**Cross-validation in finance**:\n- Random k-fold INVALID (would leak future info to past).\n- **Purged cross-validation** (López de Prado): account for overlapping training/test labels.\n- **Combinatorially Symmetric Cross-Validation (CSCV)**: López de Prado method to estimate probability of backtest overfitting.\n\n**Bonferroni + multiple-comparison corrections**:\n- Testing many strategies → expect some look profitable by chance.\n- Bonferroni: multiply each p-value by N tests.\n- False Discovery Rate (FDR, Benjamini-Hochberg): better when many tests.\n- Tightens criteria significantly.\n\n**Reality Check (Hansen + White)**: bootstrap-based test for strategy significance accounting for multiple-comparison.\n\n**Deflated Sharpe Ratio (López de Prado)**:\n$$DSR = SR_{observed} \\sqrt{\\frac{N - 1}{1 - \\gamma^* \\cdot SR_{observed} + \\gamma_4 SR_{observed}^2}}$$\n\nWith $\\gamma^*$ = skew correction, $\\gamma_4$ = kurtosis. Reduces observed Sharpe to account for non-normal returns + multiple comparisons.\n\n**Hidden Markov + regime tests**: test whether parameters are stable across regimes.\n\n**Out-of-sample is sacred**:\n- Don't peek at live data when developing.\n- Once you 'use up' out-of-sample by iterating, you've polluted it.\n- Use paper trading or shadow trading on FRESH data.\n\n**Live monitoring vs backtest**:\n- Compare live Sharpe + drawdown + correlation to backtest.\n- Significant deviation → suspect signal decay or regime change.\n- Have re-training or retirement criteria.\n\n**Lopez de Prado's contributions** (Advances in Financial Machine Learning):\n- Triple-barrier labeling.\n- Fractionally differenced features.\n- Purged + embargoed cross-validation.\n- PBO (Probability of Backtest Overfitting).\n- Modern quant ML's most influential practitioner-author."
+    },
+    {
+      "kind": "text",
+      "title": "Capacity + paper trading + the gap to production",
+      "body": "**Capacity**: how much capital can a strategy deploy without degrading edge?\n\n**Estimation methods**:\n- **Impact model**: predicted bps cost vs notional.\n- **Backtest with notional**: simulate at different sizes.\n- **Live ramp-up**: start small + scale, observe performance.\n\n**Capacity matters for**:\n- LP commitments: how much can fund accept.\n- Strategy choice: HFT capacity small, factor capacity huge.\n- Fund growth: larger AUM diversifies but constrains best strategies.\n\n**Paper trading + shadow trading**:\n- Paper: simulated portfolio with same logic, no real money.\n- Shadow: live data + real signals + simulated execution.\n- Pre-deployment validation.\n- Gap between paper + live: market impact + adverse selection that paper doesn't capture.\n\n**Gradual rollout**:\n- Begin with small capital.\n- Monitor live vs backtest.\n- Increase if matching.\n- Decrease if diverging.\n\n**Live performance vs backtest**:\n- Live Sharpe typically 30-50% of backtest.\n- Big gaps suggest overfitting OR adverse selection (HFTs pick off your orders).\n- Gradual reduction → signal decay.\n\n**Killing strategies**:\n- Drawdown trigger: kill if -X%.\n- Performance threshold: kill if Sharpe < threshold.\n- Regime detection: pause in unfriendly conditions.\n- Most quant funds have automatic kill-switches.\n\n**Regime change adaptations**:\n- Hidden Markov regime classifiers.\n- Online learning (parameter updates).\n- Multi-model ensembles weighted by recent performance.\n- Bayesian + uncertainty-aware approaches.\n\n**Documentation + reproducibility**:\n- Code in version control.\n- Pin data versions (point-in-time exactness).\n- Pin random seeds.\n- Document parameter choices + rationale.\n- Audit trail for trades.\n- Regulators + risk + auditors increasingly require.\n\n**Risk management as part of deployment**:\n- Position limits per name + sector + strategy.\n- Leverage limits.\n- Daily VaR.\n- Drawdown stops.\n- Margin / liquidity stress tests.\n\n**Modern quant deployment stack**:\n- Strategy code (Python, C++, etc.).\n- Backtest framework (proprietary or open-source).\n- Execution platform (broker API, smart router).\n- Risk monitoring (real-time dashboards, alerts).\n- Performance attribution (factor decomposition).\n- Post-trade TCA (transaction-cost analysis).\n\n**Open-source tools**:\n- **Pandas, NumPy, scikit-learn, XGBoost, LightGBM, PyTorch**: standard data science stack.\n- **vectorbt** (modern, fast).\n- **Backtrader, Zipline** (traditional).\n- **QuantConnect LEAN**: full platform.\n- **Pyfolio, Alphalens** (Quantopian-era; archived but still used).\n- **statsmodels, arch**: econometrics.\n- **Polygon.io, Yahoo Finance API, Alpha Vantage**: data."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_quant_backtest",
+        "kind": "guided_derivation",
+        "question": "Apply walk-forward",
+        "goal": "10 years of historical data. Walk through walk-forward with 3-year in-sample + 1-year out-of-sample, expanding window.",
+        "steps": [
+          {
+            "prompt": "First fold?",
+            "motivation": "Setup.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "In-sample: 2014-2016 (3 years). Out-of-sample: 2017 (1 year). Train on 2014-2016, test on 2017.",
+                "Random.",
+                "Skip."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "3-yr IS + 1-yr OOS."
+            ],
+            "reveal": "Fold 1: train 2014-16, test 2017."
+          },
+          {
+            "prompt": "Second fold (expanding window)?",
+            "motivation": "Roll forward.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "In-sample: 2014-2017 (now 4 years). Out-of-sample: 2018. Train + test as before.",
+                "Just 2017.",
+                "Skip."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Expanding IS."
+            ],
+            "reveal": "Fold 2: train 2014-17, test 2018. IS expands to use all prior data."
+          },
+          {
+            "prompt": "How many total folds?",
+            "motivation": "Coverage.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "7",
+                "6 or 7"
+              ]
+            },
+            "hints": [
+              "2014-2023 with 1-yr OOS folds; counting test years 2017-2023 = 7."
+            ],
+            "reveal": "7 folds (test years 2017, 2018, 2019, 2020, 2021, 2022, 2023)."
+          },
+          {
+            "prompt": "What if I use ROLLING window (3-year IS each time) vs expanding?",
+            "motivation": "Choice.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Same.",
+                "Rolling adapts faster to regime changes (forgets older data). Expanding uses more data (better statistics + more samples). Choice depends on whether parameters are stable over time. Hybrid: use both + compare; if expanding much better, suggests stable; if rolling better, suggests regime instability.",
+                "Always rolling.",
+                "Always expanding."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Trade-off."
+            ],
+            "reveal": "Rolling: faster adaptation. Expanding: more data, lower variance. Use to test parameter stability over time. Both common in practice."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Walk-forward: train past, test future, roll; mimics live deployment}}$$ Walk-forward is THE backtest discipline. Each test period was never seen during training. Real-world simulation. Combined with realistic transaction costs + impact + slippage models, gives much more honest estimate of live performance than naive backtest. Most failed strategies fail because they were optimized in-sample + never tested out."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_quant_pbo",
+        "kind": "multiple_choice",
+        "question": "López de Prado's PBO (Probability of Backtest Overfitting) metric — what does it measure?",
+        "options": [
+          "Random.",
+          "Probability that the strategy's IS rank doesn't predict OOS rank — i.e., that performance is from overfitting rather than skill. High PBO = overfit. Computed via combinatorially symmetric cross-validation. Low (<0.5) preferred.",
+          "Marketing.",
+          "AUC."
+        ],
+        "correctIndex": 1,
+        "explanation": "PBO (López de Prado): probability that a strategy selected from many candidates is no better than the median candidate out-of-sample. High PBO = strategy looked good IS by chance; doesn't generalize.\n\nProcedure:\n1. Try many strategy variants.\n2. Compute IS performance for each.\n3. Split time series into k subsets.\n4. Train + test on combinatorial splits.\n5. Estimate distribution of OOS rank for the IS-best strategy.\n6. PBO = probability OOS rank ≤ median.\n\nLow PBO (< 0.5): IS rank predictive of OOS → likely real skill.\nHigh PBO (> 0.5): IS rank not predictive → likely overfit.\n\nUsed as gating criterion before strategy goes live. Many strategies have PBO > 0.8; killed before live deployment.\n\nLópez de Prado's work + tools (mlfinlab Python library, FinML course) are influential in modern systematic trading. Companies use his frameworks for rigorous ML strategy development."
+      },
+      "hints": [
+        "What's PBO?",
+        "Why useful?"
+      ],
+      "workedSolution": "PBO: probability that the IS-best strategy is not OOS-best — i.e., performance is overfit chance. Computed via CSCV. Low PBO = robust; high = overfit. Gating criterion before live deployment. López de Prado's contribution; widely used in modern systematic trading.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_quant_bonf",
+        "kind": "math_expression",
+        "question": "Test 20 strategies; α = 0.05. Bonferroni-corrected α per test?",
+        "acceptedAnswers": [
+          "0.0025",
+          "0.05/20"
+        ],
+        "hint": "$0.05/20 = 0.0025$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_quant_overfit",
+        "kind": "scenario",
+        "question": "Detecting + fixing overfitting",
+        "prompt": "A backtest shows Sharpe 3.5. Walk through the diagnostic process to determine if this is real or overfit + how to validate."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_quant_backtest",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why backtesting in finance is fundamentally harder than ML evaluation in most other domains.",
+        "rubric": "Mentions low signal-to-noise ratio (most data is noise); non-stationarity (relationships change over time); strict no-look-ahead requirements; survivorship + selection biases; small effective sample size despite many data points (correlations across stocks + time); regime change; transaction costs that backtests underestimate. Modern frameworks (López de Prado, walk-forward, deflated Sharpe) try to bridge the gap but live performance routinely 30-50% of backtest."
+      }
+    }
+  ]
+}

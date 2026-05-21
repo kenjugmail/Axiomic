@@ -1,0 +1,168 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "specialist",
+    "objectives": [
+      "Distinguish VWAP / TWAP / IS algorithms.",
+      "Apply optimal-execution principles.",
+      "Reason about smart routing + dark pools."
+    ],
+    "prereqs": [
+      "market-microstructure-trading"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why execution algos matter",
+      "body": "**The execution problem**: large orders MOVE markets. Buy 1M shares → push price up; subsequent fills more expensive.\n\n**Execution algos**: split large parent orders into smaller child orders over time. Minimize impact + slippage + opportunity cost.\n\n**Common algorithms**:\n\n**TWAP (Time-Weighted Average Price)**:\n- Slice order evenly over time interval.\n- Each slice = total / N intervals.\n- Simple, predictable.\n- Benchmark: arithmetic mean of prices during interval.\n- Use case: doesn't need to match volume profile; OK with simple slicing.\n\n**VWAP (Volume-Weighted Average Price)**:\n- Slice in proportion to expected volume.\n- More volume midday → smaller % of daily volume → larger absolute slices.\n- Less volume morning/midday/lunch → smaller slices.\n- Benchmark: actual VWAP of the day.\n- Use case: client wants 'market neutral' execution.\n\n**Implementation Shortfall (IS)**:\n- Minimize total cost from decision price.\n- Front-load trades (urgent) when alpha decays or risk high.\n- Trade-off between impact (more trading = more impact) + opportunity cost (waiting = price moves away).\n- Almgren-Chriss optimal execution framework.\n\n**POV (Percentage of Volume)**:\n- Maintain target % of market volume.\n- Adapt to actual market conditions.\n- E.g., 10% POV = 10% of every traded share.\n\n**Adaptive / dynamic**:\n- Adjust based on real-time signals (impact, vol, news).\n- Smart routing across venues.\n- ML-driven decisions.\n\n**Almgren-Chriss model**:\n- Trade-off: faster execution = more impact; slower = more opportunity cost (price drift).\n- Optimal: balance impact cost against execution-risk variance.\n- Closed-form solution under linear impact + Gaussian returns.\n- Pioneered modern optimal execution research.\n\n**Almgren-Chriss optimal trade rate**:\n$$\\text{rate}(t) \\propto \\sinh(\\kappa (T - t)) / \\sinh(\\kappa T)$$\n\nWhere $\\kappa$ relates urgency + risk aversion + impact + volatility."
+    },
+    {
+      "kind": "text",
+      "title": "Smart order routing + venue selection",
+      "body": "**Smart Order Router (SOR)**:\n- Decision logic for where to send each child order.\n- Maximizes: price improvement + fill probability + cost minimization.\n- Considers: visible vs dark, latency, fees + rebates, queue position.\n\n**USA market structure** (Reg NMS):\n- 16 stock exchanges, 50+ dark pools.\n- Order Protection Rule: must execute at best displayed price.\n- Trade-through prohibition: can't trade at worse price if better available.\n- NBBO (National Best Bid + Offer): aggregated across venues.\n\n**Exchange routing logic**:\n- **Maker venues** (NYSE, NASDAQ, ARCA): post limit orders, earn rebate.\n- **Taker venues** (EDGA, IEX): aggressive orders.\n- **Speed-bumped venues** (IEX, NYSE American): institutional-friendly.\n- **Inverted venues** (EDGA, BX): pay takers, charge makers.\n\n**Dark pools**:\n- Off-exchange. Not displayed.\n- Reduce signaling (large order doesn't move public quotes).\n- Common: Liquidnet, BIDS, ITG Posit, Instinet CBX, MS Pool, JPM XFI, GS Sigma.\n- ~35% of USA equity volume.\n\n**Pros of dark pools**:\n- Less impact for large orders.\n- Privacy.\n- Potentially better prices for natural matches.\n\n**Cons**:\n- Adverse selection: HFT trades against you in some pools.\n- Less liquidity than expected.\n- Information leakage (HFT detects + shadows).\n\n**Periodic auctions**:\n- Mini-auctions every few seconds.\n- Cboe LIS, Liquidnet Aurora, GS Auction.\n- Reduce HFT advantages.\n\n**RFQ (Request for Quote)**:\n- For block trades. Ask several dealers to quote.\n- Used in fixed income, FX, options.\n- Discretion + relationship-based.\n\n**Algo categories by client type**:\n- **Buy-side institutional**: blocky, infrequent large orders.\n- **Retail**: small market orders, mostly via brokers.\n- **HFT**: continuous + adaptive.\n- **Cross-asset**: futures vs cash, paired with hedging.\n\n**TCA (Transaction Cost Analysis)**:\n- Post-trade evaluation of execution quality.\n- Metrics: implementation shortfall, VWAP slippage, % of volume, fill rate.\n- Used to evaluate algos + brokers + venues.\n- Required by MiFID II + best execution rules.\n\n**Modern enhancements**:\n- ML-driven order placement.\n- Reinforcement learning for execution policies.\n- Cross-asset hedging during execution.\n- ESG-aware execution (avoid certain exchanges/counterparties)."
+    },
+    {
+      "kind": "text",
+      "title": "Modern execution + AI in trading",
+      "body": "**Reinforcement learning for execution**:\n- State: order book, time elapsed, remaining size, recent fills, market conditions.\n- Actions: order size, price level, venue, type.\n- Reward: minimize implementation shortfall.\n- Challenges: non-stationary environment, simulator-real gap, adverse selection.\n\n**Industry leaders**:\n- **JPMorgan**: LOXM execution algorithm (RL-driven). Used internally + offered to clients.\n- **Citadel Securities**: massive execution infrastructure.\n- **Goldman Sachs**: GS Atlas, GS Pool, GS Sigma. Wide algo + venue suite.\n- **Morgan Stanley**: BLOX, Speed.\n- **Virtu**: market-making + agency execution.\n\n**Aggregator + agent platforms**:\n- ITG (now Virtu Triton), Instinet, Liquidnet — pure agency.\n- Bloomberg EMSX, RealTick, FlexTrade — multi-broker.\n- Aladdin (BlackRock): integrated portfolio + execution.\n\n**Trading on alternative venues**:\n- ATS (Alternative Trading System): regulated dark pools.\n- Crossing networks: bilateral matching.\n- Block desks: large trades via dealer balance sheet.\n\n**Sourcing liquidity**:\n- **Direct Market Access (DMA)**: client trades direct via broker pipes.\n- **DMA with algos**: client controls slicing.\n- **Cash management**: brokers help schedule + slice.\n- **Algos + DMA + dark pool integrations**.\n\n**Algo customization**:\n- Client preferences: aggression, urgency, vol-targeting.\n- Restrictions: exclude specific venues / counterparties.\n- Multi-asset: equity + futures + options coordinated.\n\n**Real-time risk + monitoring**:\n- During execution: track impact, fill rate, expected vs actual.\n- Real-time TCA: deviations trigger algorithm switch.\n- Limit breaches: stop trading.\n\n**Modern challenges**:\n- **HFT adversaries**: execution algos must avoid being detected + front-run.\n- **Adverse selection**: orders in dark pools picked off by HFT.\n- **Latency arbitrage**: getting filled at stale prices.\n- **Information leakage**: orders signal direction to attentive market makers.\n\n**Defense techniques**:\n- **Randomization**: don't trade predictably.\n- **Iceberg**: hide most of size.\n- **Periodic auctions**: matching multiple orders.\n- **IEX speed bump**: levels playing field.\n- **Mid-point only**: execute only at midpoint.\n\n**Equity execution metrics**:\n- ~5-15 bps execution cost typical for institutional VWAP.\n- ~1-3 bps for very liquid large-caps.\n- ~30-100+ bps for small-caps or large blocks.\n\n**Block trades**: large transactions (>10K shares typically). Often executed via dedicated block desks + dark pools. Less price impact + more privacy than displayed trading.\n\n**Crypto execution**:\n- Coinbase Prime, Galaxy, Cumberland, B2C2 — top players.\n- Centralized vs DEX (decentralized exchange) execution.\n- DEXes (Uniswap, Curve) use AMM (automated market maker) curves rather than order books.\n- Slippage models different from traditional finance."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_quant_alm",
+        "kind": "guided_derivation",
+        "question": "Almgren-Chriss execution",
+        "goal": "Trade 100,000 shares over 4 hours. Permanent impact 0.5 bps per 1000 shares. Temporary impact 1 bps per 1000 shares/hour. Volatility 200 bps/hr.",
+        "steps": [
+          {
+            "prompt": "Almgren-Chriss balances impact cost vs execution risk (variance). Higher risk aversion → faster execution. Lower risk aversion → slower. What's the trade-off?",
+            "motivation": "Concept.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Faster execution: higher impact + lower variance (price exposure shorter). Slower: lower impact + higher variance (price drifts more). Optimal balances both.",
+                "Always fast.",
+                "Always slow."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Speed vs price risk."
+            ],
+            "reveal": "Faster = higher impact, lower price risk. Slower = lower impact, higher price risk. Optimal balances based on risk aversion."
+          },
+          {
+            "prompt": "Risk-averse trader (high λ): execution profile?",
+            "motivation": "Apply.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Spread evenly.",
+                "Front-loaded: execute most early to reduce price risk. Pay higher impact for less variance. Like an emergency exit.",
+                "Back-loaded.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Front-load."
+            ],
+            "reveal": "Front-loaded: trade aggressively early. Pay higher impact for variance reduction. Used when alpha decays fast (urgent)."
+          },
+          {
+            "prompt": "Risk-neutral trader: execution profile?",
+            "motivation": "Apply.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Uniform: TWAP. No incentive to front- or back-load if risk doesn't matter; just minimize average impact = uniform. (In reality, account for volume profile → VWAP.)",
+                "Front-load.",
+                "Back-load."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "TWAP."
+            ],
+            "reveal": "Uniform = TWAP. Minimizes total impact assuming linear impact. Slight adjustments for volume profile → VWAP."
+          },
+          {
+            "prompt": "ML-augmented execution: what could it improve?",
+            "motivation": "Modern.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Nothing.",
+                "Adapt to real-time conditions (sudden vol, news, order-book changes), detect HFT trying to detect us, optimize timing within slice, switch venues dynamically. RL-driven execution becoming standard at top houses (JPMorgan LOXM, Citadel, etc.).",
+                "Just faster.",
+                "Just slower."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Adaptive + RL."
+            ],
+            "reveal": "RL execution: adaptive to conditions, detects + avoids adversaries, optimizes timing within slices, switches venues. Top execution firms (JPM LOXM, GS, Citadel) use. Replacing rule-based algos with learned policies."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Almgren-Chriss: balance impact (deferred = lower) vs risk (deferred = higher)}}$$ The framework underlies all institutional execution algos. Risk aversion + alpha urgency → optimal trade rate. Modern RL-based algos extend this with learned policies adapting to market conditions in real time. The execution-algorithm field is one of the few areas where ML clearly outperforms rule-based heuristics in production."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_quant_dark",
+        "kind": "multiple_choice",
+        "question": "An institution executing a large order considers using dark pools. What's the main trade-off?",
+        "options": [
+          "Random.",
+          "Dark pools: less price impact + privacy (good) vs adverse selection (HFT trading against you in some pools) + slower fills + less price discovery. Modern: use carefully + monitor TCA per venue. Best dark pools: institutional-only (Liquidnet, BIDS). Worst: those with high HFT participation.",
+          "All good.",
+          "All bad."
+        ],
+        "correctIndex": 1,
+        "explanation": "Dark pools: significant share of institutional equity execution. Pros: lower impact (no displayed quote movement), privacy (sophisticated traders don't see your order), often better midpoint executions. Cons: adverse selection (HFT trades against you), partial fills (less liquidity than visible book), variable price improvement.\n\nMix matters: some dark pools (Liquidnet, BIDS, MS Pool) are institutional-focused with strict membership; less HFT participation. Others (banks' internal pools) have more HFT.\n\nModern best practice: route through multiple dark pools + lit venues, monitor TCA per pool, drop pools with poor execution quality. Reg NMS requires trade-through prohibition (must execute at best displayed price if not in dark pool).\n\nIEX founded specifically to address dark-pool issues; its mechanism design (speed bump) reduces HFT advantage. Other 'speed-bumped' venues followed.\n\nMiFID II (EU 2018) imposed transparency + reporting requirements on dark pools; reduced market share somewhat."
+      },
+      "hints": [
+        "Trade-offs?",
+        "Modern practice?"
+      ],
+      "workedSolution": "Less impact + privacy vs adverse selection + partial fills. Mix of pools matters (institutional-only vs HFT-heavy). Modern: multi-pool routing + per-pool TCA + drop bad performers. Speed-bumped venues (IEX) + periodic auctions reduce HFT advantages. MiFID II transparency rules reshape EU market.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_quant_pov",
+        "kind": "math_expression",
+        "question": "POV 10%. Market traded 1M shares in 1 hour. My fills in that hour?",
+        "acceptedAnswers": [
+          "100000",
+          "100K"
+        ],
+        "hint": "10% × 1M."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_quant_alg",
+        "kind": "scenario",
+        "question": "Choosing execution algo",
+        "prompt": "An asset manager needs to buy 5M shares of a small-cap stock (20% of average daily volume). Walk through the algorithm choice + venue strategy."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_quant_exec",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why execution is now considered a separate research discipline within quant trading.",
+        "rubric": "Mentions that transaction costs (spread + impact + opportunity cost) can consume 30-100% of theoretical alpha; modern markets are highly fragmented + adversarial (HFT, dark pools, latency arbitrage); execution algorithms require sophisticated optimization + ML to navigate; institutional firms have dedicated execution research teams. Without good execution, even great alpha doesn't translate to live performance."
+      }
+    }
+  ]
+}

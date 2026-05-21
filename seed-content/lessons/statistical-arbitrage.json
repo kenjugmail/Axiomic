@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "specialist",
+    "objectives": [
+      "Outline pairs trading + cointegration.",
+      "Apply mean-reversion strategies.",
+      "Reason about regime change + factor exposure."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Pairs trading: the classic stat arb",
+      "body": "**Pairs trading**: long one stock + short related stock that have historically tracked. Bet on convergence when they diverge.\n\n**Classic setup**:\n1. Find pair of related stocks (sector, industry, fundamental link).\n2. Calculate ratio or spread historically.\n3. Compute z-score of current spread vs history.\n4. When z-score extreme (e.g., |z| > 2), enter trade.\n5. Long the cheaper, short the richer.\n6. Exit when spread returns to normal.\n\n**Why pairs work**:\n- Two stocks in same business should have similar exposures.\n- Idiosyncratic news affecting only one → temporary divergence.\n- Convergence is mean-reverting when fundamental link holds.\n- Profit from convergence is independent of overall market direction (market-neutral).\n\n**Famous example**:\n- KO + PEP (Coca-Cola + Pepsi).\n- GM + F (GM + Ford).\n- C + JPM (Citigroup + JPMorgan).\n\n**Statistical foundation: cointegration**:\n- Two non-stationary series are COINTEGRATED if some linear combination IS stationary.\n- E.g., individual stock prices random-walk, but spread between two related stocks oscillates around a mean.\n- Engle-Granger test (1987): two-step procedure. Augmented Dickey-Fuller test on residuals.\n- Johansen test: multi-asset extension.\n\n**Half-life of mean reversion**: Ornstein-Uhlenbeck model.\n$$dx_t = -\\theta(x_t - \\mu)dt + \\sigma dW_t$$\n\nHalf-life: $\\ln 2 / \\theta$. Useful: 5-30 days for many equity pairs.\n\n**Pairs vs index arb**:\n- **Index arbitrage**: ETF vs basket of constituents. Highly liquid, tiny edge, professional.\n- **Pairs**: less liquid pairs; more edge per trade but capacity-limited.\n- **Triplets, n-tuples**: extend pairs to multi-asset.\n\n**Modern reality**: classic stock pairs are mostly competed away. Most institutional pair trades are subtler: cross-listings, depository receipts, futures-vs-cash, sector pairs, fundamentals-based + multi-factor."
+    },
+    {
+      "kind": "text",
+      "title": "Mean-reversion strategies",
+      "body": "**Mean reversion**: prices oscillate around fair value; departures revert.\n\n**Why it works**:\n- Behavioral: overreaction to news, panic selling.\n- Liquidity: large orders push prices temporarily.\n- Market making: providing liquidity earns spread.\n- Inventory rebalancing.\n\n**Common implementations**:\n\n**Statistical (cross-sectional)**:\n- Rank stocks by recent return.\n- Long bottom decile (recent losers); short top (recent winners).\n- 5-day lookback typical.\n- Profits if losers bounce + winners cool.\n\n**Index-level mean reversion**:\n- VIX vs realized vol.\n- Multi-sector / multi-country rotation.\n\n**Microstructure mean reversion**:\n- Quote skew vs typical.\n- Trade-flow imbalance.\n- Tick-by-tick reversal.\n\n**Pitfalls of mean reversion**:\n- **Catching falling knives**: companies in trouble can keep falling. Distinguish stable mean reversion from secular trends.\n- **Regime change**: in crisis, mean reversion fails (high vol + correlations).\n- **Filtering**: avoid news events, earnings, M&A.\n- **Microstructure leakage**: trades AGAINST your reversion (HFT detects).\n\n**Z-score thresholds**:\n- Entry: |z| > 1.5-2 (extreme departure).\n- Exit: z near 0 (reverted).\n- Stop loss: |z| > 3-4 (gone too far → likely regime change).\n\n**Bayesian + state-space approaches**:\n- Track time-varying mean.\n- Kalman filter for parameter updates.\n- Hidden Markov models for regime detection.\n\n**Risk management**:\n- Sector + factor neutrality.\n- Stop losses (limit loss per trade).\n- Position sizing (smaller as conviction lower).\n- Maximum drawdown limits.\n- Daily Var (Value-at-Risk).\n\n**Capacity considerations**:\n- Small-cap pairs: more inefficiency, less capacity.\n- Large-cap: less inefficiency, more capacity.\n- Single name pairs: capacity-limited; portfolios of many pairs scale better.\n- Top stat arb firms (Renaissance, DE Shaw, Two Sigma): thousands of names + pairs in portfolios."
+    },
+    {
+      "kind": "text",
+      "title": "Factor models + regime changes + the modern playbook",
+      "body": "**Factor models**: decompose returns into FACTORS (market, size, value, momentum, quality, low-vol) + IDIOSYNCRATIC.\n\n**Fama-French 3-factor**: market + size + value.\n**Carhart 4-factor**: + momentum.\n**Fama-French 5-factor**: + profitability + investment.\n**Smart-beta ETFs**: codified factor exposures (Vanguard, iShares, Invesco).\n\n**Factor neutrality**:\n- Stat arb strategies typically neutralized to common factors.\n- Long-short balanced: same factor exposures on both sides.\n- Idiosyncratic alpha remains.\n\n**Risk models**:\n- **Barra (MSCI)**, **Axioma**: industry-standard.\n- **Bloomberg PORT**, **Wolfe Research**: alternatives.\n- Compute: covariance matrix, factor exposures, specific risk.\n- Inputs to portfolio optimization.\n\n**Portfolio optimization**:\n- **Mean-variance** (Markowitz): max return / variance. Sensitive to inputs.\n- **Risk parity**: equal risk contribution from each asset/factor.\n- **Robust optimization**: account for parameter uncertainty.\n- **Black-Litterman**: combine equilibrium + views.\n\n**Regime detection**:\n- Markets shift between regimes (bull/bear, low-vol/high-vol, expansion/recession).\n- Strategy performance varies by regime.\n- Detection: hidden Markov models, change-point detection, regime classifiers.\n- Approach: regime-conditional models + dynamic allocation.\n\n**Famous regime changes**:\n- 2007-2009 financial crisis.\n- 2020 COVID crash + recovery.\n- 2022 inflation + rates regime.\n\n**Adverse regime examples**:\n- August 2007 'quant quake': many stat arb funds had huge drawdowns simultaneously. Triggered by forced unwinds. Recovered in ~2 weeks.\n- March 2020 vol crisis: many funds suffered; bond + equity correlations changed.\n- 2022: anti-mean-reversion environment as factors all moved together with rates.\n\n**Modern stat arb**:\n- Multi-asset (equities + futures + FX + crypto).\n- ML-driven (no longer purely linear).\n- Alternative data integrated.\n- Faster execution (HFT-like for some).\n- Capacity-aware strategy design.\n\n**Pure stat arb funds**:\n- Renaissance Medallion (mostly closed).\n- DE Shaw stat-arb funds.\n- Two Sigma.\n- AQR (factor-based).\n- Smaller specialists: WorldQuant, Voloridge, others.\n\n**Multi-strategy funds**: many stat arb portfolios alongside other strategies. Citadel, Millennium, Point72, Balyasny, Schonfeld, ExodusPoint.\n\n**Tools + libraries**:\n- **statsmodels** (Python): econometrics + cointegration.\n- **arch**: GARCH + financial econometrics.\n- **PyKalman**, **filterpy**: state-space.\n- **vectorbt, backtrader**: backtesting.\n- **pyfolio**: performance analysis.\n- **PortOpt**: portfolio optimization."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_quant_cointeg",
+        "kind": "guided_derivation",
+        "question": "Test for cointegration",
+        "goal": "Two stocks A + B both random-walk. Spread = $A - \\beta B$. Test if spread is stationary (cointegrated).",
+        "steps": [
+          {
+            "prompt": "Step 1: estimate $\\beta$ from regression $A_t = \\alpha + \\beta B_t + \\epsilon_t$.",
+            "motivation": "Find hedge ratio.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "OLS regression of A on B gives β̂ (hedge ratio). Use the residuals $\\hat{\\epsilon}_t$ for stationarity testing.",
+                "Just average.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "OLS."
+            ],
+            "reveal": "OLS regression of A on B → β̂ (hedge ratio). Residuals tested for stationarity next."
+          },
+          {
+            "prompt": "Step 2: Augmented Dickey-Fuller (ADF) test on residuals. Null hypothesis: unit root (non-stationary). What's the test result if cointegrated?",
+            "motivation": "ADF interpretation.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "High p-value.",
+                "REJECT null (low p-value, typically < 0.05). Spread is stationary → cointegrated. If null not rejected: spread is non-stationary; A + B not cointegrated.",
+                "Random.",
+                "Same."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Reject null = stationary."
+            ],
+            "reveal": "Reject ADF null (p < 0.05) = stationary = cointegrated. Failure to reject = non-cointegrated; pairs trade not justified statistically."
+          },
+          {
+            "prompt": "Limitations of this approach in practice?",
+            "motivation": "Real-world.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "None.",
+                "Cointegration can BREAK DOWN: structural changes (M&A, bankruptcy, regulation, industry shifts). Backtesting may show false positives if look-ahead used. Modern: state-space models (Kalman filter) allow time-varying β; regime detection adds robustness. Also: pure pairs heavily competed away — most institutional pair trades now multi-asset baskets.",
+                "Random.",
+                "Always works."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Real-world breakdowns."
+            ],
+            "reveal": "Cointegration breakdown is common (M&A, regulatory shifts, industry change). Modern: time-varying hedge ratios (Kalman filter), regime detection, multi-asset baskets. Pure two-stock pairs largely picked-over; sophisticated stat arb uses dozens-hundreds of names + factor neutrality."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Cointegration: OLS hedge ratio + ADF on residuals; stationary residuals = pairs candidate}}$$ Cointegration testing (Engle-Granger, Johansen) remains foundational. Modern practice extends to multi-asset Johansen tests + time-varying state-space models + multi-factor neutrality. Pure two-stock pairs trading is largely past its prime in institutional contexts; sophisticated stat arb spans hundreds of names with factor-neutralized portfolios."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_quant_aug2007",
+        "kind": "multiple_choice",
+        "question": "The August 2007 'quant quake' caused simultaneous large losses across stat arb funds. What was the trigger?",
+        "options": [
+          "Random.",
+          "Forced unwind: one large hedge fund needed to liquidate its quant portfolio rapidly (during sub-prime stress). Sales pushed positions against the typical stat arb strategies → similar strategies losing money simultaneously → more forced liquidation → cascade. Lasted ~1 week; most recovered.",
+          "Marketing.",
+          "Manipulation."
+        ],
+        "correctIndex": 1,
+        "explanation": "August 2007 quant quake: Aug 7-10. Many stat arb funds lost 7-25% in a week. Cause: a large quant fund (likely Goldman Sachs Global Equity Opportunities Fund or similar) needed rapid liquidation. Forced selling of typical long/short positions pushed prices against many similar funds. Cascade as funds saw losses + began deleveraging.\n\nLessons:\n- **Crowded trades**: many funds running similar strategies → simultaneous unwinds amplify.\n- **Liquidity risk**: in crisis, exit at any price hurts everyone running similar strategies.\n- **Capacity awareness**: knowing how much overall capital trades a strategy matters.\n- **Stress testing**: assume correlated drawdowns possible across strategies.\n\nMost stat arb funds recovered within 2 weeks. But the event reshaped industry views on crowded trades, leverage, + risk management. AQR's Cliff Asness famously wrote about it; Andrew Lo's research extensively analyzes.\n\nSimilar events: March 2020 vol crash (factor + cross-asset stress), Aug 2024 yen carry unwind."
+      },
+      "hints": [
+        "What happened?",
+        "Lessons?"
+      ],
+      "workedSolution": "Forced unwind of a large quant fund triggered cascade. Many stat arb funds with similar exposures lost 7-25% in 1 week. Lessons: crowded-trade risk, liquidity in crisis, capacity awareness, stress testing for correlated drawdowns. Most recovered in 2 weeks. Reshaped industry risk management.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_quant_halflife",
+        "kind": "math_expression",
+        "question": "Spread half-life from Ornstein-Uhlenbeck with θ = 0.05. Half-life days?",
+        "acceptedAnswers": [
+          "~13.86",
+          "13.86",
+          "log(2)/0.05"
+        ],
+        "hint": "$\\ln 2 / 0.05 \\approx 13.86$ days."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_quant_pairs",
+        "kind": "scenario",
+        "question": "Building a pairs strategy",
+        "prompt": "Walk through the design of a small-cap pairs trading strategy: universe, cointegration screen, entry/exit, risk management."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_quant_statarb",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why classic pairs trading is mostly competed away in liquid US markets while still working in less-trafficked markets.",
+        "rubric": "Mentions that pairs trading exploits temporary divergences in related stocks; once detected, sophisticated arbitrageurs trade them away rapidly in well-followed markets; less-trafficked markets (small-cap, emerging markets, niche products) retain inefficiencies longer. Modern institutional stat arb moves to more complex multi-asset + factor-neutral approaches; simple pairs largely retail-territory."
+      }
+    }
+  ]
+}

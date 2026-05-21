@@ -1,0 +1,173 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply the Bradford-Hill criteria as a heuristic.",
+      "Draw + analyze causal DAGs with confounders + colliders.",
+      "Distinguish association vs causation with target-trial framing."
+    ],
+    "prereqs": [
+      "study-designs"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "From association to causation",
+      "body": "All epidemiology rests on a hierarchy: data → association → causation. Most observed associations are *not* causal — they reflect confounding, reverse causation, selection bias, or chance.\n\n**Bradford-Hill criteria** (1965): a heuristic checklist for assessing whether an association is causal:\n\n1. **Strength** of association (larger effect → more likely causal).\n2. **Consistency** across studies, populations, conditions.\n3. **Specificity** (one cause → one effect) — modern view: weak criterion.\n4. **Temporality** — cause precedes effect (the only criterion logically necessary).\n5. **Biological gradient** (dose-response).\n6. **Plausibility** (mechanism makes biological sense).\n7. **Coherence** (consistent with current knowledge).\n8. **Experiment** — does intervening change the outcome (gold standard).\n9. **Analogy** to similar known causal relationships.\n\nHill himself emphasized that none are necessary or sufficient *except* temporality. They're a checklist, not a litmus test. Modern causal inference (Rubin, Pearl, Robins, Hernán) has formalized the underlying logic via **potential outcomes** + **structural causal models** + **graphical criteria** — but Hill remains a practical heuristic."
+    },
+    {
+      "kind": "text",
+      "title": "Directed acyclic graphs (DAGs) + confounder identification",
+      "body": "**DAG**: nodes are variables, arrows are direct causal effects. Used to formalize causal reasoning:\n\n• **Confounder Z**: Z → X, Z → Y. Creates a 'backdoor path' X ← Z → Y that biases the X-Y association. Must adjust for Z to recover causal effect.\n• **Mediator M**: X → M → Y. The effect of X on Y goes through M. *Don't* adjust for M if you want total effect; do adjust if you want direct effect.\n• **Collider C**: X → C ← Y. C is caused by both. Adjusting for C *creates* spurious association (collider bias / Berkson's paradox).\n\nClassic collider example: among hospitalized patients (C = admitted to hospital), heart disease (X) + back pain (Y) appear *negatively* correlated — because most hospitalized patients have at least one of the two; if you have heart disease you're hospitalized regardless of back pain. Conditioning on hospitalization creates the spurious correlation.\n\n**Backdoor criterion** (Pearl): to identify the causal effect of X on Y from observational data, find a set Z that (a) blocks all backdoor paths from X to Y + (b) contains no descendant of X. Then adjusting for Z is sufficient.\n\nDAGs make causal assumptions *explicit* + transparent — different DAGs imply different adjustment sets + can give different effect estimates from the same data."
+    },
+    {
+      "kind": "text",
+      "title": "Target-trial emulation + counterfactual thinking",
+      "body": "**Target-trial framework** (Hernán + Robins): when an RCT isn't feasible, pretend you're designing one + use observational data to mimic it. Forces explicit articulation of:\n\n• Eligibility criteria (when, who).\n• Treatment strategies (what's compared).\n• Assignment procedures (random in trial; conditional on Z in observational).\n• Follow-up start/end.\n• Outcome.\n• Causal contrasts (intention-to-treat, per-protocol).\n• Analysis plan.\n\nApplied to observational data, target-trial emulation reduces common biases: immortal-time bias, prevalent-user bias, depletion-of-susceptibles. Made several controversial findings reverse (statins-for-primary-prevention in 50s; aspirin in low-risk patients).\n\n**Counterfactual reasoning**: 'what would Y have been if X had been different, holding everything else constant?' The fundamental problem of causal inference: we never observe both X=1 and X=0 outcomes for the same individual. Statistics fills the gap via assumptions (exchangeability, positivity, consistency).\n\n**Modern instrumental variables**: Mendelian randomization uses genetic variants as 'natural randomization' for exposures (e.g., HDL-cholesterol → CHD via lipid-gene variants). Strong assumptions (relevance + exclusion + monotonicity), but provides causal inference where RCTs are infeasible.\n\nThe field has shifted from 'inference from association' to 'inference from explicit causal model.' Hernán + Robins' *Causal Inference: What If* is the canonical modern text."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_causal_1",
+        "kind": "guided_derivation",
+        "question": "Identify the confounders + colliders in a coffee → heart-disease analysis",
+        "goal": "Coffee consumption (X) appears associated with elevated heart-disease (Y) risk in some observational studies. Smoking (Z₁) is positively correlated with coffee + causes heart disease. Education (Z₂) is negatively correlated with both. Anxiety (Z₃) is caused by both coffee + heart disease (collider).",
+        "steps": [
+          {
+            "prompt": "Draw the DAG: which arrows go where?",
+            "motivation": "Articulate the causal structure.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Z1→X, Z1→Y, Z2→X, Z2→Y, X→Y?, X→Z3, Y→Z3",
+                "smoking→coffee, smoking→CHD, education→coffee, education→CHD, coffee→anxiety, CHD→anxiety"
+              ]
+            },
+            "hints": [
+              "Confounders have arrows INTO both X and Y. Colliders receive arrows FROM X and Y."
+            ],
+            "reveal": "Smoking (Z₁) → Coffee (X), Smoking (Z₁) → CHD (Y). Education (Z₂) → Coffee (X), Education (Z₂) → CHD (Y). Coffee (X) → Anxiety (Z₃) ← CHD (Y). Coffee (X) → ?CHD (Y) is the causal question."
+          },
+          {
+            "prompt": "Which variables should you adjust for to estimate the causal effect of coffee on CHD?",
+            "motivation": "Apply backdoor criterion.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "smoking + education",
+                "Z1 + Z2",
+                "smoking and education"
+              ]
+            },
+            "hints": [
+              "Confounders block backdoor paths; do NOT include colliders."
+            ],
+            "reveal": "Adjust for Z₁ (smoking) + Z₂ (education) — both confounders. Do NOT adjust for Z₃ (anxiety) — that's a collider; adjusting would induce spurious association between X and Y."
+          },
+          {
+            "prompt": "If you mistakenly adjust for anxiety, what would happen?",
+            "motivation": "Apply collider stratification logic.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "bias",
+                "spurious association",
+                "collider bias",
+                "biased estimate"
+              ]
+            },
+            "hints": [
+              "Conditioning on a collider induces a spurious association."
+            ],
+            "reveal": "Spurious correlation: within strata of anxiety, coffee + CHD would appear MORE strongly associated (or even inverted) — collider bias / Berkson's paradox. The bias has flipped many published epi findings when researchers adjusted for 'everything available' without thinking through causal structure."
+          },
+          {
+            "prompt": "Suppose after correct adjustment for confounders, the coffee-CHD association vanishes. What's the conclusion?",
+            "motivation": "Interpret null result.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "no causal effect",
+                "association was confounded",
+                "smoking explained it"
+              ]
+            },
+            "hints": [
+              "What was driving the original association?"
+            ],
+            "reveal": "The original positive association was confounded by smoking (smokers drink more coffee + smoking causes CHD). After adjustment, no causal effect of coffee on CHD remains — coffee was just a proxy for smoking. This is the actual finding of large modern cohort studies + the consensus that moderate coffee consumption is not cardiovascular-harmful + may be slightly protective."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_causal_1",
+        "kind": "multiple_choice",
+        "question": "A meta-analysis combines 20 observational studies + 3 RCTs on hormone-replacement therapy + heart disease. The observational pooled RR = 0.6 (protective); the RCT pooled RR = 1.2 (harmful). Which estimate should clinicians prefer?",
+        "options": [
+          "Observational, because it has more studies + power.",
+          "RCT, because randomization addresses confounding by indication / healthy-user bias; observational protected effect is well-known to be artifactual.",
+          "Neither — meta-analyses are always wrong.",
+          "The average of the two."
+        ],
+        "correctIndex": 1,
+        "explanation": "RCTs are preferred for **intervention efficacy** estimates because randomization breaks confounding. Observational studies of HRT (Nurses' Health Study, etc.) suffered from:\n\n(1) **Healthy-user bias**: HRT users are healthier on average — better access to healthcare, more preventive behavior.\n(2) **Compliance bias**: regular HRT users were even more health-conscious.\n(3) **Adherence-bias**: nonadherents differed systematically.\n\nThe WHI RCT (2002) broke these confounds + found HRT *increased* CHD risk by ~29% in first year. This was a paradigm shift + led to major clinical practice changes (HRT prescribing dropped 50% within years).\n\nWhen RCTs + observational studies conflict on intervention questions, prefer the RCT — unless there's clear reason to question external validity (population, protocol, follow-up length, etc.). Modern target-trial emulation tries to bridge the gap, but for unequivocal hot-button intervention questions, RCT trumps.\n\nNote: confidence in 'RCT > observational' is conditional on the RCT being well-done. Small / underpowered / poorly-conducted RCTs are no better than careful observational studies. The hierarchy is about *evidence quality + bias risk*, not blind preference for design name."
+      },
+      "hints": [
+        "Which design addresses healthy-user bias?",
+        "What does the WHI history tell us?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "RCT — randomization addresses confounding by indication + healthy-user bias. The WHI RCT (2002) showed HRT increased CHD by ~29%; observational cohorts had found ~30-50% protective effect. The observational result was artifactual (healthy-user + compliance bias). When designs conflict on intervention questions, prefer the RCT (assuming it's well-done)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_causal_2",
+        "kind": "multiple_choice",
+        "question": "What's the key insight of Mendelian randomization (MR) for causal inference?",
+        "options": [
+          "Genes are not associated with exposures, so MR is invalid.",
+          "Genetic variants are randomly inherited at conception, independent of environmental confounders. If a variant affects an exposure (e.g., LDL-cholesterol), then variant→outcome association is causally driven by variant→exposure→outcome — a natural experiment. Avoids confounding by unmeasured environmental variables.",
+          "Mendel's laws guarantee no confounding in any study.",
+          "MR can only be applied to plant genetics."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Mendelian randomization** exploits Mendelian inheritance (alleles randomly distributed at meiosis) as a natural randomizer. If a genetic variant *Z* causes higher exposure *X* (e.g., variant in PCSK9 → lower LDL), the variant-outcome (variant → CHD) association reflects causal effect of *X* on outcome — because *Z* was randomly assigned at conception, before any confounder operated.\n\n**Required assumptions** (the 'IV trio'):\n1. **Relevance**: Z affects X (strong, instrument-explanatory power → F-statistic > 10).\n2. **Exclusion restriction**: Z affects Y only through X. (Hard to verify; pleiotropy violates it.)\n3. **Exchangeability**: Z is independent of confounders. Usually satisfied by Mendelian randomization at conception.\n\n**Famous applications**:\n- LDL-cholesterol → CHD: HMGCR / PCSK9 variants + outcomes. Confirmed causal effect (drove statin + PCSK9-inhibitor development).\n- BMI → diabetes: FTO variants confirm causal.\n- HDL-cholesterol → CHD: CETP variants. *Disconfirmed* causal effect — HDL was a marker, not a cause. Led to failed HDL-raising drug trials.\n- Vitamin D → cancer: largely disconfirmed.\n\nMR is now a standard tool when RCTs are infeasible or unethical. It's not perfect (pleiotropy + weak instruments + LD), but combined with sensitivity analyses (MR-Egger, weighted median, MR-PRESSO) it gives robust causal estimates in many settings."
+      },
+      "hints": [
+        "When is a variant 'randomized'?",
+        "What assumption does MR exploit?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Mendelian variants are randomly inherited at conception → independent of (most) environmental confounders. So genetic variant → outcome association via a known exposure pathway is causally interpretable. Assumptions: relevance (Z→X strong), exclusion (Z→Y only through X), exchangeability (Z⊥confounders). Applications: LDL→CHD (confirmed), HDL→CHD (disconfirmed), BMI→T2D (confirmed). Sensitivity analyses handle pleiotropy."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_causal_1",
+        "kind": "math_expression",
+        "question": "In a study of 10,000 people, 2,000 are exposed; 100 develop the outcome among exposed, 200 among unexposed. What's the relative risk (RR)?",
+        "acceptedAnswers": [
+          "2",
+          "2.0",
+          "0.05/0.025"
+        ],
+        "hint": "RR = P(Y|X=1) / P(Y|X=0). Risks: 100/2000 = 5%; 200/8000 = 2.5%."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_causal_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain to a graduate student in policy why 'correlation is not causation' is more than a slogan — what specifically goes wrong, and what tools do modern epidemiologists use to do better?",
+        "rubric": "Mentions: confounding (Z → X + Z → Y creates spurious X-Y association); reverse causation (Y causes X); selection bias; collider bias (conditioning on common effect creates association); chance. Tools: RCTs (randomization breaks confounding), DAGs (make causal assumptions explicit + identify adjustment sets via backdoor criterion), propensity scores / IPW, instrumental variables / Mendelian randomization, target-trial emulation. Examples: HRT (observational said protective, RCT showed harmful — confounded by healthy-user bias); coffee (confounded by smoking); HDL-CHD (Mendelian randomization disconfirmed causal). Concludes that modern causal inference is a formal discipline, not just statistical adjustment — assumptions must be explicit + tested."
+      }
+    }
+  ]
+}

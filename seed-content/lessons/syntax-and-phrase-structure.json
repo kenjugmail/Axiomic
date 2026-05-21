@@ -1,0 +1,262 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Apply X-bar + dependency analyses.",
+      "Reason about word-order universals + parameters.",
+      "Connect to neural language models + parsing."
+    ],
+    "prereqs": [
+      "language-structure-foundations"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Syntax: structure of sentences",
+      "body": "**Syntax** = rules + principles by which words combine into phrases + sentences. Native speakers reliably judge sentences as grammatical or not, generate novel ones, recognize ambiguity.\n\n**Constituent structure**: sentences hierarchically organized into nested constituents (phrases). Tests for constituency:\n- **Substitution**: 'the big red dog' → 'it' (pronoun substitutes for whole NP).\n- **Movement**: 'I love the big red dog' → 'The big red dog, I love.' Constituents move together.\n- **Coordination**: 'I love [the dog] and [the cat].'\n- **Cleft**: 'It is [the dog] that I love.'\n\n**Phrase types**:\n- NP (noun phrase): the cat, my old computer.\n- VP (verb phrase): runs, kicked the ball.\n- PP (prepositional phrase): in the park.\n- AP (adjective phrase): very tall.\n- AdvP (adverb phrase): rather slowly.\n- CP (complementizer phrase): that he left, whether to go.\n- IP/TP (inflectional/tense phrase): the sentence with tense + agreement.\n\n**X-bar theory** (Chomsky 1970, Jackendoff 1977): all phrases have same structure: [X' [specifier] [X (head)] [complement]]. NP head is N, VP head is V, etc.\n\n**Phrase-structure rules** (older formalism):\n  S → NP VP\n  NP → (Det) (Adj) N (PP)\n  VP → V (NP) (PP) (AdvP)\n  PP → P NP"
+    },
+    {
+      "kind": "text",
+      "title": "Dependency vs constituency + word order",
+      "body": "**Two main syntactic representations**:\n\n• **Constituency / phrase-structure**: hierarchical tree of phrases. X-bar, GB, Minimalist, HPSG, LFG.\n\n• **Dependency grammar**: directed edges between words (head → dependent). Simpler representation; flatter trees. Tesnière 1959; modernized in Universal Dependencies (UD, Nivre et al. 2014+).\n\nExample sentence: 'The cat chased the mouse.'\n\nConstituency tree:\n[S [NP The cat] [VP chased [NP the mouse]]]\n\nDependency tree:\n  chased → cat (subject)\n  chased → mouse (object)\n  cat → The (det)\n  mouse → the (det)\n\nDependency representation is closer to predicate-argument structure; constituency closer to surface order + traditional grammar. Both useful for different analyses.\n\n**Word-order universals** (Greenberg 1963):\n- SVO (subject-verb-object): English, French, Mandarin, Russian. ~42% of languages.\n- SOV: Japanese, Turkish, Korean, Hindi, Latin. ~45% of languages.\n- VSO: Arabic, Welsh, Irish, Maori. ~9% of languages.\n- VOS, OVS, OSV: < 1% each.\n\n**Word-order correlations**:\n- VO languages: prepositions; head-initial (head before complement); auxiliary-verb order; noun-relative order.\n- OV languages: postpositions; head-final; aux + verb reversed; relative-noun order.\n\nThis is **Greenberg's universal 4** + related. Strong cross-linguistic patterns.\n\n**Parameter setting** (GB / Principles + Parameters): innate grammar has parameters set by exposure. Head-direction parameter, pro-drop parameter, etc. Set by ~age 4 in children.\n\nModern Minimalist Program reduces parameters; emphasis on lexical + featural variation."
+    },
+    {
+      "kind": "text",
+      "title": "Movement, displacement, + binding",
+      "body": "Many languages allow elements to appear in non-canonical positions (movement / displacement):\n\n• **Wh-movement**: 'Who did you see?' (object 'who' fronted).\n• **Topicalization**: 'Beans, I love.'\n• **Cleft**: 'It is John who left.'\n• **Passive**: 'The cat was chased' (object becomes subject).\n• **Raising**: 'John seems to be tall.'\n\n**Bounding theory + islands**: extraction is restricted.\n- Strong islands: complex NP, sentential subject, adjunct.\n- Weak islands: wh-questions.\n- Ross 1967 + Chomsky's Subjacency + extensions.\n\n**Binding theory** (Chomsky 1981):\n- **Anaphor (himself, herself)**: must have antecedent in same clause/local domain. ('John saw himself' OK; 'John knows Bill saw himself' = Bill, not John.)\n- **Pronoun (he, she, it)**: free in local domain.\n- **R-expression (John, the dog)**: free everywhere.\n\nReflects principle: closer dependencies preferred; longer-distance ones restricted.\n\n**Coordination + parallelism**: 'I gave [a book to John] + [a pen to Mary].' Constituents must match in category + structure.\n\n**Long-distance dependencies + neural models**: do LMs handle long-distance agreement, wh-extraction, NPIs?\n- Linzen + Marvin 2016: LSTMs show some sensitivity.\n- BERT + GPT: increasingly good at long-distance dependencies + multi-clause.\n- Probing literature: hidden states encode syntactic structure (Hewitt + Manning 2019, structural probe).\n- Edge probing, BLiMP (linguistic minimal pairs evaluation).\n- Modern LLMs perform near-human on most grammaticality benchmarks but fail on some constructions (garden-path, NPIs in specific contexts).\n\nNeural models + theoretical syntax intersect actively now."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_syn_1",
+        "kind": "guided_derivation",
+        "question": "Parse 'The cat that the dog chased ate the food' as constituency tree",
+        "goal": "Identify embedded clauses + constituents.",
+        "steps": [
+          {
+            "prompt": "What's the main verb of the matrix clause?",
+            "motivation": "Identify main predicate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ate",
+                "ate (verb of main clause)"
+              ]
+            },
+            "hints": [
+              "The action at the top level."
+            ],
+            "reveal": "**'ate'** is the main verb. Matrix clause structure: [The cat ... ate the food]."
+          },
+          {
+            "prompt": "What's modifying 'the cat'?",
+            "motivation": "Relative clause.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "that the dog chased",
+                "relative clause"
+              ]
+            },
+            "hints": [
+              "'That...' relative clause."
+            ],
+            "reveal": "**'that the dog chased'** is a relative clause modifying 'the cat.' Structure: [NP [the cat] [CP [that] [IP the dog chased _]]]."
+          },
+          {
+            "prompt": "In the relative clause, what's the gap/trace position?",
+            "motivation": "Movement / dependency.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "after 'chased'",
+                "object position",
+                "trace"
+              ]
+            },
+            "hints": [
+              "What's missing in the relative clause?"
+            ],
+            "reveal": "Relative clause has a gap (trace _) after 'chased': 'the dog chased _.' The wh-element ('that') is the displaced object; relativizes 'cat' as the chased one. Object-extracted relative clause."
+          },
+          {
+            "prompt": "Constituency-tree representation (informally)?",
+            "motivation": "Hierarchical structure.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "[S [NP [the cat] [RC [that] [S [the dog] [VP chased _]]]] [VP ate [NP the food]]]"
+              ]
+            },
+            "hints": [
+              "Nested S + RC + VP."
+            ],
+            "reveal": "Full constituency:\n[S\n  [NP [DET the] [N cat] [CP [C that] [IP [NP [DET the] [N dog]] [VP [V chased] [DP <trace>]]]]]\n  [VP [V ate] [NP [DET the] [N food]]]\n]\n\nOr in dependency form: ate → cat (subject); ate → food (object); chased → dog (subject); chased → cat (relativized object); det → the; etc.\n\nObject-extracted relatives are processing-difficult ('garden-path effect') vs subject-extracted ('The cat that chased the dog ate the food'). Subject relative often preferred + faster to parse."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_syn_1",
+        "kind": "drag_classify",
+        "question": "Classify each language by its dominant word order.",
+        "items": [
+          {
+            "id": "english",
+            "label": "English",
+            "bin": "svo"
+          },
+          {
+            "id": "mandarin",
+            "label": "Mandarin Chinese",
+            "bin": "svo"
+          },
+          {
+            "id": "french",
+            "label": "French",
+            "bin": "svo"
+          },
+          {
+            "id": "spanish",
+            "label": "Spanish (flexible but default SVO)",
+            "bin": "svo"
+          },
+          {
+            "id": "japanese",
+            "label": "Japanese",
+            "bin": "sov"
+          },
+          {
+            "id": "korean",
+            "label": "Korean",
+            "bin": "sov"
+          },
+          {
+            "id": "turkish",
+            "label": "Turkish",
+            "bin": "sov"
+          },
+          {
+            "id": "hindi",
+            "label": "Hindi",
+            "bin": "sov"
+          },
+          {
+            "id": "arabic",
+            "label": "Arabic (Classical)",
+            "bin": "vso"
+          },
+          {
+            "id": "welsh",
+            "label": "Welsh",
+            "bin": "vso"
+          },
+          {
+            "id": "irish",
+            "label": "Irish Gaelic",
+            "bin": "vso"
+          }
+        ],
+        "bins": [
+          {
+            "id": "svo",
+            "label": "SVO (subject-verb-object)"
+          },
+          {
+            "id": "sov",
+            "label": "SOV (subject-object-verb)"
+          },
+          {
+            "id": "vso",
+            "label": "VSO (verb-subject-object)"
+          }
+        ],
+        "explanation": "Word-order typology distribution (Dryer 2013, WALS):\n• **SOV** ~45%: Japanese, Korean, Turkish, Hindi, Persian, Bengali, Tamil, Mongolian, Inuktitut. Geographically widespread.\n• **SVO** ~42%: English, Mandarin, Spanish, French, Russian, Swahili, Indonesian. Found across all continents.\n• **VSO** ~9%: Arabic (Classical), Welsh, Irish, Maori, Tongan, Hawaiian, Tagalog (partly). Concentrated in Polynesian + Celtic + Afro-Asiatic.\n• **VOS** ~3%: Malagasy, Tzotzil (Mayan).\n• **OVS** + **OSV** < 1%: very rare.\n\nFlexibility varies: Russian + Latin highly flexible due to morphology; English rigid because no case marking. Modern Spanish + French SVO-dominant but allow inversion. Mandarin SVO but uses topic-comment structures heavily. Word order correlates with other typological features (head-direction, postpositions vs prepositions, etc., Greenberg + Hawkins universals)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_syn_1",
+        "kind": "multiple_choice",
+        "question": "Why does the sentence 'The horse raced past the barn fell' cause readers to 'garden-path' (mis-parse + then revise)?",
+        "options": [
+          "Grammar error.",
+          "Reader initially parses 'raced' as the main verb ('The horse raced past the barn'). When 'fell' arrives, parse fails — must reanalyze 'raced past the barn' as a reduced relative clause modifying 'horse' ('the horse [that was] raced past the barn'). Reflects local + greedy parsing strategy + processing limits. Famous example of syntactic ambiguity + reanalysis in psycholinguistics.",
+          "Random.",
+          "Bad writing."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Garden-path sentences + parsing**:\n\n*Example*: 'The horse raced past the barn fell.'\n\n*Initial parse*: 'raced' as main verb past tense.\n  → [S [NP The horse] [VP raced past the barn]]\n  This is grammatically complete + fine. Reader expects period.\n\n*Crisis*: 'fell' arrives. No way to add it to current parse. Reader stuck.\n\n*Reanalysis*: 'raced past the barn' is a reduced relative clause modifying 'horse.' Full form: 'The horse [that was] raced past the barn.' Now 'fell' is the main verb.\n  → [S [NP [DET The] [N horse] [VP raced past the barn]] [VP fell]]\n  Now grammatical.\n\n*Why this happens*:\n\n1. **Greedy + local parsing**: human parser commits early to interpretation; doesn't backtrack until forced.\n2. **Frequency bias**: 'raced' more frequent as past tense than as past participle in reduced relative.\n3. **Reduced relative ambiguity**: 'raced' could be past tense or past participle; only context (verb following) resolves.\n4. **Processing cost**: reanalysis is effortful + delayed.\n\n*Other classic garden-paths*:\n- 'The old man the boats.' (old man = noun phrase, then 'man' as verb).\n- 'The complex houses married and single soldiers and their families.' ('complex' = noun, then 'houses' = verb).\n- 'Fat people eat accumulates.' (people eat = sentence, but then accumulates needs subject... 'fat people eat' = noun-relative; subject is 'fat').\n- 'The man whistling tunes pianos.' (whistling tunes = participle vs verb).\n\n*Psycholinguistic models*:\n\n- **Serial models**: parser commits to single analysis at each point. Garden-path arises when initial choice is wrong (Frazier + Rayner 1982).\n- **Parallel models**: parser keeps multiple analyses ranked. Garden-path is when correct ranking is suppressed (Kim, Trueswell + others).\n- **Constraint-based**: probabilistic integration of multiple cues. MacDonald + colleagues.\n\n*Neural language models*:\n- LSTMs + transformers show garden-path effects when probed.\n- Surprisal at 'fell' is higher in models trained on natural text.\n- Comparison to human reading-time data (e.g., Dundee corpus, GECO, MAZE). Neural surprisal correlates with reading time.\n\n*Resolution mechanisms in humans*:\n- Eye-tracking shows regression to 'raced' on garden-path sentences.\n- Re-reading time on disambiguating region elevated.\n- ERPs (event-related potentials): P600 component associated with syntactic reanalysis.\n\n*Cross-linguistic*:\n- All languages have garden-paths in various forms.\n- Specific patterns differ by typology (head-initial vs head-final, reduced-relative availability).\n- Bilingual processing: garden-paths may differ between L1 + L2.\n\n*Implications*:\n- **Writing pedagogy**: avoid garden-paths in clear writing.\n- **NLP**: dependency parsing must handle ambiguity; PCFGs + transformer-based parsers.\n- **Cognitive science**: garden-paths illuminate parsing mechanism + memory architecture.\n\nGarden-path sentences are tiny windows into cognitive architecture; far more revealing than uniformly easy sentences."
+      },
+      "hints": [
+        "What's the initial vs final parse?",
+        "Why does the parser commit early?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Garden-path: parser greedily commits to 'raced' as main verb past tense. When 'fell' arrives, must reanalyze 'raced past the barn' as reduced relative clause modifying 'horse'. Frequency bias toward past-tense reading; reduced-relative requires reanalysis. Resolution: eye-tracking shows regression; P600 ERP component. NLM: transformer surprisal correlates with human reading time. All languages have garden-paths; cross-linguistic patterns differ by typology. Mechanism illuminates greedy + local parsing + memory architecture."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_syn_1",
+        "kind": "sortable",
+        "question": "Order these syntactic constructions by typical psycholinguistic processing difficulty (easiest to hardest).",
+        "items": [
+          {
+            "id": "simple-svo",
+            "label": "Simple SVO declarative ('The dog ate the food.')"
+          },
+          {
+            "id": "wh-question",
+            "label": "Wh-question ('What did the dog eat?')"
+          },
+          {
+            "id": "subject-relative",
+            "label": "Subject-extracted relative ('The dog that chased the cat ran away.')"
+          },
+          {
+            "id": "object-relative",
+            "label": "Object-extracted relative ('The dog that the cat chased ran away.')"
+          },
+          {
+            "id": "center-embedded",
+            "label": "Center-embedded relative ('The dog that the cat that the mouse saw chased ran away.')"
+          },
+          {
+            "id": "garden-path",
+            "label": "Garden-path ('The horse raced past the barn fell.')"
+          }
+        ],
+        "explanation": "Psycholinguistic processing-difficulty hierarchy (King + Just 1991, Gibson 1998, others):\n• **Simple SVO declarative**: baseline; effortless processing.\n• **Wh-question**: one displacement (wh-fronting); minor cost but transparent.\n• **Subject-extracted relative**: relativized element is the relative-clause's subject; relatively easy (same-side dependency).\n• **Object-extracted relative**: relativized element is relative-clause's object; harder due to longer dependency + crossing.\n• **Center-embedded** (multiply nested): exponentially harder; ~3+ embeddings often un-parseable. Working-memory bottleneck.\n• **Garden-path**: requires complete reanalysis; specific construction that misleads.\n\nFactors driving difficulty:\n- Memory load (Dependency Locality Theory; Gibson 1998).\n- Frequency of construction.\n- Predictability + surprisal at each word (Hale 2001).\n- Working-memory capacity (individual differences).\n- Bilingual + L2 effects.\n\nNeural surprisal correlates with reading time + difficulty across these constructions. Modern psycholinguistics combines: experimental, computational (NLM-based), neuroscientific."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_syn_1",
+        "kind": "math_expression",
+        "question": "Greenberg: SOV ~45%, SVO ~42%, VSO ~9%. What fraction of languages have verb-first (VSO + VOS + OVS + OSV)?",
+        "acceptedAnswers": [
+          "~13%",
+          "13",
+          "9 + 3 + <1 + <1"
+        ],
+        "hint": "VSO ~9% + VOS ~3% + OVS + OSV <1% each ≈ 13%."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_syn_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why understanding syntactic structure is foundational for modern NLP + LLMs.",
+        "rubric": "Mentions: syntactic structure determines meaning ('Dog bites man' ≠ 'Man bites dog'). LLMs implicitly learn syntax via massive text exposure + transformer attention. Structural probes (Hewitt + Manning 2019) show hidden states encode dependency parses. BLiMP + other minimal-pair benchmarks: LLMs do well on agreement + binding + most syntactic phenomena. But some failures: garden-paths, NPIs in specific contexts, semantic-syntax interactions. Applications: machine translation requires understanding both languages' syntax; question-answering needs to identify subject/object/modifier; coreference resolution; semantic-role labeling. Constituency vs dependency: both formalisms support; UD (Universal Dependencies) provides multilingual treebank. NLP toolkits (spaCy, Stanford, Trankit) include parsers. LLM era: parsing as side-effect of language modeling; specialized parsers still helpful for structured tasks (info extraction, legal/medical NLP). Concludes: syntax + NLP increasingly co-evolved; both inform each other."
+      }
+    }
+  ]
+}

@@ -1,0 +1,227 @@
+{
+  "slug": "reproducibility-and-cloud-bioinformatics",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Apply reproducibility practices.",
+      "Use workflow managers.",
+      "Navigate cloud workflows."
+    ],
+    "prereqs": [
+      "genome-assembly-and-variant-calling"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Reproducibility + the bioinformatics workflow",
+      "body": "**Bioinformatics reproducibility crisis**: ~30-50% of published analyses fail to reproduce in some studies; many bugs + version drift + missing data. The community has responded with strong standards + tools.\n\n**Reproducibility components**:\n1. **Data**: raw + processed + reference data. Versioned, archived, accessible.\n2. **Code**: source, version control, dependencies pinned.\n3. **Environment**: software versions + system; containerized.\n4. **Workflow**: explicit steps + parameters; not bash scripts.\n5. **Documentation**: README, methods, parameters, results.\n6. **Sharing**: public repositories + accessible compute.\n\n**Tools + practices**:\n- **Version control**: Git + GitHub/GitLab. Branches, PRs, tags, commit history.\n- **Containers**: Docker, Singularity, Apptainer; isolated reproducible environments.\n- **Environment managers**: conda + bioconda + mamba (super fast solver); pip + venv; mise + asdf.\n- **Workflow managers** (see next slide).\n- **Notebooks**: Jupyter + R Markdown / Quarto for combining code + narrative + results.\n- **CI/CD**: GitHub Actions, GitLab CI for testing + workflow runs.\n- **Data archival**: Zenodo (DOIs), Figshare, Open Science Framework.\n- **Sequence archives**: SRA (NCBI), ENA (EBI), DDBJ (Japan) — required for publication.\n- **GitHub releases + Zenodo DOIs**: citable software versions.\n\n**FAIR data principles** (Wilkinson 2016):\n- **F**indable: unique persistent ID; rich metadata; indexed.\n- **A**ccessible: retrievable by ID; standardized protocol; metadata accessible even when data isn't.\n- **I**nteroperable: standard formats + vocabularies.\n- **R**eusable: clear license + provenance + community standards.\n\n**Major data archives**:\n- **NCBI**: SRA (reads), GenBank (sequences), GEO (gene expression), dbGaP (clinical), ClinVar (variants), PubMed (literature).\n- **EBI**: ENA (reads), ArrayExpress (expression), UniProt (proteins), PDB (structures), Ensembl (genomes), MetaboLights (metabolomics), PRIDE (proteomics).\n- **DDBJ**: Japanese mirror.\n- **GISAID**: pathogen surveillance (sometimes controversial for access restrictions).\n- **Galaxy Project**: Web-based reproducible workflows.\n- **CELLxGENE**: single-cell discovery + query.\n- **Open Targets**: drug discovery integration.\n- **Nextstrain**: real-time pathogen evolution.\n- **HCA Data Portal**: Human Cell Atlas."
+    },
+    {
+      "kind": "text",
+      "title": "Workflow managers: Nextflow + Snakemake + WDL",
+      "body": "**Workflow management systems (WMS)**: declarative description of computational pipelines; portable across infrastructure; reproducible.\n\n**Key tools**:\n\n1. **Nextflow** (Tommaso 2017; nf-core community):\n- Groovy/Java DSL; channels + processes.\n- Native cloud + cluster execution (AWS Batch, Google Life Sciences, Slurm, Kubernetes).\n- Containers (Docker, Singularity, Conda).\n- **nf-core**: community-curated pipelines (sarek, rnaseq, scrnaseq, ampliseq, eager); 80+ pipelines.\n- Strong industry + academic adoption.\n- Tower (now Seqera Platform): web UI, monitoring, scaling.\n\n2. **Snakemake** (Köster 2012):\n- Python-based; Make-like rules.\n- Strong academic adoption.\n- Pythonic + flexible.\n- HPC + cloud + conda + containers.\n- Snakedeploy + Snakemake-wrappers ecosystems.\n\n3. **WDL (Workflow Description Language)** (Broad Institute):\n- JSON-based; portable.\n- Cromwell + Terra runtime.\n- Used heavily for GATK + clinical genomics (e.g., DRAGEN, GVS).\n\n4. **CWL (Common Workflow Language)**:\n- YAML/JSON; community standard.\n- Toil, cwltool, Arvados runners.\n- Used by EBI + ELIXIR.\n\n5. **Galaxy**: web-based; tools + history + workflows; great for non-CLI users + teaching.\n\n**What workflows give you**:\n- Reproducibility (pinned versions, container images).\n- Scalability (laptop → HPC → cloud).\n- Modularity + reuse.\n- Resumability (checkpoint after failures).\n- Provenance + audit trail.\n- Easier to publish + share.\n\n**Anti-pattern**: ad-hoc bash scripts with hardcoded paths + missing dependencies + uncomitted versions. Hard to reproduce; should be retired in favor of WMS.\n\n**Modern best practice for new projects**: Nextflow or Snakemake + container + git + CI + Zenodo DOI release."
+    },
+    {
+      "kind": "text",
+      "title": "Cloud bioinformatics + the future",
+      "body": "**Cloud computing in bioinformatics**: now standard for large-scale + clinical work.\n\n**Major providers + platforms**:\n- **AWS**: S3, EC2, Batch, FSx Lustre, HealthOmics; many genomics startups + biotechs.\n- **Google Cloud Platform (GCP)**: Storage, Batch, Life Sciences API, BigQuery (for ClinVar, AllOfUs, COSMIC). DeepMind + Verily.\n- **Microsoft Azure**: Genomics workspace, Microsoft Health Future, NHGRI partnerships.\n- **Specialized cloud-genomics platforms**: Terra (Broad + Verily; runs WDL workflows), DNAnexus (clinical + research), Seven Bridges (Velsera; pharma + research), Sentieon Cloud, Cromwell-on-Azure.\n- **Open-source cloud frameworks**: Nextflow Tower, Galaxy, AnVIL.\n\n**Genomics-specific clouds**:\n- **NIH AnVIL** (Analysis-Visualization-Informatics Lab-space): cloud platform for genomic + clinical data; All of Us, gnomAD, dbGaP, NHGRI.\n- **NHGRI STRIDES Initiative**: NIH-cloud-genomics infrastructure.\n- **EOSC (European Open Science Cloud)**: EU equivalent.\n- **DNAnexus, Terra**: large-cohort secure compute (UK Biobank, FinnGen).\n\n**Compute patterns**:\n- **Batch processing**: per-sample alignments + variant calling at scale.\n- **Interactive analysis**: Jupyter/RStudio on cloud + remote.\n- **Joint analyses**: cohort-wide GVS + GenotypeGVCFs etc.\n- **Real-time + streaming**: pathogen surveillance, clinical NICU rapid turnaround.\n- **Federated analysis**: data stays in jurisdiction; computation comes to it (UK Biobank, FinnGen).\n\n**Cost considerations**:\n- Storage often dominates compute over time; tiered (hot vs cold; S3 Glacier).\n- Egress fees: data movement out of cloud expensive; bring compute to data.\n- Spot/preemptible instances: cheap but interruptible.\n- Reserved instances + savings plans for steady workloads.\n- Carbon-aware computing: choose green regions; report carbon costs.\n\n**Major trends**:\n- **AI/ML integration**: GPU instances for AlphaFold, ESM, training.\n- **Federated learning + secure multi-party computation**: privacy-preserving cohort analysis.\n- **WGS-routine + UK-Biobank-scale**: 500k-million-genome resources.\n- **Real-world data + EHR integration**: HL7 FHIR + genomics.\n- **Pangenome graphs + T2T**: cloud-scale reference infrastructure.\n- **Open foundation models**: cloud-hosted + community-contributed.\n- **Sustainability**: green computing + carbon reporting + efficiency.\n\n**Career path implication**: modern bioinformaticians blend biology + statistics + software engineering + cloud + ML. Continuous learning is the norm; field reinvents core methods every ~5 years."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bio_repro_1",
+        "kind": "guided_derivation",
+        "question": "Build a reproducible pipeline",
+        "goal": "Design a reproducible bulk RNA-seq pipeline that another lab can run on their data.",
+        "steps": [
+          {
+            "prompt": "Workflow manager?",
+            "motivation": "Declarative + portable.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Nextflow (nf-core/rnaseq) or Snakemake; not bash"
+              ]
+            },
+            "hints": [
+              "Modern WMS."
+            ],
+            "reveal": "Use Nextflow (nf-core/rnaseq community pipeline) or Snakemake. Both: declarative, portable, container-native, parallel + resumable. nf-core/rnaseq is curated + well-tested. Avoid bespoke bash for shareable pipelines."
+          },
+          {
+            "prompt": "Container strategy?",
+            "motivation": "Environment reproducibility.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Docker or Singularity for each tool; pinned versions; biocontainers"
+              ]
+            },
+            "hints": [
+              "Pinned versions."
+            ],
+            "reveal": "Container each tool (STAR, Salmon, DESeq2, MultiQC) via Docker or Singularity; use BioContainers/Quay.io community images or build minimal layered images. Pin software versions (not just :latest). Singularity preferred on HPC (no daemon, user-namespace)."
+          },
+          {
+            "prompt": "Data + metadata?",
+            "motivation": "Data engineering.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "sample sheet (CSV/TSV) with sample IDs + paths + metadata; FAIR; archived"
+              ]
+            },
+            "hints": [
+              "Sample sheet."
+            ],
+            "reveal": "Define sample sheet (samples.csv): sample ID, file paths (or URLs/S3), metadata (condition, batch, replicate). Validate at pipeline start. Archive raw data on SRA/ENA with accession. Store processed data + DOIs on Zenodo/Figshare. Document all metadata fields."
+          },
+          {
+            "prompt": "Version control + documentation?",
+            "motivation": "Software engineering.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "git + README + LICENSE + CITATION; CI tests on synthetic small data; Zenodo DOI release"
+              ]
+            },
+            "hints": [
+              "Open + citable."
+            ],
+            "reveal": "git + GitHub/GitLab repository. README (intro, install, usage, parameters, output). LICENSE (MIT, Apache, GPL, BSD). CITATION.cff. CONTRIBUTING.md. Continuous integration runs pipeline on small synthetic data on every PR. Tagged releases → Zenodo DOI for citation."
+          },
+          {
+            "prompt": "Compute environment?",
+            "motivation": "Scale.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "laptop for dev; HPC or cloud (AWS Batch, Google Cloud Life Sciences, Terra) for production"
+              ]
+            },
+            "hints": [
+              "Run on different infra."
+            ],
+            "reveal": "Nextflow profiles: 'docker' (laptop dev), 'slurm' (HPC), 'awsbatch' (cloud), 'k8s' (Kubernetes). Configure once + run anywhere. Cost monitoring + cleanup important on cloud. For production, Tower/Seqera Platform offers monitoring + Slack alerts + cost tracking."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bio_repro_1",
+        "kind": "multiple_choice",
+        "question": "Why is the FAIR data movement particularly important in bioinformatics?",
+        "options": [
+          "Random.",
+          "Bioinformatics generates massive datasets (sequences, structures, single-cell, omics, clinical) that have value only if they can be: (F)ound — searchable, indexed, citable; (A)ccessible — retrievable via standard protocols, even if behind controlled access; (I)nteroperable — standard formats (FASTA, VCF, BAM, mzML) + ontologies (GO, EDAM, HPO); (R)eusable — clear licenses, provenance, community standards. Without FAIR: data graveyards, duplicated effort, irreproducibility, missed discoveries. FAIR adoption enables: federated analysis (UK Biobank, FinnGen), foundation-model training (AlphaFold on PDB + UniProt), clinical sharing (ClinVar, ClinGen), real-world evidence. EU + NIH funders increasingly require FAIR data management plans. Adjacent: CARE Principles for Indigenous Data Governance (Collective benefit, Authority to control, Responsibility, Ethics) — important for ancestral + cultural data.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "FAIR (Wilkinson 2016): Findable, Accessible, Interoperable, Reusable. Critical for bioinformatics: data value comes from sharing + reuse + meta-analysis. Enables federated analysis, foundation-model training, clinical translation, real-world evidence. EU + NIH require FAIR data management plans. CARE Principles complement for Indigenous/ancestral data."
+      },
+      "hints": [
+        "What does FAIR stand for?",
+        "Why does sharing matter?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "FAIR (Wilkinson 2016): Findable, Accessible, Interoperable, Reusable. Bioinformatics generates massive datasets whose value depends on sharing + reuse. Without FAIR: duplicated work, irreproducibility, missed discoveries. With FAIR: federated analysis, foundation models, clinical sharing, real-world evidence. EU + NIH funders increasingly require it. CARE Principles complement for Indigenous data."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_bio_repro_1",
+        "kind": "slider",
+        "question": "Drag to typical percentage of bioinformatics studies that fully reproduce when re-run by independent groups.",
+        "target": {
+          "min": 50,
+          "max": 70
+        },
+        "default": 90,
+        "explanation": "Reproducibility studies (Iqbal 2016; Garijo 2013; Stagge 2019; Beaulieu-Jones 2019; multiple meta-analyses) suggest ~50-70% of published bioinformatics analyses fully reproduce. Common failures: missing data, missing code, undocumented parameters, version drift, missing dependencies. Improving with workflow managers, containers, FAIR data, journals requiring code + data sharing."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_bio_repro_1",
+        "kind": "drag_classify",
+        "question": "Match each reproducibility tool/concept to its primary purpose.",
+        "items": [
+          {
+            "id": "git",
+            "label": "Git / GitHub",
+            "bin": "code"
+          },
+          {
+            "id": "zenodo",
+            "label": "Zenodo DOI for releases",
+            "bin": "code"
+          },
+          {
+            "id": "docker",
+            "label": "Docker / Singularity",
+            "bin": "env"
+          },
+          {
+            "id": "conda",
+            "label": "Conda / bioconda / mamba",
+            "bin": "env"
+          },
+          {
+            "id": "nextflow",
+            "label": "Nextflow / nf-core",
+            "bin": "wflow"
+          },
+          {
+            "id": "snakemake",
+            "label": "Snakemake",
+            "bin": "wflow"
+          },
+          {
+            "id": "sra",
+            "label": "SRA / ENA / DDBJ",
+            "bin": "data"
+          },
+          {
+            "id": "geo",
+            "label": "GEO / ArrayExpress",
+            "bin": "data"
+          }
+        ],
+        "bins": [
+          {
+            "id": "code",
+            "label": "Code reproducibility"
+          },
+          {
+            "id": "env",
+            "label": "Environment reproducibility"
+          },
+          {
+            "id": "wflow",
+            "label": "Workflow reproducibility"
+          },
+          {
+            "id": "data",
+            "label": "Data + archival"
+          }
+        ],
+        "explanation": "Reproducibility stack: code (Git + Zenodo); environment (Docker/Singularity + Conda); workflow (Nextflow + Snakemake + WDL/CWL); data (SRA + ENA + GEO + ArrayExpress + Zenodo). Modern best practice combines all four layers. FAIR principles guide overall."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bio_repro_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why modern bioinformatics is increasingly a software-engineering discipline.",
+        "rubric": "Mentions: bioinformatics in 2025 demands: (1) production-grade software (not just scripts) — version control, testing, CI/CD, documentation, releases; (2) workflow management (Nextflow, Snakemake) — declarative + portable; (3) containers (Docker, Singularity) — environment reproducibility; (4) cloud engineering — AWS/GCP/Azure, IAM, networking, cost optimization; (5) data engineering — pipelines, schemas, validation, data lakes/warehouses; (6) APIs + microservices for data sharing + clinical integration; (7) ML/AI integration — model serving, monitoring, retraining; (8) security + privacy — federated learning, differential privacy, HIPAA/GDPR; (9) collaboration — code review, pairing, asynchronous communication. Tools: Linux + bash + Python + R + SQL + Git + Docker + Nextflow + cloud. Career path: bioinformatics now overlaps significantly with data engineering + ML engineering + cloud engineering. Skills + practices from software engineering (testing, versioning, code review, modular design) accelerate science. Concludes: the bioinformatician of 2025 is closer to a software/data engineer who knows biology than to a biologist who scripts — and the field's productivity tracks how well this synthesis happens."
+      }
+    }
+  ]
+}

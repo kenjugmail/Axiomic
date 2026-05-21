@@ -1,0 +1,164 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intro",
+    "objectives": [
+      "Apply stress + strain to biological tissue.",
+      "Distinguish viscoelastic + nonlinear behavior.",
+      "Reason about bone, tendon, cartilage mechanics."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Biomechanics: where engineering meets biology",
+      "body": "**Biomechanics** applies mechanics to biological systems — bones, joints, soft tissues, the cardiovascular system, prosthetics + implants, surgical procedures. Range: molecular (single-molecule force microscopy) to organismal (gait analysis).\n\nKey paradigms:\n• **Stress + strain** in tissues, similar to engineering materials but with viscoelastic + nonlinear behavior.\n• **Tissue mechanics**: bone (anisotropic, hierarchical composite), cartilage (porous + biphasic), tendon (collagen + matrix), muscle (active force generator), blood vessels (hyperelastic).\n• **Joint mechanics**: knee + hip + spine + shoulder load + motion characterization, prosthesis design.\n• **Hemodynamics**: blood flow in vessels (next lesson).\n• **Implants + interfaces**: bone-implant integration, soft-tissue interfaces.\n\nWhy biomechanics matters: design of orthopedic implants ($25B/yr market), injury-prevention sports + occupational design, surgical planning, drug-delivery via tissue mechanics, regenerative-medicine scaffolds."
+    },
+    {
+      "kind": "text",
+      "title": "Stress, strain, + Hooke's law for tissues",
+      "body": "**Engineering stress** σ = F/A₀ (force per original cross-sectional area).\n**Engineering strain** ε = ΔL/L₀ (fractional change in length).\n\nFor a linear-elastic material: σ = E ε, where E (Young's modulus) characterizes stiffness.\n\n**Tissue moduli** (orders of magnitude):\n- Cortical bone: ~20 GPa\n- Trabecular (spongy) bone: ~0.1-1 GPa\n- Tendon (along fiber): ~1.5 GPa\n- Cartilage: ~1-10 MPa\n- Muscle (passive): ~10-100 kPa\n- Skin: ~10-100 kPa\n- Fat / brain tissue: ~1-10 kPa\n\nSix orders of magnitude across the human body — implant-tissue stiffness mismatch is a major design issue. Titanium implants (~100 GPa) on bone (~20 GPa) cause stress shielding + bone resorption.\n\n**Beyond linear elasticity**:\n• **Anisotropy**: bone + tendon stronger along loading direction.\n• **Nonlinearity**: collagen-rich tissues stiffen with strain (J-shaped curve). Models: Mooney-Rivlin, Ogden, exponential.\n• **Viscoelasticity**: stress depends on strain *rate* + history. Creep (continued strain at constant stress) + relaxation (decreasing stress at constant strain). Maxwell, Kelvin-Voigt, generalized models.\n• **Hyperelasticity**: large deformations (rubber-like).\n• **Active force generation**: muscle generates force via cross-bridge cycling (Hill model + Huxley sliding-filament).\n• **Biphasic / poroelasticity**: cartilage has solid matrix + interstitial fluid; load transferred via fluid pressurization."
+    },
+    {
+      "kind": "text",
+      "title": "Bone, tendon, cartilage: representative tissues",
+      "body": "**Bone** — hierarchical composite:\n- ~70% mineral (hydroxyapatite crystals, ~50 nm)\n- ~20% organic matrix (collagen Type I fibrils, ~1 μm)\n- ~10% water\n- Hierarchical: nm collagen-mineral → μm osteons → cortical/trabecular structure → whole-bone geometry.\n- Anisotropic: longitudinal E ~20 GPa; transverse ~10 GPa.\n- Living: Wolff's law — bone remodels in response to mechanical load. Atrophy in microgravity (~1-2% per month bone density loss); hypertrophy in athletes.\n\n**Tendon** — uniaxial collagen:\n- ~30% collagen, ~70% water (in vivo).\n- 'Toe region': low stiffness as crimped collagen straightens (~2% strain).\n- 'Linear region': straightened collagen carries load (E ~1.5 GPa).\n- Tear at ~10-15% strain or ~100 MPa stress.\n\n**Cartilage** — biphasic:\n- ~70% water, ~20% collagen, ~10% proteoglycans.\n- Low solid-matrix stiffness (~1-10 MPa) but very high time-dependent stiffness due to fluid-pressurization.\n- Compressive loads dissipate slowly (osteoarthritis = compromised cartilage with progressive wear).\n- Avascular → poor regeneration; once damaged, hard to restore.\n\nMaterial choice for orthopedic implants must consider tissue stiffness + biocompatibility + corrosion + fatigue."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bio_1",
+        "kind": "guided_derivation",
+        "question": "Compute the stress + strain in a femur during walking",
+        "goal": "A 70-kg adult's femur experiences a peak load of ~3× body weight during walking. Cross-sectional area at mid-shaft is ~3 cm². E_bone = 20 GPa. Compute the stress + strain at peak.",
+        "steps": [
+          {
+            "prompt": "Peak force F on femur?",
+            "motivation": "Multiply body weight × 3.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~2058 N",
+                "2058",
+                "70 × 9.81 × 3"
+              ]
+            },
+            "hints": [
+              "F = m × g × 3."
+            ],
+            "reveal": "F = 70 × 9.81 × 3 ≈ 2058 N. Each step transmits ~2 kN through the femur during stance phase."
+          },
+          {
+            "prompt": "Stress σ = F/A. Cross-section 3 cm² = 3×10⁻⁴ m².",
+            "motivation": "Standard.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~6.9 MPa",
+                "6.86 MPa",
+                "2058/0.0003"
+              ]
+            },
+            "hints": [
+              "2058 / 3e-4 = 6.86e6 Pa."
+            ],
+            "reveal": "σ = 2058 / 3×10⁻⁴ = 6.86×10⁶ Pa = 6.86 MPa. Compressive stress in bone."
+          },
+          {
+            "prompt": "Strain ε = σ / E?",
+            "motivation": "Hooke's law.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~3.4×10⁻⁴",
+                "0.00034",
+                "6.86e6 / 2e10"
+              ]
+            },
+            "hints": [
+              "6.86e6 / 2e10."
+            ],
+            "reveal": "ε = 6.86×10⁶ / 2×10¹⁰ = 3.4×10⁻⁴ = 0.034% strain. Very small; bone operates safely below 0.5% (fracture) for daily activities."
+          },
+          {
+            "prompt": "Safety factor (yield strain ~ 0.5%) at peak walking load?",
+            "motivation": "Compare to yield.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~15",
+                "15x",
+                "0.005 / 0.00034"
+              ]
+            },
+            "hints": [
+              "0.5% / 0.034%."
+            ],
+            "reveal": "Safety factor ≈ 0.5% / 0.034% ≈ 15×. Daily loading is well within safe range. But cumulative micro-damage + remodeling balance must be maintained; loss of bone mass (osteoporosis, microgravity) drops the safety factor + fracture risk rises sharply."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_bio_1",
+        "kind": "slider",
+        "question": "Drag the slider to estimate the Young's modulus of cortical bone (in GPa).",
+        "target": {
+          "min": 15,
+          "max": 25
+        },
+        "default": 12,
+        "explanation": "Cortical bone E ≈ 17-22 GPa along the longitudinal axis. Lower in transverse direction (10-13 GPa) — bone is anisotropic. For comparison: steel 200 GPa, titanium 110 GPa, cartilage 0.01 GPa. The mismatch between Ti implants (110 GPa) + bone (20 GPa) drives stress-shielding + bone resorption around hip + knee replacements."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bio_1",
+        "kind": "multiple_choice",
+        "question": "Why does titanium (E = 110 GPa) on bone (E = 20 GPa) cause 'stress shielding' in orthopedic implants?",
+        "options": [
+          "Titanium is too soft.",
+          "Stiffer implant carries a disproportionate share of the load → underlying bone experiences less mechanical stimulus → Wolff's law triggers bone resorption (lower density, weaker) around the implant. Long-term: implant loosens, fails. Mitigations: lower-modulus alloys (Ti-13Nb-13Zr, Ti-Mg), porous Ti scaffolds, PEEK implants (E ≈ 4 GPa).",
+          "Titanium corrodes in body.",
+          "Bone can't bond to titanium."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Stress shielding** is the load-sharing problem of high-modulus implants:\n\n1. Stiffer implant + bone share applied load proportional to stiffness × cross-section.\n2. Ti at 110 GPa vs bone at 20 GPa → Ti carries ~5× more of the load per cross-section.\n3. Bone adjacent to implant experiences reduced stress.\n4. **Wolff's law (1892)**: bone remodels in response to mechanical demand. Reduced stimulus → bone-resorption signaling → density drops.\n5. Over months-years, bone becomes weaker around implant → implant loosening + fracture risk.\n\n**Observed**: ~10-20% of hip/knee replacements fail in 10-15 years due (in part) to stress shielding + aseptic loosening.\n\n**Engineering mitigations**:\n- **Lower-E alloys**: Ti-13Nb-13Zr (β-titanium, E ≈ 80 GPa); newer Ti-Mg + Ti-NbTaZr (E ~ 50 GPa).\n- **Porous + lattice structures**: 3D-printed Ti with engineered porosity → effective E ~ 10-20 GPa (matches bone) + osseo-integration sites.\n- **PEEK implants**: E ≈ 4 GPa; flexible spinal fusion cages; less stress shielding but lower load-bearing.\n- **Bioresorbable polymers**: Mg + PLLA scaffolds dissolve as bone heals.\n\n**Bone bonding**: titanium does osseo-integrate (Brånemark 1965); osteoblasts bond directly to Ti oxide surface. Hydroxyapatite coatings enhance further. Surface treatments + topography drive successful integration."
+      },
+      "hints": [
+        "What's Wolff's law?",
+        "What happens to bone under reduced load?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Ti (110 GPa) much stiffer than bone (20 GPa) → carries disproportionate load → bone gets less mechanical stimulus → Wolff's law triggers resorption → density drops → implant loosens. Mitigations: lower-E Ti alloys (β-Ti, E ~80 GPa); porous lattice structures (effective E ~10-20 GPa); PEEK implants (E ~4 GPa); bioresorbable polymers."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_bio_1",
+        "kind": "math_expression",
+        "question": "A tendon (E = 1.5 GPa) is loaded to a stress of 30 MPa. What's the strain (in %)?",
+        "acceptedAnswers": [
+          "2%",
+          "2.0%",
+          "0.02",
+          "30/1500"
+        ],
+        "hint": "ε = σ/E = 30×10⁶ / 1.5×10⁹ = 0.02."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bio_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why orthopedic-implant design must consider bone's biology, not just mechanics.",
+        "rubric": "Mentions: bone is living tissue — remodels via Wolff's law in response to mechanical load. Implants that under-load adjacent bone cause stress shielding + resorption + loosening. Implants that over-load cause micro-damage + bone overgrowth. Surface chemistry + topography drive osseo-integration (Brånemark; HA coatings; porous Ti). Biocompatibility: avoid wear debris (CoCr particles cause inflammation, osteolysis), corrosion (Ti-stable; stainless less so). Long-term issues: bacterial biofilm + infection; wear of poly inserts (UHMWPE); ion release. Modern design uses: lower-E alloys to match bone stiffness; porous lattices for ingrowth; antibacterial coatings; patient-specific shapes via CT + 3D-printing. Concludes: successful implant = match mechanics + biology + manufacturing + long-term reliability all together."
+      }
+    }
+  ]
+}

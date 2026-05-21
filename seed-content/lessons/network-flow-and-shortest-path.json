@@ -1,0 +1,227 @@
+{
+  "slug": "network-flow-and-shortest-path",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Solve shortest path.",
+      "Solve max flow.",
+      "Apply min-cost flow."
+    ],
+    "prereqs": [
+      "linear-programming-and-simplex"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Network flows: structured LPs with fast algorithms",
+      "body": "**Network optimization**: problems on graphs (nodes + arcs) where one ships flow from sources to sinks subject to capacities + balance constraints. A special case of LP with **totally unimodular constraint matrix** → LP relaxation always integer. Specialized algorithms run much faster than generic simplex.\n\n**Canonical problems**:\n1. **Shortest path**: minimum-distance route from s to t.\n2. **Max flow**: maximum flow from s to t under arc capacities.\n3. **Min-cost flow**: send required flow at min cost (combines flow + cost).\n4. **Assignment**: bipartite matching with weights.\n5. **Transportation**: ship from sources to sinks with supply/demand.\n6. **Multi-commodity flow**: multiple flow types share arcs.\n7. **Project scheduling (PERT/CPM)**: longest path in a DAG.\n8. **Spanning trees** (MST): connect all nodes min cost.\n\n**Applications**:\n- Routing (Dijkstra in your GPS).\n- Telecoms (max flow for bandwidth provisioning).\n- Logistics (min-cost transportation, supply chain).\n- Project management (CPM / PERT).\n- Network design (which links to build).\n- Bipartite matching (workers to jobs, residents to hospitals — NRMP).\n- Image segmentation (graph cuts).\n- Power grids (DC OPF as a network LP).\n\n**Why fast**: special structure (network simplex, augmenting paths, push-relabel) gives strongly polynomial complexity, often O(VE) or better."
+    },
+    {
+      "kind": "text",
+      "title": "Shortest path: Dijkstra + Bellman-Ford + A*",
+      "body": "**Shortest path**: min-cost path from source s to all (or specific) destinations.\n\n**Dijkstra's algorithm (1959)**: non-negative weights.\n1. Initialize d[s]=0, d[v]=∞.\n2. Pick unvisited v with min d[v]. Mark visited.\n3. Relax outgoing edges: d[u] = min(d[u], d[v] + w(v,u)).\n4. Repeat until all visited (or target reached).\n\nComplexity: O(E log V) with binary heap; O(E + V log V) with Fibonacci heap.\n\n**Bellman-Ford**: handles negative weights (but no negative cycles). O(VE). Detects negative cycles.\n\n**A* search**: Dijkstra + heuristic h(v) estimating distance to target. Faster when good heuristic available (e.g., Euclidean distance for road networks). Used in pathfinding, robotics, games.\n\n**Floyd-Warshall**: all-pairs shortest path; O(V³). Useful for small graphs.\n\n**Applications**:\n- GPS routing (Dijkstra + contraction hierarchies for continent-scale).\n- Internet routing (OSPF runs Dijkstra; BGP uses paths).\n- Word/edit distance (DP on grid).\n- Critical-path method (CPM) for project scheduling.\n- Robot motion planning.\n\n**Contraction hierarchies**: pre-process road network; queries in milliseconds even on continent-scale (Google Maps, OSRM). Game-changer for navigation."
+    },
+    {
+      "kind": "text",
+      "title": "Max flow + min-cost flow + assignment",
+      "body": "**Max flow problem**: maximize total flow from source s to sink t through capacitated network.\n\n**Max-flow / min-cut theorem** (Ford-Fulkerson 1956): max flow = min cut. Profound result connecting flow + connectivity.\n\n**Algorithms**:\n- **Ford-Fulkerson**: find augmenting path; saturate; repeat. O(F·E) where F = max flow.\n- **Edmonds-Karp**: BFS for shortest augmenting path. O(VE²). Polynomial!\n- **Dinic / push-relabel**: O(V²E) or O(V³). Practical on large graphs.\n\n**Min-cost flow**: send required flow with min cost; combines max-flow + LP. Algorithms: cycle-canceling, successive shortest path, network simplex. O(polynomial).\n\n**Assignment problem** (bipartite matching): n workers, n jobs, cost matrix. Assign 1-to-1 min cost.\n- **Hungarian algorithm** (Kuhn 1955): O(n³).\n- LP relaxation always integer (Birkhoff-von Neumann polytope).\n- Used in: residency matching (NRMP, Gale-Shapley variant), kidney exchange, taxi-dispatch.\n\n**Multi-commodity flow**: K commodities share arcs. Generally LP-hard; integer multi-commodity NP-hard. Used for telecom traffic engineering.\n\n**Project scheduling (CPM)**: longest path in DAG = project duration. Identifies critical path (bottleneck activities). PERT adds stochastic durations."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_or_net_1",
+        "kind": "guided_derivation",
+        "question": "Run Dijkstra on a small graph",
+        "goal": "Find shortest path from A to E. Edges (undirected): A-B=4, A-C=2, B-C=1, B-D=5, C-D=8, C-E=10, D-E=2.",
+        "steps": [
+          {
+            "prompt": "Initialize distances?",
+            "motivation": "Start state.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "d[A]=0; others = ∞"
+              ]
+            },
+            "hints": [
+              "Source = 0; rest = ∞."
+            ],
+            "reveal": "d[A]=0; d[B]=d[C]=d[D]=d[E]=∞. Unvisited = {A,B,C,D,E}."
+          },
+          {
+            "prompt": "Visit A. Update distances?",
+            "motivation": "Relax A's edges.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "d[B]=4, d[C]=2"
+              ]
+            },
+            "hints": [
+              "d[u] = min(d[u], d[A]+w(A,u))."
+            ],
+            "reveal": "After visiting A: d[B]=4, d[C]=2. Unvisited min = C (d=2)."
+          },
+          {
+            "prompt": "Visit C. Relax C's edges?",
+            "motivation": "Update neighbors.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "d[B] = min(4, 2+1) = 3; d[D] = 10; d[E] = 12"
+              ]
+            },
+            "hints": [
+              "Through C."
+            ],
+            "reveal": "After C: d[B] = min(4, 2+1) = 3 (improved!); d[D] = 2+8 = 10; d[E] = 2+10 = 12. Min unvisited = B (d=3)."
+          },
+          {
+            "prompt": "Visit B. Relax?",
+            "motivation": "Continue.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "d[D] = min(10, 3+5) = 8"
+              ]
+            },
+            "hints": [
+              "Through B."
+            ],
+            "reveal": "After B: d[D] = min(10, 3+5) = 8 (improved). E unchanged via B (no edge). Min unvisited = D (d=8)."
+          },
+          {
+            "prompt": "Visit D. Relax?",
+            "motivation": "Reach E.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "d[E] = min(12, 8+2) = 10"
+              ]
+            },
+            "hints": [
+              "Through D."
+            ],
+            "reveal": "After D: d[E] = min(12, 8+2) = 10. Visit E. Done. Shortest path A → C → B → D → E with length 10. Dijkstra found it via greedy expansion + edge relaxation."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_or_net_1",
+        "kind": "multiple_choice",
+        "question": "Why does the max-flow / min-cut theorem matter?",
+        "options": [
+          "Just academic.",
+          "Profound LP duality result: max flow = min cut = minimum sum of capacities you'd need to cut to disconnect s from t. Gives algorithmic + structural insight. Applications: image segmentation (s-t cut on pixel graph; cost = label disagreement); bipartite matching (König's theorem follows); network reliability (which links are bottlenecks); telecom capacity (where to upgrade); database privacy (cut = info-leak boundary). Also basis for LP duality in network flows + many polynomial algorithms (Ford-Fulkerson, Edmonds-Karp, push-relabel). Connects flow (cont) + cut (discrete) — a paradigm in combinatorial optimization.",
+          "Random.",
+          "False."
+        ],
+        "correctIndex": 1,
+        "explanation": "Max-flow / min-cut (Ford-Fulkerson 1956) is the foundational LP-duality result for network flow. Algorithmically gives polynomial-time max-flow; structurally identifies bottlenecks; appears across CS (image segmentation, ML graphical models), telecoms, civil + electric infrastructure planning."
+      },
+      "hints": [
+        "LP duality on networks.",
+        "Bottleneck identification."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Max flow = min cut: the maximum throughput equals minimum capacity needed to disconnect. Foundational LP-duality result. Algorithmically (Ford-Fulkerson + descendants); applications in image segmentation, bipartite matching, network reliability, infrastructure planning. Bridges continuous flow + discrete cuts."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_or_net_1",
+        "kind": "math_expression",
+        "question": "Big-O complexity of Edmonds-Karp max-flow algorithm in terms of V vertices and E edges?",
+        "acceptedAnswers": [
+          "O(VE^2)",
+          "VE^2",
+          "O(V·E²)"
+        ],
+        "hint": "Each BFS is O(E); each augmenting path saturates ≥1 edge; total O(VE) paths × O(E) BFS = O(VE²)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_or_net_1",
+        "kind": "drag_classify",
+        "question": "Classify each problem by its network-flow formulation.",
+        "items": [
+          {
+            "id": "gps",
+            "label": "GPS navigation route",
+            "bin": "sp"
+          },
+          {
+            "id": "telecom-bw",
+            "label": "Telecom bandwidth provisioning",
+            "bin": "mf"
+          },
+          {
+            "id": "supply-chain",
+            "label": "Multi-stage supply chain at min cost",
+            "bin": "mcf"
+          },
+          {
+            "id": "residency",
+            "label": "Medical residency match (NRMP)",
+            "bin": "assignment"
+          },
+          {
+            "id": "transport-econ",
+            "label": "Transportation problem (factories → cities)",
+            "bin": "mcf"
+          },
+          {
+            "id": "image-seg",
+            "label": "Image foreground/background segmentation",
+            "bin": "mf"
+          },
+          {
+            "id": "kidney",
+            "label": "Kidney exchange matching",
+            "bin": "assignment"
+          },
+          {
+            "id": "internet-routing",
+            "label": "OSPF Internet routing",
+            "bin": "sp"
+          }
+        ],
+        "bins": [
+          {
+            "id": "sp",
+            "label": "Shortest path"
+          },
+          {
+            "id": "mf",
+            "label": "Max flow"
+          },
+          {
+            "id": "mcf",
+            "label": "Min-cost flow"
+          },
+          {
+            "id": "assignment",
+            "label": "Assignment"
+          }
+        ],
+        "explanation": "Mapping problems to standard network forms unlocks specialized polynomial algorithms. Shortest path (Dijkstra/A*): unweighted/single-cost routes. Max flow (Ford-Fulkerson/Dinic): capacity-only. Min-cost flow (network simplex): both capacity + cost. Assignment (Hungarian/auction): bipartite 1-1 matching with weights."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_or_net_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why network-flow problems have specialized algorithms despite being LPs.",
+        "rubric": "Mentions: network-flow LPs have totally unimodular (TU) constraint matrices → LP relaxation always integer → no need for branch-and-bound. Special structure (sparse incidence matrix; balance constraints; arc-only variables) enables specialized algorithms: Dijkstra O(E+VlogV) for shortest path; Ford-Fulkerson + Edmonds-Karp + push-relabel for max-flow; network simplex for min-cost flow; Hungarian/auction for assignment. Strongly polynomial in network size; much faster than generic simplex. Practical: Dijkstra runs in your GPS; max-flow in image segmentation + telecom; min-cost in supply chain + transportation; Hungarian in NRMP residency match + Uber dispatch. Modern: graph algorithms scale to billion-edge graphs (Google Maps continent-wide routing) via pre-processing (contraction hierarchies). Theoretical: TU + LP duality + min-cut/max-flow theorem are central to combinatorial optimization. Concludes: network flows are LPs but their structure is too special not to exploit — a deep specialty inside OR."
+      }
+    }
+  ]
+}

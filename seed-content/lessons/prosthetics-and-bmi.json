@@ -1,0 +1,186 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish passive + powered + neural prosthetics.",
+      "Reason about BMI signal acquisition + decoding.",
+      "Connect to clinical + ethical considerations."
+    ],
+    "prereqs": [
+      "biomechanics-and-tissue",
+      "electrophysiology-and-ecg"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Prosthetic limbs: from passive to neural",
+      "body": "**Prosthetic upper + lower limbs** ranges:\n• **Passive**: cosmetic; no movement. Lightweight.\n• **Body-powered**: cables actuated by shoulder or hip movement. Reliable, durable, no batteries. Limited dexterity. Standard for many amputees globally.\n• **Myoelectric**: EMG (electromyography) signals from residual muscle drive motors. Multi-finger control. Battery-powered. Commercial: Ottobock Michelangelo, Touch Bionics i-Limb, BeBionic.\n• **Powered**: motor + battery for joint motion (knee, ankle). Examples: Ottobock C-Leg + Genium (knee with microprocessor); Össur Power Knee.\n• **Sensory feedback**: vibrotactile + intraneural stimulation in research (LifeHand 2, DARPA HAPTIX). Restores touch + position sense; reduces phantom-limb pain.\n• **Bone-anchored** (osseointegration): titanium implant through skin to bone (skull, femur, humerus). Improved attachment, reduced soft-tissue issues. ~5000+ implants since 1990.\n• **Targeted muscle reinnervation (TMR)**: surgically reroute amputated nerves to alternative muscles; provides additional EMG control signals + reduces neuroma + phantom pain.\n\n**Lower-limb microprocessor knees** (C-Leg, X3, RHEO, Genium): sensors track gait phase + adjust hydraulic damping in real time → near-natural walking on stairs + slopes + variable terrain. Improved fall prevention vs passive knees.\n\n**Foot prostheses**: Össur Cheetah blade (carbon-fiber spring) for running; Power Foot (Ottobock Empower) with powered ankle for level walking + slopes."
+    },
+    {
+      "kind": "text",
+      "title": "Brain-machine interfaces: signal acquisition",
+      "body": "**Brain-machine interfaces (BMI / BCI)** record neural activity + decode intent to control devices. Spectrum of invasiveness:\n\n**Non-invasive**:\n• **EEG (electroencephalography)**: scalp electrodes; ~100 ms temporal resolution; ~cm spatial. P300 spellers, SSVEP-based; portable; established assistive technology (BrainGate-Communicate). Low bandwidth (~bits/min for typing).\n• **fNIRS** (functional near-IR spectroscopy): hemodynamic; slower; portable; research.\n• **MEG** (magnetoencephalography): superconducting sensors; sub-mm spatial; hospital-only; large.\n\n**Minimally invasive**:\n• **Stentrode** (Synchron): self-expanding stent with electrodes deployed in cerebral venous sinus; no craniotomy. Approved for ALS trials; ~10 patients implanted by 2024.\n• **Sub-scalp** electrodes: clinical for epilepsy monitoring.\n\n**Invasive**:\n• **ECoG / subdural grids**: electrodes on cortical surface (under dura). Used clinically for epilepsy mapping + experimental BMI.\n• **Utah array**: silicon-based 96-electrode array, ~1 mm × 4 mm; penetrates cortex 1.5 mm. Records single-unit + LFP. BrainGate (academic consortium) + clinical trials.\n• **Microwire arrays**: emerging.\n• **Neuralink**: thin polymer threads (~5 μm) with 1024+ electrodes per chip; robotic-implanted; bi-directional. First human implant Jan 2024 (Noland Arbaugh).\n• **Paradromics**: high-bandwidth electrode arrays.\n\n**Trade-off**: invasiveness vs signal quality vs longevity. Utah arrays degrade over months-years (foreign-body response encapsulates electrodes); Neuralink + others aim to extend with biocompatible materials + soft electrodes."
+    },
+    {
+      "kind": "text",
+      "title": "Neural decoding + clinical applications",
+      "body": "**Decoding pipeline**:\n1. **Signal preprocessing**: filter, denoise, spike detection (threshold or template matching).\n2. **Feature extraction**: firing rates, LFP power spectra, spike sorting (single units).\n3. **Decoder**: linear (Kalman filter, Wiener filter); nonlinear (RNN, deep learning).\n4. **Effector control**: cursor, robotic arm, speech synthesis, mouse.\n5. **Feedback loop**: visual + (sometimes) sensory feedback for adaptation.\n\n**Major demonstrations** (clinical + research):\n- **BrainGate** (Cleveland Clinic + collaborators): tetraplegic patients control cursor, robotic arm. Cathy Hutchinson (2012) self-fed via prosthetic arm.\n- **Speech BCI**: Edward Chang's group (UCSF, 2021-23): cortical recordings decoded to speech text + articulation. Real-time speech-via-BCI ~40-80 wpm.\n- **Visual BCI**: Argus II retinal implant (Second Sight, 2013 FDA approval; company bankruptcy 2022); cortical implants in trials.\n- **Hearing**: cochlear implant pioneer (analog signal processing into auditory nerve); ~1M users globally.\n- **Synchron**: minimally invasive BMI for ALS patients (Stentrode); FDA breakthrough designation.\n- **Neuralink**: first human implant (2024); cursor control demonstrated. Long-term performance + safety + scaling unknown.\n\n**Clinical applications**:\n- **ALS / locked-in syndrome**: communication + basic control.\n- **Tetraplegia**: limb control via robotic arm + functional electrical stimulation.\n- **Parkinson's + tremor + dystonia**: deep brain stimulation (DBS, Medtronic + Boston Scientific + Abbott) — established therapy since 1997; ~200K implants globally.\n- **Epilepsy**: responsive neurostimulation (RNS, NeuroPace), DBS, vagus nerve stimulation.\n- **Depression + OCD** (treatment-resistant): DBS + emerging closed-loop personalized; mixed clinical results so far.\n- **Spinal cord injury**: epidural stimulation + brain-spine interfaces (Courtine + collaborators) restoring walking in paraplegic patients.\n\n**Ethics + open questions**:\n- Informed consent for novel + experimental devices.\n- Privacy of neural data (BNeuro / BCI privacy laws in Chile + Colorado).\n- Cognitive enhancement vs treatment.\n- Long-term safety + revision.\n- Equity + access (BMI cost ~$100K-$1M)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bmi_1",
+        "kind": "guided_derivation",
+        "question": "Design a basic EEG-based BCI cursor control system",
+        "goal": "Design a non-invasive BCI for cursor control via EEG.",
+        "steps": [
+          {
+            "prompt": "What EEG paradigm gives a usable signal?",
+            "motivation": "P300, SSVEP, motor imagery.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "motor imagery",
+                "SSVEP",
+                "P300"
+              ]
+            },
+            "hints": [
+              "Several established paradigms."
+            ],
+            "reveal": "Three main paradigms:\n- **P300**: event-related potential ~300 ms after target stimulus (oddball). Used in spellers.\n- **SSVEP** (steady-state visual evoked potential): EEG matches frequency of flickering target. Multiple flicker frequencies → discrete choices.\n- **Motor imagery**: imagining left vs right hand movement → mu/beta rhythm modulation over sensorimotor cortex.\nFor cursor control: motor imagery → 2D control; or SSVEP for discrete direction choices."
+          },
+          {
+            "prompt": "Signal processing pipeline?",
+            "motivation": "Standard EEG steps.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "bandpass filter, CSP, classifier",
+                "filter + features + classify"
+              ]
+            },
+            "hints": [
+              "From raw → discriminating features → label."
+            ],
+            "reveal": "Pipeline:\n1. Bandpass filter 8-30 Hz (mu + beta band).\n2. Artifact rejection (eye blinks, muscle).\n3. Feature extraction: Common Spatial Patterns (CSP) — supervised filter that maximizes variance ratio between classes.\n4. Classifier: LDA, SVM, or shallow CNN.\n5. Smoothing / Kalman filter for cursor trajectory.\n6. Adaptation: continuous model update as user learns."
+          },
+          {
+            "prompt": "Limitations of EEG-based cursor BCI?",
+            "motivation": "Performance constraints.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "low bandwidth, slow, training needed",
+                "low bit rate",
+                "needs training"
+              ]
+            },
+            "hints": [
+              "Compare to invasive BCI."
+            ],
+            "reveal": "Limitations: low bit rate (~25-50 bits/min vs invasive 50+ bits/sec); requires user training (weeks-months); session-to-session variability; sensitive to electrode placement + impedance + artifacts; limited to ~4-direction discrete control or 2D continuous with poor smoothness. EEG cursor BCIs deployed clinically for ALS communication but slow; advances in deep learning + transfer learning reducing training burden."
+          },
+          {
+            "prompt": "When would invasive (Utah array, ECoG) be preferred?",
+            "motivation": "Performance + risk tradeoff.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "high bandwidth needed",
+                "fine motor control",
+                "complete paralysis"
+              ]
+            },
+            "hints": [
+              "What's the risk/benefit threshold?"
+            ],
+            "reveal": "Invasive BMIs preferred when: (1) high-bandwidth output needed (>100 wpm speech, multi-DOF robotic arm); (2) tetraplegia with no alternative; (3) ALS late-stage with no other communication; (4) research clinical trial with full informed consent. Risk: craniotomy, infection, hemorrhage, ~10% revision rate over years. Benefit: 10-100× more information than EEG. Future: Neuralink + Synchron + others reducing surgical burden; ECoG semi-invasive with high signal quality. The 'minimally invasive' middle ground (Stentrode, sub-scalp) is the active frontier."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_bmi_1",
+        "kind": "slider",
+        "question": "Drag the slider to estimate the typical number of electrodes on a Utah array (single chip).",
+        "target": {
+          "min": 96,
+          "max": 100
+        },
+        "default": 50,
+        "explanation": "Standard Utah array: 96 electrodes on a 4×4 mm silicon chip, 1.5 mm penetration depth, 100 silicon needles. Multi-electrode arrays in research use 2-4 Utah arrays (192-384 electrodes total). Newer high-density arrays: Neuralink (1024+ per chip), Paradromics (~1600), various university designs (10K+). High electrode count enables more decoding precision + multi-region recording."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_bmi_1",
+        "kind": "sortable",
+        "question": "Order these BMI/prosthetic technologies by *level of invasiveness* (least invasive first).",
+        "items": [
+          {
+            "id": "eeg-cap",
+            "label": "EEG cap (scalp electrodes)"
+          },
+          {
+            "id": "myoelectric",
+            "label": "Myoelectric prosthetic arm (surface EMG)"
+          },
+          {
+            "id": "ecog-subdural",
+            "label": "ECoG / subdural grid"
+          },
+          {
+            "id": "stentrode",
+            "label": "Stentrode (endovascular intracranial)"
+          },
+          {
+            "id": "utah-array",
+            "label": "Utah array (penetrating cortical electrodes)"
+          },
+          {
+            "id": "neuralink",
+            "label": "Neuralink threads (deep cortical, robotic-implanted)"
+          }
+        ],
+        "explanation": "Invasiveness ranking:\n• **EEG cap**: non-invasive, scalp only. Reusable, portable.\n• **Surface EMG / myoelectric prosthetic**: non-invasive, on residual limb skin.\n• **Stentrode**: minimally invasive (endovascular; deployed via jugular vein into cerebral venous sinus; no craniotomy). Reaches motor cortex; reasonable spatial resolution.\n• **ECoG / subdural**: invasive (craniotomy + dural opening); electrode array on cortical surface. Used clinically + research.\n• **Utah array**: invasive (craniotomy + insertion); penetrates cortex ~1.5 mm. Records single-unit + LFP. Research + clinical trials.\n• **Neuralink threads**: invasive (craniotomy + robotic insertion); penetrates ~3 mm; thinner threads claim less tissue damage but penetrating + deeper than Utah array.\n\nTrade-off: invasive → higher signal quality (10×-100× over EEG) + finer spatial resolution + longer-term degradation issues (encapsulation, scarring). Choice depends on clinical need + research scope + patient + ethical considerations."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bmi_1",
+        "kind": "multiple_choice",
+        "question": "What's the biggest engineering challenge for long-term implantable brain electrodes?",
+        "options": [
+          "Battery life.",
+          "Foreign-body response: chronic inflammation + glial scarring (gliosis) encapsulates electrodes within weeks-months, increasing impedance + reducing signal. Penetrating electrodes' performance degrades 30-90% over 1-3 years. Mitigations: soft + flexible electrodes (Neuralink threads, Mesoscale Discovery materials), drug-eluting coatings (dexamethasone), conducting-polymer modifications. Long-term stable cortical recording remains an open challenge.",
+          "Wireless data transmission.",
+          "Power delivery."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Chronic implantation challenge**: brain tissue treats penetrating electrodes as foreign; engages immune + glial response.\n\n*Foreign-body response (FBR) in CNS*:\n1. Acute mechanical injury during insertion: microhemorrhage + BBB disruption.\n2. Microglia + astrocytes activate, migrate to electrode within hours.\n3. Macrophages + monocytes recruited days-weeks.\n4. Astrocytic + microglial encapsulation forms 'glial scar' (200-400 μm thick) within 4-6 weeks.\n5. Reduced electrode-neuron contact; impedance rises; signal amplitude drops.\n\n*Specific failure modes*:\n- **Single-unit drift**: spiked neurons appear, disappear over weeks. Decoder must adapt.\n- **Impedance creep**: increases over time → reduces SNR.\n- **Mechanical micro-motion**: brain pulses 0.1-1 mm with heartbeat + respiration; stiff electrodes (silicon, metal) damage tissue + amplify FBR.\n- **Material degradation**: corrosion of metals; delamination of insulating coatings.\n\n*Engineering mitigations*:\n1. **Soft + compliant electrodes**: polyimide, parylene, hydrogels; Neuralink threads (~5 μm diameter, kgf flexible); MIT-developed mesh electronics. Mechanical mismatch reduced.\n2. **Drug-eluting coatings**: dexamethasone (anti-inflammatory) reduces gliosis. ~50-100 day controlled release.\n3. **Conducting polymers** (PEDOT, PEDOT-PSS): low impedance + biocompatibility; coating on metal electrodes.\n4. **Closed-loop adaptive decoders**: re-calibrate with neural drift; deep-learning approaches.\n5. **Glassy carbon + diamond** electrodes: long-term inertness.\n6. **Implantation strategy**: insertion speed + technique; some studies suggest slow insertion reduces tissue damage.\n7. **Optogenetics + chemogenetics**: optical/genetic alternatives to electrical stimulation; high spatial precision.\n\n*Long-term performance benchmarks*:\n- Utah arrays: 5-10 years of usable recordings in some patients; declining signal over years.\n- BrainGate cohort longest follow-up: 7+ years.\n- Neuralink: only ~6-12 months of human data (as of 2024); long-term unknown.\n\n*Open question*: can we achieve decade-long stable recordings from many channels? Not yet. The 'stable + chronic + high-bandwidth' triangle is the engineering frontier.\n\nThis is why BCI is still in clinical trials rather than widely available — long-term reliability + biocompatibility are the bottlenecks."
+      },
+      "hints": [
+        "What forms around electrodes?",
+        "What's the signal-quality trajectory?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Foreign-body response: chronic inflammation + glial scarring (gliosis) encapsulates electrodes within weeks-months; signal amplitude declines 30-90% over 1-3 years. Mitigations: soft + flexible electrodes (Neuralink threads, mesh electronics), drug-eluting coatings (dexamethasone), conducting polymers (PEDOT), adaptive decoders. Utah arrays: 5-10 yr usable in some patients. Neuralink: 6-12 mo human data only. Long-term stable high-bandwidth recording is the frontier challenge."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bmi_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain the ethical considerations for BCI/BMI research + deployment.",
+        "rubric": "Mentions: informed consent — patients with severe disability + limited communication may have impaired consent; need surrogate decision-makers + iterative consent. Risk-benefit: invasive BCI for tetraplegic ALS justifiable; for cognitive enhancement in healthy people much more concerning. Privacy of neural data: emerging concern; Chile + Colorado have neural-rights laws; should brain data be treated like genetic data? Equity + access: $100K-$1M cost; only wealthy + research-eligible patients access. Identity + autonomy: long-term BCI users may experience changes in self-perception. Reversibility: implant removal not always trivial. Industry incentives: rapid commercial development (Neuralink, Synchron, Paradromics) vs academic safety culture. Regulatory pathway: FDA Breakthrough; specialized expertise needed. Open questions: cognitive enhancement boundary; warfare/security; long-term integration with biology. Concludes: BCI ethics emerging field; needs sustained scrutiny + patient-centered governance + public engagement."
+      }
+    }
+  ]
+}

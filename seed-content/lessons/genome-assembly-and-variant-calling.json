@@ -1,0 +1,174 @@
+{
+  "slug": "genome-assembly-and-variant-calling",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Distinguish OLC + de Bruijn.",
+      "Explain variant calling.",
+      "Recognize SV detection."
+    ],
+    "prereqs": [
+      "sequence-alignment-and-blast"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Genome assembly: putting Humpty Dumpty together",
+      "body": "**Assembly problem**: reconstruct original genome from many short(er) sequencing reads with errors. NP-hard in general; practical heuristics.\n\n**Two main paradigms**:\n\n1. **Overlap-Layout-Consensus (OLC)**:\n - Find pairwise overlaps between reads.\n - Build overlap graph (nodes = reads, edges = overlaps).\n - Find Hamiltonian path through graph (visit each node once).\n - Consensus: majority vote over aligned reads → contigs.\n - **Pros**: handles long reads + low-coverage; PacBio HiFi + Nanopore.\n - **Cons**: pairwise comparisons O(n²); doesn't scale to billions of short reads.\n - **Tools**: Canu, Flye, hifiasm, hifiasm-meta, wtdbg2, miniasm.\n\n2. **de Bruijn graph (DBG)**:\n - Break reads into k-mers (substrings of length k).\n - Build graph: nodes = k-1-mers, edges = k-mers.\n - Find Eulerian path through graph (traverse each edge once).\n - **Pros**: O(n) construction; works for billions of short reads.\n - **Cons**: short reads → fragmented contigs; loses information.\n - **Tools**: Velvet, ABySS, SOAPdenovo, ALLPATHS-LG, SPAdes (also handles long reads now).\n\n**Hybrid assembly**: combines short + long reads. SPAdes, Unicycler (bacterial), Hybridscaffold.\n\n**Modern long-read assembly + T2T**:\n- PacBio HiFi (10-25 kb, >99% accurate) + Oxford Nanopore (Mb-scale, ~95% raw + improving).\n- Hifiasm, Flye, Canu, NextDenovo handle these well.\n- **T2T (telomere-to-telomere) human genome 2022**: complete reference for first time; resolved centromeres + tandem repeats + Y chromosome.\n- **Diploid + haplotype-resolved assemblies**: separate maternal + paternal haplotypes; emerging standard.\n- **Pangenomes**: graph representations of multiple genomes; capture variation directly (HPRC Human Pangenome Reference Consortium 2023).\n\n**Quality metrics**:\n- **N50**: length L such that 50% of total assembly is in contigs ≥ L. Higher = better contiguity.\n- **Number of contigs**: fewer = better.\n- **Largest contig**.\n- **BUSCO**: completeness via core ortholog presence.\n- **QUAST**: comprehensive QC vs reference (if available).\n- **Merqury / Mercury**: k-mer-based QV (quality value).\n\n**Annotation pipeline**:\n- **Gene prediction**: AUGUSTUS, BRAKER, MAKER (ab initio + RNA-seq evidence + protein homology).\n- **Functional annotation**: InterProScan, eggNOG, KEGG, GO, Pfam.\n- **Repeat masking**: RepeatMasker, RepeatModeler.\n- **Comparative + synteny**: SynMap, GENESPACE, Synolog."
+    },
+    {
+      "kind": "text",
+      "title": "Variant calling: finding the differences",
+      "body": "**Variant calling**: from aligned reads, identify positions where individual differs from reference. Critical for clinical + research.\n\n**Pipeline**:\n1. Align reads to reference (BWA-MEM, minimap2).\n2. Mark duplicates (Picard MarkDuplicates, SAMBLASTER).\n3. Base-quality-score recalibration (BQSR; GATK).\n4. Call variants (GATK HaplotypeCaller, DeepVariant, Strelka2).\n5. Joint-call across cohort (GVCF + CombineGVCFs + GenotypeGVCFs).\n6. Filter (VQSR, hard filters, ML).\n7. Annotate (VEP, SnpEff, ClinVar, gnomAD).\n8. Interpret (clinical or research).\n\n**Variant types + tools**:\n- **SNVs + small indels** (<50 bp): HaplotypeCaller, DeepVariant (Google CNN), Strelka2, Varscan, FreeBayes.\n- **Structural variants (SVs)**: delly, manta, lumpy, GRIDSS, pbsv (PacBio), Sniffles2 (Nanopore).\n- **Copy number variants**: CNVkit, CNVnator, Canvas, GATK gCNV.\n- **Mobile element insertions**: MELT, ME-Scan.\n- **Repeat expansions**: ExpansionHunter, Tredparse, REviewer.\n- **Mitochondrial**: mtDNA-Server, MToolBox; heteroplasmy quantification.\n- **Somatic vs germline**: Mutect2, Strelka, Sentieon TNscope (for cancer); requires matched normal for highest accuracy.\n\n**Quality filters**:\n- Variant quality score (QUAL, GQ).\n- Allele balance (AB; should be ~0.5 for heterozygous).\n- Depth (DP); too low → low confidence; too high → mapping error/duplicate.\n- Mapping quality (MQ).\n- Position in read (PoS bias).\n- Strand bias (FS, SOR).\n- VQSR (variant quality score recalibration; GATK ML approach).\n- Hard filters per ACMG-AMP standards for clinical.\n\n**Validation**:\n- Truth sets: GIAB (Genome in a Bottle; Zook lab NIST); HG001 (NA12878), HG002 (Ashkenazim son), Chinese trio, Black ancestry trio.\n- Precision + recall + F1 vs truth sets.\n- Hap.py, vcfeval for benchmarking.\n\n**Clinical interpretation**:\n- ACMG-AMP 2015 + 2023 standards.\n- Pathogenic / likely pathogenic / VUS / likely benign / benign.\n- Databases: ClinVar, OMIM, HGMD, LOVD, ClinGen.\n- Population frequency: gnomAD v3+ (now ~800k exomes + ~75k genomes).\n- Predictors: AlphaMissense, REVEL, CADD, SpliceAI."
+    },
+    {
+      "kind": "text",
+      "title": "Pangenomes + structural variants + emerging frontiers",
+      "body": "**Reference + pangenome era**:\n- GRCh38 (2013) still the workhorse but has gaps + bias toward European-ancestry samples.\n- T2T-CHM13 (2022): first complete human genome; gap-free reference.\n- HPRC (Human Pangenome Reference Consortium) 2023: 47 phased diploid assemblies → graph reference; captures common SVs + ancestry-specific variants directly.\n- vg, minigraph + cactus, GraphAligner, GraphTyper for graph-based alignment + variant calling.\n- Improves variant calling accuracy especially for SVs + complex regions + diverse ancestries.\n\n**Long-read variant calling**:\n- PacBio HiFi + Nanopore reveal SVs missed by short-read.\n- Sniffles2, pbsv, cuteSV detect insertions, deletions, inversions, translocations.\n- Repeat expansions resolved (Fragile X, Huntington, ALS, myotonic dystrophy).\n- Tandem repeats characterizable (VNTR-finder, TRGT).\n- DeepVariant + PEPPER for Nanopore SNV/indel.\n- Routine long-read clinical sequencing emerging.\n\n**Clinical applications**:\n- **Rare disease**: Mendelian disorder diagnosis; ~30-40% success rate with WGS in undiagnosed cases; long-read pushing higher.\n- **Cancer**: tumor-normal matched WGS; finds drivers, somatic SVs, neoantigens.\n- **Pharmacogenomics**: CYP2D6, CYP2C19, DPYD, TPMT, HLA-B*5701 etc.\n- **Newborn screening**: emerging; ethical debates.\n- **Cardiac + neuro + immune deficiencies**.\n- **Polygenic risk scores**: aggregate effect of many variants.\n- **Liquid biopsy**: cfDNA + tumor fraction.\n- **Reproductive**: NIPT (cell-free DNA), PGT-A/M.\n\n**Ancient + ancient DNA**: degraded + damaged samples; specialized tools (ANGSD, mapdamage, schmutzi).\n\n**Microbial + metagenomic**:\n- 16S/ITS amplicons (QIIME2, DADA2).\n- Whole metagenome shotgun (Kraken2, Bracken, MetaPhlAn, mOTUs).\n- Functional metagenomics (HUMAnN, eggNOG-mapper).\n- Strain-level resolution (StrainPhlAn, StrainFinder).\n- Pathogen surveillance (SARS-CoV-2 sequencing during COVID-19).\n\n**Quality + reproducibility**:\n- Standards: GA4GH (Global Alliance for Genomics and Health).\n- Pipelines: nf-core/sarek + others; Snakemake + Nextflow.\n- CI/CD for bioinformatics (workflow regression tests).\n- FAIR + reproducible (Docker / Singularity + container registries).\n- Reproducible reports (Quarto, RMarkdown, Jupyter)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bio_asm_1",
+        "kind": "guided_derivation",
+        "question": "Diagnose an assembly quality report",
+        "goal": "A bacterial genome assembly: 80 contigs, total length 5.1 Mb, N50 = 145 kb, longest contig 580 kb, BUSCO 98.5% complete. Assess.",
+        "steps": [
+          {
+            "prompt": "Is total length reasonable?",
+            "motivation": "Compare to known.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "yes, typical bacterial genome 1-10 Mb"
+              ]
+            },
+            "hints": [
+              "Bacterial genome size."
+            ],
+            "reveal": "5.1 Mb is in normal bacterial range (often 1-10 Mb; E. coli ~4.6 Mb; M. tuberculosis ~4.4 Mb; Bacillus ~5 Mb). Sounds plausible."
+          },
+          {
+            "prompt": "N50 = 145 kb. Good?",
+            "motivation": "Contiguity metric.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "moderate; OK for short-read; long-read should be much higher"
+              ]
+            },
+            "hints": [
+              "Compare to read tech expectations."
+            ],
+            "reveal": "N50 145 kb is OK for short-read-only assembly (typical 50-500 kb); for hybrid or long-read should be Mb-scale or even single-contig per chromosome. 80 contigs in 5.1 Mb means average ~64 kb but N50 145 kb — moderately contiguous."
+          },
+          {
+            "prompt": "BUSCO 98.5%. Interpret.",
+            "motivation": "Completeness.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "very good; near-complete gene content"
+              ]
+            },
+            "hints": [
+              "What does BUSCO measure?"
+            ],
+            "reveal": "BUSCO scores fraction of expected single-copy orthologs found complete. 98.5% is very good (near complete). Above 95% generally indicates well-assembled genome. Together with N50 145 kb suggests: good gene content but contig boundaries scattered."
+          },
+          {
+            "prompt": "What to improve + how?",
+            "motivation": "Next steps.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "add long reads (Nanopore/PacBio) or scaffolding (Hi-C, optical mapping); polish; possibly close gaps"
+              ]
+            },
+            "hints": [
+              "Long reads + scaffolding."
+            ],
+            "reveal": "Improvement: add long reads (Nanopore MinION + PacBio HiFi) → much higher N50 + often single-contig per chromosome. Scaffolding (Hi-C, optical mapping, mate-pair libraries) further joins contigs. Polishing (Pilon, Medaka, NextPolish) cleans long-read assemblies with short reads. For most modern bacterial work, a hybrid Illumina + Nanopore gives single-contig closure in a single MinION flow cell."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bio_asm_1",
+        "kind": "multiple_choice",
+        "question": "Why are tandem repeats + centromeres + segmental duplications the toughest assembly challenges?",
+        "options": [
+          "Random.",
+          "These regions contain long stretches of nearly-identical sequence — short reads (50-300 bp) map to multiple locations, so the assembler can't decide which copy a read came from. de Bruijn graphs collapse repeats into a single node + tangle. Result: gaps + misassemblies. Long-read sequencing (>10 kb PacBio HiFi or Nanopore reads spanning whole repeats) finally resolved these in T2T-CHM13 (2022) — first complete human genome including centromeres, rDNA arrays, and Y chromosome. Pangenome graphs from HPRC (2023) further capture diverse human ancestry. Major implications for clinical genetics (CNV detection, repeat expansion disorders, immune locus diversity) + comparative genomics.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Repeats/centromeres/SDs: nearly-identical sequence longer than short read length → reads map ambiguously → assembler can't disambiguate. Long-read sequencing (PacBio HiFi, Nanopore) spanning whole repeats finally enabled T2T human assembly (2022). HPRC pangenome (2023) extends to diverse ancestries. Implications for clinical genetics + comparative genomics."
+      },
+      "hints": [
+        "What's special about long repeats?",
+        "Why short reads fail?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Tandem repeats + centromeres + segmental duplications contain near-identical sequence longer than short read length (50-300 bp). Reads map to multiple locations → unresolvable in graph. Long reads (PacBio HiFi, Nanopore) spanning entire repeats finally resolved (T2T-CHM13 2022, first complete human genome). HPRC pangenome 2023 extends to diverse ancestries. Major for CNV + repeat-expansion disorders + immune locus diversity."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_bio_asm_1",
+        "kind": "math_expression",
+        "question": "If an assembly has total length 5 Mb in contigs of these lengths sorted descending (kb): 600, 400, 300, 200, 150, 100, 80, 60, 40, ... what's the N50 in kb?",
+        "acceptedAnswers": [
+          "200",
+          "200 kb"
+        ],
+        "hint": "Find the contig length L such that the cumulative sum of contigs ≥ L is ≥ 50% of total (2.5 Mb)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_bio_asm_1",
+        "kind": "sortable",
+        "question": "Order these by typical assembly contiguity quality (lowest N50 first).",
+        "items": [
+          {
+            "id": "short-only",
+            "label": "Illumina-only short-read de novo"
+          },
+          {
+            "id": "long-only",
+            "label": "Nanopore-only assembly + polish"
+          },
+          {
+            "id": "hybrid",
+            "label": "Hybrid Illumina + Nanopore"
+          },
+          {
+            "id": "hifi-hic",
+            "label": "PacBio HiFi + Hi-C scaffolding"
+          },
+          {
+            "id": "t2t",
+            "label": "T2T (HiFi + ONT ultralong + Hi-C + manual)"
+          }
+        ],
+        "explanation": "Assembly contiguity hierarchy: short-only (10s-100s kb N50) < Nanopore-only (~Mb but indels) < hybrid (multi-Mb) < HiFi + Hi-C (near-chromosome-scale) < T2T (gap-free, chromosome-by-chromosome). Each step adds compute + data cost but resolves more biology."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bio_asm_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why the T2T-CHM13 + HPRC pangenome era is reshaping clinical genomics.",
+        "rubric": "Mentions: GRCh38 (2013) has ~8% missing/inaccurate sequence (centromeres, repeats, tandem-repeat regions, Y) + bias toward European ancestry. T2T-CHM13 (2022) provided first complete human genome — gap-free, including centromeres, rDNA, Y chromosome. HPRC (2023) provided 47 phased diploid assemblies → pangenome graph reference capturing structural variation + ancestry-specific variants directly. Clinical impact: better variant calling especially for SVs + complex regions + diverse ancestries (reducing health disparities); previously-invisible repeat expansions (Fragile X, Huntington, myotonic dystrophy, ALS C9orf72, SCAs) characterized; immune locus (MHC, KIR) diversity captured; cancer-driver SVs more reliably detected. Tooling: vg, minigraph, GraphAligner, GraphTyper enable graph-based alignment + variant calling. Pangenome era is to genomics what GPS-with-map-updates is to navigation: improved coverage of biological reality + better outcomes especially for underrepresented populations. Concludes: T2T + pangenomes are foundational infrastructure for the next decade of clinical + comparative genomics."
+      }
+    }
+  ]
+}

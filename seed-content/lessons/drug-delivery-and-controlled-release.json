@@ -1,0 +1,165 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Distinguish controlled-release mechanisms.",
+      "Apply Fickian + non-Fickian release kinetics.",
+      "Reason about targeted + nanoparticle delivery."
+    ],
+    "prereqs": [
+      "biomechanics-and-tissue"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why controlled-release matters",
+      "body": "Conventional oral or IV dosing: drug peaks rapidly after administration + decays exponentially per pharmacokinetics. Plasma concentration oscillates between toxic (peak) + sub-therapeutic (trough). Patient must dose multiple times daily; adherence problems.\n\n**Controlled release** provides:\n- Steady plasma concentration in therapeutic window.\n- Reduced dosing frequency (once daily → weekly → monthly → years).\n- Reduced peak side effects.\n- Targeted delivery to specific tissues or cells.\n- Improved compliance.\n\n**Examples**:\n- Norplant + Nexplanon: 3-year contraceptive subcutaneous implants.\n- Risperdal Consta + Invega Sustenna: monthly antipsychotic injections.\n- Sotylize + others: insulin pumps for diabetes.\n- Ozempic / semaglutide weekly injection for diabetes + weight management.\n- Implanon: 3-year etonogestrel implant.\n- Mirena IUD: 5-year levonorgestrel intrauterine device.\n- Lupron Depot: monthly leuprolide for prostate cancer.\n- DES-coated stents: weeks-months controlled release of antirestenosis drug.\n- Targeted nanoparticles (Doxil, Abraxane): cancer chemotherapy with reduced toxicity.\n- mRNA vaccines (Pfizer, Moderna COVID): lipid nanoparticles deliver mRNA to cells."
+    },
+    {
+      "kind": "text",
+      "title": "Release-kinetics models",
+      "body": "**Fickian (diffusion-controlled)** release:\n  Q(t) / Q_∞ = √(t × D/L²) for early times (Higuchi model)\n  Q(t) / Q_∞ = 1 - exp(-k t) for first-order decay\n\n**Zero-order release**: constant rate over time. Ideal for steady-state plasma levels. Achieved via:\n- Membrane-controlled devices (Norplant, Mirena, transdermal patches): drug reservoir surrounded by rate-controlling membrane.\n- Osmotic pumps (Alzet for animal research; OROS oral systems): osmotic pressure drives drug out at constant rate.\n- Erosion/degradation-controlled: polymer dissolves at controlled rate.\n\n**First-order release**: rate ∝ remaining drug. Approximate Higuchi for early times. Common for matrix systems.\n\n**Korsmeyer-Peppas model**: Q(t)/Q_∞ = k t^n. n = 0.5 → Fickian; n = 1 → zero-order; n between → anomalous transport.\n\n**Burst release**: initial rapid release before steady state. Sometimes desirable (priming dose), often a design problem to minimize.\n\n**Release-rate measurement**: USP dissolution apparatuses I-IV (basket, paddle, flow-through, etc.) under standardized conditions. Required for FDA approval."
+    },
+    {
+      "kind": "text",
+      "title": "Targeted + nanoparticle delivery",
+      "body": "**Passive targeting** — **enhanced permeability + retention (EPR) effect**: tumor vasculature is leaky + lymphatic drainage poor; nanoparticles (50-200 nm) accumulate preferentially in tumors. Doxil (PEGylated liposomal doxorubicin, 1995) was first FDA-approved nanomedicine; reduces cardiotoxicity vs free doxorubicin.\n\n**Active targeting**: surface ligands recognize specific receptors:\n- Antibody-drug conjugates (ADCs): mAb + cytotoxic payload + linker. Targets: HER2 (Kadcyla, Enhertu), CD30 (Adcetris), CD22 (Besponsa), CD79b (Polivy), Trop-2 (Trodelvy). Most successful: HER2+ breast cancer.\n- Aptamer-drug conjugates: emerging.\n- Folate, transferrin, sugar-binding ligands.\n\n**Nanoparticle types**:\n- Liposomes (lipid bilayer): Doxil, mRNA vaccines (LNP).\n- Polymeric NPs (PLGA, dendrimers, micelles).\n- Inorganic (gold, iron oxide, silica): research; some clinical.\n- Solid lipid nanoparticles.\n- Polymer micelles.\n- Exosomes (cell-derived): emerging.\n\n**mRNA vaccine breakthroughs (COVID-19)**:\n- Pfizer-BioNTech, Moderna mRNA in LNP carrier.\n- LNP composition: cationic lipid + cholesterol + PEG-lipid + helper lipid + mRNA.\n- LNP delivers mRNA into cell cytoplasm; ribosomes translate; cell expresses spike → immune response.\n- COVID vaccines: ~95% efficacy in phase III trials; deployed at scale to billions; demonstrated platform versatility.\n- Subsequent: mRNA for flu, RSV, cancer (Moderna + Merck personalized cancer vaccine MK-3475-B71 trials).\n- LNP delivery + mRNA encoding is a generic platform — any protein can be expressed transiently.\n\n**Cell + gene therapy**:\n- CAR-T (Kymriah, Yescarta): patient T cells engineered to attack cancer; ~$370K-$700K treatment cost.\n- Gene therapy (Luxturna for blindness; Zolgensma for SMA): single-dose; transformative for monogenic diseases."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_drug_1",
+        "kind": "guided_derivation",
+        "question": "Design a long-acting injectable for psychosis",
+        "goal": "Compare oral risperidone + risperidone Consta (long-acting injection) for treatment adherence + therapeutic outcomes.",
+        "steps": [
+          {
+            "prompt": "Why is oral psychiatric medication adherence often poor?",
+            "motivation": "Identify problem.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "forgotten doses",
+                "adherence problems",
+                "anosognosia"
+              ]
+            },
+            "hints": [
+              "Daily dosing burden."
+            ],
+            "reveal": "Psychiatric medications (especially antipsychotics) have notoriously poor adherence: forgetting doses, side effects, anosognosia (lack of insight into illness), substance abuse, complex regimens. Studies show 40-60% adherence in 1-yr follow-up — leads to relapse + rehospitalization."
+          },
+          {
+            "prompt": "How does risperidone Consta improve this?",
+            "motivation": "Long-acting formulation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "biweekly injection",
+                "controlled release over 2 wk",
+                "PLGA microspheres"
+              ]
+            },
+            "hints": [
+              "Injectable depot."
+            ],
+            "reveal": "**Risperdal Consta**: risperidone encapsulated in PLGA biodegradable microspheres. Single IM injection every 2 weeks. Microspheres erode + release drug gradually over ~2-4 weeks. Steady plasma levels; eliminates daily compliance burden. Patient must visit clinic for injection — provides regular contact + monitoring opportunity."
+          },
+          {
+            "prompt": "Plasma concentration vs time pattern for Consta?",
+            "motivation": "Release kinetics.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "initial burst + sustained release",
+                "biphasic",
+                "lag then steady"
+              ]
+            },
+            "hints": [
+              "PLGA erosion."
+            ],
+            "reveal": "PLGA microspheres: initial **lag phase** (~3 weeks; oral risperidone bridging needed initially) → gradual increase → sustained therapeutic plasma → drops as microspheres exhausted. So bi-weekly injection with overlapping releases creates steady-state. Modern formulations (Invega Sustenna paliperidone monthly, Aristada lauroxil monthly-3 monthly) extend interval further."
+          },
+          {
+            "prompt": "Clinical outcomes for LAI vs oral?",
+            "motivation": "Population health.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "fewer hospitalizations",
+                "better adherence outcomes",
+                "lower relapse"
+              ]
+            },
+            "hints": [
+              "Adherence-related events."
+            ],
+            "reveal": "Meta-analyses (Kishimoto+ Tiihonen+): LAIs show 30-40% reduced rehospitalization vs oral antipsychotics; lower mortality. Particularly effective for: first-episode psychosis (long-term outcomes), patients with prior non-adherence, court-mandated treatment. Cost: ~$1000-2000/month for LAIs vs ~$10-50/month for generic oral risperidone; offset by reduced hospitalization. LAI use in US increased significantly 2015-2024."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_drug_1",
+        "kind": "slider",
+        "question": "Drag the slider to estimate the typical lipid-nanoparticle diameter (in nm) used in mRNA vaccines.",
+        "target": {
+          "min": 60,
+          "max": 120
+        },
+        "default": 200,
+        "explanation": "Lipid nanoparticles (LNPs) for mRNA vaccines (Pfizer/Moderna COVID): ~70-100 nm diameter. Composition: cationic ionizable lipid + cholesterol + phospholipid + PEG-lipid + mRNA. Designed for cellular uptake + endosomal escape. Too small (<50 nm): rapid renal clearance + low payload. Too large (>200 nm): poor cell uptake + RES uptake in liver/spleen. Optimal range ~60-150 nm balances all factors."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_drug_1",
+        "kind": "multiple_choice",
+        "question": "Why has the LNP-mRNA platform succeeded so dramatically post-COVID?",
+        "options": [
+          "It was lucky.",
+          "Highly modular: mRNA encoding can be swapped to produce any protein within weeks. LNP carrier is reusable. Manufacturing scale-up faster than traditional vaccines (no live virus or cell-culture growth needed). COVID-19 vaccines deployed within ~1 year of pathogen identification — historic acceleration. Beyond COVID: flu (Moderna mRNA-1010), RSV (Moderna mRNA-1345 approved 2024), CMV, cancer vaccines (personalized), gene therapy (transient expression for some indications).",
+          "mRNA was already standard.",
+          "LNPs are not actually used in vaccines."
+        ],
+        "correctIndex": 1,
+        "explanation": "**LNP-mRNA platform success factors**:\n\n*Speed*:\n- Traditional vaccine: 5-15 years from pathogen identification to deployment.\n- LNP-mRNA: <12 months for COVID-19 (Pfizer-BioNTech BNT162b2 deployed Dec 2020; mRNA sequence designed Jan 2020; phase I-III + emergency use authorization in 11 months).\n- Drives: no live-virus growth, no cell-culture, no protein purification — just synthesize mRNA + formulate in LNP.\n\n*Modularity*:\n- mRNA sequence drives encoded protein.\n- LNP composition + ratios optimized once; reused across applications.\n- Manufacturing process largely identical; only mRNA changes.\n\n*Effectiveness*:\n- 90-95% efficacy in COVID-19 phase III trials (initial wave).\n- mRNA delivered to cells; ribosome-translated antigen recapitulates natural infection (more immunogenic than killed-virus vaccines).\n- Cellular + humoral immunity both stimulated.\n\n*Safety*:\n- mRNA degraded within days; LNP cleared.\n- No genomic integration risk (mRNA never enters nucleus).\n- Side effects: mild local (injection site) + systemic (flu-like) for 1-2 days.\n- Rare myocarditis in young males (~1-5/100K, mostly post-2nd dose, usually self-limited).\n\n*Post-COVID applications*:\n- **Influenza**: Moderna mRNA-1010 (multivalent flu), in trials.\n- **RSV**: Moderna mRNA-1345 (approved May 2024 for adults >60).\n- **CMV**: Moderna mRNA-1647 in phase III.\n- **HIV**: multiple candidates in early trials.\n- **Cancer vaccines**: personalized neoantigen vaccines (Moderna + Merck mRNA-4157 / V940 + Keytruda combination in phase III; melanoma + lung cancer).\n- **Gene therapy**: transient protein expression for some monogenic diseases (replacing missing enzyme).\n- **Vaccine boosters**: rapid adaptation to new pathogens (variant boosters within months).\n\n*Manufacturing*:\n- Pfizer + Moderna scaled to billions of doses in 2021-2022.\n- mRNA synthesis: enzymatic + cell-free at industrial scale.\n- LNP formulation: continuous-flow mixing systems.\n- Lyophilization + ultra-cold-chain logistics (-70 °C initially; -20 °C improved formulations).\n- mRNA technology + cold-chain investment now distributed globally.\n\n*Open questions + limitations*:\n- Long-term durability of immunity (months-year for COVID; need boosters).\n- T-cell responses vs antibody (some indications need stronger T-cell).\n- Therapeutic mRNA (vs vaccine): more challenging targeting + dosing.\n- Cost (~$10-20/dose); access in LMICs limited initially.\n\nNobel Prize 2023 to Karikó + Weissman for mRNA modification (pseudouridine substitution that reduced innate-immune activation) — foundational discovery."
+      },
+      "hints": [
+        "Why was COVID vaccine deployed so fast?",
+        "What's the modular advantage?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "LNP-mRNA platform: highly modular (mRNA swap → any protein), fast manufacturing (no virus growth), rapid sequence-to-deployment (~12 mo for COVID). Effective (90-95%), safe (mRNA degraded; no genome integration). Post-COVID: flu (mRNA-1010), RSV (mRNA-1345 approved 2024), CMV, HIV, personalized cancer (mRNA-4157), gene therapy. Karikó + Weissman Nobel 2023 for pseudouridine modification. Global manufacturing scaled to billions of doses."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_drug_1",
+        "kind": "math_expression",
+        "question": "A drug obeys first-order release with rate constant k = 0.05/day. What fraction remains after 14 days?",
+        "acceptedAnswers": [
+          "~0.497",
+          "0.50",
+          "exp(-0.7)"
+        ],
+        "hint": "C(t) = C₀ exp(-kt). exp(-0.05 × 14) = exp(-0.7) = 0.497."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_drug_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how 'targeted drug delivery' has matured from concept to clinical reality, with concrete examples.",
+        "rubric": "Mentions: targeted delivery aims to maximize drug at intended site, minimize systemic exposure + toxicity. Two main strategies: passive (EPR effect for tumors via nanoparticles 50-200 nm; Doxil 1995 first approved) + active (ligand-targeted nanoparticles + antibody-drug conjugates ADCs). ADC examples: Kadcyla (HER2+ breast), Enhertu (HER2+ ADC superseding Kadcyla), Adcetris (CD30+ lymphoma), Polivy (CD79b+ DLBCL), Trodelvy (TROP-2+ triple-negative breast). LNP-mRNA delivery: COVID vaccines delivered mRNA to lymph-node APCs + muscle; targeted future versions for liver (lipid composition) + lung (inhaled) + bone marrow. CAR-T as cell-level targeting. Active research: aptamer-drug, GalNAc-siRNA (Onpattro), brain-blood-barrier crossing. Concludes: targeted delivery enables drugs with intolerable systemic toxicity to become clinically viable; market growing $50B+; ongoing platform development."
+      }
+    }
+  ]
+}

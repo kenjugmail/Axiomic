@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "timeMinutes": 20,
+    "difficulty": "core",
+    "objectives": [
+      "State trend-following + momentum strategies.",
+      "Apply moving-average + breakout systems.",
+      "Reason about convexity + volatility scaling."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Trend-following + momentum",
+      "body": "**Trend-following / momentum**: assets that have moved tend to keep moving.\n\n**Time-series momentum**: own price history.\n- Look at 1-12mo returns.\n- Positive → buy. Negative → sell or short.\n- Robust over 100+ years across asset classes.\n\n**Cross-sectional momentum**: relative ranking.\n- Buy top quartile / decile recent winners.\n- Sell bottom quartile losers.\n- Established in equity markets since Jegadeesh + Titman 1993.\n\n**Why momentum works**:\n- **Behavioral**: underreaction to news, herding, anchoring.\n- **Institutional**: index inclusion, rebalancing flows.\n- **Risk-based**: higher-momentum stocks may have higher risk.\n- **Liquidity / market microstructure**: tradable patterns.\n\n**Famous trend followers (CTAs)**:\n- **Winton**: trend across futures + FX.\n- **Man AHL**: pioneer.\n- **Millburn**, **Campbell**, **Chesapeake**, **JWM Associates** (post-LTCM founder).\n- **Aspect Capital**.\n- **TransTrend**.\n- Often called Commodity Trading Advisors (CTAs).\n\n**Convex payoff**:\n- Trend strategies have POSITIVE SKEW.\n- Many small losses (false signals).\n- Few large wins (capturing big trends).\n- 'Long volatility' character — benefits from market dislocations.\n- Negative correlation with equity markets in crises.\n- Why included in diversified portfolios (crisis insurance).\n\n**Famous wins**:\n- 2008: trend funds +20%+ as equities crashed. Vol-of-vol expansion. AHL +33%.\n- 2014-15: USD strength against many currencies.\n- 2022: inflation/rates regime → many trend funds +25%+ as bond yields rose + stocks fell.\n\n**Famous losses**:\n- Sideways markets (2011-2013): no trends to follow.\n- Whipsaws (rapid reversals): generate losing trades quickly.\n- Single-asset crashes (Russian default 1998, Volkswagen short squeeze 2008)."
+    },
+    {
+      "kind": "text",
+      "title": "Moving averages + breakout systems",
+      "body": "**Moving average crossover**:\n- Compute fast MA (e.g., 20-day) + slow MA (e.g., 50-day or 200-day).\n- Buy when fast crosses above slow (golden cross).\n- Sell when fast crosses below slow (death cross).\n- Variants: simple, exponential, weighted.\n\n**Donchian channel breakout**:\n- Buy when price breaks above N-day high.\n- Sell when breaks below M-day low.\n- Original Turtle Trader system (Richard Dennis 1980s).\n- 20-day breakout entry / 10-day exit, or similar.\n\n**Volatility-based stops**:\n- Average True Range (ATR): smoothed range.\n- Stop = N × ATR away.\n- Adapts to current volatility.\n\n**Volatility scaling (vol targeting)**:\n- Adjust position size INVERSELY to volatility.\n- Position size = target_vol / current_vol × base_size.\n- Smoother PnL.\n- Used by AHL, AQR, others.\n\n**Risk parity**:\n- Equal RISK contribution from each asset.\n- E.g., bonds (low vol) get higher weight; equities lower weight.\n- Bridgewater All Weather Fund (Ray Dalio) classic example.\n\n**Carry**: bet on positive expected return component (yield, roll-down).\n- FX carry: long high-yield FX, short low-yield. Works when correlations stable; fails in crashes.\n- Bond carry: long higher-yielding bonds; roll-down on yield curve.\n- Commodity roll yield: spread between contracts.\n\n**Smart-beta + factor ETFs**: package factor exposures into low-cost ETFs.\n- Momentum ETFs: MTUM (iShares), SPMO, PDP.\n- Value ETFs: VLUE, IUSV.\n- Quality ETFs: QUAL.\n- Multi-factor: ROBO, etc.\n- AUM trillions; democratized factor investing.\n\n**Strategy combinations**:\n- Many shops combine trend + carry + value + mean-reversion.\n- AQR famous for multi-strategy: 'Style Premia' funds.\n- Diversification across strategies + markets.\n\n**Time horizons**:\n- Short-term momentum (1-5 days): mostly noise; quant-driven.\n- Medium-term (1-12 months): the famous academic momentum.\n- Long-term (3-5 years): tends to MEAN-REVERT, not momentum (De Bondt-Thaler).\n\n**Modern trend-following** uses sophisticated signal combinations + position sizing + execution. Still a major strategy class with billions in AUM."
+    },
+    {
+      "kind": "text",
+      "title": "Modern momentum + risk management",
+      "body": "**Cross-sectional vs time-series momentum**:\n- Time-series: own price history; buy what's gone up.\n- Cross-sectional: relative to peers; long top, short bottom.\n- Different statistical properties; often complementary.\n\n**Industry / sector momentum**: stronger than single-stock momentum. Industries trend together.\n\n**Mean-reversion vs momentum at different horizons**:\n- Days: mean-reversion (microstructure, overshoots).\n- Months: momentum (underreaction).\n- Years: mean-reversion (valuation).\n- Optimal: combine across horizons.\n\n**Risk management for momentum strategies**:\n- **Stop losses**: limit individual trade loss.\n- **Drawdown limits**: cut leverage if total loss exceeds threshold.\n- **Volatility scaling**: smaller positions in high-vol environments.\n- **Diversification**: many uncorrelated trades.\n- **Regime detection**: reduce exposure when momentum fails.\n\n**Common pitfalls**:\n- **Overfitting**: parameter tuning on backtest.\n- **Regime change**: 2011-2013 lost decade for trend.\n- **Reversal risk**: V-shaped reversals hurt.\n- **Crowding**: high-momentum stocks crowded → vulnerable to reversal.\n\n**Modern enhancements**:\n- **Risk premia rotation**: switch among momentum + value + carry + low-vol based on regime.\n- **Volatility regime models**: when vol is high → reduce position size.\n- **Cross-asset momentum**: connections between equities + bonds + FX + commodities.\n- **Macro momentum**: economic + policy momentum vs price momentum.\n\n**Bridgewater All Weather (Ray Dalio)**:\n- Risk parity + macro themes.\n- 4 economic environments: rising/falling growth × rising/falling inflation.\n- Diversify across asset classes weighted by risk.\n- Long-term + stable.\n\n**AQR + Cliff Asness**:\n- Multi-style: momentum + value + quality + carry.\n- Long/short equity + alternative risk premia.\n- Strong academic foundation (papers behind every strategy).\n\n**Backtest realism + the gap**:\n- Backtest Sharpe 1.5-3 typical.\n- Live Sharpe 0.5-1 typical.\n- Gap from transaction costs + impact + over-fit + regime change.\n- Forward-looking expectations should be conservative.\n\n**Capacity**: trend-following scales well (futures markets are deep). Many billions deployable in major CTA strategies.\n\n**Allocator viewpoint**: trend-following + risk parity + market-neutral stat-arb often used as diversifiers in portfolios. Negative correlation to equity in crises makes trend funds valuable."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_quant_trend",
+        "kind": "guided_derivation",
+        "question": "Design a simple trend system",
+        "goal": "Build a moving-average crossover system on SPY (S&P 500 ETF). Long when 20-day SMA > 200-day SMA; flat otherwise.",
+        "steps": [
+          {
+            "prompt": "Computing the signal: at end of each day, compare 20-day average price vs 200-day. Action?",
+            "motivation": "Implementation.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "If 20MA > 200MA + currently flat: enter long next morning. If 20MA < 200MA + currently long: exit next morning. Lag of 1 day to avoid look-ahead.",
+                "Same day.",
+                "Skip."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Use day-T close for signal, day-T+1 execution."
+            ],
+            "reveal": "End-of-day signal, next-day open execution. Avoids look-ahead bias. Standard practice."
+          },
+          {
+            "prompt": "Historical performance? (Approximate from real data 1990-2023.)",
+            "motivation": "Expected results.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Always loses.",
+                "Modest outperformance over buy-and-hold in some periods; underperforms in long bull markets (avoid market-timing penalty). Reduces drawdowns significantly (avoids large bear-market periods). Sharpe slightly better than buy-and-hold; better in risk-adjusted terms.",
+                "Always wins.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Risk-adjusted improvement, dampened bull."
+            ],
+            "reveal": "Modest absolute outperformance + reduced drawdowns. Sharpe slightly better than buy-and-hold. Avoids long bear markets. Underperforms in V-shaped recoveries (signal late). Real trade-off: smoother PnL but capped upside in melt-up markets."
+          },
+          {
+            "prompt": "Improvements?",
+            "motivation": "Sophistication.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Already perfect.",
+                "Multiple horizons (multiple MA pairs); volatility scaling (smaller in high-vol periods); multi-asset (across many markets); transaction cost awareness (avoid frequent flipping in choppy markets); regime detection. Modern CTAs combine many such enhancements.",
+                "Just more trading.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Combination + diversification + scaling."
+            ],
+            "reveal": "Multi-horizon MAs (e.g., 50/200, 20/100, 5/50); vol scaling; multi-asset diversification; regime adaptations; transaction cost awareness. Real CTAs combine dozens of signals across many markets. Result: smoother + more diversified PnL than single-MA crossover."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{MA crossover: simple trend signal; needs diversification + scaling to be robust}}$$ Single moving-average crossovers are educational but not enough for institutional alpha. Real CTAs combine many trend signals, vol scaling, multi-asset diversification, regime detection. The result: convex payoff with attractive risk-adjusted returns + crisis-time outperformance. The simple SMA crossover is the entry point to a deeper set of techniques."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_quant_2008",
+        "kind": "multiple_choice",
+        "question": "Many trend-following funds had stellar 2008 (e.g., AHL +33%) while equities crashed. Why this 'crisis alpha'?",
+        "options": [
+          "Marketing.",
+          "Trend funds are LONG VOLATILITY (positive skew): many small losses + few big wins. Large coordinated market moves (crashes, rallies) generate strong trends. Trend funds were short equities (downtrend) + long bonds (downtrend in rates) + had FX + commodity positions — all benefiting from the violent moves in 2008.",
+          "Insider.",
+          "Lucky."
+        ],
+        "correctIndex": 1,
+        "explanation": "Trend-following = 'long volatility' (positive convexity). Most periods: small losses on false signals. Crisis periods: massive moves create big wins.\n\n2008 specifically:\n- S&P 500 declined ~38% — strong downtrend; trend funds short equity benefited.\n- US Treasuries rallied (yields fell to ~2% from 5%) — trend funds long bonds benefited.\n- USD strengthened against most currencies — trend FX positions.\n- Commodities crashed after summer peak — trend funds short oil/copper benefited.\n\nResult: many CTAs +20-40% in 2008 while equities -38%. Negative correlation with equity markets = 'crisis alpha'.\n\nLessons:\n- Trend funds valuable for portfolio diversification.\n- Pension funds + institutional allocators include CTAs for this reason.\n- BUT: 2011-2013 trend funds lost money in choppy markets. Crisis alpha not guaranteed.\n\nSimilar in 2022: bond rates rose sharply + equities fell + USD rallied. Trend funds +25-35% in 2022."
+      },
+      "hints": [
+        "Why 2008 good?",
+        "Why trend funds = crisis insurance?"
+      ],
+      "workedSolution": "Trend funds are long volatility (positive skew). Large moves = big wins. 2008: short equity + long bonds + long USD + short commodities all worked. Sometimes called 'crisis alpha'. 2022 similar (rising rates regime). 2011-2013 difficult (chop). Crisis-alpha not guaranteed but historically valuable for portfolio diversification. Institutional allocators include CTAs explicitly for this.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_quant_ma",
+        "kind": "math_expression",
+        "question": "20-day MA = $410, 200-day MA = $400. Crossover?",
+        "acceptedAnswers": [
+          "Yes, 20 > 200",
+          "Bullish",
+          "Long"
+        ],
+        "hint": "Fast above slow."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_quant_diversify",
+        "kind": "scenario",
+        "question": "Adding CTAs to a 60/40 portfolio",
+        "prompt": "An institutional allocator considers adding 10-15% to CTAs. Walk through expected benefit + diversification + drawback."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_quant_trend",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why momentum / trend-following strategies have positive skew + how this affects portfolio construction.",
+        "rubric": "Mentions that trend strategies have many small losses (false signals) + few large wins (capturing big moves); positive skew means tail-end outperformance during crises; combined with equity beta this gives DIVERSIFICATION + 'crisis alpha'; institutional portfolios commonly include CTAs for this reason despite mediocre standalone Sharpe."
+      }
+    }
+  ]
+}

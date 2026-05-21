@@ -1,0 +1,214 @@
+{
+  "slug": "stochastic-and-robust-optimization",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish stochastic + robust.",
+      "Apply scenario-based.",
+      "Use chance constraints."
+    ],
+    "prereqs": [
+      "linear-programming-and-simplex"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Why uncertainty? — and how to model it",
+      "body": "**Reality**: parameters in optimization models are usually uncertain — demand, prices, lead times, weather, returns. Deterministic optimization with point estimates gives the **flaw of averages** (Sam Savage): planning at mean demand systematically under-stocks (since high-demand losses exceed low-demand profits).\n\n**Three modeling paradigms for uncertainty**:\n1. **Stochastic optimization**: probability distribution known; minimize expected cost (or maximize expected utility).\n2. **Robust optimization**: only an uncertainty set known; minimize worst-case cost over the set.\n3. **Distributionally robust optimization (DRO)**: ambiguity over distributions; minimize worst-case expectation over a set of distributions (Wasserstein, moment-based, etc.).\n\n**Two-stage stochastic LP**:\n  min cᵀ x + E[Q(x, ξ)]\n  s.t. A x = b, x ≥ 0\nwhere Q(x, ξ) = min q(ξ)ᵀ y s.t. W y = h(ξ) − T(ξ) x, y ≥ 0.\nFirst stage: 'here-and-now' decisions x before uncertainty ξ realizes; second stage: 'wait-and-see' recourse y after.\n\n**Multi-stage**: nested stages with revealed info between. Curse of dimensionality. Approximate dynamic programming + stochastic dual dynamic programming (SDDP).\n\n**Scenario tree**: discretize ξ into scenarios + probabilities. Solve large deterministic equivalent (massive LP). Sample-average approximation (SAA): generate Monte Carlo scenarios + solve."
+    },
+    {
+      "kind": "text",
+      "title": "Robust optimization + chance constraints",
+      "body": "**Robust optimization** (Soyster 1973; Ben-Tal + Nemirovski 1998-2000s): ξ in uncertainty set U; minimize worst-case.\n\n  min cᵀ x  s.t.  Aξ x ≤ b ∀ ξ ∈ U\n\n**Tractable when U is**:\n- Box (interval per parameter) → linear constraints.\n- Ellipsoid → second-order-cone (SOCP).\n- Polyhedron → linear (Bertsimas + Sim 2004 Γ-robust).\n- Conic uncertainty → SDP.\n\n**Bertsimas-Sim budget**: tradeoff conservativeness vs cost with parameter Γ (number of params allowed to be 'bad' simultaneously). Γ=0 → nominal; Γ = n → fully conservative (Soyster). Used in portfolio, scheduling, network design.\n\n**Chance constraints** (Charnes + Cooper 1959):\n  P(constraint violated) ≤ α\n\nE.g., P(demand exceeds supply) ≤ 5%. Generally non-convex. Tractable when:\n- Joint normal + linear → SOCP.\n- Discrete scenarios → MIP (big-M).\n- CVaR approximation → LP/convex.\n\n**Conditional Value-at-Risk (CVaR)**: average loss in worst α-fraction. Convex; computable via LP (Rockafellar + Uryasev). Used heavily in finance (risk management) + grid (reliability).\n\n**Distributionally robust optimization (DRO)**:\n  min max_P E_P[f(x, ξ)]  over P in ambiguity set\n\nWasserstein DRO: P within Wasserstein distance ε of empirical distribution. Connects to regularization in ML."
+    },
+    {
+      "kind": "text",
+      "title": "Applications + decision-focused learning",
+      "body": "**Where stochastic/robust OR is the standard practice**:\n- **Power grid**: unit commitment + economic dispatch under demand + renewable uncertainty. Stochastic UC.\n- **Supply chain**: safety stock, multi-echelon inventory under demand uncertainty.\n- **Newsvendor**: classic single-period stocking problem (analytic critical-fractile).\n- **Portfolio optimization**: Markowitz mean-variance is robust to risk; CVaR + downside-risk variants.\n- **Energy markets**: hydroelectric reservoir management (SDDP).\n- **Airline overbooking**: probabilistic no-shows; chance-constrained capacity.\n- **Telecom traffic engineering**: traffic uncertainty + congestion.\n- **Healthcare staffing**: stochastic demand + skill mix.\n\n**Modern: decision-focused learning** (Elmachtoub + Grigas 2017 'smart predict-then-optimize'): train ML predictors to minimize downstream decision regret rather than prediction error. Backprop through the optimization. Differentiable optimization (cvxpylayers; OptNet) makes this practical. Combines ML + OR end-to-end.\n\n**RL = sequential stochastic optimization with function approximation**. MDP backbone is OR; deep nets fit value/policy. Modern RL extends classical OR to high-dim states.\n\n**Online optimization**: decisions made sequentially under uncertainty. Regret bounds; competitive ratios. Used in online ad allocation, ski-rental, k-server, online matching."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_or_stoch_1",
+        "kind": "guided_derivation",
+        "question": "Solve newsvendor problem",
+        "goal": "Newsstand stocks Q papers. Cost $1, sell $3. Demand D ~ Uniform[40, 100]. Find optimal Q*.",
+        "steps": [
+          {
+            "prompt": "Underage cost c_u (per unstocked unit) + overage c_o (per leftover unit)?",
+            "motivation": "Asymmetric costs.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "c_u = $2 (foregone profit); c_o = $1 (cost of unsold)"
+              ]
+            },
+            "hints": [
+              "Lost profit; cost paid."
+            ],
+            "reveal": "c_u = $3 - $1 = $2 (profit lost per stock-out); c_o = $1 (cost per unsold unit, assume zero salvage)."
+          },
+          {
+            "prompt": "Critical fractile (newsvendor)?",
+            "motivation": "Service-level target.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "c_u / (c_u + c_o) = 2/3"
+              ]
+            },
+            "hints": [
+              "Underage / (underage + overage)."
+            ],
+            "reveal": "F(Q*) = c_u / (c_u + c_o) = 2/(2+1) = 2/3. Optimal stock satisfies P(D ≤ Q*) = 2/3."
+          },
+          {
+            "prompt": "Optimal Q*?",
+            "motivation": "Quantile of D.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "80"
+              ]
+            },
+            "hints": [
+              "Uniform[40,100] CDF at 2/3."
+            ],
+            "reveal": "D ~ Uniform[40, 100]; F(Q) = (Q-40)/60 = 2/3 → Q-40 = 40 → Q* = 80. Stock 80 papers."
+          },
+          {
+            "prompt": "If demand surges (mean +20%), how does Q* shift?",
+            "motivation": "Re-optimize.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "increases proportionally",
+                "shift right"
+              ]
+            },
+            "hints": [
+              "Shift the distribution."
+            ],
+            "reveal": "Critical-fractile rule still applies; Q* shifts with the distribution (uniform[48, 120] → Q*=96). Newsvendor extends to lognormal, normal, etc. Foundation of inventory theory; reorder-point / safety-stock formulas generalize this trade-off."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_or_stoch_1",
+        "kind": "multiple_choice",
+        "question": "What's the 'flaw of averages' + why does it matter for OR?",
+        "options": [
+          "Random.",
+          "Planning at the mean of a stochastic input generally gives wrong decisions (Sam Savage 2009). Newsvendor: stocking exactly mean demand under-serves (stock-outs cost > leftover cost). Project scheduling: planning at mean of activity times underestimates total duration (max of random variables is more than max of means; Jensen's inequality for convex f). Capacity planning: sizing to mean traffic creates congestion at peaks. Whenever decision is nonlinear in uncertainty, mean-substitution is biased. Right framework: stochastic optimization explicit about distribution → expected cost / CVaR / chance-constraint formulation.",
+          "Random.",
+          "Mean is optimal."
+        ],
+        "correctIndex": 1,
+        "explanation": "Flaw of averages (Savage 2009; also Jensen's inequality 1906): for nonlinear functions, E[f(X)] ≠ f(E[X]). Mean-substitution gives biased decisions. Resolution: stochastic optimization with explicit distribution or robust formulation. Foundation of inventory, scheduling, capacity, finance."
+      },
+      "hints": [
+        "Nonlinearity + expectation.",
+        "Jensen's inequality."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Flaw of averages: E[f(X)] ≠ f(E[X]) when f nonlinear (Jensen's inequality). Decisions evaluated at mean of uncertainty systematically biased. Solution: stochastic optimization (explicit distribution), robust formulation (worst-case over uncertainty set), or CVaR (tail focus). Foundation of inventory theory, project scheduling, capacity planning, financial risk management."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_or_stoch_1",
+        "kind": "slider",
+        "question": "Drag to typical 99% service-level safety-stock multiplier (in standard deviations of demand during lead time).",
+        "target": {
+          "min": 2.3,
+          "max": 2.3
+        },
+        "default": 1,
+        "explanation": "99% service level → z = 2.33 standard deviations (normal-distribution lookup). Safety stock = z·σ_LT. 95% → z=1.65; 99.9% → z=3.09. Service-level → safety stock is the workhorse of inventory management; tradeoff between holding cost + stock-out risk."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_or_stoch_1",
+        "kind": "drag_classify",
+        "question": "Match each uncertainty modeling approach to its hallmark.",
+        "items": [
+          {
+            "id": "saa",
+            "label": "Sample-average approximation (Monte Carlo)",
+            "bin": "stoch"
+          },
+          {
+            "id": "newsvendor",
+            "label": "Newsvendor critical fractile",
+            "bin": "stoch"
+          },
+          {
+            "id": "bs-budget",
+            "label": "Bertsimas-Sim Γ-budget portfolio",
+            "bin": "robust"
+          },
+          {
+            "id": "ellipsoid-unc",
+            "label": "Ellipsoidal uncertainty set (Ben-Tal-Nemirovski)",
+            "bin": "robust"
+          },
+          {
+            "id": "var-financial",
+            "label": "VaR / CVaR portfolio risk limit",
+            "bin": "cc"
+          },
+          {
+            "id": "service-level",
+            "label": "P(stockout) ≤ α inventory",
+            "bin": "cc"
+          },
+          {
+            "id": "wasserstein",
+            "label": "Wasserstein DRO (regularized empirical risk)",
+            "bin": "dro"
+          },
+          {
+            "id": "moment-dro",
+            "label": "Moment-based ambiguity set",
+            "bin": "dro"
+          }
+        ],
+        "bins": [
+          {
+            "id": "stoch",
+            "label": "Stochastic optimization (E[cost])"
+          },
+          {
+            "id": "robust",
+            "label": "Robust (worst-case over set)"
+          },
+          {
+            "id": "cc",
+            "label": "Chance constraint"
+          },
+          {
+            "id": "dro",
+            "label": "Distributionally robust (DRO)"
+          }
+        ],
+        "explanation": "Three paradigms for uncertainty: (1) stochastic = expected cost given distribution; (2) robust = worst case over uncertainty set; (3) DRO = worst case over set of distributions. Chance constraint = service-level (probability of constraint violation ≤ α). Modern OR combines all three depending on what's known."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_or_stoch_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why robust optimization is gaining popularity over stochastic optimization in industry.",
+        "rubric": "Mentions: stochastic optimization requires a distribution that may not be known or stable (model misspecification, distribution shift). Robust optimization only requires an uncertainty set (e.g., box, ellipsoid, polyhedron) which is easier to elicit + audit. Modern algorithms (Ben-Tal + Nemirovski; Bertsimas + Sim Γ-budget) keep robust LPs tractable (LP / SOCP) — no scenario explosion. Distributionally robust optimization (DRO) bridges the two: hedge against worst case in an ambiguity set around an empirical distribution; gives generalization guarantees + connects to ML regularization (Wasserstein DRO = generalized empirical risk minimization). Used in energy + supply chain + finance + ML adversarial training. Stochastic optimization still dominant when reliable distributions available (e.g., demand history with stationarity). Concludes: in non-stationary or adversarial settings, robust + DRO offer better guarantees; in stationary high-volume settings, stochastic gives tighter expected-cost optimization. Real systems often blend (stochastic over inner uncertainty + robust over outer uncertainty)."
+      }
+    }
+  ]
+}

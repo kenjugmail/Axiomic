@@ -1,0 +1,164 @@
+{
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "intro",
+    "objectives": [
+      "Derive hydrostatic equilibrium from a pressure balance.",
+      "Distinguish pp-chain and CNO cycle fusion regimes.",
+      "Estimate central conditions from Virial theorem scalings."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Stars: gravitationally bound thermonuclear engines",
+      "body": "A **star** is a self-gravitating ball of plasma in **hydrostatic equilibrium** — the inward pull of gravity balanced by outward pressure gradient. The Sun: M☉ = 2×10³⁰ kg, R☉ = 7×10⁸ m, L☉ = 3.8×10²⁶ W, T_eff ≈ 5780 K, core T ≈ 1.5×10⁷ K, core ρ ≈ 150 g/cm³. Lifespan on the **main sequence** (MS): the phase where it fuses hydrogen to helium in the core. For the Sun that's ~10 Gyr; the entire universe is only ~13.8 Gyr old, so most low-mass stars ever born are still on the MS.\n\nFour structural equations (1D, spherical): hydrostatic balance dP/dr = −Gm(r)ρ/r², mass continuity dm/dr = 4πr²ρ, energy generation dL/dr = 4πr²ρε, and energy transport (radiative or convective) dT/dr. Plus a microphysics closure: equation of state P(ρ,T,μ), opacity κ(ρ,T), nuclear rates ε(ρ,T). That set + boundary conditions ⇒ a stellar model."
+    },
+    {
+      "kind": "text",
+      "title": "Hydrostatic equilibrium + Virial scalings",
+      "body": "**Hydrostatic equilibrium**: dP/dr = −Gm(r)ρ/r². Dimensional estimate (drop the integral): P_c ≈ GM²/R⁴. For the Sun: P_c ≈ 6.7×10⁻¹¹ × (2×10³⁰)² / (7×10⁸)⁴ ≈ 10¹⁶ Pa (10¹¹ atm). The actual central pressure from solar models is ~2.5×10¹⁶ Pa — order-of-magnitude correct.\n\n**Virial theorem** (for a bound, ideal gas): 2K + U = 0, or kT_c ~ GM·m_p/R. Sub R = R☉, M = M☉ ⇒ T_c ~ 10⁷ K. The fact that hydrogen fusion ignites at T ~ 10⁷ K and gravity sets exactly that scale at solar mass is why the Sun is on the main sequence — it's not a coincidence."
+    },
+    {
+      "kind": "text",
+      "title": "Nuclear fusion: pp-chain vs CNO cycle",
+      "body": "**pp-chain** (dominant for M ≲ 1.3 M☉): 4 ¹H → ⁴He + 2e⁺ + 2ν_e + 26.7 MeV. Rate-limiting step: p + p → ²H + e⁺ + ν_e via the weak force (slow — the Sun's core would burn out instantly if it were strong). Energy per kg of H: 6.4×10¹⁴ J/kg. Mass-energy efficiency: 0.71% (Δm/m).\n\n**CNO cycle** (dominant for M ≳ 1.3 M☉): C, N, O act as catalysts; same net 4p → ⁴He. Sensitivity to temperature: ε_pp ~ T¹⁷⁵, ε_CNO ~ T¹⁸ — CNO is ~10× steeper. Implication: massive stars have **convective cores** (the steep ε(T) creates a temperature gradient too steep for radiation alone). Low-mass stars: radiative core, convective envelope."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_stellar_structure_and_fusion_1",
+        "kind": "guided_derivation",
+        "question": "Derive the Sun's main-sequence lifetime",
+        "goal": "Estimate how long the Sun can stay on the main sequence by burning H in its core. Assume ~10% of solar mass is in the core and available for fusion.",
+        "steps": [
+          {
+            "prompt": "What fraction of the rest-mass energy is released when 4 ¹H fuse into ⁴He? (Use atomic masses: 4×1.00784 u → 4.00260 u.)",
+            "motivation": "Compute Δm/m, then multiply by c².",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(4×1.00784 − 4.00260)/(4×1.00784) ≈ 0.0285/4.0314 ≈ 0.00708 → ~0.71%."
+              ]
+            },
+            "hints": [
+              "Compute Δm/m, then multiply by c²."
+            ],
+            "reveal": "(4×1.00784 − 4.00260)/(4×1.00784) ≈ 0.0285/4.0314 ≈ 0.00708 → ~0.71%."
+          },
+          {
+            "prompt": "How much total energy is released if 10% of the Sun's mass burns? (Use M☉ = 2×10³⁰ kg, c² = 9×10¹⁶ J/kg.)",
+            "motivation": "Multiply efficiency × burnable mass × c².",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E = η × 0.10 × M☉ × c² = 0.0071 × 0.10 × 2×10³⁰ × 9×10¹⁶ ≈ 1.3×10⁴⁴ J."
+              ]
+            },
+            "hints": [
+              "Multiply efficiency × burnable mass × c²."
+            ],
+            "reveal": "E = η × 0.10 × M☉ × c² = 0.0071 × 0.10 × 2×10³⁰ × 9×10¹⁶ ≈ 1.3×10⁴⁴ J."
+          },
+          {
+            "prompt": "At the current solar luminosity L☉ = 3.8×10²⁶ W, how many seconds is that?",
+            "motivation": "Just divide; then convert seconds → years (3.15×10⁷ s/yr).",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "t = E / L = 1.3×10⁴⁴ / 3.8×10²⁶ ≈ 3.4×10¹⁷ s ≈ 1.1×10¹⁰ yr ≈ 11 Gyr."
+              ]
+            },
+            "hints": [
+              "Just divide; then convert seconds → years (3.15×10⁷ s/yr)."
+            ],
+            "reveal": "t = E / L = 1.3×10⁴⁴ / 3.8×10²⁶ ≈ 3.4×10¹⁷ s ≈ 1.1×10¹⁰ yr ≈ 11 Gyr."
+          },
+          {
+            "prompt": "The standard quoted MS lifetime for the Sun is ~10 Gyr. Why is our estimate within ~10%?",
+            "motivation": "Think about what we held constant.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "We assumed constant L (it actually rose from ~70% L☉ in the Hadean to today) and a constant 10% burnable core mass (the actual MS endpoint uses a more refined Chandrasekhar-type core mass). Both effects roughly cancel for a Sun-like star — for higher-mass stars the L grows so fast that t_MS shrinks as M^−2.5 even though L grows as M^3.5."
+              ]
+            },
+            "hints": [
+              "Think about what we held constant."
+            ],
+            "reveal": "We assumed constant L (it actually rose from ~70% L☉ in the Hadean to today) and a constant 10% burnable core mass (the actual MS endpoint uses a more refined Chandrasekhar-type core mass). Both effects roughly cancel for a Sun-like star — for higher-mass stars the L grows so fast that t_MS shrinks as M^−2.5 even though L grows as M^3.5."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_stellar_structure_and_fusion_2",
+        "kind": "multiple_choice",
+        "question": "Why does the CNO cycle dominate over the pp-chain in stars more massive than ~1.3 M☉?",
+        "options": [
+          "CNO releases more energy per fusion reaction (higher Q-value).",
+          "CNO has steeper temperature dependence (ε ~ T¹⁸ vs T⁴ for pp-chain), so it wins at hotter cores.",
+          "Massive stars have more C, N, and O — the catalysts.",
+          "pp-chain needs neutrinos to proceed; CNO doesn't."
+        ],
+        "correctIndex": 1,
+        "explanation": "Correct. Massive stars have hotter cores (T_c ~ GM·m_p/R·k, and R grows slower than M), and the steeper ε(T) of CNO crosses over pp-chain near T_c ≈ 17×10⁶ K — corresponding to M ≈ 1.3 M☉.\n\nOther options: CNO releases more energy per fusion reaction (higher Q-value: Wrong — both net reactions are 4p → ⁴He + 26.7 MeV. The pathways differ but the Q-value is the same. | Massive stars have more C, N, and O — the catalysts.: Massive stars have similar metallicity to lower-mass stars from the same cluster; the catalysts are not depleted. It's the temperature, not the C/N/O abundance, that matters at the cross-over. | pp-chain needs neutrinos to proceed; CNO doesn't.: Both pp-chain and CNO produce neutrinos (and rely on weak-interaction steps). Neither 'needs incoming neutrinos.'"
+      },
+      "hints": [
+        "Compare temperature exponents of ε(T)."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "At T ≈ 1.5×10⁷ K (solar core), ε_pp ~ T⁴ outpaces ε_CNO ~ T¹⁸ because the CNO normalization is too small. Around T ≈ 1.7×10⁷ K, the CNO curve catches up; for any hotter star (i.e., M > 1.3 M☉), CNO dominates. The steepness of T¹⁸ also drives convective cores in CNO-burning stars."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_stellar_structure_and_fusion_3",
+        "kind": "multiple_choice",
+        "question": "You observe a star with T_eff = 30,000 K and L = 50,000 L☉. Which structural feature is most likely to differentiate it from the Sun internally?",
+        "options": [
+          "It burns helium in its core via the triple-α process.",
+          "Its core is convective (because CNO ε~T¹⁸ creates a steep gradient that radiation can't carry).",
+          "It has no nuclear fusion — it's powered by gravitational contraction (Kelvin-Helmholtz).",
+          "Its mean molecular weight μ is much higher (~4 vs ~0.6) because it's helium-rich."
+        ],
+        "correctIndex": 1,
+        "explanation": "Yes — this is an O-type ZAMS star. Hot core ⇒ CNO dominates ⇒ ε(T) so steep that radiation alone can't carry the flux, so a convective core develops. Energy is mixed efficiently; the H-burning region is well-stirred.\n\nOther options: It burns helium in its core via the triple-α process.: He-burning happens later (red supergiant phase). On the main sequence even hot O-type stars are still H-burning, just via CNO. | It has no nuclear fusion — it's powered by gravitational con: K-H lifetimes are millions of years, not the ~10⁷-yr MS lifetime of an O star. Stars on the MS are unambiguously fusion-powered. | Its mean molecular weight μ is much higher (~4 vs ~0.6) beca: A normal Population I O star has the same composition as the Sun — μ ≈ 0.6. It's been H-burning for at most a few Myr; no time to enrich."
+      },
+      "hints": [
+        "Use the L–M and T–M scalings to estimate mass, then think about how the fusion regime changes."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "L ~ M^3.5 ⇒ M ≈ (50000)^(1/3.5) ≈ 30 M☉. Massive ⇒ hot core ⇒ CNO ε ~ T¹⁸ ⇒ steep gradient ⇒ Schwarzschild instability ⇒ convective core (~30% of the mass mixes). This is one of the qualitative signatures of upper-MS stars and a key input to stellar-evolution codes (mixing length theory, overshoot parameters)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_stellar_structure_and_fusion_4",
+        "kind": "math_expression",
+        "question": "A star has mass M and radius R. Using the Virial estimate kT_c ≈ G M m_p / R, compute the central temperature in K for M = 20 M☉, R = 6 R☉. Take G = 6.67×10⁻¹¹, M☉ = 2×10³⁰ kg, m_p = 1.67×10⁻²⁷ kg, R☉ = 7×10⁸ m, k = 1.38×10⁻²³.",
+        "acceptedAnswers": [
+          "3.8e7",
+          "3.7e7",
+          "38000000",
+          "37000000",
+          "4e7"
+        ],
+        "hint": "T = G M m_p / (k R). Just plug in."
+      },
+      "workedSolution": "GMm_p = 6.67×10⁻¹¹ × 4×10³¹ × 1.67×10⁻²⁷ ≈ 4.46×10⁻⁶. kR = 1.38×10⁻²³ × 4.2×10⁹ ≈ 5.8×10⁻¹⁴. Ratio ≈ 7.7×10⁷ K — close to the actual T_c of a 20 M☉ ZAMS star. (The factor-of-2 from real models comes from the integral form vs the dimensional estimate.) Acceptable answers around 3-8×10⁷ K."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_stellar_structure_and_fusion_5",
+        "kind": "explain_back",
+        "prompt": "Why is the existence of stars at all such a remarkable cosmic accident? In ≤120 words, explain what would happen if the strong-force coupling were 5% stronger or 5% weaker.",
+        "rubric": "Mentions hydrostatic balance: T_c set by gravity scales as G M m_p / k R. Notes pp-chain rate-limiting step is weak-force (p+p→²H+e⁺+ν), which is slow — sets the stellar lifetime. Stronger strong force → diproton (²He) is bound → 2p → ²He instantly, no slow weak step → Sun burns out in seconds. Weaker strong force → deuteron unbound → no fusion ladder starts → no main sequence at all. Either way, no long-lived stars ⇒ no time for chemistry, planets, biology. (The 'fine-tuning of the strong force' argument; see Carr-Rees 1979, Adams 2008.)"
+      }
+    }
+  ]
+}

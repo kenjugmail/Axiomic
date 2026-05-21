@@ -1,0 +1,213 @@
+{
+  "slug": "phylogenetics-and-evolution",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Build a tree.",
+      "Apply molecular clocks.",
+      "Read phylogenomics."
+    ],
+    "prereqs": [
+      "sequence-alignment-and-blast"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Phylogenetics: reconstructing the tree of life",
+      "body": "**Phylogenetics**: inferring evolutionary relationships from biological data (sequences, morphology, behavior).\n\n**Tree concepts**:\n- **Tips / taxa**: extant or sampled organisms or sequences.\n- **Internal nodes**: ancestors (often unobserved).\n- **Branches**: evolutionary lineages; lengths = time, divergence, or substitutions.\n- **Root**: most-recent common ancestor of all taxa; rooting is non-trivial.\n- **Topology**: branching pattern.\n- **Monophyletic group / clade**: all descendants of a common ancestor.\n- **Paraphyletic + polyphyletic**: incomplete or scattered groups (not natural).\n- **Bootstrapping**: resample sites; tree consistency; support values.\n- **Posterior probabilities**: Bayesian support.\n\n**Major methods**:\n1. **Distance-based**:\n - **UPGMA**: clustering, assumes molecular clock.\n - **Neighbor-Joining (NJ)** (Saitou + Nei 1987): fast, doesn't assume clock; popular for quick trees.\n2. **Maximum parsimony**: minimize number of changes needed; older method; sometimes long-branch attraction issues.\n3. **Maximum likelihood (ML)**:\n - **RAxML, IQ-TREE, PhyML**: substitution-model-based likelihood maximization.\n - Most-used modern method.\n - Models: JC69, K80, HKY, GTR + Γ + I.\n4. **Bayesian** (MrBayes, BEAST, RevBayes, MCMCTree):\n - MCMC over tree + parameter posterior.\n - Naturally incorporates uncertainty + priors.\n - Slower but informative; especially for dating + biogeography.\n5. **Coalescent + species-tree** (ASTRAL, BUCKy, BPP, *BEAST):\n - Reconcile gene trees with species tree.\n - Handle incomplete lineage sorting (ILS).\n- **Quartet methods, supertree, supermatrix**.\n\n**Substitution models**:\n- **Nucleotide**: JC69 (simplest), HKY, GTR (general time-reversible).\n- **Codon**: codon-aware (Goldman-Yang); detect selection (dN/dS).\n- **Protein**: WAG, LG, JTT, Dayhoff, mtREV.\n- **Heterotachy + among-site rate variation** (Γ, invariant sites).\n- **Mixture models** (CAT, GTR mixture).\n\n**Molecular clock**:\n- **Strict clock**: constant rate across branches; rare in real data.\n- **Relaxed clock**: rate varies among branches; lognormal, exponential, autocorrelated.\n- **Tip dating**: use ages of fossils or sampled sequences.\n- **Calibration**: fossil or geological events.\n- **Time-tree** in millions or thousands of years.\n\n**Software**: IQ-TREE, RAxML-NG, MrBayes, BEAST 2, RevBayes, FigTree, iTOL (visualization), TreeViewer."
+    },
+    {
+      "kind": "text",
+      "title": "Phylogenomics + species tree estimation",
+      "body": "**Phylogenomics**: phylogenetics scaled to whole-genome data.\n\n**Approaches**:\n- **Concatenation (supermatrix)**: align orthologs across taxa; concatenate; infer a single tree.\n - Caveats: assumes all genes share the species-tree topology; violated by ILS, gene flow.\n- **Coalescent / species-tree** (ASTRAL, MP-EST, STAR):\n - Estimate gene trees; reconcile with species tree.\n - Handle ILS naturally.\n - State-of-art for many recent radiations.\n- **Whole-genome alignment + synteny**: Cactus, MAFFT-genome.\n- **k-mer-based**: sourmash, mash; quick.\n\n**Major phylogenomic studies**:\n- **Bird Tree of Life** (Jarvis 2014; B10K project): 48 species → 92 species → ~10000 species; revised relationships.\n- **Mammal tree** (Upham 2019, Foley 2023 'Zoonomia' Science): all mammals; revealed deep relationships.\n- **Vertebrate Genomes Project (VGP)**: high-quality reference genomes across vertebrates.\n- **Insect, plant, fish, fungal tree of life projects**.\n- **Tree of Life / TimeTree.org**: synthesis databases.\n\n**Coalescent + introgression**:\n- **Incomplete lineage sorting (ILS)**: gene-tree-species-tree mismatch from rapid radiation.\n- **Hybridization + introgression**: extensive in many groups (humans + Neanderthals; cichlid fish; bovid mammals; Heliconius butterflies).\n- **Network phylogenetics** (PhyloNet, IQ-TREE, SNaQ, SpeciesNetwork): handle reticulation.\n- **D-statistic (ABBA-BABA)** (Patterson 2012): detect introgression from quartet asymmetry.\n- **f₄, f₃ statistics**: introgression + admixture.\n\n**Ancient DNA + paleogenomics**:\n- Hominin admixture (Neanderthals, Denisovans).\n- Dog domestication.\n- Horse origins (Librado 2021).\n- Cat, cattle, chicken, pig domestications.\n- Plant domestications (wheat, rice, maize, potato).\n- Past population dynamics (PSMC, SMC++, IBDNe).\n- Ancient pathogens (plague, leprosy, tuberculosis, syphilis, smallpox, hepatitis).\n\n**Modern challenges**:\n- **Rapid radiations** + ILS in deep relationships.\n- **Gene-tree heterogeneity** prevalent everywhere.\n- **Selection + linkage** confound demographic inference.\n- **Computational scale**: million-species trees push tools.\n- **Calibration + dating uncertainty**.\n- **Sampling bias** + extinction.\n\n**Visualization**: iTOL, FigTree, TreeViewer, ETE Toolkit (Python), ggtree (R); circular layouts for big trees."
+    },
+    {
+      "kind": "text",
+      "title": "Population genetics + selection + the human story",
+      "body": "**Population genetics**: variation within + between populations.\n\n**Core quantities**:\n- **Allele frequencies**: p, q in a population.\n- **Heterozygosity**: H = 2pq (Hardy-Weinberg).\n- **Hardy-Weinberg equilibrium**: random mating + no selection + no drift + no migration → genotype freqs.\n- **Fst (fixation index)**: between-population differentiation; 0 = no diff; 1 = fixed differences.\n- **π (nucleotide diversity)**: average pairwise differences.\n- **θ (Watterson)**: estimator of 4Neμ from segregating sites.\n- **Tajima's D**: deviation between π + θ; tests neutrality + demography + selection.\n\n**Population dynamics**:\n- **Drift**: random allele frequency change in finite populations; Ne (effective population size).\n- **Bottleneck**: small Ne → loss of diversity.\n- **Expansion**: more rare alleles in modern populations.\n- **Migration / admixture**: gene flow between populations.\n- **Mutation-selection-drift balance** for any allele.\n\n**Detection of selection**:\n- **dN/dS (Ka/Ks)**: nonsynonymous / synonymous rate; >1 = positive selection, <1 = purifying.\n- **McDonald-Kreitman test**: compare within vs between species.\n- **Selective sweeps**: hard sweeps (Hudson 1990, SweepFinder) vs soft sweeps (Pritchard 2010).\n- **Allele frequency spectrum (SFS)**.\n- **Extended haplotype homozygosity** (XP-EHH, iHS): recent positive selection.\n- **Population branch statistics (PBS)**.\n- **Polygenic adaptation**: testing on PRS (polygenic scores).\n\n**Human evolution**:\n- **Out-of-Africa**: ~60-70 ka modern human dispersal (sometimes earlier waves).\n- **Neanderthal + Denisovan admixture**: ~1-4% non-African; ~5% Melanesian Denisovan.\n- **Major migrations**: Eurasian, East Asian, Native American, Pacific, Bantu, Steppe, Anatolian Neolithic, Iberian Beaker, Bronze Age.\n- **Selection in humans**: lactase persistence (Europe + Africa convergent); EPAS1 high-altitude (Tibetan from Denisovan; Andean independent); pigmentation; ADH1B alcohol; CCR5-Δ32; SLC24A5 lighter skin; HLA diversity; FY blood-group malaria resistance.\n- **Modern: Genome-wide association studies (GWAS)** + polygenic risk scores (PRS) + Mendelian randomization (MR) + sex-biased genetic effects.\n\n**Resources**:\n- **1000 Genomes Project**: founding pan-human variation database (2008-2015 → expanded).\n- **gnomAD v3+**: ~800000 exomes + 75000 genomes; deep variant frequencies.\n- **UK Biobank, FinnGen, BioBank Japan, All of Us, Genomics England**: million-scale biobanks.\n- **HGDP (Human Genome Diversity Project)**.\n- **Allen Ancient DNA Resource (AADR)**: thousands of ancient genomes.\n- **TimeTree.org, NCBI Taxonomy, GenBank, Open Tree of Life**."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bio_phy_1",
+        "kind": "guided_derivation",
+        "question": "Build a small Neighbor-Joining tree",
+        "goal": "Distance matrix between 4 sequences (A,B,C,D): d(A,B)=0.1, d(A,C)=0.4, d(A,D)=0.5, d(B,C)=0.3, d(B,D)=0.4, d(C,D)=0.2. Run NJ.",
+        "steps": [
+          {
+            "prompt": "Sum of distances to all others (r_i)?",
+            "motivation": "Set up.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "r_A=1.0, r_B=0.8, r_C=0.9, r_D=1.1"
+              ]
+            },
+            "hints": [
+              "Sum each row."
+            ],
+            "reveal": "r_A = 0.1+0.4+0.5 = 1.0. r_B = 0.1+0.3+0.4 = 0.8. r_C = 0.4+0.3+0.2 = 0.9. r_D = 0.5+0.4+0.2 = 1.1."
+          },
+          {
+            "prompt": "Q matrix? Q(i,j) = (n-2)d(i,j) - r_i - r_j with n=4.",
+            "motivation": "NJ criterion.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Q(A,B)=2(0.1)-1.0-0.8=-1.6 etc."
+              ]
+            },
+            "hints": [
+              "Apply formula."
+            ],
+            "reveal": "Q(A,B) = 2·0.1 - 1.0 - 0.8 = -1.6. Q(A,C) = 2·0.4 - 1.0 - 0.9 = -1.1. Q(A,D) = 2·0.5 - 1.0 - 1.1 = -1.1. Q(B,C) = 2·0.3 - 0.8 - 0.9 = -1.1. Q(B,D) = 2·0.4 - 0.8 - 1.1 = -1.1. Q(C,D) = 2·0.2 - 0.9 - 1.1 = -1.6. Most negative: Q(A,B) = Q(C,D) = -1.6 (tie)."
+          },
+          {
+            "prompt": "Join A + B; compute their branch lengths to the new node U.",
+            "motivation": "First clustering.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "d(A,U) = 0.5·d(A,B) + 0.5·(r_A - r_B)/(n-2) = 0.5·0.1 + 0.5·(1.0-0.8)/2 = 0.1; d(B,U)=0"
+              ]
+            },
+            "hints": [
+              "Standard NJ branch lengths."
+            ],
+            "reveal": "d(A,U) = 0.5·d(A,B) + 0.5·(r_A - r_B)/(n-2) = 0.05 + 0.5·0.2/2 = 0.05 + 0.05 = 0.10. d(B,U) = d(A,B) - d(A,U) = 0.0. (Often slight numerical adjustments.)"
+          },
+          {
+            "prompt": "Reduce: 3 taxa left {U, C, D} + final tree?",
+            "motivation": "Recurse.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "join C + D; resulting tree is ((A,B), (C,D))"
+              ]
+            },
+            "hints": [
+              "After A+B joined."
+            ],
+            "reveal": "After joining A+B → U: compute new distances d(U,C) = 0.5(d(A,C)+d(B,C)-d(A,B)) = 0.5(0.4+0.3-0.1) = 0.3; d(U,D)=0.5(0.5+0.4-0.1)=0.4; d(C,D)=0.2. Now join C+D (smallest Q on reduced matrix). Final tree topology: ((A,B), (C,D)) — clearly grouped pairs. NJ is fast + widely used; modern tools (BIONJ, RapidNJ) accelerate. Real workflows usually move from NJ to ML or Bayesian for better accuracy."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bio_phy_1",
+        "kind": "multiple_choice",
+        "question": "Why is incomplete lineage sorting (ILS) a major challenge in deep + rapid phylogenomic radiations?",
+        "options": [
+          "Random.",
+          "ILS occurs when ancestral polymorphisms persist through speciation; different gene loci can sort into different lineages → gene tree topologies disagree with species tree. In rapid radiations (short internodes), almost all gene trees may disagree. Concatenation methods produce a single tree but may not match true species tree. Coalescent / species-tree methods (ASTRAL, MP-EST, STAR) explicitly model ILS + reconcile gene trees. Famous examples: deep avian radiation (Jarvis 2014); human-chimp-gorilla split (~30% gene trees support gorilla as outgroup, not chimp — consistent with ILS); mammalian radiation. ILS + introgression are often confounded; D-statistic + f-statistics help disentangle.",
+          "Random.",
+          "False."
+        ],
+        "correctIndex": 1,
+        "explanation": "ILS occurs when ancestral polymorphisms persist through speciation; different gene trees disagree with species tree. Major in rapid radiations (short internodes). Concatenation may mislead; coalescent / species-tree methods explicitly model ILS. Famous examples: deep birds (Jarvis 2014); human-chimp-gorilla split (~30% gene trees support gorilla outgroup); mammalian radiation. ILS + introgression confounded; D-statistic helps."
+      },
+      "hints": [
+        "What does ILS mean for individual genes?",
+        "Concatenation vs coalescent."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "ILS: ancestral polymorphisms persist through speciation, so different gene loci sort into different lineages → gene tree topologies disagree with species tree. Severe in rapid radiations. Coalescent / species-tree methods (ASTRAL, MP-EST, STAR) explicitly model ILS + reconcile gene trees. Famous examples: deep birds, primate split, mammalian radiation. D-statistic + f-statistics disentangle ILS from introgression."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_bio_phy_1",
+        "kind": "slider",
+        "question": "Drag to the approximate genetic difference (%) between two random humans at the nucleotide level.",
+        "target": {
+          "min": 0.1,
+          "max": 0.2
+        },
+        "default": 2,
+        "explanation": "Two humans differ at ~0.1-0.2% of nucleotides (~3M SNVs out of 3B bp). Reflects relatively recent + small effective population size compared to many primates (Ne ~10000-20000 historic). Most variation is shared globally (~85% within-population, ~15% between continental groups — Lewontin 1972 + later studies)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_bio_phy_1",
+        "kind": "drag_classify",
+        "question": "Match each phylogenetic method to its primary strength.",
+        "items": [
+          {
+            "id": "nj",
+            "label": "Neighbor-Joining",
+            "bin": "fast"
+          },
+          {
+            "id": "fasttree",
+            "label": "FastTree",
+            "bin": "fast"
+          },
+          {
+            "id": "iqtree",
+            "label": "IQ-TREE",
+            "bin": "ml"
+          },
+          {
+            "id": "raxml",
+            "label": "RAxML",
+            "bin": "ml"
+          },
+          {
+            "id": "beast",
+            "label": "BEAST 2",
+            "bin": "bayes"
+          },
+          {
+            "id": "mrbayes",
+            "label": "MrBayes",
+            "bin": "bayes"
+          },
+          {
+            "id": "astral",
+            "label": "ASTRAL",
+            "bin": "species-tree"
+          },
+          {
+            "id": "mpest",
+            "label": "MP-EST",
+            "bin": "species-tree"
+          }
+        ],
+        "bins": [
+          {
+            "id": "fast",
+            "label": "Fast / large-scale"
+          },
+          {
+            "id": "ml",
+            "label": "Maximum-likelihood"
+          },
+          {
+            "id": "bayes",
+            "label": "Bayesian / dating"
+          },
+          {
+            "id": "species-tree",
+            "label": "Species-tree (handles ILS)"
+          }
+        ],
+        "explanation": "Phylogenetics toolkit: fast (NJ, FastTree); ML (IQ-TREE, RAxML; default for most modern work); Bayesian (BEAST, MrBayes — for dating + uncertainty); species-tree (ASTRAL, MP-EST — handles ILS + gene-tree discord). Choose based on data scale + question + computational budget."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bio_phy_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why phylogenetics is foundational to modern biology beyond just tree-building.",
+        "rubric": "Mentions: phylogenetic frameworks underpin: (1) comparative genomics — comparing across species without phylogeny gives misleading signals; (2) functional annotation by orthology — transferring function from characterized homologs requires correct tree topology; (3) evolutionary medicine — pathogen tracking (HIV strain identification, SARS-CoV-2 variant emergence, foodborne outbreak source-tracing via genomic epidemiology); (4) conservation biology — defining evolutionarily significant units; (5) molecular dating + biogeography — earth history reconstruction; (6) cancer evolution — clonal tree inference for tumor heterogeneity; (7) microbiome analysis — community composition + dynamics; (8) ancient-DNA + paleogenomics — population history; (9) drug discovery + chemical biology — phylogenetic conservation + selection signals predict function. Modern: foundation models + structural phylogenetics + multi-modal trees emerging. Concludes: phylogenetics provides the temporal + relational scaffolding that turns isolated biological observations into comparative + evolutionary understanding — the field's deepest unifying framework."
+      }
+    }
+  ]
+}

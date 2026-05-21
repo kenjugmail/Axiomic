@@ -1,0 +1,181 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Apply carbonate-system equilibria.",
+      "Reason about ocean acidification + saturation states.",
+      "Connect biogeochemistry to ecosystem impact."
+    ],
+    "prereqs": [
+      "physical-oceanography-basics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Major ions + the constancy of composition",
+      "body": "Seawater contains ~3.5% dissolved salts by mass — but the **relative proportions of major ions are essentially constant** worldwide (Marcet's principle, 1819).\n\n**Major ions** (>1 mg/kg, in order):\n- Chloride (Cl⁻): 55.3%\n- Sodium (Na⁺): 30.7%\n- Sulfate (SO₄²⁻): 7.7%\n- Magnesium (Mg²⁺): 3.7%\n- Calcium (Ca²⁺): 1.2%\n- Potassium (K⁺): 1.1%\n- Bicarbonate (HCO₃⁻): 0.4%\n\nThese are conservative — change only through evaporation/dilution + slow exchanges with seafloor/atmosphere. Ratios used for **chlorinity-based salinity** (now superseded by Practical Salinity Scale based on conductivity).\n\n**Trace + nutrient ions** (vary by location + time):\n- Nitrate (NO₃⁻), phosphate (PO₄³⁻), silicate (SiO₃²⁻): consumed by photosynthesis + recycled by respiration; depleted at surface, replenished at depth.\n- Iron (Fe), zinc (Zn), copper (Cu), cobalt (Co): trace nutrients limiting biology in remote oceans.\n- Dissolved oxygen (O₂): high at surface (gas exchange + photosynthesis); minimum at ~500-1500 m (oxygen minimum zone — biology + circulation).\n- Dissolved organic + inorganic carbon (DOC + DIC): DIC ~2000 µmol/kg, dominated by HCO₃⁻ + CO₃²⁻."
+    },
+    {
+      "kind": "text",
+      "title": "The carbonate system + ocean alkalinity",
+      "body": "**Carbonate equilibria** in seawater:\n\n  CO₂(aq) + H₂O ⇌ H₂CO₃ ⇌ H⁺ + HCO₃⁻ ⇌ 2H⁺ + CO₃²⁻\n\nAt pH ~8.1 (typical surface):\n- ~1% as CO₂(aq) + H₂CO₃\n- ~89% as HCO₃⁻ (bicarbonate)\n- ~10% as CO₃²⁻ (carbonate)\n\n**Total dissolved inorganic carbon (DIC)**:\n  DIC = [CO₂(aq)] + [HCO₃⁻] + [CO₃²⁻] ≈ 2000 µmol/kg\n\n**Total alkalinity (TA)**: charge balance of conservative ions, primarily HCO₃⁻ + 2[CO₃²⁻] + minor. TA ≈ 2300-2500 µmol/kg.\n\nDIC + TA determine pH + species concentrations via two equilibrium constants (K_1, K_2). Both are T + S + pressure dependent. Modern oceanographic packages (CO2SYS, PyCO2SYS) compute the full carbonate system from any two measurable quantities.\n\n**Buffer capacity**: the carbonate system is the ocean's main pH buffer. Adding H⁺ shifts equilibrium → consumes CO₃²⁻ → some H⁺ becomes HCO₃⁻ → pH change limited. **Revelle factor** β ≈ 10 (typical): a 10% increase in atmospheric CO₂ causes ~1% increase in DIC because most CO₂ shifts to bicarbonate. \n\nSimplification: the ocean stores ~50× more CO₂ than the atmosphere (~38,000 GtC vs 880 GtC). Anthropogenic CO₂ emissions partition: ~30% absorbed by ocean, ~25% by land biosphere, ~45% stays in atmosphere."
+    },
+    {
+      "kind": "text",
+      "title": "Ocean acidification: chemistry + biology",
+      "body": "**Ocean acidification (OA)**: rising atmospheric CO₂ → ocean absorption → carbonate-system shift → pH decline.\n\nPreindustrial (1750): atmospheric CO₂ ~280 ppm; ocean pH ~8.17.\n2024: atmospheric CO₂ ~420 ppm; ocean pH ~8.05 — a 0.12-unit drop.\nThis is **~30% increase in H⁺ concentration** (pH logarithmic).\n\nProjected by 2100 under RCP8.5 (high emission): atmospheric CO₂ ~900 ppm; ocean pH ~7.7 — another 0.3-unit drop. Under RCP2.6 (Paris-aligned): atmospheric CO₂ stabilized at ~450 ppm; ocean pH ~7.95.\n\n**Carbonate saturation states**:\n  Ω_arag = [Ca²⁺][CO₃²⁻] / K_sp(aragonite)\n  Ω_calc = [Ca²⁺][CO₃²⁻] / K_sp(calcite)\n\nΩ > 1: supersaturated (shells/skeletons can grow).\nΩ < 1: undersaturated (shells dissolve).\n\nPreindustrial: Ω_arag ~3.5 (tropical surface); ~1 (cold N. Pacific subsurface).\nToday: Ω_arag dropping ~0.01-0.02/yr globally.\nFuture: Ω_arag < 1 in polar surface waters by 2050; in much of subsurface ocean by 2100.\n\n**Biological impacts**:\n- **Calcifiers** (corals, mollusks, coccolithophores, pteropods, sea urchins, foraminifera): build CaCO₃ shells; threatened by undersaturation + the energetic cost of calcifying in low-Ω waters.\n- **Coral reefs**: many studies show calcification rates dropping ~5-30% with each 0.1-unit pH decrease. Bleaching (warming) + acidification compound.\n- **Pteropods** (key zooplankton): shells observed dissolving in undersaturated waters off Alaska + Antarctic Peninsula.\n- **Fish + invertebrate larvae**: developmental + behavioral impairments.\n- **Microbial communities**: shifts in functional groups; uncertain ecosystem-level cascades.\n\n**Compounding stressors**: warming + deoxygenation + acidification + pollution + overfishing co-occur. Multiple stressors interact nonlinearly. Marine heatwaves + bleaching + acidification → coral reefs in serious decline (~50% global cover lost since 1950s)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_chem_1",
+        "kind": "guided_derivation",
+        "question": "Compute the pH change from atmospheric CO₂ rise",
+        "goal": "Estimate the pH change in surface ocean as atmospheric CO₂ rises from 280 to 420 ppm.",
+        "steps": [
+          {
+            "prompt": "[CO₂(aq)] is related to atmospheric pCO₂ by Henry's law: [CO₂(aq)] = K_H × pCO₂. Approximate the *ratio* [CO₂](today) / [CO₂](preindustrial).",
+            "motivation": "Linear in atmospheric pCO₂.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1.5",
+                "~1.5",
+                "420/280"
+              ]
+            },
+            "hints": [
+              "420/280."
+            ],
+            "reveal": "Ratio = 420 / 280 = 1.5. Dissolved CO₂ is 50% higher today than preindustrial."
+          },
+          {
+            "prompt": "First carbonate equilibrium: K_1 = [H⁺][HCO₃⁻]/[CO₂]. Holding [HCO₃⁻] roughly constant (it changes only slightly), how does [H⁺] scale with [CO₂]?",
+            "motivation": "Approximate buffered behavior.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "proportional",
+                "[H⁺] ∝ [CO₂]"
+              ]
+            },
+            "hints": [
+              "From equilibrium expression solved for [H⁺]."
+            ],
+            "reveal": "[H⁺] = K_1 [CO₂] / [HCO₃⁻]. Holding [HCO₃⁻] ~ constant: [H⁺] ∝ [CO₂]. So [H⁺] increases ~50% — roughly matching the CO₂ change."
+          },
+          {
+            "prompt": "Convert 50% increase in [H⁺] to pH change.",
+            "motivation": "pH = -log₁₀[H⁺].",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-0.18",
+                "~-0.18 pH",
+                "drop of 0.18"
+              ]
+            },
+            "hints": [
+              "Δ pH = -log₁₀(1.5) = -0.176."
+            ],
+            "reveal": "Δ pH = -log₁₀(1.5) ≈ -0.18. So pH drops from 8.17 to 7.99 — close to the observed ~0.12 (slightly less due to actual buffer dynamics + species partitioning + warming, but order-of-magnitude correct)."
+          },
+          {
+            "prompt": "Now use Revelle factor β ≈ 10 (DIC changes 1% per 10% CO₂ rise). What's the implication?",
+            "motivation": "Real ocean buffering.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~5% DIC increase from 50% CO₂",
+                "limited DIC change",
+                "buffering reduces absorption"
+              ]
+            },
+            "hints": [
+              "50% CO₂ rise / β = 5%."
+            ],
+            "reveal": "DIC increases ~5% for 50% atmospheric CO₂ rise. This is the buffering — ocean stores extra CO₂ + shifts mostly to HCO₃⁻. But Revelle factor itself rises as ocean takes up more CO₂ (buffering weakens) → future CO₂ absorption becomes proportionally smaller per unit of atmospheric rise. ~25% of anthropogenic CO₂ has gone into ocean over 250 yrs; this fraction is declining as ocean saturates."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_chem_1",
+        "kind": "sortable",
+        "question": "Order these organisms by their *increasing* vulnerability to ocean acidification (least to most vulnerable, generally).",
+        "items": [
+          {
+            "id": "fish-adult",
+            "label": "Adult bony fish (no CaCO₃ skeleton)"
+          },
+          {
+            "id": "seagrass",
+            "label": "Seagrass + macroalgae (benefit from higher CO₂ for photosynthesis)"
+          },
+          {
+            "id": "tropical-coral",
+            "label": "Tropical reef-building corals (aragonite skeleton)"
+          },
+          {
+            "id": "pteropod",
+            "label": "Cold-water pteropods (thin aragonite shell)"
+          },
+          {
+            "id": "polar-pteropod",
+            "label": "Antarctic pteropods (already in low-Ω waters)"
+          }
+        ],
+        "explanation": "Vulnerability gradient:\n• **Fish + seagrass**: less directly affected by acidification chemistry. Some fish show behavioral / sensory impairment at high CO₂, but adult survival largely OK. Seagrass + macroalgae actually benefit from CO₂ fertilization for photosynthesis.\n• **Calcifying invertebrates (mollusks, urchins)**: moderate vulnerability; calcification rates decline 5-30% per pH unit.\n• **Tropical reef corals**: significantly vulnerable; bleaching (warming) + acidification compound; some species more resilient than others.\n• **Cold-water + polar pteropods**: highly vulnerable. Their thin aragonite shells already operate near Ω_arag = 1; small further declines cause measurable shell dissolution. Documented dissolution in waters off Alaska, Antarctic Peninsula. Pteropods are critical zooplankton — base of food chain → potential ecosystem cascade.\n\nOA's effects are uneven: tropical reefs already showing decline; polar systems experiencing dramatic chemistry changes; some species benefit. Multi-stressor + non-linear responses make ecosystem-level predictions uncertain. Adaptation + management strategies under active development."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_chem_1",
+        "kind": "multiple_choice",
+        "question": "Why has the deep ocean acidified less than the surface despite both absorbing anthropogenic CO₂?",
+        "options": [
+          "Deep water is too cold for chemistry.",
+          "Anthropogenic CO₂ enters via the surface; only slowly mixes downward (timescale: 100s-1000s of years). Surface waters in contact with the atmosphere have absorbed most of the anthropogenic signal; deep ocean still mostly carries pre-industrial DIC. As thermohaline circulation continues, deep ocean will gradually receive the signal over centuries — committed acidification even if emissions stopped. Existing AABW + NADW formed in past century already carry significant anthropogenic CO₂; older deep water has less.",
+          "Acidification only happens in shallow water.",
+          "Deep ocean lacks calcium carbonate."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Anthropogenic CO₂ pathways**:\n\n1. **Atmospheric uptake**: CO₂ dissolves at surface (timescale: months to years to equilibrate with atmosphere over a given parcel's time at surface).\n\n2. **Mixed-layer accumulation**: dissolved CO₂ shifts carbonate system; surface DIC + acidity rise.\n\n3. **Subduction into thermocline**: surface water becomes part of thermocline via Ekman + buoyancy fluxes. Anthropogenic CO₂ enters the thermocline over years-decades.\n\n4. **Deep-water formation**: at high latitudes (Labrador, Norwegian, Antarctic Seas), surface water sinks. Newly formed deep water carries surface composition + anthropogenic CO₂ into the abyss.\n\n5. **Deep circulation + mixing**: 1000-2000 yr round trip globally. Older deep water (formed pre-industrial) has not yet been replaced.\n\n**Anthropogenic CO₂ inventory (Sabine 2004, Khatiwala 2013, updated 2020s)**:\n- ~25-30% of anthropogenic CO₂ has entered ocean.\n- Most concentrated in: subtropical mode waters, upper thermocline, recently-formed NADW + AABW.\n- Older deep water (~1500 yr ages in N. Pacific): minimal anthropogenic signal.\n- Surface tropical ocean: roughly in equilibrium with atmosphere — fully exposed.\n- Polar surface ocean: low buffer capacity + close to undersaturation → most acidification-sensitive.\n\n**Saturation horizons**:\n- Calcite saturation horizon (Ω_calc = 1) currently ~4000 m depth in Atlantic; ~700 m in N. Pacific.\n- Aragonite saturation horizon (more soluble) shoaling globally; ~500-1000 m + rising ~1-2 m/yr.\n- Below saturation horizon: CaCO₃ dissolves.\n\n**Committed acidification**: even if emissions ceased today, ocean would continue absorbing CO₂ to equilibrate with atmosphere; surface acidification would slow but deep water would acidify for centuries. Future calcifiers (deep-sea coral, foraminifera) face ongoing challenges.\n\n**Implications**: surface ecosystems experience acidification now; deep ecosystems experience it on multi-century timescale. Ocean as a whole is the dominant anthropogenic CO₂ sink — without it, atmospheric CO₂ would be ~450 ppm not 420.\n\nMeasurement: GLODAP + GO-SHIP + Argo array provide global observations; allow tracking anthropogenic CO₂ through time + depth."
+      },
+      "hints": [
+        "What's the timescale of deep-ocean mixing?",
+        "Where does anthropogenic CO₂ enter?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Anthropogenic CO₂ enters ocean at surface; surface waters absorb continuously + are now ~30% more acidic than preindustrial. Deep water older than ~100 yr has not seen the anthropogenic signal yet — it formed before the industrial era. Thermohaline circulation transports the signal downward over 100s-1000s of yr; complete penetration takes ~1500 yr. Even if emissions ceased, deep ocean would continue acidifying for centuries (committed acidification). Saturation horizons (where Ω<1) shoaling at ~1-2 m/yr."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_chem_1",
+        "kind": "math_expression",
+        "question": "Surface ocean pH dropped from 8.17 to 8.05 since 1750. By what factor has [H⁺] increased? (Use 10^Δ.)",
+        "acceptedAnswers": [
+          "1.32",
+          "~1.3",
+          "10^0.12"
+        ],
+        "hint": "[H⁺]_new / [H⁺]_old = 10^(8.17 - 8.05) = 10^0.12 ≈ 1.32."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_chem_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain to a fisheries manager why ocean acidification is a 'sleeper crisis' alongside warming.",
+        "rubric": "Mentions: acidification + warming + deoxygenation + pollution are co-occurring stressors. Acidification specifically: calcifying species (mollusks — clams, oysters, scallops; pteropods — base of food chain; corals — reef ecosystems) show declining calcification + survival. Polar + upwelling regions show first impacts (lowest natural Ω). Pacific NW shellfish industry already affected (Oregon oyster hatcheries had to relocate to less acidified water). Cascading effects: pteropods → salmon prey; reefs → fishery habitat → ecosystem services. Co-stressors compound: warming reduces O₂; bleaching weakens corals further; etc. Mitigation: emission reductions (only long-term fix); local: reduce land-based pollution (nutrient runoff exacerbates acidification at coast), build resilience via marine-protected-area networks, selective breeding for tolerance. Concludes: warming is visible (heatwaves, ice loss); acidification is chemical + cumulative + currently underappreciated. Both need coordinated action."
+      }
+    }
+  ]
+}

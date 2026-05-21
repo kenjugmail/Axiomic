@@ -1,0 +1,147 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "core",
+    "objectives": [
+      "Outline feature engineering for finance.",
+      "Distinguish signal-to-noise + decay.",
+      "Reason about alpha combination + ML in trading."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Alpha signals + the search for edge",
+      "body": "**Alpha**: excess return above risk-adjusted benchmark. The holy grail of trading.\n\n**Sources of alpha**:\n- **Microstructure**: order book imbalance, queue position, tape reads.\n- **Mean reversion**: short-term overshoots.\n- **Momentum / trend**: persistence in direction.\n- **Value**: fundamentals-based (P/E, P/B, dividend yield).\n- **Quality**: high ROE, stable earnings, low debt.\n- **Low-vol**: empirically risk-adjusted outperforming.\n- **Sentiment**: news, social media, options flow.\n- **Alternative data**: satellite, transaction, geolocation, web-scraped.\n- **Macroeconomic**: yield curves, dollar strength, commodity prices.\n- **Event-driven**: earnings, M&A, FDA decisions.\n\n**Information ratio + signal strength**:\n- **t-stat**: signal strength measured statistically.\n- **IC (Information Coefficient)**: correlation between signal + realized return. Top signals: IC ~0.05-0.10 (per period).\n- **IR (Information Ratio)**: $IC \\sqrt{N}$ where $N$ is independent bets per year. Aim for IR > 1.\n- **Breadth + skill**: many small bets > few large. Fundamental Law of Active Management.\n\n**Signal-to-noise**: most market data is noise. Even a real signal often has small effect size + needs many observations to detect.\n\n**Feature engineering for finance**:\n- **Returns**: log returns; smoothed.\n- **Volatility**: realized + implied; multi-horizon.\n- **Momentum**: 1mo, 6mo, 12mo returns.\n- **Mean-reversion**: short-term (1d-1wk) z-scores.\n- **Range**: high-low / typical.\n- **Volume**: relative to history.\n- **Order book**: depth, imbalance, pressure.\n- **News flow**: count, sentiment.\n- **Macro**: yields, currency, oil, etc.\n- **Cross-sectional ranks**: relative to peer group.\n- **Interactions**: factor × sector, factor × regime.\n\n**Stationarity**: most finance series non-stationary. Need transformations.\n- **Differencing**: $\\Delta x_t = x_t - x_{t-1}$.\n- **Returns**: $r_t = \\log(p_t / p_{t-1})$.\n- **Z-scores**: $(x - \\bar{x}) / \\sigma$.\n- **Detrending**: remove drift.\n\n**Lookback windows**: critical choices.\n- Too short: noise dominates.\n- Too long: signal decays + regime shifts.\n- Common: 1d, 5d, 21d (1mo), 63d, 252d (1yr)."
+    },
+    {
+      "kind": "text",
+      "title": "Signal decay + alpha combination",
+      "body": "**Signal decay**: alpha tends to weaken over time.\n\n**Why**:\n- **Adoption**: more market participants compete it away.\n- **Capacity**: own trading affects price (reflexivity).\n- **Information dissemination**: edge dilutes.\n- **Regime change**: market structure shifts.\n- **Reflexivity**: trade itself moves price.\n\n**Half-life of alpha**:\n- Microstructure (HFT): minutes-hours.\n- Statistical arbitrage: days-weeks.\n- Factor (value, momentum): months-years.\n- Academic papers: published strategies decay ~50% post-publication (McLean + Pontiff 2016).\n\n**Mitigation**:\n- Keep researching new signals.\n- Hide unique signals (no publication).\n- Combine many signals (diversification).\n- Adapt parameters via ML.\n\n**Signal combination**: many small signals → composite.\n\n**Linear combination**:\n- Weight signals by IC × sqrt(N).\n- Mean-Variance Optimization (Markowitz approach).\n- Black-Litterman: equilibrium-anchored.\n\n**Non-linear combination** (ML):\n- **Gradient-boosted trees (XGBoost, LightGBM, CatBoost)**: industry standard.\n- **Neural networks**: increasing share, but interpretability + overfitting risks.\n- **Ensembles**: combine multiple models.\n- **Tree-based + neural ensembles**: best of both.\n\n**Overfitting in finance**:\n- **Low signal-to-noise** + many possible signals → easy to overfit.\n- Standard ML cross-validation insufficient.\n- **Walk-forward analysis**: train on past, test on future, rolling.\n- **Combinatorially Symmetric Cross-Validation (CSCV)**: López de Prado.\n- **Reality Check** (White), **Stepwise**: tests of significance accounting for multiple comparisons.\n- **PBO (Probability of Backtest Overfitting)**: cross-validation based.\n\n**Hold-out + paper trading**:\n- Strict separation of development + test data.\n- Paper trading or shadow trading before live.\n- Live monitoring vs backtest expectations.\n\n**Selection bias + survivorship**:\n- Universe selection: only stocks that EXIST today vs all that EVER existed.\n- Survivorship bias inflates backtest returns.\n- Use point-in-time data (CRSP delisted, Compustat with restatements).\n\n**Look-ahead bias**:\n- Use information available at the trading time.\n- Avoid: end-of-day prices for intraday signals, future split-adjusted prices, restated financial data.\n- Subtle: data may be released with lag (earnings, macro).\n\n**Data mining + p-hacking**:\n- Testing many strategies → some look profitable by chance.\n- Need correction (Bonferroni, FDR).\n- Lopez de Prado: PBO, Deflated Sharpe Ratio.\n\n**Marcos Lopez de Prado's contributions**: Advances in Financial Machine Learning (2018), Machine Learning for Asset Managers (2020). Major influence on rigorous quant ML practice."
+    },
+    {
+      "kind": "text",
+      "title": "Alternative data + ML in modern trading",
+      "body": "**Alternative data**: non-traditional, often non-public sources.\n\n**Examples**:\n- **Satellite imagery**: count cars in mall parking lots, oil tank levels, agricultural yields, factory activity.\n- **Geolocation**: foot traffic to retail stores (SafeGraph, Placer.ai).\n- **Credit card transactions**: spending trends per merchant.\n- **Web scraping**: pricing, sentiment, product reviews, hiring activity.\n- **Social media**: Twitter sentiment, Reddit (WSB), Stocktwits.\n- **App downloads**: SensorTower, App Annie.\n- **Patents + filings**: innovation tracking.\n- **News sentiment**: real-time NLP on Bloomberg, Reuters, RSS.\n- **Email metadata, shipping records**: harder to access.\n\n**Vendor ecosystem**: dozens of specialized alt-data vendors. Cost: \\$10K-\\$1M+/year per dataset.\n\n**Limitations**:\n- **Limited history**: many datasets < 5 years.\n- **Reliability**: data quality varies.\n- **Decay**: once widely adopted, edge fades.\n- **ROI**: many alt-data subscriptions don't justify cost.\n- **Capacity**: niche signals don't scale.\n\n**ML for trading**:\n\n**Supervised learning** (predict returns):\n- Common: gradient-boosted trees on engineered features.\n- Recent: transformers on raw price/volume sequences.\n- Targets: forward returns, classified up/down/flat, vol forecasts.\n- Challenges: low signal-to-noise, regime change, fat tails.\n\n**Unsupervised**:\n- Clustering: regime detection, similar stocks.\n- Dimensionality reduction (PCA, autoencoders): factor extraction.\n- Anomaly detection: outliers in price/news.\n\n**Reinforcement learning**:\n- Market making + execution policy optimization.\n- Multi-asset allocation.\n- Challenges: non-stationary environment, sparse rewards.\n- JPMorgan's LOXM, others.\n\n**Generative AI**:\n- LLMs for news summarization + sentiment.\n- Earnings call analysis.\n- Document understanding (10-Ks, sell-side research).\n- Investment research augmentation.\n- BloombergGPT, FinGPT — emerging finance-specific models.\n\n**Time-series ML peculiarities**:\n- **Non-stationarity**: distributions shift.\n- **Concept drift**: relationships between features + outcomes change.\n- **Train-test split**: chronological (no random split — would leak future info).\n- **Cross-validation**: walk-forward, expanding/rolling window.\n- **Look-ahead**: must avoid; use point-in-time data.\n- **Sample weights**: more weight to recent OR uniform — debatable.\n\n**Feature engineering > model complexity** in finance. Good features beat fancy models. Sklearn / XGBoost over deep learning works often.\n\n**Backtesting frameworks**:\n- **Open-source**: backtrader, vectorbt, Zipline (now MOATtree), QuantConnect's LEAN.\n- **Commercial**: Bloomberg, FactSet, Refinitiv.\n- **In-house**: most serious shops have proprietary frameworks.\n\n**Live trading platforms**:\n- **Retail/prosumer**: Alpaca, Interactive Brokers API, TD Ameritrade, Robinhood.\n- **Institutional**: FlexTrade, Portware, ITG Triton, Bloomberg EMSX, BlackRock Aladdin.\n- **Crypto**: Coinbase Pro, Binance, FTX (defunct), centralized + DEXs."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_quant_ic",
+        "kind": "guided_derivation",
+        "question": "Combine multiple alpha signals",
+        "goal": "You have three signals: Signal A (IC = 0.04, N = 100/yr), Signal B (IC = 0.03, N = 200/yr), Signal C (IC = 0.05, N = 50/yr).",
+        "steps": [
+          {
+            "prompt": "Information Ratio (IR) = IC × √N for each signal. Compute.",
+            "motivation": "Apply.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Same.",
+                "A: 0.04 × √100 = 0.4. B: 0.03 × √200 ≈ 0.42. C: 0.05 × √50 ≈ 0.35.",
+                "Random.",
+                "Just IC."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "IR = IC √N."
+            ],
+            "reveal": "A: 0.4, B: 0.42, C: 0.35. All similar. Each individually mediocre."
+          },
+          {
+            "prompt": "If signals are uncorrelated, combined IR is √(IR_A² + IR_B² + IR_C²). Compute.",
+            "motivation": "Diversification.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~0.67",
+                "0.67",
+                "sqrt(0.4² + 0.42² + 0.35²)"
+              ]
+            },
+            "hints": [
+              "sqrt(0.16+0.176+0.123)."
+            ],
+            "reveal": "~0.67 combined IR. Much better than individuals. Diversification of UNCORRELATED signals adds in quadrature."
+          },
+          {
+            "prompt": "Implications for strategy design?",
+            "motivation": "Combination strategy.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Use only best signal.",
+                "Combine many DIVERSIFIED signals. Each contributes; quadrature combination boosts total IR. The 'fundamental law of active management' (Grinold-Kahn): IR = IC × √breadth. Build diverse universe + diverse signals.",
+                "Just two.",
+                "Doesn't matter."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Diversification."
+            ],
+            "reveal": "Combine many uncorrelated signals. Grinold-Kahn fundamental law: IR = IC × √breadth. Need diverse universe + diverse signals. Most successful quant strategies combine hundreds-thousands of signals via ML."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{IR} = \\text{IC} \\sqrt{N}; \\text{ uncorrelated signals combine in quadrature}}$$ The fundamental law of active management (Grinold-Kahn). Most realistic alpha sources are weak (IC ~0.02-0.05); the way to win is BREADTH (many bets) + DIVERSIFICATION (uncorrelated signals). Renaissance + DE Shaw + Two Sigma combine thousands. Single brilliant strategy is rare; diversification of many small edges is the more durable game."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_quant_overfit",
+        "kind": "multiple_choice",
+        "question": "An academic paper publishes a strategy with backtested Sharpe 2.5 over 2010-2020. McLean + Pontiff (2016) suggest you should expect post-publication Sharpe of approximately?",
+        "options": [
+          "Same 2.5.",
+          "About half (~1.0-1.5): post-publication decay is typical due to (1) adoption by other market participants competing it away, (2) reduction of in-sample selection bias, (3) regime change. The published number is the best-case for the historical period.",
+          "Higher.",
+          "Zero."
+        ],
+        "correctIndex": 1,
+        "explanation": "McLean + Pontiff 2016 (Journal of Finance) studied 97 anomalies published in finance journals. Post-publication returns DROPPED ~26-58% on average. Reasons:\n- **Adoption**: arbitrageurs trade the strategy after publication; edge gets competed away.\n- **In-sample bias**: published strategies are positively selected (negative-result papers rarely get published).\n- **Data mining**: many strategies tested; surviving ones are partly chance.\n\nLessons for practitioners:\n- Don't trade purely on published strategies.\n- DEFLATE expected Sharpe by ~50%.\n- Real edge comes from PROPRIETARY signals not yet published.\n- Constantly research + refresh signals.\n\nQuant firms have research teams of dozens-hundreds. The strategy graveyard is large. Most strategies die in backtest; of those that go live, most stop working within 1-3 years. Sustained alpha generation requires constant pipeline of new ideas + ruthless culling of decayed ones."
+      },
+      "hints": [
+        "Why post-publication decay?",
+        "Lessons?"
+      ],
+      "workedSolution": "Adoption + in-sample bias + regime change. McLean-Pontiff: ~26-58% return reduction. Lessons: deflate published Sharpe ~50%, value PROPRIETARY signals, maintain research pipeline. Quant firms run continuous discovery-validation-decay cycles. Most published strategies are not enough.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_quant_ic",
+        "kind": "math_expression",
+        "question": "Signal IC = 0.03, 252 bets/year. Information Ratio?",
+        "acceptedAnswers": [
+          "~0.476",
+          "0.476",
+          "0.03 × √252"
+        ],
+        "hint": "$IR = 0.03 \\times \\sqrt{252} \\approx 0.476$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_quant_altdata",
+        "kind": "scenario",
+        "question": "Evaluating alt data",
+        "prompt": "A vendor offers credit-card transaction data for \\$200K/year claiming alpha in retail stocks. Walk through evaluation."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_quant_alpha",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why quant trading is a constant race to find new signals + retire old ones.",
+        "rubric": "Mentions that alpha decays over time as competitors trade similar signals + reduce edge; published strategies decay especially fast (McLean-Pontiff); successful firms maintain research pipelines of dozens-hundreds of analysts continually discovering, validating, deploying, and retiring strategies. The capacity-Sharpe trade-off + signal decay means quant trading is more like running than a single big bet."
+      }
+    }
+  ]
+}

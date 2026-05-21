@@ -1,0 +1,211 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Apply Poiseuille's law to blood flow.",
+      "Reason about pulsatile + non-Newtonian effects.",
+      "Connect hemodynamics to disease + interventions."
+    ],
+    "prereqs": [
+      "biomechanics-and-tissue"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Blood + circulation: a brief overview",
+      "body": "**Cardiovascular system**: heart + ~100,000 km of vessels delivering O₂, nutrients, hormones; removing CO₂ + waste.\n\nFundamentals:\n- Heart: 60-80 bpm; stroke volume ~70 mL; cardiac output ~5 L/min.\n- Blood: ~5 L; 45% formed elements (RBC, WBC, platelets); 55% plasma. Viscosity ~3.5 cP (vs water 1 cP).\n- Vessel hierarchy: aorta (~25 mm diameter) → arteries → arterioles (~30 μm) → capillaries (~8 μm) → venules → veins → vena cava.\n- Pressure: aorta 120/80 mmHg systolic/diastolic; capillaries ~25 mmHg; veins ~5 mmHg.\n- Total cross-section: aorta ~5 cm²; capillaries ~5000 cm² (1000×!). Velocity drops accordingly.\n\n**Why this matters for engineering**: \n- Stent + heart-valve + ventricular-assist-device design.\n- Catheter + endovascular delivery system geometry.\n- Drug-delivery rates depend on perfusion.\n- Diagnostic interpretation (ultrasound, MRI flow imaging, pressure-volume loops).\n- Cardiovascular disease accounts for ~30% of global mortality; engineering interventions huge market."
+    },
+    {
+      "kind": "text",
+      "title": "Poiseuille's law + blood-flow resistance",
+      "body": "For laminar Newtonian flow in a rigid tube of radius r:\n\n  ΔP = (8 μ L / π r⁴) Q\n\nwhere ΔP = pressure drop, μ = viscosity, L = length, Q = volumetric flow rate, r = radius.\n\n**Resistance** R = 8μL/(πr⁴). **R ∝ 1/r⁴**. Doubling vessel radius → 1/16th the resistance.\n\nImplications:\n• **Vasodilation/vasoconstriction**: small changes in arteriolar radius dramatically alter peripheral resistance. Most BP control happens here.\n• **Atherosclerosis** (50% stenosis): reduces effective radius 50% → resistance grows 16× → flow drops 94% at constant pressure.\n• **Aortic dissection / aneurysm**: increased radius reduces resistance but also wall stress.\n• **Capillary network**: vast cross-section + parallel resistance enables efficient delivery despite tiny individual capillaries.\n\n**Limitations of Poiseuille**:\n1. **Non-Newtonian blood**: viscosity decreases with shear rate (shear thinning) due to RBC alignment. Modified Casson model better.\n2. **Pulsatile flow**: pressure + flow oscillate at heart rate; Womersley solution incorporates inertial effects.\n3. **Compliant vessels**: arteries are elastic; pressure wave travels at ~5 m/s; Moens-Korteweg equation.\n4. **Turbulence in larger vessels**: Reynolds number > ~2000 in aorta during peak flow → murmurs.\n5. **Bifurcations + entry effects**: complex 3D flow patterns.\n6. **Bingham plastic**: blood has small yield stress; matters at very low flow.\n\nDespite these, Poiseuille gives order-of-magnitude estimates + the key 1/r⁴ scaling that drives clinical reasoning."
+    },
+    {
+      "kind": "text",
+      "title": "Cardiac cycle + pressure-volume loops",
+      "body": "**Cardiac cycle phases** (ventricle):\n1. Filling (diastole): atria contract; ventricle fills via mitral/tricuspid valve.\n2. Isovolumic contraction: all valves closed; pressure rises rapidly.\n3. Ejection (systole): aortic/pulmonary valve opens; blood ejected.\n4. Isovolumic relaxation: pressure falls; semilunar valves close.\n\n**Pressure-volume (P-V) loop**:\n- X: volume (mL); Y: pressure (mmHg).\n- 4 corners: end-diastolic, isovolumic contraction, end-systolic, isovolumic relaxation.\n- Loop area = stroke work per beat (~1 J for healthy LV).\n\n**Key indices**:\n- **Stroke volume (SV)**: EDV − ESV. Normal ~70 mL.\n- **Ejection fraction (EF)**: SV/EDV. Normal >55%; <40% = heart failure (HFrEF).\n- **Cardiac output (CO)**: SV × HR. Normal ~5 L/min; up to ~20 L/min in exercise.\n- **Preload**: end-diastolic stretch (~filling pressure).\n- **Afterload**: resistance/pressure ventricle must overcome (~arterial pressure).\n- **Contractility**: intrinsic strength of ventricular contraction.\n\n**Heart failure**:\n- **HFrEF**: reduced ejection fraction; pump dysfunction; treatment: ACEi/ARB/ARNi, beta-blockers, MRA, SGLT2 inhibitors, defibrillator, transplant, LVAD (left-ventricular assist device).\n- **HFpEF**: preserved EF but impaired filling (diastolic dysfunction); harder to treat.\n\n**Engineering interventions**:\n- **Stents**: open stenosed arteries; drug-eluting reduce restenosis.\n- **TAVR (transcatheter aortic valve replacement)**: replace aortic valve via catheter, no open-heart surgery.\n- **CRT (cardiac resynchronization therapy)**: pacing both ventricles for HFrEF + dyssynchrony.\n- **LVAD**: continuous-flow pump implant for end-stage HF; HeartMate III, HeartWare.\n- **Transplant**: gold standard but donor-limited (~3000/yr globally).\n- **Total artificial heart (TAH)**: SynCardia; bridge to transplant."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_hemo_1",
+        "kind": "guided_derivation",
+        "question": "Apply Poiseuille to a partially-stenosed coronary artery",
+        "goal": "A coronary artery normally 3 mm diameter develops a 50% diameter stenosis. Compare the resistance + flow at constant driving pressure.",
+        "steps": [
+          {
+            "prompt": "Resistance ratio R_stenosed/R_normal in terms of radius.",
+            "motivation": "Apply 1/r⁴.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "16×",
+                "(2)^4 = 16",
+                "16x increase"
+              ]
+            },
+            "hints": [
+              "Halving r → R × 2⁴ = 16."
+            ],
+            "reveal": "R ∝ 1/r⁴. Halving r → R × 16. So stenosed resistance is 16× normal resistance."
+          },
+          {
+            "prompt": "If driving pressure is constant, flow ratio?",
+            "motivation": "Q ∝ 1/R.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1/16",
+                "0.0625",
+                "6.25% of normal"
+              ]
+            },
+            "hints": [
+              "Q = ΔP/R; pressure constant → Q ∝ 1/R."
+            ],
+            "reveal": "Q_stenosed/Q_normal = 1/16 = 6.25%. Critical reduction in flow → ischemia possible, especially during exercise when demand rises 3-5×."
+          },
+          {
+            "prompt": "At rest, the body can autoregulate via downstream vasodilation. What's the effect on resistance + flow?",
+            "motivation": "Downstream vasodilation reduces total resistance.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "compensates",
+                "downstream vasodilation reduces total R",
+                "flow maintained at rest"
+              ]
+            },
+            "hints": [
+              "Stenosis upstream; vasodilation downstream."
+            ],
+            "reveal": "At rest: downstream vasodilation reduces post-stenotic resistance, partly compensating + maintaining acceptable flow. But the system loses 'reserve capacity' — during exercise (when demand grows + downstream is already maximally vasodilated), supply can't keep up → angina or MI. This is why exercise stress tests reveal stenoses invisible at rest."
+          },
+          {
+            "prompt": "At 70% stenosis: R ratio + flow at constant ΔP?",
+            "motivation": "Apply same scaling.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~80× R",
+                "~1.2% flow"
+              ]
+            },
+            "hints": [
+              "r' = 0.3 r. R/R₀ = 1/0.3⁴ ≈ 124. Wait — 0.5 → 16×; 0.3 → (10/3)⁴ ≈ 123."
+            ],
+            "reveal": "70% diameter stenosis means r' = 0.3 r; R_stenosed/R₀ = 1/0.3⁴ ≈ 123. Q at constant ΔP ≈ 0.8% of normal — essentially closed. Critical threshold for stable angina: ~70% stenosis. Below: typically symptomatic only with exertion. Beyond: rest angina or unstable ischemia."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_hemo_1",
+        "kind": "slider",
+        "question": "Drag the slider to estimate a healthy adult's resting cardiac output (in L/min).",
+        "target": {
+          "min": 4.5,
+          "max": 5.5
+        },
+        "default": 3,
+        "explanation": "Cardiac output (CO) = stroke volume (~70 mL) × heart rate (~70 bpm) = 4.9 L/min, often rounded to 5 L/min at rest. Rises to 15-25 L/min during peak exercise; CO reserve is a major fitness marker. Elite endurance athletes can exceed 30 L/min."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "dc_hemo_1",
+        "kind": "drag_classify",
+        "question": "Classify each clinical condition by its primary hemodynamic mechanism.",
+        "items": [
+          {
+            "id": "essential-htn",
+            "label": "Essential hypertension (chronic vasoconstriction)",
+            "bin": "increased-resistance"
+          },
+          {
+            "id": "atherosclerosis",
+            "label": "Atherosclerotic stenoses",
+            "bin": "increased-resistance"
+          },
+          {
+            "id": "septic-shock",
+            "label": "Septic shock (vasoplegia)",
+            "bin": "decreased-resistance"
+          },
+          {
+            "id": "anaphylactic",
+            "label": "Anaphylactic shock (histamine vasodilation)",
+            "bin": "decreased-resistance"
+          },
+          {
+            "id": "dehydration",
+            "label": "Hypovolemia from dehydration",
+            "bin": "preload"
+          },
+          {
+            "id": "hemorrhage",
+            "label": "Acute hemorrhage",
+            "bin": "preload"
+          },
+          {
+            "id": "hfref",
+            "label": "HFrEF (low ejection fraction)",
+            "bin": "contractility"
+          },
+          {
+            "id": "ischemia-acute",
+            "label": "Acute MI with stunned myocardium",
+            "bin": "contractility"
+          }
+        ],
+        "bins": [
+          {
+            "id": "increased-resistance",
+            "label": "Increased peripheral resistance"
+          },
+          {
+            "id": "decreased-resistance",
+            "label": "Decreased peripheral resistance"
+          },
+          {
+            "id": "preload",
+            "label": "Altered preload (filling)"
+          },
+          {
+            "id": "contractility",
+            "label": "Altered contractility"
+          }
+        ],
+        "explanation": "Cardiovascular dysfunction sorts into 4 fundamental mechanisms — useful framework for clinical reasoning + intervention choice:\n• **Increased resistance**: vasoconstriction, atherosclerosis, hypertension. Treat with vasodilators (CCBs, ACEi, nitrates) or revascularization.\n• **Decreased resistance**: distributive shock (septic, anaphylactic). Treat with fluids + vasopressors (norepinephrine).\n• **Preload**: hypovolemia from hemorrhage/dehydration; or volume overload from heart failure. Treat with fluids (low preload) or diuretics (high).\n• **Contractility**: heart-failure HFrEF, post-MI stunning. Treat with inotropes (acute) + ARB/beta-blocker/SGLT2i (chronic).\n\nReal clinical scenarios often combine multiple mechanisms; mixed shock requires multifactorial treatment."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_hemo_1",
+        "kind": "math_expression",
+        "question": "Cardiac output = 5 L/min. Total peripheral resistance (TPR) such that MAP = 90 mmHg. Compute TPR in mmHg·min/L.",
+        "acceptedAnswers": [
+          "18",
+          "18 mmHg·min/L",
+          "90/5"
+        ],
+        "hint": "TPR = MAP/CO = 90/5 = 18."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_hemo_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why coronary stents have transformed cardiology + what their limitations are.",
+        "rubric": "Mentions: percutaneous coronary intervention (PCI) with stents replaces (most) open-heart bypass surgery (CABG) for many patients. Inserted via femoral/radial catheter to coronary artery, balloon-expanded, holds artery open. Drug-eluting stents (DES; sirolimus, paclitaxel, everolimus) released drug locally to suppress restenosis. Dramatic reduction in restenosis vs bare-metal (BMS): ~5-10% vs 20-30% at 1 yr. Limitations: late stent thrombosis (require dual antiplatelet therapy, DAPT, for 6-12 months); polymer can trigger inflammation; bioresorbable scaffolds (Absorb, BVS) tried + largely failed due to higher thrombosis rates; not appropriate for severe multivessel disease or left-main disease (CABG remains gold standard there). Concludes: PCI + DES mainstay of acute MI + stable angina treatment; CABG for complex disease; both essential."
+      }
+    }
+  ]
+}

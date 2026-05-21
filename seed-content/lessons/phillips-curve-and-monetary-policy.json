@@ -1,0 +1,202 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply expectations-augmented Phillips curve.",
+      "Reason about anchoring + credibility.",
+      "Connect 1970s + 2022 inflation episodes."
+    ],
+    "prereqs": [
+      "money-and-monetary-policy"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Phillips curve: original + modern",
+      "body": "**Original Phillips curve** (Phillips 1958): UK wage-inflation vs unemployment 1861-1957 negative correlation. Implies trade-off — choose low unemployment + accept higher inflation.\n\n**Samuelson + Solow 1960**: imported to US; influenced 1960s policy. Believed stable trade-off.\n\n**1970s collapse**: stagflation. Unemployment + inflation both rose. Curve broke down — needed reformulation.\n\n**Friedman-Phelps expectations-augmented Phillips curve** (1967-68):\n\n  π = π_e − β (u − u*) + ε\n\nwhere π_e = expected inflation; u* = NAIRU (Non-Accelerating Inflation Rate of Unemployment); ε = supply shock.\n\nKey insight: **only unexpected inflation reduces unemployment temporarily**. In long run, expectations adjust → economy returns to NAIRU regardless of inflation.\n\n**Implications**:\n1. **Long-run Phillips curve is vertical** at NAIRU.\n2. **No long-run inflation-unemployment trade-off**.\n3. **Anchored expectations** (π_e stable) maintain stable inflation.\n4. **Permanent disinflation** requires temporary recession + credibility-building.\n\n**Vol­cker dis­in­fla­tion 1979-83**: tested the Friedman-Phelps view. Fed funds raised to 20%; unemployment 10.4% in 1982; π fell from 13% to 3% by 1983. Cost: massive recession but established Fed credibility for next 35+ years.\n\n**Modern Phillips curve** (New Keynesian):\n  π_t = β E[π_{t+1}] + κ (y_t − y*) + ε_t\n\nForward-looking expectations + output gap + supply shocks. Used in DSGE + Fed FRB/US + similar.",
+      "viz": "phillips-curve",
+      "vizProps": {
+        "piE": 2,
+        "nairu": 4.5,
+        "beta": 0.8,
+        "shock": 0
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Great Moderation + 2022 inflation surge",
+      "body": "**Great Moderation (~1985-2007)**: low + stable inflation; reduced business-cycle volatility; declining unemployment. Causes:\n- Improved monetary policy (post-Volcker Fed).\n- Inflation-targeting credibility.\n- Globalization moderating wage pressures.\n- Productivity gains.\n- Stable supply (no major oil crises).\n\nPhillips curve appeared to 'flatten': inflation barely moved with unemployment in the 2010s. \n\n**Post-2008**: \n- Unemployment fell 10% → 3.5% (2009-2019).\n- Inflation stayed near 2%.\n- Wage growth modest.\n- 'Phillips curve dead' meme widespread.\n\n**2021-2023 inflation surge**: Phillips curve very much alive.\n- US CPI peaked 9.1% June 2022.\n- UK + Eurozone ~10-11%.\n- Drivers: supply chains (COVID + lockdowns); commodities (Ukraine war 2022); fiscal stimulus (CARES Act + ARP); tight labor markets; pent-up demand.\n- Wage growth catching up; some second-round effects.\n- Inflation expectations rose moderately but stayed mostly anchored (vs 1970s 10%+).\n\n**Disinflation 2022-24**:\n- Fed hiked 0 → 5.5%; ECB -0.5 → 4%; BOE 0.1 → 5.25%.\n- Inflation declined to ~2-3% by mid-2024.\n- US 'soft landing': inflation falling without recession (largely).\n- Unemployment stayed low ~3.5-4%.\n- Credibility maintained.\n\n**Lessons**:\n1. Phillips curve still operates but flatter in modern economy.\n2. Supply shocks can shift it dramatically.\n3. Anchored expectations critical — 2022-23 inflation didn't become 1970s due to Fed credibility.\n4. Forward guidance + clear communication essential.\n5. Soft landings possible with credibility + decisive action."
+    },
+    {
+      "kind": "text",
+      "title": "Anchoring + credibility + modern central banking",
+      "body": "**Inflation expectations**: where do they come from + how stable?\n\nSources:\n- **Survey-based**: Michigan, ECB, EM 5-year-ahead consumer expectations.\n- **Market-based**: TIPS-Treasury spread, inflation swaps.\n- **Professional forecasters**: Philadelphia Fed Survey of Professional Forecasters.\n\n**Anchoring**: long-term expectations remain close to central-bank target despite short-term shocks. Sign of credibility.\n\n**Credibility-building**:\n- Establish track record of meeting target.\n- Clear communication + transparency.\n- Independence + insulation from political pressure.\n- Mandate clarity.\n\n**Loss of anchoring** (1970s precedent): inflation expectations rose along with inflation → second-round effects (wage-price spiral). Hard + costly to reverse.\n\n**2022-23 expectations remained anchored**: 5-year forward expectations stayed ~2-3% throughout the surge. Credibility paid off — disinflation was much faster + cheaper than 1979-83 (~2 yr vs ~3-4 yr).\n\n**Modern monetary frameworks**:\n\n1. **Inflation targeting (IT)** (1990 NZ first; ~30 countries now):\n   - Explicit numerical target (2% typical).\n   - Public report of progress.\n   - Independence.\n\n2. **Flexible Inflation Targeting (FIT)** (Fed since 2012):\n   - Target 2%.\n   - Pursue full employment alongside.\n   - Symmetric (avoid above + below).\n\n3. **Flexible Average Inflation Targeting (FAIT)** (Fed 2020-2024):\n   - Allow inflation to run modestly above 2% to compensate for periods below.\n   - Adopted to support full employment.\n   - 2022 surge complicated implementation.\n\n4. **Price-level targeting + nominal-GDP targeting**: alternative frameworks; less adopted.\n\n5. **Yield-curve control** (BOJ 2016-2024): different framework entirely.\n\n**Forward guidance evolution**:\n- **Delphic**: forecast of future policy.\n- **Odyssean**: commitment to deviate from optimal policy now to influence expectations.\n- 2008-2023: Fed used both; effective for anchoring + transmitting policy intent.\n\n**Modern challenges + research**:\n\n- **Low neutral rate**: less room for conventional response; ZLB more frequent.\n- **Inflation expectations heterogeneity**: households + firms + markets disagree.\n- **Climate + supply-shock risks**: structural changes affect Phillips curve.\n- **Behavioral economics**: bounded rationality + inattention.\n- **Distributional implications**: inflation affects rich vs poor differently."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_phillips_1",
+        "kind": "guided_derivation",
+        "question": "Compute the impact of a supply shock + monetary response",
+        "goal": "Pre-shock: π = 2%, u = 4%, π_e = 2% (anchored), u* = 4%, β = 0.5. Now supply shock ε = +3% arrives. Find new inflation + the monetary policy response.",
+        "steps": [
+          {
+            "prompt": "New inflation after shock (if u stays at 4%)?",
+            "motivation": "Apply Phillips curve.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "π = 5%",
+                "5%",
+                "2 - 0 + 3"
+              ]
+            },
+            "hints": [
+              "π_e - β(u-u*) + ε = 2 - 0.5×0 + 3 = 5"
+            ],
+            "reveal": "π = π_e − β(u − u*) + ε = 2 + 0 + 3 = 5%. Inflation jumps from 2% to 5% if unemployment unchanged."
+          },
+          {
+            "prompt": "To bring π back to 2%, how much u above u* needed (assuming expectations remain at 2%)?",
+            "motivation": "Solve algebraically.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "6 pp",
+                "6 percentage points above",
+                "(5-2)/0.5"
+              ]
+            },
+            "hints": [
+              "Solve 2 = 2 - 0.5(u - 4) + 3."
+            ],
+            "reveal": "Solve 2 = 2 - 0.5(u - 4) + 3 → -3 = -0.5(u - 4) → u - 4 = 6 → u = 10%. Need unemployment rate of 10% to offset shock. Severe Volcker-style disinflation."
+          },
+          {
+            "prompt": "What if expectations remain anchored at 2% + shock is temporary?",
+            "motivation": "Recovery without recession.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "wait for shock to dissipate",
+                "no recession needed if expectations stable + shock temporary"
+              ]
+            },
+            "hints": [
+              "Don't have to offset the shock; wait for it to pass."
+            ],
+            "reveal": "If π_e remains anchored at 2% (credibility) + shock is one-off → inflation returns to 2% as ε → 0 in next period. No recession needed. This is what happened 2022-2024: Fed credibility + clear policy → expectations anchored → inflation faded as supply shocks resolved + demand cooled mildly. 'Soft landing'."
+          },
+          {
+            "prompt": "What if expectations rise to 4% (de-anchoring)?",
+            "motivation": "1970s scenario.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "much harder disinflation",
+                "1970s scenario",
+                "need recession to lower expectations"
+              ]
+            },
+            "hints": [
+              "π_e becomes endogenous."
+            ],
+            "reveal": "If π_e rises to 4% (de-anchored): inflation = 4 + 3 = 7% (with no recession). To bring π to 2%, need negative output gap: 2 = 4 - 0.5(u - 4) + 0 → u - 4 = 4 → u = 8% sustained until expectations adjust. Several years of high unemployment to re-anchor. This is the 1979-83 Volcker scenario.\n\nLesson: **anchored expectations make disinflation cheap. Lose anchoring + you pay heavily.** Why credibility is the gold of monetary policy."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sl_phillips_1",
+        "kind": "slider",
+        "question": "Drag to the estimated US NAIRU (Non-Accelerating Inflation Rate of Unemployment) in 2024.",
+        "target": {
+          "min": 3.8,
+          "max": 4.5
+        },
+        "default": 6,
+        "explanation": "US NAIRU estimates (2024): ~4-4.5%, down from 5-6% in 1990s + 2000s. Lower due to: structural changes, labor-market flexibility, demographic shifts. Hard to estimate precisely; varies by model. CBO + Fed estimates similar. With unemployment ~4% + inflation 2.5%, US is near full employment + 'normal' Phillips curve relationships."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "sort_phillips_1",
+        "kind": "sortable",
+        "question": "Order these inflation events by magnitude (peak inflation level in CPI terms).",
+        "items": [
+          {
+            "id": "2024-disinf",
+            "label": "US 2024 disinflation (mid-2024)"
+          },
+          {
+            "id": "great-moderation",
+            "label": "Great Moderation typical (1995-2007)"
+          },
+          {
+            "id": "covid-recovery",
+            "label": "US 2020 (pandemic recession)"
+          },
+          {
+            "id": "2022-surge",
+            "label": "US 2022 inflation peak"
+          },
+          {
+            "id": "1970s-stagflation",
+            "label": "1970s stagflation peak"
+          }
+        ],
+        "explanation": "US CPI inflation history (approximate annual peak):\n• **US 2024 disinflation**: ~2.5%.\n• **Great Moderation typical (1995-2007)**: ~2-3% average.\n• **US 2020 (pandemic)**: ~1-2% (deflation risks briefly).\n• **US 2022 inflation peak**: ~9.1% (June 2022) — highest in 40 yr.\n• **1970s stagflation peak**: ~13.5% (1980) — Volcker-era peak.\n\n2022 was 2nd-highest US inflation episode since 1970s, but disinflation faster due to: anchored expectations, less wage-price spiral, faster supply-chain resolution, decisive Fed action. 1970s required sustained 1979-1986 Volcker shock + recession + rebuilt credibility from scratch."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_phillips_1",
+        "kind": "multiple_choice",
+        "question": "Why was the 2022-23 disinflation in the US faster + cheaper than the 1979-83 Volcker disinflation?",
+        "options": [
+          "Better luck.",
+          "(1) Credibility of inflation target was maintained — anchored expectations meant the Fed didn't need to break inflation psychology. (2) Supply shocks (commodities, supply chains, energy) faded as Ukraine impact ebbed + supply chains healed. (3) Faster + more transparent Fed action; clearer communication. (4) Labor market remained tight but didn't require breaking. (5) Inflation surge largely supply-driven, not wage-price spiral. Volcker had to rebuild credibility from zero + induce major recession; modern Fed had decades of anchoring + clear framework + targeted response.",
+          "Random.",
+          "Required by law."
+        ],
+        "correctIndex": 1,
+        "explanation": "**2022-23 vs Volcker 1979-83 comparison**:\n\n*Volcker disinflation 1979-83*:\n- Initial: inflation 13.5%, persistent for years.\n- Inflation expectations de-anchored — surveys showed people expected 8-10% indefinitely.\n- Wage-price spiral: COLAs + bargaining locked in expectations.\n- Volcker actions: Fed funds rate raised to 20% in 1981.\n- Recession 1981-82: unemployment rose to 10.4% (Nov 1982).\n- Inflation declined to ~3% by 1983.\n- Sacrifice ratio (1% unemployment increase to reduce 1% inflation) ~5-6.\n- Total cost: ~6% × 3 yr unemployment 'excess' = ~18% unemployment-year cost.\n- Credibility built over 5+ years.\n\n*2022-23 disinflation*:\n- Initial: inflation 9.1% (June 2022).\n- Inflation expectations remained anchored — 5Y forward stayed ~2-3% throughout.\n- No major wage-price spiral developed (wage-growth caught up but didn't lead).\n- Supply-side easing: Ukraine impact ebbed; supply chains healed; commodity prices fell.\n- Fed hiked 0 → 5.5% over 2022-23.\n- Unemployment stayed ~3.5-4% — no recession.\n- Inflation declined to ~2.5-3% by 2024.\n- 'Soft landing' achieved.\n- Sacrifice ratio: very low.\n\n*Why the difference*:\n\n1. **Credibility**: Volcker started without credibility (1979 inflation was high + Fed had been seen as too easy). 2022 Fed had 40+ years of anti-inflation credibility from Volcker + Greenspan + Bernanke + Yellen + Powell.\n\n2. **Anchored expectations**: 2022 surveys + market measures all showed expectations remaining near 2%. People believed Fed would bring inflation down.\n\n3. **Supply vs demand driver**: 1970s inflation partly supply (oil shocks) but partly demand-driven + wage spiral. 2022 was largely supply-driven (COVID supply chains, commodity shocks). Supply shocks dissipate; demand-driven inflation persistent.\n\n4. **Labor market dynamics**: 1970s had strong unions + COLAs + escalator clauses. 2022 less so; wage growth was real but not spiraling.\n\n5. **Speed of action**: Fed cut quickly when needed (March 2020) + raised quickly (March 2022 onwards). Avoided 1970s policy lag.\n\n6. **Clearer communication**: Forward guidance, dot plots, press conferences.\n\n7. **Globalization**: imports + competition kept inflation in check (modest effect).\n\n*Lessons*:\n\n1. **Credibility matters**: long-built credibility makes disinflation cheap. Don't squander it.\n\n2. **Anchored expectations key**: keep them via communication + clear framework + decisive action when needed.\n\n3. **Supply shocks need patience**: don't over-tighten on supply-driven inflation that fades naturally.\n\n4. **But also don't be complacent**: Fed initially called 2022 inflation 'transitory' but pivoted in 2022 when it persisted. Earlier action might have been better.\n\n5. **Soft landings possible**: but require credibility + good luck + skill.\n\n*Modern Fed framework + 2024+*:\n- FAIT (Flexible Average Inflation Targeting) under review after 2022 surge.\n- New framework expected ~2025 with possibly more symmetric inflation targeting.\n- Inflation target likely staying 2%.\n- Continued focus on anchoring expectations.\n\n*Theory vs practice*:\n- Models predicted disinflation would require recession.\n- 2022-24 outcome surprised many — inflation fell with stable unemployment.\n- Active debate: was credibility the key? Luck? Supply-shock dissipation?\n\n*Implications*:\nIf 2022-24 experience generalizes, credibility-based disinflation is feasible — significant improvement over 1970s. But credibility is fragile + must be maintained."
+      },
+      "hints": [
+        "What's the key difference in expectations?",
+        "What was the supply-shock contribution?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "2022-23 vs Volcker: credibility maintained (vs from zero); expectations remained anchored (vs de-anchored); inflation driven by supply (vs wage-price spiral); decisive + transparent Fed action; faster + cheaper disinflation. Sacrifice ratio: very low (vs ~5-6 in Volcker). Soft landing achieved. Lessons: credibility matters; anchor expectations; supply shocks pass; don't over-tighten; speed + clarity. 1979-83: built credibility from zero with recession cost."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_phillips_1",
+        "kind": "math_expression",
+        "question": "Phillips curve: π = π_e - 0.6(u - u*) + ε. If π_e = 2%, u = 5%, u* = 4%, ε = 0%, what's π?",
+        "acceptedAnswers": [
+          "1.4%",
+          "1.4",
+          "2 - 0.6 × 1"
+        ],
+        "hint": "π = 2 - 0.6 × (5-4) + 0 = 2 - 0.6 = 1.4%."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_phillips_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why anchored inflation expectations have been called 'the gold standard of monetary policy.'",
+        "rubric": "Mentions: anchored expectations: 5-10 yr ahead inflation expectations remain stable around central-bank target despite short-term shocks. Why critical: enables stable nominal contracts + investment + planning; reduces inflation-uncertainty risk premium; lowers cost of disinflation (anchoring means lower sacrifice ratio). Built by: track record of meeting target; clear communication; independence; decisive action when needed. Lost by: missing targets persistently; politicized policy; populism overriding mandate; supply shocks combined with wage-price spirals. Empirical: 1970s lost anchoring → 1979-83 painful disinflation; modern central banks invested in anchoring 1990s-2020s; 2022-23 demonstrated value (rapid + cheap disinflation due to anchored expectations); 2022-23 vs 1979-83 sacrifice ratio: very low vs ~5-6. Modern challenge: maintain anchoring through ZLB + climate shocks + populist pressure + AI/labor disruption. Concludes: anchored expectations are credibility's purest expression + central banks' most precious asset; protect carefully."
+      }
+    }
+  ]
+}

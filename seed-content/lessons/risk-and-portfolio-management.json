@@ -1,0 +1,145 @@
+{
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "expert",
+    "objectives": [
+      "Apply VaR + Expected Shortfall.",
+      "Outline position sizing + Kelly criterion.",
+      "Reason about stress testing + leverage."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Value at Risk + Expected Shortfall",
+      "body": "**VaR (Value-at-Risk)**: maximum expected loss at given confidence over given horizon. The default risk metric in finance.\n\n**Example**: '1-day 95% VaR = \\$1M' means: 95% chance daily loss < \\$1M; 5% chance loss > \\$1M.\n\n**Methods**:\n\n**Historical VaR**:\n- Use historical returns directly.\n- 95% VaR = 5th percentile loss of historical returns.\n- Simple, doesn't assume distribution shape.\n- Drawback: limited by history; doesn't capture unobserved tail events.\n\n**Parametric (Variance-Covariance) VaR**:\n- Assume returns Gaussian.\n- $VaR_{95\\%} = 1.65 \\sigma$ (1 SD per day × 1.65 = 95th percentile).\n- Fast for portfolios.\n- Drawback: assumes normality + linearity. Fat tails ignored.\n\n**Monte Carlo VaR**:\n- Simulate many random scenarios from model.\n- Compute VaR from simulated loss distribution.\n- Flexible (can model non-normal, derivatives, etc.).\n- Computationally expensive.\n\n**Expected Shortfall (ES, CVaR)**:\n- Expected loss IN THE TAIL.\n- $ES_{95\\%}$ = average loss among worst 5%.\n- More conservative than VaR (captures tail).\n- Required by Basel III (banks). Increasingly preferred over VaR.\n- $ES > VaR$ always.\n\n**Coherent risk measures** (Artzner et al 1999): properties a good risk measure should satisfy. VaR is NOT coherent (lacks subadditivity); ES IS coherent.\n\n**Time scaling**:\n- $\\sigma_{10d} = \\sigma_{1d} \\times \\sqrt{10}$ (assuming iid).\n- VaR scales similarly.\n- Real returns have serial correlation + clustering → scaling imperfect.\n\n**Typical VaR levels**:\n- Hedge fund daily 95% VaR: ~1-3% of NAV.\n- Bank trading desks: VaR limits per desk + aggregate.\n- Diversification reduces portfolio VaR via correlation.\n\n**Limitations of VaR**:\n- Doesn't say HOW BAD beyond threshold.\n- Single number obscures fat tails.\n- Backward-looking from history.\n- Famous critique: NNT (Taleb) — VaR gives false confidence.\n\n**Modern risk management combines**:\n- VaR + ES.\n- Scenario analysis.\n- Stress tests.\n- Sensitivity analyses (Greeks for options).\n- Liquidity risk.\n- Concentration limits."
+    },
+    {
+      "kind": "text",
+      "title": "Position sizing + Kelly criterion",
+      "body": "**Position sizing**: how much to risk on each trade.\n\n**Kelly criterion**: optimal fraction of capital to bet for long-run growth.\n$$f^* = (bp - q) / b$$\n\nWhere $b$ = odds (payoff per unit bet), $p$ = probability of win, $q = 1 - p$.\n\nFor binary outcomes with edge.\n\n**Continuous Kelly** (returns):\n$$f^* = \\mu / \\sigma^2$$\n\nWhere $\\mu$ = expected return, $\\sigma^2$ = variance.\n\n**Kelly properties**:\n- Maximizes long-run growth rate.\n- Aggressive: vary high allocations.\n- Drawback: estimate errors → over-betting → ruin.\n- Many practitioners use 'half Kelly' (0.5 × f*) or 'quarter Kelly'.\n\n**Why Kelly is dangerous**:\n- Sensitive to parameter estimates.\n- Estimated $\\mu$ + $\\sigma$ can be wrong; Kelly multiplies errors.\n- Negative-skew strategies: occasional large losses → big drawdowns even at fractional Kelly.\n- Most practitioners: Kelly as guide, not formula.\n\n**Alternative sizing**:\n- **Fixed-fraction**: same % of capital on each trade.\n- **Volatility-targeting**: position size inversely with vol.\n- **Risk parity**: equal risk contribution.\n- **CVaR / ES constraints**: limit tail loss.\n\n**Leverage**:\n- Using borrowed money or derivatives to amplify position size.\n- Increases expected returns but also losses.\n- Leverage × Sharpe trade-off: higher leverage doesn't always improve risk-adjusted returns.\n- 'Volatility tax' from path-dependence + variance drag.\n- LTCM famously over-leveraged (1998 collapse).\n\n**Diversification math**:\n- Portfolio variance: $\\sigma^2_p = \\sum w_i w_j \\sigma_i \\sigma_j \\rho_{ij}$.\n- Low or negative correlation reduces $\\sigma_p$.\n- 'Free lunch' of diversification (Markowitz).\n- But: correlations CHANGE in crisis (correlation breakdown). Diversification fails when most needed.\n\n**Correlation in crisis** (Longin + Solnik): in tail events, asset correlations approach 1. Diversification collapses. Why crises hurt diversified portfolios.\n\n**Drawdown management**:\n- Limit drawdowns by reducing leverage when down.\n- 'Dynamic Hedging' (Carver, others).\n- Volatility-targeting auto-reduces in high-vol.\n\n**Concentration limits**:\n- Per name: e.g., max 5% in any single security.\n- Per sector/industry.\n- Per country/region.\n- Per strategy: don't bet too much on one model.\n- Per counterparty (in OTC trades).\n\n**Risk budgeting**:\n- Allocate risk budget (e.g., target portfolio vol) across strategies/factors.\n- Each strategy contributes proportionally.\n- Underlies risk parity + multi-strategy fund design."
+    },
+    {
+      "kind": "text",
+      "title": "Stress testing + liquidity risk + the systemic view",
+      "body": "**Stress testing**: simulate portfolio under extreme historical or hypothetical scenarios.\n\n**Common scenarios**:\n- **1987 Black Monday**: equity -22% in one day.\n- **2008 GFC**: cascading credit + equity declines.\n- **2010 Flash Crash**: liquidity evaporation.\n- **2020 COVID**: 33% S&P drop in weeks.\n- **2022 Inflation/rates**: bonds + equities both down.\n- **Hypothetical**: war, sovereign default, currency crisis.\n\n**Stress test outputs**:\n- Maximum loss.\n- Liquidity needed (margin calls, redemptions).\n- Strategy performance interactions.\n\n**Regulatory stress tests**:\n- Banks (Federal Reserve CCAR, DFAST): annual stress tests.\n- Insurers (ORSA): similar.\n- Hedge funds: SEC + CFTC regulated; varies.\n\n**Liquidity risk**: ability to exit positions without large impact.\n\n**Measures**:\n- **Days to liquidate**: position size / average daily volume.\n- **Bid-ask spread + market impact**: in normal conditions.\n- **Crisis liquidity**: under stress, depth often falls 80%+; spreads widen 5-10×.\n\n**Liquidity management**:\n- Match asset + funding liquidity.\n- Liquid assets ready for redemptions/margin.\n- Cash reserves.\n- Credit lines.\n- Diversify liquidity profile.\n\n**LTCM (Long-Term Capital Management) 1998**:\n- ~25× leverage. Russia + Asia crises caused correlations to converge → losses across positions.\n- Fed-organized bailout to prevent systemic collapse.\n- Lesson: leverage + tail risk + illiquidity = ruin.\n\n**Famous risk failures**:\n- **Barings 1995**: rogue trader (Leeson). \\$1.4B loss; bank failed.\n- **LTCM 1998**: leveraged convergence.\n- **Société Générale 2008**: rogue trader (Kerviel). \\$7.2B.\n- **JPMorgan London Whale 2012**: \\$6.2B from credit derivatives.\n- **Archegos 2021**: family office's leveraged exposure. \\$10B+ losses; Credit Suisse + Nomura took biggest hits.\n- **Various crypto exchange collapses 2022-23**: FTX, Celsius, Voyager.\n\n**Systemic risk + interconnectedness**:\n- Failure of one institution can trigger cascade.\n- Counterparty risk: clearinghouses (CCPs) intermediate to reduce.\n- Capital + liquidity requirements (Basel III) for banks.\n- Hedge funds: less regulated but still constrained.\n\n**Risk reporting**:\n- Daily PnL, exposures, VaR.\n- Limit utilization vs caps.\n- Drawdown tracking.\n- Risk committees review weekly/monthly.\n\n**Modern risk management** = quantitative + qualitative + cultural:\n- Models give signals but humans make judgments.\n- Risk culture: 'lines of defense' (business, risk, audit).\n- Lessons from crises drive ongoing change.\n\n**Tail-hedging strategies**:\n- Buy out-of-the-money puts (insurance).\n- Long volatility (VIX futures + options).\n- 'Crisis alpha' funds (CTAs + trend).\n- Holding cash + bonds in bull markets.\n- Trade-off: cost of insurance in normal periods vs benefit in crises.\n\n**Universa (Mark Spitznagel)**: famously +4000% in 2020 March vol crash. Tail-hedge specialist. Long-vol strategy delivers in crashes; loses in normal markets."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_quant_kelly",
+        "kind": "guided_derivation",
+        "question": "Apply Kelly criterion",
+        "goal": "Strategy: 60% win rate, average win = 1.5%, average loss = 1%. Compute Kelly fraction.",
+        "steps": [
+          {
+            "prompt": "Kelly: $f^* = (bp - q)/b$ where $b$ = win/loss ratio = 1.5/1 = 1.5; $p$ = 0.6; $q$ = 0.4.",
+            "motivation": "Plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~0.33",
+                "0.33",
+                "(1.5×0.6 - 0.4)/1.5 = 0.5/1.5 = 0.333"
+              ]
+            },
+            "hints": [
+              "$bp - q = 0.9 - 0.4 = 0.5$. /1.5 = 0.333."
+            ],
+            "reveal": "Full Kelly = 33.3% of capital per bet."
+          },
+          {
+            "prompt": "Full Kelly suggests betting 33% per trade. Why is this often too aggressive?",
+            "motivation": "Estimation risk.",
+            "accepts": {
+              "mode": "choice",
+              "options": [
+                "Random.",
+                "Estimation error: parameters (p, b) are estimates; actual values uncertain. Kelly's variance proportional to f² → 33% sizing → very large drawdowns if estimates wrong. Plus: realistic strategies have non-binary outcomes with fat tails not captured by p+b. Half- or quarter-Kelly preferred.",
+                "Just smaller.",
+                "Random."
+              ],
+              "correctIndex": 1
+            },
+            "hints": [
+              "Estimation error + fat tails."
+            ],
+            "reveal": "Estimation error + fat tails. Full Kelly bets are too aggressive given parameter uncertainty. Half-Kelly (16.5%) or quarter-Kelly (8.25%) more realistic. Some practitioners use position sizing based on risk (e.g., 1-2% per trade) rather than Kelly directly."
+          },
+          {
+            "prompt": "Half-Kelly position sizing on this strategy?",
+            "motivation": "Apply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~16.7%",
+                "16.7%",
+                "0.33/2"
+              ]
+            },
+            "hints": [
+              "Full Kelly / 2."
+            ],
+            "reveal": "Half-Kelly ≈ 16.7%. Still aggressive but more realistic. Most professional traders bet 1-5% per trade. Kelly is reference, not prescription."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Kelly: } f^* = (bp - q)/b; \\text{ use half or quarter Kelly in practice}}$$ Kelly criterion gives mathematically optimal sizing for known parameters. But parameters are uncertain in reality + Kelly variance is high. Half/quarter Kelly + ad-hoc risk-per-trade rules (1-2% typical) more common in professional practice. Risk management as much about psychological + structural protection as mathematical optimization."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_quant_ltcm",
+        "kind": "multiple_choice",
+        "question": "LTCM (1998) was run by Nobel laureates + had ~25× leverage. Why did it fail catastrophically?",
+        "options": [
+          "Random.",
+          "Convergence trades require either calm + continuing convergence OR sufficient capital to survive temporary divergence. LTCM's leverage was too high for the divergence that occurred (Russia default → flight to quality). When positions diverged, mark-to-market losses + margin calls forced unwind at worst prices. The Fed organized a bailout to prevent systemic damage.",
+          "Random.",
+          "Bad luck."
+        ],
+        "correctIndex": 1,
+        "explanation": "LTCM failure: classic case of leverage + tail risk + illiquidity.\n\nStrategies: convergence trades on bond spreads. E.g., long Italian + short German bonds expecting yield convergence. ~25× leverage to amplify small spread gains.\n\nAugust 1998: Russia defaulted on ruble debt. Investors fled to safe assets (US Treasuries) → 'flight to quality'. Bond spreads WIDENED instead of narrowing. LTCM's positions moved against it.\n\nLeverage amplified losses. Mark-to-market triggered margin calls. To meet margins, LTCM had to liquidate. But positions were so large + similar that selling pressured prices further → more losses.\n\nFed organized a consortium of major banks to buy out LTCM ($3.6B). Prevented systemic contagion. The lesson: even with Nobel-laureate expertise + theoretically sound trades, excess leverage + tail risk + concentrated positions = ruin.\n\nLTCM became foundational risk-management case study. Drove regulation (Basel II), better risk modeling, + cultural awareness of tail risk.\n\nReprise: 2007 'quant quake' echoes. 2008 financial crisis echoes. 2020 March vol crash echoes. The same pattern recurs."
+      },
+      "hints": [
+        "Why failed?",
+        "Lessons?"
+      ],
+      "workedSolution": "Leverage 25× + convergence trades + Russia default → divergence + losses + margin calls + forced liquidation. Even Nobel-laureate strategies fail under excess leverage + tail risk + concentration. Lessons: limit leverage; account for tail correlations; size for survival, not just expected return. Drove modern risk regulation + practice.",
+      "retryUntilCorrect": true
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_quant_var",
+        "kind": "math_expression",
+        "question": "Portfolio daily volatility 1%. 1-day 95% parametric VaR?",
+        "acceptedAnswers": [
+          "~1.65%",
+          "1.65%",
+          "1.65 × 1"
+        ],
+        "hint": "$VaR_{95\\%} = 1.65 \\sigma$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_quant_stress",
+        "kind": "scenario",
+        "question": "Stress testing a portfolio",
+        "prompt": "Walk through how a multi-strategy hedge fund stress tests its portfolio for: 2008 crisis, COVID crash, Fed surprise rate hike."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_quant_risk",
+        "kind": "explain_back",
+        "prompt": "Explain in two or three sentences why risk management is increasingly recognized as the dominant determinant of long-term trading success.",
+        "rubric": "Mentions that successful firms (Renaissance, Citadel, Two Sigma, etc.) maintain rigorous risk discipline + survive crises that destroy less-disciplined competitors; expected return matters less than not blowing up; Kelly criterion + leverage limits + diversification + stress testing collectively make survival possible; the 2008 + 2020 events proved that risk management is what enables compounding over decades."
+      }
+    }
+  ]
+}
