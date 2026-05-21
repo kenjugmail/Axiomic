@@ -29,7 +29,7 @@ export function AuthorLessonPage() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<AuthorResponse | null>(null);
   const [saving, setSaving] = useState(false);
-  const [saveMsg, setSaveMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+  const [saveMsg, setSaveMsg] = useState<{ kind: "ok" | "err"; text: string; livePath?: string } | null>(null);
   const [streaming, setStreaming] = useState(false);
   const [partial, setPartial] = useState("");
   // Undo stack — keep the last 5 results so authors can revert a
@@ -172,7 +172,11 @@ export function AuthorLessonPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        setSaveMsg({ kind: "ok", text: `Wrote ${data.path} (${data.bytes} bytes)` });
+        const livePath = data.updatedDb && data.pathSlug ? `/paths/${data.pathSlug}/lessons/${nodeSlug}` : undefined;
+        const text = data.updatedDb
+          ? `Wrote ${data.path} (${data.bytes} bytes) · live in DB`
+          : `Wrote ${data.path} (${data.bytes} bytes) · not yet in DB (run \`bun run db:seed\`)`;
+        setSaveMsg({ kind: "ok", text, livePath });
       } else if (res.status === 409) {
         if (window.confirm(`${data.error} Overwrite?`)) {
           await saveToFile(true);
@@ -352,6 +356,11 @@ export function AuthorLessonPage() {
                 <div className={`text-xs px-3 py-2 rounded ${saveMsg.kind === "ok" ? "bg-green-500/10 border border-green-500/40 text-green-600" : "bg-destructive/10 border border-destructive/40 text-destructive"}`}>
                   {saveMsg.kind === "ok" ? <Check className="h-3 w-3 inline mr-1" /> : <AlertTriangle className="h-3 w-3 inline mr-1" />}
                   {saveMsg.text}
+                  {saveMsg.livePath && (
+                    <a href={saveMsg.livePath} target="_blank" rel="noopener noreferrer" className="ml-2 underline hover:text-green-700">
+                      View live →
+                    </a>
+                  )}
                 </div>
               )}
             </>

@@ -4,6 +4,8 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { join, resolve } from "path";
+import { eq } from "drizzle-orm";
+import { getDb, masteryNodes, masteryPaths } from "@axiomic/db";
 import { getAIProvider } from "@axiomic/ai";
 import { validateLesson } from "../lib/lessonSchema";
 import type { Env } from "../env";
@@ -367,9 +369,43 @@ authoringRouter.post("/save", zValidator("json", saveSchema), async (c) => {
       500,
     );
   }
+
+  // Hot-reload: update the in-memory DB row so the running server
+  // picks up the new content without a restart. If no mastery_nodes
+  // row exists for the slug (brand-new lesson not yet seeded), skip
+  // the update + report updatedDb=false so the author knows to run
+  // db:seed before the path detail can render it.
+  let updatedDb = false;
+  let pathSlug: string | null = null;
+  try {
+    const db = getDb();
+    const nodeRow = db
+      .select({ id: masteryNodes.id, pathId: masteryNodes.pathId })
+      .from(masteryNodes)
+      .where(eq(masteryNodes.slug, nodeSlug))
+      .get();
+    if (nodeRow) {
+      db.update(masteryNodes)
+        .set({ lessonData: JSON.stringify(lesson) })
+        .where(eq(masteryNodes.id, nodeRow.id))
+        .run();
+      updatedDb = true;
+      const pathRow = db
+        .select({ slug: masteryPaths.slug })
+        .from(masteryPaths)
+        .where(eq(masteryPaths.id, nodeRow.pathId))
+        .get();
+      pathSlug = pathRow?.slug ?? null;
+    }
+  } catch {
+    // DB update is best-effort; the file write is the source of truth.
+  }
+
   return c.json({
     path: `seed-content/lessons/${nodeSlug}.json`,
     bytes: body.length,
     warnings,
+    updatedDb,
+    pathSlug,
   });
 });
