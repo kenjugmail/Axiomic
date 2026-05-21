@@ -1,0 +1,155 @@
+{
+  "slug": "modern-frontier-immunology",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Survey single-cell + spatial + multi-omic methods reshaping immunology.",
+      "Apply AI + structure prediction + immune-repertoire analysis to immunology problems.",
+      "Identify frontier challenges — universal flu, HIV, tolerogenic, mRNA cancer vaccines."
+    ],
+    "prereqs": [
+      "antibodies-and-mhc",
+      "autoimmunity-and-immunopathology",
+      "cancer-immunotherapy"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Single-cell + multi-omics: scRNA-seq, ATAC-seq, CITE-seq, Human Cell Atlas",
+      "body": "Immunology was historically a discipline of bulk measurements (flow cytometry's ~30 colors; bulk RNA-seq) on coarsely-defined populations. The **single-cell revolution** (~2010-present) has transformed it into a discipline that resolves immune phenotype + transcriptome + epigenome + receptor sequence + spatial location per individual cell.\n\n**Single-cell RNA-seq (scRNA-seq)** — full transcriptome of individual cells:\n- **Fuchou Tang + colleagues** (2009) — first scRNA-seq method; manual + low-throughput.\n- **CEL-seq, MARS-seq, Smart-seq2** — plate-based; high coverage, lower throughput.\n- **Drop-seq** (**Allon Klein**, **Evan Macosko**, Steve McCarroll; 2015 *Cell*) + **inDrops** (Klein 2015) — droplet-based; thousands-to-millions of cells per run. **10x Genomics Chromium** (commercial) became the dominant platform.\n- **Cell Ranger + Seurat + Scanpy + scVI** — analysis stack; UMAP + Leiden clustering + trajectory inference + RNA velocity (**La Manno + Linnarsson**).\n- **Atlases**: **Tabula Muris** (mouse), **Tabula Sapiens** (human), **Human Cell Atlas** (HCA — Aviv **Regev** + Sarah **Teichmann** 2017 launch; >100 organs + tens-of-millions of cells; reference for organ + cell-type biology + diseases).\n\nImmunology applications: defined ILC1/2/3 + Treg + Tfh + TRM + memory subsets at unprecedented resolution; cell-of-origin in cancer; immune-cell heterogeneity in COVID-19 (Yale + Broad + Sanger + Stanford + Mt Sinai); peripheral blood vs tissue atlases; vaccine response trajectories; checkpoint-inhibitor response signatures; CAR-T product characterization (predicts efficacy + toxicity).\n\n**ATAC-seq + scATAC-seq** — assay for transposase-accessible chromatin (open-chromatin regions); **Will Greenleaf + Howard Chang** 2013/2015. Maps gene-regulatory landscape (enhancers, promoters, transcription-factor footprints) at single-cell resolution. **scATAC + scRNA multimodal** (10x Multiome) integrates transcriptome + epigenome per cell. Reveals exhaustion-program epigenetic fixation in T cells (Lutz lab, Wherry lab, Kaech lab); committed-vs-plastic memory T-cell states.\n\n**CITE-seq + REAP-seq (2017)** — simultaneous antibody-based protein measurement (oligo-tagged antibody panels) + scRNA-seq per cell. Bridges scRNA + flow cytometry. **Marlon Stoeckius (NYGC), Peter Smibert** + **Vaidehi Jayaraman, Pranay Dogra**. ~100-300 proteins/cell now standard.\n\n**Multiplexing + barcoding**:\n- **Cell hashing** (anti-CD45 hashtag) — multiplex donors/conditions per run, reducing batch effects.\n- **CRISPR perturbation + scRNA-seq** (**Perturb-seq** — Adamson, Norman, Dixit, Datlinger, Jaitin; CROP-seq) — assays gene perturbations × transcriptome at single-cell scale. Powerful in immune-cell genetic-screen biology.\n\n**Immune repertoire sequencing (AIRR-seq)**:\n- TCR + BCR V(D)J sequencing from bulk or single cells.\n- **10x Genomics 5′ V(D)J kits** + **Adaptive Biotechnologies immunoSEQ** + **Repertoire Genesis** + others.\n- Outputs: clonality, V/J usage, CDR3 length, public clones, SHM rates, paired αβ TCRs, paired V_H/V_L BCRs.\n- Applications: CAR-T product characterization + persistence; vaccine response repertoire dynamics; lymphoma MRD; tolerance scoring; organ transplant; HIV + COVID-19 bNAb discovery; cancer neoantigen TCR identification.\n- **Adaptive Biotechnologies T-Detect** — clinical TCR-based diagnostic (COVID exposure assay; emerging Lyme + other diagnostics).\n\n**Spatial + multimodal + single-cell + repertoire** is now the standard toolkit for immunology — enabling questions previously impossible (which T-cell clones occupy which tumor microenvironment, what is their phenotype + epigenetic state + neoantigen reactivity)."
+    },
+    {
+      "kind": "text",
+      "title": "Spatial transcriptomics + organoids + tumor microenvironment",
+      "body": "Single-cell methods lose **spatial context** by tissue dissociation. **Spatial transcriptomics** preserves it.\n\n**Spatial transcriptomics platforms**:\n- **10x Visium (Spatial Transcriptomics 2016, Frisén + Lundeberg → 10x)**: 55-μm spots on capture slide; tissue placed on slide; transcripts captured per spot. Resolves to ~1-10 cells per spot.\n- **Visium HD** (2024): 2-μm bins, near-single-cell.\n- **Slide-seq + Slide-seqV2** (Macosko, Chen, Rodriques) — beads on slide, ~10-μm resolution.\n- **MERFISH** (**Xiaowei Zhuang** lab Harvard 2015+) — multiplexed error-robust FISH; encodes ~100-1000 genes per cell by combinatorial barcode imaging at sub-cellular resolution. Commercialized as **Vizgen MERSCOPE**.\n- **Xenium (10x)**, **CosMx (NanoString)**, **STARmap (Wang/Deisseroth)**, **Resolve Biosciences** — imaging-based single-molecule spatial platforms; hundreds-to-thousands of targets at sub-cellular resolution.\n- **CODEX (Akoya PhenoCycler)** + **MIBI** — multiplexed protein imaging (40-100 markers); cell-type + neighborhood analysis at sub-cellular resolution.\n\n**Applications**:\n- **Lymph-node architecture** — T-cell zones, B-cell follicles, germinal-center light/dark zones at spatial resolution.\n- **Tumor microenvironment (TME)** — distinguish **immune-inflamed**, **immune-excluded**, **immune-desert** patterns; locate **CD8 T cells + Tregs + TAMs** within tumor vs stroma. Stratifies checkpoint-inhibitor response.\n- **Tertiary lymphoid structures (TLS)** in tumors — organized B + T zones with germinal-center features; correlate with better immunotherapy outcomes (Tumeh, Helmink, Cabrita 2020 Nature).\n- **Autoimmune tissues** — ectopic GCs in RA synovium + MS meninges + Sjögren glands.\n- **Granulomas in Mtb** — spatial cytokine + cell organization within tubercle bacillus lesions (Sarah Fortune, JoAnne Flynn, Russell Vance).\n- **Inflammatory tissues** — IBD, psoriasis, dermatitis spatial atlases.\n\n**Organoids + immune-tissue models**:\n- **Patient-derived tumor organoids** (Hans Clevers — Nature 2009+) — 3D culture systems for personalized drug screening + immunotherapy testing.\n- **Tumor-immune co-cultures** — organoid + autologous TILs; tests TCR therapy, CAR-T, checkpoint response.\n- **Lymph-node + spleen organoids** + **GC organoids** (M. Brendolan, Yael Litvak, Sai Reddy, Ankur Singh) — synthetic lymphoid niches model T + B + DC interactions + GC reactions ex vivo.\n- **Thymic organoids** — recapitulate thymopoiesis (Holländer, Wertheimer); a frontier for T-cell engineering + thymic regeneration.\n- **Gut organoids + microbiome** — recapitulate barrier + GALT (Nusse + Yilmaz + Clevers).\n- **Lung + airway organoids** — RSV, SARS-CoV-2, ABPA models.\n\n**Tumor microenvironment integration**:\nThe TME is now characterized at multi-modal resolution: scRNA-seq + scATAC + CITE-seq + scTCR + Visium/Xenium + multiplex IHC → integrated cell × space × phenotype × clonality data. Resources: **Tumor Immune Atlas (TIA)**, **HTAN (Human Tumor Atlas Network — NCI)**, **Pan-Cancer Immune Atlas**, **Single-Cell Tumor Atlas**. Reshape clinical-trial design + biomarker discovery + target identification."
+    },
+    {
+      "kind": "text",
+      "title": "AI for immunology + the frontier: universal flu, HIV, tolerogenic, mRNA cancer vaccines",
+      "body": "Computational + AI methods are now woven through immunology — from sequence-level analysis to structure prediction to clinical decision support.\n\n**Immune repertoire + AI**:\n- **Adaptive Biotechnologies + Microsoft Research** — *T-Detect* + classifiers using deep-learning models on TCR repertoires to detect prior infections (COVID, Lyme, EBV, CMV) + emerging clinical diagnostics. Trained on millions of TCR + paired serological samples.\n- **TCR specificity prediction**: NetTCR, TCRdist, MixTCRpred, GLIPH2 + deep-learning (ESM-TCR, ImmunoLM, BERTify-TCR) cluster TCRs by likely cognate peptide-MHC.\n- **BCR repertoire models**: ESM-IgFold, IgLM, AbLang, AbFold, BERTology of antibody sequences; predict liability, paratope, affinity, immunogenicity.\n- **Public clonotypes + HLA-restricted predictions** enable population-level immune-response inference.\n\n**Structure prediction + antibody design**:\n- **AlphaFold + AlphaFold-Multimer + AlphaFold 3** — predict antibody-antigen complexes; AF3 (Abramson + Jumper 2024) handles proteins + nucleic acids + ligands + ions.\n- **RoseTTAFold + RFdiffusion + ProteinMPNN** (Baker lab) — de novo design of antibody-like binders, mini-protein binders, antigen scaffolds.\n- **IgFold + DeepAb + ABlooper + RFantibody (Baker 2024)** — antibody-specific structure prediction + design.\n- **Antigen design**: stabilized prefusion-spike (McLellan + Graham), HIV BG505 SOSIP trimer (Sanders, Moore), germline-targeting eOD-GT8 (Schief lab + Burton + Nussenzweig) — many engineered with structure-based design + now AI-assisted.\n- **Memorial Sloan Kettering + Schief + Nussenzweig — BG505 mosaic HIV** — multivalent + germline-targeting immunogens guiding B-cell lineages through stepwise GC selection to produce bNAbs (VRC01, 3BNC117, 10-1074 class antibodies). Now in clinical trials (IAVI G001 → followups).\n\n**Vaccine antigen design**:\n- **mRNA platforms** (Karikó-Weissman) + **structure-based prefusion-stabilized antigens** + **rational adjuvant selection** (TLR + STING agonists, AS01, MF59) form the modern vaccinology stack.\n- AI-assisted: epitope prediction, immunogenicity prediction, MHC-binding (NetMHCpan, MHCflurry), neoantigen ranking, codon optimization.\n\n**Cellular therapy + AI**:\n- **CAR + TCR design**: structural prediction + binding-affinity scoring + off-target screening.\n- **CAR-T product manufacturing**: scRNA-seq characterization predicts efficacy + persistence + toxicity.\n- **Patient stratification**: ML models on transcriptomic + clinical features predict CAR-T response + CRS + ICANS risk.\n\n**Foundation models + LLMs for immunology**:\n- **ESM-2, ESMFold, ESM-IF** (Meta) — protein language models for sequence-structure-function.\n- **Antibody-specific LLMs**: AbLang (Cambridge), IgLM (Generate Biomedicines), Sapiens (Nabla Bio), Boltz, OpenFold antibody variants.\n- **MHC-peptide-TCR models**: trained on large IEDB + public + proprietary datasets.\n- **Multimodal foundation models**: scGPT, Geneformer, scFoundation, scBERT, scTab — pretrained on millions of scRNA cells; transferable to immunology phenotyping + perturbation prediction.\n- **Biomedical LLMs**: BioMedGPT, Med-PaLM, OpenBioLLM, GPT-4 medical — applied to literature mining, immunology QA, clinical decision support.\n\n**Frontier challenges**:\n- **Universal influenza vaccine** — broadly-neutralizing HA-stem + NA + multi-strain mRNA; Krammer, Nachbagauer, Moderna mRNA-1010, computationally-optimized COBRA antigens (Ross).\n- **HIV vaccine** — germline-targeting + sequential boosting + BG505 mosaic + bNAb lineage engineering; IAVI G001, HVTN trials.\n- **mRNA personalized cancer vaccines** — BioNTech BNT122 (autogene cevumeran — pancreatic + melanoma adjuvant), Moderna mRNA-4157 (KEYNOTE-942 melanoma adjuvant phase III).\n- **Tolerogenic therapy** — antigen-specific tolerance induction for autoimmune disease + transplantation + food allergy + gene-therapy-induced anti-AAV immunity. Approaches: tolerogenic DCs, Treg therapy (polyclonal + chimeric antigen-receptor Tregs — CAAR-T), Treg-promoting immunogens (Aspuru, Steinman approaches), low-dose IL-2 + altered-peptide ligands. **Anti-CD3 (foralumab; teplizumab in T1D)** + **anti-CD20 + anti-CD38** + **CAR-T anti-CD19** for autoimmune reset (Schett).\n- **AI-driven antibody discovery + optimization** at scale — Generate Biomedicines, Absci, Adaptive Biotechnologies, EvolveBio, Owkin, Cradle Bio, BioMap, Isomorphic Labs.\n- **Spatial multi-omics atlases** of all human tissues × diseases + healthy controls (HCA, HuBMAP, HTAN extensions).\n- **In vivo CAR-T engineering** via mRNA-LNP delivery (Capstan, Moderna, Orna, Sail Bio) — sidesteps ex vivo manufacturing.\n- **AI immune-system modeling** + digital twins for vaccine + immunotherapy response prediction.\n\nThe immunology of 2030 will combine single-cell + spatial + repertoire + structural + multi-modal AI in routine clinical practice — built on a century of foundational immunology from Jenner + Pasteur + Ehrlich + Metchnikoff + Burnet + Tonegawa + Mosmann-Coffman + Allison + Honjo + Karikó-Weissman."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_front_1",
+        "kind": "guided_derivation",
+        "question": "Derive the design strategy for an HIV bnAb-inducing germline-targeting immunogen",
+        "goal": "HIV broadly-neutralizing antibodies (VRC01, 3BNC117, 10-1074) carry ~50-100 SHMs — extreme outliers. Design a vaccine strategy + sequence of immunogens that could guide naïve B-cell lineages through GC selection to produce them.",
+        "steps": [
+          {
+            "prompt": "Why do naïve B cells with germline BCR not bind well to the native HIV trimer + thus fail to enter productive germinal centers?",
+            "motivation": "The germline-targeting problem.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "The native HIV trimer has evolved to evade germline antibody recognition (glycan shield, conformational flexibility); only highly mutated antibodies bind well — germline BCRs have too low affinity to be selected"
+              ]
+            },
+            "hints": [
+              "Glycan shield + low germline affinity."
+            ],
+            "reveal": "The native HIV-1 envelope trimer (gp120/gp41) is heavily glycosylated (~50% mass) + conformationally flexible + has evolved to evade most germline BCRs. Naïve B-cell receptors targeting CD4-binding site (VRC01-class) or V3 glycan supersite (PGT121-class) bind native trimer with affinities below the GC-selection threshold → no productive GC engagement → no SHM trajectory toward the bNAb fold."
+          },
+          {
+            "prompt": "How does a germline-targeting immunogen solve this?",
+            "motivation": "Engineering for naïve-BCR engagement.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Engineer a modified antigen (eOD-GT8 etc.) that binds germline BCRs of the desired lineage with sufficient affinity to enter GCs, while preserving the key epitope"
+              ]
+            },
+            "hints": [
+              "Engineered antigen with germline-engaging affinity."
+            ],
+            "reveal": "**Germline-targeting immunogens** (Schief, Burton + IAVI + Scripps): engineered antigens that **bind the unmutated germline BCRs** of the desired bNAb precursor lineage with high enough affinity (~μM-nM range) to drive their entry into germinal centers. **eOD-GT8** — engineered outer-domain HIV gp120 trimmer designed to bind VRC01-class germline BCRs. Phase I IAVI G001 trial (2022 *Science*) — eOD-GT8 60-mer (presenting eOD-GT8 on a ferritin scaffold) was administered + induced VRC01-class precursor B cells in nearly all vaccinees → first-in-human proof-of-concept for germline targeting."
+          },
+          {
+            "prompt": "Why is a single immunogen insufficient + how do **sequential boosts** complete the strategy?",
+            "motivation": "Stepwise lineage engineering.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "After germline-targeting prime, sequential intermediate immunogens guide B-cell lineages through stepwise SHM acquiring the right mutations until they bind native trimer"
+              ]
+            },
+            "hints": [
+              "Sequential antigens shape GC trajectory."
+            ],
+            "reveal": "**Sequential immunization** — after germline-targeting prime, deliver a series of intermediate immunogens (each more native-like) → each boost selects B cells with progressively more bNAb-like SHMs → eventually arriving at B cells capable of binding native trimer + neutralizing diverse HIV strains. **BG505 mosaic SOSIP** trimers (Sanders + Moore + Schief + Nussenzweig) are native-like trimers used as later-stage boosts. In silico + in vivo lineage tracing (mouse models + macaques + human trial data + single-cell BCR sequencing) optimizes the immunogen series."
+          },
+          {
+            "prompt": "Where does AI + structure prediction fit in?",
+            "motivation": "AI for immunogen design.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "AlphaFold + AF-Multimer + AF3 model antibody-antigen complexes; RFantibody/RFdiffusion design novel immunogen scaffolds; B-cell repertoire AI predicts lineage trajectories + maturation paths"
+              ]
+            },
+            "hints": [
+              "Structure prediction + de novo design + repertoire ML."
+            ],
+            "reveal": "AI in HIV bnAb engineering: (1) **AlphaFold-Multimer + AF3** predict antibody-trimer complexes guiding immunogen design. (2) **RFantibody + RFdiffusion + ProteinMPNN** design scaffolds that present epitopes optimally + can be tailored to germline BCRs. (3) **Antibody language models** (AbLang, IgLM, ESM-IF, IgFold) infer likely SHM trajectories + predict bnAb-like lineages. (4) **scBCR sequencing + AI clustering** identifies emergent bnAb lineages in vaccinees. The combined pipeline — Nussenzweig + Schief + Burton + Baker + DeepMind + IAVI + HVTN — represents the most sophisticated translational application of clonal-selection + GC + AI immunology to date + may finally crack a 40-year vaccine challenge."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_front_1",
+        "kind": "multiple_choice",
+        "question": "Why is the Human Cell Atlas (Regev + Teichmann 2017) considered the foundational reference for modern immunology + cell biology?",
+        "options": [
+          "It catalogs only blood cells.",
+          "**Aviv Regev (Broad + Genentech) + Sarah Teichmann (Sanger)** launched the Human Cell Atlas in 2017 as an international consortium to comprehensively map every cell type in the human body via scRNA-seq, scATAC, CITE-seq, spatial transcriptomics, + multimodal omics. By 2024 the HCA + sibling efforts (HuBMAP, HTAN, Tabula Sapiens, LungMAP, KPMP, Allen Brain Atlas) had profiled tens of millions of cells across >100 organs from healthy + diseased donors. For immunology specifically: (1) **definitive references for immune-cell subsets** — ILC1/2/3, Tfh, Treg, TRM, B-cell subsets, DC subtypes, tissue-resident macrophages, MAIT, NKT — at unprecedented resolution; (2) **organ-specific immune landscapes** — lung, gut, skin, liver, kidney, brain; (3) **disease + drug-response references** — COVID-19 atlases, lupus + RA + IBD, cancer atlases; (4) **infrastructure + standards** — CELLxGENE, Single Cell Portal, scvi-tools, anndata, Tabula benchmarks. Plus the methodological foundations: **Allon Klein + Evan Macosko Drop-seq + inDrops** (2015), 10x Genomics commercial platform, multimodal extensions. The HCA reframed cell biology as a **discoverable + measurable + computable** discipline + provides the reference that every modern immunology study + immunotherapy program builds against.",
+          "It is irrelevant to immunology.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Human Cell Atlas (Regev + Teichmann 2017) — international consortium mapping every cell type in humans via scRNA-seq + scATAC + CITE-seq + spatial multi-omics. By 2024, tens of millions of cells across >100 organs in healthy + diseased donors. Reference for immune subsets (ILC, Tfh, Treg, TRM, B/DC/macrophage subsets); organ-specific immune landscapes; disease atlases (COVID, lupus, IBD, cancer). Built on Drop-seq + inDrops (Klein + Macosko 2015) + 10x Genomics. Foundational for modern immunology."
+      },
+      "hints": [
+        "What does HCA aim to do + who leads it?",
+        "Impact on immunology specifically."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Human Cell Atlas (Regev + Teichmann 2017) is the international consortium mapping every cell type in humans across organs, healthy + diseased, via scRNA-seq + scATAC + CITE-seq + spatial multi-omics. Tens of millions of cells profiled. For immunology: definitive references for cell subsets, organ-specific immune landscapes, disease atlases (COVID, lupus, IBD, cancer). Foundation of modern cell biology + immunology."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_front_1",
+        "kind": "scenario",
+        "question": "Designing an integrated next-generation cancer immunotherapy clinical program",
+        "prompt": "You are leading a translational immuno-oncology program at a major cancer center. (a) Design a phase II trial for metastatic pancreatic adenocarcinoma combining **adjuvant neoantigen mRNA vaccine** (BNT122-style), **anti-PD-1**, + potentially **CAR-T** or **TIL therapy** against KRAS G12D + G12V neoantigens. (b) Specify your **multi-modal immune-monitoring stack**: scRNA-seq + scTCR/scBCR (10x); CyTOF + CITE-seq; Visium/Xenium spatial; TIL repertoire (Adaptive immunoSEQ); HLA-typing + neoantigen prediction (NetMHCpan); plasma IFNγ + cytokine panels; AI-driven response classifier. (c) How would you use **AlphaFold-Multimer + AF3** + antibody-language models + **Adaptive Biotechnologies T-Detect**-style repertoire classifiers to inform target selection + patient stratification + early efficacy readout? (d) Connect to **Regev + Teichmann's Human Cell Atlas** + **Memorial Sloan Kettering Sadelain-Brentjens** CAR-T heritage + the broader frontier ecosystem."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_front_1",
+        "kind": "math_expression",
+        "question": "Write the standard expression for k-nearest-neighbor-graph-based UMAP / Leiden clustering input — the cosine similarity between two scRNA-seq cell expression vectors x_i + x_j.",
+        "acceptedAnswers": [
+          "cos(x_i, x_j) = (x_i · x_j) / (||x_i|| × ||x_j||)",
+          "cos = dot(x_i, x_j) / (norm(x_i)*norm(x_j))",
+          "x_i·x_j / (|x_i| |x_j|)"
+        ],
+        "hint": "Dot product / product of norms."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_front_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how single-cell + spatial + AI methods are reshaping immunology in 2026 + define a 2030 frontier challenge.",
+        "rubric": "Mentions: **scRNA-seq** (Tang 2009; Klein + Macosko Drop-seq 2015; 10x Genomics) + **scATAC** (Greenleaf) + **CITE-seq** (Stoeckius 2017) + **scTCR/scBCR** + **Visium + MERFISH + Xenium + CosMx** spatial — resolve immune cells + states + receptors + tissue context. **Human Cell Atlas (Regev + Teichmann 2017)** + HuBMAP + HTAN + Tabula Sapiens map every cell type across organs + diseases. **AI**: **AlphaFold + AF3** structure prediction; **RFdiffusion + ProteinMPNN** de novo design; **Adaptive Biotechnologies** + ESM + Ig language models for repertoire; **scGPT, Geneformer, scFoundation** for single-cell foundation models; **MHC + TCR + BCR specificity prediction**. **Frontier challenges**: universal flu + HIV vaccines (germline-targeting + sequential boost; Nussenzweig + Schief + BG505 mosaic); tolerogenic therapy for autoimmunity + transplantation; personalized mRNA cancer vaccines (BNT122 pancreatic + mRNA-4157 melanoma — Karikó-Weissman + neoantigens); in vivo CAR-T; digital-twin immunology. The immunology of 2030 integrates single-cell + spatial + repertoire + structural + multimodal AI in routine clinical practice — built on a century of foundational immunology from Jenner + Pasteur + Ehrlich + Metchnikoff + Burnet + Tonegawa + Mosmann-Coffman + Allison + Honjo + Karikó-Weissman."
+      }
+    }
+  ]
+}

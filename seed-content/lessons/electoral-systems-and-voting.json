@@ -1,0 +1,157 @@
+{
+  "slug": "electoral-systems-and-voting",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Master the major voting methods — plurality, IRV, Condorcet, approval, Borda, STAR, proportional.",
+      "Understand Arrow's impossibility theorem, Gibbard-Satterthwaite, May's theorem, + median voter.",
+      "Engage effects + reform — Duverger's law, strategic voting, gerrymandering, electoral integrity."
+    ],
+    "prereqs": [
+      "political-science-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Voting methods: plurality, IRV, Condorcet, approval, Borda, STAR, proportional",
+      "viz": "voting-systems",
+      "vizProps": {
+        "method": "fptp"
+      },
+      "body": "**Electoral systems** translate citizen preferences into political outcomes — the engine of democratic representation. There is no perfect method (Arrow 1951; Gibbard-Satterthwaite 1973-1975 — next slide). Each method makes different trade-offs over majority rule, proportionality, simplicity, robustness to strategy, + responsiveness. The interactive viz on this slide demonstrates each method on a common ballot set.\n\n**First-past-the-post (FPTP) / plurality / single-member plurality (SMP)** — the most common method historically. Each voter picks one candidate; the candidate with the most votes wins. Used in the UK, US, Canada, India, much of the Westminster tradition.\n- *Strengths*: simple ballot + simple count; produces single-member-district accountability + (typically) majority governments; tends to produce two-party systems (Duverger's law — last slide).\n- *Weaknesses*: a candidate can win with well under 50% (multi-candidate plurality wins); third parties + minority preferences are systematically under-represented; *vote splitting* + the *spoiler effect* (Nader 2000; Perot 1992) distort outcomes; encourages strategic 'lesser-evil' voting; high *Gallagher index* of disproportionality.\n\n**Instant-runoff voting (IRV) / ranked-choice voting (RCV) / alternative vote (AV)** — voters rank candidates. If no one has a majority of first-preferences, eliminate the bottom candidate + redistribute their voters' next preferences. Repeat until someone has a majority. Used in Australia (House since 1918), Ireland (presidency), Maine + Alaska (since 2020), New York City (2021).\n- *Strengths*: eliminates pure spoiler dynamics; encourages broader campaign coalitions; reveals 2nd + 3rd preferences; majority-winner.\n- *Weaknesses*: *non-monotonic* (in rare cases, raising a candidate in your ranking can hurt them); *center-squeeze* (centrist Condorcet winners can be eliminated early — Burlington 2009 mayoral; Alaska 2022 special); fails Condorcet criterion sometimes.\n\n**Condorcet methods** — Marquis de Condorcet (1785). A **Condorcet winner** is a candidate who would beat every other candidate in pairwise majority comparisons. Condorcet methods elect the Condorcet winner whenever one exists. Variants: *Copeland*, *Schulze* (beat-path), *ranked pairs* (Tideman), *minimax*.\n- *Strengths*: when a Condorcet winner exists, electing them is highly defensible; widely viewed as the most theoretically principled method.\n- *Weaknesses*: **Condorcet paradox** — *cycles* (A beats B, B beats C, C beats A) sometimes exist; each method has a tie-breaking rule for cycles + therefore different outcomes; ballot + count more complex.\n\n**Approval voting** — Steven Brams + Peter Fishburn (*Approval Voting* 1983). Voters mark *all* candidates they approve; candidate with most approvals wins.\n- *Strengths*: simple ballot (approve/disapprove); reduces spoiler dynamics; voters can sincerely express support for multiple candidates; passes May's theorem-style conditions for two-candidate cases.\n- *Weaknesses*: strategic *bullet voting* (only approve your favorite) is sometimes rational; loss of preference *intensity* information; threshold of approval ambiguous.\nUsed by United Nations Secretary-General selection, IEEE, some U.S. cities (Fargo 2018; St. Louis 2021 — *unified primary*).\n\n**Borda count** — Jean-Charles de Borda (1770). Voters rank candidates; assign $n-1$ points to first, $n-2$ to second, …, $0$ to last; candidate with most total points wins.\n- *Strengths*: uses full preference order; considers *intensity* of preference ordering.\n- *Weaknesses*: highly *manipulable* — small changes in lower preferences can flip outcomes; fails the *Condorcet criterion*; encourages strategic burying; sensitive to *irrelevant alternatives* (adding a clone candidate can change the winner).\nUsed in Slovenia (minority seats), Nauru (modified Borda), academic + sports rankings.\n\n**STAR voting** — *Score Then Automatic Runoff*. Voters score each candidate 0-5; the two highest-scoring candidates enter an instant runoff in which each ballot favors whichever it scored higher. Developed by the Equal Vote Coalition (Mark Frohnmayer 2014); on ballot in some Oregon localities + advocated by election-method reformers.\n- *Strengths*: combines preference intensity (score) + majority logic (runoff); reduces both bullet + strategic burying; smooth + intuitive.\n- *Weaknesses*: still subject to some strategic voting; ballot is slightly more complex; not yet widely tested.\n\n**Proportional representation (PR)** — aims to make seat shares ~ vote shares.\n- **List PR** — parties present ranked lists; voters vote for a list; seats allocated by proportional formula (D'Hondt, Sainte-Laguë, Hare, etc.). Used widely in continental Europe + Latin America.\n- **Single transferable vote (STV)** — multi-member districts; voters rank candidates; surplus votes + lowest-candidate votes are transferred. Used in Ireland (Dáil since 1922), Malta, Australia (Senate), Scottish + Cambridge local government, formerly NYC.\n- **Mixed-member proportional (MMP)** — voters cast two votes: one for a local candidate (FPTP) + one for a party (PR). The PR allocation tops up local results to make seat shares proportional. Used in Germany (since 1949), New Zealand (since 1996), Scotland, Wales.\n- *Strengths*: proportional; supports multi-party representation; small parties not shut out; reduces strategic-voting pressure.\n- *Weaknesses*: weaker direct-constituency accountability; coalition government instability (sometimes); requires party-list mechanics that can centralize power in party leadership.\n\n**The viz on this slide** illustrates how the *same* set of ballots gives *different* winners under different methods — the foundational lesson of social choice. Toggle FPTP → IRV → Condorcet → approval → Borda → STAR → PR to see how outcomes change. The next slide develops the formal results that explain why no perfect method exists."
+    },
+    {
+      "kind": "text",
+      "title": "Arrow, Gibbard-Satterthwaite, May, median voter: foundational results",
+      "body": "Social choice theory provides the mathematical foundations of voting. Four results are essential.\n\n**Kenneth Arrow — *Social Choice and Individual Values*** (1951). Columbia + Stanford; 1972 Economics Nobel (with John Hicks). **Arrow's impossibility theorem**: no rank-order voting system can simultaneously satisfy four reasonable conditions when there are 3+ candidates + 2+ voters:\n- **Unrestricted domain** — admits any individual preference order.\n- **Pareto efficiency / unanimity** — if every voter prefers $A$ to $B$, the social ranking ranks $A$ above $B$.\n- **Independence of irrelevant alternatives (IIA)** — the social ranking of $A$ vs $B$ depends only on individual rankings of $A$ vs $B$, not on positions of other candidates.\n- **Non-dictatorship** — no single voter's preference always determines the social ranking.\nNo aggregation rule satisfies all four. Famous proof using *decisive sets*. The result reframed political philosophy + welfare economics — democratic preference aggregation is *inherently* trade-off-laden. Sen, Black, Riker, Saari, Maskin, Roemer all responded.\nArrow's theorem does *not* show democracy is impossible — it shows we must give up on one of the four conditions. Most defensible voting methods relax IIA.\n\n**Allan Gibbard 1973 *Econometrica* + Mark Satterthwaite 1975 *Journal of Economic Theory*** — **Gibbard-Satterthwaite theorem**. For any deterministic voting rule with 3+ outcomes that is non-dictatorial + onto (each outcome possible), there exists a profile where some voter benefits by misrepresenting their preferences — i.e., every reasonable voting rule is *manipulable* (admits *strategic voting*). Strategic voting (lesser-evil voting under FPTP; burying under Borda) is therefore not a fixable defect — it is a property of voting itself.\nGibbard's later **Gibbard 1977**: extends to probabilistic rules. Restricted to single-peaked preferences + the median-voter regime, strategic-proofness is recoverable (next).\n\n**Kenneth May 1952 *Econometrica*** — **May's theorem**: simple majority rule is the unique two-alternative voting rule satisfying *anonymity* (voters are interchangeable), *neutrality* (alternatives are interchangeable), + *positive responsiveness* (more support → more likely to win). May's theorem grounds majority rule for binary choices — referenda, single-issue votes, two-candidate elections. The result *cannot* be extended cleanly to 3+ alternatives (cf. Arrow).\n\n**Median voter theorem — Anthony Downs *An Economic Theory of Democracy*** (1957); Duncan **Black 1948 *Journal of Political Economy***. When voters' preferences are **single-peaked** along a one-dimensional left-right (or any single) issue space, **the median voter's preferred outcome is the Condorcet winner** + the equilibrium policy under two-party majority competition. Implications:\n- Parties in two-party plurality systems converge to the median voter (the *Downsian convergence*).\n- Policy responds to the median voter's preferences (the *median voter prediction*).\n- Identifies a stable equilibrium where Arrow-style chaos would otherwise reign.\n- *Failure conditions*: multidimensional issues (McKelvey 1976 *chaos theorem* — generic instability + cycles); non-single-peaked preferences; multiple equilibria + voter ignorance + abstention.\nThe median voter result is the foundational *positive* (predictive) result in formal political theory. Empirically: parties converge less than the median predicts (because of primaries, activists, party identifiers, donors); polarization complicates the simple model (Lee 2009; Bafumi + Herron 2010 — lesson 6).\n\n**McKelvey + Schofield chaos theorems** — Richard McKelvey 1976; Norman Schofield 1978-1983. In two+ dimensions of policy, *cycles* are generic — for any policy, there exists a majority that prefers another policy. Without institutional structure, majority rule produces no equilibrium. Shepsle's **structure-induced equilibrium** (1979) — institutional rules (committee jurisdictions, agenda control, gatekeeping) tame multidimensional chaos by restricting the dimensions on which votes occur. Riker's *heresthetics* — strategic manipulation of the choice dimension by political actors.\n\n**Related results + concepts**:\n- **Black's single-peakedness** (1948) — the foundational restriction.\n- **Sen's liberal paradox** (1970) — impossibility of a Paretian liberal.\n- **Maskin (Nobel 2007)** — implementation theory; mechanism design.\n- **Roemer's political competition** (*Political Competition* 2001) — parties as coalitions with multiple internal factions.\n- **Saari's geometry of social choice** — voting paradoxes as geometric phenomena.\n- **Tideman's ranked-pairs**; **Schulze beat-path** — algorithmic Condorcet methods used by Wikimedia + open-source communities.\n\n**Practical implication**: there is *no* election method that is simultaneously majoritarian + Condorcet-respecting + monotonic + strategy-proof + clone-immune + simple + responsive + proportional. Every method is a particular pattern of trade-offs. Reformers should select methods by *which trade-offs matter most in context* — not by chasing perfection."
+    },
+    {
+      "kind": "text",
+      "title": "Effects + reform: Duverger, strategic voting, gerrymandering, electoral integrity",
+      "body": "Beyond the formal results, electoral systems shape party systems + strategy + representation + integrity. The empirical literature is large + actionable.\n\n**Duverger's law** (last lesson; *Political Parties* 1951). FPTP single-member districts → two-party systems; PR → multi-party systems. Two mechanisms — *mechanical* (translation of votes to seats) + *psychological* (anticipatory strategic voting). Cox (*Making Votes Count* 1997) generalized to the **M + 1 rule**.\n- *Empirical fit*: strong at the district level; messier at the national level (the UK has 6+ Westminster parties; the U.S. has stubborn third-party impotence; Canada has regional thirds + fourths).\n- *Mechanism papers*: Riker 1976, 1982; Cox 1997; Singer + Stephenson 2009.\n\n**Strategic voting + the spoiler effect**.\n- **Strategic voting**: voters vote for a non-favorite when the favorite is unlikely to win (lesser-evil voting). Pervasive under FPTP, especially in close 3+ candidate races.\n- **Spoiler effect**: a non-winning candidate alters which major-party candidate wins by drawing votes from one side. Florida 2000 (Nader → Bush vs Gore); 1912 U.S. (Roosevelt → Wilson vs Taft); 1992 U.S. (Perot → Clinton vs Bush); 2016 UK Brexit referendum dynamics; many Canadian + UK ridings.\n- **Gibbard-Satterthwaite** (above) shows strategic voting is generic + cannot be eliminated entirely.\n\n**Gerrymandering + redistricting**.\n- **Gerrymandering** (Elbridge Gerry, Massachusetts 1812 — district shaped like a salamander). The strategic drawing of electoral districts to favor a party, incumbents, or to dilute / pack particular groups.\n- **Packing** — concentrate opponents into few districts. **Cracking** — split opponents across many districts where they cannot win. **Hijacking** — pair two incumbents. **Kidnapping** — move an incumbent into an unfavorable district.\n- **Measures**: **efficiency gap** (Stephanopoulos + McGhee 2015) — wasted votes between the parties; **partisan symmetry** (Gelman + King 1994); **mean-median difference**; **declination** (Warrington 2018); **partisan bias** (Brennan Center).\n- **Computational redistricting** — ensemble methods (Mattingly et al. 2014+; Chen + Rodden 2015 *clustering* + 2013 *unintentional gerrymander*; *MGGG* Metric Geometry + Gerrymandering Group; Cain + Donsbach + others). Statistical comparison of an enacted plan against a large ensemble of *neutral* random plans — if the enacted plan is in the tail, it's likely gerrymandered.\n- **U.S. legal landscape**: *Davis v. Bandemer* (1986); *Vieth v. Jubelirer* (2004); *Rucho v. Common Cause* (2019) — federal courts cannot police *partisan* gerrymandering (state courts + ballot initiatives can); *Allen v. Milligan* (2023) — racial-gerrymandering protections under Section 2 of the Voting Rights Act preserved. State responses: independent redistricting commissions (California, Michigan, Arizona, Colorado).\n- **International**: gerrymandering is less of an issue in PR systems (since multi-member districts are less susceptible) + in FPTP systems with independent commissions (UK, Canada, Australia). The U.S. is unusual in allowing legislatures to draw their own lines.\n\n**Pippa Norris — electoral integrity**. Harvard + Sydney. The dominant academic measurement of election quality.\n- *Director of the Electoral Integrity Project* (2012-) + the *Perceptions of Electoral Integrity (PEI)* expert survey covering 169 countries + 469 elections.\n- ***Why Electoral Integrity Matters*** (2014); ***Why Elections Fail*** (2015); ***Why American Elections Are Flawed (And How to Fix Them)*** (2017); ***Cultural Backlash*** (with Inglehart 2019) — populism, authoritarianism, the electorate's cultural reaction.\n- **Electoral cycle framework**: 11 stages from electoral laws → boundaries → voter registration → party + candidate registration → media coverage → campaign finance → voting process → vote count → results → electoral authorities → results acceptance. Failures at any stage damage integrity.\n- *U.S. ranks low* among advanced democracies on electoral integrity, primarily because of partisan election administration, gerrymandering, voter-ID + felon disenfranchisement, money in politics, + post-2020 election-denial trends.\n\n**Voter turnout + participation**.\n- **Compulsory voting** (Australia since 1924; Belgium; Brazil) → ~90% turnout.\n- **Voluntary voting** systems vary widely. Aldrich (lesson 6) + Riker + Ordeshook 1968 on the calculus of voting + the *paradox of voting* (why anyone votes when individual influence is ~0).\n- **Mobilization** (lesson 8) — Gerber + Green field experiments; door-to-door + canvassing effects.\n\n**Election reform**.\n- **Ranked-choice voting** — Maine (2018), Alaska (2020), NYC (2021). Implementation challenges (ballot complexity, voter education).\n- **Independent redistricting commissions** — gathering steam since 2010s.\n- **National popular vote interstate compact** — workaround for Electoral College.\n- **Automatic + same-day voter registration** — Oregon (2015), increasing.\n- **Vote-by-mail** + early voting — accelerated by COVID-19.\n- **Campaign finance reform** — post-*Citizens United* (2010) limited federal options; state-level efforts (Seattle democracy vouchers, NYC matching funds).\n- **Citizens' assemblies + deliberative democracy** — Ireland (8th amendment, marriage equality), France climate convention, BC + Ontario electoral reform.\n\n**The political economy of electoral systems**: electoral systems are themselves political outcomes — designed + chosen by parties pursuing advantage. Reforms succeed when (a) the existing system fails badly (NZ 1996 MMP after FPTP produced minority-vote majority governments); (b) cross-party coalitions form; (c) citizen demand mobilizes (initiatives, referenda, assemblies). Lessons 6 + 7 + 8 develop voter behavior + political economy + the contemporary algorithmic-information frontier of campaigns + elections."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_vote_1",
+        "kind": "guided_derivation",
+        "question": "Compare voting methods on a fixed ballot set",
+        "goal": "Three candidates A, B, C; 100 voters. Preferences: 40 voters rank A > B > C; 35 voters rank C > B > A; 25 voters rank B > C > A. Who wins under FPTP, IRV, Condorcet, Borda?",
+        "steps": [
+          {
+            "prompt": "Compute the FPTP winner.",
+            "motivation": "First-preference plurality.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "A wins with 40 first-place votes; B has 25; C has 35"
+              ]
+            },
+            "hints": [
+              "Count first preferences."
+            ],
+            "reveal": "FPTP counts first preferences only. A: 40, C: 35, B: 25. A wins with 40% — a plurality, not a majority. 60% of voters rank A *last*."
+          },
+          {
+            "prompt": "Compute the IRV / RCV winner.",
+            "motivation": "Instant runoff.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "B is eliminated first with 25 votes; their 25 ballots transfer to C as 2nd preference; C now has 35 + 25 = 60 vs A's 40; C wins"
+              ]
+            },
+            "hints": [
+              "Eliminate the lowest; redistribute their 2nd preferences."
+            ],
+            "reveal": "IRV: no candidate has majority (>50). Eliminate B (lowest, 25). B-voters' next preference is C → 25 ballots transfer to C. New tally: A = 40, C = 35 + 25 = 60. C wins. Note: IRV does *not* elect the FPTP winner here — IRV is sensitive to second preferences."
+          },
+          {
+            "prompt": "Compute the Condorcet winner.",
+            "motivation": "Pairwise majority comparisons.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "B beats A (60 vs 40) and B beats C (65 vs 35); B is the Condorcet winner"
+              ]
+            },
+            "hints": [
+              "Pairwise: A vs B; A vs C; B vs C."
+            ],
+            "reveal": "Pairwise:\n- A vs B: A is preferred by the 40 voters who rank A > B > C; B is preferred by the 35 (C > B > A) + 25 (B > C > A) = 60 voters. B beats A 60-40.\n- A vs C: A by 40; C by 35 + 25 = 60. C beats A 60-40.\n- B vs C: B by 40 (A > B > C — A is gone) + 25 (B > C > A) = 65; C by 35. B beats C 65-35.\n\nB beats every other candidate → **B is the Condorcet winner**. Neither FPTP nor IRV elects B — both have *eliminated* the candidate the majority would prefer head-to-head. This is the *center-squeeze* problem (Burlington 2009 mayoral; Alaska 2022)."
+          },
+          {
+            "prompt": "Compute the Borda count winner ($n-1$ for first, $n-2$ for second, $0$ for last; $n = 3$).",
+            "motivation": "Borda count.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "A = 80, B = 125, C = 95; B wins"
+              ]
+            },
+            "hints": [
+              "Each first = 2; each second = 1; each third = 0."
+            ],
+            "reveal": "Borda with 3 candidates: first = 2, second = 1, third = 0.\n- A: 40 voters give A first (2) + 60 voters give A last (0) → $40 \\cdot 2 + 0 = 80$.\n- B: 40 give B second (1) + 35 give B second (1) + 25 give B first (2) → $40 + 35 + 50 = 125$.\n- C: 40 give C last (0) + 35 give C first (2) + 25 give C second (1) → $0 + 70 + 25 = 95$.\n\nBorda elects **B** (125) — the Condorcet winner. Borda + Condorcet agree here; FPTP + IRV disagree. The example demonstrates **Arrow's theorem in practice**: different reasonable methods produce different winners from the *same* ballot. Reformers should choose methods by which trade-offs matter."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_vote_1",
+        "kind": "multiple_choice",
+        "question": "Why does Arrow's impossibility theorem (1951) matter beyond economics?",
+        "options": [
+          "Random.",
+          "Arrow (Columbia → Stanford; 1972 Nobel) proved that *no rank-order voting system* can simultaneously satisfy four reasonable conditions — unrestricted domain, Pareto efficiency, independence of irrelevant alternatives (IIA), + non-dictatorship — when there are 3+ candidates + 2+ voters. The proof uses *decisive sets* + a remarkably concise argument. The result reframed political philosophy + welfare economics + democratic theory: democratic preference aggregation is *inherently* trade-off-laden; there is no objective 'will of the people' that any method can faithfully recover. The theorem does *not* show democracy is impossible — it shows we must give up on one condition, + most defensible methods relax IIA (Condorcet methods + IRV + Borda). Riker's *Liberalism Against Populism* (1982) drew the political-theoretic moral: democracy cannot be *populist* (no coherent unique majority will); it must be *liberal* — a mechanism for removing bad rulers. Arrow's theorem + Gibbard-Satterthwaite (1973-1975) + May's theorem (1952) + the median voter theorem (Downs 1957) form social choice theory's pillars + ground how political scientists think about elections + reform.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Arrow (1951; 1972 Nobel) proved no rank-order voting method can simultaneously satisfy unrestricted domain + Pareto + IIA + non-dictatorship for 3+ candidates. Democratic preference aggregation is inherently trade-off-laden. Reframed political philosophy + welfare economics; Riker drew the liberal-vs-populist conclusion (*Liberalism Against Populism* 1982). Pillar of social choice theory along with Gibbard-Satterthwaite, May, + median voter."
+      },
+      "hints": [
+        "What conditions can't all hold?",
+        "What's the political-theoretic conclusion?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Arrow's theorem (1951; Nobel 1972): no rank-order voting method satisfies all of unrestricted domain + Pareto + IIA + non-dictatorship for 3+ candidates. Democratic aggregation is trade-off-laden; reformers must relax one condition. Riker (1982) — democracy must be liberal not populist. Pillar of social choice along with Gibbard-Satterthwaite + May + median voter."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_vote_1",
+        "kind": "scenario",
+        "question": "Advise a state on electoral reform",
+        "prompt": "A U.S. state is considering electoral reform after several elections where third-party candidates affected outcomes + redistricting maps were challenged in court. The reform commission asks you to evaluate four packages: (a) ranked-choice voting (IRV) for state offices; (b) approval voting for primaries; (c) STAR voting for all elections; (d) multi-member districts with STV for the state legislature. Draw on (1) Arrow + Gibbard-Satterthwaite + median voter; (2) Duverger + Cox M+1; (3) Norris's electoral integrity framework; + (4) U.S. court doctrine (*Rucho* 2019; *Allen v. Milligan* 2023). Write a ≤220-word recommendation + identify the strongest argument against your favored package."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_vote_1",
+        "kind": "math_expression",
+        "question": "An electoral district has $v_A = 55$, $v_B = 30$, $v_C = 15$ vote shares (in %). Compute Gallagher's least-squares disproportionality index if seat shares are $s_A = 80$, $s_B = 20$, $s_C = 0$ — using $G = \\sqrt{\\frac{1}{2} \\sum_i (v_i - s_i)^2}$, rounded to one decimal.",
+        "acceptedAnswers": [
+          "21.2",
+          "21.21",
+          "21.2132"
+        ],
+        "hint": "Differences: $(55-80) = -25$, $(30-20) = 10$, $(15-0) = 15$. Squares: $625, 100, 225$. Sum $= 950$. $G = \\sqrt{950 / 2} = \\sqrt{475} \\approx 21.2$. Gallagher's index (1991) summarizes the gap between vote shares + seat shares. Pure PR systems score $\\sim 1-3$; mixed systems $\\sim 5-8$; FPTP systems often $\\sim 12-20$. The U.S. House routinely scores $\\sim 5$; UK $\\sim 15-25$ depending on year."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_vote_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, summarize electoral systems + voting by (a) naming three voting methods + their trade-offs (FPTP, IRV/RCV, Condorcet, approval, Borda, STAR, or PR); (b) stating Arrow's impossibility theorem + Gibbard-Satterthwaite + May's theorem + the median voter theorem; + (c) describing Duverger's law, the spoiler effect, gerrymandering, + Norris's electoral integrity framework.",
+        "rubric": "Mentions: FPTP / plurality (simple but vote-splitting + Duverger 2-party); IRV/RCV (eliminates spoiler, non-monotonic + center-squeeze); Condorcet (principled, but cycles possible); approval (simple, bullet-voting concern); Borda (preference intensity but clone-sensitive); STAR (score + automatic runoff); PR (proportional, weaker constituency link). Theorems: Arrow (1951; Nobel 1972) — no rank-order method satisfies all 4 conditions for 3+ candidates; Gibbard-Satterthwaite (1973-1975) — all reasonable methods are manipulable; May (1952) — majority rule unique under anonymity + neutrality + positive responsiveness for 2 candidates; median voter theorem (Black 1948; Downs 1957) — single-peaked + 1D, median is Condorcet winner + Downsian convergence; McKelvey-Schofield chaos in multi-d. Effects + reform: Duverger's law + Cox M+1; strategic voting; spoiler effect (Florida 2000; 1912 Roosevelt; 1992 Perot); gerrymandering (packing + cracking + efficiency gap of Stephanopoulos + McGhee 2015; Mattingly + MGGG ensemble methods; *Rucho v. Common Cause* 2019; *Allen v. Milligan* 2023; independent commissions); Norris electoral integrity + *Why Electoral Integrity Matters* (2014) + Electoral Integrity Project + *Cultural Backlash* (with Inglehart 2019); ranked-choice + STV + MMP reform debates. Concludes that electoral systems shape representation + party systems + integrity + every method is a trade-off."
+      }
+    }
+  ]
+}

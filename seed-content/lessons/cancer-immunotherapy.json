@@ -1,0 +1,153 @@
+{
+  "slug": "cancer-immunotherapy",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Explain immunosurveillance + immunoediting + tumor neoantigens.",
+      "Describe checkpoint inhibitors (CTLA-4, PD-1) + their clinical impact.",
+      "Survey adoptive T-cell therapies — TILs, CAR-T, TCR therapy, BiTEs."
+    ],
+    "prereqs": [
+      "adaptive-immunity-and-clonal-selection"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Cancer immunology: surveillance, immunoediting, + neoantigens",
+      "body": "**Immunosurveillance hypothesis (Burnet + Lewis Thomas 1957-1959)**: the immune system continually detects + eliminates transformed cells. Spent decades as controversial; vindicated by modern data — immunocompromised hosts (HIV, transplant, congenital) develop characteristic cancers (Kaposi sarcoma, NHL, virus-associated malignancies, skin cancers); tumor-infiltrating lymphocytes (TILs) correlate with survival in many tumor types; immune-suppressive therapies + age (immunosenescence) increase cancer incidence.\n\n**Cancer immunoediting** — Robert **Schreiber** + colleagues 2002+ — refined immunosurveillance into the **three E's**:\n1. **Elimination** — innate + adaptive immunity recognizes + destroys nascent tumor cells.\n2. **Equilibrium** — surviving tumor cells held in check by immune pressure; clinically subclinical.\n3. **Escape** — tumor variants evade or suppress immunity → clinical progression. Mechanisms: loss of MHC-I, loss of tumor antigen, recruitment of Tregs + MDSCs, expression of inhibitory ligands (PD-L1), metabolic suppression (IDO, adenosine, TGFβ), exclusion of T cells from tumor parenchyma.\n\nImmunoediting reframes tumor evolution as **Darwinian selection by immune pressure** — analogous to antibiotic selection in bacteria.\n\n**Tumor antigens — what does the immune system 'see'?**:\n- **Tumor-associated antigens (TAAs)** — overexpressed self proteins (HER2, MUC1, mesothelin, CEA, PSMA, CD19/CD20 for B-cell malignancies); subject to central + peripheral tolerance.\n- **Cancer-testis antigens (CTAs)** — proteins normally expressed only in germ cells (NY-ESO-1, MAGE-A family) but re-expressed in many cancers; targets for vaccines + TCR therapy.\n- **Oncoviral antigens** — HPV E6/E7 (cervical + oropharyngeal), EBV (NPC, Burkitt, Hodgkin), HBV/HCV (HCC), HTLV-1 (ATL), MCV (Merkel cell). Highly immunogenic + foundation of HPV cancer vaccines.\n- **Neoantigens** — **tumor-mutation-derived peptides** absent from the normal proteome → not subject to thymic tolerance → potentially highly immunogenic. **Steven Rosenberg** + **Ton Schumacher** + **Bob Schreiber** showed neoantigens drive checkpoint-inhibitor responses + can be targeted by personalized vaccines + TILs.\n  - **Tumor mutational burden (TMB)** correlates with response to checkpoint inhibitors (melanoma, NSCLC, MSI-high cancers).\n  - **Neoantigen prediction**: WES → mutation calling → HLA-typing → **NetMHCpan / MHCflurry** binding prediction → expression + clonality filtering → ranked list. Used in BioNTech IVAC-mutant, Moderna mRNA-4157, NEO-PV-01, GRT-C901 cancer vaccines.\n\n**Tumor microenvironment (TME)**: complex ecosystem of malignant cells, stromal cells (CAFs), vasculature, infiltrating lymphocytes (T, B, NK, ILC), myeloid cells (TAMs — M2-polarized, MDSCs, DCs), Tregs, extracellular matrix, metabolites (lactate, kynurenine, adenosine), hypoxia, pH. **Hot vs cold** tumors — inflamed vs immune-excluded vs immune-desert — predicts checkpoint-inhibitor response. **Hot** (melanoma, NSCLC, MSI-high CRC, kidney, bladder, HNSCC) = responsive; **cold** (most pancreatic, microsatellite-stable CRC, prostate, GBM) = unresponsive. Converting cold → hot is a central translational goal."
+    },
+    {
+      "kind": "text",
+      "title": "Checkpoint inhibitors: Allison + Honjo Nobel 2018",
+      "body": "**T-cell activation requires two signals**: (1) TCR + peptide-MHC (specificity); (2) **costimulation** via CD28 binding CD80/86 on APCs. Without signal 2 → anergy (Bretscher-Cohn two-signal model 1970; Schwartz + Mueller). After activation, **inhibitory receptors** are upregulated as **immune checkpoints** to prevent excessive responses — turning off the response after pathogen clearance.\n\n**CTLA-4 (CD152)** — **James P. Allison** (Berkeley → MD Anderson; Nobel 2018):\n- Induced on activated T cells; constitutively on Tregs.\n- Binds CD80/86 with **higher affinity than CD28** → competes for costimulation + actively trans-endocytoses ligand → reduces T-cell activation.\n- **Allison 1996 *Science*** in mice: anti-CTLA-4 antibody enhanced anti-tumor immunity → rejected established tumors. Foundational + counterintuitive proposal: **block the brake, don't push the accelerator**.\n- **Ipilimumab** (Bristol Myers Squibb, anti-CTLA-4) — first checkpoint inhibitor approved (2011 for metastatic melanoma). Improved survival in previously-untreatable disease. **First long-term survivors of metastatic melanoma**; ~20% achieve durable, sometimes decade-long remission.\n\n**PD-1 (programmed cell death 1, CD279)** — **Tasuku Honjo** (Kyoto; Nobel 2018):\n- Honjo's lab cloned PD-1 in 1992 — initially thought to mediate apoptosis (hence name).\n- Later (Iwai + Honjo 2002; Sharpe + Freeman) characterized as immune checkpoint: induced on chronically activated T cells; binds **PD-L1** + PD-L2 on tumor + stromal cells → SHP-2 recruitment → dampens TCR signaling.\n- PD-L1 expression on tumors = immune evasion mechanism; widely seen across cancers (often IFNγ-induced — 'adaptive resistance').\n- **Nivolumab** (Bristol Myers Squibb, anti-PD-1; 2014) + **Pembrolizumab** (Merck, anti-PD-1; 2014) — both approved for metastatic melanoma; rapidly extended to NSCLC, RCC, bladder, HNSCC, MSI-high CRC, gastric, esophageal, liver, Merkel cell, classic Hodgkin, triple-negative breast, cervical, endometrial, biliary, mesothelioma, others. **Pembrolizumab + nivolumab are now among the most-used cancer drugs globally**.\n- **PD-L1 blockers** (atezolizumab, durvalumab, avelumab) target the ligand side.\n\n**Combinations**:\n- **Ipi/nivo** (anti-CTLA-4 + anti-PD-1) — additive in melanoma (~50% response rate; vs ~20-40% monotherapy) + RCC; higher toxicity.\n- **PD-1 + chemotherapy** — practice-changing in NSCLC (KEYNOTE-189 + KEYNOTE-407), TNBC, gastric.\n- **PD-1 + LAG-3** (**nivolumab + relatlimab** — Opdualag 2022, melanoma).\n- **TIGIT, TIM-3, BTLA, ICOS, OX40, GITR** under exploration (mixed results so far).\n\n**Biomarkers**:\n- **PD-L1** IHC staining (TPS, CPS scores) — predictive in some indications.\n- **Tumor mutational burden (TMB)** — high TMB = more neoantigens = better response (lung, melanoma, MSI-high).\n- **MSI-high / dMMR** — pembrolizumab tissue-agnostic approval (2017).\n- **Inflammatory gene signature** + T-cell exclusion patterns.\n\n**Immune-related adverse events (irAEs)** — autoimmune-like toxicities from disinhibited immunity: colitis, hepatitis, pneumonitis, thyroiditis, hypophysitis, type 1 diabetes (rare), myocarditis (rare but lethal), neurologic. Higher with combinations + CTLA-4. Managed with steroids ± biologics (anti-TNF, anti-IL-6). Paradoxically, irAEs correlate with anti-tumor response in many studies.\n\n**Clinical impact**: checkpoint inhibitors transformed advanced melanoma from a near-uniformly fatal disease (5-yr OS ~10%) to one with ~50% 5-yr survival; similar transformations across NSCLC, RCC, bladder. **Allison + Honjo Nobel 2018** — one of the most clinically translated Nobels in physiology + medicine."
+    },
+    {
+      "kind": "text",
+      "title": "Cellular therapies: TILs, CAR-T, TCR therapy, BiTEs",
+      "body": "**Adoptive cell therapy** — ex vivo expansion or engineering of T cells, reinfused into the patient. Lineage of work largely from **Steven Rosenberg** (NCI), **Michel Sadelain** + **Renier Brentjens** + **Isabelle Rivière** (Memorial Sloan Kettering), **Carl June** (Penn), among others.\n\n**Tumor-infiltrating lymphocytes (TILs) — Steven Rosenberg, NCI**:\n- Surgically resected tumor → expanded TILs in IL-2 → lymphodepleting chemo → reinfusion + high-dose IL-2.\n- Active in metastatic melanoma since 1980s+; durable complete responses in ~20-25%.\n- **Lifileucel (Iovance)** — FDA-approved 2024 for advanced melanoma post-checkpoint inhibitor; the **first cellular therapy for a solid tumor**.\n- Now exploring TILs in NSCLC, HNSCC, cervical, others. Personalized neoantigen-reactive TIL expansion an active frontier.\n\n**CAR-T cells (chimeric antigen receptor)** — synthetic receptor combining antibody-derived scFv (extracellular target recognition, MHC-independent) + costimulatory domain (CD28 + 4-1BB) + CD3ζ signaling. Cell-autonomous T-cell killing of antigen-expressing cells.\n- **Pioneers**: **Zelig Eshhar** (Weizmann; first-generation 1989), **Michel Sadelain** + **Isabelle Rivière** + **Renier Brentjens** (Memorial Sloan Kettering — second-generation CD28 CAR-T; first to show clinical efficacy in CLL + B-ALL), **Carl June** + **Bruce Levine** (Penn — 4-1BB CAR-T, CTL019; first patient Emily Whitehead 2012, persistent remission >12 years).\n- **Approved CAR-T products** (CD19-targeted, B-cell malignancies):\n  - **Tisagenlecleucel** (Kymriah; Novartis; 2017) — first FDA-approved CAR-T, for pediatric + young-adult B-ALL.\n  - **Axicabtagene ciloleucel** (Yescarta; Gilead/Kite) — DLBCL + follicular lymphoma.\n  - **Lisocabtagene maraleucel** (Breyanzi; Bristol Myers Squibb) — DLBCL + CLL.\n  - **Brexucabtagene autoleucel** (Tecartus) — mantle cell lymphoma, B-ALL.\n- **BCMA-targeted** (multiple myeloma): **idecabtagene vicleucel** (Abecma; Bristol Myers Squibb) + **ciltacabtagene autoleucel** (Carvykti; J&J/Legend).\n- **Solid tumors** — much harder due to antigen heterogeneity, immunosuppressive TME, antigen escape, lack of truly tumor-specific targets without on-target/off-tumor toxicity. Active exploration: GPC3 (HCC), claudin 18.2 (gastric), GD2 (neuroblastoma — landmark CHOP/UPenn trials), MUC16 (ovarian), PSMA (prostate), Erbb2 (HER2-low solid).\n- **Toxicities**: cytokine release syndrome (CRS — IL-6 driven, managed with **tocilizumab**; James Kochenderfer + Steven Rosenberg + June groups), ICANS (immune effector cell-associated neurotoxicity syndrome), B-cell aplasia (manageable with IVIG), prolonged cytopenias.\n- **Innovations**: armored CARs (secrete cytokines), logic-gated CARs (AND/OR/NOT gating; Wendell Lim), switchable CARs, allogeneic CAR-T (off-the-shelf), CAR-NK + CAR-macrophage, in vivo CAR engineering (mRNA-LNP delivery — Epstein + others).\n\n**TCR therapy** — engineered T cells expressing a TCR (αβ pair) specific for a peptide-MHC.\n- **Advantages**: can target intracellular antigens (any protein → proteasome → MHC-I peptide); access to richer antigen space.\n- **Disadvantages**: HLA-restricted (must match patient HLA), risk of off-target mispairing or cross-reactivity (e.g., MAGE-A3 cardiotoxicity 2013).\n- **Tebentafusp (Immunocore)** — bispecific TCR-anti-CD3 (ImmTAC) for gp100/HLA-A*02:01 in metastatic uveal melanoma; first TCR-based therapy approved (2022). Pioneers a new modality bridging TCR + bispecific design.\n- **Afami-cel** (Adaptimmune) — engineered T cells targeting MAGE-A4 in synovial sarcoma; first approved engineered TCR-T (2024).\n- Targets: NY-ESO-1, MAGE-A4, MAGE-A1, KRAS G12D + G12V (neoantigen-public), p53 hotspots, viral antigens.\n\n**Bispecific T-cell engagers (BiTEs) + TCR-mimics**:\n- **Blinatumomab** (anti-CD19 × CD3; Amgen) — first BiTE; B-ALL.\n- **Mosunetuzumab, glofitamab, epcoritamab** (anti-CD20 × CD3) — DLBCL + FL.\n- **Teclistamab, talquetamab, elranatamab** (anti-BCMA or GPRC5D × CD3) — multiple myeloma.\n- **Tarlatamab** (DLL3 × CD3) — small-cell lung cancer (2024 approval).\n- TCR-mimic antibodies recognize peptide-MHC complexes — bridging into intracellular-antigen space (Memorial Sloan Kettering + Eureka style).\n\n**Personalized cancer vaccines**:\n- **mRNA neoantigen vaccines**: BioNTech BNT122/RO7198457 (autogene cevumeran — phase II practice-changing data in pancreatic cancer 2023, Balachandran et al.; ongoing in melanoma adjuvant + others); Moderna mRNA-4157 (KEYNOTE-942 phase IIb adjuvant melanoma — 49% reduction in distant metastasis/death vs pembrolizumab alone; phase III running). Both built on Karikó-Weissman mRNA + LNP platforms.\n\nCellular + bispecific + vaccine therapies + checkpoint inhibitors form an **integrated immunotherapy ecosystem** that increasingly defines modern oncology. **Memorial Sloan Kettering** + **NCI** + **Penn** + **Fred Hutch** + multiple academic + industry programs continue extending the field."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cancer_1",
+        "kind": "guided_derivation",
+        "question": "Derive why checkpoint inhibitors work in some cancers but not others",
+        "goal": "Reason from tumor biology + immune-evasion mechanisms why pembrolizumab + nivolumab transformed melanoma, NSCLC, MSI-high CRC but largely failed in pancreatic, microsatellite-stable CRC, prostate, GBM.",
+        "steps": [
+          {
+            "prompt": "What feature of melanoma + NSCLC tumors makes them more 'visible' to T cells?",
+            "motivation": "Neoantigen + immune visibility.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "High tumor mutational burden (TMB) → many neoantigens not subject to thymic tolerance → potential T-cell recognition"
+              ]
+            },
+            "hints": [
+              "Mutations + non-self peptides."
+            ],
+            "reveal": "Melanoma (UV mutagenesis) + NSCLC (smoking mutagenesis) + MSI-high cancers (DNA mismatch repair defect; Lynch syndrome + sporadic) have very high TMB (often >10-100 mut/Mb), generating many neoantigens. Each somatic mutation in a coding region can produce a 9-mer with altered HLA-binding affinity → potential CD8 epitope. Without thymic tolerance to these peptides (they don't exist in the germline), T cells with cognate TCRs are present in the repertoire."
+          },
+          {
+            "prompt": "Given neoantigens exist, what limits the T-cell response in untreated tumors?",
+            "motivation": "Why doesn't immunity work without help?",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Chronic antigen + immunosuppressive TME upregulates PD-1 + PD-L1 + exhausts T cells; checkpoint signaling dampens their function"
+              ]
+            },
+            "hints": [
+              "Adaptive resistance + exhaustion."
+            ],
+            "reveal": "Chronic antigen exposure + inflammatory milieu in tumors drives T-cell **exhaustion** — sustained TCR signaling + IFNγ-induced PD-L1 on tumor cells creates an adaptive-resistance feedback loop. Exhausted T cells (PD-1⁺ TIM-3⁺ LAG-3⁺) lose effector function. Additional brakes: Tregs, MDSCs, TGFβ, adenosine, IDO, M2 macrophages. The brakes accumulate proportional to the engagement — Allison + Honjo's insight is that **releasing the brakes** restores latent function."
+          },
+          {
+            "prompt": "Why does pembrolizumab/nivolumab work in melanoma + NSCLC + MSI-high CRC but not in pancreatic, prostate, MSS CRC?",
+            "motivation": "Hot vs cold.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Hot tumors have pre-existing T-cell infiltrate + visible neoantigens; cold tumors have low TMB + immune exclusion + insufficient T-cell priming → no T cells to unleash"
+              ]
+            },
+            "hints": [
+              "Need T cells to release the brakes on."
+            ],
+            "reveal": "Checkpoint inhibitors **unleash existing T-cell responses** — they do not create them. **Hot tumors** (melanoma, NSCLC, MSI-high CRC, RCC, HNSCC, bladder) have brisk T-cell infiltrate + high TMB + Type I IFN signature; checkpoint blockade releases the brakes → response. **Cold tumors** (pancreatic, MSS CRC, prostate, GBM) have low TMB, fewer neoantigens, T-cell exclusion (stromal barrier, lack of chemokines), suppressive TME → no T cells to unleash. Converting cold → hot is the central translational goal: combine with **cancer vaccines** (BNT122 — pancreatic), **radiation** (immunogenic cell death + abscopal effects), **STING agonists**, **TLR9** (CpG), **CD40 agonists**, **cytokines** (IL-15, IL-12), **TGFβ blockade**, **bispecific T-cell engagers** to recruit T cells regardless of intrinsic infiltration."
+          },
+          {
+            "prompt": "How does TMB predict response across tumor types?",
+            "motivation": "Quantitative biomarker.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Higher TMB → higher neoantigen burden → better checkpoint inhibitor response across many tumor types; pembrolizumab has a tissue-agnostic TMB-high indication"
+              ]
+            },
+            "hints": [
+              "TMB → neoantigens → response."
+            ],
+            "reveal": "**TMB-high** (≥10 mut/Mb) is a tissue-agnostic FDA-approved indication for pembrolizumab (2020) — formal recognition that **neoantigen burden** is a transferable predictor of checkpoint response. **MSI-high / dMMR** got the original tissue-agnostic approval (2017) for the same reason — massive neoantigen load from defective DNA repair. These approvals were paradigm-shifts: the first **biomarker-driven, tissue-agnostic** cancer indications — moving oncology toward molecular taxonomy + away from tissue-of-origin. **Schreiber + Schumacher + Wolchok + Rosenberg** + many others built the framework + the trials. Together with **Allison + Honjo's** mechanistic work + **Sadelain + June's** cellular-therapy revolution, cancer immunology has gone from fringe to dominant paradigm in oncology in <15 years."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cancer_1",
+        "kind": "multiple_choice",
+        "question": "Why was the Allison + Honjo Nobel 2018 considered one of the most clinically translated Nobels in physiology + medicine?",
+        "options": [
+          "It is unrelated to medicine.",
+          "**James P. Allison (CTLA-4) + Tasuku Honjo (PD-1)** discovered the immune checkpoints that tumors exploit to evade T-cell killing. Allison's 1996 *Science* paper showed anti-CTLA-4 antibody rejected established tumors in mice → ipilimumab (BMS) approved 2011 — first long-term survivors of metastatic melanoma (5-yr OS ~20% from near-zero baseline). Honjo's PD-1 (1992 cloning; 2002 checkpoint role; PD-L1 with Sharpe + Freeman) → pembrolizumab (Merck) + nivolumab (BMS) approved 2014 → transformative across melanoma, NSCLC, RCC, bladder, HNSCC, MSI-high CRC, Hodgkin, Merkel cell, gastric, esophageal, HCC, cervical, endometrial, TNBC, mesothelioma. **Pembrolizumab is now among the most-used cancer drugs globally**. Combinations (ipi/nivo, PD-1/LAG-3, PD-1 + chemo, PD-1 + cancer vaccines, PD-1 + CAR-T) extend the platform. Conceptually revolutionary: **block the brake, not push the accelerator** — disinhibit existing immunity. Foundation of modern immuno-oncology + paradigm-shifting in cancer care. Allison + Honjo also catalyzed reframing tumor evolution as immune-edited (Schreiber 'three E's') + drove the era of neoantigen biology + personalized cancer vaccines + cellular therapies.",
+          "It was unrelated to clinical practice.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Allison (CTLA-4 → ipilimumab) + Honjo (PD-1 → pembrolizumab + nivolumab) Nobel 2018 — disinhibit existing T-cell immunity in tumors. Transformed advanced melanoma (5-yr OS ~10% → 50%), NSCLC, RCC, bladder, MSI-high CRC, + many more. Pembrolizumab among most-used cancer drugs globally. Conceptual shift: block the brake, not push the accelerator. Foundation of modern immuno-oncology."
+      },
+      "hints": [
+        "What did each laureate discover + how does it translate clinically?",
+        "Clinical scale of impact."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Allison (CTLA-4 → ipilimumab 2011) + Honjo (PD-1 → pembrolizumab + nivolumab 2014) Nobel 2018. Block the brake, not push the accelerator. Transformed melanoma + NSCLC + RCC + bladder + HNSCC + MSI-high CRC + Hodgkin + many more. Pembrolizumab among most-used cancer drugs globally. Most clinically translated Nobel in immuno-oncology era."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_cancer_1",
+        "kind": "scenario",
+        "question": "Designing an integrated immuno-oncology strategy",
+        "prompt": "A 60-year-old with stage IV pancreatic cancer presents post-Whipple. Pancreatic adenocarcinoma is notoriously cold + checkpoint-inhibitor-resistant. (a) Why does single-agent pembrolizumab fail in MSS pancreatic cancer + what biology must be changed? (b) Design a multi-modal strategy combining **adjuvant neoantigen mRNA vaccine** (à la BioNTech BNT122 — Balachandran 2023 NEJM-style), **checkpoint inhibitors**, + potentially **TIL therapy** or **TCR therapy** against public neoantigens like KRAS G12D. (c) Why are KRAS G12D + G12V attractive neoantigens despite their public nature, + what HLA-restriction considerations apply? (d) Comment on Memorial Sloan Kettering's Rosenberg-style + Sadelain/Brentjens cellular-therapy approaches + how they integrate with checkpoint inhibitors."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_cancer_1",
+        "kind": "math_expression",
+        "question": "Write the Cox proportional hazards expression giving the hazard rate for a patient given a hazard ratio (HR) from a checkpoint-inhibitor trial vs baseline hazard h_0(t), in terms of treatment indicator X.",
+        "acceptedAnswers": [
+          "h(t | X) = h_0(t) × exp(β × X)",
+          "h(t|X) = h_0(t) * exp(β*X)",
+          "h(t,X) = h_0(t) e^(βX)"
+        ],
+        "hint": "Cox model; HR = exp(β); X = 1 for treatment, 0 for control."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cancer_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how cancer immunotherapy progressed from Burnet's 1957 immunosurveillance hypothesis to checkpoint inhibitors + CAR-T + neoantigen vaccines.",
+        "rubric": "Mentions: **Burnet + Lewis Thomas (1957-59)** proposed immunosurveillance; long controversial. **Schreiber (2002+)** refined into cancer immunoediting (elimination → equilibrium → escape). **Steven Rosenberg** + colleagues pioneered TILs + IL-2 + adoptive transfer + neoantigen identification from the 1980s+. **James Allison (CTLA-4)** + **Tasuku Honjo (PD-1)** Nobel 2018 — checkpoint inhibitors disinhibit T-cell responses → ipilimumab (2011) + pembrolizumab + nivolumab (2014) transformed melanoma + NSCLC + many cancers. **Memorial Sloan Kettering (Sadelain, Brentjens, Rivière)** + **Carl June** (Penn) developed CAR-T → tisagenlecleucel (2017) + many CD19/BCMA products. **Iovance lifileucel** (2024) — first solid-tumor cell therapy (TIL melanoma). **Bispecific T-cell engagers** (blinatumomab, mosunetuzumab, tarlatamab) + **TCR therapy** (tebentafusp, afami-cel). **Personalized neoantigen mRNA vaccines** (BNT122 pancreatic + mRNA-4157 melanoma) built on Karikó-Weissman platform. Cancer immunology is now a dominant paradigm in oncology — a 15-year revolution built on decades of foundational immunology."
+      }
+    }
+  ]
+}
