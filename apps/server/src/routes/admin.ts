@@ -21,6 +21,7 @@ import {
   jobLeases,
   jobRuns,
   masteryNodes,
+  masteryPaths,
   newsArticles,
   researchPapers,
   users,
@@ -44,6 +45,7 @@ import {
   approveClaimRequest,
   rejectClaimRequest,
 } from "../lib/authorClaim";
+import { scoreLessonContent, type ScorableLesson } from "../lib/lessonQuality";
 import type { Env } from "../env";
 
 export const adminRouter = new Hono<Env>();
@@ -98,6 +100,94 @@ adminRouter.get("/rate-limits", requireAdmin, async (c) => {
   }
   entries.sort((a, b) => b.rejected - a.rejected);
   return c.json({ entries: entries.slice(0, 50) });
+});
+
+// Lesson quality dashboard. Scores every lesson-kind node against the
+// same rubric as `bun run audit:lessons` (shared scoreLessonContent),
+// reading lessonData straight from the DB. Sorted worst-first so the
+// most-improvable lessons surface at the top; each row deep-links into
+// the lesson editor on the client.
+adminRouter.get("/lesson-quality", requireAdmin, async (c) => {
+  const db = getDb();
+  const rows = db
+    .select({
+      nodeSlug: masteryNodes.slug,
+      title: masteryNodes.title,
+      level: masteryNodes.level,
+      lessonData: masteryNodes.lessonData,
+      pathSlug: masteryPaths.slug,
+      pathTitle: masteryPaths.title,
+    })
+    .from(masteryNodes)
+    .innerJoin(masteryPaths, eq(masteryNodes.pathId, masteryPaths.id))
+    .where(eq(masteryNodes.nodeKind, "lesson"))
+    .all();
+
+  const lessons = rows.map((r) => {
+    const base = {
+      nodeSlug: r.nodeSlug,
+      pathSlug: r.pathSlug,
+      pathTitle: r.pathTitle,
+      title: r.title,
+      level: r.level,
+    };
+    if (!r.lessonData) {
+      return {
+        ...base,
+        slideCount: 0,
+        textSlideCount: 0,
+        questionSubkindCount: 0,
+        totalBodyWords: 0,
+        nameDropCount: 0,
+        hasViz: false,
+        composite: 0,
+        flags: ["NO_LESSON_DATA"],
+      };
+    }
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(r.lessonData);
+    } catch {
+      return {
+        ...base,
+        slideCount: 0,
+        textSlideCount: 0,
+        questionSubkindCount: 0,
+        totalBodyWords: 0,
+        nameDropCount: 0,
+        hasViz: false,
+        composite: 0,
+        flags: ["INVALID_JSON"],
+      };
+    }
+    return { ...base, ...scoreLessonContent(parsed as ScorableLesson) };
+  });
+
+  lessons.sort((a, b) => a.composite - b.composite);
+
+  // Summary stats over lessons that actually have content.
+  const scored = lessons.filter((l) => !l.flags.includes("NO_LESSON_DATA"));
+  const n = scored.length;
+  const sortedComposites = scored
+    .map((l) => l.composite)
+    .sort((a, b) => a - b);
+  const avg = n
+    ? Math.round(sortedComposites.reduce((s, x) => s + x, 0) / n)
+    : 0;
+  const median = n ? sortedComposites[Math.floor(n / 2)] : 0;
+  const flaggedCount = scored.filter((l) => l.flags.length > 0).length;
+
+  return c.json({
+    lessons,
+    summary: {
+      total: lessons.length,
+      scored: n,
+      missing: lessons.length - n,
+      avg,
+      median,
+      flaggedCount,
+    },
+  });
 });
 
 // --- Sprint 52: Content proposal queue ------------------------------

@@ -236,6 +236,11 @@ const AdminFeedbackPage = lazy(() =>
     default: m.AdminFeedbackPage,
   })),
 );
+const AdminLessonQualityPage = lazy(() =>
+  import("./pages/AdminLessonQualityPage").then((m) => ({
+    default: m.AdminLessonQualityPage,
+  })),
+);
 const CapstonePage = lazy(() =>
   import("./pages/CapstonePage").then((m) => ({ default: m.CapstonePage })),
 );
@@ -755,6 +760,7 @@ function AppRoutes() {
           <Route path="/admin/approvals" element={<AdminApprovalsPage />} />
           <Route path="/admin/errors" element={<AdminErrorStatsPage />} />
           <Route path="/admin/feedback" element={<AdminFeedbackPage />} />
+          <Route path="/admin/quality" element={<AdminLessonQualityPage />} />
           <Route path="/me/weak-concepts" element={<WeakConceptsPage />} />
           <Route path="/me/mri" element={<KnowledgeMRIPage />} />
           <Route path="/me/mentors" element={<MentorDashboardPage />} />
