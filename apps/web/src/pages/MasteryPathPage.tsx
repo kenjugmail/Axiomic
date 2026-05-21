@@ -199,6 +199,23 @@ export function MasteryPathPage() {
         </Link>
         <h1 className="text-3xl font-bold">{path.title}</h1>
         <p className="text-muted-foreground mt-1">{path.description}</p>
+        {(() => {
+          if (nodes.length === 0) return null;
+          const completedCount = progress.filter((p) => p.completed).length;
+          if (completedCount === 0) return null;
+          const pct = Math.round((completedCount / nodes.length) * 100);
+          return (
+            <div className="mt-4 max-w-xs">
+              <div className="flex items-baseline justify-between mb-1">
+                <span className="text-xs text-muted-foreground">Your progress</span>
+                <span className="text-xs font-mono tabular-nums">{completedCount}/{nodes.length} ({pct}%)</span>
+              </div>
+              <div className="h-1.5 bg-muted rounded overflow-hidden">
+                <div className={`h-full ${pct === 100 ? "bg-green-500" : "bg-primary"} transition-all`} style={{ width: `${pct}%` }} />
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {levelUpBanner && (

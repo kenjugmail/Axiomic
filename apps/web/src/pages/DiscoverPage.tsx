@@ -69,6 +69,7 @@ const FEATURED_VIZ_NAMES = [
 export function DiscoverPage() {
   const [paths, setPaths] = useState<MasteryPath[]>([]);
   const [loading, setLoading] = useState(true);
+  const [completion, setCompletion] = useState<Map<string, { completed: number; total: number; fraction: number }>>(new Map());
   const [query, setQuery] = useState("");
 
   useEffect(() => {
@@ -76,7 +77,26 @@ export function DiscoverPage() {
       .getPaths()
       .then((data) => setPaths(data.paths))
       .finally(() => setLoading(false));
+    api.mastery
+      .getPathsCompletion()
+      .then((r) => {
+        const m = new Map<string, { completed: number; total: number; fraction: number }>();
+        for (const c of r.completion) m.set(c.pathSlug, c);
+        setCompletion(m);
+      })
+      .catch(() => undefined);
   }, []);
+
+  function completionChip(slug: string) {
+    const c = completion.get(slug);
+    if (!c || c.total === 0 || c.completed === 0) return null;
+    const pct = Math.round(c.fraction * 100);
+    return (
+      <span className={`text-[9px] px-1.5 py-0.5 rounded font-mono ${pct === 100 ? "bg-green-500/20 text-green-700 dark:text-green-300" : "bg-primary/15 text-primary"}`}>
+        {pct === 100 ? "✓" : `${c.completed}/${c.total}`}
+      </span>
+    );
+  }
 
   const tagged = useMemo(
     () => paths.map((p) => ({ ...p, _domain: inferDomain(p) })),
@@ -168,7 +188,10 @@ export function DiscoverPage() {
                       className="flex-shrink-0 w-64 p-4 rounded-lg border border-border bg-card hover:bg-accent/50 hover:border-primary/40 transition-colors"
                     >
                       <div className="text-2xl mb-1.5" aria-hidden>{DOMAIN_ICON[(p as { _domain: Domain })._domain]}</div>
-                      <h3 className="text-sm font-semibold mb-1 line-clamp-1">{p.title}</h3>
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <h3 className="text-sm font-semibold line-clamp-1 flex-1">{p.title}</h3>
+                        {completionChip(p.slug)}
+                      </div>
                       <p className="text-xs text-muted-foreground line-clamp-3">{p.description}</p>
                     </Link>
                   ))}
@@ -202,7 +225,10 @@ export function DiscoverPage() {
                       to={`/paths/${p.slug}`}
                       className="block p-4 rounded-lg border border-border bg-card hover:bg-accent/50 hover:border-primary/40 transition-colors group"
                     >
-                      <h3 className="text-sm font-semibold mb-1 group-hover:text-primary line-clamp-1">{p.title}</h3>
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <h3 className="text-sm font-semibold group-hover:text-primary line-clamp-1 flex-1">{p.title}</h3>
+                        {completionChip(p.slug)}
+                      </div>
                       <p className="text-xs text-muted-foreground line-clamp-3">{p.description}</p>
                     </Link>
                   ))}
