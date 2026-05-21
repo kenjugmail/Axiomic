@@ -23,6 +23,7 @@ import { gamificationRouter } from "./routes/gamification";
 import { onboardingRouter } from "./routes/onboarding";
 import { uploadsRouter } from "./routes/uploads";
 import { conceptsRouter } from "./routes/concepts";
+import { authoringRouter } from "./routes/authoring";
 import { researchRouter } from "./routes/research";
 import { researchFeedRouter } from "./routes/research-feed";
 import { paperSummaryRouter } from "./routes/paper-summary";
@@ -363,6 +364,7 @@ app.route("/gamification", gamificationRouter);
 app.route("/onboarding", onboardingRouter);
 app.route("/uploads", uploadsRouter);
 app.route("/concepts", conceptsRouter);
+app.route("/authoring", authoringRouter);
 // Sprint 70 — for-you feed at /research/feed and tier-aware AI summary
 // at /research/:slug/summary. Mounted BEFORE researchRouter so the
 // `/feed` literal wins against researchRouter's `/:slug` matcher.
