@@ -124,7 +124,7 @@ export function DiscoverPage() {
         </p>
       </div>
 
-      <div className="mb-8 relative max-w-2xl mx-auto">
+      <div className="mb-3 relative max-w-2xl mx-auto">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
         <input
           type="search"
@@ -134,6 +134,12 @@ export function DiscoverPage() {
           className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
           aria-label="Search paths"
         />
+      </div>
+      <div className="mb-8 text-center text-xs text-muted-foreground">
+        Looking for a specific concept across paths?{" "}
+        <Link to="/concepts/search" className="text-primary hover:underline">
+          Try concept search →
+        </Link>
       </div>
 
       {loading ? (

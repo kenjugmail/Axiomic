@@ -834,6 +834,32 @@ export interface ConceptPreview {
   masteryStatus: ConceptMasteryStatus | null;
 }
 
+// Cross-path concept-search response. Returned by GET
+// /concepts/search?q=<term>. Hits grouped by path so the UI can show
+// "this concept appears in 4 paths" naturally.
+export interface ConceptSearchHit {
+  nodeSlug: string;
+  nodeTitle: string;
+  nodeDescription: string;
+  nodeOrder: number;
+  matchedIn: "node-title" | "node-description" | "lesson-title" | "lesson-body" | "path-title";
+  snippet: string;
+  score: number;
+}
+
+export interface ConceptSearchGroup {
+  pathSlug: string;
+  pathTitle: string;
+  topScore: number;
+  hits: ConceptSearchHit[];
+}
+
+export interface ConceptSearchResponse {
+  query: string;
+  totalHits: number;
+  groups: ConceptSearchGroup[];
+}
+
 // Lightweight forum topic shape used in cross-link rails (no
 // per-topic vote counts or scores; just enough for the chip).
 export interface LinkedTopicLite {
