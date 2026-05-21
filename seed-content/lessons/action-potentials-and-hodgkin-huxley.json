@@ -1,0 +1,159 @@
+{
+  "slug": "action-potentials-and-hodgkin-huxley",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Trace voltage-clamp history.",
+      "Derive HH equations.",
+      "Predict channel pharmacology."
+    ],
+    "prereqs": [
+      "neural-foundations-and-membrane-biophysics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Hodgkin-Huxley: the equations of the action potential",
+      "body": "**Hodgkin-Huxley (HH) model** (1952): the first quantitative biophysical theory of an excitable membrane, derived from voltage-clamp experiments on the squid giant axon. Four coupled ODEs, three gating variables (m, h, n), one voltage (V) — they fit + predicted the action potential's shape, threshold, refractory period, and propagation velocity to within experimental error. Hodgkin + Huxley shared the 1963 Nobel in Physiology or Medicine with John Eccles (synaptic IPSPs/EPSPs). The HH formalism is still the foundation of every modern neural simulator (NEURON, GENESIS, Brian, NEST, the Allen + Blue Brain detailed models).\n\n**The system** (per unit area):\n\n  C_m · dV/dt = -[ g_Na · m³ · h · (V - E_Na) + g_K · n⁴ · (V - E_K) + g_L · (V - E_L) ] + I_stim\n\n  dm/dt = α_m(V)·(1-m) - β_m(V)·m\n  dh/dt = α_h(V)·(1-h) - β_h(V)·h\n  dn/dt = α_n(V)·(1-n) - β_n(V)·n\n\n**Interpretation**:\n- **m** = Na⁺ activation gate (3 independent subunits → m³); fast (~0.1 ms).\n- **h** = Na⁺ inactivation gate (one subunit, h); slower (~1 ms). Channel open only when m³h ≈ 1.\n- **n** = K⁺ activation gate (4 subunits → n⁴); slower than m, faster than h. Delayed-rectifier K⁺ has no inactivation in original HH.\n- **g_Na ≈ 120 mS/cm²**, **g_K ≈ 36 mS/cm²**, **g_L ≈ 0.3 mS/cm²**; **E_Na ≈ +60**, **E_K ≈ -90**, **E_L ≈ -54 mV**; **C_m ≈ 1 µF/cm²**.\n\n**Threshold + all-or-none**: subthreshold depolarization decays passively. Above ~-55 mV the regenerative positive feedback (more depolarization → more Na⁺ activation → more depolarization) launches the spike. Once triggered, amplitude (~100 mV) is independent of stimulus strength — the AP is digital.\n\n**Refractory period**:\n- **Absolute** (~1-2 ms): h ≈ 0 (Na⁺ inactivated); no second spike possible regardless of stimulus.\n- **Relative** (~5-10 ms): h partially recovered + n still elevated (K⁺ still flowing); larger stimulus needed.\n- Sets maximum firing rate ~500-1000 Hz for fast spikers (PV interneurons; auditory MNTB).\n\n**Saltatory conduction**: in myelinated axons, depolarization 'jumps' between **nodes of Ranvier** (Ranvier 1878) where Nav channels cluster at >1000/µm². Internodal myelin (~100 wraps of oligodendrocyte/Schwann membrane) raises R_m + lowers C_m, boosting passive propagation. Speeds: unmyelinated C-fibers ~1 m/s; large myelinated Aα motor + Ia afferent ~120 m/s.\n\n**Cable equation** (Rall 1959+): treats the dendrite/axon as a leaky cable: ∂V/∂t = (λ²/τ)·∂²V/∂x² - V/τ + I/c. Length constant λ governs passive spread (~100-1000 µm); compartmental models discretize Rall's equations + couple HH dynamics per segment. Wilfrid Rall pioneered dendritic computation theory before structural data existed.",
+      "viz": "hodgkin-huxley-ap",
+      "vizProps": {
+        "iStim": 20,
+        "gNaMax": 120,
+        "gKMax": 36,
+        "gL": 0.3
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Voltage-clamp history: from squid to Nobel",
+      "body": "**The squid giant axon** (Young 1936): up to 1 mm diameter; supplied to mantle's stellate ganglion for fast jet escape; large enough to thread electrodes inside — the experimental workhorse of mid-20th-century neurophysiology. Marine Biological Laboratory at Plymouth (UK) + Woods Hole (US) were the centers.\n\n**Cole + Curtis (1939)**: at Woods Hole, used a Wheatstone-bridge impedance method on the squid axon. Showed the membrane's capacitance stayed nearly constant during an action potential while membrane resistance dropped ~40-fold — proving that the AP is a transient permeability change, not a breakdown of the membrane. The conceptual foundation HH built on.\n\n**Hodgkin, Huxley + Katz at Plymouth, 1939**: just before WWII, recorded the first intracellular AP from the squid axon, showing overshoot (V briefly exceeds 0 mV) — incompatible with Bernstein's 1902 'K⁺ short-circuit' theory + suggesting active Na⁺ influx. War interrupted; Hodgkin worked on radar.\n\n**Voltage clamp** (Marmont + Cole 1949; refined by Hodgkin + Huxley + Katz 1949-52): a feedback amplifier holds V at a commanded value while measuring the current needed to do so — separating channel currents from capacitive currents. Stepping V exposes the kinetics of g_Na + g_K independently. Without voltage clamp the system is too tangled to dissect.\n\n**The 1952 J. Physiol papers** — five back-to-back papers, the cornerstone of modern biophysics:\n- (a) Hodgkin, Huxley, Katz: measurement of current-voltage relations.\n- (b) Hodgkin + Huxley: components of membrane current.\n- (c) Hodgkin + Huxley: dual effect of membrane potential on sodium conductance.\n- (d) Hodgkin + Huxley: kinetics + steady-state properties of potassium conductance.\n- (e) Hodgkin + Huxley: **quantitative description of membrane current + its application to conduction + excitation in nerve** — the master synthesis with the HH equations + numerical integration (by hand crank calculator) reproducing the AP.\n\n**Nobel 1963**: Hodgkin + Huxley shared with John Carew Eccles, who had discovered IPSPs + EPSPs in spinal motor neurons. The HH model converted neurophysiology from descriptive to quantitative — what Newton did for mechanics, HH did for the neuron.\n\n**Subsequent milestones**:\n- **Patch clamp** (Neher + Sakmann 1976; Nobel 1991): record single channels at pA + ms resolution; confirms HH's gating-variable interpretation as discrete channel openings.\n- **Channel cloning** (Numa et al. 1984 nAChR; 1986 Nav; 1987 Kv): cDNA sequences reveal 4-domain Nav, 4-subunit Kv, the molecular reality behind m, h, n.\n- **Crystal structures** (MacKinnon Kv structure 1998 → Nobel Chemistry 2003): pore + selectivity filter (TVGYG signature in K⁺ channels) + voltage sensor (S4 helices with arginines).\n\n**Hodgkin-Huxley** stands as a model of physical biology: from impedance measurements (1939) to a 4-ODE system (1952) to Nobel (1963) to atomic structure (1998+) to the brain-scale simulators (2010s+) — all unified by the equations on the previous slide."
+    },
+    {
+      "kind": "text",
+      "title": "Channel pharmacology + channelopathies",
+      "body": "**Voltage-gated channels** are validated drug targets — antiarrhythmics, anticonvulsants, local anesthetics, analgesics, and many natural toxins exploit them.\n\n**Sodium channels (Nav1.1-Nav1.9)** — α-subunits encoded by SCN1A-SCN11A; β-subunits modulate:\n- **TTX (tetrodotoxin)** from pufferfish + Pacific newts: blocks Nav pore from extracellular side at nM affinity; the prototypical pharmacological 'OFF' switch. Nav1.5 (cardiac) + Nav1.8/1.9 (DRG) are TTX-resistant. Furikake-grade poisoning has no antidote.\n- **STX (saxitoxin)** from dinoflagellates (red tide): similar mechanism; cause of paralytic shellfish poisoning.\n- **Lidocaine, procaine, bupivacaine**: local anesthetics; state-dependent block (preferentially bind inactivated Nav), explaining use-dependence + selectivity for high-firing nociceptors.\n- **Phenytoin, carbamazepine, lamotrigine, lacosamide**: anticonvulsants; state-dependent Nav block reduces burst firing in epileptic foci.\n- **Class I antiarrhythmics** (quinidine, flecainide): cardiac Nav1.5 block; treat ventricular arrhythmias.\n- **Veratridine, batrachotoxin** (poison-dart frog): hold Nav open — toxic.\n\n**Potassium channels (Kv1-Kv12)** — vast family:\n- **TEA (tetraethylammonium)**: classic Kv blocker; used by HH to isolate g_Na.\n- **4-AP (4-aminopyridine)**: Kv1 blocker; clinical use in MS (Ampyra/Fampridine) to improve nerve conduction.\n- **Apamin** (bee venom): blocks SK Ca²⁺-activated K⁺ channels.\n- **α-Dendrotoxin** (mamba): Kv1 blocker.\n- **Sulfonylureas** (glibenclamide): close pancreatic K_ATP → depolarize β-cells → insulin release; oral antidiabetics.\n\n**Calcium channels (Cav1-Cav3)**:\n- **L-type (Cav1)** dihydropyridines (amlodipine, nifedipine): antihypertensives; verapamil/diltiazem class IV antiarrhythmics.\n- **N-type (Cav2.2)**: ω-conotoxin MVIIA = **ziconotide** (Prialt) intrathecal for chronic pain.\n- **T-type (Cav3)**: ethosuximide for absence epilepsy.\n\n**Channelopathies** — diseases of ion channels:\n- **Dravet syndrome**: SCN1A loss-of-function in PV interneurons; severe pediatric epilepsy. Catastrophic; some response to cannabidiol + fenfluramine.\n- **Long QT syndrome (LQT1)**: KCNQ1 (Kv7.1) loss of function; delayed cardiac repolarization → torsades de pointes → sudden death.\n- **LQT2**: KCNH2 (hERG); also acquired drug-induced LQT (cisapride, terfenadine pulled).\n- **LQT3**: SCN5A gain of function.\n- **Episodic ataxia type 2**: CACNA1A (Cav2.1) loss; spinocerebellar ataxia 6 = expansion of same gene.\n- **Familial hemiplegic migraine 1**: CACNA1A gain.\n- **Hyperkalemic periodic paralysis**: SCN4A.\n- **Cystic fibrosis**: CFTR (Cl⁻ channel; ABC transporter family) — not voltage-gated but the most common channelopathy; modulators (ivacaftor, elexacaftor) revolutionized therapy.\n- **Brugada syndrome**: SCN5A loss; ST elevation + sudden death.\n- **Erythromelalgia + paroxysmal extreme pain disorder**: Nav1.7 (SCN9A) gain; congenital insensitivity to pain = Nav1.7 loss (Cox 2006 Pakistani pedigree) → Nav1.7 antagonists are intense pain-drug targets.\n- **Myasthenia gravis** (autoantibody to nAChR), **Lambert-Eaton** (anti-Cav2.1): autoimmune channelopathies.\n\n**Channel-state-dependent design**: modern anticonvulsants + antiarrhythmics + analgesics increasingly exploit selectivity for inactivated states + tissue-specific channel isoforms — minimizing off-target effects. Cryo-EM structures of Nav, Kv, Cav, TRP, CFTR have opened structure-based design pipelines (Catterall, MacKinnon, Yan, Hite, Hilgemann labs)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_hh_1",
+        "kind": "guided_derivation",
+        "question": "Derive a simplified HH-style AP",
+        "goal": "Starting from V = -65 mV at rest, walk through the four phases of a single AP, naming the dominant currents + gating-variable values at each stage.",
+        "steps": [
+          {
+            "prompt": "Rest. What are m, h, n + dominant current?",
+            "motivation": "Steady-state baseline.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "m ~0.05, h ~0.6, n ~0.3; leak K⁺ dominant"
+              ]
+            },
+            "hints": [
+              "Steady-state values at V_rest from α/β curves."
+            ],
+            "reveal": "At V_rest ≈ -65 mV: m_∞ ≈ 0.05 (Na activation low), h_∞ ≈ 0.6 (most Na not yet inactivated), n_∞ ≈ 0.3 (some K open). Total g_Na = 120·m³·h ≈ 0.001 mS/cm² (negligible); g_K = 36·n⁴ ≈ 0.3 mS/cm²; g_L = 0.3. Leak + small K⁺ set V_rest. Pump runs in background restoring gradients."
+          },
+          {
+            "prompt": "Upstroke. Stimulus pushes V past threshold (~-55 mV). What happens?",
+            "motivation": "Regenerative Na⁺ activation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "m → 1 fast (~0.1 ms); g_Na rises ~500-fold; V rushes toward E_Na = +60 mV"
+              ]
+            },
+            "hints": [
+              "m responds to V on sub-ms timescale; positive feedback."
+            ],
+            "reveal": "Depolarization sharply raises α_m → m approaches m_∞(V) ≈ 1 with τ_m ~0.1 ms. m³ rises ~8000-fold; g_Na can exceed 100 mS/cm². Inward Na⁺ current (I_Na = g_Na·(V - E_Na)) further depolarizes → more activation → runaway upstroke at dV/dt up to 500 V/s in fast axons. V overshoots toward +30 to +40 mV (never quite E_Na = +60 because K⁺ catches up)."
+          },
+          {
+            "prompt": "Repolarization. What turns off Na⁺ + brings V down?",
+            "motivation": "Inactivation + delayed rectifier.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "h → 0 (Na inactivates); n → 1 (K⁺ activates); outward I_K dominates"
+              ]
+            },
+            "hints": [
+              "h has slower kinetics than m; n is delayed."
+            ],
+            "reveal": "Two processes terminate the spike: (1) Na⁺ inactivation — h decays toward h_∞(V_peak) ≈ 0 with τ_h ~1 ms, shutting Na⁺ off; (2) delayed-rectifier K⁺ — n rises toward n_∞ ≈ 1 with τ_n ~1-5 ms, opening g_K to ~30 mS/cm². Net current becomes strongly outward, V plummets toward E_K = -90 mV."
+          },
+          {
+            "prompt": "Afterhyperpolarization (AHP) + refractory period.",
+            "motivation": "Why no instant second spike.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "n still elevated → V below rest; h slow to recover → absolute then relative refractory"
+              ]
+            },
+            "hints": [
+              "n stays high after V repolarizes; h recovers slowly at hyperpolarized V."
+            ],
+            "reveal": "Briefly after repolarization n remains elevated, holding V near E_K (AHP ~5-10 mV below rest, lasting ~5-10 ms). Meanwhile h recovers from inactivation only at hyperpolarized potentials with τ ~5 ms. While h ≈ 0, no AP is possible regardless of stimulus (absolute refractory). As h partially recovers + n decays, a stronger-than-normal stimulus can fire (relative refractory). Sets maximum firing rate (~500 Hz cortical PV; ~1 kHz auditory)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hh_1",
+        "kind": "multiple_choice",
+        "question": "Why does the Hodgkin-Huxley model use m³h for Na⁺ and n⁴ for K⁺ conductance?",
+        "options": [
+          "Wrong.",
+          "HH fit empirical voltage-clamp current traces and found that Na⁺ activation rose with a delayed sigmoidal shape best modeled as three independent gating particles in series (m³), each obeying first-order kinetics, while Na⁺ inactivation overlaid a single particle (h). K⁺ activation fit a steeper sigmoid best modeled as four particles (n⁴). The exponents were chosen by curve-fitting — HH did not know the molecular basis. Decades later, channel cloning (Numa, Catterall, Jan, MacKinnon) showed Kv channels are tetramers (4 identical α-subunits) and Nav channels are pseudo-tetramers (4 homologous domains of one polypeptide) — each subunit/domain contributes one S4 voltage sensor — beautifully validating m, h, n as physical entities. MacKinnon's 1998 KcsA + 2002 Kv crystal structures (Nobel Chemistry 2003) cemented the picture. HH's empirical fit reflected real molecular architecture decades before it was visualized.",
+          "Wrong.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "HH's m³h + n⁴ were empirical fits to voltage-clamp data. Later channel cloning (Numa 1984+) + crystal structures (MacKinnon Kv 1998, Nobel 2003) revealed Kv channels are tetramers + Nav are pseudo-tetramers — 4 voltage sensors each — validating the exponents as physical subunit counts. The 1952 equations encoded real molecular architecture decades before it was visualized."
+      },
+      "hints": [
+        "Empirical fit to current traces.",
+        "Channel structure later validated the exponents."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "m³h + n⁴ came from curve-fitting voltage-clamp data: 3 + 1 + 4 'gating particles' captured kinetics. Channel cloning (Numa 1984+) + crystal structures (MacKinnon Kv 1998, Nobel Chemistry 2003) showed Kv = tetramer, Nav = pseudo-tetramer with 4 S4 voltage sensors — confirming m, h, n as physical molecular entities. The empirical exponents reflected real architecture decades before it was visualized."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_hh_1",
+        "kind": "scenario",
+        "question": "A novel mutation in SCN1A causes Nav1.1 channels to recover from inactivation 2x slower (τ_h doubled at hyperpolarized V).",
+        "prompt": "Predict the effect on PV-interneuron firing rates and downstream cortical excitability. Why does this cause Dravet syndrome's catastrophic epilepsy? Tie to interneuron-driven gamma oscillations + the failure mode (loss of inhibition rather than excess excitation). What would you screen for in zebrafish + iPSC-derived neurons?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_hh_1",
+        "kind": "math_expression",
+        "question": "Write the HH membrane equation (in terms of g_Na, g_K, g_L, m, h, n, V, and reversal potentials).",
+        "acceptedAnswers": [
+          "C_m dV/dt = -g_Na m^3 h (V - E_Na) - g_K n^4 (V - E_K) - g_L (V - E_L) + I_stim",
+          "C dV/dt = -(g_Na*m^3*h*(V-E_Na) + g_K*n^4*(V-E_K) + g_L*(V-E_L)) + I"
+        ],
+        "hint": "Capacitive current = sum of ionic currents (with sign) + stimulus."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_hh_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why Hodgkin-Huxley is considered the founding model of quantitative neuroscience.",
+        "rubric": "Mentions: HH (1952) was the first quantitative biophysical theory of an excitable membrane — four ODEs (V + m, h, n) parameterized from voltage-clamp data on the squid giant axon predicted AP shape, threshold, refractory period + propagation velocity. Nobel 1963 (with Eccles). The framework was empirically derived (m³h + n⁴ as curve-fits) but turned out to encode real molecular architecture: K channels are tetramers, Na channels are pseudo-tetramers with 4 S4 voltage sensors — confirmed by Numa cloning (1980s) + MacKinnon structures (Nobel 2003). HH remains the substrate of modern simulators (NEURON, GENESIS, Brian, NEST, Allen + Blue Brain) + the conceptual frame for understanding channelopathies (Dravet, LQT, episodic ataxia) + pharmacology (TTX, lidocaine, anticonvulsants). It is to neuroscience what Newton's laws are to mechanics: a small set of equations from which most observed dynamics can be derived."
+      }
+    }
+  ]
+}

@@ -1952,6 +1952,31 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P46 — Computational Neuroscientist path. Membrane biophysics
+  // through Hodgkin-Huxley (the viz anchor) + synapses + plasticity
+  // + neural coding + circuits + dendritic computation + NeuroAI +
+  // neurotechnology. The deep, biophysical+computational+frontier
+  // companion to the broader P14 "neuroscientist" path (which is
+  // brain-systems + cognition + consciousness-centric). Distinct
+  // from cognitive-scientist (P40, decision-making + behavior) and
+  // biomedical-engineer (P34, devices).
+  seedMasteryPath({
+    slug: "computational-neuroscientist",
+    title: "Computational Neuroscientist",
+    description:
+      "From neural foundations + membrane biophysics + Nernst/Goldman through Hodgkin-Huxley action potentials (with interactive 4-variable ODE viz), synapses + neurotransmission + quantal release + EPSP/IPSP, synaptic plasticity + LTP/LTD/STDP + Hebbian/anti-Hebbian, neural coding + rate/temporal/population codes + Bayesian brain + predictive coding, circuits + canonical microcircuits + V1/hippocampus/cerebellum/basal ganglia, computational neuroscience + dendritic computation + biological vs artificial networks + NeuroAI, and neurotechnology + Neuralink + optogenetics + connectomics + organoids. The cellular-to-frontier neuroscience stack end-to-end.",
+    nodes: [
+      { slug: "neural-foundations-and-membrane-biophysics", title: "Foundations + Membrane Biophysics", level: "apprentice", order: 1, pages: ["nervous-system-overview", "membrane-potentials", "nernst-goldman"], prereqs: [], description: "Nervous system organization (CNS/PNS, neurons + glia, synapse types); resting membrane potential + Na/K ATPase + ion gradients; Nernst equation + Goldman-Hodgkin-Katz + driving force." },
+      { slug: "action-potentials-and-hodgkin-huxley", title: "Action Potentials + Hodgkin-Huxley", level: "practitioner", order: 2, pages: ["voltage-clamp-history", "hh-equations", "channel-pharmacology"], prereqs: ["neural-foundations-and-membrane-biophysics"], description: "Voltage clamp + squid giant axon + Hodgkin/Huxley 1952/Nobel 1963; HH 4-variable ODE m³h n⁴ + interactive viz; channel pharmacology TTX/TEA/4-AP + Nav/Kv diversity + channelopathies." },
+      { slug: "synapses-and-neurotransmission", title: "Synapses + Neurotransmission", level: "practitioner", order: 3, pages: ["chemical-vs-electrical", "quantal-release", "receptors-and-pscs"], prereqs: ["action-potentials-and-hodgkin-huxley"], description: "Chemical vs electrical synapses + gap junctions; quantal release Katz Nobel 1970 + SNARE/Synaptotagmin Südhof Nobel 2013; ionotropic + metabotropic receptors + EPSP/IPSP + AMPA/NMDA/GABA-A." },
+      { slug: "plasticity-and-learning", title: "Plasticity + Learning", level: "specialist", order: 4, pages: ["ltp-ltd-mechanisms", "stdp-hebbian", "systems-consolidation"], prereqs: ["synapses-and-neurotransmission"], description: "LTP/LTD molecular mechanisms + NMDA Ca²⁺ + AMPA trafficking + CaMKII; STDP + Hebbian + anti-Hebbian + Bi-Poo 1998; systems consolidation + sleep + hippocampal replay + Tonegawa engrams." },
+      { slug: "neural-coding-and-representations", title: "Neural Coding + Representations", level: "specialist", order: 5, pages: ["rate-vs-temporal", "population-and-sparse", "bayesian-predictive"], prereqs: ["action-potentials-and-hodgkin-huxley"], description: "Rate codes + Fano factor + tuning curves; population codes + sparse coding Olshausen/Field 1996 + place cells O'Keefe Nobel 2014 + grid cells Moser; Bayesian brain + Helmholtz + predictive coding Rao-Ballard 1999 + free-energy Friston." },
+      { slug: "circuits-and-systems", title: "Circuits + Systems", level: "expert", order: 6, pages: ["canonical-microcircuits", "vision-v1-hippocampus", "cerebellum-basal-ganglia"], prereqs: ["plasticity-and-learning", "neural-coding-and-representations"], description: "Canonical cortical microcircuits + Douglas-Martin + Markram blueprint; V1 Hubel-Wiesel Nobel 1981 + hippocampal CA1-CA3-DG circuit + Sharp Marr 1971 theories; cerebellum + Marr-Albus-Ito + basal-ganglia direct/indirect + dopamine RPE Schultz Wolfram 1997." },
+      { slug: "computational-and-neuroai", title: "Computational Neuroscience + NeuroAI", level: "expert", order: 7, pages: ["dendritic-computation", "bio-vs-ann", "neuroai-frontier"], prereqs: ["circuits-and-systems"], description: "Dendritic computation + NMDA-spikes + Ca²⁺ plateaus + Larkum + active cables; biological vs ANN networks + Yamins/DiCarlo CNN-V4-IT alignment + ResNet maps; NeuroAI + Hassabis 'roadmap' + foundation models for neural data + brain-to-text decoding + Olshausen+Field reborn." },
+      { slug: "neurotechnology-and-bmi", title: "Neurotechnology + BMI", level: "expert", order: 8, pages: ["recording-stimulation", "bmi-and-prosthetics", "frontier-organoids-connectomes"], prereqs: ["circuits-and-systems"], description: "Recording (EEG, MEG, iEEG/ECoG, Utah array, Neuropixels, fMRI BOLD) + stimulation (TMS, tDCS, DBS, optogenetics Boyden/Deisseroth, chemogenetics); BMI Schwartz/Donoghue + Neuralink + BrainGate speech-decoding + sensory prosthetics; frontier — connectomics (fly EM, mouse MICrONS), organoids + assembloids, cyborg challenges + ethics." },
+    ],
+  });
+
   // P45 — Structural Biologist path. Protein-structure determination
   // (X-ray, NMR, cryo-EM) through folding + Ramachandran (the viz
   // anchor) + secondary/tertiary/quaternary structure + membrane

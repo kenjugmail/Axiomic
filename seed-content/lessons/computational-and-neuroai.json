@@ -1,0 +1,153 @@
+{
+  "slug": "computational-and-neuroai",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Explain dendritic computation.",
+      "Compare biological/artificial nets.",
+      "Survey NeuroAI."
+    ],
+    "prereqs": [
+      "circuits-and-systems"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Dendritic computation: the neuron as a multi-layer network",
+      "body": "**The classical view** (McCulloch-Pitts 1943, perceptron 1958): a neuron is a point that linearly sums weighted inputs + applies a threshold. This 1-layer abstraction underpins essentially all artificial neural networks.\n\n**Biology is richer**: pyramidal neurons have elaborate dendritic trees with active conductances (Na⁺, Ca²⁺, NMDA) that perform nonlinear, compartmentalized computation. A single neuron may be more like a 5-8 layer network than a single unit.\n\n**Wilfrid Rall (1959-1980s)**: cable-theory pioneer. Treated dendrites as passive cables — solved the cable equation for branched arbors → 'equivalent cylinder' simplification. Showed dendritic morphology matters for synaptic integration timing + location-dependent EPSP amplitudes ('distance-dependent attenuation'). Founded computational neuroscience before there was such a name.\n\n**Stuart + Sakmann (1994 *Nature*)**: dual patch-clamp on soma + apical dendrite of L5 pyramidal showed **back-propagating action potentials (bAPs)** — somatic AP invades dendrites via active Na⁺ channels (~1000-2000 per µm² in proximal dendrites; declining distally). bAPs serve as the postsynaptic 'fire' signal for STDP and Hebbian learning.\n\n**NMDA spikes** (Schiller + Major + Larkum 2000 Nature; Polsky + Mel 2004): clustered glutamatergic input on a single dendritic branch generates a regenerative local plateau lasting ~50-100 ms — depends on NMDA Mg²⁺ unblock + Ca²⁺ influx. Each branch behaves as an independent nonlinear subunit (sigmoidal I/O).\n\n**Ca²⁺ plateaus + dendritic Ca²⁺ spikes**: in apical tuft of L5 PCs, depolarization (e.g., from bAP arriving distally or top-down input) triggers regenerative Ca²⁺ spikes via L-type Cav + NMDA → ~50-100 ms long ~10-20 mV plateaus. Substrate for burst firing.\n\n**Larkum (2004 *Nature*)**: BAC firing (bAP-activated Ca²⁺ firing). A single bAP alone doesn't trigger a Ca²⁺ spike; nor does distal apical input alone. But coincident bAP + distal apical input within ~10 ms cooperatively trigger a Ca²⁺ plateau → burst of somatic APs. This **coincidence detection of bottom-up + top-down** is Larkum's 'apical amplification' hypothesis: a cellular mechanism for binding sensory input with attentional/predictive feedback. Highly cited; framework for cortical computation under prediction + attention.\n\n**Clustered synapses + sigmoidal subunits** (Poirazi + Mel 2003; Polsky + Mel 2004): if synapses on a branch are clustered + coactive, dendrites perform local nonlinear summation; if scattered, linear integration. Sigmoidal I/O per branch + linear soma → effectively a 2-layer neural network in one neuron.\n\n**Beniaguev + Segev + London (2021 *Neuron*)**: trained a deep ANN to mimic input-output of biophysically detailed L5 pyramidal model. Needed a **5-8 layer temporal convolutional network** with millions of parameters to match a single cortical neuron's I/O behavior. Headline: a single neuron computes like a small deep net. Implications for ANN-brain mapping: each ANN 'neuron' is closer to a cortical synapse than a cortical neuron.\n\n**Active dendritic mechanisms** = NMDA spikes, Ca²⁺ spikes, Na⁺ spikes, bAPs, BAC firing, K+ A-type modulation, dendritic inhibition (Martinotti SST cells targeting distal apical).\n\n**Compartmental models** (NEURON, GENESIS): discretize the dendritic tree into hundreds of segments, run HH per compartment + cable equation between. Used to study dendritic integration, plasticity rules, learning. Modern lightweight + GPU-accelerated (BMTK, NetPyNE, Brian2).\n\n**Implications for AI**: if cortex's units are 5-8 layer networks, then a 'cortical column' is far more powerful than equivalently-numbered ANN units. Suggests biological brains achieve more with fewer 'units' than current ANNs — efficient dendritic computation as a frontier for neuromorphic + brain-inspired AI."
+    },
+    {
+      "kind": "text",
+      "title": "Biological vs artificial networks: convergent + divergent",
+      "body": "**Deep learning** (Hinton + LeCun + Bengio 2012-2019 ImageNet + Turing Award 2019) revolutionized AI with hierarchical convolutional networks loosely inspired by Hubel-Wiesel V1 simple + complex cells.\n\n**Convergent: convolutional networks ↔ ventral stream**:\n- **Yamins + DiCarlo (2014 PNAS)**: high-performing CNNs trained for ImageNet object recognition quantitatively predict macaque V4 + IT single-unit responses + behavioral confusion patterns — without being trained on neural data. Convergence between functional objectives + biological mechanism.\n- **Schrimpf + Brain-Score (2018+)**: systematic benchmark suite (V1, V2, V4, IT, behavior) scoring models against neural data. Top models (CORnet-S, Vit-B16, etc.) score >0.4 (perfect = 1).\n- **Cortical depth ↔ ResNet depth**: cortex has ~6 layers per area × ~6-8 hierarchical areas (V1-V2-V4-PIT-CIT-AIT); ResNet-50 has 50 layers; both achieve similar representational depth via different architecture.\n- **Hierarchical predictive coding** ↔ feedforward + feedback in CNNs / DNNs with skip connections.\n\n**Divergent: backpropagation biological plausibility**:\n- Backprop requires non-local weight transport + symmetric forward + backward weights + global error signals — not obviously biological.\n- **Feedback alignment** (Lillicrap + Cownden + Tweed + Akerman 2016 *Nat Commun*): random fixed backward weights still allow learning; relaxes weight-transport problem.\n- **Equilibrium propagation** (Scellier + Bengio 2017): energy-based network where local update rules converge to gradient direction.\n- **Predictive coding networks** (Whittington + Bogacz 2017): hierarchical predictive coding with local prediction-error units computes approximate backprop.\n- **Dendritic error signals** (Sacramento + Senn 2018 + Greedy infomax): bAPs + apical dendrites as error carriers; biologically more plausible.\n- **Direct feedback alignment, target propagation**: alternative learning rules.\n- **Forward-forward** (Hinton 2022): alternative to backprop using contrastive local rules.\n\n**Spiking neural networks (SNNs)** + **neuromorphic hardware**:\n- **Maass 1997**: SNNs as universal approximators with temporal coding.\n- **Reservoir computing / liquid state machines**: random recurrent network + trained readout.\n- **Intel Loihi** + **IBM TrueNorth** + **SpiNNaker (Manchester)** + **BrainScaleS (Heidelberg)**: neuromorphic chips with mixed-signal spiking neurons; energy-efficient (10-1000× vs GPU for some tasks).\n- **STDP learning** in hardware; closed-loop robotics.\n- Not yet competitive with GPU/transformer on standard benchmarks — but power efficiency + always-on edge applications + brain-machine interfaces are key niches.\n\n**Recurrent + sequence models ↔ cortex + hippocampus**:\n- RNNs trained on cognitive tasks (Mante + Sussillo + Newsome 2013; Yang + Wang 2019) develop representations matching PFC.\n- Transformers + attention ↔ cortical attention + working memory (Whittington TEM Tolman-Eichenbaum 2020 unifies HC + transformers); 'Attention is all you need' has a neural analog.\n- Sequence models for memory + replay (LFADS, NDT, Brain-LM, Neuroformer).\n\n**Reinforcement learning ↔ basal ganglia + dopamine**:\n- TD learning (Sutton + Barto) ↔ dopamine RPE (Schultz, Dayan, Montague 1997).\n- Actor-critic ↔ direct/indirect pathway + cortex.\n- Distributional RL (Dabney 2020) ↔ DA neuron heterogeneity.\n- Hierarchical RL ↔ prefrontal cortex + striatum loops.\n- AlphaGo/AlphaZero/MuZero ↔ planning + model-based RL ↔ hippocampal-cortical model-based decisions.\n\n**World models + planning** ↔ HC episodic memory + simulation:\n- Schmidhuber world models; Hafner Dreamer; Ha + Schmidhuber 2018.\n- Hippocampal-cortical model-based planning (Kurth-Nelson, Hassabis).\n\n**Key divergences**:\n- ANNs: clock-synchronous, dense, gradient-based, often supervised, energy-hungry.\n- Brains: asynchronous, sparse, local rules, self-supervised + RL + curiosity, ~20 W.\n- Closing the gap is an active frontier — NeuroAI as a discipline (next slide)."
+    },
+    {
+      "kind": "text",
+      "title": "NeuroAI: the frontier",
+      "body": "**NeuroAI**: the interdisciplinary field combining neuroscience + AI to (a) build better AI systems by drawing on biological principles + (b) understand the brain by treating it as a computational system + benchmarking models against neural data. Term popularized by **Hassabis et al. (Neuron 2017 *Neuroscience-Inspired AI*)** + **Zador, Escola, Richards, et al. (Nature 2023 *NeuroAI catalyzing next-gen AI*)**.\n\n**Foundation models for neural data**:\n- **Neuroformer** (Antoniades 2023): transformer for multimodal neural-behavioral data.\n- **POYO + NDT** (Azabou 2023): transformer trained across labs + species on Neuropixels data; spike prediction.\n- **Brain-LM** (Caro 2023): foundation model for fMRI BOLD.\n- **CEBRA** (Schneider 2023 *Nature*): contrastive learning for joint behavioral-neural embeddings.\n- **Whole-brain foundation models** for C. elegans + zebrafish + fly emerging.\n- Promise: pretrain on massive neural data + fine-tune for decoding/encoding/disease.\n\n**Connectomics revolution**:\n- **C. elegans** complete connectome (White 1986; 302 neurons + 7000 synapses): the original.\n- **Drosophila adult** complete connectome (FlyWire/FlyEM Janelia 2024): ~140,000 neurons + 50M synapses; first complete adult brain of a complex organism. *Science* + *Nature* 2024 papers from FlyWire consortium.\n- **MICrONS** (IARPA 2016-2025): ~1 mm³ of mouse V1 with EM + functional recording; ~100,000 neurons + ~1 billion synapses; multimodal (function + structure + transcriptomics) dataset.\n- **H01** (Lichtman + Google 2021): 1 mm³ of human cortex; ~50,000 neurons + 130M synapses; resource for cell type + circuit characterization.\n- Petabyte-scale image data; automated segmentation via Flood-Filling Networks (Januszewski + Sebastian Seung); deep-learning powered.\n- **Brain-wide connectomics + transcriptomics** convergence at Allen Institute, Janelia, MICrONS, BICAN consortia.\n\n**Whole-brain emulation + Markram's vision**:\n- **Blue Brain Project** (EPFL 2005+): bottom-up biophysical reconstruction of rat cortex.\n- **Human Brain Project** (EU 2013-2023): ~€1B flagship; controversial governance; produced EBRAINS, simulators, atlases.\n- **Whole brain emulation** (Sandberg + Bostrom roadmap 2008): in principle map + simulate every neuron — speculative but informs ethics + computational requirements.\n- Brain compute estimate: ~10¹⁸-10²⁰ FLOPS-equivalent (varies by assumptions); current supercomputers approach this scale.\n\n**Brain-to-text + speech BMI**:\n- **Willett + Henderson + Krishna + Avansino + Fan + Stavisky + Hochberg + Druckmann + Shenoy (Stanford BrainGate, 2023 *Nature*)**: motor-cortex ECoG-array decoded **62 words/minute** silent-speech in ALS patient F.A.B. — 3× prior record. **Vocabulary 125,000 words; word error 24%**. Game-changing for locked-in syndrome.\n- **Metzger + Chang lab UCSF (2023 *Nature*)**: ECoG-decoded speech + facial expressions for stroke patient + avatar; **78 wpm**, vocabulary 1024.\n- **Card + Henderson (2024 *NEJM*)**: BrainGate decoding at **160 wpm** in latest patient; near conversational speech.\n- **Neuralink N1** (2024): first human implant (Noland Arbaugh, quadriplegic) — ~1024 electrodes via R1 robot; controlled cursor + games; second + third implants in 2024-25.\n\n**Closed-loop BMI + therapy frontier**:\n- **Stentrode** (Synchron) — endovascular electrode array via jugular vein; FDA breakthrough device; first human implants 2022-23.\n- **Inscopic neurostimulation** for depression (Sheth + Mayberg).\n- **Optogenetics in primates + first human trials** (Sahel 2021 *Nat Med* — first vision-restoration via optogenetic ChrimsonR in retinitis pigmentosa).\n- **Adaptive DBS** with sensing for PD + dystonia (Medtronic Percept).\n\n**Open challenges**:\n- Biological plausibility of learning rules (backprop alternatives).\n- Continual / online learning without catastrophic forgetting.\n- Energy efficiency (brain ~20 W vs GPT-4 megawatts).\n- Embodiment + sensorimotor grounding.\n- Generalization + transfer in brain-like systems.\n- Scaling foundation models to predict neural activity across tasks + species.\n- Causality vs correlation in neural-AI mappings.\n- Ethics: BMI privacy + autonomy + neural rights (Yuste + Genser + Goering); enhancement; alignment of advanced AI; whole-brain emulation moral status.\n\n**NeuroAI is the most exciting interdisciplinary frontier of the 21st century — neuroscience accelerates AI; AI accelerates neuroscience; both contribute to medicine + cognition + autonomy + human flourishing.**"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_nai_1",
+        "kind": "guided_derivation",
+        "question": "Estimate the computational power of a single cortical neuron",
+        "goal": "Using Beniaguev et al. (2021) result that a 5-8 layer TCN with millions of parameters approximates a single L5 pyramidal cell, estimate computational throughput + implications.",
+        "steps": [
+          {
+            "prompt": "Estimate parameters per cortical neuron.",
+            "motivation": "Set the scale.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~10⁶ parameters per neuron (Beniaguev)"
+              ]
+            },
+            "hints": [
+              "Synapses × dendritic state + active conductances."
+            ],
+            "reveal": "L5 pyramidal cell has ~10,000-50,000 synapses + active dendritic conductances (Na⁺, Ca²⁺, NMDA, K⁺) on ~1000 dendritic segments. Beniaguev's TCN approximating this requires ~5-8 layers + ~10⁶ trainable parameters. So one cortical neuron ≈ 10⁶ ANN parameters in computational expressivity."
+          },
+          {
+            "prompt": "Scale to neocortex.",
+            "motivation": "Total brain parameter budget.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~10¹⁶ parameters (16 billion neurons × 10⁶ each)"
+              ]
+            },
+            "hints": [
+              "~16 billion cortical neurons in humans."
+            ],
+            "reveal": "Humans have ~16 billion (1.6 × 10¹⁰) neocortical neurons. If each neuron ≈ 10⁶ ANN parameters, cortex ≈ 10¹⁶ parameters. For comparison, GPT-3 ~10¹¹, GPT-4 ~10¹² (estimated), Gemini Ultra similar magnitude. The whole brain (+ subcortex + cerebellum + glia) is several orders of magnitude richer than current LLMs in raw parameter count — but the relevant comparison is information processing not parameter count."
+          },
+          {
+            "prompt": "Energy efficiency comparison.",
+            "motivation": "Brain vs GPU.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Brain ~20 W; equivalent ANN training/inference ~kW-MW; brain is 10³-10⁶× more efficient"
+              ]
+            },
+            "hints": [
+              "Brain power budget is ~20 W; GPU clusters MW."
+            ],
+            "reveal": "Brain ~20 W (~20% of resting metabolism at 2% body mass). A GPT-4-scale training run: estimated ~50 GWh; inference ~kW continuous. Per equivalent computation, brain is 10³-10⁶× more energy-efficient. Sources: sparse spiking, asynchronous + event-driven processing, analog computation, local learning rules, recycling of metabolic byproducts (lactate shuttle), exquisite molecular-level optimization. Neuromorphic + brain-inspired AI targets this gap."
+          },
+          {
+            "prompt": "Implications for NeuroAI.",
+            "motivation": "What should AI learn from brains?",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Better priors, sparser activation, hierarchical predictive + active inference, embodied + multimodal, continual learning, energy-aware architecture"
+              ]
+            },
+            "hints": [
+              "What is missing in current AI?"
+            ],
+            "reveal": "Brain inspirations for next-gen AI: (1) dendritic computation → more expressive 'units' (not just MLP); (2) sparse + event-driven processing → energy savings + neuromorphic hardware; (3) local + biologically plausible learning rules (predictive coding, equilibrium propagation, target propagation) → no need for global gradient transport; (4) continual / lifelong learning without catastrophic forgetting (complementary learning systems — HC + cortex); (5) embodied + multimodal grounding via sensorimotor closed loops; (6) curiosity + free-energy-driven active inference (Friston) → goal-free exploration; (7) world models + episodic memory + planning (HC-PFC). The frontier of AI may rely on incorporating biology beyond Hubel-Wiesel + dopamine RPE — including dendritic computation, sparse codes, local rules."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_nai_1",
+        "kind": "multiple_choice",
+        "question": "Why did Yamins + DiCarlo (2014) and Schrimpf's Brain-Score project become foundational for computational neuroscience?",
+        "options": [
+          "Wrong.",
+          "Yamins + DiCarlo (2014 PNAS) showed that deep CNNs trained for ImageNet object recognition — without any neural data — quantitatively predict single-unit responses in macaque V4 + IT cortex + behavioral confusion patterns better than any previous biological or hand-engineered model. This demonstrated functional convergence: optimizing for performance on a natural task produces representations matching cortex. The paper launched a paradigm — task-optimized models as quantitative theories of brain function. Schrimpf et al. (2018+) formalized this as **Brain-Score**, a benchmark suite with multiple neural datasets (V1, V2, V4, IT, behavior) where any model gets a quantitative similarity-to-brain score. CORnet, ViT-B, and other modern models reach scores >0.4-0.5 — partially closing the gap between AI + brain. This program inspired NeuroAI (Hassabis 2017 Neuron, Zador 2023 Nature) and established quantitative model-brain alignment as the new gold standard for understanding sensory cortex. Caveats: model-brain similarity != mechanistic understanding; correlates can be coincidental; future work probes causality + dynamics + learning rules.",
+          "Wrong.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Yamins + DiCarlo (2014 PNAS) showed task-optimized CNNs quantitatively predict V4 + IT activity + behavior — without neural training data. Demonstrated functional convergence: performance optimization produces brain-like representations. Schrimpf Brain-Score (2018+) formalized model-vs-brain benchmarking. Founded modern NeuroAI (Hassabis 2017, Zador 2023). Caveats: similarity ≠ mechanism; future work needs causal + dynamic + learning probes."
+      },
+      "hints": [
+        "What did the CNN do without neural training?",
+        "Why does Brain-Score matter?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Yamins + DiCarlo (2014 PNAS) showed CNNs optimized for ImageNet quantitatively predict V4 + IT single-unit responses + behavior — without neural training. Demonstrated functional convergence: optimization for a natural task produces brain-like representations. Schrimpf Brain-Score (2018+) formalized this as a benchmark; modern models reach >0.4-0.5. Founded NeuroAI (Hassabis 2017 Neuron, Zador 2023 Nature). Established quantitative model-brain alignment as gold standard for understanding sensory cortex."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_nai_1",
+        "kind": "scenario",
+        "question": "Your lab proposes a foundation model trained on the MICrONS mouse V1 dataset + multi-task behavioral recordings.",
+        "prompt": "Design the architecture (transformer? state-space? graph neural net for connectome-conditioned attention?). What pretraining objectives (masked spike prediction, contrastive behavior-neural alignment à la CEBRA, multitask supervised)? How would you validate that learned features predict held-out neural activity + cell-type-specific responses + connectome-derived motifs? Compare to NDT, POYO, Neuroformer, Brain-LM. What ethical + open-data considerations?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_nai_1",
+        "kind": "math_expression",
+        "question": "Write the dendritic predictive-coding learning rule for synapse weight w_i with presynaptic activity x_i, postsynaptic prediction error ε, learning rate η.",
+        "acceptedAnswers": [
+          "Δw_i = η · x_i · ε",
+          "w_i(t+1) = w_i(t) + η * x_i * ε",
+          "Δw = η x ε"
+        ],
+        "hint": "Local Hebbian rule using prediction error in place of target."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_nai_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why NeuroAI (Hassabis 2017; Zador 2023) is considered the defining interdisciplinary frontier of 21st-century brain + AI science.",
+        "rubric": "Mentions: NeuroAI synthesizes computational neuroscience + machine learning + cognitive science to (a) build better AI by drawing on biological principles + (b) understand brains by treating them as computational systems benchmarked against models. Convergent successes: CNNs ↔ ventral stream (Yamins + DiCarlo 2014; Brain-Score Schrimpf); dopamine RPE ↔ TD learning (Schultz 1997); HC episodic memory ↔ transformers + world models (Whittington TEM 2020); RL ↔ basal ganglia. Divergent + open problems: backprop biological plausibility (Lillicrap feedback alignment, predictive coding nets); dendritic computation (Beniaguev 2021 — each neuron ≈ 5-8 layer ANN); energy efficiency (brain ~20 W vs MW datacenters); embodied + continual learning; foundation models for neural data (Neuroformer, POYO, CEBRA, Brain-LM); whole-brain connectomes (FlyWire 2024, MICrONS, H01); brain-to-text BMI (Willett 2023 62 wpm; Card 2024 160 wpm). Ethical frontier: BMI privacy + neural rights + alignment + whole-brain emulation moral status. The discipline is reshaping medicine, AI safety, cognition, and our self-understanding."
+      }
+    }
+  ]
+}

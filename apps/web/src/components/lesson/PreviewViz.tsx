@@ -183,6 +183,11 @@ const LazyRamachandranPlot = lazy(() =>
     (m) => ({ default: m.RamachandranPlot }),
   ),
 );
+const LazyHodgkinHuxleyAP = lazy(() =>
+  import("../../../../../packages/viz/src/components/HodgkinHuxleyAP").then(
+    (m) => ({ default: m.HodgkinHuxleyAP }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -313,6 +318,8 @@ function VizByName({
       return <LazyAlignmentMatrix {...(props as object)} />;
     case "ramachandran-plot":
       return <LazyRamachandranPlot {...(props as object)} />;
+    case "hodgkin-huxley-ap":
+      return <LazyHodgkinHuxleyAP {...(props as object)} />;
     default:
       return null;
   }

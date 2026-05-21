@@ -271,6 +271,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🧪",
     tags: ["structural-biology", "biophysics", "protein-folding", "biochemistry"],
   },
+  {
+    name: "hodgkin-huxley-ap",
+    label: "Hodgkin-Huxley action potential",
+    description: "Drag stimulus + Na/K/leak conductances; watch V(t) + gating variables m, h, n produce or fail to produce a spike.",
+    thumb: "⚡",
+    tags: ["neuroscience", "biophysics", "electrophysiology", "computational-neuroscience"],
+  },
 ];
 
 interface Props {

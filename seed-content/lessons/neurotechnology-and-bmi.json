@@ -1,0 +1,152 @@
+{
+  "slug": "neurotechnology-and-bmi",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Compare recording modalities.",
+      "Trace BMI history.",
+      "Survey frontier."
+    ],
+    "prereqs": [
+      "circuits-and-systems"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Recording + stimulation modalities",
+      "body": "**Hierarchy of neuroscience methods**, ordered by spatial scale + invasiveness — each modality offers a trade-off between resolution, coverage, and patient burden.\n\n**Electroencephalography (EEG)** — Hans Berger (1929, Jena): first human EEG; alpha rhythm 8-13 Hz over occiput at rest. Non-invasive scalp electrodes (10-20 system; 32-256 channels modern). Sub-millisecond temporal resolution; spatial resolution poor (~cm; inverse problem ill-posed). Cheap + portable; clinical for epilepsy + sleep + anesthesia depth; research for cognition, BCI (P300 speller, motor imagery), brain-state monitoring. Power-law 1/f baseline + task-evoked oscillations + event-related potentials (ERPs: N100, P300, N400, P600).\n\n**Magnetoencephalography (MEG)**: measures the magnetic fields (~fT, 10⁹× weaker than Earth's) produced by tangential cortical currents using superconducting SQUIDs in a shielded room. Better spatial localization than EEG (~mm) at similar temporal resolution; less distorted by skull. Expensive (~$3M). Newer **OPM (optically-pumped magnetometers)**: room-temperature wearable MEG (Cerca, QuSpin).\n\n**Functional MRI (fMRI)** — Seiji Ogawa 1990 *PNAS* discovered BOLD (blood oxygen level dependent) contrast at Bell Labs: deoxyhemoglobin paramagnetic, susceptibility distorts MR signal; neural activity → blood flow ↑ → deoxyHb ↓ → BOLD signal ↑. Spatial ~mm; temporal ~seconds (hemodynamic lag ~6 s); non-invasive; whole brain. Workhorse of human cognitive neuroscience; thousands of studies on attention, memory, decision, language, emotion, disease biomarkers. Multivariate pattern analysis (MVPA; Haxby), representational similarity analysis (RSA, Kriegeskorte), encoding models (Gallant) extract rich representations. Caveats: BOLD is indirect; low SNR per trial; statistical thresholding traps (XKCD 'salmon' joke — voxel-wise correction problems).\n\n**Intracranial EEG (iEEG) / ECoG**: electrodes on cortical surface (subdural strip/grid; SEEG depth) in epilepsy patients awaiting surgical resection. High SNR + spatial coverage (~mm grids of 64-256 contacts); broadband (high-gamma 70-150 Hz as proxy for local spiking). Yields stunning maps of speech, music, vision in awake humans. Eddie Chang lab UCSF speech decoding pioneered ECoG BMI.\n\n**Intracortical recording** — penetrating microelectrodes inside cortex; isolate single units (spikes) at µm scale.\n- **Utah array** (Richard Normann 1989+): 10×10 silicon microelectrode array (~1.5 mm long, 400 µm spacing); used in BrainGate trials. Workhorse but limited longevity (gliosis encapsulates electrodes within 6-12 months).\n- **Michigan probes** (silicon shanks with many sites).\n- **Neuropixels** (Jun et al. 2017 *Nature*; Steinmetz 2021 *Science*): CMOS-fabricated silicon shank, **384 simultaneously recorded sites** along 10 mm, ~6 µm × 70 µm pitch; spike-sorted single units from cortex + thalamus + HC simultaneously in mice. Game-changer for systems neuroscience.\n- **Neuropixels 2.0** (4-shank, longer lifetime).\n- **Neuralink N1**: ~1024 sites via flexible polymer threads; R1 surgical robot inserts threads avoiding vasculature.\n- **Paradromics**: dense bundle microwires.\n- **Subdural Wireless** + **Stentrode** (endovascular).\n\n**Calcium imaging** — **GCaMP** (Tsien lab; Looger HHMI; Nakai 2001 → GCaMP6/7/8): genetically encoded GFP-fused calmodulin reports [Ca²⁺]. Two-photon microscopy (Denk + Webb 1990) images calcium transients in hundreds-to-thousands of neurons at ~5-30 Hz over weeks. Mouse cortex standard; head-fixed + freely moving (miniscope; UCLA Aharoni open source). Indirect (Ca²⁺ ≈ spike rate proxy) + slower than electrophysiology. SCAPE, mesoscope, light-sheet for larger volumes; zebrafish whole-brain Ahrens + Keller.\n\n**Voltage indicators** (genetically encoded): ASAP, Voltron, JEDI-2P — direct membrane voltage; kHz rate; rapid progress but signal-to-noise still limits widespread use vs Ca²⁺.\n\n**Stimulation modalities**:\n- **Transcranial Magnetic Stimulation (TMS)** — Anthony Barker (1985 *Lancet*, Sheffield): pulsed coil generates transient magnetic field → induced eddy current depolarizes cortical neurons; ~cm scale; non-invasive. Single-pulse for motor mapping + neural conduction; repetitive (rTMS, theta-burst TBS) for therapy. **FDA-approved for major depressive disorder** (Neuronetics NeuroStar 2008; SAINT protocol Williams 2020).\n- **tDCS (transcranial direct current stimulation)**: weak 1-2 mA scalp DC; modulates excitability (anode increases, cathode decreases); cheap + portable; modest + variable effects.\n- **Focused ultrasound (FUS)**: non-invasive deep brain stimulation + BBB opening for drug delivery; emerging.\n- **Deep brain stimulation (DBS)** — Benabid + Pollak (1987 Grenoble): high-frequency (~130 Hz) electrical stimulation via implanted lead. Revolutionary for Parkinson's, essential tremor, dystonia, OCD (FDA HDE). ~200k patients.\n- **Optogenetics** — Boyden + Deisseroth (2005 *Nat Neurosci* ChR2 in cultured neurons; 2006-2014 in vivo): channelrhodopsin-2 (ChR2; algal cation channel; Nagel + Hegemann + Bamberg) activates neurons with blue light at ms precision; halorhodopsin (NpHR) + Arch silence with yellow/green; SwiChR step-functions. Revolutionized circuit dissection. Cre-Lox cell-type targeting (Allen Institute Cre driver lines). Sahel + Roska 2021 *Nat Med* first **human optogenetic vision restoration** (ChrimsonR in ganglion cells of RP patient).\n- **Chemogenetics (DREADDs)** — Brian Roth (UNC; 2007 *Neuron* hM3Dq/hM4Di): engineered muscarinic receptors activated only by inert clozapine-N-oxide (CNO; or DCZ); minutes-to-hours pharmacological control of neuron activity. Complementary to optogenetics."
+    },
+    {
+      "kind": "text",
+      "title": "BMI history + prosthetics",
+      "body": "**Brain-machine interface (BMI) / brain-computer interface (BCI)**: closed-loop systems decoding neural activity → action (cursor, robotic arm, speech) or encoding sensory input → neural activity (cochlear, retinal, somatosensory feedback). The dream goes back to Vidal (1973 'Toward Direct Brain-Computer Communication').\n\n**Early animal demonstrations**:\n- **Fetz (1969 Science)**: monkey learned to control single-neuron firing rate via biofeedback — the first demonstration of operant control of neural activity. Foundational.\n- **Chapin + Nicolelis (1999 Nat Neurosci)**: rats controlled robotic arm via M1 ensembles.\n- **Wessberg + Nicolelis (2000 Nature)**: monkeys controlled robotic arm in 3D.\n- **Serruya + Donoghue (2002 Nature)**: monkey cursor control via M1 Utah array — Brown University BrainGate genesis.\n- **Andrew Schwartz (2008 Nature)**: monkey self-fed using motorized arm controlled by M1 population vector — viral demonstration video.\n- **Carmena + Lebedev + Nicolelis**: cortical motor coadaptation; BMI training.\n\n**BrainGate** (Donoghue + Hochberg + Black, Brown/Mass General):\n- **Hochberg + Donoghue (2006 Nature)**: first human chronic intracortical BMI (paralyzed patient \"Matt Nagle\"; cursor + email).\n- **Hochberg + Bacher + Jarosiewicz et al. (2012 Nature)**: paralyzed patient \"Cathy Hutchinson\" used DEKA robotic arm to drink coffee via M1 control after 15 years of paralysis — iconic image of BMI promise.\n- **Bouton + Ajiboye (2016 Nature)**: M1 spike-decoding restored arm movement in tetraplegic via functional electrical stimulation (FES; reanimating own muscles, Cleveland Clinic).\n- **Ajiboye + Bouton + Hochberg (2017 Lancet)**: real-time reach + grasp via FES.\n\n**Speech BMI** — explosive recent progress:\n- **Anumanchipalli + Chartier + Chang (2019 Nature, UCSF)**: ECoG-decoded speech via articulatory representation in ventral sensorimotor cortex.\n- **Moses + Chang (2021 NEJM)**: \"Pancho\" (anarthric brainstem-stroke patient) — 50 words at 15 wpm via ECoG.\n- **Metzger + Chang (2023 Nature)**: 78 wpm + facial avatar; vocabulary 1024 words.\n- **Willett + Henderson + Stavisky + Druckmann + Shenoy (Stanford 2023 Nature)**: ALS patient \"F.A.B.\" decoded handwriting + speech at **62 wpm vocabulary 125k words** via Utah arrays.\n- **Card + Henderson (2024 NEJM)**: latest patient at **160 wpm** approaching conversational speech.\n- **BrainGate 2 + BrainGate-Speech consortia** continue trials.\n\n**Neuralink + commercial entrants**:\n- **Neuralink** (Musk 2016+): polymer-thread electrode arrays (~1024 channels) implanted by **R1 surgical robot** avoiding vasculature; **2024 first human implant Noland Arbaugh** (quadriplegic; cursor + chess + Civilization). Second + third implants 2024-25. Engineering ambitions: scalable to thousands of channels, fully implanted wireless, lifelong.\n- **Synchron Stentrode**: endovascular electrode array delivered via jugular vein into superior sagittal sinus — no craniotomy; FDA breakthrough device; first human implants 2022 (US + Australia).\n- **Paradromics**: dense microwire bundles; ~1600 channels.\n- **Precision Neuroscience**: subdural microelectrode films; 1024+ channels without penetrating cortex.\n- **Blackrock Neurotech**: NeuroPort (Utah array commercial); long-running BMI partner.\n\n**Cochlear implant — the most successful neural prosthesis**:\n- **Graeme Clark (Melbourne 1978+; 2018 Lasker)**, William House (LA), Blake Wilson (CIS strategy 1991).\n- ~750,000+ users worldwide; >100,000 children — gain spoken language acquisition.\n- Bypasses damaged hair cells; ~22 electrode contacts in cochlea stimulate auditory nerve via tonotopic place coding. Continuous Interleaved Sampling (CIS) strategy + spectral coding.\n- Best-developed neural prosthesis; FDA-approved since 1984; routine pediatric implantation. Gold standard for the BMI field.\n- Bilateral implants + electroacoustic stimulation + brainstem implants for cochlear nerve loss.\n\n**Retinal prosthetics**:\n- **Argus II** (Second Sight, 2013-2019): 60-electrode subretinal array for RP patients; commercially discontinued 2019.\n- **PRIMA** (Pixium): photovoltaic subretinal; ongoing trials.\n- **GenSight Optogenetic**: optogenetic + AR goggles (Sahel 2021 Nat Med first human).\n- Limited resolution (~60-100 phosphenes) — far from natural vision.\n\n**Other sensory prosthetics**:\n- **Auditory brainstem implants (ABI)** for neurofibromatosis type 2.\n- **Visual cortex stimulation** for blindness (Roelfsema, Pezaris, Beauchamp).\n- **Vestibular implants** for balance disorders.\n- **Somatosensory feedback** via ICMS (Flesher + Gaunt + Boninger 2016 Sci Transl Med; touch via S1 stimulation in BMI patients).\n\n**Closed-loop neuromodulation therapy**:\n- **Responsive Neurostimulation (RNS, NeuroPace)**: detects seizure onset + delivers stim to abort; FDA-approved drug-resistant epilepsy.\n- **Adaptive DBS** for PD (Medtronic Percept sensing IPG); senses beta + delivers stim only when needed; reduces side effects.\n- **Mayberg + Riva-Posse + Holtzheimer**: tractography-guided subgenual cingulate (Cg25) DBS for treatment-resistant depression. Mixed RCT history but personalized approaches (Scangos 2021 Nat Med) promising."
+    },
+    {
+      "kind": "text",
+      "title": "The frontier: connectomics, organoids, neurorights",
+      "body": "**Connectomics** — mapping every neuron + every synapse:\n- **C. elegans** (Sydney Brenner 1986; Nobel 2002): 302 neurons + ~7000 synapses; first complete connectome. White, Southgate, Thomson, Brenner paper.\n- **Drosophila larva + adult**: FlyEM Janelia + FlyWire (Princeton/Cambridge/Vienna). **Hemibrain** (2020): central brain. **Full FlyWire adult brain** (2024 Nature flagship): ~140,000 neurons + ~50 million synapses; first complete adult brain of a complex animal capable of learning + flying + courting. EM volume ~100 TB; segmented + proofread by community + AI.\n- **MICrONS** (IARPA 2016-2025): ~1 mm³ of mouse V1 with EM at nm resolution + 2-photon Ca²⁺ functional recording on same neurons. **~100,000 neurons + ~1 billion synapses**. Multimodal: structure + function + transcriptomics; preprint Nature 2024 papers from Allen + Princeton + BCM consortium.\n- **H01** (Lichtman + Google 2021 bioRxiv): ~1 mm³ of human cortex (epilepsy resection); ~50,000 neurons + 130M synapses. Resource for cell-type catalog + circuit motifs.\n- **BICAN + Brain Connectome Initiative**: NIH + Allen + Janelia + EBRAINS funding scale-up to whole-mouse-brain connectome — target 2030s.\n- **Algorithms**: Flood-Filling Networks (Januszewski + Sebastian Seung); GNN-based proofreading; PyTorch-based pipelines.\n- Promise: identify circuit motifs, validate predictions, ground theoretical models, advance disease research.\n- Challenge: PB-scale data; bottleneck is annotation + interpretation.\n\n**Brain organoids + assembloids**:\n- **Lancaster + Knoblich (2013 Nature)**: cerebral organoid from iPSCs; mm-scale 3D self-organizing neural tissue.\n- **Pasca + Stanford**: cortical spheroids + assembloids — fuse cortical + striatal + thalamic spheroids to model long-range circuits; cortico-motor assembloids contract muscle. Models for schizophrenia, autism, Timothy syndrome.\n- **Lancaster, Mason, Studer, Knoblich, Pasca, Muotri labs**: methodological advances; protocols for region-specific (forebrain, midbrain, cerebellar, spinal) organoids.\n- **Vascularized organoids**: transplanted into rodent + show neural activity, behavioral integration (Pasca 2022 Nature).\n- **Limitations**: lack vasculature (limits size to ~mm), early developmental stage equivalent (~mid-trimester fetal), no sensory input.\n- **Ethics**: as organoid complexity grows + transplants show integration, questions about moral status emerge (Hyun, Lavazza, Greely; Nature ethics commentary 2018, 2021).\n\n**CRISPR neuro**:\n- Cell-type-specific gene editing for neuropsychiatric disease + neurodegeneration; AAV-CRISPR delivery; epigenome editing (dCas9-effectors).\n- Spinraza (nusinersen) ASO for SMA; Casgevy (CRISPR-edited HBB for sickle); ALS/Huntington/DMD trials.\n- AAV-mediated gene therapy for SMA (Zolgensma), LCA blindness (Luxturna), hemophilia.\n\n**Closed-loop therapeutics + digital therapeutics**:\n- Real-time biomarker-driven adaptive stimulation across DBS + RNS + spinal-cord-stim.\n- Wearable + smartphone-based digital biomarkers for neuropsychiatric disease (Brain-CODE, Verily, ResearchKit).\n- VR + AR for rehabilitation + exposure therapy.\n\n**Whole brain emulation + Markram + Sandberg**:\n- **Blue Brain + Human Brain Project** (EPFL 2005+; EU 2013-2023): bottom-up reconstruction + simulation of cortical microcircuit; controversial — overpromise + governance issues but built EBRAINS + simulators.\n- **Whole Brain Emulation roadmap** (Sandberg + Bostrom 2008 FHI Oxford): philosophical + technical exploration. Speculative; informs ethics of mind uploading + AI moral status.\n- Compute estimates: ~10¹⁸-10²⁰ FLOPS-equivalent for biological-fidelity whole-brain sim; exascale supercomputers approach this scale (Frontier, Aurora).\n\n**Neuroethics + neurorights**:\n- **Rafael Yuste + Sara Goering + the Morningside Group** (2017 Nature *Four ethical priorities for neurotechnologies and AI*): identity, agency, augmentation, bias.\n- **Chilean constitutional amendment 2021**: first country to protect 'mental integrity + brain data' as a fundamental right; **Neuralink + Synchron + commercial BMI** raise privacy + autonomy + cognitive liberty issues.\n- **Anders Sandberg + Nick Bostrom** at FHI Oxford: long-termist ethics; mind-uploading + identity continuity.\n- **Cognitive liberty + neural privacy** legislation emerging in EU + US states.\n- **Equity + access**: high-cost BMI risks two-tier neural enhancement; equity must be designed in.\n- **Dual-use**: military + interrogation + advertising applications need governance.\n\n**Cyborg + transhumanism**:\n- Neil Harbisson (color-hearing antenna implant 2004); Moon Ribas (seismic sensor); growing community.\n- Speculative future: cortical implants for memory augmentation, language, sensory enhancement.\n- Hassabis (DeepMind), Musk (Neuralink), Bryan Johnson (Kernel), Henry Markram all bet on convergence of BMI + AI.\n\n**The next decade** of neurotechnology will likely deliver: (1) Neuralink-class implants in tens of thousands of patients; (2) speech BMI at conversational rate widely deployed for locked-in + ALS; (3) closed-loop DBS for depression + OCD + Tourette; (4) optogenetic vision restoration in trials → clinics; (5) brain organoid transplant + assembloid models for drug discovery; (6) whole-mouse-brain connectome; (7) neurorights legislation in many jurisdictions; (8) escalating ethical debate over enhancement + privacy + AI-brain symbiosis."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bmi_1",
+        "kind": "guided_derivation",
+        "question": "Design a motor BMI decoder",
+        "goal": "Given M1 spike counts from N=100 Utah-array channels over 100 ms bins, design a real-time decoder for 2D cursor position. Walk through choice of method + training + safety.",
+        "steps": [
+          {
+            "prompt": "Step 1: Linear decoder (Wiener filter / population vector).",
+            "motivation": "Simplest baseline.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "v_x, v_y = Σ b_i · r_i (linear regression with bias + regularization); train via least-squares on calibration trials"
+              ]
+            },
+            "hints": [
+              "Linear regression from spike rates to velocity."
+            ],
+            "reveal": "Velocity v = B·r + b₀ where r is N-dim spike rate vector, B is 2×N decoder matrix. Train via ridge regression on calibration trials where patient imagines or attempts known movements. Simple, fast, interpretable; Georgopoulos population-vector special case where columns of B = preferred directions. Baseline used in early BrainGate work."
+          },
+          {
+            "prompt": "Step 2: Kalman filter for smoothing.",
+            "motivation": "State-space dynamics + noise model.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "State = (position, velocity); state transition + observation = neural spikes; recursive Bayes estimate optimal under Gaussian + linear assumptions"
+              ]
+            },
+            "hints": [
+              "Add a smoothness prior on cursor motion."
+            ],
+            "reveal": "Kalman filter (Wu, Black, Donoghue, Bienenstock 2003+) models cursor state x_t = [pos, vel] with linear dynamics x_t = A·x_{t-1} + w; observation r_t = H·x_t + ε. Recursive Bayes optimal under Gaussian + linear. Smoother trajectories + better SNR than instantaneous decoder. Extended/unscented + ReFIT (recalibrated feedback) Kalman (Gilja + Shenoy 2012 Nat Neurosci) further boost accuracy."
+          },
+          {
+            "prompt": "Step 3: Deep-learning decoder + closed-loop adaptation.",
+            "motivation": "Nonlinear + recurrent.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "RNN/LSTM/transformer maps spike sequences → velocity; train + fine-tune closed-loop with cursor feedback"
+              ]
+            },
+            "hints": [
+              "Pahor + Stavisky + Henderson used RNNs; Willett used RNN handwriting."
+            ],
+            "reveal": "Modern Stanford NPTL group (Willett + Henderson + Stavisky + Druckmann + Shenoy) uses RNNs + transformers on spike-binned features; pretrained across days; fine-tuned closed-loop with user feedback. Captures temporal context + nonlinear tuning. Card 2024 NEJM speech BMI: deep RNN + language-model rescoring → 160 wpm. Closed-loop coadaptation: decoder adapts as user adapts (Orsborn + Carmena Neuron 2014)."
+          },
+          {
+            "prompt": "Step 4: Safety + UX.",
+            "motivation": "Clinical translation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Smoothing/gating + emergency stop + privacy + drift recalibration + biocompatibility + redundancy + informed consent + reversibility"
+              ]
+            },
+            "hints": [
+              "What can go wrong + how to mitigate?"
+            ],
+            "reveal": "Safety considerations: (1) drift in neural signals + electrode degradation → daily recalibration; (2) brain-state-dependent variability (sleep, fatigue) → adaptive filtering; (3) emergency stop / dead-man switch; (4) cybersecurity — BMI hacking is a real attack surface; (5) data privacy + neural-rights legislation (Yuste + Chile 2021); (6) reversibility — implant explant must be safe; (7) biocompatibility — chronic gliosis; (8) informed consent + capacity in cognitively impaired; (9) equity of access; (10) FDA Investigational Device Exemption pathway. The boring engineering is what makes BMI clinical-grade."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bmi_1",
+        "kind": "multiple_choice",
+        "question": "Why is the cochlear implant considered the most successful neural prosthesis to date?",
+        "options": [
+          "Wrong.",
+          "Cochlear implants (Graeme Clark Melbourne 1978+; William House Los Angeles; Blake Wilson CIS strategy 1991; Clark + Wilson Lasker 2013, then 2018 awards) directly stimulate the auditory nerve via ~22 intracochlear electrode contacts, bypassing damaged hair cells. Continuous Interleaved Sampling (CIS) coding presents tonotopically-mapped spectral channels at hundreds of Hz, exploiting the cochlea's natural place-pitch mapping. With >750,000 users worldwide + >100,000 children, cochlear implants enable spoken-language acquisition for profoundly deaf children + restore speech understanding in noise for many adults. Routine FDA-approved since 1984; pediatric implantation now standard of care for severe-to-profound deafness. Key reasons for success: (1) clear single-cell-type target (spiral ganglion cells, surviving despite hair-cell loss); (2) well-defined tonotopic coding scheme; (3) bypass strategy doesn't require restoring exact biological circuit; (4) plasticity enables brain to learn the artificial signal especially in childhood. The gold-standard example demonstrating that direct neural stimulation can substitute lost sensory function — sets a high bar for retinal, vestibular, motor + speech prostheses still in development.",
+          "Wrong.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Cochlear implants (Clark Melbourne 1978+; Wilson CIS 1991; Lasker 2013) bypass damaged hair cells + stimulate auditory nerve via ~22 intracochlear electrodes using CIS tonotopic coding. >750k users worldwide + >100k children. Enable spoken-language acquisition in deaf children + speech-in-noise for adults; FDA-approved since 1984; pediatric standard of care. Success factors: clear target (spiral ganglion), well-defined tonotopy, brain plasticity learns artificial signal. Gold standard for neural prostheses."
+      },
+      "hints": [
+        "What is the scale of adoption?",
+        "Why is the cochlea uniquely tractable?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Cochlear implants (Graeme Clark Melbourne 1978+; Blake Wilson CIS 1991; Lasker 2013) directly stimulate auditory nerve via ~22 intracochlear electrodes using CIS tonotopic coding. >750k users + >100k children worldwide; spoken-language acquisition in deaf children + speech-in-noise for adults. FDA-approved 1984, pediatric standard of care. Success: clear target (spiral ganglion cells), well-defined tonotopy, brain plasticity. The gold standard demonstrating neural stimulation can substitute lost sensory function."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_bmi_1",
+        "kind": "scenario",
+        "question": "A patient with ALS approaches you asking whether to enroll in a Neuralink, BrainGate, or Synchron Stentrode speech-BMI trial.",
+        "prompt": "Compare the three approaches: invasiveness (Utah array penetrating cortex vs polymer threads vs endovascular electrode), channel count + signal quality, surgical risk (craniotomy + parenchymal vs endovascular), longevity + revisability, decoder maturity (Willett 62-160 wpm with Utah arrays vs Neuralink cursor + early Synchron motor decoding), regulatory pathway. Address informed consent, equity, long-term ethical issues (neural privacy, reversibility), patient + family considerations. What would you advise?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_bmi_1",
+        "kind": "math_expression",
+        "question": "Write the Kalman filter state update for BMI decoding with state x, observation r, dynamics matrix A, observation matrix H, Kalman gain K.",
+        "acceptedAnswers": [
+          "x_t = A x_{t-1} + K (r_t - H A x_{t-1})",
+          "x̂_t = A x̂_{t-1} + K_t (r_t - H A x̂_{t-1})"
+        ],
+        "hint": "Predict then correct."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bmi_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why the past 5 years (2020-2025) have been called the inflection point for clinical BMI.",
+        "rubric": "Mentions: speech BMI scaling — Moses + Chang 2021 NEJM 15 wpm → Metzger + Chang 2023 Nature 78 wpm with avatar → Willett 2023 Nature 62 wpm vocabulary 125k → Card + Henderson 2024 NEJM 160 wpm approaching conversational; Neuralink first human implant 2024 (Noland Arbaugh) + R1 robot; Synchron Stentrode endovascular trials 2022+; Neuropixels 2.0 → thousands of channels; AI/transformer decoders + language-model rescoring; closed-loop adaptive DBS (Medtronic Percept) for PD; first human optogenetic vision restoration (Sahel 2021 Nat Med ChrimsonR); Yuste neurorights → Chile constitutional protection 2021; brain organoid transplants integrate with rodent host (Pasca 2022 Nature); FlyWire complete adult brain 2024; MICrONS mouse mm³ 100k neurons. Driven by convergence of: better electrodes (Neuropixels, polymer threads); deep-learning decoders; surgical robotics; LLMs + language-model priors; venture + government funding; advocacy of ALS + locked-in + paralysis communities. Ethical infrastructure (neurorights, FDA pathways) maturing in parallel. The locked-in + paralyzed patient experience is being transformed; therapeutic + enhancement applications will define the coming decade."
+      }
+    }
+  ]
+}

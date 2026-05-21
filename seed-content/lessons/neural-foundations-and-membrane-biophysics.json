@@ -1,0 +1,155 @@
+{
+  "slug": "neural-foundations-and-membrane-biophysics",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Map nervous system organization.",
+      "Reason about ion gradients.",
+      "Apply Nernst + Goldman."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Nervous system organization: cells + circuits",
+      "body": "**Nervous system**: the organ system that integrates sensation, computation, memory, and motor output via electrochemical signaling. ~86 billion neurons + ~85 billion glia in the human brain (Herculano-Houzel 2009 isotropic fractionator count, overturning the long-cited '100 billion').\n\n**Anatomical divisions**:\n- **Central nervous system (CNS)**: brain + spinal cord; protected by skull/vertebrae, meninges, blood-brain barrier (BBB); cerebrospinal fluid (CSF) cushioning.\n- **Peripheral nervous system (PNS)**: cranial + spinal nerves; sensory (afferent) + motor (efferent) fibers.\n- **Autonomic nervous system (ANS)**: visceral control; **sympathetic** (fight/flight, NE, thoracolumbar), **parasympathetic** (rest/digest, ACh, craniosacral), **enteric** (gut, ~500M neurons — 'second brain').\n- **Somatic nervous system**: voluntary skeletal muscle control via α-motor neurons (lower) + corticospinal tract (upper).\n\n**Neuron morphology**: dendrites (input), soma/perikaryon (integration), axon hillock (spike initiation zone — highest Nav density), axon (conduction), presynaptic terminal (output). Most adult neurons are post-mitotic.\n\n**Neuron types** (functional + morphological):\n- **Pyramidal cells**: cortex + hippocampus; large apical dendrite → cortical surface; glutamatergic, excitatory; ~80% of cortical neurons.\n- **Purkinje cells**: cerebellar cortex; massive 2D dendritic arbor receiving ~200,000 parallel-fiber inputs; GABAergic; sole output of cerebellar cortex.\n- **Granule cells**: cerebellum (most numerous neuron in brain, ~50 billion), dentate gyrus, olfactory bulb; tiny, dense.\n- **Inhibitory interneurons**: GABAergic; ~10-20% of cortex; subtypes by markers — **parvalbumin (PV+)** fast-spiking basket/chandelier, **somatostatin (SST+)** Martinotti targeting distal dendrites, **VIP+** targeting other interneurons (disinhibition).\n- **Motor neurons**: α (extrafusal muscle), γ (intrafusal spindle), upper (corticospinal) vs lower (ventral horn/cranial).\n- **Sensory neurons**: DRG pseudo-unipolar; mechano/thermo/noci/proprio.\n- **Monoaminergic nuclei**: dopaminergic (VTA, SNc), serotonergic (raphe), noradrenergic (locus coeruleus), cholinergic (basal forebrain, brainstem) — diffuse modulatory projections.\n\n**Glia** (\"glue\" — historically support; now recognized as active partners):\n- **Astrocytes**: tripartite synapse modulation, K+ buffering, glutamate uptake (EAAT1/2), gliotransmission, BBB induction, metabolic support (lactate shuttle).\n- **Oligodendrocytes** (CNS) + **Schwann cells** (PNS): myelinate axons; one oligodendrocyte myelinates ~50 axon segments; Schwann cell myelinates one.\n- **Microglia**: resident macrophages (yolk-sac origin); synaptic pruning during development (Stevens + Barres complement C1q/C3), neuroinflammation, debris clearance.\n- **Ependymal cells**: line ventricles; produce CSF (choroid plexus).\n- **NG2/OPCs**: oligodendrocyte progenitors; persist into adulthood; form synapses with neurons.\n\n**Synapse types**:\n- **Axodendritic** (most common), **axosomatic** (often inhibitory), **axoaxonic** (presynaptic modulation), **dendrodendritic** (olfactory bulb), **electrical** (gap junctions).\n- **Gray's Type I** (asymmetric, glutamatergic excitatory) vs **Type II** (symmetric, GABAergic inhibitory)."
+    },
+    {
+      "kind": "text",
+      "title": "Resting membrane potential + ion gradients",
+      "body": "**Resting membrane potential (V_rest)**: typical neuron sits at **~-65 mV** (inside negative relative to outside). Pyramidal neurons -70 to -80 mV; cerebellar Purkinje ~-65 mV; cardiac SA node oscillates without true rest.\n\n**Origin**: combination of (1) selective ion permeabilities (mostly K⁺ at rest), (2) ion concentration gradients maintained by pumps, (3) electroneutrality requirement at the bulk solution level — but a tiny charge separation across the ~5 nm bilayer suffices for tens of mV.\n\n**Mammalian ion concentrations** (mM, approximate):\n- **Na⁺**: extracellular [Na⁺]_o ≈ 145; intracellular [Na⁺]_i ≈ 15. Ratio ~10:1 outside.\n- **K⁺**: [K⁺]_o ≈ 4; [K⁺]_i ≈ 140. Ratio ~35:1 inside.\n- **Cl⁻**: [Cl⁻]_o ≈ 100-120; [Cl⁻]_i ≈ 5-10 (mature neurons; high in immature via NKCC1 → low via KCC2 developmental switch — Ben-Ari 2002, GABA excitatory early).\n- **Ca²⁺**: [Ca²⁺]_o ≈ 1.5-2; [Ca²⁺]_i ≈ 0.0001 (100 nM resting). Ratio ~20,000:1 — steepest gradient in biology; basis for Ca²⁺ as universal signal.\n- **H⁺**: pH_o ≈ 7.4; pH_i ≈ 7.2.\n\n**Na⁺/K⁺-ATPase** (sodium-potassium pump): the master ionic gardener. Electrogenic 3 Na⁺ out / 2 K⁺ in per ATP; ~70% of brain ATP consumption goes to ion pumping. Discovered by Jens Skou 1957, Nobel Chemistry 1997. Inhibited by ouabain + digitalis (cardiac glycosides — Withering 1785 foxglove for heart failure). Sustains the gradients that channels exploit.\n\n**Other key transporters**:\n- **Ca²⁺-ATPase (PMCA, SERCA)** + **Na⁺/Ca²⁺ exchanger (NCX)**: keep [Ca²⁺]_i low.\n- **NKCC1/KCC2**: set [Cl⁻]_i; developmental switch matters for GABA polarity.\n- **NHE, NBC**: pH regulation.\n- **GLUT3**: neuronal glucose uptake; brain consumes ~20% of body glucose at 2% mass.\n\n**Membrane as RC circuit**: bilayer capacitance C_m ≈ 1 µF/cm² (universal across cells). Membrane resistance R_m varies with channel density; specific membrane resistance ~1-50 kΩ·cm². Time constant **τ = R_m·C_m** ≈ 10-50 ms governs EPSP/IPSP decay. Length constant **λ = √(r_m/r_i)** governs passive spread along dendrites (typically 100-1000 µm).\n\n**Goldman-Hodgkin-Katz (GHK) equation** computes V_rest given permeabilities + concentrations (next slide). At rest, P_K ≫ P_Na ≫ P_Cl ≈ P_K; hence V_rest sits near E_K (~-90 mV) but pulled positive toward E_Na by leak."
+    },
+    {
+      "kind": "text",
+      "title": "Nernst + Goldman: the electrochemistry of neurons",
+      "body": "**Nernst equation**: equilibrium potential for a single ion species (no net flux when V = E_ion). Derived from Δμ = 0 at equilibrium (electrochemical potential balance).\n\n  E_ion = (RT / zF) · ln([X]_o / [X]_i)\n\nAt 37 °C with conversion to log₁₀:\n\n  E_ion ≈ (61.5 / z) · log₁₀([X]_o / [X]_i)   mV\n\n**Computed equilibria** at mammalian concentrations:\n- **E_K** = 61.5 · log(4/140) ≈ **-95 mV** (often quoted as -90 mV).\n- **E_Na** = 61.5 · log(145/15) ≈ **+60 mV**.\n- **E_Cl** = -61.5 · log(120/5) ≈ **-85 mV** (z = -1 flips sign).\n- **E_Ca** = (61.5/2) · log(1.5/0.0001) ≈ **+128 mV** (very positive — opening Ca²⁺ channels drives huge inward flux).\n\n**Driving force**: I_ion = g_ion · (V - E_ion). When V > E_ion, current flows outward (positive ions exit); when V < E_ion, inward. At V_rest = -65 mV: Na⁺ driving force ≈ -65 - 60 = -125 mV (strong inward); K⁺ ≈ -65 - (-95) = +30 mV (mild outward). This asymmetry is why opening Na⁺ channels triggers fast depolarization while opening K⁺ channels mediates slower repolarization.\n\n**Goldman-Hodgkin-Katz (GHK) voltage equation** (Goldman 1943; Hodgkin + Katz 1949) — for multiple permeant ions in steady state:\n\n  V_m = (RT/F) · ln( (P_K[K⁺]_o + P_Na[Na⁺]_o + P_Cl[Cl⁻]_i) / (P_K[K⁺]_i + P_Na[Na⁺]_i + P_Cl[Cl⁻]_o) )\n\n(Note Cl⁻ subscripts inverted because of negative charge.) Permeability P_X has units of cm/s; absolute values are unknown, but ratios P_K : P_Na : P_Cl ≈ **1 : 0.04 : 0.45** at rest in squid axon give V_rest ≈ -65 mV; during AP peak, P_Na transiently rises ~500-fold, flipping the ratio.\n\n**Ion-selective electrodes** (Eisenman, Bormann; intracellular recording): glass microelectrodes pulled to <1 µm tip; resin-based or ionophore-doped membranes; potentiometric measurement uses the Nernst equation in reverse — voltage tells you [ion]. Used to verify the GHK predictions experimentally.\n\n**Why neurons are leaky at rest**: 'leak' K⁺ channels (TWIK/TREK/TASK two-pore-domain K2P family, Lesage + Lazdunski 1996) provide the dominant resting K⁺ conductance; small Na⁺ leak through NALCN; Cl⁻ via background ClC. This balance — set by P_K dominance — places V_rest near but not at E_K. Small perturbations push V toward firing threshold (~-55 mV), where voltage-gated Na⁺ channels open regeneratively. The next lesson formalizes that with Hodgkin-Huxley."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_neur_1",
+        "kind": "guided_derivation",
+        "question": "Compute equilibrium potentials + resting potential",
+        "goal": "Given [K⁺]_o = 4, [K⁺]_i = 140, [Na⁺]_o = 145, [Na⁺]_i = 15 mM, T = 37 °C, compute E_K + E_Na, then V_rest using GHK with P_K : P_Na = 1 : 0.04 (ignore Cl⁻).",
+        "steps": [
+          {
+            "prompt": "Compute E_K via Nernst.",
+            "motivation": "Single-ion equilibrium.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-95 mV",
+                "approximately -95 mV"
+              ]
+            },
+            "hints": [
+              "E_K = 61.5 · log₁₀(4/140) mV."
+            ],
+            "reveal": "E_K = (RT/zF)·ln([K]_o/[K]_i) = 61.5·log₁₀(4/140) = 61.5·log₁₀(0.0286) = 61.5·(-1.544) ≈ -95 mV. K⁺ wants to flow out (higher inside) until -95 mV inside balances the chemical gradient."
+          },
+          {
+            "prompt": "Compute E_Na via Nernst.",
+            "motivation": "Single-ion equilibrium.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "+60 mV",
+                "approximately +60 mV"
+              ]
+            },
+            "hints": [
+              "E_Na = 61.5 · log₁₀(145/15) mV."
+            ],
+            "reveal": "E_Na = 61.5·log₁₀(145/15) = 61.5·log₁₀(9.67) = 61.5·(0.985) ≈ +60 mV. Na⁺ wants to flow in (higher outside) until +60 mV inside balances chemical gradient. Opening Na⁺ channels drives V up toward this value during AP upstroke."
+          },
+          {
+            "prompt": "Apply GHK with P_K : P_Na = 1 : 0.04.",
+            "motivation": "Combine multiple ions.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "V_rest ≈ -75 mV",
+                "approximately -75 mV"
+              ]
+            },
+            "hints": [
+              "V = 61.5·log₁₀((P_K·[K]_o + P_Na·[Na]_o)/(P_K·[K]_i + P_Na·[Na]_i))."
+            ],
+            "reveal": "Numerator = 1·4 + 0.04·145 = 4 + 5.8 = 9.8. Denominator = 1·140 + 0.04·15 = 140 + 0.6 = 140.6. V_rest = 61.5·log₁₀(9.8/140.6) = 61.5·log₁₀(0.0697) = 61.5·(-1.157) ≈ -71 to -75 mV. The small Na⁺ permeability pulls V_rest ~20 mV above pure E_K."
+          },
+          {
+            "prompt": "Compute Na⁺ driving force at V_rest.",
+            "motivation": "Predict initial AP current.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "≈ -135 mV (strong inward)",
+                "approximately -135 mV"
+              ]
+            },
+            "hints": [
+              "Driving force = V - E_ion; sign indicates direction."
+            ],
+            "reveal": "Driving force_Na = V_rest - E_Na = -75 - 60 = -135 mV. Large negative → inward current when Na⁺ channels open. This vast driving force makes the AP upstroke fast + steep (dV/dt up to 500 V/s in axons). K⁺ driving force at -75 = -75 - (-95) = +20 mV (weak outward) — but K⁺ conductance is what sets V_rest by sheer dominance, not driving force."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_neur_1",
+        "kind": "multiple_choice",
+        "question": "Why does the Na⁺/K⁺-ATPase consume ~70% of brain ATP, and why is this 'worth it'?",
+        "options": [
+          "Wrong.",
+          "The Na⁺/K⁺-ATPase (Skou 1957; Nobel Chemistry 1997) pumps 3 Na⁺ out and 2 K⁺ in per ATP, sustaining the ionic gradients that channels exploit for signaling. Every action potential admits Na⁺ + extrudes K⁺; the pump restores the gradients. Because brain neurons fire continuously, dendrites + spines are densely packed with active synapses, and the brain is metabolically expensive, ~20% of resting body glucose + ~70% of brain ATP goes to pumping. The 'worth it' argument: ionic gradients store energy electrochemically (like a battery), and channels release it discretely (like switches) to produce fast (~1 ms), digital, low-noise spikes. Alternative chemistries (e.g., bulk pH or redox) would be far slower; ion gradients are the optimal substrate for fast bio-computation. Cardiac glycosides (digitalis) inhibit the pump — a fact exploited therapeutically since Withering 1785 foxglove for heart failure.",
+          "Wrong.",
+          "Wrong."
+        ],
+        "correctIndex": 1,
+        "explanation": "Na⁺/K⁺-ATPase (Skou Nobel 1997) maintains Na/K gradients consumed by every spike. Brain uses ~20% body glucose; ~70% of that goes to ion pumping. Gradients store energy electrochemically — channels release it as fast (~1 ms) digital signals — the optimal substrate for biological computation."
+      },
+      "hints": [
+        "Every spike consumes the gradients — they must be restored.",
+        "Why ions rather than another chemistry?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "The Na⁺/K⁺-ATPase pumps 3 Na⁺ out / 2 K⁺ in per ATP, restoring gradients that every action potential dissipates. Brain neurons fire constantly + densely; ~20% of body glucose, ~70% of brain ATP go to this pump. Ionic gradients are energy storage (like a battery); channels release energy as fast, discrete signals (~1 ms spikes) — the optimal substrate for fast bio-computation. Skou Nobel Chemistry 1997; digitalis inhibits the pump."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_neur_1",
+        "kind": "scenario",
+        "question": "Hyperkalemia raises [K⁺]_o from 4 to 8 mM.",
+        "prompt": "Using the Nernst equation, predict how E_K changes. Then describe the cellular + clinical consequences (neuronal excitability, cardiac rhythm, why hyperkalemia is a medical emergency). Cite ECG features (peaked T-waves, widened QRS) and treatment principles (calcium gluconate, insulin + glucose, β-agonists, dialysis)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_neur_1",
+        "kind": "math_expression",
+        "question": "Write the Nernst equation for the equilibrium potential of ion X with valence z at temperature T (use ln form).",
+        "acceptedAnswers": [
+          "E = (RT/(zF)) * ln([X]_o/[X]_i)",
+          "E_ion = (RT/zF) ln([X]_out/[X]_in)",
+          "(RT/(zF))·ln([X]_o/[X]_i)"
+        ],
+        "hint": "Derived from setting electrochemical potential difference to zero across the membrane."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_neur_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why neurons use ion gradients (rather than, say, bulk pH or redox) as the substrate for fast signaling.",
+        "rubric": "Mentions: ionic gradients store energy electrochemically (like a charged battery) maintained by Na⁺/K⁺-ATPase (Skou Nobel 1997) at the cost of ~70% brain ATP; channels release that energy discretely + rapidly (~1 ms) as voltage changes governed by Nernst-driven driving forces (V - E_ion). Multiple ions (Na⁺, K⁺, Cl⁻, Ca²⁺) with distinct gradients enable a rich palette of currents (depolarizing, hyperpolarizing, modulatory, signaling — Ca²⁺ as second messenger has steepest ~20,000:1 gradient). The bilayer's tiny capacitance (~1 µF/cm²) means only a few thousand ions cross to swing tens of mV — fast + cheap. Alternative chemistries are slower (bulk pH/redox diffuse), less specific, or harder to spatially localize. Concludes: ion gradients are the optimum biophysical substrate for kHz-rate digital signaling, evolved early + conserved across nervous systems."
+      }
+    }
+  ]
+}

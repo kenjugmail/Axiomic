@@ -38,6 +38,7 @@ const LotkaVolterra = lazy(() => import("../../../../packages/viz/src/components
 const RadiocarbonDecay = lazy(() => import("../../../../packages/viz/src/components/RadiocarbonDecay").then(m => ({ default: m.RadiocarbonDecay })));
 const AlignmentMatrix = lazy(() => import("../../../../packages/viz/src/components/AlignmentMatrix").then(m => ({ default: m.AlignmentMatrix })));
 const RamachandranPlot = lazy(() => import("../../../../packages/viz/src/components/RamachandranPlot").then(m => ({ default: m.RamachandranPlot })));
+const HodgkinHuxleyAP = lazy(() => import("../../../../packages/viz/src/components/HodgkinHuxleyAP").then(m => ({ default: m.HodgkinHuxleyAP })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -80,6 +81,7 @@ export const VIZ_NAMES = [
   "radiocarbon-decay",
   "alignment-matrix",
   "ramachandran-plot",
+  "hodgkin-huxley-ap",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -120,6 +122,7 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "radiocarbon-decay": RadiocarbonDecay,
   "alignment-matrix": AlignmentMatrix,
   "ramachandran-plot": RamachandranPlot,
+  "hodgkin-huxley-ap": HodgkinHuxleyAP,
 };
 
 interface VizEmbedProps {
