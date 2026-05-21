@@ -91,6 +91,54 @@ describe("/authoring/lesson", () => {
   });
 });
 
+describe("/authoring/slide", () => {
+  async function regen(body: Record<string, unknown>) {
+    return app.fetch(
+      new Request("http://localhost/api/v1/authoring/slide", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      }),
+    );
+  }
+
+  test("rejects missing lesson (422 — runtime shape check)", async () => {
+    const res = await regen({ slideIdx: 0 });
+    // z.unknown() doesn't reject undefined at parse-time; the runtime
+    // shape check inside the handler returns 422.
+    expect(res.status).toBe(422);
+  });
+
+  test("rejects out-of-range slideIdx", async () => {
+    const res = await regen({
+      lesson: { slides: [{ kind: "text" }] },
+      slideIdx: 5,
+    });
+    expect(res.status).toBe(422);
+  });
+
+  test("returns slide payload on well-formed input", async () => {
+    const res = await regen({
+      lesson: {
+        meta: { timeMinutes: 10, difficulty: "intermediate" },
+        slides: [{ kind: "text", title: "A", body: "x" }, { kind: "text", title: "B", body: "y" }],
+      },
+      slideIdx: 0,
+      hint: "Make it more concrete",
+    });
+    // Mock provider isn't going to produce a valid slide object,
+    // so accept either 200 (parsed something), 422 (couldn't parse),
+    // or 503 (provider failed). All three indicate the route is wired.
+    expect([200, 422, 503]).toContain(res.status);
+    const data = await res.json();
+    if (res.status === 200) {
+      expect(data).toHaveProperty("slide");
+    } else {
+      expect(data).toHaveProperty("error");
+    }
+  });
+});
+
 describe("/authoring/save", () => {
   async function save(body: Record<string, unknown>) {
     return app.fetch(

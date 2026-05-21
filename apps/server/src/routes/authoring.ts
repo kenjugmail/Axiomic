@@ -222,6 +222,71 @@ authoringRouter.post("/lesson/stream", zValidator("json", authorSchema), (c) => 
   });
 });
 
+// ---- Single-slide regeneration ---------------------------------------
+//
+// POST /api/v1/authoring/slide — body {lesson, slideIdx, hint?}.
+// Re-asks the provider to regenerate just one slide, given the
+// surrounding slides as context. Used by the "🎲 reroll" button on
+// AuthorLessonPage so authors can iterate one slide at a time
+// without losing the others.
+
+const slideRegenSchema = z.object({
+  lesson: z.unknown(),
+  slideIdx: z.number().int().min(0).max(20),
+  hint: z.string().max(500).optional(),
+});
+
+authoringRouter.post("/slide", zValidator("json", slideRegenSchema), async (c) => {
+  const { lesson, slideIdx, hint } = c.req.valid("json");
+  if (!lesson || typeof lesson !== "object" || !Array.isArray((lesson as { slides?: unknown }).slides)) {
+    return c.json({ error: "lesson must be an object with a slides array" }, 422);
+  }
+  const slides = (lesson as { slides: unknown[] }).slides;
+  if (slideIdx >= slides.length) {
+    return c.json({ error: `slideIdx ${slideIdx} out of range (${slides.length} slides)` }, 422);
+  }
+
+  const provider = getAIProvider();
+  const reference = loadReferenceLesson();
+  if (!reference) {
+    return c.json({ error: "Reference lesson not found" }, 500);
+  }
+
+  const targetSlide = slides[slideIdx];
+  const system = `You are rewriting a single slide in an Axiomic lesson. Output ONLY valid JSON — a single slide object matching the schema. No markdown fences, no prose preamble.
+
+Canonical schema example:
+${reference}
+
+The current slide at index ${slideIdx} is:
+${JSON.stringify(targetSlide, null, 2)}
+
+Surrounding slides (for context — do not change):
+${slides.map((s, i) => i === slideIdx ? null : `slide[${i}] kind=${(s as { kind?: string }).kind ?? "?"} title=${(s as { title?: string }).title ?? ""}`).filter(Boolean).join("\n")}
+
+${hint ? `Author's hint for the rewrite: ${hint}` : ""}
+
+Rewrite the slide at index ${slideIdx}. Keep its kind (${(targetSlide as { kind?: string }).kind ?? "text"}). Match the schema. Return only the slide JSON object.`;
+
+  let accumulated = "";
+  try {
+    await provider.stream({
+      system,
+      messages: [{ role: "user", content: "Rewrite the slide now." }],
+      onToken: (t) => { accumulated += t; },
+      signal: c.req.raw.signal,
+    });
+  } catch (err) {
+    return c.json({ error: err instanceof Error ? err.message : "provider stream failed", rawOutput: accumulated.slice(0, 2000) }, 503);
+  }
+
+  const parsed = extractJSON(accumulated);
+  if (parsed === null || typeof parsed !== "object") {
+    return c.json({ error: "Could not parse JSON slide from provider response", rawOutput: accumulated.slice(0, 2000) }, 422);
+  }
+  return c.json({ slide: parsed, rawLength: accumulated.length });
+});
+
 // ---- Save-to-file ----------------------------------------------------
 //
 // Closes the AI-authoring loop: instead of copy-pasting the generated

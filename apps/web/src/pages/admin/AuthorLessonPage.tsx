@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Sparkles, AlertTriangle, Check, Copy, Save } from "lucide-react";
+import { Sparkles, AlertTriangle, Check, Copy, Save, Undo2 } from "lucide-react";
 import { api, type MasteryPath } from "../../lib/api";
 import { PreviewViz } from "../../components/lesson/PreviewViz";
 
@@ -32,6 +32,9 @@ export function AuthorLessonPage() {
   const [saveMsg, setSaveMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [streaming, setStreaming] = useState(false);
   const [partial, setPartial] = useState("");
+  // Undo stack — keep the last 5 results so authors can revert a
+  // bad regeneration without re-prompting from scratch.
+  const [history, setHistory] = useState<AuthorResponse[]>([]);
 
   useEffect(() => {
     api.mastery.getPaths().then((d) => setPaths(d.paths)).catch(() => undefined);
@@ -53,7 +56,22 @@ export function AuthorLessonPage() {
     objectives.length <= 8 &&
     !busy;
 
+  function pushToHistory(prev: AuthorResponse | null) {
+    if (prev?.lesson) {
+      setHistory((h) => [...h, prev].slice(-5));
+    }
+  }
+
+  function undo() {
+    if (history.length === 0) return;
+    const last = history[history.length - 1];
+    setHistory((h) => h.slice(0, -1));
+    setResult(last);
+    setSaveMsg(null);
+  }
+
   async function generate() {
+    pushToHistory(result);
     setBusy(true);
     setResult(null);
     setPartial("");
@@ -255,6 +273,16 @@ export function AuthorLessonPage() {
           >
             <Sparkles className="h-4 w-4" /> {busy ? "Generating…" : "Generate lesson"}
           </button>
+          {history.length > 0 && (
+            <button
+              onClick={undo}
+              disabled={busy}
+              className="w-full py-1.5 rounded border border-border bg-background text-sm hover:bg-accent/40 disabled:opacity-50 flex items-center justify-center gap-1.5"
+              title="Restore the previous generated lesson"
+            >
+              <Undo2 className="h-3.5 w-3.5" /> Undo last generation ({history.length} in history)
+            </button>
+          )}
         </div>
 
         {/* Right: result */}
