@@ -1,0 +1,157 @@
+{
+  "slug": "dna-and-biological-evidence",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Trace DNA forensics from Jeffreys 1984 through STR profiling, CODIS, Y-STR, mitochondrial, and low-template / touch DNA.",
+      "Interpret electropherograms, allele drop-out, stutter, and mixtures.",
+      "Recognize the limits of DNA forensics in the post-Innocence-Project era (Brandon Mayfield + transfer + secondary transfer + LCN controversies)."
+    ],
+    "prereqs": [
+      "crime-scene-and-evidence-collection"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Jeffreys to STR: the DNA revolution in forensic science",
+      "viz": "dna-electropherogram",
+      "vizProps": {
+        "loci": 13
+      },
+      "body": "**DNA fingerprinting** transformed forensic identification more than any technology since the latent fingerprint. Modern STR DNA profiling is the most empirically validated forensic discipline + the standard against which other forensic comparisons are measured.\n\n**Alec Jeffreys (Leicester, 1984)**: discovered hypervariable minisatellite DNA regions ('VNTRs') with extreme inter-individual variation. The famous 1984 'eureka morning' at 9:05 AM — Jeffreys saw the autoradiograph showing variable banding patterns that could distinguish any two individuals. Published *Nature* 1985: *Hypervariable minisatellite regions in human DNA*.\n\n**First forensic case** (1986): Enderby murders, Leicestershire UK. Two girls murdered (1983, 1986). Jeffreys's VNTR profiling **excluded** the prime suspect (a 17-year-old who had falsely confessed) — the first wrongful-conviction prevention by DNA. A mass DNA screening of >5000 local men then identified Colin Pitchfork as the perpetrator (he had attempted to evade by sending a substitute) → the first DNA conviction. The case established both *exoneration* + *conviction* applications.\n\n**Methodological evolution**:\n1. **RFLP (Restriction Fragment Length Polymorphism)** — Jeffreys's original method. VNTR + Southern blotting + autoradiograph. Required ~50-500 ng of high-MW DNA; slow (4-6 weeks); discriminating but data-heavy. Replaced by PCR-based methods in the 1990s.\n2. **PCR + AmpFLP** — early 1990s. Lower DNA input. Faster.\n3. **STR (Short Tandem Repeat) profiling** — became dominant ~1994. Microsatellite loci (2-7 bp repeats, ~80-400 bp PCR products). Multiplex amplification + capillary electrophoresis. 13-20 loci.\n4. **NGS / MPS (massively parallel sequencing) STR + SNP panels** — emerging since ~2015 (ForenSeq, Verogen / now Qiagen).\n\n**CODIS (Combined DNA Index System, FBI 1998)** uses **20 STR core loci** (expanded from the original 13 in 2017): D3S1358, vWA, FGA, D8S1179, D21S11, D18S51, D5S818, D13S317, D7S820, D16S539, TH01, TPOX, CSF1PO, D2S1338, D19S433, D10S1248, D22S1045, D2S441, D1S1656, D12S391. Plus amelogenin (sex chromosome marker — XX vs XY) + sometimes DYS391. **Random match probability (RMP)** for a full 20-locus STR profile is typically ~1 in 10²⁰ — astronomically lower than the human population.\n\n**Y-STR profiling**: Y-chromosome STR loci track paternal lineage. Identifies male contribution in male/female mixtures (e.g. sexual assault), excludes male suspects sharing same paternal lineage (brothers, father-son share Y-STR). Common kits: Yfiler Plus (27 loci).\n\n**Mitochondrial DNA (mtDNA)**: hundreds-thousands of mtDNA copies per cell vs. 2 nuclear chromosome copies — so mtDNA recoverable from highly degraded, hair-shaft, bone, tooth, ancient remains. **Maternally inherited** + no recombination → traces maternal lineage (cannot individualize within a maternal line). HVR1 + HVR2 hypervariable regions sequenced; widely used for missing-persons + remains identification."
+    },
+    {
+      "kind": "text",
+      "title": "From electropherograms to mixtures: interpreting modern STR data",
+      "body": "**An electropherogram (EPG)** is the output of capillary electrophoresis. The x-axis is fragment size in base pairs (or amplicon-size bin); the y-axis is fluorescence intensity (RFU — relative fluorescent units). Each STR locus appears as one or two peaks (homozygous vs. heterozygous).\n\n**Profile interpretation steps**:\n1. **Sex marker** (amelogenin): XX (one peak, ~106 bp) vs. XY (two peaks, ~106 + 112 bp).\n2. **Single-source vs. mixed**: count peaks per locus. > 2 peaks at multiple loci → mixed sample. Estimate **number of contributors (NOC)** via peak counts + heights.\n3. **Allele calling**: read the integer allele number (number of repeat units) at each of the 20 core loci.\n4. **Compare to suspect / reference profile**: locus-by-locus.\n5. **Compute random match probability (RMP)** or **likelihood ratio (LR)** = $\\frac{P(\\text{evidence} | H_1)}{P(\\text{evidence} | H_2)}$ where $H_1$ = suspect is source; $H_2$ = unrelated individual.\n\n**Common artifacts**:\n- **Stutter**: a small peak one repeat unit below the true allele (typically 5-15% of parent peak height); a PCR slippage artifact.\n- **Pull-up**: spectral bleed-through between dye channels (a strong peak in one dye creates a smaller artifactual peak at the same size in another dye).\n- **Allele drop-out (ADO)**: a real allele fails to amplify, typically in low-template DNA or with PCR inhibitors. Producing apparent homozygosity at heterozygous loci.\n- **Allele drop-in**: a stochastic contaminant amplifies — typically a single peak in one locus that doesn't reproduce.\n- **Degraded DNA + ski-slope effect**: smaller amplicons amplify well; larger amplicons drop in height as fragment length grows — characteristic of degraded samples.\n- **PCR inhibition** (humic acid, heme, indigo): broad signal suppression.\n\n**Low-template / Low Copy Number (LCN) DNA**: amplification of <100-200 pg starting material (sometimes <30 cells). Stochastic effects (ADO, drop-in, exaggerated stutter) dominate. Requires replicate amplifications + probabilistic genotyping. **LCN controversies**: R v. Hoey (2007 Belfast Omagh bombing) saw LCN testimony excluded; UK + several jurisdictions reviewed standards. Modern practice uses **probabilistic genotyping software** (STRmix, TrueAllele, LRmix Studio, EuroForMix) that explicitly models drop-out, drop-in, stutter, mixture proportions.\n\n**Touch DNA** (contact DNA): minute DNA from skin contact (sweat, shed cells). Sensitivity gains since ~2005 made this routine. **Transfer + secondary transfer + persistence** is now the major interpretation challenge — DNA from a person who *never touched the evidence* can still appear (handshake → another item; clothing wear; environmental shedders vs. low-shedders). The **Lukis Anderson case (San Jose CA 2012)**: a homeless man's DNA found on a homicide victim's fingernails — Anderson had been treated by the same EMT crew earlier that day in a different incident; secondary DNA transfer led to his wrongful arrest. He was held three months before innocence established.\n\n**Mixtures + probabilistic genotyping**: a 2-person mixture at 90:10 ratio in a 20-locus STR panel can be deconvolved well by STRmix or TrueAllele; 3-person mixtures at unbalanced ratios are interpretable but with reduced LR; 4+ contributor mixtures at unbalanced ratios may exceed reliable interpretation. **PCAST 2016** flagged complex / low-template mixtures as a domain requiring more validation."
+    },
+    {
+      "kind": "text",
+      "title": "Databases, Brandon Mayfield, and the Innocence Project frame",
+      "body": "**CODIS (FBI Combined DNA Index System)**: the US national DNA database. Three tiers: **LDIS** (local), **SDIS** (state), **NDIS** (national). >20 million offender + arrestee profiles + >5 million forensic-case profiles (2024). Cold-hit matches to unsolved cases drive thousands of identifications annually. Statutorily restricted to STR + Y-STR + mtDNA + the 20 core loci — *not* the dense-SNP arrays used in investigative genetic genealogy (we cover IGG in the modern-frontier lesson).\n\n**NDNAD (UK National DNA Database, 1995)** — established earlier than CODIS; 6+ million profiles; per-capita largest in the world. Helped seed UK forensic-genetics leadership.\n\n**Familial searching + partial-match alerts**: CODIS partial-match policies (varies by state) can identify a *relative* in the database whose profile partially matches the evidence — leading investigators to a previously unknown suspect (e.g., the *Grim Sleeper* Los Angeles case 2010 — first US homicide conviction via familial search).\n\n**Brandon Mayfield (2004)** — the canonical *fingerprint* misidentification (we revisit in the fingerprint lesson). For DNA, the analogous failure modes are **mixture mis-interpretation + secondary transfer + LCN over-confidence + analyst confirmation bias**.\n\n**Innocence Project DNA exonerations** (Barry Scheck + Peter Neufeld, 1992 Cardozo Law):\n- **>375 post-conviction DNA exonerations** in the US (as of 2024). 21 had been sentenced to death.\n- **Average time wrongfully incarcerated: ~14 years** per exoneree.\n- **Real perpetrators identified** in >170 cases via the same DNA — these often were committing additional crimes.\n- **Causes of underlying wrongful convictions** (from the Innocence Project corpus):\n  - **Eyewitness misidentification**: ~70% of cases.\n  - **Improper or invalidated forensic science**: ~52% (bite marks, microscopic hair comparison, serology over-interpretation, arson, shaken-baby, bloodstain pattern, ABO-pre-DNA testimony).\n  - **False confessions / admissions**: ~28%.\n  - **Informants / jailhouse snitches**: ~17%.\n  - **Official misconduct**: prevalent across cases.\n\n**The DNA paradox**: DNA's empirical strength (well-validated chemistry, low RMP, peer-reviewed methodology, NIST-traceable standards) is the *gold standard* against which weaker forensic disciplines (bite marks, microscopic hair, arson 'low-burn patterns', shoe wear) have been measured — and frequently found wanting. The Innocence Project has thereby transformed DNA into the engine of forensic reform: post-conviction DNA testing both frees the innocent + flags the methods that convicted them.\n\n**Modern DNA frontiers** (introduced now; expanded in modern-frontier lesson):\n- **Investigative genetic genealogy (IGG)**: dense-SNP arrays (~700k SNPs) + public genealogy databases (GEDmatch, FamilyTreeDNA) + tree-building to identify a perpetrator via 3rd-5th cousin matches. Golden State Killer 2018 (Joseph James DeAngelo) was the breakthrough case.\n- **DNA phenotyping**: predict eye color, hair color, skin pigmentation, ancestry, age (via methylation), from DNA. Snapshot (Parabon). Controversial; usable as investigative lead, not identification.\n- **Microbiome forensics**: skin / scalp / oral microbial communities as identifiers.\n- **Epigenetics**: methylation-based age estimation; tissue identification.\n- **Rapid DNA**: portable platforms (RapidHIT, ANDE) producing CODIS-compatible profiles in ~90 minutes for booking + disaster victim ID."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dna_mixture",
+        "kind": "guided_derivation",
+        "question": "Deconvolve a 2-person DNA mixture from electropherogram peak heights",
+        "goal": "At a single STR locus, the EPG shows four peaks (alleles 12, 14, 15, 17) with RFU heights 800, 200, 850, 250 respectively. Determine the number of contributors, the mixture ratio, and the most likely genotypes.",
+        "steps": [
+          {
+            "prompt": "How many contributors are minimally consistent with four peaks at one locus?",
+            "motivation": "Each individual contributes ≤ 2 alleles per locus.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2"
+              ]
+            },
+            "hints": [
+              "Diploid genome."
+            ],
+            "reveal": "A diploid individual has up to 2 alleles per locus. Four peaks → minimum **2 contributors** (4 alleles total: 2 from each). 3 contributors would also be consistent if multiple share alleles. Across all 20 loci you compute the *maximum allele count* — and the highest count across all loci sets the *minimum number of contributors* (NOC)."
+          },
+          {
+            "prompt": "What is the major:minor mixture ratio based on peak heights?",
+            "motivation": "Group peaks by similar heights.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "approximately 800 + 850 / 200 + 250 ≈ 3.7:1"
+              ]
+            },
+            "hints": [
+              "Two large peaks; two small."
+            ],
+            "reveal": "Group peaks: **major contributor** alleles 12 + 15 (heights 800 + 850 ≈ similar = heterozygous balanced); **minor contributor** alleles 14 + 17 (heights 200 + 250 ≈ similar = heterozygous balanced). Ratio of major:minor = ~1650/450 ≈ **3.7:1** (often reported ~80%:20%). Peak-height balance within a heterozygote is typically 60-100% — both pairs here are balanced + consistent."
+          },
+          {
+            "prompt": "What genotype calls do you make for major + minor contributors?",
+            "motivation": "Read alleles directly.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "major 12,15; minor 14,17"
+              ]
+            },
+            "hints": [
+              "Major = balanced large pair; minor = balanced small pair."
+            ],
+            "reveal": "**Major contributor: 12, 15** (heterozygote). **Minor contributor: 14, 17** (heterozygote). This call would be checked across all 20 loci for internal consistency (mixture ratio + balance + no major→minor crossover). At low template or unbalanced ratios, allele drop-out can confuse the call — probabilistic genotyping (STRmix, TrueAllele) provides locus-by-locus likelihood weights rather than hard calls."
+          },
+          {
+            "prompt": "If the suspect's known profile at this locus is 12, 15, what is the evidentiary statement?",
+            "motivation": "Likelihood ratio framing.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "suspect cannot be excluded as the major contributor; locus-LR contributes to the overall LR computed across loci"
+              ]
+            },
+            "hints": [
+              "LR framing not 'match'."
+            ],
+            "reveal": "Forensic statement: *the suspect cannot be excluded as the major contributor at this locus*. The locus-LR is approximately $1/(2 \\cdot p_{12} \\cdot p_{15})$ where $p_{12}, p_{15}$ are population allele frequencies for that locus. Multiply locus-LRs across all 20 loci to obtain the **combined LR** for the major contributor (typically 10¹⁵-10²⁰ if the suspect is the source). Mixture LR explicitly uses probabilistic genotyping (STRmix / TrueAllele); old-style 'CPI' (Combined Probability of Inclusion) has been deprecated in favor of LR-based reporting (SWGDAM 2017, PCAST 2016)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dna_codis",
+        "kind": "multiple_choice",
+        "question": "Why does CODIS use 20 core STR loci (expanded from the original 13 in 2017) rather than a smaller set?",
+        "options": [
+          "Bigger numbers look better in court.",
+          "Each additional independent STR locus multiplies the discriminating power. With 13 loci the random match probability (RMP) was ~1 in 10¹⁵; the 2017 expansion to 20 loci pushed RMP to ~1 in 10²⁰ — vastly below the human population (~10¹⁰) — which (1) reduces the risk of adventitious matches in large databases (the *database trawl* statistical problem), (2) improves interoperability with European systems (ENFSI uses 17+ loci), (3) provides redundancy against allele drop-out + degraded samples, (4) enables more reliable mixture deconvolution + familial searching. Each locus is selected for high heterozygosity + independent inheritance (no linkage).",
+          "20 loci are required by Daubert.",
+          "STRs cost more in bulk."
+        ],
+        "correctIndex": 1,
+        "explanation": "Each additional STR locus multiplies discriminating power. 13 → 20 core loci pushed RMP from ~1 in 10¹⁵ to ~1 in 10²⁰ — reducing adventitious-match risk in large databases, improving ENFSI interoperability, adding redundancy against allele drop-out, and enabling more reliable mixture deconvolution + familial searching. Selected for high heterozygosity + independent inheritance."
+      },
+      "hints": [
+        "Each independent STR multiplies RMP.",
+        "Why care about database-trawl false positives?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Each independent STR locus contributes to RMP via independent allele frequencies. 13 → 20 core loci (2017) pushed RMP from ~10⁻¹⁵ to ~10⁻²⁰ — reducing adventitious matches in large databases, ENFSI interoperability, drop-out redundancy, mixture deconvolution, familial searching. CODIS loci selected for high heterozygosity + linkage independence."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_dna_transfer",
+        "kind": "scenario",
+        "question": "Secondary transfer in court",
+        "prompt": "A defense expert presents the Lukis Anderson case + secondary-transfer literature to challenge a touch-DNA match on a homicide victim's clothing. The lab's match probability is 1 in 10¹⁸. How should the prosecution + defense each frame the evidence under modern interpretation standards? What additional testing or context could resolve the question?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_dna_rmp",
+        "kind": "math_expression",
+        "question": "A 20-locus CODIS profile with average locus heterozygosity 0.85 yields what approximate random-match probability? Compute $(1-0.85)^{20}$ as a fast lower bound. Give the result as a power of 10 (e.g., $10^{-x}$ — enter the integer $x$).",
+        "acceptedAnswers": [
+          "16",
+          "17",
+          "16.5"
+        ],
+        "hint": "$(0.15)^{20} = ?$ Use $\\log_{10}(0.15) \\approx -0.824$; so $20 \\times -0.824 \\approx -16.5$ → $\\sim 10^{-16}$ to $10^{-17}$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dna",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why DNA STR profiling is considered the gold standard of forensic identification + what its limits are.",
+        "rubric": "Mentions: Jeffreys 1984 + Enderby 1986 origin; PCR + capillary electrophoresis + 20 core CODIS STR loci push RMP to ~10⁻²⁰. Well-validated chemistry, NIST-traceable standards, peer-reviewed, Daubert-defensible. Gold standard against which other disciplines (bite marks, hair, arson) are measured — and which has driven >375 Innocence Project exonerations. LIMITS: low-template / LCN stochasticity (drop-out + drop-in + exaggerated stutter); mixture interpretation (PCAST 2016 flagged complex / unbalanced mixtures); secondary transfer (Lukis Anderson 2012); contamination at scene or lab; Y-STR + mtDNA cannot individualize within paternal / maternal lineages; database-trawl statistical artifacts (familial + cold-hit cases). Probabilistic genotyping (STRmix, TrueAllele) + replicate amplification + likelihood-ratio reporting are the current best practice. Mentions that DNA's analytic strength does not eliminate interpretive + contextual judgment."
+      }
+    }
+  ]
+}

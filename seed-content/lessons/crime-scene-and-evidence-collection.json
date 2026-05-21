@@ -1,0 +1,169 @@
+{
+  "slug": "crime-scene-and-evidence-collection",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply Locard's exchange principle to scene processing and contamination control.",
+      "Document a chain of custody that survives Daubert + cross-examination.",
+      "Sequence evidence collection from least to most invasive."
+    ],
+    "prereqs": [
+      "forensic-science-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Securing the scene: first responders, perimeters, and Locard in practice",
+      "body": "**The crime scene is the irreplaceable physical record** of a criminal event. Once disturbed, it cannot be reconstituted; once contaminated, it cannot be cleansed. Every subsequent analysis (DNA, fingerprints, ballistics, trace, blood-pattern, time-of-death) traces back to scene processing.\n\n**The first-responder priority list** (mnemonic: *life, scene, evidence*):\n1. **Officer + bystander safety** (active threats, hazards, weapons, fire, electricity, traffic).\n2. **Medical aid** to victims (sometimes inescapably disturbing the scene — but life saves first).\n3. **Detain witnesses + suspects** in separate locations to prevent communication + memory contamination.\n4. **Establish a perimeter** + **single point of entry** (the *common path of approach*).\n5. **Crime scene log** — every person entering the perimeter signs in + out with timestamp + purpose.\n6. **Notify** CSI / detectives / lab / coroner / pathologist as required.\n\n**Three-tier perimeter** (used at large scenes):\n- **Outer cordon**: media + public exclusion zone.\n- **Middle cordon**: staging for emergency services, command post, evidence-bag staging.\n- **Inner cordon**: the crime scene proper. Restricted to processing personnel, photographed before entry.\n\n**Locard's exchange principle, applied bidirectionally**:\n- Perpetrator → scene transfer is the *evidence we want to recover* (fingerprints, DNA, fibers, footwear).\n- **Investigator → scene transfer is the contamination we must prevent**. Investigator hair, fibers, DNA, prints, fingerprint powder, dust, footwear can all degrade or mimic perpetrator transfer.\n\n**PPE for scene processing**: nitrile or latex gloves (changed frequently — every distinct evidence item, ideally between every collection); booties / shoe covers; hair net; mask (especially for DNA-sensitive areas); Tyvek scene suit (homicide, bio-fluid scenes); single-use tweezers / forceps (or cleaned between items with 10% bleach + rinse + ethanol); fresh disposable swabs.\n\n**Common-path-of-approach** procedure: investigators walk a single defined route in + out, ideally not coinciding with the perpetrator's path. Marked + recorded; minimizes inadvertent trace destruction or addition.\n\n**Walk-through (initial survey)**: before any disturbance, the lead investigator + photographer walk the path slowly, *looking but not touching*, noting transient evidence (smells, temperatures, sounds, lighting, fragile traces), establishing a working theory + collection plan."
+    },
+    {
+      "kind": "text",
+      "title": "Documentation: photography, sketching, video, notes",
+      "body": "**Documentation rule**: *if it isn't recorded, it didn't happen* — for legal purposes. Documentation precedes + parallels every collection.\n\n**The four canonical documentation modalities**:\n1. **Photography** — most important.\n2. **Sketching** — geometric / metric record.\n3. **Video walk-through** — context + spatial sequence.\n4. **Field notes** — narrative + observational record (the analyst's contemporaneous account, sworn-statement quality).\n\n**Forensic photography sequence**:\n- **Overall shots** (wide angle, contextual; show the scene from each cardinal direction).\n- **Mid-range shots** showing relationships between evidence items + fixed references.\n- **Close-up shots** of each evidence item.\n- **Examination-quality (1:1) close-ups** with **ABFO No. 2 ruler / forensic scale** in plane with the evidence — required for any size-critical comparison (bite marks, footwear, tool marks, fingerprints, bloodstains).\n\n**Photography best-practice** specifics:\n- **RAW + JPEG** simultaneously where possible; archive RAW.\n- **Hash-verify** photos with SHA-256 or MD5 once downloaded.\n- **No filtering, sharpening, color-correction** in field cameras; processing only on copies + logged.\n- **Photograph all four sides** of large items (vehicles, bodies, dwellings).\n- **Use oblique + grazing lighting** for impression evidence (footwear, tool marks, dust prints) — UV / IR + alternate light sources (Polilight, Crimescope, blue + green) for blood, semen, fibers, GSR, latent prints.\n- **Photograph evidence before + after** any movement; if moved, document why.\n\n**Crime scene sketching** — two stages:\n- **Rough sketch** in the field; pencil + measurements + compass; not to scale.\n- **Final sketch** drawn in office / CAD to scale; legend, north arrow, scale bar, evidence keyed to evidence log.\n- **Measurement methods**: *rectangular coordinate* (from two perpendicular walls), *baseline* (from a straight reference line), *triangulation* (from two fixed points to each item), *polar* (from a single point, distance + angle), *grid* (for large outdoor scenes — search-grid).\n- **3D scanning** (Leica BLK360, FARO Focus, Matterport): laser scanning produces metrically accurate 3D point clouds; rapidly replacing manual sketching for major scenes. Output: walk-through VR + courtroom-grade exhibits.\n\n**Search patterns**:\n- **Spiral** (in or out from a point).\n- **Strip / line** (parallel lanes).\n- **Grid** (two perpendicular passes — most thorough).\n- **Zone** (scene divided into sectors, each searched independently).\n- **Wheel** (radial from center — small + small-area only).\n\nLarger outdoor scenes (clandestine graves, body dumps, plane crashes) use grid + GPS + LIDAR + cadaver dogs + ground-penetrating radar + magnetometer surveys."
+    },
+    {
+      "kind": "text",
+      "title": "Chain of custody, collection sequence, biological hazards",
+      "body": "**Chain of custody** is the *unbroken, contemporaneous, signed record* of who possessed each evidence item from collection through final disposition. Breaking the chain (a missing signature, an unaccounted-for hour, an unsigned handoff, an unsealed bag, an analyst who can't be identified) destroys the evidentiary value — *the most exquisite DNA profile is worthless if its chain is broken*.\n\n**Required chain-of-custody fields per item**:\n- Unique item number + barcode.\n- Description (color, size, condition).\n- Location collected (GPS / scene-sketch reference).\n- Collector name + signature + date/time.\n- Recipient signatures + dates at every transfer.\n- Storage condition + location at each step.\n- Sealing + tamper-evident packaging (heat-sealed, tape with collector's signature crossing the seal).\n\n**Collection sequence — least to most invasive** (every step potentially destroys downstream evidence):\n1. **Photograph + document** *in situ*.\n2. **Transient + fragile evidence first**: odors (e.g. accelerants — passive headspace sampling), temperature, latent fingerprints on porous surfaces (will fade), pollen, fragile fibers.\n3. **DNA + biological samples** (swabs of bloodstains, semen, saliva, touch surfaces) BEFORE fingerprint dusting (powder contaminates DNA recovery).\n4. **Fingerprint dusting** + lifting on non-porous surfaces (after DNA swabbing).\n5. **Trace evidence** (hair, fibers, glass, paint, GSR) — combed, taped, vacuumed, or hand-picked.\n6. **Bulk evidence** (weapons, clothing, large items) packaged.\n7. **Impressions** (footwear, tire) cast or lifted.\n8. **Pattern evidence** (blood-spatter mapping, bullet trajectory).\n\n**Packaging rules**:\n- **Paper bags** for biological evidence + clothing (allow drying; plastic promotes bacterial + fungal growth + DNA degradation).\n- **Plastic / glass** for hairs + fibers + glass fragments + paint chips (no static loss).\n- **Anti-static for electronics**.\n- **Druggist's fold / pharmacy fold** for small particulate evidence on paper.\n- **Each item in its own container** — no cross-contamination.\n- **Refrigerate / freeze** biological evidence ASAP; dry first if wet.\n- **Air-dry blood + body fluids** before packaging.\n\n**Biological hazards**: assume EVERY scene contains bloodborne pathogens (HIV, HBV, HCV) + respiratory pathogens (TB, COVID, hantavirus). Universal precautions: gloves (double for biohazard), N95 / P100 respirator, eye protection, Tyvek for splash risk, sharps containers, decontamination after each scene (10% bleach for surfaces; hand hygiene). Drug scenes (especially fentanyl, methamphetamine clandestine labs) require additional respiratory + chemical protection.\n\n**Brady disclosure note**: any deviation from SOP, sealed-evidence breach, unexplained handling gap, or unexplained delay can become *Brady material* the prosecution must disclose to defense. Meticulous, contemporaneous documentation is the only defense."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_scene_sequence",
+        "kind": "guided_derivation",
+        "question": "Determine the correct collection sequence for a violent crime scene",
+        "goal": "A homicide scene has: visible bloodstain on a kitchen counter; latent fingerprints on a glass door; a shed hair on the victim; a knife on the floor; muddy footwear impression on tile; a cell phone on a table. In what order should these be processed, and why?",
+        "steps": [
+          {
+            "prompt": "What is the universal first step before *any* collection?",
+            "motivation": "Locard + documentation precede collection.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "secure scene + don PPE + photograph + sketch + walk-through with no contact"
+              ]
+            },
+            "hints": [
+              "If it isn't recorded, it didn't happen."
+            ],
+            "reveal": "Universal first: **secure the scene + perimeter + log entry**; **don full PPE**; conduct a no-touch **walk-through**; complete **photography in all three magnifications** (overall, mid, close-up with scale); rough **sketch**; **field notes**. Only then begin physical collection. The walk-through identifies transient evidence + an optimal collection sequence + risk-of-loss items."
+          },
+          {
+            "prompt": "Of the six items, which is most fragile / transient + must be processed first?",
+            "motivation": "Hair on the body — easily lost.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "shed hair on the victim"
+              ]
+            },
+            "hints": [
+              "What moves with body transport?"
+            ],
+            "reveal": "**Shed hair on the victim** — transient, easily lost when the body is moved + transported to the morgue. Tape-lift or tweezer-pick after photographing in situ; package in paper fold or evidence envelope; note exact location on victim. Other trace (fibers, GSR on victim's hands) also collected before body transport — typically taped + bagged at the scene."
+          },
+          {
+            "prompt": "Between the bloodstain swab + fingerprint dusting on the glass door, which comes first + why?",
+            "motivation": "DNA before fingerprint powder.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "DNA / blood swab first; fingerprint powder later"
+              ]
+            },
+            "hints": [
+              "Fingerprint powder contaminates DNA."
+            ],
+            "reveal": "**Bloodstain DNA swab first** — fingerprint powder contaminates downstream DNA recovery + may inhibit PCR. Best practice: photograph + swab DNA-relevant prints + biological fluids; then dust for prints (the print + DNA can sometimes be recovered from the *same* item if sequenced correctly). On porous substrates use DFO + ninhydrin (which can be DNA-compatible); on non-porous, swab biological first."
+          },
+          {
+            "prompt": "The knife on the floor — collect early or late?",
+            "motivation": "Bulk evidence + multi-modal.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "late — package whole after photographing + trace + DNA + print considerations"
+              ]
+            },
+            "hints": [
+              "Multiple analyses on one item."
+            ],
+            "reveal": "Knife: a **multi-modal item** — DNA (blade + handle), prints (handle), trace (fibers on edges), tool marks (if used to pry), pattern (blood-spatter). Photograph in situ; secure with crime-scene tape to a cardboard backing inside a sealed box (never wrap loose — the blade damages the bag + injures handlers). Process in lab in order: trace (taping), DNA swabs (blade tip + edges + handle), prints (handle), trajectory + comparison. Handled late at scene because the in-place photographs + measurements are essential."
+          },
+          {
+            "prompt": "The cell phone — special handling?",
+            "motivation": "Digital + physical evidence combined.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Faraday bag + photograph in situ + power state preserved + chain of custody to digital forensics"
+              ]
+            },
+            "hints": [
+              "Volatile digital state + remote-wipe risk."
+            ],
+            "reveal": "Cell phone: **Faraday bag** (RF-shielded) immediately after photograph in situ to block remote wipe + signal updates that destroy memory state. Note **power state** at collection (on/off, locked/unlocked, screen content); never alter power state unless on advice of digital-forensics analyst. Keep charged en route (Faraday-shielded power supply). Chain of custody to digital-forensics lab (FTK, Cellebrite UFED, Magnet AXIOM). The phone may also have prints + DNA on case + screen — coordinate digital + physical workflows."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_scene_packaging",
+        "kind": "multiple_choice",
+        "question": "Why are paper bags (not plastic) used to package blood-stained clothing at a crime scene?",
+        "options": [
+          "Paper is cheaper.",
+          "Paper bags allow residual moisture to evaporate, preventing bacterial + fungal growth that degrades DNA. Plastic bags trap moisture, accelerating microbial activity that destroys biological evidence within hours-days. Blood-stained clothing is also air-dried before packaging when possible. Plastic packaging is reserved for dry, particulate evidence (hair, fibers, glass, paint chips) where static + moisture loss are non-issues — but biological evidence ALWAYS goes in paper. This is one of the most-cited collection errors leading to DNA case failures.",
+          "Paper is required by Daubert.",
+          "Plastic bags interfere with X-ray scanners."
+        ],
+        "correctIndex": 1,
+        "explanation": "Paper bags allow residual moisture to evaporate from blood + body fluids, preventing bacterial + fungal growth that rapidly degrades DNA. Plastic traps moisture + accelerates microbial degradation. Biological evidence ALWAYS goes in paper (after air-drying if wet); plastic is reserved for hair, fibers, glass, paint chips. Wet-in-plastic is a classic cause of DNA case failures."
+      },
+      "hints": [
+        "What does moisture do to biological evidence?",
+        "Plastic + moisture + body fluids = ?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Paper bags allow moisture evaporation; plastic traps moisture + accelerates bacterial / fungal growth that degrades DNA in hours to days. Biological evidence ALWAYS in paper; particulate (hair, fibers, glass, paint) in plastic / glass. Air-dry blood + body fluids first. Wet-in-plastic is a classic + preventable case failure."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_scene_contam",
+        "kind": "scenario",
+        "question": "Contamination cascade",
+        "prompt": "A new CSI changes gloves between rooms but not between items. She swabs four blood spatter locations across the living room with the same gloves before going to a fresh pair for the kitchen. The DNA lab subsequently reports identical full STR profiles at all four living-room spatters. Walk through the Locard + chain-of-custody implications + what should have been done differently."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_scene_perim",
+        "kind": "math_expression",
+        "question": "A circular outdoor crime scene has a 25-meter radius perimeter. To search using a 1-meter spaced grid, approximately how many square meters of ground must be processed? (Use $A = \\pi r^2$; round to nearest 100.)",
+        "acceptedAnswers": [
+          "1963",
+          "1962",
+          "1964",
+          "2000",
+          "1963.5"
+        ],
+        "hint": "$\\pi \\cdot 25^2 \\approx 1963.5$ m². Round to nearest 100 → 2000, or to nearest unit → 1963."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_scene",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how the principle 'least invasive to most invasive' governs evidence collection at a violent crime scene.",
+        "rubric": "Mentions: every collection step can destroy or alter downstream evidence — so process the most fragile / transient first + the most destructive last. Order: secure + photograph + sketch (no contact); transient evidence (odors, temperatures, fragile fibers, hairs on victim before body transport); DNA + biological swabs (BEFORE fingerprint powder, which inhibits PCR); fingerprint dusting on non-porous surfaces; trace evidence (combs, tape lifts, vacuums); impressions (cast or lift); bulk items (knife, weapons, clothing, electronics) packaged. Biological in paper bags after air-drying; particulate in plastic / glass; phones in Faraday bags. Each step + transfer logged in chain of custody. The sequence enforces Locard (bidirectional contamination control) + Daubert (defensible, reproducible methodology under cross)."
+      }
+    }
+  ]
+}
