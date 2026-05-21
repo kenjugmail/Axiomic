@@ -1,0 +1,154 @@
+{
+  "slug": "number-theory",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Master classical results: primes, Fermat, Euler, quadratic reciprocity.",
+      "Understand analytic number theory: zeta function, PNT, RH.",
+      "Survey algebraic + modern: class field theory, Wiles–Taylor, abc conjecture."
+    ],
+    "prereqs": [
+      "abstract-algebra-and-groups"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Classical number theory: primes and arithmetic",
+      "body": "**Primes**: integers p ≥ 2 with no divisors other than 1 and p. The atoms of arithmetic.\n\n**Fundamental theorem of arithmetic**: every integer n ≥ 2 has a unique factorization into primes (up to order). Proven via well-ordering + Euclid's lemma (p | ab ⇒ p | a or p | b).\n\n**Euclid's theorem (~300 BCE)**: there are infinitely many primes. *Proof*: suppose p_1, ..., p_n are all primes; then N = p_1·p_2·...·p_n + 1 has a prime divisor not in the list. One of the most elegant proofs ever written, in *Elements* Book IX, Proposition 20.\n\n**Sieve of Eratosthenes (~250 BCE)**: cross out multiples to find primes ≤ N in O(N log log N) operations.\n\n**Fermat's little theorem (1640)**: if p is prime and gcd(a, p) = 1, then a^(p-1) ≡ 1 (mod p). Or a^p ≡ a (mod p) for all a. Pierre de Fermat (1607–1665) — lawyer + amateur mathematician who launched modern number theory + the calculus of probabilities (with Pascal).\n\n**Euler's totient φ(n)**: number of integers in [1, n] coprime to n. φ(p) = p - 1 for prime p; φ(p^k) = p^(k-1)(p-1); φ multiplicative: φ(mn) = φ(m)φ(n) when gcd(m,n) = 1.\n\n**Euler's theorem (1736)**: gcd(a, n) = 1 ⇒ a^φ(n) ≡ 1 (mod n). Generalization of Fermat. Basis of RSA cryptography (factoring large semi-primes ⇒ knowing φ(n) ⇒ breaking the cipher).\n\n**Quadratic reciprocity (Gauss, 1801, *Disquisitiones Arithmeticae*)**: for distinct odd primes p, q,\n\n$$\\left(\\frac{p}{q}\\right) \\left(\\frac{q}{p}\\right) = (-1)^{\\frac{p-1}{2} \\cdot \\frac{q-1}{2}}$$\n\nwhere (p/q) = ±1 is the Legendre symbol indicating whether p is a square mod q. Gauss gave 8 proofs across his life; called it the *aureum theorema* ('golden theorem'). One of the deepest results in classical number theory; foundation of class field theory.\n\n**Dirichlet's theorem on primes in arithmetic progressions (1837)**: for gcd(a, n) = 1, there are infinitely many primes ≡ a (mod n). Proven using **Dirichlet L-functions** L(s, χ) — a major early triumph of analytic number theory. Peter Gustav Lejeune Dirichlet (1805–1859).\n\n**Goldbach conjecture (1742)**: every even integer ≥ 4 is the sum of two primes. Still open. **Twin prime conjecture**: infinitely many primes p with p + 2 also prime. Open (huge progress: Zhang 2013 bounded gaps; Polymath 8 + Maynard reduced gap to 246; James Maynard Fields Medal 2022)."
+    },
+    {
+      "kind": "text",
+      "title": "Analytic number theory: Riemann zeta and the PNT",
+      "body": "**Riemann zeta function**: ζ(s) = Σ_{n=1}^∞ 1/n^s for Re(s) > 1. Analytically continues to ℂ \\ {1} with a simple pole at s = 1.\n\n**Euler product (1737)**:\n\n$$\\zeta(s) = \\prod_{p \\text{ prime}} \\frac{1}{1 - p^{-s}}$$\n\nLeonhard Euler discovered this in 1737 — connects ζ to primes. Taking log + s → 1: Σ 1/p diverges (proves infinitely many primes again, *quantitatively*).\n\n**Riemann's 1859 memoir**: 8-page paper *Über die Anzahl der Primzahlen unter einer gegebenen Größe* (On the number of primes less than a given magnitude). Bernhard Riemann (1826–1866) introduced ζ as a complex function, found its functional equation\n\n$$\\zeta(s) = 2^s \\pi^{s-1} \\sin(\\pi s / 2) \\Gamma(1-s) \\zeta(1-s),$$\n\nidentified **trivial zeros** at s = -2, -4, -6, ..., and conjectured that all **non-trivial zeros** lie on the critical line Re(s) = 1/2. The **Riemann hypothesis**.\n\n**Prime-counting function π(x)** = # primes ≤ x. **PNT — Prime Number Theorem**:\n\n$$\\pi(x) \\sim \\frac{x}{\\ln x}$$\n\nConjectured by Gauss + Legendre ~1796; proven independently by **Jacques Hadamard** and **Charles-Jean de la Vallée Poussin** in **1896**, using ζ's non-vanishing on Re(s) = 1. PNT is essentially equivalent to ζ(s) ≠ 0 on Re(s) = 1.\n\n**Riemann hypothesis (RH, 1859)**: all non-trivial zeros of ζ(s) have Re(s) = 1/2. **The deepest unsolved problem in mathematics**. Clay Millennium Prize ($1M). Implies:\n- Sharp bound: π(x) = Li(x) + O(√x log x).\n- Random-matrix statistics for zero spacings (Montgomery–Odlyzko 1973+).\n- Refined PNT in arithmetic progressions (generalized RH).\n\nNumerically verified: first 10¹³ zeros are on the line (Odlyzko, Gourdon). No counterexample known.\n\n**Enrico Bombieri (1940–)**: Fields Medal 1974. **Bombieri–Vinogradov theorem**: large-sieve-based 'average GRH' — primes in APs behave on average as GRH predicts. Foundational tool.\n\n**Atle Selberg (1917–2007)**: Fields Medal 1950. Elementary proof of PNT (with Erdős, 1949 — controversial priority dispute). **Selberg sieve**, **Selberg trace formula** (connects spectral data to length spectrum of locally symmetric spaces; deep generalizations in Langlands).\n\n**Modern analytic number theory**: bounded gaps (Zhang 2013, Maynard 2014, Polymath 8); Green–Tao theorem (2004): primes contain arbitrarily long arithmetic progressions; Bourgain, Iwaniec, Sarnak, Granville, Soundararajan."
+    },
+    {
+      "kind": "text",
+      "title": "Algebraic + modern: class fields, Wiles–Taylor, abc",
+      "body": "**Algebraic number theory** studies algebraic extensions of ℚ — finite-dimensional ℚ-vector spaces inside ℂ closed under arithmetic. Examples: ℚ(i), ℚ(√2), ℚ(ζ_n) (cyclotomic fields), ℚ(α) for α algebraic.\n\n**Ring of integers** 𝒪_K: integral closure of ℤ in K. Generalizes ℤ ⊆ ℚ. May fail unique factorization! Example: in ℤ[√-5], we have 6 = 2·3 = (1+√-5)(1-√-5) with both factorizations into irreducibles. *Dedekind's fix* (1871): factor *ideals* instead of elements. **Ideal class group** Cl(𝒪_K) measures failure of unique factorization; finite by Minkowski.\n\n**Class field theory (Hilbert, Takagi, Artin, ~1900–1930s)**: classifies abelian extensions of a number field via internal data (the idele class group). One of the towering achievements of 20th-century mathematics. **Artin reciprocity** unifies + generalizes Gauss's quadratic reciprocity to arbitrary abelian extensions.\n\n**Galois representations**: ρ : Gal(ℚ̄/ℚ) → GL_n(ℚ_ℓ) (ℓ-adic). Encode arithmetic data. Examples:\n- 1-dim Galois reps ↔ Dirichlet characters (class field theory).\n- 2-dim odd irreducible ↔ modular forms (modularity).\n- n-dim ↔ automorphic representations of GL_n (Langlands conjecture).\n\n**Wiles–Taylor proof of Fermat's Last Theorem (1995)**: 358-year saga ends. **Fermat (1637)** wrote in margin of *Arithmetica* that no positive integers satisfy x^n + y^n = z^n for n > 2; claimed a 'truly marvelous proof' too small for the margin. Likely apocryphal.\n\n**The strategy** (Frey, Serre, Ribet, 1980s):\n- Suppose a^p + b^p = c^p is a Fermat solution.\n- **Frey curve**: E_{a,b,c} : y² = x(x - a^p)(x + b^p) is an elliptic curve.\n- **Ribet (1986)** proved: if all semistable elliptic curves over ℚ are modular, then the Frey curve cannot exist (its modular form would have impossible properties).\n- **Modularity (Taniyama–Shimura–Weil conjecture)**: every elliptic curve over ℚ is associated to a modular form. Proving modularity for semistable case ⇒ Fermat.\n\n**Andrew Wiles (Princeton, 1993)** announced a proof at Cambridge after 7 years of solo work. Gap discovered → fixed with **Richard Taylor** (1995). Published in *Annals of Mathematics* 1995. Cornerstone: connecting Galois reps to modular forms via deformation theory + Taylor–Wiles patching. **Modularity theorem** fully proven by Breuil–Conrad–Diamond–Taylor (2001). Abel Prize 2016 (Wiles).\n\n**abc conjecture (Masser–Oesterlé, 1985)**: for ε > 0, only finitely many coprime a + b = c satisfy c > rad(abc)^(1+ε), where rad(n) = product of distinct primes dividing n. Implies Fermat (eventually), Mordell, Roth, much more.\n\n**Shinichi Mochizuki (Kyoto)** claimed proof (2012) in 500+ pages of *Inter-universal Teichmüller theory* (IUT). Most experts unable to verify or have rejected (Scholze–Stix 2018 published 'serious gap'). Status: contested; one of the most public unresolved disputes in modern math. Published in journal Mochizuki edits — controversy.\n\n**Polymath project** (Tao, Gowers): massively collaborative online research. Polymath 8 (2013–14) reduced prime-gap bound from 70 million (Zhang) to 246 (Maynard, Polymath 8b). Demonstrates large-scale collaboration."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_nt_euler",
+        "kind": "guided_derivation",
+        "question": "Use Euler's theorem to compute 7^222 mod 10",
+        "goal": "Apply a^φ(n) ≡ 1 (mod n).",
+        "steps": [
+          {
+            "prompt": "Compute φ(10).",
+            "motivation": "Totient.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "4"
+              ]
+            },
+            "hints": [
+              "10 = 2 · 5; φ(2)·φ(5) = 1·4."
+            ],
+            "reveal": "φ(10) = φ(2)·φ(5) = 1·4 = 4."
+          },
+          {
+            "prompt": "Since gcd(7, 10) = 1, what does Euler give us?",
+            "motivation": "Apply theorem.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "7^4 ≡ 1 (mod 10)"
+              ]
+            },
+            "hints": [
+              "a^φ(n) ≡ 1."
+            ],
+            "reveal": "7^4 ≡ 1 (mod 10) by Euler's theorem. (Check: 7² = 49 ≡ 9; 7⁴ ≡ 81 ≡ 1 ✓.)"
+          },
+          {
+            "prompt": "Reduce 222 mod 4 to simplify 7^222.",
+            "motivation": "Exponent reduction.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2"
+              ]
+            },
+            "hints": [
+              "222 = 4·55 + 2."
+            ],
+            "reveal": "222 mod 4 = 2, so 7^222 ≡ 7² (mod 10)."
+          },
+          {
+            "prompt": "Compute 7² mod 10.",
+            "motivation": "Final.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "9"
+              ]
+            },
+            "hints": [
+              "49 mod 10."
+            ],
+            "reveal": "7² = 49 ≡ 9 (mod 10). So 7^222 ≡ 9 (mod 10). The last digit of 7^222 is 9."
+          }
+        ],
+        "finalResult": "$$7^{222} \\equiv 7^{222 \\bmod \\varphi(10)} = 7^2 \\equiv 9 \\pmod{10}.$$ Euler's theorem reduces exponentiation modulo n; foundation of RSA + many algorithms."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_nt_pnt",
+        "kind": "multiple_choice",
+        "question": "Why is the Prime Number Theorem (PNT) a milestone of 19th–20th century math?",
+        "options": [
+          "Random.",
+          "**PNT** (π(x) ~ x/ln x): Gauss + Legendre conjectured ~1796; **Hadamard + de la Vallée Poussin** independently proved 1896 using complex analysis of Riemann's zeta function — specifically ζ(s) ≠ 0 on Re(s) = 1. Milestone because: (1) settled a fundamental quantitative question about primes; (2) launched analytic number theory as a discipline — bridge between primes (discrete) + complex analysis (continuous); (3) deepened RH's significance — sharper PNT bounds equivalent to zero-free regions; (4) inspired Selberg + Erdős's elementary (non-complex-analysis) proof in 1949. Foundation for modern work on prime gaps (Zhang, Maynard) + analytic number theory generally.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "PNT (π(x) ~ x/ln x): Hadamard + de la Vallée Poussin 1896 via complex analysis of ζ. Launched analytic number theory; deepened RH; bridge between discrete primes + complex analysis."
+      },
+      "hints": [
+        "1896 + Hadamard + de la Vallée Poussin.",
+        "ζ + complex analysis."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "PNT (π(x) ~ x/ln x) proven by Hadamard + de la Vallée Poussin 1896 via ζ. Launched analytic number theory; deepened RH; later elementary proof by Selberg + Erdős 1949."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_nt_fermat",
+        "kind": "scenario",
+        "question": "Wiles + Taylor on Fermat: anatomy of a 358-year proof",
+        "prompt": "Andrew Wiles (with Richard Taylor) proved Fermat's Last Theorem in 1995, via the Taniyama–Shimura modularity theorem for semistable elliptic curves + Frey–Ribet's level-lowering argument. Trace the strategy: how does the Frey curve associated to a hypothetical Fermat solution lead to a contradiction via modularity? Why is modular forms + Galois representations the *right* language? What does this tell us about the unity of modern number theory + the Langlands program?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_nt_legendre",
+        "kind": "math_expression",
+        "question": "By quadratic reciprocity, compute $\\left(\\frac{3}{7}\\right) \\left(\\frac{7}{3}\\right)$. (Each factor is $\\pm 1$.)",
+        "acceptedAnswers": [
+          "-1",
+          "(-1)^((3-1)/2 * (7-1)/2)",
+          "(-1)^3"
+        ],
+        "hint": "((p-1)/2)·((q-1)/2) = 1·3 = 3; $(-1)^3 = -1$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_nt",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how analytic number theory connects primes (discrete) to complex analysis (continuous), and why RH is so central.",
+        "rubric": "Mentions: Euler product (1737) ζ(s) = Π_p 1/(1-p^{-s}) connects ζ (analytic) to primes. Riemann (1859) studied ζ as a complex function: functional equation, critical strip 0 < Re(s) < 1, non-trivial zeros. PNT (Hadamard + de la Vallée Poussin 1896) proven via ζ ≠ 0 on Re(s) = 1. **RH** = all non-trivial zeros on Re(s) = 1/2; would give sharp π(x) = Li(x) + O(√x log x). Implies finer prime distribution, random-matrix zero statistics (Montgomery–Odlyzko), and generalizes (GRH for L-functions). Bombieri–Vinogradov + Selberg sieve are tools building on this analytic-prime bridge. Clay Millennium Prize — deepest unsolved problem in math."
+      }
+    }
+  ]
+}

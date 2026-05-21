@@ -1,0 +1,153 @@
+{
+  "slug": "probability-and-measure",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Master measure-theoretic probability: Kolmogorov axioms, σ-algebras, Lebesgue, Radon–Nikodym.",
+      "Understand martingales, Markov, Brownian, Itô calculus, SDEs, Feynman–Kac.",
+      "Survey modern frontier: large deviations, concentration, free probability, random matrices."
+    ],
+    "prereqs": [
+      "analysis-and-topology"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Measure-theoretic probability: the Kolmogorov foundation",
+      "body": "**Andrey Kolmogorov (1903–1987)** — *Grundbegriffe der Wahrscheinlichkeitsrechnung* (Foundations of the Theory of Probability, 1933). Axiomatized probability on Lebesgue's measure theory. Settled centuries of philosophical confusion about 'probability' by *defining* it formally.\n\n**Probability space** (Ω, ℱ, ℙ):\n- **Sample space** Ω: set of outcomes ω.\n- **σ-algebra** ℱ ⊆ 2^Ω: contains Ω; closed under complements + countable unions. Events.\n- **Probability measure** ℙ : ℱ → [0,1]: ℙ(Ω) = 1; countably additive (ℙ(⊔ A_n) = Σ ℙ(A_n) for disjoint A_n).\n\n**σ-algebras**: closed under countable operations. **Borel σ-algebra** ℬ(ℝ) = smallest σ-algebra containing open sets. **Lebesgue σ-algebra** = ℬ(ℝ) plus null sets.\n\n**Random variable** X : (Ω, ℱ) → (ℝ, ℬ): measurable function. X^{-1}(B) ∈ ℱ for all Borel B. **Distribution** μ_X = ℙ ∘ X^{-1} is a Borel probability measure on ℝ. **CDF** F_X(x) = ℙ(X ≤ x).\n\n**Measurable functions + Lebesgue integral** = expectations. 𝔼[X] = ∫ X dℙ = ∫ x dμ_X(x) (change of variables). 𝔼[g(X)] = ∫ g(x) dμ_X(x).\n\n**Independence + conditional expectation**:\n- **Independence**: events A, B independent if ℙ(A ∩ B) = ℙ(A) ℙ(B). σ-algebras 𝒢_1 + 𝒢_2 independent if ℙ(A_1 ∩ A_2) = ℙ(A_1)ℙ(A_2) for A_i ∈ 𝒢_i.\n- **Conditional expectation** 𝔼[X | 𝒢]: 𝒢-measurable random variable with ∫_G 𝔼[X|𝒢] dℙ = ∫_G X dℙ ∀G ∈ 𝒢. Generalizes conditional probability. Existence via Radon–Nikodym.\n\n**Radon–Nikodym theorem**: if μ ≪ ν (μ absolutely continuous w.r.t. ν — ν(A) = 0 ⇒ μ(A) = 0), then ∃ measurable f ≥ 0 with μ(A) = ∫_A f dν. Write f = dμ/dν. Foundational: connects densities to measures; permits change-of-measure (Girsanov in SDE world; importance sampling in MCMC; likelihood ratios in statistics).\n\n**LLN + CLT (measure-theoretic versions)**:\n- **Strong law of large numbers (Kolmogorov)**: X_i iid with finite mean μ ⇒ (1/n) Σ X_i → μ a.s.\n- **Central limit theorem (Lindeberg–Lévy)**: X_i iid mean μ var σ² ⇒ √n((1/n) Σ X_i - μ) ⇒ N(0, σ²).\n- **Lindeberg's condition + Lyapunov's condition**: extensions to non-iid.\n\n**Modes of convergence**: a.s. ⇒ in probability ⇒ in distribution (weak); L^p convergence stronger than in probability for p ≥ 1. Counterexamples + relationships are central to learning probability."
+    },
+    {
+      "kind": "text",
+      "title": "Martingales, Markov chains, Brownian motion, Itô",
+      "body": "**Stochastic processes**: families (X_t)_{t ∈ T} of random variables. T = ℕ (discrete) or [0, ∞) (continuous time).\n\n**Filtration** (ℱ_t)_{t ≥ 0}: increasing family of σ-algebras (ℱ_s ⊆ ℱ_t for s ≤ t). Information up to time t. (X_t) is **adapted** if X_t is ℱ_t-measurable.\n\n**Martingale**: 𝔼[X_t | ℱ_s] = X_s for s ≤ t. 'Fair game' — best prediction of future = current value. **Supermartingale** (decreasing in conditional expectation; losing games). **Submartingale** (increasing; winning).\n\nExamples:\n- Random walk S_n = X_1 + ... + X_n with 𝔼[X_i] = 0 is a martingale.\n- Likelihood ratios. Conditional expectations 𝔼[Y | ℱ_t]. Doob martingales.\n\n**Doob's martingale convergence theorem**: bounded martingales converge a.s. (Real-valued L^1-bounded martingales converge a.s.) **Optional stopping theorem**: under regularity (uniform integrability), 𝔼[X_τ] = 𝔼[X_0] for stopping times τ. Powerhouse for analyzing random walks, sequential analysis, finance (no-arbitrage).\n\n**Markov chains** (Andrey Markov, 1906): processes with memoryless property ℙ(X_{n+1} = j | X_0, ..., X_n) = ℙ(X_{n+1} = j | X_n). Transition matrix P. **Stationary distribution** π with πP = π. **Ergodic theorem**: irreducible aperiodic MCs converge to stationary; time average = ensemble average. Foundation of MCMC (Metropolis–Hastings, Gibbs sampling), PageRank, queueing.\n\n**Brownian motion** B_t (Norbert Wiener, 1923; physics intuition: Robert Brown 1827, Einstein 1905, Smoluchowski):\n- B_0 = 0.\n- Independent increments: B_t - B_s ⊥ ℱ_s.\n- Gaussian: B_t - B_s ~ N(0, t - s).\n- Continuous paths a.s.\n\nBrownian sample paths are *continuous everywhere, differentiable nowhere*, with quadratic variation t (i.e. (dB)² = dt). Constructed by Wiener via Fourier series; modern construction via Kolmogorov extension + tightness.\n\n**Itô calculus (Kiyoshi Itô, 1944–1951)**: stochastic integration ∫₀^t H_s dB_s for adapted H. Surprisingly, *not* defined as a Riemann sum because B has infinite variation. Itô's prescription: take left endpoint of partition + L² limit. Properties:\n- Itô isometry: 𝔼[(∫ H dB)²] = 𝔼[∫ H² ds].\n- ∫ H dB is a martingale (under integrability).\n\n**Itô's formula** (stochastic chain rule): for f ∈ C², X_t = X_0 + ∫ b ds + ∫ σ dB,\n\n$$df(X_t) = f'(X_t) dX_t + \\frac{1}{2} f''(X_t) (dX_t)^2.$$\n\nThe ½ f'' (dX)² term is *new* — the Itô correction — absent from classical calculus.\n\n**SDEs (stochastic differential equations)**: dX_t = b(X_t) dt + σ(X_t) dB_t. Existence + uniqueness under Lipschitz coefficients (Itô existence theorem). **Diffusion processes**, geometric Brownian motion dS = μS dt + σS dB (Black–Scholes).\n\n**Feynman–Kac formula**: solutions of PDEs ∂u/∂t = Lu (with L the generator of an SDE) admit representations u(t,x) = 𝔼_x[g(X_t)]. Bridges PDE + probability; basis for Monte Carlo PDE solvers + mathematical finance pricing."
+    },
+    {
+      "kind": "text",
+      "title": "Modern probability: large deviations, free probability, random matrices",
+      "body": "**Large deviations theory (Cramér 1938; Sanov 1957; Donsker–Varadhan 1975–1983; Varadhan Abel Prize 2007)**: precise asymptotics of rare events.\n\n**Large deviation principle (LDP)**: ℙ(X_n / n ≈ x) ≈ exp(-n I(x)). The *rate function* I encodes exponential decay of probabilities. Cramér's theorem (iid sums): I(x) = sup_θ (θx - log 𝔼[e^{θX}]). Legendre transform of cumulant generating function.\n\nApplications: information theory (Sanov ↔ KL divergence: 'rate of empirical measure' = KL); statistical mechanics (entropy from rate functions); insurance (ruin probabilities); finance (tail risk).\n\n**Concentration of measure (Talagrand, Ledoux, Marton, 1990s+)**: in high dimensions, smooth functions of many independent variables concentrate around their mean.\n\n- **Hoeffding's inequality**: bounded iid X_i ⇒ ℙ(|(1/n)ΣX_i - μ| > t) ≤ 2 exp(-2nt²/ range²).\n- **Bernstein, Chernoff, McDiarmid**: variants for variance, bounded differences.\n- **Sub-Gaussian / sub-exponential** RVs: tails ≤ Gaussian / exponential.\n- **Talagrand's inequality**: powerful concentration for empirical processes.\n\nConcentration → high-dim statistics (compressed sensing, lasso); learning theory (uniform convergence, Rademacher complexity, PAC bounds); random graph theory.\n\n**Free probability (Dan Voiculescu, 1985+)**: non-commutative probability with *freeness* replacing independence. Originated in operator algebras (free products of von Neumann algebras). Asymptotically, eigenvalues of independent random matrices are *free*. The combinatorial structure is governed by *non-crossing partitions* (instead of all partitions for classical independence). Free CLT: free analogue of Gaussian = semicircle distribution.\n\n**Random matrix theory (RMT)** (Wishart 1928; Wigner 1955; Dyson 1962; Mehta book 1967): eigenvalues of large random matrices.\n\n- **Wigner semicircle law**: N×N Hermitian random matrices with iid entries — empirical eigenvalue distribution → semicircle ρ(x) = (1/2π)√(4 - x²) on [-2, 2].\n- **Marchenko–Pastur law**: sample covariance matrices.\n- **Tracy–Widom distribution**: largest eigenvalue fluctuations; F_β for β = 1, 2, 4 (orthogonal/unitary/symplectic).\n- **Random matrix universality** (Erdős, Schlein, Yau, Tao, Vu, 2009–2014): Wigner-type matrices with generic entries have universal local eigenvalue statistics matching GOE/GUE/GSE; the **universality conjecture** for Wigner matrices proven via comparison + relaxation flow methods. **Terence Tao + Van Vu** (2009) proved the *Four Moment Theorem* and universality for eigenvectors + eigenvalues. Landmark of analytic probability.\n\n**Connections + applications**:\n- Number theory: Montgomery–Odlyzko conjecture — Riemann zeta zero spacings = GUE statistics.\n- Physics: quantum chaos, mesoscopic conductors, nuclear physics (Wigner's original motivation).\n- Statistics: PCA, high-dim covariance estimation, spiked models.\n- ML: random features, NTK, scaling laws.\n- Combinatorics: free probability + Schur-Weyl + asymptotic representation theory."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_prob_ito",
+        "kind": "guided_derivation",
+        "question": "Apply Itô's formula to f(B_t) = B_t²",
+        "goal": "Derive d(B_t²) using Itô's formula.",
+        "steps": [
+          {
+            "prompt": "What are f'(x) and f''(x) for f(x) = x²?",
+            "motivation": "Setup.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "f'(x) = 2x; f''(x) = 2"
+              ]
+            },
+            "hints": [
+              "Power rule."
+            ],
+            "reveal": "f'(x) = 2x; f''(x) = 2."
+          },
+          {
+            "prompt": "Apply Itô: df(B_t) = f'(B_t) dB_t + ½ f''(B_t) dt (since (dB)² = dt for Brownian).",
+            "motivation": "Substitute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "d(B_t²) = 2 B_t dB_t + dt"
+              ]
+            },
+            "hints": [
+              "Plug in derivatives."
+            ],
+            "reveal": "d(B_t²) = 2 B_t dB_t + ½ · 2 · dt = 2 B_t dB_t + dt."
+          },
+          {
+            "prompt": "Integrate from 0 to t. What is B_t² in integral form?",
+            "motivation": "Integral form.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "B_t² = 2 ∫₀^t B_s dB_s + t"
+              ]
+            },
+            "hints": [
+              "Integrate both sides; B_0 = 0."
+            ],
+            "reveal": "B_t² = 2 ∫₀^t B_s dB_s + t (since B_0 = 0)."
+          },
+          {
+            "prompt": "Take expectations. 𝔼[∫₀^t B_s dB_s] = ? (since Itô integrals are martingales starting at 0). Conclude 𝔼[B_t²].",
+            "motivation": "Verify.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "𝔼[B_t²] = t"
+              ]
+            },
+            "hints": [
+              "Itô integral has 0 expectation."
+            ],
+            "reveal": "𝔼[∫₀^t B_s dB_s] = 0 ⇒ 𝔼[B_t²] = t. **Matches** classical fact: B_t ~ N(0, t), Var(B_t) = t. The Itô calculus is self-consistent."
+          }
+        ],
+        "finalResult": "$$d(B_t^2) = 2 B_t \\, dB_t + dt; \\quad \\mathbb{E}[B_t^2] = t.$$ Itô's formula's extra ½ f'' (dX)² term reflects quadratic variation; recovers Var(B_t) = t."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_prob_kolmogorov",
+        "kind": "multiple_choice",
+        "question": "Why is Kolmogorov's 1933 axiomatization considered a foundational moment for probability?",
+        "options": [
+          "Random.",
+          "Kolmogorov's *Grundbegriffe* (1933) built probability on Lebesgue's measure theory: probability space (Ω, ℱ, ℙ) with σ-algebra + countably additive measure. Foundational because: (1) settled centuries of philosophical confusion over what 'probability' even is by *defining* it formally; (2) connected to existing measure-integration toolkit (Lebesgue) — random variables = measurable functions, expectations = Lebesgue integrals; (3) enabled rigorous treatment of conditional expectation (Radon–Nikodym), independence, stochastic processes, Brownian motion (Wiener 1923), martingales (Doob 1953), Itô calculus (1940s+). The unified framework supports modern probability, mathematical finance, statistical learning, statistical physics. Hilbert's 6th problem (axiomatize physics including probability) substantially answered.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Kolmogorov (1933): probability = measure theory. (Ω, ℱ, ℙ) framework with σ-algebra + countably additive measure. Settled foundations + enabled conditional expectation (Radon–Nikodym), processes, martingales, Itô. Answers part of Hilbert's 6th."
+      },
+      "hints": [
+        "1933 + measure theory + Lebesgue.",
+        "What did it unify?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Kolmogorov (1933) axiomatized probability on Lebesgue measure: (Ω, ℱ, ℙ). Settled foundations + connected to integration toolkit. Random variables = measurable functions; expectations = integrals; conditional expectation via Radon–Nikodym."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_prob_tao_vu",
+        "kind": "scenario",
+        "question": "Tao + Vu + random matrix universality",
+        "prompt": "Terence Tao + Van Vu (2009+) proved a 'Four Moment Theorem' establishing universality of local eigenvalue statistics for Wigner-type random matrices. Why is universality remarkable — what's the analogy to the central limit theorem? How does this connect to (a) Montgomery–Odlyzko's conjecture about ζ zeros, (b) physics, (c) free probability (Voiculescu)? What does it tell us about the unity of asymptotic phenomena across number theory, physics, and high-dimensional statistics?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_prob_var",
+        "kind": "math_expression",
+        "question": "For Brownian motion $B_t$, what is $\\text{Var}(B_t)$?",
+        "acceptedAnswers": [
+          "t",
+          "t (time)"
+        ],
+        "hint": "B_t ~ N(0, t)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_prob",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how measure-theoretic probability connects to PDE (Feynman–Kac), finance (Black–Scholes), and modern ML (concentration + RMT).",
+        "rubric": "Mentions: Kolmogorov (1933) probability = measure theory; Itô calculus (1940s) builds SDEs dX = b dt + σ dB; Feynman–Kac connects SDEs to PDEs ∂u/∂t = Lu via expectations of SDE-driven functionals. Black–Scholes (1973): geometric BM SDE + Feynman–Kac → option pricing PDE. ML connections: concentration of measure (Hoeffding, Talagrand) → high-dim statistics, learning theory (PAC bounds); RMT (Wigner semicircle, Marchenko–Pastur, Tracy–Widom) → PCA, NTK, scaling laws; large deviations + KL → information theory; Voiculescu free probability → operator algebras + matrix limits. Unified: probability is the toolkit + theory underlying analysis, PDE, finance, and modern ML."
+      }
+    }
+  ]
+}

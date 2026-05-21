@@ -1,0 +1,155 @@
+{
+  "slug": "analysis-and-topology",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Master real analysis: completeness, Cauchy, uniform convergence, Lebesgue.",
+      "Understand metric + topological spaces, compactness, connectedness.",
+      "Survey differential topology, manifolds, and Perelman's Ricci flow."
+    ],
+    "prereqs": [
+      "math-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Real analysis: rigor on the real line",
+      "body": "**ℝ as the completion of ℚ**: the real numbers are characterized by the *completeness axiom* — every nonempty subset bounded above has a least upper bound (supremum). Equivalent: every Cauchy sequence converges. ℚ fails completeness (the sequence 1, 1.4, 1.41, ... approaches √2 ∉ ℚ).\n\n**Completeness** is *the* defining property of ℝ. It guarantees the existence of supremums, infimums, limits, and underlies intermediate-value, extreme-value, and mean-value theorems.\n\n**Cauchy sequences (Cauchy, 1820s)**: (a_n) is Cauchy if ∀ε > 0 ∃ N s.t. |a_m - a_n| < ε for m, n ≥ N. In ℝ: Cauchy ⇔ convergent. The notion isolates 'convergence' without naming the limit — essential when limits live in larger spaces.\n\n**ε–δ rigor**: Cauchy + Weierstrass replaced infinitesimal intuition with precise quantifier-laden definitions. *f is continuous at a* iff ∀ε > 0 ∃ δ > 0 s.t. |x - a| < δ ⇒ |f(x) - f(a)| < ε. Foundational for 19th-century analysis.\n\n**Uniform convergence (Weierstrass, ~1850)**: f_n → f *uniformly* if sup_x |f_n(x) - f(x)| → 0. Contrast with pointwise convergence. Uniform convergence preserves continuity + permits interchange of limit + integral. **Cauchy's mistake** (1821): claimed pointwise limit of continuous is continuous; uniform convergence is the missing hypothesis (Abel, Weierstrass clarified).\n\n**Lebesgue measure + integration (Lebesgue, 1902 thesis)**: replace Riemann's partition-of-domain with partition-of-range. Measure μ assigns 'length' to (suitable) subsets of ℝ. **Lebesgue integral** integrates over measure rather than length. Critical advantages:\n- Many more functions are integrable (Dirichlet function 𝟙_ℚ).\n- Limit theorems hold under mild conditions.\n- Foundation of measure-theoretic probability (Kolmogorov 1933).\n\n**Dominated convergence theorem (Lebesgue)**: if f_n → f a.e. and |f_n| ≤ g with ∫g < ∞, then ∫f_n → ∫f. Powerful tool — interchange of limit + integral under domination. **Monotone convergence (Beppo Levi)** + **Fatou's lemma** complete the trio.\n\n**Lebesgue measure properties**: countably additive, translation invariant, regular. Cannot extend to all subsets of ℝ (Vitali's non-measurable set, 1905, using AC). **σ-algebras** + measurable functions formalize the framework."
+    },
+    {
+      "kind": "text",
+      "title": "Metric + topological spaces",
+      "body": "**Metric space** (X, d): set X with distance d : X × X → [0, ∞) satisfying:\n- d(x, y) = 0 ⇔ x = y;\n- d(x, y) = d(y, x);\n- d(x, z) ≤ d(x, y) + d(y, z) (triangle inequality).\n\nExamples: ℝⁿ with Euclidean d, function spaces C[a,b] with sup-norm, ℓ^p sequences, discrete metric.\n\n**Open balls** B(x, r) = {y : d(x, y) < r}. A set U is **open** if every point has an open ball ⊆ U. **Closed** = complement of open. **Continuity**: f : X → Y continuous iff preimage of open is open (equivalent to ε–δ in metric spaces).\n\n**Topological space** (X, τ): set + collection τ of 'open' sets satisfying:\n1. ∅, X ∈ τ;\n2. Arbitrary unions in τ;\n3. Finite intersections in τ.\n\nGeneralizes metric spaces. Abstracts 'nearness' without distance. **Hausdorff**: distinct points have disjoint open neighborhoods. Almost all 'nice' spaces are Hausdorff.\n\n**Compactness**: every open cover has a finite subcover. Or (equivalent in Hausdorff): every sequence has a convergent subsequence (sequential compactness, in metric spaces). Compact = 'closed + bounded' in nice cases.\n\n**Heine–Borel theorem**: subset K ⊆ ℝⁿ is compact iff closed + bounded. Foundational result.\n\n**Tychonoff's theorem (1930)**: arbitrary product of compact spaces is compact (in product topology). Requires Axiom of Choice; equivalent to it. Surprisingly strong; used everywhere in analysis + functional analysis.\n\n**Connectedness**: X is connected if not the union of two disjoint nonempty open sets. **Path-connected**: any two points joined by continuous path. ℝⁿ + open balls are both. Cantor set + topologist's sine curve are pathologies.\n\n**Urysohn's lemma**: in a normal Hausdorff space, disjoint closed sets can be separated by a continuous function. Critical bridge between topology + analysis; basis for Tietze extension theorem + many constructions.\n\n**Baire category theorem**: in a complete metric space, countable intersections of dense open sets are dense. Used to prove existence of nowhere-differentiable continuous functions, open mapping theorem, uniform boundedness principle.\n\n**Compactification + completion**: techniques to embed a space in a larger 'nice' space — one-point compactification (Alexandroff), Stone–Čech compactification, Cauchy completion."
+    },
+    {
+      "kind": "text",
+      "title": "Manifolds, differential topology, and Perelman's Ricci flow",
+      "body": "**Manifold M^n**: a Hausdorff topological space locally homeomorphic to ℝⁿ (with countable basis). Generalizes curves (n=1), surfaces (n=2), to arbitrary dimensions.\n\n**Smooth structure**: atlas of charts (U_α, φ_α) with smooth (C^∞) transition maps φ_β ∘ φ_α⁻¹. **Smooth manifold** = topological manifold + smooth atlas. Sphere S^n, real projective space ℝP^n, Lie groups (GL_n, SL_n, SO_n), Grassmannians.\n\n**Tangent space T_p M**: vector space of tangent vectors at p; dim n. Concretely: derivations on smooth functions; or velocity vectors of curves; or equivalence classes of charts. **Tangent bundle TM** = ⋃_p T_p M; itself a smooth 2n-manifold.\n\n**Vector fields, differential forms, exterior algebra**:\n- **Vector field** X = section of TM; locally Σ a^i ∂/∂x^i.\n- **1-form** ω = section of T*M.\n- **k-forms** Λᵏ(T*M) with exterior derivative d.\n- **Wedge product** + **exterior derivative** d² = 0.\n\n**de Rham cohomology**: H^k_dR(M) = ker(d) / im(d). Topological invariant computable from forms. De Rham's theorem: H^k_dR(M) ≅ H^k(M; ℝ) (singular cohomology). Bridges analysis + topology.\n\n**Stokes's theorem**: ∫_∂M ω = ∫_M dω. Unifies gradient, Green's, Gauss's, Stokes's classical theorems. Foundational in differential geometry + physics (electrodynamics, gauge theory).\n\n**Riemannian metric** g: smoothly varying inner product on tangent spaces. Defines lengths, angles, geodesics, curvature. **Ricci curvature** Ric(X, Y), **scalar curvature** R, **sectional curvature**.\n\n**John Milnor (1931–)**: Fields Medal 1962. Discovered **exotic spheres** (1956): smooth manifolds homeomorphic but not diffeomorphic to S⁷. There are 28 distinct smooth structures on S⁷. Shocking result; revealed that smooth + topological categories diverge. Milnor also showed ℝ⁴ has uncountably many smooth structures — unique among ℝⁿ.\n\n**Stephen Smale (1930–)**: Fields Medal 1966. Proved **h-cobordism theorem** (1962) + Poincaré conjecture in dim ≥ 5. Topological + smooth Poincaré conjectures both true in high dimensions; surprisingly, dim 4 is hardest (Freedman 1982 for topological; smooth case still open!).\n\n**Grigori Perelman + Ricci flow**: **Richard Hamilton (1980s)** introduced *Ricci flow* ∂g/∂t = -2 Ric(g) as a heat-equation-like deformation of metrics to smooth out curvature. **Perelman (2002–2003)** completed Hamilton's program with surgery techniques + entropy functionals (𝓕 + 𝓦) to prove **Poincaré conjecture** (every simply-connected closed 3-manifold is S³) and the full Thurston **geometrization conjecture** (every 3-manifold decomposes into pieces with one of 8 geometries). Declined Fields Medal 2006 + Clay Millennium Prize 2010. The one Clay problem solved.\n\n**Modern frontier**: Ricci flow now applied to image processing, network analysis. Geometric topology + 4-manifold smooth Poincaré, exotic ℝ⁴, gauge theory (Donaldson, Seiberg–Witten) drive research."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_top_heineborel",
+        "kind": "guided_derivation",
+        "question": "Apply Heine–Borel + compactness",
+        "goal": "Show that [0,1] ⊆ ℝ is compact, and explain why this matters for extreme-value theorem.",
+        "steps": [
+          {
+            "prompt": "State Heine–Borel for ℝⁿ.",
+            "motivation": "Setup.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "K ⊆ ℝⁿ compact iff closed and bounded"
+              ]
+            },
+            "hints": [
+              "Two-part characterization."
+            ],
+            "reveal": "**Heine–Borel**: K ⊆ ℝⁿ is compact iff K is closed and bounded."
+          },
+          {
+            "prompt": "Is [0,1] closed and bounded?",
+            "motivation": "Apply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "yes, closed and bounded"
+              ]
+            },
+            "hints": [
+              "Endpoints included; bounded by 0 and 1."
+            ],
+            "reveal": "[0,1] is closed (its complement (-∞,0) ∪ (1,∞) is open) and bounded (contained in [0,1]). By Heine–Borel, compact."
+          },
+          {
+            "prompt": "State the extreme-value theorem and explain why compactness is needed.",
+            "motivation": "Use case.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "continuous f on compact K attains max + min"
+              ]
+            },
+            "hints": [
+              "Continuous image of compact is compact."
+            ],
+            "reveal": "**Extreme-value theorem**: continuous f : K → ℝ with K compact attains its maximum + minimum. Proof: f(K) is compact (continuous image of compact); compact ⊆ ℝ is closed + bounded, hence has max + min. Compactness is essential — f(x) = 1/x on (0,1] is continuous but unbounded; (0,1] isn't compact."
+          },
+          {
+            "prompt": "What's the analogous statement on a metric space?",
+            "motivation": "Generalize.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "continuous real-valued f on compact metric space attains extrema"
+              ]
+            },
+            "hints": [
+              "Replace ℝⁿ by metric space."
+            ],
+            "reveal": "On any compact metric (or compact Hausdorff) space X, a continuous f : X → ℝ attains its max + min. Compactness — finite-subcover property — is the right abstraction. Heine–Borel is the *characterization* in ℝⁿ; compactness is the *concept*."
+          }
+        ],
+        "finalResult": "Compactness via Heine–Borel: [0,1] compact ⇒ continuous functions on it attain extrema. Foundational for optimization, calculus, analysis."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_top_perelman",
+        "kind": "multiple_choice",
+        "question": "What did Perelman prove, and why is it considered a watershed?",
+        "options": [
+          "Random.",
+          "Perelman (2002–2003 arXiv preprints) proved the **Poincaré conjecture** (every simply-connected closed 3-manifold is homeomorphic to S³) + the full Thurston **geometrization conjecture** (every closed 3-manifold canonically decomposes into pieces with one of 8 geometries). Used Hamilton's Ricci flow with surgery + introduced entropy functionals (𝓕, 𝓦) controlling singularity formation. The only Clay Millennium Prize solved; he declined both the Fields Medal (2006) and the $1M Clay Prize (2010). Watershed because it completed a century-old conjecture (Poincaré 1904), validated geometric analysis as a discipline, and unified 3-manifold topology with curvature-flow analysis. Hamilton's Ricci-flow program (initiated 1982) found its grand application.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Perelman (2002–2003): proved Poincaré conjecture + Thurston geometrization via Ricci flow with surgery. Only Clay Millennium Prize solved; declined Fields + Clay Prize. Watershed: century-old conjecture, geometric analysis, Hamilton's program."
+      },
+      "hints": [
+        "Ricci flow + surgery.",
+        "What conjectures + which prizes?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Perelman (2002–2003) proved Poincaré + Thurston geometrization via Hamilton's Ricci flow with surgery. Declined Fields + Clay Prize. Watershed: Clay Millennium Prize solved, geometric analysis validated."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_top_milnor",
+        "kind": "scenario",
+        "question": "Exotic spheres: smooth vs topological",
+        "prompt": "Milnor (1956) discovered that S⁷ has 28 distinct smooth structures — all homeomorphic but not diffeomorphic. Why is this shocking? What does it tell us about the relationship between topology + smooth structures? How does dim 4 (ℝ⁴ has *uncountably* many exotic smooth structures, unique among ℝⁿ) fit into this story, and why is the smooth Poincaré conjecture still open in dim 4?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_top_lebesgue",
+        "kind": "math_expression",
+        "question": "By dominated convergence: if $f_n \\to f$ a.e. and $|f_n| \\le g$ with $\\int g \\, d\\mu < \\infty$, then what does $\\int f_n \\, d\\mu$ converge to?",
+        "acceptedAnswers": [
+          "\\int f d\\mu",
+          "∫ f dμ",
+          "integral of f",
+          "\\int f"
+        ],
+        "hint": "Limit of integrals equals integral of limit, under domination."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_top",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why Lebesgue's measure + integration revolutionized analysis, and how it connects to modern probability and PDE.",
+        "rubric": "Mentions: Lebesgue (1902 thesis) replaced Riemann's partition-of-domain with partition-of-range, defining measurable sets + integral via supremum of simple-function integrals. Advantages: many more functions integrable (Dirichlet function); strong limit theorems (dominated convergence, monotone, Fatou); permits interchange of limit + integral under mild conditions. Connects to: probability (Kolmogorov 1933 — σ-algebras, measurable functions, integrals = expectations); PDE (Sobolev spaces, weak derivatives, distributions); functional analysis (L^p spaces, duality, Banach + Hilbert spaces); harmonic analysis (Fourier on L²). Foundational; underlies most of 20th-century analysis."
+      }
+    }
+  ]
+}
