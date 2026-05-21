@@ -208,6 +208,21 @@ const LazyIceSheetDynamics = lazy(() =>
     (m) => ({ default: m.IceSheetDynamics }),
   ),
 );
+const LazyRetrosynthesisTree = lazy(() =>
+  import("../../../../../packages/viz/src/components/RetrosynthesisTree").then(
+    (m) => ({ default: m.RetrosynthesisTree }),
+  ),
+);
+const LazyTanabeSuganoDiagram = lazy(() =>
+  import("../../../../../packages/viz/src/components/TanabeSuganoDiagram").then(
+    (m) => ({ default: m.TanabeSuganoDiagram }),
+  ),
+);
+const LazyButlerVolmerCurve = lazy(() =>
+  import("../../../../../packages/viz/src/components/ButlerVolmerCurve").then(
+    (m) => ({ default: m.ButlerVolmerCurve }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -348,6 +363,12 @@ function VizByName({
       return <LazyVortexShedding {...(props as object)} />;
     case "ice-sheet-dynamics":
       return <LazyIceSheetDynamics {...(props as object)} />;
+    case "retrosynthesis-tree":
+      return <LazyRetrosynthesisTree {...(props as object)} />;
+    case "tanabe-sugano-diagram":
+      return <LazyTanabeSuganoDiagram {...(props as object)} />;
+    case "butler-volmer-curve":
+      return <LazyButlerVolmerCurve {...(props as object)} />;
     default:
       return null;
   }

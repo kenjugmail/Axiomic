@@ -1,0 +1,158 @@
+{
+  "slug": "analytical-electrochem-and-sensors",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Use CV/CA/EIS/DPV/SWV/stripping for analyte detection.",
+      "Trace biosensor history: Clark → Updike-Hicks → modern.",
+      "Map modern sensor frontiers — wearables, lab-on-chip, e-PCR, nanomaterials."
+    ],
+    "prereqs": [
+      "electrode-kinetics-butler-volmer"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Techniques — CV, CA, EIS, DPV/SWV, stripping",
+      "body": "Analytical electrochemistry uses controlled electrode potential or current to extract information about analyte identity, concentration, kinetics, mechanism, mass transport. **Bard + Faulkner**'s Electrochemical Methods (1980; 2001) is the canonical text.\n\n**Cyclic Voltammetry (CV)** — apply triangular E(t) sweep at scan rate v (V/s); record i vs E.\n- Reversible 1-electron couple: anodic + cathodic peaks symmetric about E°; peak separation ΔE_p = 59 mV/n at 25 °C; i_p ∝ √v (Randles-Ševčík).\n- Irreversible: ΔE_p > 59/n, scales with v; peak shape distorts.\n- Diagnoses: reversibility, n, E°, kinetics, adsorption (peak shape changes), coupled chemistry (EC, ECE mechanisms).\n- Universal first-look technique — almost every electrochemical study starts with CV.\n\n**Chronoamperometry (CA)** — step E to a value driving the reaction; record i vs t.\n- Diffusion-limited: Cottrell, i(t) = nFA·c·√(D/πt). Plot i·√t = const verifies diffusion control.\n- Extracts D from slope; useful for thin-film deposition tracking, kinetic step studies.\n\n**Electrochemical Impedance Spectroscopy (EIS)** — apply small-amplitude sinusoidal V perturbation at frequency ω; measure complex impedance Z(ω) = V/I = R + jX.\n- **Nyquist plot**: -Im(Z) vs Re(Z); equivalent-circuit fitting (Randles cell: R_s + (R_ct || C_dl) + Warburg).\n- **Bode plot**: |Z| + phase vs log f.\n- Extracts: solution resistance (high-f intercept), charge-transfer resistance R_ct = RT/(nFi₀) (semicircle diameter), double-layer capacitance C_dl, Warburg coefficient (45° tail at low f = diffusion), film + porous-electrode features.\n- Workhorse for battery SOH/SOC diagnostics, fuel-cell stack analysis, corrosion (LPR-derived), coating evaluation, biosensor development.\n\n**Differential Pulse Voltammetry (DPV) + Square-Wave Voltammetry (SWV)** — apply potential ramp + pulses, sample current at end of each pulse → subtract baseline → peak-shaped voltammograms.\n- 10-100x sensitivity vs CV by suppressing capacitive background (i_c decays faster than i_F after a pulse).\n- LOD down to nM range for many analytes. SWV faster than DPV; both ubiquitous in environmental + clinical analysis.\n\n**Stripping voltammetry** — preconcentrate analyte at the electrode (electroplate metals over minutes), then strip (anodic or cathodic) for detection. Anodic Stripping Voltammetry (ASV) of Pb²⁺, Cd²⁺, Hg²⁺, As³⁺ — ppt (pg/L) detection limits. EPA + Flint water-crisis testing. Hanging mercury drop electrode classical; today carbon, Au, Bi film, modified electrodes.\n\n**Potentiometry** — measure E at zero current (high-Z voltmeter). Indicator electrode E ∝ activity of analyte via Nernst.\n- pH electrode (glass membrane, H⁺ sensitive) — 59 mV/pH at 25 °C.\n- Ion-selective electrodes (ISE): F⁻ (LaF₃ crystal), Cl⁻ + Ag⁺ (AgCl/AgBr), K⁺ + Na⁺ + Ca²⁺ (valinomycin + crown-ether based liquid-membrane).\n- Blood-gas analyzers + clinical labs run thousands of potentiometric measurements per day.\n\n**Amperometry** — apply fixed E; measure i ∝ analyte flux. Continuous monitoring; clinical sensors (glucose, lactate, oxygen) + flow detectors. Linear, fast.\n\n**Coulometry** — integrate i·dt = Q ∝ moles of analyte (Faraday's first law). Karl Fischer water-content titration; trace electrolysis-coulometry for high-precision standards.\n\n**Galvanostatic charge-discharge (GCD)** — apply constant i; measure V(t). Standard battery + supercapacitor characterization. Extracts capacity, energy, power, hysteresis."
+    },
+    {
+      "kind": "text",
+      "title": "Biosensors: Clark, Updike-Hicks, modern transduction",
+      "body": "**Biosensors** = electrochemical detection of biological analytes by integrating a biological recognition element with an electrode transducer.\n\n**Clark oxygen electrode (Leland C. Clark Jr. 1956)** — pO₂ measurement via Pt cathode covered by O₂-permeable PTFE membrane in KCl electrolyte; Ag/AgCl reference; O₂ + 4H⁺ + 4e⁻ → 2H₂O at -0.6 V vs Ag/AgCl; i ∝ pO₂. Revolutionized blood-gas analysis + open-heart surgery (Clark was a cardiac researcher); still the basis of dissolved-O₂ probes worldwide.\n\n**First glucose biosensor (Clark + Lyons 1962, demonstration; Updike + Hicks 1967, full implementation)** — glucose oxidase (GOx) immobilized over a Clark electrode:\n  glucose + O₂ → gluconolactone + H₂O₂ (GOx-catalyzed)\nMeasure O₂ depletion *or* H₂O₂ production amperometrically — both proportional to glucose. **Updike + Hicks** at University of Wisconsin published the seminal 1967 Nature paper — birth of the modern biosensor industry. Personal-monitoring glucose meters today are a >$15B/yr industry serving 500+ M diabetics.\n\n**Generations of glucose sensors**:\n- **First-gen** — O₂/H₂O₂ amperometry (Clark-Lyons-Updike). O₂-dependent → fluctuates with tissue oxygenation.\n- **Second-gen** — mediator-based (ferrocene Cass + Hill 1984 Oxford → MediSense → Abbott). Mediator shuttles electrons from GOx-FADH₂ to electrode, O₂-independent. Roche Accu-Chek, Bayer Contour.\n- **Third-gen** — direct electron transfer (DET) from enzyme to electrode (engineered enzymes + nanostructured electrodes). Holy grail; partially commercialized.\n- **CGM (Continuous Glucose Monitors)** — Dexcom G7, Abbott FreeStyle Libre, Medtronic Guardian. Implanted in subcutaneous tissue 7-14 days; wireless to phone. >5 M users.\n\n**Recognition elements**:\n- **Enzymes** — glucose oxidase, lactate oxidase, choline oxidase, urease, alcohol dehydrogenase. Catalytic; turnover amplifies signal.\n- **Antibodies** — specificity; immunosensors (cardiac troponin, hCG, COVID antibody). Often combined with redox labels or impedance changes.\n- **Aptamers** — nucleic-acid-based recognition (SELEX-evolved). Stable, cheap to synthesize; aptamer-based field-deployed sensors growing.\n- **MIPs — Molecularly Imprinted Polymers** — synthetic 'plastic antibody'; template-binding cavities. Robust, cheap.\n- **DNA/RNA probes** — sequence-specific hybridization; e-PCR + electrochemical genotyping.\n- **Cell + tissue-based sensors** — whole cells as recognition; environmental + toxicity screening.\n\n**Transduction modes**:\n- **Amperometric** — most biosensors (glucose). Linear, fast, continuous.\n- **Potentiometric** — ISFETs, ion-selective membranes (urease + NH₃-ISE).\n- **Impedimetric** — antibody-antigen binding changes interfacial capacitance + R_ct; label-free. EIS biosensors for proteins + cancer markers.\n- **Conductometric** — bulk-solution conductivity changes (enzyme-catalyzed ion production).\n- **Voltammetric** — DPV/SWV for redox-active analytes (dopamine, ascorbate, uric acid).\n\n**FDA-approved biosensors** — glucose (CGM), lactate, blood gas, pulse oximetry (optical), troponin (POC), HbA1c (some POC platforms), bilirubin, lithium therapeutic drug monitoring.\n\n**Calibration + interference + drift** — practical biosensors must handle electroactive interferents (ascorbate, urate, acetaminophen, dopamine), biofouling (proteins adsorb + degrade enzyme/membrane), drift (enzyme deactivation over days/weeks). Engineering choices: selective membranes (Nafion blocks ascorbate), antifouling coatings (PEG, zwitterionic polymers), internal references, fingerstick calibration for CGM."
+    },
+    {
+      "kind": "text",
+      "title": "Modern frontiers — wearables, lab-on-chip, e-PCR, nanomaterials",
+      "body": "**Wearable electrochemical sensors** — non-invasive, continuous monitoring in sweat, saliva, ISF (interstitial fluid), tears.\n- **Glucose CGM** (subcutaneous needle electrode; Dexcom + Abbott; 14-day) — dominant clinical use.\n- **Sweat sensors** — Joseph Wang's UCSD lab, Ali Javey's UC Berkeley group: lactate, K⁺, Na⁺, glucose, cortisol via amperometric/potentiometric arrays; Bluetooth wireless; printed/flexible/tattoo-based.\n- **Smart contact lenses** — Google + Verily 2014 (tear glucose; ultimately abandoned for clinical-utility reasons); Mojo Vision; KAIST + Korean groups. Hard analytical chemistry due to low tear-glucose-blood-glucose correlation.\n- **Saliva sensors** — easier collection but interfering matrix.\n- **Iontophoretic sampling** — extract ISF through skin via electric field (Cygnus GlucoWatch 2001-07; failed commercial); modern approaches use minimally invasive microneedles.\n\n**Lab-on-chip (LOC) + microfluidic electrochemistry**:\n- Microfabricated electrodes (screen-printed, photolithographic Au/Pt) + PDMS or thermoplastic microchannels. Picoliter sample volumes.\n- Multiplexed sensor arrays for panel diagnostics.\n- **Paper-based electrochemical sensors** (Whitesides Harvard) — wax-patterned paper + screen-printed electrodes; sub-dollar; field deployment for global health.\n- Integration with smartphones — battery-free NFC sensors powered + read by phone (Rogers Northwestern, sweat sensors).\n\n**Electrochemical PCR + nucleic-acid sensors**:\n- **e-PCR** — amplify DNA in microfluidic chip + detect amplicons electrochemically (label-based with redox tags, methylene blue, ferrocene, or label-free via guanine oxidation).\n- **CRISPR-Cas-based electrochemical sensors** — Cas12a/Cas13 cleave reporter molecules upon target binding; coupled to electrochemistry for ultra-sensitive nucleic-acid detection (Sherlock, Mammoth, Lucira COVID test 2020 — FDA EUA was electrochemical/colorimetric).\n- **Single-molecule + single-cell electrochemistry** — nanopore sensing (Oxford Nanopore — DNA sequencing via ionic-current modulation through engineered protein nanopores in a lipid bilayer; ASIC + ML decoding); scanning electrochemical microscopy (SECM) at sub-100 nm spatial resolution.\n\n**Nanostructured electrodes** — performance-amplifying scaffolds:\n- **Graphene** — single-layer sp² carbon (Geim + Novoselov Nobel Physics 2010); high surface area, fast electron transfer, biocompatible, ~10⁵ cm²/V·s mobility. Solution-processed (electrochemically exfoliated, reduced graphene oxide). Functional groups + edge sites are the active electrochemistry; basal-plane is mostly inert.\n- **Carbon nanotubes (CNTs)** — Iijima 1991; metallic + semiconducting variants; SWCNT + MWCNT; nano-electrode geometry → fast mass transport + high sensitivity.\n- **Boron-doped diamond (BDD)** — Akira Fujishima's group + Element Six commercial; extremely wide potential window (3-4 V), low background, biocompatible, fouling-resistant. Used for advanced oxidation, in vivo neurochemistry (dopamine, serotonin in brain), water-treatment electro-oxidation.\n- **Nanoporous Au / Pt** — dealloying-fabricated bicontinuous networks; m²/g surface areas; ideal for catalysis + sensing.\n- **Conducting polymers** — PEDOT:PSS, polypyrrole, polyaniline; flexible, biocompatible electrode coatings for implants + bioelectronics.\n- **Metal-organic frameworks (MOFs)** — tunable porosity + electroactivity; analytical + catalytic sensing.\n\n**Point-of-care diagnostics + clinical impact**:\n- iSTAT (Abbott) — handheld blood-gas + electrolyte + cardiac-marker analyzer; >100 M tests/year.\n- COVID rapid antigen + molecular tests (some electrochemical: Lucira, Cue Health).\n- Home + wearable glucose, ketone, blood-pressure (impedance + photoplethysmography hybrid).\n- **Future** — closed-loop artificial pancreas (CGM + insulin pump + algorithm); UTI dipsticks with quantitative electrochemistry; antibiotic-susceptibility test in <2 hr by impedance growth monitoring; sweat-based stress hormones (cortisol) + drug-of-abuse monitoring.\n\n**The transduction → signal → ML pipeline** — modern sensors increasingly couple raw electrochemical data → onboard ML (anomaly detection, drift correction, multi-analyte deconvolution from cross-reactive arrays) → clinically actionable readings. Joseph Wang + Plaxco's groups pushing this frontier."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_aec_randles",
+        "kind": "guided_derivation",
+        "question": "Diagnose a Randles cell from a Nyquist plot",
+        "goal": "From a Nyquist plot showing a 100 Ω high-frequency intercept, a semicircle of diameter 500 Ω, and a 45° Warburg tail at low frequency, identify R_s, R_ct, and the regime.",
+        "steps": [
+          {
+            "prompt": "The high-frequency real-axis intercept of the Nyquist plot corresponds to which circuit element?",
+            "motivation": "Equivalent circuit.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "solution resistance R_s",
+                "R_s = 100 Ω"
+              ]
+            },
+            "hints": [
+              "ω → ∞ → only resistive elements remain."
+            ],
+            "reveal": "At ω → ∞, the double-layer capacitor C_dl shorts the parallel R_ct, leaving only R_s. R_s = 100 Ω."
+          },
+          {
+            "prompt": "The semicircle diameter equals which parameter?",
+            "motivation": "Charge transfer resistance.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "R_ct = 500 Ω",
+                "charge-transfer resistance"
+              ]
+            },
+            "hints": [
+              "Randles semicircle = R_ct."
+            ],
+            "reveal": "Semicircle diameter = R_ct = 500 Ω."
+          },
+          {
+            "prompt": "From R_ct, compute i₀ for n = 1, area A = 0.1 cm², T = 298 K. Recall R_ct = RT/(nFi₀A).",
+            "motivation": "Get exchange current.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~5e-4 A/cm²",
+                "0.5 mA/cm²",
+                "~514 μA/cm²"
+              ]
+            },
+            "hints": [
+              "i₀ = RT/(nFR_ct·A)."
+            ],
+            "reveal": "i₀ = (8.314)(298)/[(1)(96485)(500)(0.1)] = 2479.5/(4.824 × 10⁶) ≈ 5.1 × 10⁻⁴ A/cm² = 0.5 mA/cm² — moderately fast kinetics."
+          },
+          {
+            "prompt": "What does the 45° Warburg tail at low frequency indicate?",
+            "motivation": "Mass transport.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "semi-infinite linear diffusion control",
+                "diffusion-limited at low frequency"
+              ]
+            },
+            "hints": [
+              "Frequency goes to zero = long timescale."
+            ],
+            "reveal": "Warburg impedance Z_W = σ·ω^(-1/2)·(1 - j) → 45° line in Nyquist plot. Indicates semi-infinite linear diffusion control at low frequencies — kinetics fast enough that mass transport dominates at long timescales. At very low f (if shown), a bounded diffusion would curve up to a finite resistance; reflective boundary curves vertically up; mixed shapes diagnose battery, porous-electrode, or thin-film geometry."
+          }
+        ],
+        "finalResult": "$$\\boxed{R_s = 100 \\,\\Omega; \\; R_{ct} = 500 \\,\\Omega \\rightarrow i_0 \\approx 0.5 \\text{ mA/cm}^2; \\text{ Warburg at low } f = \\text{diffusion control}}$$\n\nClassic Randles-cell interpretation; standard for any first-pass EIS analysis of a redox couple."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_aec_clark",
+        "kind": "multiple_choice",
+        "question": "Who built the first biosensor + when?",
+        "options": [
+          "Faraday in 1834.",
+          "Leland C. Clark Jr. (1956) invented the membrane-covered oxygen electrode that became the prototype biosensor. Clark + Lyons (1962) proposed the first enzyme electrode for glucose using glucose oxidase + the Clark cell — measure O₂ depletion or H₂O₂ generation. Updike + Hicks (1967 Nature) reported the first practical enzyme-electrode glucose biosensor. Together they founded a >$15B/yr industry serving 500M+ diabetics. Mediated 2nd-gen (Cass + Hill, ferrocene 1984 → MediSense → Abbott) + modern CGMs (Dexcom, Abbott FreeStyle Libre) trace directly from this lineage.",
+          "Volta in 1800.",
+          "Bard in 1980."
+        ],
+        "correctIndex": 1,
+        "explanation": "Clark (1956) — oxygen electrode. Clark + Lyons (1962) — first enzyme-electrode concept. Updike + Hicks (1967 Nature) — first practical glucose biosensor. Modern $15B+ industry, 500M+ diabetics."
+      },
+      "hints": [
+        "Oxygen electrode + glucose sensor lineage."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Clark (oxygen 1956), Clark + Lyons (1962 glucose concept), Updike + Hicks (1967 practical sensor)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_aec_cgm",
+        "kind": "scenario",
+        "question": "Engineering a robust CGM",
+        "prompt": "You're designing a 14-day continuous glucose monitor. List three failure modes you must mitigate + the engineering strategy for each."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_aec_cv_deltap",
+        "kind": "math_expression",
+        "question": "For a reversible 1-electron redox couple at 25 °C, what's the theoretical CV peak separation ΔE_p in mV (Nicholson, n = 1)?",
+        "acceptedAnswers": [
+          "59",
+          "59 mV",
+          "~59"
+        ],
+        "hint": "ΔE_p = 2.303·RT/(nF) × 2/n ≈ 59/n mV at 25 °C."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_aec",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how the toolkit of CV/CA/EIS/DPV-SWV/stripping techniques powers electrochemical biosensors from Clark's oxygen electrode (1956) to modern CGMs + wearables.",
+        "rubric": "Mentions: CV (triangular sweep, reversibility/kinetics screening, Randles-Ševčík for i_p ∝ √v); CA (Cottrell, D extraction); EIS (Randles cell, R_s + R_ct + C_dl + Warburg, label-free biosensing); DPV/SWV (10-100x sensitivity by background suppression, nM LOD); stripping voltammetry (ppt heavy-metal detection). Clark (1956 O₂ electrode) + Clark-Lyons (1962 glucose concept) + Updike-Hicks (1967 Nature, first practical biosensor) seeded the field. Generations: O₂/H₂O₂ → ferrocene mediators (Cass + Hill 1984) → DET → CGMs (Dexcom, Abbott Libre). Modern: wearable sweat sensors (Joseph Wang), microfluidic LOC, electrochemical PCR + CRISPR-Cas, nanostructured electrodes (graphene, CNT, BDD). >$15B/yr industry, 500M+ diabetics. The toolkit + recognition chemistry combine to deliver clinical impact."
+      }
+    }
+  ]
+}

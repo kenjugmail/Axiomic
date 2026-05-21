@@ -1,0 +1,156 @@
+{
+  "slug": "organometallics-and-cross-coupling",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply the 18-electron rule + oxidative addition/reductive elimination logic.",
+      "Distinguish Suzuki, Negishi, Heck, Stille, Sonogashira, Buchwald-Hartwig cross-couplings.",
+      "Explain olefin metathesis + the Grubbs/Schrock/Chauvin mechanism."
+    ],
+    "prereqs": [
+      "reaction-mechanisms-and-arrow-pushing"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Organometallic fundamentals: carbanions to catalysis",
+      "body": "**Organometallic chemistry** = chemistry of compounds with C–M bonds (M = metal). Bridges main-group + transition-metal chemistry. Foundation of modern synthesis + catalysis.\n\n**Main-group organometallics** (s + p block):\n\n**Grignard reagents (R–MgX)** — Victor Grignard (Nobel 1912):\n- Made by Mg insertion into R–X (X = Cl, Br, I) in ether or THF.\n- R–MgX has C δ⁻ + Mg δ⁺ — the C is nucleophilic + basic.\n- Reacts with: carbonyls (alcohols), CO₂ (acids), epoxides (alcohols), nitriles (ketones via hemiaminal), formamides (aldehydes), Weinreb amides (ketones), R'–X (rarely; cross-coupling now preferred).\n- Restrictions: strict anhydrous + air-free conditions (R–MgX + H₂O → R–H + Mg(OH)X). Most used C–C bond-forming reagent of the 20th century.\n\n**Organolithiums (R–Li)** — Wittig + Schlosser methodology:\n- Made by Li + R–X in pentane/ether, or by lithiation of acidic C–H with nBuLi/sBuLi/tBuLi.\n- Stronger nucleophile + base than Grignards; lower aggregation.\n- nBuLi (pKa of conjugate ~50): deprotonates most C–H positions, generates carbanions for further chemistry.\n- LDA (lithium diisopropylamide; pKa ~36): kinetic enolate generation; non-nucleophilic.\n- Phenyllithium, MeLi, n-BuLi, t-BuLi, sec-BuLi all common.\n- Hugely sensitive to air + moisture. Used at −78 to −100°C for selectivity.\n\n**Cuprates (R₂CuLi or RCu·LiX)** — Gilman reagents:\n- Conjugate addition to α,β-unsaturated carbonyls (1,4-addition).\n- Coupling with R'–X (Posner: cuprate alkylation).\n- Softer, less basic, more chemoselective than Grignards.\n- Higher-order cuprates (R₂Cu(CN)Li₂) — Lipshutz; better stability + selectivity.\n\n**Ate complexes**: R'M–X·R complexes where M = B, Al, Si, Sn, Zn → ate complex bears extra negative charge + is more reactive. Crucial in cross-couplings (Suzuki ArB(OH)₂ + base → ArB(OH)₃⁻ ate complex transmetallates more readily).\n\n**Other main-group organometallics**: organozincs (Reformatsky, Negishi cross-coupling), organotin (R₃SnAr; Stille coupling — toxic but useful), organosilicons (R₃SiAr; Hiyama coupling), organoborons (Suzuki, Matteson), organoaluminum (DIBAL reductions, alkylative coupling).\n\n**Transition-metal organometallics**:\n\n**Electron counting + the 18-electron rule** (Sidgwick 1927; Tolman 1972):\n- Stable organometallic complexes often have 18 valence electrons around the central metal (filling all 9 valence orbitals: 5 d + 1 s + 3 p).\n- Counting two methods: **neutral (covalent) method** + **ionic method** — both give the same total.\n- L-type ligands (CO, PR₃, alkene, R₂C=, R₃C–R; 2-electron L-donors).\n- X-type ligands (Cl, R, OR, NR₂, H; 1-electron each in neutral, 2-electron each in ionic).\n- π-bound polyhapto (η²-alkene = 2e⁻; η³-allyl = 4e⁻; η⁴-diene = 4e⁻; η⁵-Cp = 6e⁻; η⁶-arene = 6e⁻).\n- Useful predictive tool, not absolute rule — many catalytic intermediates are 14- or 16-electron coordinatively-unsaturated species.\n\n**Fundamental organometallic steps**:\n- **Oxidative addition (OA)**: M(n) + R–X → R–M(n+2)–X. Oxidation state + d-count change by 2. Driven by π-backbonding into σ*; favors low-oxidation-state Pd(0), Ni(0), Pt(0), Rh(I).\n- **Reductive elimination (RE)**: reverse — R–M–X → M + R–X. Often C–C or C–N bond-forming step.\n- **Migratory insertion**: R–M + L (CO, alkene, alkyne) → R–L–M. Polymerization, hydroformylation, Heck.\n- **β-hydride elimination**: M–CR₂–CHR'₂ → M–H + alkene. Often unwanted side reaction; mitigated by ligand bulk or absence of β-H.\n- **Transmetallation**: M–R + M'–X → M–X + M'–R. Connects an organometallic donor (e.g., ArB(OH)₂) to a catalytic metal (Pd) — central to cross-coupling.\n- **σ-bond metathesis** + **C–H activation** + **olefin/alkyne insertion** + **π-coordination** + **migratory CO insertion** + **transmetallation**.\n\n**Catalytic cycles** — turnover requires (OA → migratory steps → RE → coordination of fresh substrate → repeat). The art of catalyst design is balancing each step's rate."
+    },
+    {
+      "kind": "text",
+      "title": "Cross-coupling: the Nobel 2010 chemistry",
+      "body": "**Pd-catalyzed cross-coupling** = the most transformative methodology of late-20th-century synthesis. Forms C–C, C–N, C–O bonds at sp²/sp³ centers under mild conditions. **2010 Chemistry Nobel** to **Richard Heck (Delaware), Ei-ichi Negishi (Purdue), Akira Suzuki (Hokkaido)**.\n\n**The catalytic cycle (general)**:\n1. **Oxidative addition** of aryl/vinyl halide ArX to Pd(0) → ArPdXLₙ.\n2. **Transmetallation** with the organometallic partner R'–M → ArPdR'Lₙ + MX (often base-assisted activation, e.g., ate complex).\n3. **Reductive elimination** → Ar–R' + Pd(0) (regenerated).\n\nLigand design (phosphines, NHCs, bidentate) controls each step.\n\n**Suzuki-Miyaura coupling (1979+)**: ArX + Ar'B(OH)₂ → Ar–Ar' (with Pd cat + base K₂CO₃ in THF/H₂O).\n- The most-used coupling in modern synthesis + pharma manufacturing.\n- Boronic acids stable, easy to handle, commercially available in thousands of variants.\n- Mild conditions; functional-group tolerant.\n- Base activates ArB(OH)₂ to ate ArB(OH)₃⁻; transmetallation step.\n- Buchwald 2nd-gen + 3rd-gen Pd-G3 precatalysts (XPhos, SPhos, BrettPhos, RuPhos) + Pd-PEPPSI work at RT + with aryl chlorides.\n\n**Negishi coupling (1977)**: ArX + Ar'ZnX → Ar–Ar' (Pd cat or Ni cat).\n- Organozincs are highly functional-group-tolerant; reactive even with substrates that have sensitive groups.\n- Used in natural-product total synthesis (e.g., palytoxin segments, taxol segments).\n- Ni-catalyzed Negishi can engage alkyl halides (sp³) — Fu's discovery.\n\n**Heck reaction (1971-2)**: ArX + alkene → Ar-substituted alkene (Pd cat + base).\n- Couples to vinyl carbon (not transmetallation).\n- Migratory insertion of alkene into ArPdX, β-hydride elimination gives Ar-CH=CHR.\n- Used to install styrenes + cinnamates + aryl-substituted vinyls.\n- Mizoroki-Heck name (Mizoroki independently 1971).\n\n**Stille coupling (1978)**: ArX + Ar'SnR₃ → Ar–Ar' (Pd cat).\n- Organotins highly functional-group tolerant + easy to purify.\n- Drawback: toxicity of tin; modern preference for Suzuki when possible.\n- Still used for hard substrates + in complex natural-product synthesis.\n\n**Sonogashira coupling (1975)**: ArX + HC≡CR → Ar–C≡C–R (Pd + CuI co-cat + amine base).\n- Terminal alkyne coupling — installs aryl/vinyl-alkyne linkages.\n- Drug discovery, materials (OLEDs, conjugated polymers, sensors).\n- Cu accelerates by forming Cu-acetylide intermediate.\n\n**Buchwald-Hartwig amination (1995-6)**: ArX + R₂NH → Ar–NR₂ (Pd cat + bulky phosphine + base).\n- Both Stephen Buchwald (MIT) + John Hartwig (Berkeley) developed independently.\n- Forms C–N bond — a transformation EAS cannot achieve.\n- BINAP, XPhos, RuPhos, BrettPhos, DavePhos, JohnPhos, tBuXPhos — Buchwald's ligand family. Specific ligands for primary amines, secondary, anilines, amides, indoles, etc.\n- Massive in pharma — installing N-containing pharmacophores onto aromatic scaffolds.\n\n**Hiyama coupling**: ArX + ArSi(OR)₃ (with TBAF) → Ar–Ar.\n**Kumada coupling** (oldest, 1972): ArX + Ar'MgX → Ar–Ar' (Ni cat or Pd cat). Earlier than Pd era.\n**Fukuyama coupling**: thioester + organozinc → ketone.\n**Hiyama-Denmark**: more functional-group-tolerant silicon coupling.\n**Photoredox cross-coupling** (MacMillan, Doyle): visible-light + Ni catalysis enables sp³–sp³ couplings.\n**Reductive cross-coupling**: combine two electrophiles with metal/reductant — Weix, Reisman, Diao.\n\n**Modern pharma + chemical industry use cross-coupling routinely**:\n- ~10% of all reactions reported in medicinal-chemistry journals are cross-couplings.\n- Buchwald + Hartwig amination installs aniline + aminopyridine motifs in 1000s of drugs/year.\n- Major scaffolds: biaryl, heteroaryl-biaryl, sp³–sp² alkyl couplings (still developing).\n- Catalysts now operate at ppm Pd loadings with TONs of 10⁶+.\n\n**Mechanistic insight**: Pd(0)/Pd(II) most common; Pd(I)/Pd(III) cycles emerging in radical Negishi/Suzuki via Ni or photoredox. Pre-catalysts (Pd-G3, Pd-PEPPSI) avoid air-sensitive Pd(0) handling.\n\n**Limitations + frontiers**: sp³ centers are harder (β-H elimination dominates); Ni catalysis + radical mechanisms (Doyle, Fu) are tackling alkyl couplings. Asymmetric versions emerging (Buchwald, Hartwig, Stoltz, Fu, Engle).\n\nCross-coupling unified aromatic + heteroaromatic chemistry: instead of EAS (with regioselectivity constraints + harsh conditions), one installs almost any sp²–sp² + many sp²–sp³ bonds at will. The synthetic Lego revolution of the 1990s-2010s."
+    },
+    {
+      "kind": "text",
+      "title": "Olefin metathesis + Schrock/Grubbs/Chauvin",
+      "body": "**Olefin metathesis**: reaction in which two alkenes exchange =CR₂ fragments — formally cleavage + recombination of C=C bonds. Discovered in industrial polymerization labs (Banks + Bailey 1964); mechanism elucidated decades later.\n\n  R-CH=CH-R' + R''-CH=CH-R''' → R-CH=CH-R''' + R''-CH=CH-R'  (cross metathesis)\n\nForms two new alkenes; ethylene byproduct (when ethylidene exchange) drives equilibrium.\n\n**Chauvin mechanism** (Yves Chauvin, IFP Paris; **Nobel 2005**):\n1. Metal carbene M=CR₂ coordinates an alkene → metallacyclobutane.\n2. Cycloreversion in the perpendicular direction → new M=CR'₂ + new alkene.\n3. Repeat with another alkene.\n\n**Robert Grubbs (Caltech)** + **Richard Schrock (MIT)** developed practical catalysts; **2005 Chemistry Nobel** shared with Chauvin.\n\n**Schrock catalysts** (1980s-90s): high-oxidation-state M=CR₂ (M = Mo, W).\n- Mo(=CHR)(N-Ar)(OR')₂ — Schrock alkylidene; high activity, but air/moisture sensitive.\n- High selectivity for sterically demanding substrates.\n- Industrial use limited by stability.\n\n**Grubbs catalysts** (1990s-2000s): Ru-based carbenes; air- + functional-group-tolerant.\n- **Grubbs I (1992)**: Ru(CHPh)(PCy₃)₂Cl₂; active + functional-group-tolerant.\n- **Grubbs II (1999)**: replaces one PCy₃ with SIMes (N-heterocyclic carbene) → 10-100× more active + more selective.\n- **Hoveyda-Grubbs (1999)**: SIMes + chelating isopropoxybenzylidene → recyclable, robust.\n- **Grubbs III, Z-selective + asymmetric variants** — Hoveyda, Schrock, Grubbs ongoing development.\n\n**Reaction types** unlocked by metathesis:\n\n- **Cross metathesis (CM)**: two acyclic alkenes → mixed product.\n- **Ring-opening metathesis polymerization (ROMP)**: strained cyclic alkene (norbornene, cyclooctene) → linear polymer. Materials industry: Vestenamer, Vestamid; tough engineering polymers.\n- **Ring-closing metathesis (RCM)**: diene → cycloalkene + ethylene. Builds medium + large rings from acyclic precursors — extraordinary for macrocycle synthesis (key step in many natural-product + drug syntheses).\n- **Cross-enyne metathesis**: alkene + alkyne → 1,3-diene.\n- **Acyclic diene metathesis (ADMET)**: polymerizes acyclic dienes.\n- **Ring-opening cross metathesis (ROCM)**.\n\n**Industrial + drug applications**:\n- **Pharmaceutical**: Boehringer Ingelheim BILN 2061 (HCV protease inhibitor, macrocyclic; RCM scale-up >100 kg) — first major industrial use of RCM in drugs. Many Merck/Pfizer/GSK macrocyclic candidates now use RCM as a key step.\n- **Natural product synthesis**: Nicolaou epothilone, Furstner amphidinolide, terpenoids, prostaglandins — dozens of total syntheses depend on RCM.\n- **Materials**: ROMP polymers (Materia, Elevance); silicone elastomers; polynorbornene.\n- **Biofuels + green chemistry**: cross metathesis of seed oils → biodiesel intermediates. Elevance + Materia commercialized soy-oil cross metathesis to produce specialty chemicals.\n- **Catalyst recycling + boomerang catalysts (Hoveyda)** + flow-chemistry adaptations.\n\n**Asymmetric metathesis** (Hoveyda, Schrock, Grubbs): Mo + Ru catalysts deliver enantioenriched products in RCM + AROCM. Hoveyda's catalyst family + Grubbs' chiral Ru-NHC complexes.\n\n**Z-selective metathesis** (recently): traditional Grubbs catalysts give thermodynamic E-alkenes; new Grubbs + Hoveyda + Schrock catalysts (with adamantyl + chelating ligands) achieve >95% Z selectivity — opens new disconnection strategies.\n\n**Carbonyl-olefin metathesis** (Schindler, others ongoing): swap C=O with C=C. Frontier of the field.\n\nOlefin metathesis transformed the synthetic chemist's toolkit. Where two decades ago carbon-carbon double bonds were forged via Wittig, HWE, or Julia olefinations (each with its limits), metathesis now builds rings of any size, polymers of designed structure, + macrocyclic drug candidates with unprecedented ease. The 2005 Nobel acknowledged what is arguably the single biggest synthetic-methodology shift since cross-coupling."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_organomet_suzuki",
+        "kind": "guided_derivation",
+        "question": "Walk through the Suzuki coupling catalytic cycle",
+        "goal": "ArBr + Ar'B(OH)₂ with Pd(PPh₃)₄ + K₂CO₃ in THF/H₂O → Ar–Ar'. Trace each catalytic step with electron count.",
+        "steps": [
+          {
+            "prompt": "Step 1: oxidative addition. What happens at Pd(0)?",
+            "motivation": "Initial activation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Pd(0) inserts into Ar–Br: Pd(0) + ArBr → ArPd(II)Br"
+              ]
+            },
+            "hints": [
+              "Pd(0) is 18e⁻ when L₄; loses 2 PPh₃ to become 14e⁻ Pd(0)L₂.",
+              "OA: Pd inserts into Ar–Br; Pd → Pd(II), gaining Ar + Br."
+            ],
+            "reveal": "**Oxidative addition**: 14e⁻ Pd(0)L₂ inserts into Ar–Br → 16e⁻ ArPd(II)(L)₂Br. Pd's oxidation state increases by 2; d-count decreases by 2 (d¹⁰ → d⁸). Rate depends on ArX: ArI > ArBr > ArOTf >> ArCl >> ArF (correlates with C–X bond strength). Modern catalysts (Buchwald XPhos series) activate aryl chlorides at RT."
+          },
+          {
+            "prompt": "Step 2: transmetallation. What does the base do?",
+            "motivation": "Activate boronic acid.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "base converts ArB(OH)2 to ArB(OH)3- ate complex; transmetallates Ar' onto Pd"
+              ]
+            },
+            "hints": [
+              "K₂CO₃ deprotonates / coordinates B to form ate.",
+              "ArB(OH)₃⁻ transfers Ar' to Pd."
+            ],
+            "reveal": "**Transmetallation**: K₂CO₃ + H₂O converts Ar'B(OH)₂ → Ar'B(OH)₃⁻ ate complex (anionic, more reactive). Ar' transfers from B to Pd, displacing Br⁻: ArPd(II)BrL₂ + Ar'B(OH)₃⁻ → ArPd(II)Ar'L₂ + B(OH)₃ + Br⁻. Both Ar groups now on Pd (16e⁻ Pd(II)). The Pd's oxidation state stays Pd(II); only ligands exchange."
+          },
+          {
+            "prompt": "Step 3: reductive elimination. C–C bond forms.",
+            "motivation": "Product release + Pd regeneration.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ArPd(II)Ar' → Ar-Ar' + Pd(0); 16e- to 14e-"
+              ]
+            },
+            "hints": [
+              "Two Ar groups on Pd couple as C–C bond forms.",
+              "Pd(II) → Pd(0) (oxidation state −2); catalyst regenerated."
+            ],
+            "reveal": "**Reductive elimination**: cis-ArPd(II)Ar'L₂ → Ar–Ar' + Pd(0)L₂. Pd's oxidation state drops by 2 (d⁸ → d¹⁰); C–C bond forms; cycle restarts with another ArBr. Rate depends on geometry (cis required); ligand bulk drives RE by destabilizing the bis-aryl complex; electron-rich Pd disfavors RE."
+          },
+          {
+            "prompt": "Common limitations + how modern ligands fix them.",
+            "motivation": "Why ligand design matters.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ArCl unreactive; β-H elimination on alkyl; ligands: XPhos, SPhos, BrettPhos, NHC carbenes"
+              ]
+            },
+            "hints": [
+              "What slows OA? What competes with RE?",
+              "Bulky electron-rich phosphines accelerate OA + drive RE."
+            ],
+            "reveal": "Limitations: (1) ArCl unreactive due to slow OA — bulky electron-rich monodentate phosphines (Buchwald XPhos, SPhos, RuPhos, BrettPhos, JohnPhos) activate Pd to react with ArCl at RT; (2) alkyl-Pd intermediates β-hydride eliminate before RE — Ni catalysis + radical mechanisms (Fu, Doyle) circumvent this; (3) air/moisture-sensitive Pd(0) — Buchwald precatalysts (Pd-G3, Pd-PEPPSI) are bench-stable + activate in situ. These improvements made Suzuki coupling the >50%-of-pharma-couplings workhorse."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Pd(0)} \\xrightarrow{\\text{OA}} \\text{ArPd(II)Br} \\xrightarrow{\\text{TM}} \\text{ArPd(II)Ar'} \\xrightarrow{\\text{RE}} \\text{Ar-Ar'} + \\text{Pd(0)}}$$ Three-step catalytic cycle. Each step has a body of literature; ligand + precatalyst design optimizes each. The Suzuki coupling (Nobel 2010, Suzuki + Heck + Negishi) is the most-used cross-coupling in pharmaceutical manufacturing — TONs of 10⁶+ with appropriate catalyst."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_organomet_rcm",
+        "kind": "multiple_choice",
+        "question": "Why is ring-closing metathesis (RCM) so popular for macrocycle synthesis in pharma?",
+        "options": [
+          "Random.",
+          "Macrocycles (12-30 membered rings) are notoriously hard to forge — classical methods (lactamization, Yamaguchi macrolactonization, intramolecular SN2) require high dilution + suffer from oligomerization. RCM with Grubbs II or Hoveyda-Grubbs catalysts on acyclic α,ω-dienes closes the ring with loss of ethylene (driven off by venting or under vacuum), often in good-to-excellent yields, with broad functional-group tolerance (esters, amides, ethers, free OH, even some basic amines + Boc carbamates tolerated). The product alkene is a synthetic handle for further reduction or functionalization. BILN 2061 (HCV protease inhibitor, Boehringer Ingelheim) was the first major industrial drug to use RCM at >100 kg scale; many other macrocyclic drug candidates follow.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "RCM with Grubbs II / Hoveyda-Grubbs catalysts closes medium + large rings (12-30 members) from acyclic α,ω-dienes with broad functional-group tolerance + good yields. Loss of ethylene drives the equilibrium. Classical methods are inferior. BILN 2061 (Boehringer) pioneered industrial pharma RCM; macrocyclic drug candidates increasingly common."
+      },
+      "hints": [
+        "Macrocycles are hard by classical methods.",
+        "RCM works under mild conditions; gas byproduct drives equilibrium."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "RCM closes 12-30 membered rings from acyclic α,ω-dienes with Grubbs/Hoveyda-Grubbs catalysts; ethylene byproduct drives equilibrium; broad FG tolerance. BILN 2061 was the first industrial RCM-scale-up. Macrocycles increasingly important in drug discovery."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_organomet_choose",
+        "kind": "scenario",
+        "question": "Selecting the right cross-coupling for a problem",
+        "prompt": "You need to install: (1) a biaryl Ar–Ar' linkage on a heterocyclic drug scaffold; (2) an Ar–N(Me)Ar' tertiary aniline on a kinase inhibitor; (3) an Ar–C≡C–R alkyne to a fluorescent probe. Which Pd-catalyzed coupling would you choose for each + what ligand/conditions?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_organomet_18e",
+        "kind": "math_expression",
+        "question": "Pd(PPh₃)₄ — what is the d-electron count of the Pd center using the neutral covalent counting method?",
+        "acceptedAnswers": [
+          "10"
+        ],
+        "hint": "Pd(0) has [Kr]4d¹⁰5s⁰; 4 PPh₃ neutral L-type = 4×2 = 8 electrons; total 18, but the d-count specifically is d¹⁰."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_organomet",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why the 2010 + 2005 Chemistry Nobels (cross-coupling + metathesis) revolutionized synthetic organic chemistry.",
+        "rubric": "Mentions: cross-coupling (Heck, Negishi, Suzuki; Nobel 2010) forms C–C, C–N, C–O bonds at sp²/sp³ centers under mild conditions; Pd(0)/Pd(II) catalytic cycle with oxidative addition / transmetallation / reductive elimination; orchestrated by ligand design (Buchwald, Hartwig phosphines + N-heterocyclic carbenes); Buchwald-Hartwig amination installs aniline + amine motifs replacing harsh EAS routes; routinely used in ~10% of pharma reactions. Olefin metathesis (Chauvin mechanism; Grubbs + Schrock catalysts; Nobel 2005) exchanges =CR₂ fragments; ROMP for polymers, RCM for macrocycles, CM for acyclic; Grubbs II + Hoveyda-Grubbs air-stable + functional-group tolerant; BILN 2061 first industrial drug RCM. Together they shifted retrosynthetic thinking — sp²–sp² bonds now Lego-like (Suzuki disconnection) + macrocycles routinely closeable (RCM disconnection). Modern pharma + materials industries are unrecognizable without these methods."
+      }
+    }
+  ]
+}

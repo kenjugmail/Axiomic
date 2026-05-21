@@ -1,0 +1,160 @@
+{
+  "slug": "frontier-energy-storage-conversion",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Map solid-state battery R&D — sulfide/oxide/polymer + Li metal.",
+      "Survey beyond-Li-ion: Na/K/Mg/Zn ion + Li-S + Li-air + flow + supercaps.",
+      "Connect ML + autonomous labs to electrochemical materials discovery."
+    ],
+    "prereqs": [
+      "lithium-ion-batteries",
+      "fuel-cells-and-hydrogen"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Solid-state batteries — sulfide, oxide, polymer",
+      "body": "**Solid-state battery (SSB)** = replace flammable liquid carbonate electrolyte with a solid ion conductor + enable a high-energy Li-metal anode. Two upsides:\n1. Higher energy (Li metal 3860 mAh/g vs graphite 372 mAh/g → 50%+ pack-level energy bump).\n2. Better safety (no flammable carbonate; thermal runaway harder).\n\nThree solid-electrolyte families compete; each has trade-offs.\n\n**Sulfide-based** — Li₃PS₄ glass, Li₆PS₅Cl argyrodite, Li₁₀GeP₂S₁₂ (LGPS, Kanno 2011 — first solid with σ_Li⁺ > 10⁻² S/cm matching liquids).\n- **Pros**: high ionic conductivity (10⁻² S/cm at RT — best of any solid); soft, deformable (cold-press fabrication possible); good interfacial contact with electrodes.\n- **Cons**: hygroscopic + reactive with moisture (release toxic H₂S); narrow electrochemical window (decomposes at high cathode V, requires LiNbO₃ coating); cost.\n- **Companies**: **Toyota** (>20 yr R&D, planning 2027-28 launch), **Solid Power** (CO, USA; partnered with BMW + Ford), **Samsung SDI**, **LG Energy Solution**, Hitachi Zosen, Idemitsu Kosan.\n\n**Oxide-based** — Li₇La₃Zr₂O₁₂ (LLZO, Weppner 2007 garnet structure), Li₁.₃Al₀.₃Ti₁.₇(PO₄)₃ (LATP NASICON), Li_xLa_yTiO₃ (LLTO perovskite).\n- **Pros**: chemically + electrochemically stable; air-stable (oxide); wide V window.\n- **Cons**: lower conductivity (~10⁻³-10⁻⁴ S/cm); brittle ceramics, hard to manufacture in thin sheets; difficult interface with Li metal (high contact resistance, requires interlayers like Au, Al₂O₃, LiPON).\n- **Companies**: **QuantumScape** (CA, USA, NYSE: QS, partnered with VW; ceramic separator architecture); **Ilika** (UK Stereax thin-film for microbatteries); **Schott** (substrate-grade glass-ceramic).\n\n**Polymer-based** — PEO (poly-ethylene oxide) + LiTFSI; cross-linked + plasticized variants.\n- **Pros**: flexible, easy to process, intimate Li metal contact, manufacturable on existing roll-to-roll.\n- **Cons**: low conductivity at RT (10⁻⁵ S/cm; need >60 °C for usable); narrow V window (PEO oxidizes >4 V → can't use Ni-rich cathodes).\n- **Companies**: **Bolloré Blue Solutions** (France) — only mass-produced SSB to date; Autolib + Bolloré Buses since 2011 use Li-metal-polymer at ~80 °C with LFP cathode.\n\n**Hybrids** — polymer-in-ceramic, ceramic-in-polymer, multi-layer (sulfide-on-Li + oxide-on-cathode); combine strengths. Probably the near-term commercial path.\n\n**Li metal anode + dendrite suppression** — Li metal is the holy grail anode but plates dendritically: at high current density, mossy/fibrous Li grows + can short the cell. Solid electrolytes were thought to mechanically suppress dendrites (Monroe-Newman 2005 — shear modulus argument), but reality is more complex: dendrites propagate through grain boundaries, voids, pores in *any* solid (Janek + Sakamoto 2017+). Suppression strategies:\n- Stack pressure (1-10 MPa external) flattens Li.\n- 3D Li hosts (Cu foam, carbon scaffolds) limit local current density.\n- Lithiophilic coatings (Au, Ag, ZnO) seed uniform plating.\n- Pulsed/pre-plated Li reservoirs (Tesla 4680, Sila Si-anode hybrids).\n\n**Roadmap** — SSB pilot lines 2024-26 (QuantumScape A0 samples shipped 2024; Toyota stationary 2026, EV 2027-28; Samsung SDI 2027). Mass-market <2030 likely. Energy goal: 400-500 Wh/kg pack vs current ~250 Wh/kg NMC."
+    },
+    {
+      "kind": "text",
+      "title": "Beyond Li-ion — Na, K, Mg, Zn, Li-S, Li-air",
+      "body": "**Sodium-ion (Na-ion)** — Na sits below Li in Group 1; -2.71 V vs SHE (vs -3.04 V Li); larger ion (1.02 vs 0.76 Å); abundant + cheap. Same intercalation principles, scaled.\n- **Cathodes**: Prussian-blue analogs (Faradion UK, Natron Energy USA), polyanionic (Na₃V₂(PO₄)₃), layered (Na_xMnO₂, NaNi₀.₅Mn₀.₃Fe₀.₂O₂ — Faradion).\n- **Anodes**: hard carbon (the canonical Na-ion anode; ~300 mAh/g, similar to graphite's Li capacity).\n- **Electrolyte**: NaPF₆ in carbonates (similar to Li-ion).\n- **CATL** sodium-ion 2021 — 160 Wh/kg pack, hybrid AB-pack with Li-ion. **BYD** + Hina Battery + Faradion + Natron scaling 2024-26. Targets: stationary storage, low-cost EV (urban + 2-wheel), backup power. Cost advantage ~30-40% vs LFP at scale.\n\n**Potassium-ion (K-ion)** — K⁺ in graphite at KC₈ (~278 mAh/g vs Li's 372). Lower energy + higher V than Na. Research stage; some Japanese + Chinese groups active.\n\n**Magnesium-ion (Mg-ion)** — Mg²⁺ delivers 2 e⁻ per ion → high theoretical volumetric capacity. Mg metal anode safe (no dendrites). But Mg²⁺ is hard to desolvate + diffuse through cathodes; passive films on Mg metal in conventional electrolytes; cathode materials limited (Chevrel Mo₆S₈ original; Aurbach 2000 demos). Toyota + Pellion + academic-industrial labs pursuing. Cycling at usable rate-capacity still aspirational.\n\n**Zinc-ion + Zn-air + ZAB**:\n- **Aqueous Zn-MnO₂ rechargeable** — Salt Lake Battery, Eos, Urban Electric Power. Cheap, safe, deep-cycling; ~80 Wh/kg, ~$50/kWh. Niche grid storage.\n- **Zn-air** — Zn|KOH|air-cathode; ~400 Wh/kg theoretical. Hearing-aid primary cells today; rechargeable rare due to OER/ORR bifunctional-catalyst durability + Zn dendrites. EOS + Form Energy looking; iron-air variants gaining attention.\n\n**Iron-air (Fe-air)** — **Form Energy** (Cambridge MA, founded 2017 by ex-Tesla + MIT): Fe + air pellet bed; 100-hr discharge duration; ~$20/kWh target. First commercial deployments 2024 with MN utility Great River Energy. Designed for multi-day storage where lithium economics fail.\n\n**Lithium-sulfur (Li-S)** — Li metal anode + S₈ cathode; conversion chemistry: S₈ + 16Li → 8Li₂S. Theoretical 2600 Wh/kg active. Issues:\n- Polysulfide shuttle (intermediate Li₂S_x, x = 4-8, dissolve in liquid electrolyte → shuttle to anode → corrosion + Coulombic loss).\n- Volume change of cathode (~80% during cycling).\n- S is electronically insulating; needs high carbon loading.\n- Mitigations: Li_xS-host porous carbons (Nazar 2009 mesoporous CMK-3 → S landmark), interlayers, polysulfide-trapping additives, lean electrolyte. **Sion Power**, **OXIS Energy** (bankrupt 2021), **Lyten** (US, sulfur-graphene) — making progress; aviation + drone applications first. 400+ Wh/kg cells demonstrated.\n\n**Lithium-air (Li-O₂)** — Li + O₂ → Li₂O₂; theoretical 3500 Wh/kg active (open system, O₂ from air). The ultimate energy density. Issues: poor cycle life (~10s of cycles in early demos), Li₂O₂ insulator clogging, CO₂ + H₂O contamination, OER/ORR catalyst durability, side reactions. Decade-out for any commercial product.\n\n**Realistic positioning**:\n- Li-ion (NMC/NCA, LFP) — dominant 2020s-30s.\n- Sodium-ion — second-tier 2025-30 (stationary, cheap EV).\n- Solid-state Li (sulfide/oxide hybrid + Li metal) — premium EV by 2028-2032.\n- Li-S — aviation + drone niches by 2027.\n- Flow + iron-air — long-duration grid storage."
+    },
+    {
+      "kind": "text",
+      "title": "Flow, supercaps, and ML-accelerated discovery",
+      "body": "**Redox flow batteries (RFB)** — energy + power decoupled: electrolyte tanks store energy; cell stack handles power. Scale independently. Long cycle life (>20 000), instant response. Lower energy density than Li-ion (~25-50 Wh/L of electrolyte).\n- **Vanadium redox (VRFB)** — Maria Skyllas-Kazacos (UNSW 1986); V²⁺/V³⁺ anolyte + VO²⁺/VO₂⁺ catholyte; both vanadium → no cross-contamination. Cycle life 20 000+; capital cost still ~$300-500/kWh, target $150. Sumitomo Electric, Rongke Power, Largo Energy, Invinity (UK).\n- **Iron-chromium** (Fe/Cr; NASA originally; recent revival).\n- **Zn-Br + Zn-Fe** — hybrid flow (Zn plating + bromine/iron flow). Redflow (Australia), ZBB.\n- **Organic flow** — aqueous-soluble redox molecules (quinones, viologens, TEMPO derivatives; Aziz + Gordon Harvard 2014+; CMBlu Energy, Quino Energy, XL Batteries). Cheap small molecules; biodegradable; tunable potentials via substitution. Stability still maturing.\n- **All-vanadium membrane-less + slurry electrodes + semi-solid (24M)** — innovations in architecture.\n\n**Supercapacitors (SC) / EDLCs / pseudocapacitors**:\n- **EDLC — Electric Double-Layer Capacitor**: ions adsorb non-Faradaically on high-surface-area carbon (activated carbon, m²/g ~1000-3000). Power density 10 kW/kg+; energy 5-10 Wh/kg; cycle life >10⁶. Maxwell (Tesla acquired 2019; supports 4680 dry-coat lineage), Skeleton (Estonia), Kemet, Cap-XX.\n- **Pseudocapacitors** — Faradaic but capacitor-like response (fast surface or near-surface redox). RuO₂ (academic, expensive), MnO₂, Nb₂O₅ (Conway 1991+), MXenes (Yury Gogotsi 2011+ — Ti₃C₂T_x family).\n- **Hybrid + Li-ion capacitors** — combine Li intercalation anode (LTO, hard carbon) with EDLC cathode → 20-30 Wh/kg + 10 kW/kg + 10⁵ cycles. JM Energy, JSR Micro.\n- **Use cases**: regenerative-braking energy capture, UPS/grid frequency response, kinetic-energy harvesting, hybrid auxiliaries.\n\n**AI + ML for electrolyte + electrode discovery**:\n- **DFT + high-throughput screening** — Materials Project (Persson Berkeley, 2011+, >150 000 inorganic structures with DFT-computed properties), Open Materials Database, OQMD, AFLOW. Computed phase diagrams (CALPHAD + first-principles), formation energies, voltage windows.\n- **Open Catalyst Project** (Meta + CMU 2020+) — OC20/OC22/ODAC23 datasets, millions of DFT calculations of small adsorbates on catalyst surfaces; trains GNNs (SchNet, DimeNet++, GemNet, EquiformerV2) to predict adsorption energies + reaction kinetics. ChemNLP/MatBench benchmarks.\n- **GNoME** (DeepMind 2023 Nature) — graph neural network discovered 2.2 M stable inorganic crystals (>700x earlier known); subset validated experimentally including battery cathodes + solid electrolytes.\n- **Foundation models for chemistry**: MACE, NequIP, SE(3)-equivariant networks; replacing slow DFT in MD with ML-IAP (interatomic potentials) at near-DFT accuracy.\n- **Generative models for molecules** — VAE + diffusion + flow-matching for electrolyte solvents (Zheng + Persson UC Berkeley); active learning loops accept/reject candidates.\n\n**Autonomous experimental labs ('self-driving labs')**:\n- **A-Lab** (LBNL Berkeley, 2023 Nature paper by Ceder + Persson) — robotic synthesis + characterization (XRD) of inorganic compounds proposed by ML/DFT; 41 of 58 targets synthesized in 17 days. Controversy: 2024 letter argued ~17 of 58 needed manual verification; the bigger point is the *closed loop* of propose-make-measure-update.\n- **Acceler-Ate** (CMU + LBNL) — autonomous electrochemistry of battery electrolytes; thousands of formulations per week with closed-loop optimization.\n- **Battery Data Genome** (Argonne ARPA-E) — share-and-pool cycling data across orgs for ML.\n- **Tetra (Lawrence Livermore + Toyota Research Institute)** — battery + photovoltaics autonomous discovery; TRI's pioneering work since 2018.\n- **Other examples**: Boris Aronov + Hein UBC (clean-energy materials), Schmidt Futures + Eric Schmidt-funded labs, Coscientist (CMU 2023) GPT-4 plans experiments.\n\n**Putting it together** — the future electrochemist commands a stack of: DFT + ML interatomic potentials (TBSimulation, M3GNet, MACE) → generative candidate proposal (diffusion models) → robotic synthesis + EIS/CV testing → Bayesian optimization closes the loop → human curates + scales the winners. Cycle time per discovery dropped from months to days. The breakthroughs of the next decade — cobalt-free cathodes, dendrite-stable solid electrolytes, durable OER/ORR catalysts, multivalent ion-conducting frameworks — are likely to come from these closed-loop ML/automation pipelines."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fr_ssb_dendrite",
+        "kind": "guided_derivation",
+        "question": "Estimate critical current density for Li-metal dendrites",
+        "goal": "Use the Monroe-Newman shear-modulus criterion to estimate the solid-electrolyte stiffness needed to suppress Li dendrites + explain why reality is more complex.",
+        "steps": [
+          {
+            "prompt": "Monroe-Newman (2005) argued that if the solid electrolyte's shear modulus G_SE > 2× the Li metal's shear modulus G_Li ≈ 4 GPa, dendrites are suppressed at the interface. What's the threshold G_SE?",
+            "motivation": "Original criterion.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                ">8 GPa",
+                "8 GPa"
+              ]
+            },
+            "hints": [
+              "2 × G_Li."
+            ],
+            "reveal": "G_SE > 2 G_Li ≈ 8 GPa. PEO polymer ~0.1-1 GPa fails; oxide LLZO ~60 GPa passes; sulfide ~10-15 GPa passes."
+          },
+          {
+            "prompt": "Yet dendrites STILL appear in oxide + sulfide SSBs at moderate currents. List two reasons.",
+            "motivation": "Real failure modes.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "grain boundary + pore propagation; defect-mediated; void formation at Li/SE interface",
+                "porosity + grain boundaries; current focusing at contacts"
+              ]
+            },
+            "hints": [
+              "Real ceramics have grain boundaries + pores."
+            ],
+            "reveal": "Dendrites propagate through (1) grain boundaries of the ceramic (Janek + Sakamoto 2017); (2) pores + voids (especially at high current after contact loss between Li and SE); (3) electronic conductivity in the SE (any e⁻ leak nucleates Li internally). Monroe-Newman is a *necessary* but not sufficient condition. Solutions: denser ceramics (>99% density), grain-boundary engineering, stack pressure (1-10 MPa), 3D Li scaffolds, lithiophilic coatings."
+          },
+          {
+            "prompt": "Quantify a critical current density (CCD): typical LLZO has CCD ~0.5-1 mA/cm² at RT. Compare to liquid-electrolyte Li-ion C/2 charging at ~3 mA/cm² for a 3 mAh/cm² cathode loading. Implication?",
+            "motivation": "Practical rate cap.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "SSB can't yet match Li-ion charge rate without stack pressure or 3D host",
+                "CCD too low for fast charge"
+              ]
+            },
+            "hints": [
+              "Compare 0.5-1 vs 3 mA/cm²."
+            ],
+            "reveal": "Current SSB CCD ~1 mA/cm² caps you near C/3 for a 3 mAh/cm² cathode — far short of the C/2 → 4C fast-charge demand for premium EV. State-of-art with stack pressure (5 MPa) + lithiophilic coatings now achieves 5-10 mA/cm² in research cells. The race is to >10 mA/cm² without engineering complexity at room T."
+          },
+          {
+            "prompt": "Estimate the gravimetric-energy boost SSBs offer vs Li-ion. Li-metal anode: 3860 mAh/g vs graphite 372. Cathode unchanged. Anode is ~15% of cell mass currently. Rough scaling?",
+            "motivation": "The prize.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~40-50% pack-level boost",
+                "30-50%",
+                "~50%"
+              ]
+            },
+            "hints": [
+              "Anode mass shrinks ~10x."
+            ],
+            "reveal": "Anode mass shrinks ~10x (graphite 372 → Li 3860 mAh/g); separator + most electrolyte replaced by thin SE; cell-to-pack ratio improves (no thermal-management overhead). Expected boost: 250 Wh/kg NMC → 400-500 Wh/kg SSB at pack. ~50% boost is realistic; ~100% (500 Wh/kg) is upper-bound under optimistic conditions (Li-S cathode + SSB)."
+          }
+        ],
+        "finalResult": "$$\\boxed{G_{SE} > 2 G_{Li} \\approx 8 \\text{ GPa is necessary but not sufficient; reality demands dense + grain-engineered ceramics + stack pressure + 3D hosts}}$$"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fr_a_lab",
+        "kind": "multiple_choice",
+        "question": "What was the headline claim of the A-Lab (Berkeley LBNL) 2023 Nature paper?",
+        "options": [
+          "AI predicted Nobel prizes.",
+          "Ceder + Persson's A-Lab demonstrated a *closed-loop autonomous* materials-discovery system: ML/DFT proposed 58 inorganic target compounds, a robotic synthesis + XRD-characterization lab attempted each one, and 41 of 58 were synthesized over 17 days (with a fraction of those subsequently flagged as requiring manual verification in a 2024 community letter). The bigger point isn't the precise success rate but the demonstration of an autonomous propose → make → measure → update loop in materials chemistry. Combined with Open Catalyst (Meta) + GNoME (DeepMind 2.2M stable crystals) + Acceler-Ate + similar TRI/Schmidt labs, this seeded the 'self-driving labs' movement now central to electrochemical electrode + electrolyte discovery.",
+          "ML beat DFT at predicting Nobel prizes.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "A-Lab (Ceder + Persson 2023 Nature) — closed-loop autonomous robotic synthesis + characterization; 41/58 targets synthesized in 17 days (with later community discussion of which were verified). Demonstrated the propose-make-measure-update loop. Part of broader ML-accelerated materials discovery (GNoME, Open Catalyst, TRI, Acceler-Ate)."
+      },
+      "hints": [
+        "Autonomous loop.",
+        "Berkeley + 2023 Nature."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "A-Lab autonomous loop: ML proposes, robot makes, XRD measures, model updates; 41/58 targets synthesized in 17 days; controversy + community refinement followed."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fr_na_vs_lfp",
+        "kind": "scenario",
+        "question": "Na-ion vs LFP for stationary storage",
+        "prompt": "A utility is RFP-ing a 50 MWh / 4-hr discharge stationary storage system in a moderate-climate region. Argue when sodium-ion would win vs LFP, with cost + performance reasoning."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fr_li_metal_cap",
+        "kind": "math_expression",
+        "question": "Theoretical specific capacity of Li metal anode in mAh/g. Use M(Li) = 6.94 g/mol, n = 1, F = 26801 mAh/mol.",
+        "acceptedAnswers": [
+          "3862",
+          "~3860",
+          "3860 mAh/g"
+        ],
+        "hint": "26801/6.94 = ?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fr",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how solid-state batteries, beyond-Li-ion chemistries, flow batteries, supercaps, and ML-accelerated discovery together define the energy-storage frontier — and where each fits.",
+        "rubric": "Mentions: SSBs (sulfide LGPS/argyrodite; oxide LLZO; polymer PEO; hybrids) enable Li metal anode for 400-500 Wh/kg pack; Monroe-Newman shear criterion necessary but not sufficient (grain boundaries + voids); QuantumScape + Toyota + Solid Power + Samsung leading. Na-ion (CATL/BYD/Faradion) 30-40% cheaper than LFP for stationary + low-cost EV. Li-S 2600 Wh/kg theoretical; polysulfide shuttle + volume the hurdles; aviation niche. Li-air still long-term. Flow batteries (vanadium Skyllas-Kazacos; organic Aziz/Gordon Harvard) decouple energy + power for long-duration. Supercaps (EDLC + pseudocap + MXene) for power, regen braking. Iron-air (Form Energy) for 100-hr storage. ML stack: Materials Project + Open Catalyst (Meta) + GNoME (DeepMind 2.2M crystals) + autonomous labs (A-Lab Berkeley + Acceler-Ate + TRI). Each chemistry has its sweet spot; the discovery pipeline is the meta-innovation."
+      }
+    }
+  ]
+}

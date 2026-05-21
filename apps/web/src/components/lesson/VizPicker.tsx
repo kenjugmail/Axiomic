@@ -306,6 +306,27 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🧊",
     tags: ["glaciology", "climate", "geophysics", "earth-science"],
   },
+  {
+    name: "retrosynthesis-tree",
+    label: "Retrosynthesis tree",
+    description: "Pick a drug (ibuprofen, paracetamol, aspirin); click nodes to explore disconnections in a 2-3 level retro tree.",
+    thumb: "🧪",
+    tags: ["organic-chemistry", "synthesis", "medicinal-chemistry"],
+  },
+  {
+    name: "tanabe-sugano-diagram",
+    label: "Tanabe-Sugano diagram",
+    description: "Pick d-electron config (d2-d8) and Δ/B; see term energies, HS/LS crossover, predicted UV-vis transitions.",
+    thumb: "🔮",
+    tags: ["inorganic-chemistry", "coordination", "spectroscopy"],
+  },
+  {
+    name: "butler-volmer-curve",
+    label: "Butler-Volmer I-η",
+    description: "Drag exchange current + transfer coefficient; see the I-η curve and Tafel slopes for electrochemical kinetics.",
+    thumb: "⚡",
+    tags: ["electrochemistry", "kinetics", "batteries", "fuel-cells"],
+  },
 ];
 
 interface Props {

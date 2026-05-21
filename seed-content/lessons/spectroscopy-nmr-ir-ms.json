@@ -1,0 +1,154 @@
+{
+  "slug": "spectroscopy-nmr-ir-ms",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Interpret ¹H + ¹³C NMR chemical shifts + multiplicities.",
+      "Identify functional groups from IR + Raman spectra.",
+      "Reason about mass-spectrometry ionization + fragmentation patterns."
+    ],
+    "prereqs": [
+      "functional-groups-and-reactivity"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "NMR: the master spectroscopy of organic structure",
+      "body": "**Nuclear Magnetic Resonance (NMR)** is the most informative single technique for organic structure determination. Magnetically active nuclei (spin I ≠ 0) in a strong static field B₀ precess at the **Larmor frequency** ν = γB₀/(2π). RF pulses tip the magnetization off-axis; relaxation back to equilibrium induces a signal in a detector coil; Fourier transform converts the time-domain free-induction decay (FID) to a frequency-domain spectrum.\n\n**Key nuclei in organic chemistry**:\n- **¹H** (I=½, 99.98% natural abundance, γ high, very sensitive). Default workhorse.\n- **¹³C** (I=½, 1.1% natural abundance, low γ → ~6000× less sensitive than ¹H). Decoupling + Overhauser enhancement help.\n- **¹⁹F** (I=½, 100% abundance, high γ). Standard for fluorine-containing pharmaceuticals.\n- **³¹P** (I=½, 100% abundance). Phosphates, phosphonates, phosphines.\n- **¹⁵N** (I=½, 0.4%). Difficult; needed for proteins.\n- **¹¹B, ²⁹Si, ²H (deuterium)** + others.\n\n**Chemical shift δ (ppm)**: position relative to TMS (tetramethylsilane, δ=0). Reflects local electronic environment — electron-poor environment shifts to higher δ (downfield, deshielded); electron-rich shifts to lower δ (upfield, shielded).\n\n**¹H NMR shift ranges (δ, ppm)**:\n- Aliphatic CH (alkane): 0.5-2.\n- α-C to halide/N/S: 2-4.\n- α-C to O: 3-5.\n- Vinyl CH (alkene): 4.5-7.\n- Aromatic CH: 6.5-8.5.\n- Aldehyde CH: 9-10.5 (very diagnostic).\n- Carboxylic acid OH: 10-13 (broad).\n- Alcohol/amine NH/OH: variable + exchange-broadened.\n\n**¹³C NMR shift ranges (δ, ppm)** (0-220):\n- sp³ C: 0-90 (CH₃ ~10-30, CH ~30-50, with O ~50-90).\n- sp² C alkene: 100-150.\n- Aromatic C: 110-160.\n- Nitrile C: 110-120.\n- Carbonyl C (ester/acid/amide): 165-180.\n- Carbonyl C (ketone/aldehyde): 190-220.\n\n**J coupling (Hz)** — through-bond spin-spin coupling — splits peaks by **n+1 rule** (n = number of neighboring equivalent inequivalent H's).\n- ³J(H–H) vicinal: depends on dihedral angle (Karplus equation: J = A cos²θ + B cosθ + C; typical 0-12 Hz; 180° anti ~10-12, 90° ~0, 0° eclipsed ~7-10).\n- Aromatic ortho ³J: 7-9 Hz; meta ⁴J: 1-3; para ⁵J: ~0.\n- Alkene ³J(cis): 6-12; ³J(trans): 12-18 (very diagnostic).\n- Geminal ²J: 12-15 (alkanes); 0-2 (alkenes).\n- Long-range ⁴J: usually <2 Hz.\n\n**Integration**: peak area ∝ number of nuclei. Direct quantitation.\n\n**FT-NMR + the Ernst revolution**. Richard Ernst (ETH Zürich; **Nobel Chemistry 1991**) developed pulse + Fourier-transform NMR (1966) replacing slow continuous-wave methods. Same year, multi-pulse experiments + 2D NMR (with Jeener's idea + Ernst's development 1971-1976). Wüthrich (Nobel 2002) used 2D NMR for protein structure determination — first solution-state structures.\n\n**2D NMR experiments** (routinely used today):\n- **COSY**: ¹H–¹H through-bond coupling map. Diagonal + cross-peaks at coupled pairs.\n- **TOCSY**: total correlation — sees all spins in a coupled chain.\n- **HSQC**: ¹H–¹³C one-bond correlation. Maps each H to its directly bonded C.\n- **HMBC**: ¹H–¹³C 2-3 bond correlation. Connects through quaternary carbons + heteroatoms — essential for assembling fragments.\n- **NOESY/ROESY**: through-space (NOE) coupling; H's within ~5 Å. Builds 3D structure.\n- **DOSY**: diffusion-ordered. Separates components by molecular size.\n\n**Dynamic NMR**: variable-temperature; line-shape analysis at coalescence temperature → exchange rate constants → free energies of activation. Used to measure barriers (e.g., amide rotation ~20 kcal/mol; cyclohexane ring-flip ~10).\n\n**Modern NMR**:\n- **Cryoprobes**: cold preamps; 4× sensitivity → 16× faster experiments.\n- **High-field magnets**: 600-1200 MHz; better resolution + sensitivity.\n- **DNP (dynamic nuclear polarization)**: hyperpolarization → ~10000× sensitivity boost for small molecules + biomolecules.\n- **Solid-state NMR (MAS)**: catalyst surfaces, polymers, membrane proteins.\n- **AI-assisted assignment**: deep-learning tools (CASCADE, NMRshiftDB, IMPRESSION, NMR-Net) predict chemical shifts + assist structure elucidation.\n- **Benchtop NMR (60-80 MHz)**: low-cost permanent magnets — democratizing reaction monitoring + structure ID."
+    },
+    {
+      "kind": "text",
+      "title": "IR + Raman: vibrational spectroscopy",
+      "body": "**Infrared (IR) spectroscopy** measures absorption of IR light by molecular vibrations. A bond's vibrational frequency follows Hooke's law:\n\n  ν̃ (cm⁻¹) = (1/2πc) √(k/µ)\n\nwhere k = force constant + µ = reduced mass. Stiffer (stronger) bonds + lighter atoms → higher frequency. Double + triple bonds vibrate at higher frequency than single bonds. C–H (~3000) > C–D (~2200) — isotope shift used to confirm assignments + study mechanisms (kinetic isotope effects).\n\nMidIR region: 400-4000 cm⁻¹.\n- **High frequency** (3000+): X–H stretches.\n- **Middle** (1500-2500): X≡Y triple bonds, X=Y double bonds (carbonyls especially).\n- **Fingerprint region** (400-1500): complex coupled modes; molecule-specific.\n\n**Group frequencies for diagnosis** (memorize):\n- O–H stretch: 3200-3650 cm⁻¹ (broad if H-bonded; sharp if free).\n- N–H stretch: 3300-3500 (1° amine 2 peaks; 2° amine 1 peak; amide ~3300+broad).\n- C–H sp³ stretch: 2850-3000.\n- C–H sp² (alkene/aromatic): 3000-3100.\n- C–H sp (terminal alkyne): ~3300 sharp.\n- C–H aldehyde Fermi doublet: ~2720+2820 (diagnostic).\n- C≡C alkyne: ~2100-2260 (weak).\n- C≡N nitrile: 2200-2260 (sharp medium).\n- C=O stretch: 1650-1820 (the most diagnostic IR signal).\n  - Acyl chloride: ~1800\n  - Anhydride: 1750+1820 (doublet)\n  - Ester: ~1735\n  - Aldehyde: ~1725\n  - Ketone: ~1715\n  - Carboxylic acid: ~1710 (with broad O–H 2500-3300)\n  - Conjugated carbonyls shift -20 to -30 cm⁻¹ lower.\n  - Amide: 1640-1680 (Amide I); 1530-1560 (Amide II).\n  - Ring strain raises frequency: 4-membered lactone ~1820; cyclobutanone ~1780.\n- C=C alkene: 1620-1680.\n- Aromatic ring: 1450 + 1600.\n- C–O: 1000-1300 (multiple bands; alcohol, ether, ester).\n\n**FT-IR (Fourier transform IR)**: Michelson interferometer + FT — fast, multichannel, dominant since the 1980s.\n\n**ATR-FTIR (attenuated total reflectance)**: solid/liquid sample placed on a diamond/Ge crystal; evanescent wave probes ~1 µm penetration. No sample prep. Standard modern workflow.\n\n**Raman spectroscopy**: complementary to IR. Inelastic scattering of monochromatic light off vibrations. Stokes + anti-Stokes lines flank Rayleigh.\n- IR: dipole-moment change → polar bonds (C=O, O–H) intense.\n- Raman: polarizability change → symmetric + non-polar bonds (C=C, C–C, S–S, aromatic ring breathing) intense.\n- Used together to fully characterize symmetry-determined vibrational modes (mutually exclusive for centrosymmetric molecules).\n\n**SERS (surface-enhanced Raman scattering)**: molecules adsorbed on metal nanostructures (Au, Ag) experience 10⁴-10¹² enhancement — single-molecule Raman is achievable. Used in chemical sensing, art conservation, biomedical diagnostics.\n\n**TERS, CARS, SRS, ROA (Raman optical activity)**: specialized variants for imaging, vibrational chirality, label-free microscopy.\n\n**VCD (vibrational circular dichroism)** + **Raman optical activity** assign absolute configuration without X-ray crystallography."
+    },
+    {
+      "kind": "text",
+      "title": "Mass spectrometry: ionization, fragmentation, HRMS",
+      "body": "**Mass spectrometry (MS)** measures the mass-to-charge ratio (m/z) of ions. Workflow: (1) **ionize** the analyte; (2) **separate** ions by m/z in a mass analyzer; (3) **detect** + record.\n\n**Ionization methods**:\n- **EI (electron impact)**: 70 eV electron beam knocks an electron off neutral molecules → radical cations M•⁺. Hard ionization — produces a molecular ion + extensive fragmentation. Used with GC-MS. Reference libraries (NIST, Wiley) match fragmentation patterns to identify unknowns.\n- **CI (chemical ionization)**: softer than EI; reagent gas (methane, isobutane, NH₃) protonates the analyte. M+H⁺ + less fragmentation.\n- **ESI (electrospray ionization)**: highly charged droplets desolvate; produces [M+H]⁺ (positive mode) or [M-H]⁻ (negative mode), often plus Na⁺ + K⁺ adducts. Soft — preserves intact MW. Multiply charged for large biomolecules (proteins, oligonucleotides). Workhorse for LC-MS + drug discovery.\n- **APCI (atmospheric pressure chemical ionization)**: corona discharge; less polar analytes (lipids, terpenes).\n- **MALDI (matrix-assisted laser desorption/ionization)**: laser pulse on co-crystallized matrix; produces predominantly singly charged [M+H]⁺. Used for peptides, proteins, polymers, lipids. Tanaka + Karas + Hillenkamp Nobel-recognized work (Tanaka Nobel 2002).\n- **DART, DESI**: ambient ionization — direct sampling from surfaces without prep.\n\n**Mass analyzers**:\n- **Quadrupole**: oscillating fields stabilize specific m/z. Low-res (~0.5 Da), fast, cheap. LC-MS, GC-MS workhorses.\n- **Time-of-flight (TOF)**: ions accelerated by E field; time-of-flight ∝ √m. High-res (~5 ppm); fast.\n- **Orbitrap (Makarov 2000s)**: ions orbit a spindle electrode; axial oscillation frequency = m/z. High-res (~1 ppm), high-mass-accuracy, the workhorse of modern proteomics + small-molecule HRMS.\n- **FT-ICR (Fourier transform ion cyclotron resonance)**: highest resolution (sub-ppm); slowest + most expensive.\n- **Magnetic sector**: classic high-res; legacy.\n- **Ion trap (3D, linear, Orbitrap-derived)**: ions trapped + ejected sequentially; MS/MS-capable.\n\n**High-resolution accurate mass (HRMS)**: ~1 ppm accuracy gives molecular formula directly. C₈H₁₀O = 122.0732 (exact); C₇H₈N₂ = 120.0687; C₉H₁₂ = 120.0939. The decimal resolves the formula.\n\n**Fragmentation patterns (EI + tandem MS/MS)**:\n- **α-cleavage** at heteroatom: C–C bond α to N/O preferred (resonance-stabilized cation).\n- **McLafferty rearrangement**: 6-membered TS in carbonyl compounds; γ-H migrates to O, β-C–C cleaved → enol cation + neutral alkene. Diagnostic for ketones/esters/aldehydes.\n- **Inductive cleavage**: at C–halogen → R⁺ + halide.\n- **Retro-Diels-Alder**: cyclohexenes fragment to diene + dienophile.\n- **Tropylium ion (m/z 91)**: benzyl cation rearranges to aromatic 7-ring C₇H₇⁺ — extraordinarily stable; diagnostic for substituted toluenes/benzyl compounds.\n- **Acylium (RCO⁺)**: stable cation from aldehyde/ester/ketone fragmentation. m/z 43 (acetyl) very common.\n- **Loss patterns**: −18 (H₂O), −28 (CO or C₂H₄), −29 (CHO), −31 (OCH₃), −43 (C₃H₇ or CH₃CO), −60 (CH₃COOH).\n\n**Tandem MS (MS/MS, MSⁿ)**: select a precursor m/z → fragment by CID (collision-induced dissociation), HCD, ETD, EThcD, UVPD → analyze product ions. Standard for peptide sequencing (b/y ion series), metabolomics, drug-metabolite ID.\n\n**LC-MS + GC-MS** — separation followed by MS. LC-MS (often Q-TOF or Orbitrap) is the everyday tool of pharma DMPK + medicinal chemistry. GC-MS for volatile compounds, environmental + forensic.\n\n**Ion mobility (IMS)** — separates ions by collision cross-section in a drift gas. Adds an orthogonal dimension to MS for distinguishing isomers (structural, conformational), particularly useful for glycans, peptides, native proteins.\n\n**Modern advances**:\n- **Native MS**: preserves non-covalent protein-protein/protein-ligand interactions in the gas phase.\n- **Top-down proteomics**: intact protein analysis (Orbitrap, FT-ICR).\n- **Imaging MS (MALDI-IMS, DESI-IMS, SIMS)**: spatial MS on tissue sections — drug + metabolite distribution mapping.\n- **High-throughput MS (HT-MS, acoustic ejection, RapidFire)**: thousands of samples per hour — drug-discovery screening.\n- **AI-assisted spectral matching + structure prediction (MolDiscovery, SIRIUS, MASST, MetFrag)** — ML mass-spectral interpretation.\n\nMass spectrometry transformed from a niche physics technique (Aston Nobel 1922) into a universal molecular-identification tool — every modern chemistry, biology, + medical lab depends on it. Resolution + sensitivity have improved ~10⁹ since 1922; the discipline still accelerates."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_spec_unknown",
+        "kind": "guided_derivation",
+        "question": "Solve a structure from combined spectra",
+        "goal": "Given C₄H₈O₂ (HRMS m/z 88.0524). IR: 1735 cm⁻¹ (sharp), 1240 cm⁻¹. ¹H NMR: δ 4.10 (q, 2H, J=7.1), 2.05 (s, 3H), 1.25 (t, 3H, J=7.1). ¹³C NMR: δ 171, 60, 21, 14. Identify the compound.",
+        "steps": [
+          {
+            "prompt": "Calculate degrees of unsaturation. What does it tell you?",
+            "motivation": "C₄H₈O₂; saturated would be CₙH₂ₙ₊₂O₂.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1 degree of unsaturation"
+              ]
+            },
+            "hints": [
+              "DoU = (2C+2-H)/2 = (2·4+2-8)/2 = 1.",
+              "1 ring or 1 double bond."
+            ],
+            "reveal": "DoU = (2·4 + 2 - 8)/2 = 1. One double bond OR one ring. With IR 1735 cm⁻¹ (strong) + ¹³C 171 ppm, the DoU is a C=O. Likely ester (1735) — not ketone (1715) or acid (1710 with broad O–H, absent here)."
+          },
+          {
+            "prompt": "What does the IR 1240 cm⁻¹ band suggest?",
+            "motivation": "C–O of ester.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ester C–O–C asymmetric stretch"
+              ]
+            },
+            "hints": [
+              "Esters show two strong bands: C=O ~1735 + C–O ~1240."
+            ],
+            "reveal": "1240 cm⁻¹ is the C–O–C asymmetric stretch of an ester. With 1735 + 1240 + no O–H, the FG is confirmed as ester (–C(=O)–O–C–)."
+          },
+          {
+            "prompt": "Interpret the three ¹H NMR signals.",
+            "motivation": "Match δ + multiplicity to ester structure.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "CH3CH2 ethyl group + CH3 acetyl group"
+              ]
+            },
+            "hints": [
+              "Quartet 4.10 + triplet 1.25 → –OCH₂CH₃ ethyl on oxygen.",
+              "Singlet 2.05 + ¹³C 21 → CH₃ next to C=O."
+            ],
+            "reveal": "δ 4.10 (q, 2H, J=7.1): –O–CH₂–CH₃ ethyl methylene on oxygen (deshielded by O). δ 1.25 (t, 3H, J=7.1): –OCH₂–CH₃ ethyl methyl. δ 2.05 (s, 3H): –CO–CH₃ acetyl methyl (no neighbors → singlet; α to carbonyl). The molecule is **ethyl acetate, CH₃COOCH₂CH₃**."
+          },
+          {
+            "prompt": "Confirm with ¹³C + MS.",
+            "motivation": "Cross-check.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "171 = ester C=O; 60 = OCH2; 21 = COCH3; 14 = CH2CH3; m/z 88 = M+ ethyl acetate"
+              ]
+            },
+            "hints": [
+              "MW (C₄H₈O₂) = 88; matches HRMS 88.0524."
+            ],
+            "reveal": "¹³C confirmations: 171 = ester carbonyl C; 60 = –OCH₂; 21 = –CO–CH₃; 14 = –CH₂–CH₃. HRMS 88.0524 matches C₄H₈O₂ (exact: 88.0524). Predicted fragmentation: m/z 43 (acylium CH₃CO⁺), m/z 70 (loss of H₂O), m/z 61 (loss of C₂H₅). **The compound is ethyl acetate** — multimodal spectra converge on a single structure."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Ethyl acetate, CH}_3\\text{COOC}_2\\text{H}_5}$$ The five-spectra integration (HRMS + IR + ¹H NMR + ¹³C NMR + multiplicity/coupling) determines a small-molecule structure in minutes. Modern automated structure elucidation tools (Mnova, ACD Structure Elucidator, NMR-Net, CASE) can do this automatically for many compounds — but chemists still confirm + interpret manually."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_spec_nmr",
+        "kind": "multiple_choice",
+        "question": "Which 2D NMR experiment best correlates protons that are 2-3 bonds apart from quaternary carbons (i.e., connects fragments through carbons without attached H)?",
+        "options": [
+          "COSY.",
+          "HMBC (Heteronuclear Multiple-Bond Correlation) — detects ¹H–¹³C correlations across 2 to 3 bonds (sometimes 4). Critical for assembling structural fragments through quaternary carbons (carbonyls, ipso-aromatic C, sp³ C with no H) that are invisible to HSQC (one-bond) + COSY (¹H–¹H only). HMBC is essential for natural-product structure elucidation + is run routinely alongside HSQC + COSY.",
+          "HSQC.",
+          "NOESY."
+        ],
+        "correctIndex": 1,
+        "explanation": "HMBC sees 2-3 bond ¹H–¹³C correlations across heteroatoms + quaternary carbons. HSQC is one-bond only (each H to its directly bonded C). COSY is ¹H–¹H. NOESY is through-space (≤5 Å). Connecting fragments through quaternary C (carbonyl carbons, ipso-aromatic, sp³ C with no H) requires HMBC — without it, full structure assembly from NMR alone is often impossible."
+      },
+      "hints": [
+        "Multi-bond through-carbon correlation.",
+        "Connect across quaternary C."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "HMBC = 2-3 bond ¹H–¹³C correlation. Routes through quaternary C invisible to HSQC + COSY. Essential for assembling natural-product structures."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_spec_choose",
+        "kind": "scenario",
+        "question": "Choosing a mass-spectrometric workflow",
+        "prompt": "You have a 80-residue peptide drug candidate; you need (1) confirm the sequence + post-translational modifications, (2) quantify in plasma at low nM concentration, + (3) identify metabolites. Which MS ionization + analyzer choices would you select for each goal + why?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_spec_n1",
+        "kind": "math_expression",
+        "question": "An ¹H NMR signal is split into a quartet (4 peaks) by neighboring inequivalent H's. By the n+1 rule, how many neighbor H's does it have?",
+        "acceptedAnswers": [
+          "3"
+        ],
+        "hint": "n+1 = 4 ⇒ n = 3."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_spec",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why NMR + IR + MS are taught together as a 'spectroscopy triad' for organic structure determination.",
+        "rubric": "Mentions: each technique addresses different information — IR reveals functional groups (vibrational frequencies; C=O, O–H, C≡N); ¹H + ¹³C NMR reveals connectivity, neighborhood, stereochemistry (chemical shifts, multiplicities, J coupling, 2D correlations); MS reveals molecular formula (HRMS), molecular weight, fragmentation patterns (FG fingerprints, McLafferty, tropylium). No single technique is sufficient — combined they resolve formula + functional groups + connectivity + stereochemistry. Modern workflow: HRMS to determine formula; IR/Raman to identify FGs; ¹H + ¹³C + 2D NMR (HSQC, COSY, HMBC, NOESY) for full connectivity + 3D. The five-spectra approach is the foundation of organic chemistry from undergraduate teaching through Ph.D.-level natural-product structure elucidation."
+      }
+    }
+  ]
+}

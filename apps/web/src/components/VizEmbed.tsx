@@ -43,6 +43,9 @@ const LawsonCriterion = lazy(() => import("../../../../packages/viz/src/componen
 const BandStructure = lazy(() => import("../../../../packages/viz/src/components/BandStructure").then(m => ({ default: m.BandStructure })));
 const VortexShedding = lazy(() => import("../../../../packages/viz/src/components/VortexShedding").then(m => ({ default: m.VortexShedding })));
 const IceSheetDynamics = lazy(() => import("../../../../packages/viz/src/components/IceSheetDynamics").then(m => ({ default: m.IceSheetDynamics })));
+const RetrosynthesisTree = lazy(() => import("../../../../packages/viz/src/components/RetrosynthesisTree").then(m => ({ default: m.RetrosynthesisTree })));
+const TanabeSuganoDiagram = lazy(() => import("../../../../packages/viz/src/components/TanabeSuganoDiagram").then(m => ({ default: m.TanabeSuganoDiagram })));
+const ButlerVolmerCurve = lazy(() => import("../../../../packages/viz/src/components/ButlerVolmerCurve").then(m => ({ default: m.ButlerVolmerCurve })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -90,6 +93,9 @@ export const VIZ_NAMES = [
   "band-structure",
   "vortex-shedding",
   "ice-sheet-dynamics",
+  "retrosynthesis-tree",
+  "tanabe-sugano-diagram",
+  "butler-volmer-curve",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -135,6 +141,9 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "band-structure": BandStructure,
   "vortex-shedding": VortexShedding,
   "ice-sheet-dynamics": IceSheetDynamics,
+  "retrosynthesis-tree": RetrosynthesisTree,
+  "tanabe-sugano-diagram": TanabeSuganoDiagram,
+  "butler-volmer-curve": ButlerVolmerCurve,
 };
 
 interface VizEmbedProps {

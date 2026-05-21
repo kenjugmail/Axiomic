@@ -1,0 +1,161 @@
+{
+  "slug": "lithium-ion-batteries",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Trace the Goodenough-Whittingham-Yoshino Nobel history.",
+      "Survey cathode chemistries — LCO/LMO/NMC/NCA/LFP.",
+      "Explain SEI, electrolyte chemistry, degradation, and thermal runaway."
+    ],
+    "prereqs": [
+      "electrochemical-cells-and-batteries"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Li-ion: from Whittingham to a trillion-dollar industry",
+      "body": "**Chemistry Nobel 2019** — John B. Goodenough, M. Stanley Whittingham, Akira Yoshino — 'for the development of lithium-ion batteries'. Goodenough at 97 became the oldest Nobel laureate ever (and worked into his late 90s on solid-state batteries until his death in 2023). Yoshino built the first commercially viable Li-ion cell at Asahi Kasei; Sony commercialized it 1991.\n\n**Whittingham at Exxon (1970s)** — first rechargeable Li cell: Li metal anode + TiS₂ intercalation cathode. Worked but Li dendrites caused fires; abandoned during the oil-price reversal.\n\n**Goodenough at Oxford (1979-1980)** — proposed + demonstrated **LiCoO₂ (LCO)** as the cathode: layered structure with reversible Li intercalation at high voltage (~4 V). Sony license enabled the 1991 commercial Li-ion. Goodenough later (Texas, 1996) demonstrated **LFP (LiFePO₄)** — the safe, stable, cobalt-free alternative.\n\n**Yoshino at Asahi Kasei (1985)** — replaced Li metal with petroleum-coke carbon anode (eventually graphite) and combined with Goodenough's LCO. The first practical, safe, rechargeable Li-ion cell.\n\n**Sony (1991)** — first commercial Li-ion: 18650 form factor (~18 mm × 65 mm cylindrical). 110 mAh/g; ~3.6 V; ~80 Wh/kg. Launched a 30-year exponential improvement (today 300+ Wh/kg cell-level).\n\n**Volume + cost trajectory**:\n- 1991: $3000/kWh.\n- 2010: ~$1200/kWh.\n- 2024: ~$130/kWh (cell), <$100/kWh approaching for LFP.\n- ~98% cost reduction in 30 years — fastest-improving technology of the energy transition. Wright's law: cost ~ cumulative production^(-0.2 to -0.3).\n\n**Industry today**: ~1 TWh/yr production capacity (2024), heading to 8-10 TWh/yr by 2030. CATL (China) ~37%, BYD ~16%, LG, Samsung SDI, SK On, Panasonic round out top 6. EV batteries ~75% of demand; stationary storage growing fastest.\n\n**The intercalation revolution** — Li-ion works because Li⁺ shuttles reversibly between a layered cathode + a layered anode without the metal-plating that doomed Whittingham's design. The cathode + anode each act as 'sponges' that accept + release Li⁺ in their voids. This is fundamentally different from displacement (Pb-acid, NiCd) or conversion (Li-S, Li-air) chemistries — and far more cycle-stable.\n\n**Cell shapes**: 18650, 21700, 4680 cylindrical; pouch (laminated, soft); prismatic (rigid, blade in BYD). Form factor affects packing density, thermal management, mechanical integrity, manufacturing.\n\n**Why it changed the world**: smartphones (battery enabled hand-held supercomputers); electric vehicles (Tesla Roadster 2008 → Model 3 mass market; >40 M EVs on roads 2024); grid storage (Hornsdale 100 MW/129 MWh 2017 by Tesla — paid back in 2 years); power tools, drones, e-bikes, IoT. Goodenough's 1980 cathode is in your pocket."
+    },
+    {
+      "kind": "text",
+      "title": "Cathode chemistries: LCO, NMC, NCA, LMO, LFP",
+      "body": "Cathode is the high-cost, high-voltage, capacity-limiting side of a Li-ion cell. Major families:\n\n**LCO — LiCoO₂** (Goodenough 1980; Sony 1991)\n- Layered α-NaFeO₂-type structure; Li between CoO₂ slabs.\n- ~3.9 V vs Li; theoretical capacity 274 mAh/g; practical ~140-160 mAh/g (cycling > 50% Li removal destabilizes the layered structure).\n- High volumetric energy; ideal for phones + laptops where mass matters less than volume.\n- Co supply (DRC, ~70% of global mining; ethical + child-labor issues), cost, thermal instability above ~150 °C — drives migration toward NMC, NCA, LFP for EV.\n\n**LMO — LiMn₂O₄ spinel**\n- Spinel framework; 3D Li diffusion channels.\n- ~4.0 V; ~110-120 mAh/g.\n- Cheap, Mn-abundant, safer than LCO; lower energy + faster Mn dissolution at high temp causing capacity fade. Used historically in some power-tool packs + Nissan Leaf gen-1 hybrid blends.\n\n**NMC — LiNi_xMn_yCo_zO₂** (Ohzuku 2001; Argonne National Lab variants)\n- Layered like LCO but with Ni + Mn replacing some Co. NMC111 (1:1:1), NMC532, NMC622, NMC811 (80% Ni).\n- Higher Ni → higher capacity + voltage but lower thermal stability + faster degradation. NMC811 cell-level ~250-280 Wh/kg.\n- Workhorse of EV: Tesla (used NCA + NMC mixes), Polestar, VW ID, GM Ultium, BMW, most premium EVs.\n\n**NCA — LiNi_0.8Co_0.15Al_0.05O₂**\n- Tesla/Panasonic chemistry (2008+). High Ni → high energy.\n- Al substitution stabilizes the lattice + suppresses cation mixing.\n- ~3.7 V; ~200 mAh/g practical; ~260 Wh/kg cell.\n\n**LFP — LiFePO₄** (Goodenough + Padhi 1996; Phostech Lithium commercialization)\n- Olivine structure; Fe-O-P-O strong covalent bonds → extreme thermal stability (~270 °C onset vs ~150 °C LCO).\n- Lower voltage (3.4 V flat plateau) + capacity (170 mAh/g theoretical, 150 mAh/g practical) → lower energy density (~160 Wh/kg cell).\n- Cobalt-free, iron-cheap, long cycle life (3000-10000 cycles), safer.\n- BYD Blade (2020), Tesla Model 3 SR+ (2021+), CATL — fastest-growing chemistry; ~40%+ of EV market 2024.\n- Doesn't show 'reverse fade'; capacity drops by Li loss at SEI; very stable.\n\n**LMFP — Li(Mn,Fe)PO₄** — Mn-doped olivine, raises voltage to ~4.1 V, ~15-20% higher energy than LFP, similar safety. CATL + Gotion shipping 2024.\n\n**LRMO / Li-rich + cobalt-free** — Li_1.2(Ni_xMn_yCo_z)O_2; 300+ mAh/g; voltage fade + oxygen release still issues. Research stage.\n\n**Voltage windows + structural stability**: the cathode must accept/release Li⁺ without irreversible distortion. Excess Li removal causes oxygen release (cathode → 'rocksalt' phase), capacity fade, and contributes to thermal runaway. Most commercial cathodes cycle 50-70% of theoretical capacity for stability."
+    },
+    {
+      "kind": "text",
+      "title": "Anode, electrolyte, SEI, safety, degradation",
+      "body": "**Anode**:\n- **Graphite** — 372 mAh/g theoretical; ~360 practical. Layered carbon; LiC₆ intercalation; voltage 0.1-0.2 V vs Li (close to plating!). Cheap, abundant, mature. ~95% of commercial Li-ion uses graphite.\n- **Silicon** — 4200 mAh/g theoretical (Li₂₂Si₅). Massive 280% volume expansion → cracks SEI → consumes Li → fast capacity fade. Modern approach: 5-15% Si blended into graphite (Si-Gr composite), nano-Si, Si-C core-shell. Sila Nano, Group14, Amprius — Si-anode startups. Tesla 4680 reportedly uses Si.\n- **Li metal** — 3860 mAh/g, the ultimate. Dendrite formation during charging shorts the cell — fires. Solid-state electrolytes aim to suppress dendrites (next lesson).\n- **LTO — Li₄Ti₅O₁₂** — zero-strain (no volume change); ultra-long cycle life; very fast charge. But low voltage (1.55 V vs Li) sacrifices energy. Niche: buses, grid storage, military.\n\n**Electrolyte** — the most chemistry-intensive part of a Li-ion cell:\n- **LiPF₆ salt** — workhorse; thermally unstable above 60 °C (LiPF₆ → LiF + PF₅; PF₅ + H₂O → POF₃ + 2HF — HF attacks SEI + cathode). LiFSI + LiTFSI are alternative salts but corrode Al collectors. LiBOB, LiODFB used as additives.\n- **Carbonate solvent blend** — ethylene carbonate (EC, high κ for Li⁺ solvation), dimethyl carbonate (DMC, low viscosity), ethyl methyl carbonate (EMC), diethyl carbonate (DEC). Boiling points ~90-130 °C; flammable.\n- **Additives** (1-5% by mass; massively impact performance):\n  - **VC (vinylene carbonate)** — improves SEI quality on graphite.\n  - **FEC (fluoroethylene carbonate)** — for Si anodes; forms LiF-rich SEI.\n  - **LiNO₃** — Li-S cells.\n  - **TMSP, PS, propane sultone** — high-voltage cathode protection.\n- **Concentration**: typically 1.0-1.2 M LiPF₆.\n\n**SEI (Solid-Electrolyte Interphase)** — first-cycle decomposition of electrolyte at graphite (below ~0.8 V vs Li, well below electrolyte stability window) forms a ~10-100 nm film of Li₂CO₃, LiF, ROCO₂Li, polyethers. SEI is ionically conductive but electronically insulating — passivates the anode against further reaction while allowing Li⁺ transport. Bad SEI (porous, non-uniform) → continuous Li consumption → capacity fade. SEI engineering is the dark art of Li-ion chemistry. **First-cycle Coulombic loss** ~5-15% of cathode Li is consumed forming SEI — irrecoverable.\n\n**Safety + thermal runaway** — Li-ion's biggest risk:\n- Onset ~80-150 °C depending on chemistry; SEI breakdown → exothermic reactions with electrolyte.\n- Cascading: SEI → electrolyte oxidation → cathode oxygen release → fire.\n- Failure modes: internal short (separator puncture, dendrite, Cu deposit from over-discharge), external short, overcharge, mechanical abuse, overheating.\n- Boeing 787 Dreamliner 2013 grounding (Yuasa LCO packs), Galaxy Note 7 2016 (multiple causes including electrode misalignment), Chevy Bolt 2020-22 recall (LG separator/anode defect).\n- Mitigations: separator with ceramic coating, BMS overcurrent + over/undervoltage cutoffs, CID (current interrupt device), PTC fuse, vent disk, fire-suppression at pack level, LFP for inherently safer chemistry. LFP cells run away to ~200 °C but don't propagate as easily as NMC at 400-700 °C.\n\n**Degradation modes** (capacity + power fade over time + cycles):\n- **SEI thickening** — continuous Li consumption.\n- **Li plating** on graphite at fast charge or low temperature (graphite is just 0.1 V above Li/Li⁺ — small overpotential plates Li). Causes dendrites + cell death.\n- **Cathode degradation** — particle cracking (Ni-rich), TM dissolution (Mn²⁺ from spinel), oxygen release.\n- **Loss of lithium inventory (LLI)** + **loss of active material (LAM)** — the two main quantitative degradation modes; tracked via differential voltage analysis (DVA) + incremental capacity analysis (ICA).\n- **Calendar aging** — at high SOC + temperature; even without cycling. Why EVs prefer to sit at 50% SOC.\n\n**Why all this engineering matters** — a phone wants 500 cycles; an EV wants 2000+; grid storage wants 10000+. Every additive, coating, and chemistry choice is tuned for use-case."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_liion_lco_capacity",
+        "kind": "guided_derivation",
+        "question": "Derive theoretical capacity of LiCoO₂",
+        "goal": "Show that LCO theoretical capacity = 274 mAh/g from Faraday + molar mass.",
+        "steps": [
+          {
+            "prompt": "Capacity per mole = nF where n = 1 (one Li per formula unit). What's F in mAh/mol?",
+            "motivation": "Convert Faraday to mAh.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "26801 mAh/mol",
+                "26800 mAh/mol"
+              ]
+            },
+            "hints": [
+              "F = 96485 C/mol; 1 mAh = 3.6 C.",
+              "96485/3.6 = ?"
+            ],
+            "reveal": "F = 96485 C/mol = 96485/3.6 = 26801 mAh/mol."
+          },
+          {
+            "prompt": "Now divide by molar mass of LiCoO₂. M(LCO) = 6.94 + 58.93 + 2·16 = ?",
+            "motivation": "g/mol of cathode.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "97.87 g/mol",
+                "~97.9 g/mol",
+                "~98"
+              ]
+            },
+            "hints": [
+              "Li + Co + 2O."
+            ],
+            "reveal": "M(LiCoO₂) ≈ 6.94 + 58.93 + 32.00 ≈ 97.87 g/mol."
+          },
+          {
+            "prompt": "Theoretical specific capacity = 26801/97.87 = ?",
+            "motivation": "Final result.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "274 mAh/g",
+                "~274",
+                "273.9"
+              ]
+            },
+            "hints": [
+              "Divide."
+            ],
+            "reveal": "26801/97.87 ≈ 274 mAh/g — the canonical LCO theoretical capacity."
+          },
+          {
+            "prompt": "Practical capacity in commercial LCO is ~140-160 mAh/g. Why only ~55% of theoretical?",
+            "motivation": "Limits.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "structural collapse / O release when too much Li is removed",
+                "lattice instability above x > 0.5 in Li_(1-x)CoO_2"
+              ]
+            },
+            "hints": [
+              "What happens at high voltage?"
+            ],
+            "reveal": "Removing >50% Li (x > 0.5 in Li_(1-x)CoO₂) above ~4.2 V destabilizes the layered structure: O release, Co migration, phase transition to spinel/rocksalt → capacity fade + safety risk. Engineering compromise locks the cycling window. Doping (Mg, Al, Mn) + surface coating (Al₂O₃, LiF) push the limit up — modern high-V LCO cycles to ~4.45 V in phones."
+          }
+        ],
+        "finalResult": "$$\\boxed{Q_{theo}(\\text{LCO}) = \\frac{nF}{M} = \\frac{26801}{97.87} = 274 \\text{ mAh/g}}$$\n\nGeneral formula: theoretical capacity = nF/M with F in mAh/mol (26801) and M in g/mol."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_liion_nobel",
+        "kind": "multiple_choice",
+        "question": "Who shared the 2019 Chemistry Nobel for Li-ion batteries?",
+        "options": [
+          "Yoshino, Sony team, Goodenough.",
+          "John B. Goodenough (Oxford 1980, LiCoO₂ cathode; later LFP at Texas), M. Stanley Whittingham (Exxon 1970s, first Li intercalation cell with TiS₂), and Akira Yoshino (Asahi Kasei 1985, first practical cell with carbon anode + Goodenough's LCO; commercialized by Sony 1991). Goodenough at 97 was the oldest Nobel laureate ever; he continued work on solid-state batteries until his death in 2023.",
+          "Whittingham, Volta, Faraday.",
+          "Goodenough alone."
+        ],
+        "correctIndex": 1,
+        "explanation": "Whittingham (first intercalation cell with Li-metal + TiS₂), Goodenough (LiCoO₂ cathode + later LFP), Yoshino (replaced Li metal with carbon → safe + commercializable). Sony commercialized 1991. Goodenough was the oldest laureate ever at 97."
+      },
+      "hints": [
+        "Three names + 2019."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Goodenough, Whittingham, Yoshino (Chemistry 2019)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_liion_lfp_vs_nmc",
+        "kind": "scenario",
+        "question": "Choose chemistry for a grid storage system",
+        "prompt": "You're specifying a 100 MWh grid-storage system designed for daily cycling over 20 years in a hot desert location. Argue for LFP over NMC, and identify two failure modes you must mitigate."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_liion_graphite",
+        "kind": "math_expression",
+        "question": "Theoretical specific capacity of graphite (LiC₆) — n = 1 e⁻ per 6 C, M(LiC₆) = 6.94 + 6·12.01 = 79.0 g/mol. Compute in mAh/g (use F = 26801 mAh/mol).",
+        "acceptedAnswers": [
+          "339",
+          "339.3",
+          "~340",
+          "~339"
+        ],
+        "hint": "26801/79.0 = ?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_liion",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why Li-ion needs an SEI + how electrolyte design + cathode choice + safety engineering combine to make it work.",
+        "rubric": "Mentions: graphite anode reduces electrolyte below ~0.8 V vs Li (carbonate stability window ends much higher). First-cycle decomposition forms SEI = ~10-100 nm film of Li₂CO₃, LiF, ROCO₂Li — ionically conductive, electronically insulating, passivates. Costs ~5-15% first-cycle CE but enables long life. LiPF₆ in EC/DMC/EMC; additives (VC, FEC) tune SEI. Cathode (LCO/NMC/NCA layered or LFP olivine) + voltage cycling window must avoid structural collapse + O release. Thermal runaway (>150 °C in NMC, ~270 °C in LFP) drives safety design: BMS, separator coatings, CID, vents, LFP for inherent safety. Goodenough/Whittingham/Yoshino Nobel 2019 acknowledged this integrated chemistry: intercalation + safe anode + cathode + SEI together enabled the trillion-dollar industry."
+      }
+    }
+  ]
+}

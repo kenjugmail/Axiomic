@@ -1,0 +1,153 @@
+{
+  "slug": "medicinal-chemistry-and-modern-frontier",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply Lipinski's Rule of Five + bioisostere logic to lead optimization.",
+      "Survey click + bioconjugation chemistry from Sharpless/Meldal/Bertozzi to modern applications.",
+      "Connect C–H activation, photoredox, electrochemistry, flow + AI to modern synthesis."
+    ],
+    "prereqs": [
+      "retrosynthesis-and-synthesis-planning",
+      "organometallics-and-cross-coupling"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Medicinal chemistry: Lipinski to lead optimization",
+      "body": "**Medicinal chemistry** = the discipline of designing + optimizing small molecules into drugs. Sits at the intersection of organic synthesis, structural biology, pharmacology, + ADMET. Builds molecules that hit specific targets + survive the body's biology.\n\n**Lipinski's Rule of Five (RoF)** — Christopher Lipinski (Pfizer, 1997):\n\nA molecule is likely orally bioavailable if no more than one of:\n- Molecular weight (MW) > 500 Da.\n- Calculated logP (cLogP) > 5 (too lipophilic).\n- Hydrogen-bond donors (HBD; NH, OH) > 5.\n- Hydrogen-bond acceptors (HBA; N, O atoms not in F) > 10.\n\nThe four parameters are all '5' → 'rule of 5'. Empirical thresholds derived from 2245 drugs entering Phase II clinical trials. Filters out roughly 90% of chemical space that fails oral bioavailability.\n\n**Extensions**:\n- **Veber's rules (GSK 2002)**: also rotatable bonds (≤10) + polar surface area (PSA ≤ 140 Å²).\n- **Lead-likeness (Teague-Andrews-Carr)**: more conservative limits for starting compounds (MW ≤ 350, cLogP ≤ 3).\n- **Rule of 3 (Astex, fragment-based discovery)**: MW ≤ 300, cLogP ≤ 3, HBD ≤ 3, HBA ≤ 3.\n- **QED (Quantitative Estimate of Drug-likeness)**: weighted average 0-1 score.\n- **PAINS (Pan-Assay Interference Compounds)** — Baell 2010: chemical patterns prone to false positives in screening (rhodanines, quinones, catechols, etc.); filter early.\n\n**Bioisosteres**: structural replacements with similar physicochemical properties + biological effects. Tools for solving specific liabilities while preserving binding.\n- **Classical bioisosteres**: F ↔ H, −Cl ↔ −CF₃, COOH ↔ tetrazole, COOH ↔ acyl sulfonamide, COOH ↔ hydroxamate, amide ↔ urea, OMe ↔ S-Me, phenyl ↔ pyridyl, methylene ↔ ether.\n- **Non-classical**: SF₅ ↔ tBu/CF₃, cyclopropyl ↔ methyl/vinyl, bicyclo[1.1.1]pentane (BCP) ↔ para-substituted phenyl, cubane ↔ benzene, sp³-rich bioisosteres (Carreira's spirocyclics).\n- **Bioisostere rationale**: improve metabolic stability (F-block CYP), tune pKa (tetrazole replaces carboxylic acid retaining acidity), reduce lipophilicity, escape patent space, eliminate off-target effects.\n\n**Lead optimization cycle**:\n1. **Hit** (initial bioactive compound; potency µM-nM, often impure properties).\n2. **Lead** (cleaned + improved hit; <µM, drug-like).\n3. **Candidate** (preclinical-ready; nM affinity, selectivity, ADMET, PK profile, IP).\n4. **Clinical**: Phase I (safety), Phase II (efficacy), Phase III (registration), Phase IV (post-market).\n\n**SAR (Structure-Activity Relationship)** drives lead optimization. ~10⁵-10⁶ compounds screened per hit; ~50-500 SAR-iterations to candidate; total ~10 years + ~$2.6B per approved drug (DiMasi 2016).\n\n**ADMET (Absorption + Distribution + Metabolism + Excretion + Toxicity)**:\n- **A**: oral bioavailability F, intestinal permeability (Caco-2 cell), solubility.\n- **D**: protein binding, tissue distribution, blood-brain barrier crossing (if CNS target).\n- **M**: cytochrome P450 metabolism (CYP3A4, 2D6, 2C9, 2C19 most relevant), Phase II conjugation (glucuronidation, sulfation), microsomal stability.\n- **E**: renal vs hepatic clearance, plasma half-life.\n- **T**: hERG cardiotoxicity, hepatotoxicity, mutagenicity (Ames test), reproductive toxicity, off-target liabilities.\n\n**Modern medicinal-chemistry case studies**:\n\n**Crizotinib (Pfizer, ALK inhibitor for NSCLC)**: discovered via fragment-based + structure-based optimization. Crystal structure → fragment growing → 2D nano-molar inhibitor. Drug approved 2011; revolutionized ALK-rearranged lung cancer treatment.\n\n**Vemurafenib (PLX4032, BRAF V600E inhibitor for melanoma)**: Plexxikon's scaffold-based platform — fragments cocrystallized with kinase, grown into a selective inhibitor. From discovery to approval in 6 years (2005-2011) — remarkable for oncology.\n\n**Ibrutinib (Imbruvica, BTK inhibitor; AbbVie/Pharmacyclics)**: covalent inhibitor of Bruton's tyrosine kinase — acrylamide warhead targets a non-conserved cysteine (Cys481). First-in-class for chronic lymphocytic leukemia (CLL). Demonstrated covalent + kinome-selective design principle. The Pharmacyclics acquisition was AbbVie's $21B megadeal (2015).\n\n**Sotorasib + adagrasib (KRAS G12C inhibitors)**: covalent acrylamide drugs locking the GDP-bound state of mutant KRAS. Approved 2021-2022 for previously 'undruggable' KRAS-mutated cancers — one of the most celebrated targets in oncology history.\n\n**GLP-1 agonists (semaglutide, tirzepatide; Ozempic/Wegovy/Mounjaro)**: peptide drugs targeting metabolic disease + obesity — illustrating that not all drugs are small-molecule. Modified peptide chemistry + receptor-engagement design.\n\n**Modern AI + ML support**: ML-trained ADMET predictors (DeepChem, ATOM, Kim Branson's Postera, Insitro), generative chemistry models (REINVENT, MolGAN, ChemTS, GENTRL), DEL screening (~10⁹ compounds), HTE-augmented SAR (Cernak)."
+    },
+    {
+      "kind": "text",
+      "title": "Click chemistry + bioconjugation: from Sharpless to Bertozzi",
+      "body": "**Click chemistry** — Sharpless 2001 (Sharpless + Kolb + Finn): a class of reactions that are modular, wide in scope, high-yielding, generate inoffensive byproducts, stereospecific, easy to perform, + use no/benign solvents. The 'molecular Lego' approach to discovery + manufacture.\n\n**The defining click reaction: CuAAC (copper-catalyzed azide-alkyne cycloaddition)** — Sharpless + Meldal independently (2002):\n\n  R-N₃ + HC≡C-R' --(Cu(I))--> 1,4-triazole (R-N₃-substituted, 5-membered with N-N=N-C=C ring)\n\n- Originally a thermal Huisgen 1,3-dipolar cycloaddition (1960s) — requires high T + gives 1,4 + 1,5 mixture.\n- Cu(I) catalysis (Sharpless + Meldal independently 2002) — proceeds at RT, regiospecific for 1,4-isomer, fast, high yield, bioorthogonal in many contexts.\n- Azide + alkyne are exotic in biology → can be installed without interference + reacted in living cells/tissues.\n- The reaction won Sharpless his second Chemistry Nobel (2022, shared with Meldal + Bertozzi).\n\n**Other click reactions**:\n- **Thiol-ene**: R-SH + R'-CH=CH-R'' → R-S-CH(R')-CH₂-R''. Radical or anionic. Polymer + bioconjugation.\n- **Thiol-yne**: R-SH + HC≡C-R' → 1,2 + 1,1 addition products.\n- **Diels-Alder**: in suitable conditions, the canonical [4+2] cycloaddition. Inverse-electron-demand DA used for bioconjugation.\n- **Tetrazine-trans-cyclooctene (TCO) inverse electron demand**: faster than CuAAC, no metal catalyst — works in vivo. Rate constants ~10⁵-10⁶ M⁻¹s⁻¹.\n- **Oxime + hydrazone**: aldehyde/ketone + RONH₂ / RNHNH₂.\n- **Staudinger ligation (Bertozzi 2000)**: azide + phosphine → amide. First bioorthogonal reaction.\n- **SPAAC (strain-promoted azide-alkyne cycloaddition; Bertozzi 2004)**: cyclooctyne strain (~20 kcal/mol) drives reaction with azide at RT without Cu. Cu(I) is cytotoxic — SPAAC + tetrazine ligation are now standard for in vivo bioorthogonal chemistry.\n\n**Carolyn Bertozzi (Stanford) — Nobel Chemistry 2022** (shared with Sharpless + Meldal):\n- Coined **bioorthogonal chemistry** (2003) — reactions that are selective + fast in biological systems without disrupting native chemistry.\n- Pioneered glycan + lipid labeling in living cells, animals, humans.\n- Developed cyclooctyne reagents (DBCO, BCN, BARAC, DIFO, DIBO, DIMAC) for SPAAC.\n- Applied bioconjugation to disease — Lyterian, Olema, OliLab, Palleon, Bertozzi spin-outs commercializing bioorthogonal cancer + autoimmunity therapeutics.\n- Bertozzi also developed sulfo-click + many other variants. The first woman to win a Chemistry Nobel since 1964 (Dorothy Hodgkin).\n\n**Click chemistry applications**:\n- **Drug discovery**: rapid analog synthesis; click-augmented DEL libraries; in situ click chemistry for fragment linking (Sharpless: kinetic target-guided synthesis).\n- **Bioconjugation**: antibody-drug conjugates (ADCs), peptide-drug conjugates, polymer-protein conjugates, lipid nanoparticle assembly.\n- **Materials**: dendrimers, polymers, nanoparticles, hydrogels, self-assembling materials.\n- **Imaging + diagnostics**: PET tracer attachment via click chemistry (¹⁸F-azide + clickable scaffolds); fluorophore labeling of live cells.\n- **Therapeutics**: PROTAC heterobifunctional degraders; LYTACs (Bertozzi's lysosomal-targeting chimeras); covalent fragment ligation.\n\n**Click in drug manufacture**: industrial Cu-AAC processes for late-stage drug functionalization + library expansion. The reaction's tolerance + reliability are unrivaled.\n\n**Why click won the Nobel**: simplicity + modularity + speed transformed chemistry from a craft to a Lego-building exercise — enabled discovery throughput previously impossible. Sharpless's original 2001 vision (Drug Discov Today) was prescient + has reshaped how chemists approach molecule design."
+    },
+    {
+      "kind": "text",
+      "title": "C–H activation, photoredox, electrochemistry, flow + AI",
+      "body": "**C–H activation** = direct functionalization of unactivated C–H bonds without pre-installed handles. Holy grail of synthesis: a methane molecule has 4 equivalent C–H bonds (BDE ~104 kcal/mol); selectively replacing one with a useful group skips many prefunctionalization steps.\n\n**Pioneers + approaches**:\n- **Bergman cyclization, Shilov chemistry (1970s)**: early Pt-based C–H activation in methane.\n- **Hartwig, Sames, Sanford, Yu, Engle, Daugulis, Ge, Itami**: modern transition-metal-catalyzed C–H activation.\n- **Directing groups (DG)** — Yu (Scripps): install a coordinating group near the C–H to be activated (pyridine, oxime, amide, carboxylic acid); metal coordinates DG then activates the proximal C–H. Pd, Rh, Ru, Ir, Co, Ni, Cu catalysts. Diverse functionalizations: arylation, alkylation, halogenation, oxidation, amination.\n- **Late-stage functionalization (LSF)**: directly modify drug-candidate scaffolds to explore SAR without re-synthesizing entire structures. Mark Davies (GSK), Tim Cernak (Michigan, formerly Merck). Massive impact on medicinal chemistry — 10× SAR cycles per unit time.\n- **C–H borylation (Hartwig-Miyaura)**: Ir-catalyzed; installs Bpin at unactivated aromatic C–H, then Suzuki + other couplings.\n- **Photoredox-coupled C–H activation**: hybrid mechanisms.\n\n**Photoredox catalysis** — visible light + Ru/Ir photoredox catalysts (Ru(bpy)₃²⁺, Ir(ppy)₃, fac-Ir(ppy)₃, organic dyes):\n- **MacMillan (Princeton)** + **Doyle (Princeton, then UCLA)** + **Yoon (Wisconsin)** + **Stephenson (Michigan)**: founders of modern photoredox.\n- Mechanism: photon excites catalyst → triplet excited state → electron-transfer to/from substrate → radical intermediates → coupling.\n- **Single-electron transfer (SET) + radical chemistry under mild conditions**.\n- Applications: decarboxylative coupling, sp³–sp³ + sp³–sp² cross-coupling (Ni/photoredox dual catalysis), C–H functionalization, alkene activation, asymmetric photoredox.\n- Industrial uptake: Pfizer, AbbVie, Merck, GSK, Novartis routinely use photoredox in discovery — fast, mild, enables novel disconnections.\n\n**Electrochemistry (electrosynthesis)** — Phil Baran (Scripps), Shannon Stahl (Wisconsin), Siegfried Waldvogel (Mainz), Hongli Wang (CAS):\n- Electrons as reagents — no chemical oxidant/reductant needed.\n- Tunable potential = tunable redox.\n- Constant current ↔ constant chemical exposure.\n- Baran's flow electrochemistry — IKA ElectraSyn 2.0 commercial.\n- **Applications**: dehydrogenation, C–H oxidation, decarboxylation, cyclization, amination. Green chemistry (no waste).\n\n**Flow chemistry** — continuous-flow microreactors instead of batch:\n- Improved heat + mass transfer; safer scale-up; reduced solvent volume; rapid screening.\n- **Steven Ley (Cambridge), Jamison (MIT), Jensen (MIT), Buchwald, Seeberger (Max Planck)** + **DEKA**.\n- **Application**: hazardous-intermediate generation (azides, ozone, organolithiums) safer in flow; rapid library synthesis (10 reactions/hour); continuous-manufacturing pharma (Eli Lilly + Pfizer building flow-process plants).\n- **Telescoped multi-step flow**: continuous synthesis of API in one pipeline, e.g., Lilly's continuous prexasertib + several others.\n\n**AI + ML in synthesis**:\n- **Retrosynthesis** (Coley + Jensen ASKCOS at MIT; IBM RXN; Synthia/Merck; AiZynthFinder/AstraZeneca; Schwaller MolecularTransformer at IBM/EPFL): neural networks trained on 12M+ reactions propose multi-step routes in seconds. Coley + Jensen's ASKCOS is open-source + widely deployed.\n- **Reaction-outcome prediction**: predict product + yield from reactants + conditions. Reaxys-trained transformers.\n- **Yield + selectivity prediction**: ML on HTE datasets — Doyle + Sigman 'reaction-condition optimization' for Buchwald-Hartwig + cross-coupling.\n- **Generative chemistry**: REINVENT, MolGAN, GENTRL, AlphaFold-Multimer-coupled drug design. Insilico Medicine + AtomNet (Atomwise) + Iktos + Insitro deploy ML for de novo drug design.\n- **Autonomous synthesis** (the closed loop): Cronin Chemputer (Glasgow), MIT Coley + Jensen + Jamison flow + AI, Doyle + Cernak at Merck + Michigan, Berkeley A-Lab (materials). The robot synthesizes; AI plans; LC-MS verifies; ML model updates. Already partial reality for some chemistry classes.\n- **Multimodal foundation models**: LLM-based reaction-knowledge agents (ChemCrow, Coscientist) call tools — retrosynthesis, IUPAC name resolution, literature search, lab automation — through reasoning loops.\n\n**Modern frontier integration**: a 2025 pharma medicinal-chemistry workflow might use AlphaFold-predicted target structure → free-energy-perturbation-guided design → AI retrosynthesis → autonomous synthesis in flow → bioorthogonal labeling for cell assays → ML-trained ADMET prediction → human cell + animal validation. The chemistry-to-biology timeline is collapsing from years to months. Modern organic chemistry has become a multidisciplinary, AI-augmented, automation-supported science — but the fundamentals (arrow pushing, stereochemistry, retrosynthesis, mechanism) remain the bedrock taught + tested in every chemistry program."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_med_lipinski",
+        "kind": "guided_derivation",
+        "question": "Apply Lipinski's Rule of Five to a candidate molecule",
+        "goal": "Candidate: MW 478 Da, cLogP 4.7, HBD 3, HBA 9, PSA 95 Å², rotatable bonds 8. Evaluate against Lipinski + Veber + decide oral bioavailability.",
+        "steps": [
+          {
+            "prompt": "Check each Lipinski parameter.",
+            "motivation": "Direct rule application.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "MW 478<500 OK; cLogP 4.7<5 OK; HBD 3<5 OK; HBA 9<10 OK; all 4 pass"
+              ]
+            },
+            "hints": [
+              "MW < 500? cLogP < 5? HBD < 5? HBA < 10?"
+            ],
+            "reveal": "MW 478 < 500 ✓; cLogP 4.7 < 5 ✓; HBD 3 < 5 ✓; HBA 9 < 10 ✓. All 4 Lipinski criteria pass. Borderline on cLogP + HBA — would warrant attention in lead optimization but technically compliant."
+          },
+          {
+            "prompt": "Apply Veber's rules.",
+            "motivation": "Additional filters.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "rotatable bonds 8<=10 OK; PSA 95<=140 OK"
+              ]
+            },
+            "hints": [
+              "Rotatable bonds ≤ 10? PSA ≤ 140?"
+            ],
+            "reveal": "Rotatable bonds 8 ≤ 10 ✓; PSA 95 ≤ 140 ✓. Veber's rules also pass. Both criteria filter for predicted oral bioavailability >20% in rats."
+          },
+          {
+            "prompt": "Predict oral bioavailability risk.",
+            "motivation": "Decision.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "likely orally bioavailable; pursue ADMET screening + Caco-2 + microsomal stability"
+              ]
+            },
+            "hints": [
+              "What's the risk profile?"
+            ],
+            "reveal": "Profile passes Lipinski + Veber → high probability of oral bioavailability. Recommended next steps: (1) Caco-2 permeability + efflux ratio; (2) microsomal stability (rat + human liver); (3) hepatic CYP profiling (3A4, 2D6, 2C9, 2C19); (4) plasma protein binding; (5) hERG cardiotoxicity screen; (6) in vivo PK in rats (F%, AUC, t½). Approve for further ADMET screening."
+          },
+          {
+            "prompt": "If cLogP creeps to 5.6 during lead optimization, what would you do?",
+            "motivation": "Bioisostere strategy.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "introduce polar bioisosteres or replace lipophilic groups (CF3 to CN, phenyl to pyridyl, methylene to ether, etc.)"
+              ]
+            },
+            "hints": [
+              "What replacements reduce lipophilicity while preserving binding?"
+            ],
+            "reveal": "Drop cLogP: replace lipophilic groups with polar bioisosteres without losing binding. Example moves: phenyl → pyridyl (−0.5-1 logP); CH₂CH₂ → OCH₂ (−0.5-1 logP); add −F at metabolically hot spot but balance lipophilicity; introduce small polar heterocycle. Use property-clogP plot + matched-pair analysis to identify cleanest substitutions. Modern ML-trained property predictors (cLogP via Wildman + Crippen, Pfizer in-house, RDKit) enable rapid evaluation before synthesis."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{All Lipinski + Veber criteria pass: pursue ADMET}}$$ Rule of Five is a coarse filter — passing doesn't guarantee oral bioavailability + failing doesn't preclude it (many oral drugs violate one or two criteria). Modern medicinal chemistry combines RoF + Veber + property analyses + experimental validation (Caco-2, microsomal stability) for go/no-go decisions."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_med_click",
+        "kind": "multiple_choice",
+        "question": "Why was the 2022 Chemistry Nobel awarded to Sharpless, Meldal, + Bertozzi?",
+        "options": [
+          "Random.",
+          "Sharpless + Meldal independently discovered CuAAC (copper-catalyzed azide-alkyne cycloaddition; 2002) — the canonical click reaction — generating 1,4-triazoles from azides + terminal alkynes at RT, regiospecifically, in high yield, with broad functional-group tolerance. Sharpless named + theorized the framework of 'click chemistry' (2001). Bertozzi coined + developed 'bioorthogonal chemistry' (2003) — reactions selective + fast in biological systems without disrupting native chemistry; pioneered SPAAC (strain-promoted azide-alkyne cycloaddition) + tetrazine ligation for in vivo labeling. Together: modular + reliable molecular bond-formation toolkit, applicable from drug discovery + bioconjugation + materials to in vivo cancer imaging. Sharpless's second Chemistry Nobel (after 2001 for asymmetric catalysis); Bertozzi's the first woman Chemistry Nobel since Dorothy Hodgkin (1964).",
+          "Random.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Click chemistry (Sharpless 2001; CuAAC by Sharpless + Meldal 2002) + bioorthogonal chemistry (Bertozzi 2003; SPAAC 2004) → modular molecule-building toolkit. Applications span drug discovery, bioconjugation, ADCs, in vivo imaging, materials. Sharpless's second Nobel; Bertozzi's the first woman Chemistry Nobel since Hodgkin 1964."
+      },
+      "hints": [
+        "What unifying chemistry concept did the three develop?",
+        "What enabled in vivo molecular labeling?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Click chemistry (Sharpless/Meldal CuAAC 2002) + bioorthogonal chemistry (Bertozzi SPAAC + tetrazine ligation) = modular molecular bond-formation in biological + synthetic contexts. Nobel 2022."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_med_ai",
+        "kind": "scenario",
+        "question": "Designing an AI-augmented medicinal-chemistry workflow",
+        "prompt": "You lead a new program targeting a previously undruggable GPCR. You have: AlphaFold-predicted structure (pLDDT > 85 in TM region), a 100k-compound HTS hit list with ~50 hits, access to ASKCOS retrosynthesis + Cernak HTE flow chemistry, + ML ADMET predictors. Sketch the optimal 18-month plan from hit to candidate, integrating these capabilities. What would you do differently than a 2015 program?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_med_clogp",
+        "kind": "math_expression",
+        "question": "Lipinski's Rule of Five: MW limit (in Da)?",
+        "acceptedAnswers": [
+          "500"
+        ],
+        "hint": "Name of the rule + the four 5-based parameters."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_med",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why modern medicinal chemistry has become an AI + automation + bioorthogonal-chemistry-augmented multidisciplinary science while still teaching arrow pushing + retrosynthesis as fundamentals.",
+        "rubric": "Mentions: AlphaFold + Cryo-EM enable structure-based design for previously-undruggable targets; AI retrosynthesis (ASKCOS, Synthia, IBM RXN, AiZynthFinder) proposes routes in seconds; ML ADMET predictors filter ~10⁵ compounds in silico per day; click + bioorthogonal chemistry (Sharpless/Meldal CuAAC, Bertozzi SPAAC/tetrazine; Nobel 2022) enable rapid + selective bioconjugation; HTE + photoredox + electrochemistry + flow chemistry permit fast library + late-stage functionalization; PROTACs + bioisosteres + C–H activation (Yu, Sames, Sanford) expand pharmacophore space; autonomous synthesis platforms (Coley + Jensen, Cernak + Doyle + MacMillan) close the loop. But every transformation rests on: arrow-pushing mechanism understanding, retrosynthetic logic (Corey), stereocontrol, functional-group reactivity, electronegativity + pKa intuition. The fundamentals enable the AI tools to be wielded with judgment — chemists who can't push arrows can't audit AI suggestions or invent new methodology. The frontier amplifies the fundamentals; it doesn't replace them."
+      }
+    }
+  ]
+}
