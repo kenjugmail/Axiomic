@@ -1,0 +1,156 @@
+{
+  "slug": "modern-frontier-toxicology",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Survey in vitro alternatives: Tox21, ToxCast, organ-on-chip, Ames test + 3Rs principle.",
+      "Apply computational + AI toxicology: QSAR, read-across, DeepTox, OPERA, DeepChem.",
+      "Map the exposome (Wild 2005), PFAS regulation, LLM-augmented + climate toxicology frontier."
+    ],
+    "prereqs": [
+      "environmental-toxicology",
+      "occupational-toxicology",
+      "forensic-and-clinical-toxicology"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "In vitro alternatives: Tox21, ToxCast, organ-on-chip, Ames, 3Rs",
+      "body": "**The 21st Century Toxicology vision (NRC 2007 'Toxicity Testing in the 21st Century')** — reshape regulatory toxicology away from whole-animal bioassays toward in vitro + computational methods focused on **toxicity pathways** rather than apical endpoints. Driven by: (i) ethical concerns about animal use; (ii) limits of animal-to-human extrapolation; (iii) thousands of chemicals lacking adequate data; (iv) emergence of high-throughput screening + omics + computational power.\n\n**3Rs principle (William M. S. Russell + Rex L. Burch 1959)** — 'The Principles of Humane Experimental Technique':\n- **Replacement** — use non-animal methods (in vitro, in silico, computational).\n- **Reduction** — use fewest animals consistent with statistical validity (Up-and-Down OECD 425 vs full LD50; tier-based dosing; reuse animals across endpoints).\n- **Refinement** — minimize pain + distress (analgesia, humane endpoints, environmental enrichment).\nNow codified in EU Directive 2010/63 + the EU Reference Laboratory for Alternatives (EURL ECVAM) + ICCVAM (Interagency Coordinating Committee on the Validation of Alternative Methods, US).\n\n**Ames test (Bruce Ames 1973+; Berkeley)** — bacterial reverse-mutation assay using histidine-auxotroph Salmonella typhimurium strains (TA98, TA100, TA1535, TA1537, TA102) ± rat-liver S9 fraction for metabolic activation. Mutations restoring histidine prototrophy produce visible colonies; dose-response in 48 h. Classic + indispensable: ~80-90% sensitivity for genotoxic carcinogens; cheap; widely required by regulators. Ames argued that mutagenicity is a strong predictor of carcinogenicity — though many non-genotoxic carcinogens (TCDD, peroxisome proliferators, hormonal) escape detection.\n\n**Genotoxicity battery (OECD + ICH S2(R1))** — Ames test + mammalian-cell gene mutation (e.g., L5178Y TK+/−) + in vitro chromosomal aberration or micronucleus + in vivo micronucleus + γH2AX/comet for selected. Each catches different mechanisms.\n\n**Tox21 (Toxicology in the 21st Century)** — interagency collaboration of NIH NCATS + NTP + EPA + FDA (launched 2008+). Operates the **Tox21 robotic high-throughput screening platform** (Kavlock, Tice, Austin) at NCATS — quantitative HTS of ~10000 chemicals × ~70 assays at 15 concentrations. Screens: nuclear receptors (estrogen, androgen, AhR, AR, ER, PPARs), stress response (Nrf2, p53, NF-κB, HSF1), mitochondrial toxicity, cytotoxicity, neurotoxicity (developmental neurotoxicity assays), endocrine-disruptor screening (EDSP). Data: openly accessible (Tox21 database + PubChem); millions of dose-response curves per assay.\n\n**ToxCast (EPA)** — predecessor + companion of Tox21; ~1800 chemicals × ~700 assays (including human + rat hepatocytes, primary cells, zebrafish, mitochondrial). Toxicity Forecaster (ToxRefDB) integrates with traditional toxicity databases for predictive modeling.\n\n**Organ-on-chip (Donald E. Ingber, Wyss Institute Harvard, 2010+)**:\n- Microfluidic devices with human cells in physiologically relevant 3D structures + flow.\n- **Lung-on-a-chip** (Huh + Ingber 2010 Science) — alveolar-endothelial bilayer with breathing-like mechanical strain; recapitulates inflammation + drug responses.\n- **Liver-on-a-chip** (Hepatocyte + Kupffer + sinusoidal endothelial co-culture) — predicts hepatotoxicity better than 2D hepatocytes for some compounds (acetaminophen, troglitazone).\n- **Kidney-on-a-chip** — proximal tubule cells under fluid flow.\n- **Heart-on-a-chip** — iPSC-derived cardiomyocytes for cardiotoxicity (anthracyclines, hERG inhibitors).\n- **Gut-on-a-chip** — including microbiome co-culture.\n- **Multi-organ chips** — coupled liver-gut-kidney for systemic ADME.\n- Companies: Emulate, TissUse, Mimetas, Hesperos, Nortis. FDA has accepted organ-on-chip data in IND submissions (FDA Modernization Act 2.0, 2022 — allows alternative methods to replace some animal testing in drug development).\n\n**3D bioprinting + organoids**:\n- **Organoids (Clevers + Sasai 2009+)** — self-organizing 3D cultures from stem/progenitor cells; liver, intestine, kidney, brain, lung organoids increasingly used for toxicity testing.\n- **Bioprinted tissues** — Organovo (liver, kidney for safety); CN Bio, Aspect Biosystems.\n\n**Other in vitro alternatives**:\n- **Skin sensitization** — KeratinoSens, h-CLAT, DPRA — combined Defined Approach (DA) replacing guinea pig + LLNA tests.\n- **Eye irritation** — bovine corneal opacity + permeability (BCOP), EpiOcular replacing Draize.\n- **Skin irritation + corrosion** — EpiSkin, EpiDerm — replaced Draize for most regulatory uses.\n- **Phototoxicity** — 3T3 NRU.\n- **Embryotoxicity** — mouse embryonic stem cell test (EST); zebrafish embryo.\n\n**Regulatory acceptance**:\n- **OECD Test Guidelines** — many in vitro methods now adopted as full replacements or screening-tier components.\n- **EPA's ToxCast/Tox21 + Endocrine Disruptor Screening Program** — Tier 1 screening now includes HTS assays.\n- **FDA Modernization Act 2.0 (2022)** — removes mandatory animal-testing requirement for drug approval; permits alternative methods (cell-based, organ-on-chip, computational) where validated.\n- **EU REACH** — non-animal methods preferred + required for substances <10 t/yr; ECHA + ECVAM validation.\n\n**Limitations of in vitro alternatives**:\n- Single-cell or single-tissue does not capture systemic toxicity, immune responses, metabolism beyond included enzymes.\n- Some endpoints (carcinogenicity, multi-year chronic) hard to recapitulate.\n- Validation pipelines slow.\nIn vitro + in silico + animal studies form complementary tiered framework — not full replacement (yet)."
+    },
+    {
+      "kind": "text",
+      "title": "Computational + AI toxicology: QSAR, read-across, DeepTox, OPERA, DeepChem",
+      "body": "**In silico toxicology** = computational prediction of toxicity from chemical structure or other features. Complements in vitro + in vivo; central to filling data gaps for >100000 commercial chemicals.\n\n**QSAR (Quantitative Structure-Activity Relationships)**:\n- Origin: **Corwin Hansch (Pomona, 1960s+)** — Hansch equation: log(1/C) = a·logP + b·σ + c·E_s + constant — relates biological activity to physicochemical descriptors (lipophilicity, electronic, steric). Foundation of medicinal chemistry + early QSAR.\n- Modern QSAR: regression + machine-learning on molecular descriptors (RDKit, Mordred), fingerprints (Morgan, MACCS), graph features. Predicts: acute toxicity (LD50, LC50), mutagenicity, carcinogenicity, hepatotoxicity, hERG, skin sensitization, endocrine activity, environmental fate.\n- **OECD QSAR validation principles (2007)**: defined endpoint, unambiguous algorithm, applicability domain, predictive performance, mechanistic interpretation. Required for regulatory acceptance.\n\n**Read-across** — predict the toxicity of a target chemical from data on structurally + mechanistically similar analogs ('source chemicals'). **OECD Read-Across Framework (RAAF; 2017)** + ECHA + EPA Generalised Read-Across (GenRA) tools. Widely used in REACH dossier preparation; defensible when applicability domain + similarity rationale + mechanistic plausibility documented.\n\n**Modern ML/AI toxicology tools**:\n\n- **DeepTox (Mayr + Klambauer + Hochreiter 2016)** — won Tox21 Data Challenge with deep neural networks trained on ~10000 Tox21 chemicals × 12 toxicity endpoints (nuclear receptors + stress response). Demonstrated DNN superiority over classical QSAR + RF/SVM for high-dimensional Tox21 data. Foundation for subsequent deep-learning toxicology.\n\n- **Mansouri OPERA (Open-source QSAR for Environmental Risk Assessment; 2018)** — Kamel Mansouri + EPA — open-source predictive models for ~30 physicochemical + ADME + ecotoxicity endpoints (logP, logKow, water solubility, vapor pressure, BCF, BBB permeability, fish acute toxicity, mutagenicity). Validated + reproducible + free. Embedded in EPA CompTox Chemicals Dashboard.\n\n- **TIMES (Tissue Metabolism Simulator; OASIS — Mekenyan Bourgas, Bulgaria)** — expert system simulating xenobiotic metabolism + reactive metabolite generation + downstream toxicity. Used in OECD Toolbox for read-across + skin sensitization (TIMES-SS).\n\n- **DeepChem (Pande, Stanford 2016+)** — open-source Python ML library for chemistry + biology; graph neural networks, molecular transformers, multitask learning. Widely used in academic + industry tox + drug discovery.\n\n- **Bayer in silico toxicology** — industrial-grade pipelines integrating QSAR + read-across + expert rules + omics for chronic + reproductive toxicity prediction. ProTox-II, T.E.S.T (EPA), VEGA-QSAR, ToxAlerts, Derek Nexus (Lhasa) + Sarah Nexus (mutagenicity expert systems).\n\n- **Graph neural networks (GNN)** — molecules as graphs; ChemProp (MIT), Attentive FP, MoleculeNet benchmarks (Wu + Pande). Halicin (Stokes + Collins 2020) — antibacterial discovered by GNN — showed GNN can find new bioactive compounds.\n\n- **Pretrained foundation models** — ChemBERTa, ChemGPT, MolBERT — transformer models on SMILES + MoLBert + MolFormer + RDKit; large-scale chemistry foundation models for transfer learning to toxicity endpoints.\n\n- **LLM-augmented toxicology (2023-2025)** — Claude/GPT-4-class models reading SDSs + papers + databases to extract structured tox data + answer queries; ATSDR-Bot prototypes; FDA + EPA piloting AI-assisted dossier review.\n\n**Adverse Outcome Pathways (AOP) framework**:\n- **Ankley + Bradbury 2010+** — structured representation: molecular initiating event (MIE) → key events (KE) → adverse outcome (AO) at organism/population.\n- **OECD AOPwiki** (since 2014) — community-curated repository.\n- Used to organize Tox21 + ToxCast data + integrate with regulatory decision-making + screening prioritization.\n\n**EPA CompTox Chemicals Dashboard** — open data hub for ~900000 chemicals; integrates Tox21 + ToxCast + ToxRefDB + ToxValDB + bioactivity + structure + hazard + exposure data. Williams + Grulke + Edwards. Central resource for modern computational toxicology.\n\n**Pharmacovigilance + signal detection (Brown + Strasburger and successors)**:\n- **Earl 'Gus' Brown** + spontaneous reporting in pharmacovigilance — long-standing field.\n- **Disproportionality analysis** — PRR (proportional reporting ratio) + ROR (reporting odds ratio) + IC (information component) on FDA FAERS + EU EudraVigilance + WHO VigiBase databases.\n- **Sentinel Initiative (FDA)** + **CNODES (Canada)** + **EU-OMOP** — active surveillance from EHR + claims.\n- **AI/NLP in pharmacovigilance** — extracting AE signals from social media + EHR + scientific literature; signal triage.\n- **Strasburger** + pediatric advertising + drug-promotion regulation — adjacent regulatory tox field.\n\n**Major resources**:\n- **EPA CompTox**, **NIEHS Tox21**, **EPA ToxCast**, **NIH PubChem**, **ChEMBL** (EBI bioactivity), **OECD QSAR Toolbox + AOPwiki**, **LiverTox** (DILI), **CredibleMeds** (QT), **DrugBank**, **REACH dossiers (ECHA portal)**, **CDC NHANES** (biomonitoring), **Hazardous Substances Data Bank (HSDB)**.\n\nThe central trajectory: toxicology is becoming a data + ML-driven science. The future is integrated tiered frameworks: in silico screening → in vitro hazard characterization → targeted in vivo + clinical confirmation."
+    },
+    {
+      "kind": "text",
+      "title": "The exposome, climate toxicology, LLM-augmented + future frontiers",
+      "body": "**Christopher P. Wild (IARC Director 2009-2018) — exposome concept (Cancer Epi Biomark Prev 2005)**:\n- **'Exposome' = sum of all exposures across a lifetime** + their biological effects + interactions with the genome.\n- Three components:\n  1. **External general** — air pollution, climate, urban-rural, social environment.\n  2. **External specific** — diet, occupation, lifestyle, drug use, medical interventions, chemical exposures.\n  3. **Internal** — gut microbiome, inflammation, metabolism, oxidative stress, endogenous hormones.\n- Frame supplants the limited 'environment' construct → motivates comprehensive measurement.\n\n**Roel Vermeulen (Utrecht; HERCULES + EXPOsOMICS)** + **GeneXpose** consortia — implementing exposome via biomonitoring + non-targeted analysis (LC-HRMS metabolomics + adductomics) + wearable sensors + geographic information systems + AI integration.\n\n**Measurement of the exposome**:\n- **Targeted biomonitoring** — CDC NHANES + HBM4EU + JPI HDHL — established panel of chemicals.\n- **Non-targeted analysis (NTA)** — HRMS-based identification of thousands of unknown chemicals + endogenous metabolites in human samples. Schymanski + LDIA workflow; EPA ENTACT + USA Trade-Up; EuroMix.\n- **Adductomics** — Hb + serum-albumin adducts (Rappaport; Tang + Skipper). Long-lived adducts (4-month Hb t½; 21-day albumin t½) integrate reactive-metabolite exposure across exogenous + endogenous sources.\n- **Wearables** — silicone wristbands (O'Connell + Anderson) absorb VOCs + semi-volatile chemicals over weeks; pollution sensors (PurpleAir, Plume Labs); activity + sleep + light.\n- **Geographic + spatial** — satellite + air-quality + land-use regression linking residential + occupational + commute exposures.\n- **Integration via ML** — exposome-wide association studies (ExWAS), high-dimensional analyses analogous to GWAS.\n\n**PFAS regulation as exposome-era case study**:\n- 12000+ PFAS structures collectively contaminate global environment + human serum (~99% NHANES participants).\n- Half-lives years; effects on developmental + immune (Grandjean Faroe vaccine response) + thyroid + lipid + cancer.\n- 2024 EPA MCL 4 ppt PFOA + PFOS; Stockholm POP listings (PFOS 2009, PFOA 2019, PFHxS 2022); EU REACH universal PFAS restriction proposal (Denmark + Germany + Netherlands + Norway + Sweden 2023).\n- Industry shifts: 3M phasing out PFAS by 2025; reformulation underway.\n- Class-based regulation (treating PFAS as group rather than substance-by-substance) — modern regulatory innovation; addresses 'data gap' problem when 12000 individual assessments infeasible.\n- Modern Bilott-style litigation + civil-society pressure (Erin Brockovich models) accelerate regulatory action.\n\n**Climate-toxicology nexus**:\n- **Heat × air pollution synergy** — heat waves + PM2.5 + ozone amplify cardiopulmonary mortality (Anenberg + Schwartz).\n- **Wildfire smoke + PM2.5** — increasingly dominant exposure source in W. North America + Australia + Mediterranean; Mt St Helens + Black Saturday + Camp Fire + 2023 Canadian wildfires.\n- **Permafrost thaw + legacy contaminants** — POPs + Hg deposited decades ago in Arctic now mobilizing.\n- **Vector + waterborne disease shifts** — toxin-producing harmful algal blooms (cyanotoxins, microcystins) expanding with warming + eutrophication.\n- **Pesticide use intensification** under climate stress + invasive-pest pressure.\n- **Drought + dust + ozone** — Saharan dust events; agricultural dust.\n- **CO₂ + crop nutritional change** — elevated CO₂ reduces protein + micronutrient density in cereals (Myers Harvard) — emerging 'nutritional toxicology.'\n- **Climate-health equity** — disproportionate exposure for low-income + indigenous communities + Global South; environmental-justice meets climate-justice.\n\n**Per-fluorinated + ultra-persistent compounds frontier**:\n- Beyond PFAS — pharmaceuticals (ofloxacin, sucralose, gadolinium contrast), plasticizers, novel agrochemicals demonstrating persistence.\n- Persistent + mobile + toxic (PMT) criteria emerging in EU REACH.\n- 'Forever chemicals' as policy frame.\n\n**LLM-augmented toxicology + AI 2023-2025**:\n- LLMs (Claude, GPT-4, Gemini) reading + synthesizing SDSs + IRIS + ATSDR profiles + clinical case reports + REACH dossiers + literature.\n- AI-extracted structured data → faster + larger knowledge bases.\n- LLM-augmented clinical decision support in poison centers + clinical toxicology (early prototypes).\n- AI + chemistry foundation models → predict toxicity from structure with foundation-model representations.\n- AI-discovery of new toxic chemicals — Urbina + Ekins 2022 'dual-use' demonstration: generative model trained on bioactivity could design ~40000 novel toxic candidates in 6 h. Underscores biosecurity considerations + dual-use governance.\n\n**Pharmacovigilance modern** — Brown + Strasburger + DEcIDE + REWARD + cohort-trial-hybrid frameworks. Real-world evidence (RWE) integrated with classical pharmacovigilance.\n\n**Synthetic biology + xenobiology** — engineered microbes + non-canonical amino acids + designer molecules with poorly-predicted toxicity profiles. **NTBI (Non-Target Biological Impact)** assessment emerging.\n\n**Future of the field — integrated 21st-century toxicology**:\n- In vitro (Tox21 + ToxCast + organ-on-chip) + in silico (QSAR + DeepTox + OPERA + foundation models) + targeted in vivo + clinical + biomonitoring + exposomics.\n- Class-based + AOP-anchored regulation.\n- Real-time biomonitoring via wearables + cell-free biosensors.\n- AI-augmented decision support for clinical + regulatory + ED toxicology.\n- Climate + planetary-health integration.\n- Global + LMIC capacity-building (WHO + ATSDR + IPCS).\n- Open + FAIR data (CompTox, AOPwiki, PubChem, NTA repositories).\n- Toxicology becoming a quantitative + integrative + computational + global discipline — building on Paracelsus's principle through six centuries of accumulation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_front_1",
+        "kind": "guided_derivation",
+        "question": "Design a Tox21-style screening + integrated assessment for a new chemical of concern",
+        "goal": "A new fluorinated surfactant has been detected in drinking water near a manufacturer. Limited classical toxicology. Walk through how you would prioritize + design assessment using modern integrated approaches.",
+        "steps": [
+          {
+            "prompt": "First step: rapid structure-based prediction.",
+            "motivation": "In silico screening.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "QSAR + read-across via OPERA + EPA CompTox + OECD Toolbox"
+              ]
+            },
+            "hints": [
+              "What computational tools first?"
+            ],
+            "reveal": "(1) Structure → SMILES → run **OPERA (Mansouri)** for physicochemical + ADME + acute tox predictions (logP, water solubility, BCF, hepatotoxicity, hERG, fish LC50); (2) **read-across** to known PFAS via EPA CompTox + OECD Toolbox + GenRA — does it cluster with PFOA/PFOS/GenX/PFHxS analogs? Persistence (carbon-fluorine bonds), bioaccumulation (BCF prediction), surface activity, half-life estimates; (3) DeepTox or ToxCast + Tox21 published-data prediction for nuclear-receptor + cytotoxicity + estrogen/androgen/thyroid + Nrf2 + p53 endpoints; (4) check ECHA REACH dossier + ToxRefDB if any historical data."
+          },
+          {
+            "prompt": "Second step: in vitro HTS confirmation.",
+            "motivation": "Tox21 + ToxCast wet-lab.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Tox21 qHTS panels + organ-on-chip for liver + immune + thyroid + kidney"
+              ]
+            },
+            "hints": [
+              "Battery of HTS + organ-chips."
+            ],
+            "reveal": "Submit chemical to Tox21 (NCATS robotic platform) qHTS battery: ~70 assays × 15 concentrations covering nuclear receptors (ER, AR, AhR, PXR, PPAR, TR), stress response (Nrf2, p53, NF-κB, HSF1), mitochondrial toxicity, cytotoxicity panel, neurotoxicity (developmental). Then targeted **organ-on-chip** (Ingber Emulate) — liver-on-chip (hepatotoxicity given PFAS hepatic effects); kidney-on-chip; thyroid + reproductive endpoints; immune assays (suppressed antibody response — Grandjean PFAS finding). Result: AC50 for each endpoint + bioactivity profile to compare against known PFAS."
+          },
+          {
+            "prompt": "Third step: targeted in vivo + biomonitoring.",
+            "motivation": "Confirm in vivo + measure exposure.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "rodent PBPK + subchronic with sensitive endpoints + community biomonitoring"
+              ]
+            },
+            "hints": [
+              "What in vivo + community studies?"
+            ],
+            "reveal": "Targeted in vivo: rodent **PBPK modeling (Krishnan + Andersen)** to predict human exposure from external dose; subchronic + chronic studies focused on endpoints flagged by HTS (liver, immune, reproductive, developmental); reproductive 2-generation given PFAS DOHaD signal. **Community biomonitoring**: serum + drinking-water sampling of affected residents (analogous to C8 Health Project for PFOA + DuPont Parkersburg). ATSDR Health Assessment. Track via CDC NHANES + state biomonitoring. Calculate health-based water concentration with appropriate uncertainty factors (typically EPA RfD = NOAEL / 30-3000 depending on data + endpoint)."
+          },
+          {
+            "prompt": "Fourth step: regulatory + risk communication.",
+            "motivation": "Action.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "EPA + ECHA classification + class-based action + community communication"
+              ]
+            },
+            "hints": [
+              "Regulation + community."
+            ],
+            "reveal": "Regulatory: integrate evidence into EPA IRIS assessment + EPA UCMR (Unregulated Contaminant Monitoring Rule) + potential MCL; ECHA REACH dossier review; if PFAS-like, include in **class-based universal PFAS restriction** under EU + Stockholm Convention. EPA CompTox + AOPwiki documentation. **Risk communication**: AAP + ATSDR templates; Q&A for affected communities; environmental-justice analysis (Bullard) of exposure equity; recommend point-of-use filtration (GAC, IX, RO) + alternative water sources. Modern: LLM-augmented community-facing risk communication + state-level Right-to-Know laws. **Connect to exposome (Wild)** — single chemical adds to total exposure burden; cumulative + mixture frameworks (DEcIDE)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_front_1",
+        "kind": "multiple_choice",
+        "question": "Why has Christopher Wild's exposome concept (2005) become the organizing frame for modern toxicology + environmental health?",
+        "options": [
+          "Random.",
+          "Because it reframes 'environment' from a vague background to a comprehensively measurable + dynamic quantity — sum of all exposures across the life course + their biological consequences. Three components (external general + external specific + internal). Motivates: (i) non-targeted biomonitoring (HRMS metabolomics + adductomics) capturing thousands of compounds simultaneously; (ii) wearable sensors + GIS-linked spatial exposure modeling; (iii) integration with genomics (G×E) into multi-omics health frameworks; (iv) class-based regulation as alternative to chemical-by-chemical assessment; (v) connects toxicology to public health + epidemiology + clinical + climate. Operationalized via Vermeulen GeneXpose + EXPOsOMICS + HBM4EU + EPA + NIEHS exposome programs.",
+          "It's a niche academic framing.",
+          "It applies only to PFAS."
+        ],
+        "correctIndex": 1,
+        "explanation": "Wild's exposome (Cancer Epi Biomark Prev 2005) — the totality of an individual's exposures from conception throughout life + their biological consequences. Three nested compartments: (1) **external general** (climate, urban form, social environment, air pollution); (2) **external specific** (diet, occupation, drugs, chemicals, lifestyle); (3) **internal** (microbiome, inflammation, metabolism, oxidative stress, endogenous hormones). Why consequential: (i) supplants 'environment' (which was poorly operationalized) with a measurable quantity analogous to genome; (ii) motivates non-targeted analysis (NTA) — HRMS metabolomics + adductomics screening thousands of compounds simultaneously; (iii) drives **wearables + sensors + GIS** integration for spatial-temporal exposure; (iv) enables **exposome-wide association studies (ExWAS)** analogous to GWAS for high-dimensional discovery; (v) integrates with genomics (G×E) + multi-omics into systems-health frameworks; (vi) supports **class-based regulation** (PFAS as class; bisphenol replacements; phthalates) when individual-chemical assessment infeasible; (vii) links toxicology to climate + planetary health + environmental justice (Bullard) + One Health frameworks. Operationalized via **Vermeulen + EXPOsOMICS + HERCULES + HBM4EU + NIEHS exposome initiatives**. Future: integrated AI + foundation-model analysis of exposome data → personalized + population health forecasting + intervention."
+      },
+      "hints": [
+        "What does the exposome encompass?",
+        "What does it enable?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Wild's exposome (2005) — life-course exposure totality + biological consequences. Three components: external general + external specific + internal. Operationalizes 'environment' as measurable. Motivates non-targeted analysis + wearables + GIS + ExWAS + class-based regulation + multi-omics integration. Operationalized via Vermeulen + EXPOsOMICS + HBM4EU + NIEHS programs. Integrates toxicology with public health + climate + One Health."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_front_1",
+        "kind": "scenario",
+        "question": "Building a 21st-century toxicology programme for a national agency",
+        "prompt": "You are leading modernization of a national chemical-safety agency (EPA-equivalent). Discuss your strategic plan: (a) shift from animal-based to integrated tiered framework (Tox21 + ToxCast HTS → organ-on-chip → targeted in vivo + clinical → exposome biomonitoring), with regulatory acceptance pathways modeled on the FDA Modernization Act 2.0 (2022); (b) computational infrastructure — EPA CompTox + OECD QSAR Toolbox + DeepChem-class tools + LLM-augmented dossier review; (c) class-based regulation framework for PFAS + similar persistent-mobile-toxic substances rather than chemical-by-chemical; (d) exposome implementation — wearable + biomonitoring + non-targeted analysis program with CDC NHANES partner; (e) climate-toxicology unit — wildfires + heat + dust + algal blooms + permafrost; (f) AI + LLM governance — dual-use concerns (Urbina + Ekins 2022 demonstration); biosecurity controls; AI-augmented poison-center + clinical-tox decision support; (g) global cooperation — WHO IPCS + IARC + ATSDR + ECHA reciprocity; LMIC capacity building (snake antivenom, occupational programs, biomonitoring); (h) equity + environmental-justice integration; (i) open + FAIR data; (j) workforce — retraining toxicologists in computational + omics + AI methods; (k) future-facing — synthetic biology, novel materials, nanomaterials, pharmacovigilance integration (Brown + Strasburger + real-world evidence + FDA Sentinel)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_front_1",
+        "kind": "math_expression",
+        "question": "Tox21 screens ~10,000 chemicals across ~70 assays at ~15 concentrations + 4 replicates. Approximately how many data points does this generate (assays × concentrations × replicates × chemicals)?",
+        "acceptedAnswers": [
+          "42000000",
+          "42,000,000",
+          "≈ 42 million",
+          "70 × 15 × 4 × 10000"
+        ],
+        "hint": "10000 × 70 × 15 × 4."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_front_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how Tox21 + Ingber organ-on-chip + Mansouri OPERA + DeepTox + DeepChem + Wild's exposome + Vermeulen's exposome implementation are together reshaping toxicology + chemical safety regulation.",
+        "rubric": "Mentions: NRC 2007 Toxicity Testing in the 21st Century + Russell-Burch 3Rs; Ames test bacterial mutagenicity; Tox21 + EPA ToxCast robotic qHTS of ~10000 chemicals × 70 assays; Ingber organ-on-chip (lung + liver + kidney + heart + gut-on-chip) for human-relevant in vitro; 3D bioprinting + organoids; FDA Modernization Act 2.0 (2022); QSAR (Hansch) + Mansouri OPERA + EPA CompTox + read-across; DeepTox (Mayr + Klambauer + Hochreiter 2016) + DeepChem (Pande) + LLM-augmented toxicology; Adverse Outcome Pathway (Ankley + Bradbury) + OECD AOPwiki; Christopher Wild exposome 2005 + Vermeulen GeneXpose + EXPOsOMICS + HBM4EU + non-targeted analysis; PFAS class-based regulation; climate-toxicology nexus; pharmacovigilance modern (Brown + Strasburger + FDA Sentinel + RWE); Urbina + Ekins 2022 dual-use AI risk. Concludes: integrated in silico + in vitro + targeted in vivo + clinical + biomonitoring + exposome framework — a fundamentally quantitative + AI-augmented + global discipline building on Paracelsus's six-century foundation."
+      }
+    }
+  ]
+}
