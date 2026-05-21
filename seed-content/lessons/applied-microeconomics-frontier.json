@@ -1,0 +1,160 @@
+{
+  "slug": "applied-microeconomics-frontier",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply the identification revolution: IV, RDD, DiD, synthetic control, matching.",
+      "Survey empirical IO: BLP, merger analysis, dynamic games.",
+      "Connect to AI economics + automation + market design frontier."
+    ],
+    "prereqs": [
+      "market-failures-and-public-goods",
+      "behavioral-and-experimental-economics",
+      "game-theory-and-mechanism-design"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Identification revolution + causal inference toolkit",
+      "body": "**Identification revolution** (Card, Angrist, Imbens — Nobel 2021): the methodological transformation of empirical microeconomics from descriptive regression to careful causal inference. Replaced structural assumptions about data-generating processes with research designs that approximate randomization.\n\n**Potential outcomes framework (Rubin causal model)**:\n- Each unit i has potential outcomes Y(1), Y(0) under treatment + control.\n- **Fundamental problem of causal inference**: only one outcome observed per unit.\n- **Average treatment effect (ATE)** = E[Y(1) − Y(0)]; **ATT** = E[Y(1) − Y(0) | D=1].\n- **Selection bias**: E[Y | D=1] − E[Y | D=0] = ATE + selection on unobservables.\n- Random assignment eliminates selection bias.\n\n**David Card** — natural experiments:\n- **Card-Krueger (1994 AER)**: New Jersey vs Pennsylvania minimum-wage change. Difference-in-differences (DiD) found no employment loss. Overturned the textbook prediction; sparked decades of replication + extension.\n- Mariel boatlift (Card 1990): mass Cuban immigration to Miami; comparison cities → minimal wage effect on natives.\n- **Card-DiNardo + Card-Lemieux**: education + labor.\n\n**Joshua Angrist + Guido Imbens** — IV + LATE:\n- **Instrumental variables**: Z affects Y only through D; isolates exogenous variation in D.\n- **Angrist-Krueger (1991)**: quarter-of-birth as IV for years of schooling → returns to education.\n- **Angrist (1990)**: Vietnam draft lottery as IV for veteran status → labor-market effects.\n- **LATE (Imbens-Angrist 1994)**: IV identifies effect for **compliers** — those whose treatment changes due to instrument.\n- **Monotonicity assumption**: no defiers.\n- *Mostly Harmless Econometrics* (Angrist-Pischke 2009) + *Mastering 'Metrics* (2014) standardized methods.\n\n**Regression discontinuity (RDD)** (Thistlethwaite-Campbell 1960; Imbens-Lemieux 2008):\n- Treatment assigned by threshold on running variable; compare just-above to just-below.\n- Assumes continuity of potential outcomes at threshold.\n- Examples: scholarship cutoffs, election victory margins, geographic boundaries.\n- **Sharp RDD**: treatment is deterministic at threshold; **Fuzzy RDD**: probability jumps.\n\n**Difference-in-differences (DiD)**:\n- Compare changes in outcomes between treated + control groups before + after intervention.\n- **Parallel trends assumption**: in absence of treatment, both groups would evolve similarly.\n- **Two-way fixed effects** generalization; modern critiques (Borusyak-Jaravel-Spiess, Goodman-Bacon, Callaway-Sant'Anna) flag issues with staggered timing + heterogeneous effects.\n- **Event studies** + dynamic DiD: trace effect over time relative to treatment.\n\n**Synthetic control (Abadie 2003+, Abadie-Diamond-Hainmueller 2010)**:\n- Construct comparison unit as weighted average of donor pool that matches treated unit's pre-treatment trajectory.\n- Cases with one or few treated units: California tobacco tax (Abadie-Hainmueller-Diamond), German reunification, Basque terrorism.\n- **Alberto Abadie**: principal architect.\n\n**Matching methods**:\n- Propensity score matching (Rosenbaum-Rubin 1983).\n- Nearest-neighbor + caliper + kernel matching.\n- Modern replacements: doubly robust + entropy balancing + augmented IPW.\n- **Donald Rubin**: foundational potential-outcomes framework + matching.\n\n**Machine learning for causal inference** (frontier 2017+):\n- **Susan Athey** — generalized random forests, heterogeneous treatment effects, double machine learning.\n- **Victor Chernozhukov** — **double / debiased ML (DML)** (Chernozhukov et al. 2018 *Econometrics Journal*): orthogonal moment conditions + cross-fitting → robust to first-stage ML errors.\n- **Causal forests** (Wager-Athey 2018): estimate heterogeneous treatment effects.\n- **Synthetic difference-in-differences** (Arkhangelsky-Athey-Hirshberg-Imbens-Wager 2021): combine matching + DiD.\n\n**Heckman selection** (Heckman 1979 Nobel 2000):\n- Two-stage estimation correcting selection into observed sample.\n- Applied to labor-supply + program-evaluation problems.\n- James Heckman Nobel 2000."
+    },
+    {
+      "kind": "text",
+      "title": "Empirical industrial organization + applied micro applications",
+      "body": "**Empirical industrial organization (IO)** — structural estimation of demand + supply + market structure.\n\n**BLP (Berry-Levinsohn-Pakes 1995 Econometrica)** — random-coefficients logit demand:\n- Differentiated-product markets (autos, cereals, smartphones).\n- Consumer i chooses product j to maximize Uᵢⱼ = δⱼ + μᵢⱼ + εᵢⱼ; δⱼ = product mean utility, μᵢⱼ heterogeneous in random coefs, εᵢⱼ Type-1 EV.\n- Aggregates micro-foundations to market shares; uses contraction-mapping inversion.\n- **Identification**: instrument prices with cost shifters + characteristics of other products (BLP instruments).\n- Steven Berry + James Levinsohn + Ariel Pakes — Pakes still actively driving the field (computational + dynamic extensions).\n\n**Workhorse for**:\n- **Merger analysis**: pre-merger demand → simulate post-merger price effects.\n- **Welfare analysis**: consumer surplus from variety + lower prices.\n- **Antitrust**: hospital mergers, cell-phone carriers, beer, brewing, airline.\n- **Trade**: estimate elasticities for trade policy analysis.\n\n**Merger simulation**:\n- Pre-merger Bertrand-Nash equilibrium.\n- Post-merger: merged entity internalizes diversion among merged products.\n- **Upward Pricing Pressure (UPP, Farrell-Shapiro 2010)** — diagnostic for screening mergers.\n- DOJ + FTC horizontal merger guidelines incorporate simulation.\n\n**Dynamic games + estimation**:\n- **Ericson-Pakes (1995)**: Markov-perfect equilibrium in dynamic competition.\n- **Bajari-Benkard-Levin (2007)**: two-step estimation of dynamic games.\n- **Aguirregabiria-Mira (2007)** + **Pakes-Ostrovsky-Berry (2007)**: pseudo-likelihood for dynamic discrete games.\n- Applications: entry/exit (gas stations, retailers), investment (electricity capacity), innovation.\n\n**Auction estimation** (lesson 6 theory):\n- **Guerre-Perrigne-Vuong (2000)**: nonparametric identification + estimation of first-price auctions.\n- **Athey-Haile (2007)**: identification of various auction models.\n- Applied to timber, oil leases, eBay, procurement.\n\n**Labor economics — Card-Krueger + beyond**:\n- **Minimum wage**: Card-Krueger (1994); Cengiz-Dube-Lindner-Zipperer (2019); Manning + monopsony models (Card et al. 2018 monopsony in labor markets).\n- **Education returns**: Angrist-Krueger 1991; Card 1995 returns to schooling; Carneiro-Heckman-Vytlacil on heterogeneous returns.\n- **Immigration**: Card 1990 Mariel; Borjas critique; Peri counter-evidence; recent national experiments.\n- **Unions, monopsony, labor-market power**: Naidu, Posner, Weyl; Manning *Monopsony in Motion*.\n\n**Alan Krueger** (1960-2019) — Card's co-author + chair of CEA — labor economics, prince of the data revolution.\n\n**Health economics**:\n- **Oregon Health Insurance Experiment (2008)**: lottery as natural experiment; Finkelstein et al. estimated insurance effects on financial security, mental health, ER use.\n- **Medicare RDD** at age 65 (Card-Dobkin-Maestas 2008).\n- **Hospital quality + selection** (Chandra et al.).\n\n**Education economics**:\n- **Chetty et al. (Raj Chetty + Friedman + Hendren + Rockoff)**: teacher value-added, neighborhood effects, intergenerational mobility (Opportunity Insights). Massive administrative-data revolution.\n- **Charter schools, vouchers**: Hoxby, Angrist + others.\n\n**Development economics — Banerjee-Duflo-Kremer + J-PAL** (covered lesson 7):\n- **Microcredit, conditional cash transfers, vaccine incentives, deworming, education quality**.\n- Long-term follow-up (e.g., Kenya deworming 20-year effects).\n- Structural integration of RCT estimates."
+    },
+    {
+      "kind": "text",
+      "title": "AI economics + automation + market design frontier",
+      "body": "**The AI + automation transformation** has become a central topic of applied micro since ~2015. Multiple research programs:\n\n**Acemoglu-Restrepo (2018, 2019, 2020, 2022)** — automation + tasks:\n- Production function with tasks performed by labor or capital (robots, software).\n- **Displacement effect** (automation reduces labor demand at tasks) vs **reinstatement effect** (new tasks created for labor).\n- **'So-so' automation** (Acemoglu-Restrepo): tech that displaces labor without major productivity gains worsens inequality.\n- Empirical: industrial robots ↓ employment + wages in commuting zones (Acemoglu-Restrepo 2020).\n- **Daron Acemoglu** Nobel 2024 (joint with Robinson + Johnson for institutions + growth).\n\n**Brynjolfsson + collaborators (MIT)** — productivity + AI:\n- *The Second Machine Age* (Brynjolfsson-McAfee 2014).\n- 'Productivity paradox' — AI investments + slow measured productivity growth (2010s).\n- **Brynjolfsson-Rock-Syverson (2019)**: intangible capital + measurement → eventual J-curve.\n- Generative AI studies: Brynjolfsson-Li-Raymond (2023) at customer-service firm — 14% productivity boost, larger for novices.\n- **Erik Brynjolfsson**: leader at Stanford HAI.\n\n**Korinek + AGI economics**:\n- **Anton Korinek** (Virginia) — economics of transformative AI: growth, distribution, governance.\n- **Singularity scenarios**: what if AGI substitutes for nearly all human labor?\n- Implications for capital share, inequality, UBI, ownership of compute.\n- Korinek-Stiglitz on AI + inequality + redistribution.\n\n**Susan Athey + Guido Imbens** — digital experimentation + ML for causal:\n- **Microsoft + Google + Amazon experimentation platforms**: thousands of A/B tests/year (Kohavi-Tang-Xu 2020 *Trustworthy Online Controlled Experiments*).\n- **Heterogeneous treatment effects** via causal forests + meta-learners.\n- **Athey** moved between academia (Stanford) + Microsoft + DOJ — antitrust, market design, ML for policy.\n- **Imbens** + Athey lead ML-for-causal-inference frontier.\n\n**LLMs in research + practice**:\n- **AI-assisted economic research**: LLM summarization, retrieval, code generation; Korinek (2023) *JEL* survey.\n- **LLM as economic agent** in experiments — early studies test whether LLM agents replicate human behavioral patterns (Aher et al. 2023, Horton 2023).\n- **Generative AI labor-market effects**: Eloundou-Manning-Mishkin-Rock (OpenAI 2023) task-exposure estimates.\n- **Bias + fairness in algorithmic decisions**: criminal justice (Kleinberg-Mullainathan), hiring, credit.\n\n**Market-design frontier — Alvin Roth + successors**:\n- Beyond NRMP + school choice + kidney: refugee resettlement (Andersson-Ehlers), course allocation, online dating, organ exchange across countries.\n- **Dynamic matching + crypto** mechanisms.\n- **AI for market design**: learn mechanisms from data; algorithmic mechanism design + ML.\n\n**Trade + globalization frontier**:\n- **China shock** (Autor-Dorn-Hanson 2013 *AER*): import competition + US labor markets — major debate.\n- **Trade policy + nationalism + COVID supply chains**: reshoring + friendshoring + industrial policy revival.\n\n**Climate + environmental econ**:\n- **Nordhaus DICE model** + integrated assessment (Nobel 2018).\n- **Carbon pricing + cap-and-trade**: EU ETS, RGGI, California, China national.\n- **Behavioral + experimental** in climate (energy efficiency gap, default effects).\n\n**Inequality + intergenerational mobility**:\n- **Piketty + Saez + Zucman** — global inequality, top-wealth shares, optimal taxation.\n- **Chetty Opportunity Insights** — administrative-data revolution on neighborhood + race + intergenerational.\n- **Atkinson + Deaton** — earlier classical contributions.\n\n**Frontier methodological themes**:\n- **Big administrative data**: IRS, SSA, Census collaboration with researchers.\n- **Privacy-preserving methods**: differential privacy in Census 2020.\n- **Long-run RCT follow-up**: 10-20 year effects of childhood interventions.\n- **Structural + reduced-form hybrids**: combine RCT identification with structural-model extrapolation.\n- **AI-augmented research**: automated coding, literature review, paper drafting.\n- **Open science**: pre-registration, data + code archives, registered reports.\n\n**Future of the field**:\n- Mechanism design + market design will expand to more domains (climate, AI governance, decentralized platforms).\n- Behavioral + ML synthesis for personalized policy.\n- AGI economics — what happens if AI substitutes for cognitive labor en masse — opens new theoretical + empirical agenda (Korinek, Acemoglu, Brynjolfsson).\n- Identification revolution will continue but be supplemented by **structural models** for counterfactuals + welfare analysis.\n- Roth-style market design as engineering arm of economics."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_front_did",
+        "kind": "guided_derivation",
+        "question": "Card-Krueger minimum wage: walk through the DiD logic",
+        "goal": "In 1992 NJ raised min wage from $4.25 to $5.05; PA didn't. Set up DiD + interpret.",
+        "steps": [
+          {
+            "prompt": "Write the DiD estimator using NJ + PA fast-food employment before + after.",
+            "motivation": "DiD formula.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "DiD = (E_NJ,after − E_NJ,before) − (E_PA,after − E_PA,before)",
+                "DiD = (treated post − pre) − (control post − pre)"
+              ]
+            },
+            "hints": [
+              "Difference of differences."
+            ],
+            "reveal": "**DiD = (Y_NJ,1 − Y_NJ,0) − (Y_PA,1 − Y_PA,0)** where Y = average employees per restaurant; 0 = pre (Feb-Mar 1992), 1 = post (Nov-Dec 1992). Equivalent regression: Y_ist = α + β·Treat_s + γ·Post_t + δ·(Treat_s·Post_t) + ε; δ = DiD."
+          },
+          {
+            "prompt": "What's the key identifying assumption?",
+            "motivation": "Parallel trends.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "parallel trends — in absence of NJ min-wage hike, NJ + PA employment would have evolved identically",
+                "common counterfactual trend"
+              ]
+            },
+            "hints": [
+              "Common trend."
+            ],
+            "reveal": "**Parallel trends**: counterfactually (had NJ not raised its min wage), NJ + PA fast-food employment would have moved in parallel. The DiD then attributes the difference in changes to the policy. Tested by pre-trends in extended data + by alternative comparison groups."
+          },
+          {
+            "prompt": "Card-Krueger found δ ≈ 0 (or slight positive). What was textbook prediction + how was this reconciled?",
+            "motivation": "Theoretical interpretation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "competitive model predicts negative; finding consistent with monopsony or other frictions",
+                "Card-Krueger no employment loss; monopsony or low-elasticity demand"
+              ]
+            },
+            "hints": [
+              "Monopsony explanation."
+            ],
+            "reveal": "**Competitive textbook**: min wage above market → reduce employment along labor demand curve. Card-Krueger found no decline + possibly slight rise. **Reconciliation candidates**: (1) **monopsony** — single employer faces upward labor supply; min wage can raise employment if hike < monopsony wage gap (Robinson 1933 → Manning 2003); (2) **labor-demand inelasticity** in fast food (small markup, hard to substitute); (3) **measurement** (Neumark-Wascher 2000 used payroll data + found different result — long debate). Modern Cengiz et al. 2019 + Dube et al. find small + insignificant effects on net employment + mass at min wage."
+          },
+          {
+            "prompt": "What's the broader methodological lesson?",
+            "motivation": "Identification revolution.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "careful research design + natural experiments can overturn textbook predictions; identification revolution",
+                "credibility of identification > model assumptions"
+              ]
+            },
+            "hints": [
+              "Card-Angrist-Imbens Nobel 2021."
+            ],
+            "reveal": "**Identification revolution lesson**: careful research design with credible exogenous variation can produce findings that overturn textbook predictions + motivate theory revision. Card-Krueger sparked decades of replication + extension + theory revision (monopsony renaissance, frictions in labor markets, behavioral labor). **Card-Angrist-Imbens Nobel 2021** for exactly this kind of design-based empirical methodology. Modern applied micro: research-design first, structural model second. Combines well with structural estimation for counterfactual + welfare analysis."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{DiD} = (Y_{NJ,1}-Y_{NJ,0})-(Y_{PA,1}-Y_{PA,0}) \\approx 0}$$ Card-Krueger (1994 AER) found no employment loss from NJ min-wage hike — overturning textbook competitive prediction + launching monopsony renaissance in labor economics. Methodological template for the identification revolution: clean natural experiment, parallel-trends check, robustness across specifications. Card-Angrist-Imbens Nobel 2021 honored exactly this style of work."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_front_blp",
+        "kind": "multiple_choice",
+        "question": "What problem does Berry-Levinsohn-Pakes (BLP, 1995) solve that simple logit demand cannot?",
+        "options": [
+          "Random.",
+          "**BLP (Berry-Levinsohn-Pakes 1995 Econometrica)** solves estimation of demand for **differentiated products** with **realistic substitution patterns**. Simple logit demand suffers from independence of irrelevant alternatives (IIA) — diversion proportional to market share regardless of product similarity. So if Honda Civic's price rises, plain logit predicts substitution to Civic-Accord-BMW-pickup-truck proportionally. Unrealistic. BLP adds **random coefficients** on consumer-product characteristics — heterogeneous tastes — generating **flexible substitution**: Civic price rise → Civic buyers prefer Corolla + Accord, not pickups. Estimated via contraction-mapping inversion + GMM with **BLP instruments** (cost shifters + characteristics of competing products). Standard tool for: (1) **merger analysis** (DOJ + FTC use BLP routinely); (2) **welfare from new goods** (Hausman-Petrin); (3) **trade-policy analysis** (elasticities for autos + cell phones); (4) **antitrust** in hospital, beer, brewery, airline mergers. Steven Berry + James Levinsohn + Ariel Pakes — Pakes continuing to drive computational + dynamic extensions. Foundation of empirical IO. Generalizations: Nevo (2000) for cereal, Petrin (2002) for minivans, Bajari-Benkard-Levin for dynamics.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "BLP (1995) estimates differentiated-product demand with realistic substitution. Simple logit suffers IIA — diversion proportional to share regardless of similarity. BLP adds random coefficients on product characteristics → flexible substitution (price rise on Civic shifts buyers to similar cars, not pickups). Estimated via contraction-mapping inversion + GMM with BLP instruments. Standard for merger analysis, welfare, antitrust. Berry-Levinsohn-Pakes; Pakes continues to lead empirical IO."
+      },
+      "hints": [
+        "What does IIA imply?",
+        "What's the fix?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "BLP (Berry-Levinsohn-Pakes 1995): random-coefficients logit demand for differentiated products. Simple logit's IIA gives unrealistic substitution proportional to share. BLP random coefficients → similar products substitutes (close-rivals lose more). Contraction-mapping inversion + GMM with BLP instruments. Standard for merger analysis, antitrust (hospital, brewery, airline), trade, welfare. Pakes continues to lead empirical IO."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_front_ai",
+        "kind": "scenario",
+        "question": "Economics of AI + automation",
+        "prompt": "A senator asks: 'Will generative AI cause mass unemployment?' Walk through what microeconomic theory says — Acemoglu-Restrepo task framework (displacement vs reinstatement), Brynjolfsson productivity studies, Korinek AGI economics — + how applied micro tools (BLP, RCT, DiD, ML for causal) would empirically estimate this in the next decade. Discuss policy implications: education, UBI, antitrust, labor monopsony."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_front_did",
+        "kind": "math_expression",
+        "question": "DiD: treated group goes from Y = 100 (pre) to 110 (post); control from 90 to 95. What is DiD?",
+        "acceptedAnswers": [
+          "5",
+          "DiD = 5",
+          "(110 − 100) − (95 − 90) = 5"
+        ],
+        "hint": "DiD = (treated post − pre) − (control post − pre) = (110 − 100) − (95 − 90) = 10 − 5 = 5. Treatment effect estimate under parallel-trends assumption."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_front_future",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, summarize the state + future of applied microeconomics: methodology, applications, AI integration.",
+        "rubric": "Mentions: applied micro now combines (1) **identification revolution** (Card-Angrist-Imbens Nobel 2021): IV, RDD, DiD, synthetic control (Abadie), matching — natural experiments + RCTs (Banerjee-Duflo-Kremer Nobel 2019) for credible causal claims; (2) **ML for causal inference** (Athey + Imbens + Chernozhukov double-ML): heterogeneous treatment effects, causal forests, debiased estimation; (3) **structural empirical IO** (Berry-Levinsohn-Pakes BLP) for merger analysis + counterfactual welfare; (4) **behavioral + experimental** (Kahneman-Tversky-Thaler-Smith) integrated into structural models + nudges; (5) **market design** (Roth-Shapley Nobel 2012, Milgrom-Wilson Nobel 2020): NRMP, school choice, kidney exchange, spectrum auctions; (6) **AI + automation economics** (Acemoglu-Restrepo automation, Brynjolfsson productivity, Korinek AGI economics): displacement vs reinstatement, distributional effects, AGI scenarios; (7) **big administrative data** (Chetty Opportunity Insights). Future: AI-assisted research; LLM agents in experiments; structural-reduced-form hybrids; long-run RCTs; market design expands to climate + AI governance + decentralized platforms. Concludes: the field is more empirical, more computational, more policy-engaged than ever — + the AI transformation may both reshape the economy that micro studies + the tools used to study it."
+      }
+    }
+  ]
+}
