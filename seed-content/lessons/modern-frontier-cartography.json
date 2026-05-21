@@ -1,0 +1,161 @@
+{
+  "slug": "modern-frontier-cartography",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Survey remote sensing + Earth observation (Landsat, Sentinel, Planet, SAR, Google Earth Engine).",
+      "Track AI for cartography (Segment Anything, AI for Earth, Overture Maps, LLMs, NeRF, 3D Gaussian Splatting).",
+      "Engage critical + ethical cartography (Wood, Harley, privacy, Strava heat-map leaks)."
+    ],
+    "prereqs": [
+      "thematic-mapping-and-symbolization",
+      "web-mapping-and-tiles",
+      "geospatial-analysis-and-modeling"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Remote sensing + Earth observation — Landsat to commercial micro-sats",
+      "body": "**Remote sensing** is the acquisition of information about Earth's surface without physical contact — typically via aircraft + spaceborne sensors. It is the primary input to modern cartography for everything beyond city-block scale.\n\n**Landsat — the founding mission**:\n- **Landsat 1 (NASA + USGS, July 23, 1972)** — the first civilian Earth-observation satellite. 80-m MSS multispectral, 18-day repeat.\n- Continuous coverage to **Landsat 9 (2021)** — 30-m multispectral, 8-day repeat with Landsat 8/9 pair. 50+ years of consistent global imagery.\n- **Free + open data (2008 policy change, USGS)** — every Landsat scene back to 1972 is free. This single policy change revolutionized environmental science: thousands of studies that were previously prohibitive became routine.\n- **Landsat Next (2030+)** — 26-band multispectral + thermal at higher resolution + cadence.\n\n**Sentinel — the European program**:\n- **Copernicus (ESA + EU, 2014+)** — most ambitious Earth-observation program in history. **Sentinel-1** (C-band SAR, all-weather, day/night, 6-day repeat); **Sentinel-2** (10-m multispectral optical, 5-day repeat); **Sentinel-3** (ocean + land surface temp); **Sentinel-5P** (atmospheric chemistry — NO2, methane).\n- Free + open data; petabytes/year produced. **Copernicus DEM GLO-30** is the modern global DEM benchmark.\n\n**Commercial micro-sat constellations**:\n- **Planet Labs (2010+, ex-NASA Ames team Will Marshall + Robbie Schingler + Chris Boshuizen)** — fleet of ~200 'Dove' CubeSats imaging Earth's entire landmass **daily** at 3-5 m. Acquired BlackBridge RapidEye + Terra Bella SkySat. The **daily Earth imagery** era.\n- **Maxar Technologies** (WorldView constellation) — sub-meter commercial imagery (~30 cm); historic DigitalGlobe + GeoEye.\n- **BlackSky** — sub-meter constellation with high revisit; near-real-time.\n- **ICEYE + Capella Space + Umbra** — commercial SAR (synthetic aperture radar) — all-weather, day/night. Used for monitoring stockpiles, ships, ground deformation.\n- **Albedo + Hubble-class very-high-resolution** (~10 cm) — emerging at end of 2020s.\n\n**Synthetic Aperture Radar (SAR)**:\n- Active microwave sensor; antenna synthesizes a virtual aperture as the platform moves. Penetrates clouds + works at night.\n- **InSAR (Interferometric SAR)** — phase difference between two SAR acquisitions reveals **cm-scale ground deformation** — landslides, subsidence, volcanic inflation, earthquakes, ice flow. Sentinel-1 InSAR is global + free.\n- **PSInSAR + SqueeSAR** — persistent-scatterer techniques for long time series.\n\n**Hyperspectral + Lidar from space**:\n- **EnMAP (DLR, 2022)** + **PRISMA (Italy)** + **NASA EMIT (ISS)** — hyperspectral (~250 bands).\n- **GEDI (NASA ISS 2018+)** + **ICESat-2 (NASA 2018+)** — spaceborne lidar for canopy + ice + water.\n\n**Cloud platforms — Google Earth Engine + competitors**:\n- **Google Earth Engine (Noel Gorelick et al., Google 2010+, public 2017)** — petabyte-scale Earth observation analysis in the cloud. Catalog of Landsat, Sentinel, MODIS, Planet, ALOS + ~700 datasets, with a JavaScript + Python API for parallel computation. Free for research + non-profit; commercial pricing for high-volume.\n- Gorelick + team built the **planetary-scale data processing platform** that turned a generation of remote-sensing PhDs into productive scientists overnight. **Cited >10000 times** in papers.\n- **AWS Open Data Registry** — hosts Sentinel, Landsat, Copernicus, NAIP + many more as free public datasets in S3.\n- **Microsoft Planetary Computer** — Earth Engine competitor with STAC + Dask + Hub; full open ecosystem.\n- **Pangeo on cloud** — JupyterHub + Dask + xarray + Zarr; open-source alternative used in climate + ocean science.\n- **Sentinel Hub + EOS Data Analytics + Descartes Labs** — commercial cloud EO platforms.\n\n**Applications**:\n- Land cover classification + change detection (Hansen Global Forest Watch).\n- Crop yield + agriculture (Climate Corp, Indigo Ag).\n- Climate + glaciers + sea-level (NSIDC, GRACE, ESA CCI).\n- Disaster response (UNOSAT, Copernicus EMS).\n- Defense + intelligence (NRO, NGA + private analytics).\n- Climate accountability + emissions monitoring (Climate TRACE, MethaneSAT, Carbon Mapper)."
+    },
+    {
+      "kind": "text",
+      "title": "AI for cartography — foundation models, Overture Maps, 3D Gaussian Splatting",
+      "body": "The 2020s have seen rapid integration of foundation models + generative AI into cartography.\n\n**Building + road extraction**:\n- **Bing Maps building footprints (Microsoft, 2018+)** — neural-network-extracted building polygons covering most of the world (~1.5 B buildings). Open-licensed under ODbL; major contribution to OSM.\n- **Microsoft AI for Earth (2018+)** + later **Microsoft Planetary Computer** — funds + tools for AI-on-EO; ~3 B buildings + roads released.\n- **Google Open Buildings (2021+)** — ~1.8 B buildings in Africa + South Asia via Google AI.\n- **Facebook Map With AI + RapID (2019+)** — AI-assisted OSM editing; AI suggests roads + buildings, humans verify.\n- **Esri Living Atlas + Esri AI Sample Notebooks** — ArcGIS + deep-learning tools for analyst workflows.\n\n**Foundation models in remote sensing**:\n- **Segment Anything Model (SAM, Meta AI, Kirillov et al. 2023)** — promptable segmentation foundation model trained on 1B masks; adapted to remote sensing as **SAMRS, SAMGEO, RSPrompter**. Click a point or draw a box on a satellite image + extract the object polygon. Revolutionary for tedious annotation.\n- **Prithvi (NASA + IBM 2023)** — foundation model trained on Harmonized Landsat-Sentinel imagery; geospatial transformer for downstream EO tasks.\n- **SatMAE, GFM, USat, Scale-MAE** — academic + industry geospatial foundation models.\n- **CLIP + LLaVA + multimodal models** — natural-language search over satellite imagery ('show me solar farms'), image captioning.\n\n**LLMs + maps**:\n- **Spatial LLMs** — GPT-4 + Claude + Gemini can read map images + interpret + reason about spatial layouts; emerging benchmarks (MapQA, GeoBench).\n- **Map narratives** — LLMs generating natural-language descriptions of geographic patterns for accessibility, news, accessibility-oriented audio descriptions of maps.\n- **GeoSpark + ArcGIS Notebooks + Code Interpreter** — natural-language-to-spatial-analysis pipelines.\n- **Tool-using agents** — agents that call OSRM, geocoders, geopandas to answer spatial questions.\n\n**Overture Maps Foundation (2022+)**:\n- Joint initiative of **Meta + Microsoft + AWS + TomTom + Esri + Precisely + others** under Linux Foundation. Building an open, structured, **interoperable** base-map dataset combining OSM + AI-derived features + commercial sources.\n- Releases: places (POIs), buildings, transportation, administrative boundaries — under permissive ODbL-style licensing.\n- Goal: provide an alternative to single-vendor base maps that integrates the best of OSM, Bing buildings, Google places, TomTom roads — at scale + interoperable.\n\n**3D + immersive cartography**:\n- **Neural Radiance Fields (NeRF, Mildenhall et al. 2020)** — neural representation of 3D scenes that can be rendered from any viewpoint. Adapted to large-scale scenes (Block-NeRF, Mega-NeRF, Bungee-NeRF) for cities.\n- **3D Gaussian Splatting (Kerbl, Kopanas, Leimkühler, Drettakis 2023)** — real-time photorealistic 3D rendering using millions of anisotropic 3D Gaussians; rapidly displacing NeRF for performance-critical apps. Used in Google Maps Immersive View + drone mapping + autonomous-driving simulation.\n- **Photogrammetry + drones** — Pix4D, OpenDroneMap, Agisoft Metashape — cm-resolution local 3D maps.\n- **Cesium 3D Tiles + ESRI Scene Service** — streaming 3D city models on the web; OGC 3D Tiles standard.\n\n**Generative + procedural cartography**:\n- **MapDiffusion + MapGPT** — generative models for map style + layout.\n- **AI-assisted cartographic generalization** — automatic simplification, label placement, displacement.\n- **Critical caution**: hallucination, training-data biases, opaque pipelines — every AI-generated map needs validation.\n\n**The pipeline today**:\n1. Satellite + drone + lidar collection (Planet daily, Sentinel weekly, Maxar on demand).\n2. Cloud platform processing (Earth Engine, Microsoft PC, AWS, Pangeo).\n3. Foundation-model feature extraction (SAM, Prithvi, geospatial transformers).\n4. OSM + Overture integration of AI-derived features with crowdsourced corrections.\n5. Vector tile + PMTiles distribution.\n6. Client rendering (MapLibre, Cesium, Mapbox).\n7. LLM-mediated narrative + analysis.\nFrom raw photons to a map-narrative natural-language summary, the modern cartographic pipeline can be fully automated — at the cost of opacity + bias that the cartographer must surface."
+    },
+    {
+      "kind": "text",
+      "title": "Ethics, critical cartography, + the responsibilities of representing space",
+      "body": "Maps are political. Every era's most powerful technology of representation also implicates the largest ethical questions of its time.\n\n**Critical cartography — the founding texts**:\n- **Brian Harley's 'Deconstructing the Map' (1989)** — applied Foucault + postmodern theory to cartography; argued maps are **power-knowledge** — they encode the interests of the surveyor, the colonizer, the state. *The New Nature of Maps* (2001, posthumous) is the canonical collection.\n- **Denis Wood's *The Power of Maps* (1992) + *Rethinking the Power of Maps* (2010)** — no map is neutral; maps are arguments. Every choice (what to include, scale, projection, classification, color) is a rhetorical move.\n- **Mark Monmonier's *How to Lie with Maps* (1991, 3rd ed. 2018)** — a practical primer on cartographic deception (intentional + accidental). Required reading.\n- **John Pickles's *A History of Spaces: Cartographic Reason, Mapping, + the Geo-coded World* (2004)** — maps as instruments of modernity.\n- **Jeremy Crampton's *Mapping: A Critical Introduction to Cartography + GIS* (2010)** — modern survey synthesizing critical cartography.\n- **Joel Wainwright** — critical cartography of indigenous lands, environmental governance, planetary mapping. *Decolonizing Development* (2008).\n\n**Indigenous + counter-mapping**:\n- Counter-maps document indigenous land use, traditional ecological knowledge, sacred sites — often as resistance to state mapping (e.g., the **Native Land Digital** project, **Living Atlas of the World Indigenous Mapping Network**, Brazilian Amazon mapping by FUNAI + indigenous federations).\n- **Charles Wood** + others on West African farmer mapping.\n- **Aboriginal Australian dot painting traditions** + the conceptual gap between Western Cartesian cartography + non-Western spatial ontologies.\n- **Indigenous data sovereignty** + the **CARE principles** (Collective benefit, Authority to control, Responsibility, Ethics) for data in indigenous contexts.\n\n**Privacy + surveillance**:\n- **Strava heat-map leak (January 2018)** — Strava's global heat map of fitness-tracker GPS traces inadvertently revealed military base locations + personnel patrol patterns in conflict zones (Afghanistan, Syria, Niger). Disclosed by Nathan Ruser (Australian college student); led to immediate Pentagon policy change. Canonical case of **aggregate-data re-identification** + the limits of 'anonymized' geolocation.\n- **Smartphone location data** — re-identifiable from coarse mobility patterns; the NYT *Privacy Project* (Thompson + Warzel 2019) showed how cell-tower + ad-data location was for sale + linkable to individuals.\n- **Facial recognition + reverse image search** — geolocation of photos + people; ClearView AI scandal.\n- **GPS spoofing + cyber-physical security** — military implications.\n- **Census + tract publication** — even aggregate data can re-identify; **differential privacy** (Census 2020 disclosure-avoidance system, controversial implementation).\n\n**Data sovereignty + colonialism**:\n- Who owns satellite imagery of a country? Who owns the maps of indigenous lands? Who profits from monetizing place data?\n- **OpenStreetMap** vs. **Google Maps** — OSM is in many places the only navigable map; but OSM contributors are unevenly distributed (Global North bias) + edit quality varies.\n- **Humanitarian OpenStreetMap Team (HOT)** — coordinated mapping for disaster response + development (Haiti 2010, Nepal 2015, Hurricane Maria 2017); raises both 'mapping as humanitarian aid' + 'extractive mapping' critiques.\n\n**The map projection + ideology**:\n- The **Mercator-vs-Gall-Peters debate (Peters 1973)** dramatized how projection choice encodes geopolitical narrative — Mercator inflates the (mostly white-majority) high latitudes + shrinks the (mostly tropical) equatorial regions. Modern alternatives: **Equal Earth (Šavrič + Patterson + Jenny 2018)** is consciously designed for thematic mapping in the era of climate + global health.\n- The **Spilhaus projection** centers the world ocean — a deliberate counterpart to terrestrial-centric cartography.\n\n**Disinformation + map manipulation**:\n- War-time maps (Russia + Ukraine, Israel + Gaza) reveal contested place names, contested boundaries — every map silently takes a position. **Lazaro, Pickles + Crampton** on cartographic propaganda.\n- AI-generated maps risk both **deepfake topography** + **plausible-but-false** statistical patterns.\n\n**Toward responsible cartography**:\n1. **Disclose source + scale + projection + classification + methodology**.\n2. **Acknowledge MAUP (Openshaw 1984) + ecological fallacy (Robinson 1950)**.\n3. **Engage affected communities** (counter-mapping; CARE principles).\n4. **Privacy-by-design** — aggregate carefully, apply differential privacy where appropriate, anticipate re-identification.\n5. **Multiple projections** — for thematic content, prefer equal-area + offer alternates.\n6. **Cite contributors** — OSM, Natural Earth, Sentinel + Landsat + Planet, NGOs.\n7. **Validate AI-derived features** before downstream use; document training data + biases.\n8. **Read the critics** — Harley, Wood, Monmonier, Pickles, Crampton, Wainwright. The critical literature is part of the modern cartographer's toolkit, alongside PROJ + PostGIS.\n\nFrom Anaximander's clay tablet to a 3D Gaussian Splat of a city served via PMTiles, cartography has always sat at the intersection of representation, power, + place. The Cartographer's mastery is technical, aesthetic, + ethical at once."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_front_1",
+        "kind": "guided_derivation",
+        "question": "Design an Earth Engine workflow to map global deforestation",
+        "goal": "Walk through how you would use Google Earth Engine to compute annual forest-cover loss across the Amazon for 2020-2024.",
+        "steps": [
+          {
+            "prompt": "Which datasets in the Earth Engine catalog do you use?",
+            "motivation": "Data choice.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Hansen Global Forest Change v1.x; Sentinel-2 for validation; Landsat 8/9 SR for backup; MODIS for context",
+                "Hansen + Sentinel-2 + Landsat"
+              ]
+            },
+            "hints": [
+              "Pre-baked + raw alternatives."
+            ],
+            "reveal": "**Hansen Global Forest Change v1.10+** (UMD GLAD) — annual 30-m forest-cover-loss raster, 2000-2023, the canonical global dataset. **Sentinel-2 L2A** (10-m, 5-day, 2017+) for fresh validation + sub-annual detail. **Landsat 8/9 Surface Reflectance** for longer time series + comparison. **MODIS NBAR + GFW Tree Cover** for coarse-scale context. Plus AOI boundaries from Natural Earth or GADM."
+          },
+          {
+            "prompt": "How do you compute annual loss in the Amazon AOI?",
+            "motivation": "Pipeline.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Clip Hansen to Amazon; mask by lossyear ∈ 2020-2024; multiply by 30m × 30m pixel area; reduce by year + sub-AOI",
+                "ee.Image('UMD/hansen/global_forest_change') with mask + reduceRegion"
+              ]
+            },
+            "hints": [
+              "Mask + area * reducer."
+            ],
+            "reveal": "Pseudocode:\n```js\nvar hansen = ee.Image('UMD/hansen/global_forest_change_2023_v1_11');\nvar amazon = ee.FeatureCollection('USDOS/LSIB_SIMPLE/2017').filter(ee.Filter.eq('country_co', 'BR'));\nvar lossYear = hansen.select('lossyear').clip(amazon);\n// Years coded 20-24 for 2020-2024\nvar loss2020 = lossYear.eq(20).multiply(ee.Image.pixelArea());\nvar area = loss2020.reduceRegion({\n  reducer: ee.Reducer.sum(),\n  geometry: amazon,\n  scale: 30,\n  maxPixels: 1e13\n});\n```\nGet hectares per year by dividing by 10⁴. Earth Engine handles parallelization across petabytes."
+          },
+          {
+            "prompt": "How do you validate + cross-check with independent sources?",
+            "motivation": "Validation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Compare to PRODES (Brazil INPE) + DETER + GFW (Hansen-derived) + MapBiomas; sample-based accuracy assessment with high-res imagery",
+                "cross-check PRODES + MapBiomas + stratified sampling"
+              ]
+            },
+            "hints": [
+              "Independent ground-truth + sample design."
+            ],
+            "reveal": "**PRODES (INPE Brazil)** — national legal definition of deforestation in the Amazon, the policy reference. **DETER (INPE)** — near-real-time alerts. **MapBiomas (Brazilian academic consortium)** — independent annual land-cover. **GFW (Global Forest Watch, WRI)** — Hansen-derived + curated. Sample-based accuracy assessment with high-resolution **Planet 3-m daily** or Maxar 30-cm imagery; **Olofsson et al. 2014** sampling protocol. Validation reveals + corrects systematic biases — Hansen tends to miss selective logging + small-scale deforestation."
+          },
+          {
+            "prompt": "What ethical + critical concerns must accompany the analysis?",
+            "motivation": "Critical cartography.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Indigenous territory + sovereignty (CARE); definitions of forest; political weaponization; satellite-image colonial gaze; Wainwright critique",
+                "indigenous sovereignty + critical lens"
+              ]
+            },
+            "hints": [
+              "Who owns the map?"
+            ],
+            "reveal": "**Ethical considerations**: (1) **Indigenous territory + sovereignty** — many deforestation hotspots are on indigenous lands; CARE principles + FPIC (Free, Prior, Informed Consent) for data + reporting. (2) **Definitions matter** — 'forest' is legally + ecologically variable (canopy %, tree height, land use); reports must define. (3) **Political weaponization** — deforestation maps are used to attack + defend governments + corporations; transparency about methods is essential. (4) **Colonial gaze (Wainwright critique)** — Western satellites monitoring Global-South forests echoes resource-extraction history; partner with local researchers + indigenous federations. (5) **Privacy** — high-resolution imagery can reveal illegal-actor positions; consider aggregation + delays. Modern best practice: open methods, partner-driven, multi-source validation, narratives told with affected communities, not about them."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_front_1",
+        "kind": "multiple_choice",
+        "question": "What did the **Strava heat-map leak (January 2018)** reveal + what cartographic + ethical lessons does it carry?",
+        "options": [
+          "Random.",
+          "In **November 2017** Strava (fitness-tracker company) published a **global heat map** aggregating ~3 billion GPS-tracked exercise activities from its users 2015-17 — bright trails on a dark world map. In **January 2018** Australian college student **Nathan Ruser** noticed the heat map revealed sharp activity-lines + closed-loop patrol patterns at remote military bases in **Afghanistan, Syria, Niger, Mali** — locations of personnel + base perimeters previously not public. Multiple media outlets + Pentagon analysts confirmed; the U.S. DoD changed device + GPS policy across personnel. **Cartographic + ethical lessons**: (1) **Aggregate doesn't mean anonymous** — even without per-user data, **emergent collective patterns** can re-identify locations + behaviors; (2) **Geospatial privacy is hard** — coarse aggregation, k-anonymity, + differential privacy are necessary but not sufficient; threat modeling must include emergent re-identification; (3) **Default opt-in vs. opt-out** for visualization vs. data collection; Strava's defaults made remote/low-density users disproportionately visible; (4) **Critical cartography (Wood, Harley, Pickles)** — every map encodes interests; Strava's map was marketed as 'art' but functioned as intelligence; (5) **Adversarial users** matter — opposing forces + journalists analyze public maps; designers must anticipate; (6) **Power asymmetry** — fitness-tracking app users were not the relevant 'subject' of the surveillance + had no power over disclosure; the **Wainwright + Crampton** critique of geo-corporate power. The Strava leak is the **canonical case study** of geospatial-data ethics + appears in every modern privacy + GIS ethics curriculum. Mitigation: differential privacy in published aggregates, no-publish zones, threat-modeling pipelines, user-controlled sharing, periodic privacy audits.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Strava heat-map leak (Jan 2018, exposed by Nathan Ruser): aggregated 3B GPS traces revealed military base locations + patrol patterns in Afghanistan, Syria, Niger. Lessons: aggregate ≠ anonymous; emergent re-identification; default opt-in matters; adversarial users; power asymmetry between data subjects + publishers. Canonical case study in geospatial-data ethics. Mitigations: differential privacy, no-publish zones, threat-modeling, user controls, audits."
+      },
+      "hints": [
+        "Who noticed it + what did it reveal?",
+        "Why does it matter for privacy design?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Strava global heat map (Nov 2017) + Nathan Ruser's Jan 2018 disclosure revealed military patrol patterns + base locations from aggregated GPS traces. Lessons: aggregate data can re-identify via emergent patterns; default opt-in problematic; adversarial users always present; power asymmetry between geo-corporates + subjects; differential privacy + threat modeling + no-publish zones needed. Canonical geospatial-ethics case."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_front_1",
+        "kind": "scenario",
+        "question": "Plan an open AI-cartography project for climate accountability",
+        "prompt": "You're chief data scientist at a climate-accountability NGO. Mission: produce a global, open, sub-monthly map of methane emissions from oil + gas infrastructure, using satellite EO + AI. Design the project end-to-end. Address: (1) **Data sources** — Sentinel-5P TROPOMI (methane column), MethaneSAT (2024 EDF), GHGSat (commercial), Carbon Mapper, Planet + Sentinel-2 for facility detection; (2) **Cloud platform** — Google Earth Engine vs. Microsoft Planetary Computer vs. AWS Open Data + Pangeo; (3) **AI pipelines** — SAM + RSPrompter for facility detection; geospatial foundation models (Prithvi, SatMAE) for methane plume identification; transformer-based attribution to specific facilities; (4) **Data architecture** — STAC catalogs, Zarr for time series, GeoParquet for facility inventories, PostGIS for analyst queries; (5) **Cartographic output** — web map (MapLibre + PMTiles) of monthly methane intensity per facility; thematic choropleth at country level (Albers Equal-Area Conic for U.S., Equal Earth (Šavrič 2018) for global); time-series sparklines per facility; (6) **Critical + ethical** — Wood + Harley + Wainwright critique; corporate exposure + legal risk; partner with affected communities; Strava-style emergent-disclosure risk for facility-worker locations; (7) **Validation** — independent verification via aircraft campaigns + ground sensors (DOE, ICOS); (8) **Open licensing** — ODbL or CC-BY; reproducible Jupyter pipeline on GitHub; data on AWS Open Data; (9) **Overture Maps integration** — contribute validated facility footprints back; (10) **Sustainability + funding** — grants, partnerships, no extractive commercial dependency. Deliver a project charter, architecture, + critical-ethics annex."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_front_1",
+        "kind": "math_expression",
+        "question": "Planet's Dove constellation images Earth's landmass daily at ~3 m resolution. If Earth's landmass is ~149 M km², estimate the daily raw data volume in TB at 16-bit per band × 4 bands (RGB + NIR).",
+        "acceptedAnswers": [
+          "133",
+          "133 TB",
+          "~133",
+          "~130 TB",
+          "130"
+        ],
+        "hint": "Pixels = 149 × 10⁶ km² × (1000 m / 3 m)² ≈ 149 × 10⁶ × 1.11 × 10⁵ ≈ 1.66 × 10¹³ pixels. At 4 bands × 2 bytes = 8 bytes/pixel: 1.66 × 10¹³ × 8 ≈ 1.3 × 10¹⁴ bytes ≈ **130 TB / day raw**. (Compressed COG/JPEG-2000 reduces by ~5-10×, so ~15-25 TB / day delivered.) This is why cloud platforms (Earth Engine, Planetary Computer, AWS Open Data) are now indispensable."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_front_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, synthesize the modern cartographic frontier — remote sensing + AI + ethics — naming key technologies + critical voices.",
+        "rubric": "Mentions: **Remote sensing**: **Landsat 1972 + free since 2008**; **Sentinel-1/2/3/5P (ESA Copernicus)** + **SAR / InSAR**; **Planet daily 3-m**; **Maxar / BlackSky / Capella SAR**; **GEDI / ICESat-2 spaceborne lidar**; **Google Earth Engine (Noel Gorelick)** + **Microsoft Planetary Computer** + **AWS Open Data** + **Pangeo**. **AI for cartography**: **Bing Maps + Microsoft AI for Earth building footprints** (1.5B+ buildings); **Google Open Buildings**; **Facebook Map With AI / RapID**; **Segment Anything Model (Meta 2023)** + **SAMRS / SAMGEO**; **Prithvi (NASA + IBM 2023)** + **SatMAE / GFM** geospatial foundation models; **LLMs for map narratives + spatial QA**; **Overture Maps Foundation (Meta + MSFT + AWS + TomTom 2022)**. **3D + neural**: **NeRF (Mildenhall 2020)** + **3D Gaussian Splatting (Kerbl + Drettakis 2023)** + **Cesium 3D Tiles**; Google Maps Immersive View. **Critical cartography**: **Brian Harley 'Deconstructing the Map' (1989)** + **Denis Wood *Power of Maps* (1992)** + **Mark Monmonier *How to Lie with Maps***; **Pickles, Crampton, Wainwright**; indigenous + counter-mapping + CARE principles. **Privacy**: **Strava heat-map leak (2018, Nathan Ruser)** revealed military bases via aggregate GPS — canonical case of geospatial re-identification. **Modern best practice**: open source, partner with affected communities, validate AI, differential privacy, multi-projection (Equal Earth Šavrič), Tobler's law + Tufte + Imhof remain foundations. Concludes: technical + ethical mastery are inseparable."
+      }
+    }
+  ]
+}
