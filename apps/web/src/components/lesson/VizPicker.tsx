@@ -215,6 +215,13 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🗣️",
     tags: ["linguistics", "phonetics", "phonology", "language", "ipa"],
   },
+  {
+    name: "phillips-curve",
+    label: "Phillips curve (inflation vs unemployment)",
+    description: "Drag expectations + NAIRU + slope + supply shock; see SRPC + LRPC + historical episodes (1975, 1980, 2022).",
+    thumb: "📉",
+    tags: ["economics", "macroeconomics", "monetary-policy", "inflation"],
+  },
 ];
 
 interface Props {

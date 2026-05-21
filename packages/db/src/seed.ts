@@ -1952,6 +1952,28 @@ function seedMasteryPaths() {
     ],
   });
 
+  // P38 — Macroeconomist path. From national-income accounting +
+  // growth theory through IS-LM + money + Phillips curve with new
+  // interactive viz + business cycles + fiscal policy + public debt
+  // + open-economy macro. Distinct from existing financial-engineer
+  // (asset pricing) + quant-trader (markets) paths.
+  seedMasteryPath({
+    slug: "macroeconomist",
+    title: "Macroeconomist",
+    description:
+      "From national-income accounting + GDP measurement through Solow + Romer growth theory + cross-country development, IS-LM + AD-AS + DSGE, money + central banks + Taylor rule + unconventional monetary policy, the Phillips curve with interactive viz + 1970s/2022 inflation episodes + anchored expectations, business cycles + Great Depression/Recession/COVID + soft landings, fiscal multipliers + Ricardian equivalence + austerity-vs-stimulus + debt sustainability, and open-economy macro + exchange rates + impossible trinity + EM crises + USD dominance. The macroeconomics stack end-to-end.",
+    nodes: [
+      { slug: "national-income-accounting", title: "National Income Accounting", level: "apprentice", order: 1, pages: ["gdp-measurement", "nominal-real-pcap", "limitations-alternatives"], prereqs: [], description: "GDP via production/expenditure/income approaches, nominal vs real + per-capita + PPP, limitations + Beyond-GDP indicators." },
+      { slug: "growth-theory-and-development", title: "Growth Theory + Development", level: "practitioner", order: 2, pages: ["solow-model", "endogenous-growth", "cross-country-tfp"], prereqs: ["national-income-accounting"], description: "Solow capital accumulation + steady state, Romer endogenous growth + ideas, TFP + institutions (Acemoglu-Robinson Nobel 2024) + Korean miracle." },
+      { slug: "is-lm-and-aggregate-demand", title: "IS-LM + Aggregate Demand", level: "practitioner", order: 3, pages: ["islm-curves", "ad-as-pdynamics", "modern-dsge"], prereqs: ["national-income-accounting"], description: "IS-LM short-run framework, AD-AS + price dynamics + self-correction, modern DSGE + New Keynesian + HANK." },
+      { slug: "money-and-monetary-policy", title: "Money + Monetary Policy", level: "specialist", order: 4, pages: ["m-aggregates", "central-bank-tools", "taylor-rule-modern"], prereqs: ["is-lm-and-aggregate-demand"], description: "M0/M1/M2 + fractional reserve + CBDC, central-bank tools (rates/OMO/QE/yield curve), Taylor rule + FAIT + 2022 normalization." },
+      { slug: "phillips-curve-and-monetary-policy", title: "Phillips Curve + Inflation", level: "specialist", order: 5, pages: ["expectations-augmented", "great-moderation-2022", "anchoring-credibility"], prereqs: ["money-and-monetary-policy"], description: "Friedman-Phelps expectations-augmented PC + interactive viz, Great Moderation + 2022 inflation surge + Volcker, anchoring + credibility + soft landings." },
+      { slug: "business-cycles-and-recessions", title: "Business Cycles + Recessions", level: "expert", order: 6, pages: ["bc-phases-indicators", "recession-types", "great-depression-recession-covid"], prereqs: ["money-and-monetary-policy"], description: "NBER cycle dating + leading indicators, demand vs supply vs financial recessions, Great Depression + Great Recession + COVID + 2024 soft landing." },
+      { slug: "fiscal-policy-and-public-debt", title: "Fiscal Policy + Public Debt", level: "expert", order: 7, pages: ["multipliers", "debt-sustainability", "austerity-stimulus-mmt"], prereqs: ["is-lm-and-aggregate-demand"], description: "Fiscal multipliers + Ricardian + state-dependence, debt dynamics + r-g + sustainability, austerity vs stimulus + MMT + IRA + CHIPS." },
+      { slug: "open-economy-and-exchange-rates", title: "Open Economy + Exchange Rates", level: "expert", order: 8, pages: ["fx-regimes", "ppp-irp-crises", "usd-dominance"], prereqs: ["money-and-monetary-policy", "fiscal-policy-and-public-debt"], description: "Floating vs fixed + impossible trinity, PPP + IRP + EM crises (Asian 1997, Tequila, Argentina, Turkey), USD reserve dominance + de-dollarization + CBDCs." },
+    ],
+  });
+
   // P37 — Linguist path (general formal linguistics, distinct from
   // existing nlp-linguist which is computational). Phonetics +
   // phonology with new VowelFormantChart viz; morphology; syntax;

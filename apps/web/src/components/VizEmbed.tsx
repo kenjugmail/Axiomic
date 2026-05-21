@@ -30,6 +30,7 @@ const ECGSimulator = lazy(() => import("../../../../packages/viz/src/components/
 const ShannonChannel = lazy(() => import("../../../../packages/viz/src/components/ShannonChannel").then(m => ({ default: m.ShannonChannel })));
 const GaussianBeam = lazy(() => import("../../../../packages/viz/src/components/GaussianBeam").then(m => ({ default: m.GaussianBeam })));
 const VowelFormantChart = lazy(() => import("../../../../packages/viz/src/components/VowelFormantChart").then(m => ({ default: m.VowelFormantChart })));
+const PhillipsCurve = lazy(() => import("../../../../packages/viz/src/components/PhillipsCurve").then(m => ({ default: m.PhillipsCurve })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -64,6 +65,7 @@ export const VIZ_NAMES = [
   "shannon-channel",
   "gaussian-beam",
   "vowel-formant-chart",
+  "phillips-curve",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -96,6 +98,7 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "shannon-channel": ShannonChannel,
   "gaussian-beam": GaussianBeam,
   "vowel-formant-chart": VowelFormantChart,
+  "phillips-curve": PhillipsCurve,
 };
 
 interface VizEmbedProps {
