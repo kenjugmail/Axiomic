@@ -57,6 +57,9 @@ import { MonteCarlo } from "../src/components/MonteCarlo";
 import { SerialPosition } from "../src/components/SerialPosition";
 import { HeatExchanger } from "../src/components/HeatExchanger";
 import { BlackHole } from "../src/components/BlackHole";
+import { CardiacPvLoop } from "../src/components/CardiacPvLoop";
+import { EruptionExplosivity } from "../src/components/EruptionExplosivity";
+import { StringHarmonics } from "../src/components/StringHarmonics";
 
 let h: VizHarness | null = null;
 afterEach(() => {
@@ -313,5 +316,20 @@ describe("viz interactions", () => {
   test("BlackHole: switching mass moves the active highlight", () => {
     h = mountViz(createElement(BlackHole));
     expectSelectionMoves(h, "Stellar 10 M☉", "Sgr A* 4.3M M☉");
+  });
+
+  test("CardiacPvLoop: switching preset moves the active highlight", () => {
+    h = mountViz(createElement(CardiacPvLoop));
+    expectSelectionMoves(h, "Normal", "↑ Afterload");
+  });
+
+  test("EruptionExplosivity: switching magma type moves the active highlight", () => {
+    h = mountViz(createElement(EruptionExplosivity));
+    expectSelectionMoves(h, "Basaltic", "Rhyolitic");
+  });
+
+  test("StringHarmonics: switching harmonic moves the active highlight", () => {
+    h = mountViz(createElement(StringHarmonics));
+    expectSelectionMoves(h, "Fundamental", "3rd harmonic");
   });
 });

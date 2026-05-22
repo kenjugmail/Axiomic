@@ -126,6 +126,9 @@ const MonteCarlo = lazy(() => import("../../../../packages/viz/src/components/Mo
 const SerialPosition = lazy(() => import("../../../../packages/viz/src/components/SerialPosition").then(m => ({ default: m.SerialPosition })));
 const HeatExchanger = lazy(() => import("../../../../packages/viz/src/components/HeatExchanger").then(m => ({ default: m.HeatExchanger })));
 const BlackHole = lazy(() => import("../../../../packages/viz/src/components/BlackHole").then(m => ({ default: m.BlackHole })));
+const CardiacPvLoop = lazy(() => import("../../../../packages/viz/src/components/CardiacPvLoop").then(m => ({ default: m.CardiacPvLoop })));
+const EruptionExplosivity = lazy(() => import("../../../../packages/viz/src/components/EruptionExplosivity").then(m => ({ default: m.EruptionExplosivity })));
+const StringHarmonics = lazy(() => import("../../../../packages/viz/src/components/StringHarmonics").then(m => ({ default: m.StringHarmonics })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -256,6 +259,9 @@ export const VIZ_NAMES = [
   "serial-position",
   "heat-exchanger",
   "black-hole",
+  "cardiac-pv-loop",
+  "eruption-explosivity",
+  "string-harmonics",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -384,6 +390,9 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "serial-position": SerialPosition,
   "heat-exchanger": HeatExchanger,
   "black-hole": BlackHole,
+  "cardiac-pv-loop": CardiacPvLoop,
+  "eruption-explosivity": EruptionExplosivity,
+  "string-harmonics": StringHarmonics,
 };
 
 interface VizEmbedProps {

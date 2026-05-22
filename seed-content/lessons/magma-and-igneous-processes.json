@@ -1,0 +1,105 @@
+{
+  "slug": "magma-and-igneous-processes",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Explain the three mechanisms of magma generation: decompression melting, flux melting, and heat-induced melting.",
+      "Relate magma composition (basaltic, andesitic, rhyolitic) to silica content, temperature, and viscosity.",
+      "Use Bowen's reaction series and fractional crystallization to predict how a melt evolves chemically."
+    ],
+    "prereqs": [
+      "volcanology-history-and-eruption-explosivity"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "How rock melts: three paths to magma",
+      "body": "It is a common misconception that Earth's mantle is a sea of liquid rock. In fact the **mantle** is almost entirely solid; it is hot, but the immense pressure keeps it crystalline. Magma forms only where local conditions cross the **solidus**, the temperature-pressure curve above which a rock begins to melt. There are exactly three ways to push mantle rock across its solidus, and every volcano on Earth owes its magma to one or a combination of them.\n\n**1. Decompression melting.** The mantle's melting temperature *rises* with pressure. If a parcel of hot solid mantle rises and its pressure drops faster than it can cool, it can cross the solidus without any added heat. This is the dominant process beneath **mid-ocean ridges** and beneath **mantle plumes** like the one feeding **Hawaii**. The rising mantle is said to follow an **adiabat**; where the adiabat meets the solidus, partial melting begins. Decompression melting produces the planet's largest volume of magma, almost all of it **basaltic**.\n\n**2. Flux melting (addition of volatiles).** Adding water or carbon dioxide to hot rock *lowers* its melting point, just as salt lowers the freezing point of water. At **subduction zones**, the descending oceanic slab carries seawater bound in hydrous minerals; as the slab heats, it releases fluids into the overlying mantle wedge, dropping the solidus and triggering melting. This is why **arc volcanoes** such as **Mount Fuji**, **Mount Rainier**, and the volcanoes of the **Cascades** and the **Andes** exist. Flux melting tends to yield wetter, more **andesitic** magmas.\n\n**3. Heat-induced melting.** When hot basaltic magma intrudes cooler continental crust, it can raise the surrounding rock above its solidus, melting it. Because continental crust is silica-rich, the resulting melts are often **rhyolitic**. This process, sometimes called **anatexis** or crustal melting, helps generate the large silicic magma bodies beneath calderas.\n\nThe degree of melting matters as much as the trigger. **Partial melting** — typically only a few to a few tens of percent of the rock actually melts — preferentially extracts the lower-melting, more silica- and incompatible-element-rich components, so the magma is always more evolved than its source. The classic source rock, mantle **peridotite** (rich in **olivine** and **pyroxene**), partially melts to yield basalt. Understanding which of the three paths is operating, and how much melting occurs, is the first step in predicting what a volcano will erupt."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mi_1",
+        "kind": "multiple_choice",
+        "question": "Why do volcanoes form above subduction zones even though the descending slab is relatively cool?",
+        "options": [
+          "Friction from the grinding slab melts the rock directly",
+          "Water and other volatiles released from the subducting slab lower the melting point of the overlying mantle wedge (flux melting)",
+          "The slab decompresses as it sinks, crossing the solidus",
+          "Cosmic radiation heats the subduction zone"
+        ],
+        "correctIndex": 1,
+        "explanation": "Subduction-zone volcanism is driven by flux melting: hydrous minerals in the down-going slab dehydrate, releasing fluids into the hot mantle wedge above. Adding volatiles lowers the solidus, so the wedge begins to melt. Friction is far too small, and the slab is sinking (increasing pressure), not decompressing."
+      },
+      "hints": [
+        "What does adding water do to a rock's melting temperature?",
+        "The slab carries seawater locked in minerals."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Of the three melting mechanisms, only flux melting fits a subduction zone. The slab releases water as hydrous minerals break down with depth; that water enters the overlying mantle wedge and lowers its solidus, so melting begins despite no added heat and rising (not falling) pressure. Hence option B."
+    },
+    {
+      "kind": "text",
+      "title": "Composition, temperature, and viscosity",
+      "body": "Once magma exists, geologists classify it by **silica ($\\text{SiO}_2$) content**, which tracks with temperature, mineralogy, and — crucially for eruption style — **viscosity**. The three principal compositions form a continuum:\n- **Basaltic** (~45–52% $\\text{SiO}_2$): hottest (~1100–1200 °C), poorest in silica, lowest viscosity. Erupts from **Kīlauea**, **Mauna Loa**, and Icelandic fissures.\n- **Andesitic** (~52–63% $\\text{SiO}_2$): intermediate temperature (~900–1000 °C) and viscosity. The hallmark of subduction stratovolcanoes; named for the **Andes**.\n- **Rhyolitic** (~>69% $\\text{SiO}_2$): coolest (~700–900 °C), richest in silica, highest viscosity. Builds domes and feeds caldera eruptions.\n\n(Between andesite and rhyolite sits **dacite**, ~63–69% silica — the **Mount St. Helens** composition.)\n\nThe reason silica matters is structural. The silica tetrahedron $\\text{SiO}_4^{4-}$ is the building block of silicate melts; as silica content rises, tetrahedra **polymerize** into chains, sheets, and frameworks, and the melt becomes stiff. Viscosity $\\eta$ therefore spans an extraordinary range, from roughly $10^2\\ \\text{Pa·s}$ for hot basalt to $10^{12}\\ \\text{Pa·s}$ for cool rhyolite — ten orders of magnitude. Three variables move $\\eta$:\n- **Silica content** — more silica, more polymerization, higher $\\eta$.\n- **Temperature** — hotter melt, lower $\\eta$. The dependence is often modeled with an Arrhenius-like form, $\\eta \\propto \\exp\\!\\left(\\dfrac{E_a}{RT}\\right)$, so viscosity falls sharply as temperature rises.\n- **Dissolved volatiles** — water acts as a **network modifier**, breaking Si–O–Si bonds and *lowering* $\\eta$. A few weight percent of dissolved $\\text{H}_2\\text{O}$ can drop rhyolite viscosity by orders of magnitude.\n\nDissolved volatiles deserve special emphasis because they do double duty. While magma is deep and pressurized, water stays in solution and keeps the melt mobile. As magma ascends and pressure falls, that same water **exsolves** into bubbles, and in a viscous melt those trapped bubbles are the engine of explosive eruptions, as the previous lesson described. The solubility of water in magma scales roughly with the square root of pressure, $c \\propto \\sqrt{P}$, so most exsolution happens in the final shallow kilometers of ascent. Thus composition does not merely label a magma; it predicts how it will move, how much gas it can hold, and whether it will erupt as a quiet flow or a violent column. These same variables — silica, temperature, volatiles — will reappear when we discuss eruption columns, hazards, and the physics of fragmentation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mi_1",
+        "kind": "math_expression",
+        "question": "A magma is analyzed and found to contain **72% silica** by weight. Among the three principal categories (basaltic ~45-52%, andesitic ~52-63%, rhyolitic >69%), which composition is this? Answer with the composition name.",
+        "acceptedAnswers": [
+          "rhyolitic",
+          "rhyolite",
+          "Rhyolitic",
+          "Rhyolite"
+        ],
+        "hint": "72% is above the ~69% threshold for the highest-silica category."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Bowen's reaction series and fractional crystallization",
+      "body": "In the 1910s and 1920s the Canadian petrologist **Norman L. Bowen**, working at the **Geophysical Laboratory** of the **Carnegie Institution** in Washington, ran melting and crystallization experiments that produced one of igneous petrology's master diagrams: **Bowen's reaction series**. It describes the order in which minerals crystallize from a cooling basaltic melt, and equivalently the order in which they melt. The series has two branches that converge at the bottom:\n\n**Discontinuous branch (ferromagnesian minerals)**, crystallizing from hot to cool:\n- **Olivine** → **pyroxene** → **amphibole** → **biotite** (mica).\n\nEach mineral reacts with the remaining melt to form the next as temperature drops, hence 'discontinuous' (abrupt mineral changes).\n\n**Continuous branch (plagioclase feldspar)**:\n- Calcium-rich (**anorthite**) at high temperature, grading continuously to sodium-rich (**albite**) as cooling proceeds.\n\nThe two branches meet at the low-temperature end, where the last melt crystallizes **potassium feldspar (orthoclase)**, then **muscovite**, and finally **quartz**. Notice that the early, high-temperature minerals (olivine, calcic plagioclase) are silica-poor, while the last minerals (quartz, K-feldspar) are silica-rich.\n\nThis ordering powers **fractional crystallization**, the single most important way magma changes composition. As a basaltic magma cools, the first crystals to form — olivine and calcic plagioclase — are denser than the melt and tend to **settle** out (so-called crystal settling, observed in layered intrusions like the **Bushveld Complex** of South Africa and the **Skaergaard Intrusion** of Greenland) or are otherwise separated from the liquid. Because those early crystals are silica-poor, removing them leaves the remaining melt progressively **enriched in silica**. Run this long enough and a parent basalt can differentiate toward andesite, then dacite, then rhyolite. We can write a simple **mass balance**: if a fraction $F$ of melt remains and the rest has crystallized, the concentration of an **incompatible element** (one excluded from early crystals) in the residual liquid follows Rayleigh fractionation,\n\n$$ C_L = C_0\\, F^{(D-1)} $$\n\nwhere $C_0$ is the starting concentration and $D$ is the bulk partition coefficient. For strongly incompatible elements $D \\to 0$, so $C_L \\approx C_0/F$ — the residual melt is enriched roughly in inverse proportion to how much liquid is left. Fractional crystallization, **assimilation** of wall rock, and **magma mixing** together form the toolkit petrologists call **magmatic differentiation**. They explain how a single mantle source of basalt can ultimately produce the explosive, silica-rich magmas that build composite volcanoes and feed the most dangerous eruptions on Earth."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mi_2",
+        "kind": "multiple_choice",
+        "question": "According to Bowen's reaction series and the idea of fractional crystallization, why does removing the earliest-formed crystals from a cooling basaltic magma drive the remaining melt toward a more silica-rich (rhyolitic) composition?",
+        "options": [
+          "Early crystals like olivine and calcic plagioclase are silica-poor, so removing them leaves the residual liquid enriched in silica",
+          "Early crystals are silica-rich, so removing them depletes the melt in silica",
+          "Crystallization adds silica to the melt from the surrounding rock",
+          "The melt loses silica as gas during cooling"
+        ],
+        "correctIndex": 0,
+        "explanation": "The high-temperature minerals at the top of Bowen's series (olivine, pyroxene, calcic plagioclase) are relatively silica-poor. When they crystallize and are physically separated (crystal settling), the silica they would have contained stays in the liquid, so the residual melt becomes progressively richer in silica, evolving toward rhyolite."
+      },
+      "hints": [
+        "Which minerals form first, and are they high or low in silica?",
+        "If you remove silica-poor solids, what happens to the silica fraction of the leftover liquid?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Bowen's series shows olivine and calcium-rich plagioclase crystallizing first; these are silica-poor minerals. Fractional crystallization removes them (e.g., by settling), so the silica that did not enter those crystals remains in the melt. The leftover liquid is therefore enriched in silica and evolves basalt -> andesite -> dacite -> rhyolite, making option A correct."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mi_1",
+        "kind": "scenario",
+        "question": "Reconstructing a magma's history",
+        "prompt": "A petrologist samples lavas from a single long-lived volcano and finds that the oldest flows are basaltic while the youngest are dacitic to rhyolitic, and the younger rocks are noticeably enriched in incompatible elements like potassium. The magma chamber sat in thick continental crust for a long time between eruptions. Propose which magmatic processes most plausibly produced this trend over time, and explain how Bowen's reaction series supports your reasoning."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Putting it together: from source to surface",
+      "body": "We can now trace a magma's life from birth to eruption and see how the pieces of this lesson interlock. The story begins with one of three **melting mechanisms**. Beneath the **Mid-Atlantic Ridge** or beneath the **Hawaiian** plume, decompression melting of rising **peridotite** produces basalt. Beneath the **Cascades** or the **Andes**, flux melting driven by water from the subducting slab produces wetter, more andesitic magma. Where basalt intrudes thick crust — for instance beneath silicic centers — heat-induced crustal melting (anatexis) yields rhyolite directly.\n\nThe newborn magma is rarely what erupts. As it pools in a **magma reservoir** and cools, **fractional crystallization** along **Bowen's reaction series** removes silica-poor early crystals (olivine, calcic plagioclase) and leaves an increasingly silica-rich residual liquid. **Assimilation** of wall rock and **magma mixing** between fresh injections and resident melt further reshape the chemistry. The net effect of this **differentiation** is to march a magma up the silica scale, and with it up the viscosity scale.\n\nViscosity, in turn, is the hinge between chemistry and behavior:\n- More silica and lower temperature mean higher viscosity.\n- Dissolved **volatiles** lower viscosity at depth but exsolve into bubbles on ascent because solubility falls as $c \\propto \\sqrt{P}$.\n- In low-viscosity basalt, bubbles escape and the volcano erupts effusively (think **Kīlauea**).\n- In high-viscosity rhyolite, bubbles are trapped, overpressure builds, the melt fragments, and the eruption is explosive (think the dacitic dome and blast of **Mount St. Helens**).\n\nThis is the same causal chain introduced in Lesson 1 — composition sets viscosity, viscosity decides whether gas escapes, and that decides eruption style — but now you can see *where the composition comes from*. It is the cumulative product of how the magma was generated and how far it differentiated. **Norman Bowen's** experiments, the geometry of the mantle solidus, and the simple mass balance of crystal removal together let a volcanologist look at an erupted rock and read backward to its source. In the next lesson we place these processes in their global context: how **plate tectonics** organizes melting into mid-ocean ridges, subduction arcs, and hotspots, and why each tectonic setting produces its characteristic magma chemistry."
+    }
+  ]
+}

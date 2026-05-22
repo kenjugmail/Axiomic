@@ -1,0 +1,115 @@
+{
+  "slug": "bowed-plucked-and-struck",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Explain Helmholtz stick-slip motion and the role of rosin friction in bowing.",
+      "Contrast the exponential decay of a plucked string with the sustained bowed tone.",
+      "Analyze the struck piano string, hammer interaction, and the ADSR amplitude envelope."
+    ],
+    "prereqs": [
+      "instrument-construction"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The bow and Helmholtz stick-slip motion",
+      "body": "How does drawing a bow sideways across a string produce a steady tone, when the bow moves in one direction only? The answer is one of the most elegant results in musical acoustics, discovered by **Hermann von Helmholtz** in the 1860s using a vibrating mirror device he called the **vibration microscope**.\n\nThe mechanism is **stick-slip friction**, driven by **rosin** — the sticky tree-resin product (refined pine **colophony**) rubbed onto the bow hair (traditionally **horsehair**). Rosin has a crucial property: its friction is **strongly velocity-dependent**, with high **static friction** (when bow and string move together) and lower **kinetic friction** (when they slip past each other). The cycle, repeated at the string's fundamental frequency:\n\n1. **Stick**: the rosined bow grabs the string and drags it sideways at the bow's speed.\n2. The string's tension builds a restoring force until it exceeds the static-friction limit.\n3. **Slip**: the string suddenly releases and snaps back in the opposite direction, sliding under the bow.\n4. The returning string is recaptured by the bow, and the cycle repeats.\n\nThe astonishing result Helmholtz found is the shape of the motion. The string does **not** vibrate as a smooth sine. Instead a single sharp **corner** (a kink, or **Helmholtz corner**) travels around a curved path, shuttling back and forth between the nut and the bridge. The string's displacement at any point is a **triangular wave**, and the velocity at the bridge is a near-perfect **sawtooth**. This **Helmholtz motion** automatically excites the *complete* harmonic series with amplitudes falling off slowly, which is why bowed strings are so rich and sustained compared with plucked ones.\n\nThe player controls the tone through three parameters, mapped out by the modern theory of **Lothar Cremer** in *The Physics of the Violin* (1981) and by **Knut Guettler** and **Anders Askenfelt**:\n\n- **Bow speed** — how fast the bow is drawn (sets loudness with force).\n- **Bow force / pressure** — the downward force pressing hair to string.\n- **Bow position** ($\\beta$) — the distance from the bridge as a fraction of string length.\n\nThe usable combinations form a triangular region in the force-position plane called the **Schelleng diagram** (after **John Schelleng**, 1973): too little force and the corner cannot trigger a clean slip, producing a **surface sound**; too much force and the string judders, producing a **raucous** crunching tone. A skilled bowing keeps the motion inside the allowed wedge, sustaining a clean Helmholtz vibration indefinitely. The bow, in effect, is a self-sustaining feedback oscillator powered by the player's arm and regulated by rosin's nonlinear friction."
+    },
+    {
+      "kind": "text",
+      "title": "Plucked decay versus struck strings",
+      "body": "A **plucked** string and a **struck** string both receive a single burst of energy and then ring freely — but the physics of the excitation, and the resulting tone, differ sharply from the continuously bowed string.\n\n**Plucked strings** (guitar, harp, harpsichord, pizzicato violin). The player displaces the string into a triangular shape and releases it. From that instant no further energy is added, so the vibration **decays**. The amplitude of each mode falls roughly **exponentially**:\n\n$$a_n(t) = a_n(0)\\, e^{-t/\\tau_n}$$\n\nwhere $\\tau_n$ is the **decay time** of the $n$th harmonic. Energy is lost to internal friction in the string, to air drag, and above all to **radiation through the bridge into the body**. Crucially, **higher harmonics decay faster** ($\\tau_n$ decreases with $n$): the bright, complex attack mellows within a fraction of a second into a purer tone dominated by the fundamental. This time-varying spectrum is exactly what makes a plucked note sound *alive*. The total ringing time is governed by the body's **quality factor** $Q$ — a high-$Q$, lightly damped instrument sustains; a heavily damped one (or a solid-body electric without amplification) dies quickly. The **harpsichord**, plucked by a quill **plectrum** on a **jack**, cannot vary loudness with touch because the pluck is mechanical and identical each time — a limitation that motivated the invention of the piano.\n\n**Struck strings** (the piano, hammered dulcimer, clavichord). Here a **hammer** strikes the string and rebounds. **Bartolomeo Cristofori** (1655-1731) of Florence invented the *gravicembalo col piano e forte* around **1700** — the **pianoforte** — precisely so that striking force, and hence loudness, could respond to the player's touch, unlike the harpsichord. The hammer interaction is subtle:\n\n- The hammer is **felt-covered**, so the contact is not instantaneous; the **contact time** (typically 1-4 ms) acts as a low-pass filter, softening the highest harmonics. A harder, faster blow shortens contact and brightens the tone — which is why a piano played *forte* is not merely louder but **brighter**.\n- The hammer strikes near $1/7$ to $1/8$ of the string length. This **striking point** places a node of the seventh and eighth harmonics at the contact, **suppressing** those partials, which lie awkwardly far from any scale degree.\n- After the blow the hammer **rebounds** and leaves the string free to ring, its decay governed by the soundboard and the **dampers** (which stop the note when the key is released).\n\nThe definitive modern study of this is by **Anders Askenfelt** and **Erik Jansson** at KTH Stockholm, and by **Harold Conklin** at Baldwin. The contrast is fundamental: the **bow** continuously feeds energy (steady tone), the **pluck** delivers one impulse (decaying tone), and the **hammer** delivers a brief, touch-sensitive impulse shaped by felt and striking position (decaying but dynamically expressive tone)."
+    },
+    {
+      "kind": "text",
+      "title": "The amplitude envelope: attack, sustain, decay",
+      "body": "Pitch tells you *which* note; spectrum tells you the steady **timbre**; but a huge part of what lets the ear distinguish a plucked guitar from a bowed violin from a struck piano is the **amplitude envelope** — how the loudness of a note evolves over time. Strip the envelope away (for instance by editing out the attack of a recorded piano note) and even trained listeners struggle to identify the instrument.\n\nThe envelope is conventionally decomposed into the **ADSR** model, drawn from the work of synthesizer pioneers **Robert Moog** and **Vladimir Ussachevsky** in the 1960s but describing real instruments equally well:\n\n- **Attack** — the rise from silence to peak amplitude. A struck or plucked string has a **sharp, near-instantaneous attack** (a few milliseconds); a bowed string can have a **slow, gentle attack** as the Helmholtz motion establishes itself, and the player controls this articulation directly with the bow.\n- **Decay** — the initial fall from the peak as the brightest, most transient energy dissipates.\n- **Sustain** — a held level. A **bowed** string sustains indefinitely because the bow keeps feeding energy; a **plucked** or **struck** string has essentially **no true sustain** — it begins decaying immediately.\n- **Release** — the final fade once excitation stops or the damper falls.\n\nFor freely decaying instruments the envelope is dominated by an **exponential decay**, and it is convenient to characterize it by the **decay time constant** $\\tau$ or the **60 dB decay time** $T_{60}$, the time for the sound to fall to one-millionth of its energy:\n\n$$T_{60} = \\frac{\\ln(10^{6})}{1/\\tau} \\approx 13.8\\,\\tau.$$\n\nThe **attack transient** is acoustically vital. **Jean-Claude Risset** and **Max Mathews** at Bell Labs showed in the 1960s, using early computer synthesis, that the brief, noisy, inharmonic onset — the **scrape** of the bow catching, the **thunk** of the hammer's felt, the **chiff** of a plucked string — carries enormous identifying information. Risset famously demonstrated that a trumpet's identity lives largely in how its high harmonics rise *during* the attack, not in the steady tone. **John Grey** (1977) mapped instruments in a perceptual **timbre space** whose axes correspond to spectral brightness, attack character, and spectral flux.\n\nFor the luthier this means an instrument must be judged not only by its steady spectrum but by its **transient response** — how quickly and cleanly it speaks. A guitar with a fast, crisp attack feels responsive; a violin that 'speaks' easily under the bow is prized; a piano action regulated for an even attack across the keyboard is the goal of every technician. The envelope is the temporal signature of the instrument, as characteristic as its spectrum."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bp_1",
+        "kind": "multiple_choice",
+        "question": "In **Helmholtz stick-slip** motion, what property of **rosin** makes a sustained bowed tone possible?",
+        "options": [
+          "Rosin makes the bow hair perfectly frictionless so the string slides freely.",
+          "Rosin provides velocity-dependent friction — high static friction when bow and string move together, lower kinetic friction during slip — so the string repeatedly sticks to and releases from the moving bow.",
+          "Rosin adds mass to the string, lowering its pitch.",
+          "Rosin makes the bow hair magnetic, attracting the steel string."
+        ],
+        "correctIndex": 1,
+        "explanation": "Rosin gives the bow-string contact a strongly velocity-dependent friction: it grips firmly (high static friction) so the bow drags the string sideways, then once the string's restoring force overcomes that grip the friction drops (lower kinetic friction) and the string slips back. This stick-slip cycle, repeating at the fundamental frequency, sustains the Helmholtz triangular motion and continuously re-excites the full harmonic series. Without rosin's nonlinear friction the bow would simply slide and produce no tone."
+      },
+      "hints": [
+        "Think about the difference between static and kinetic friction.",
+        "Why does the string alternately move with the bow and snap back?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Rosin makes the friction between hair and string velocity-dependent: strong static friction lets the bow grab and drag the string, then once tension overcomes that grip the kinetic friction is lower and the string slips back. This stick-slip cycle repeats at the string's fundamental, sustaining the Helmholtz corner and the full harmonic series. Rosin's nonlinear friction is therefore essential to bowing."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_bp_1",
+        "kind": "math_expression",
+        "question": "A plucked guitar note has a decay time constant $\\tau = 0.8$ s. Using $T_{60} \\approx 13.8\\,\\tau$, estimate the 60 dB decay time in seconds, rounded to one decimal place.",
+        "acceptedAnswers": [
+          "11.0",
+          "11.0 s",
+          "11",
+          "11.04"
+        ],
+        "hint": "Multiply $13.8 \\times 0.8$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_bp_2",
+        "kind": "math_expression",
+        "question": "A piano hammer strikes the string at $1/7$ of its length. Which single harmonic number is most strongly suppressed because the striking point coincides with one of its nodes?",
+        "acceptedAnswers": [
+          "7",
+          "7th",
+          "seven",
+          "seventh"
+        ],
+        "hint": "A harmonic is silenced when the excitation point sits on one of its nodes; the $n$th harmonic has a node at $1/n$ of the length."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_bp_1",
+        "kind": "scenario",
+        "question": "A student's bowing produces a scratchy, glassy surface sound instead of a clear tone.",
+        "prompt": "A cello student bows very lightly and very fast near the middle of the string, producing a thin, glassy 'surface sound' with no fundamental. Using the Schelleng diagram and the requirements for stable Helmholtz motion, explain why this happens, and describe how adjusting bow force and bow position (distance from the bridge) would restore a clean, sustained tone."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bp_2",
+        "kind": "multiple_choice",
+        "question": "Why did **Bartolomeo Cristofori's** invention of the **pianoforte** (hammer action) represent a fundamental advance over the **harpsichord** (plucked action)?",
+        "options": [
+          "The piano has more strings than the harpsichord.",
+          "Because a felt hammer's striking force depends on how hard the key is pressed, the player can vary loudness (and brightness) with touch — dynamic expression impossible on a harpsichord, whose mechanical quill plucks each string identically every time.",
+          "The harpsichord cannot play more than one note at a time.",
+          "The piano eliminated strings entirely in favor of resonating plates."
+        ],
+        "correctIndex": 1,
+        "explanation": "On a harpsichord a quill plectrum plucks the string with essentially the same force on every keystroke, so the player cannot control dynamics by touch. Cristofori's hammer action (c. 1700) let the velocity of the key translate into the hammer's striking force, so a harder blow produces a louder and brighter note. This touch-sensitive dynamic control — piano and forte, hence pianoforte — is the instrument's defining advance, and it depends on the felt hammer's contact time and rebound."
+      },
+      "hints": [
+        "How does a harpsichord pluck compare from one keystroke to the next?",
+        "What does varying the hammer's striking velocity allow?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "A harpsichord's quill plucks each string with nearly fixed force, so loudness cannot follow the player's touch. Cristofori's hammer action makes striking force scale with key velocity, so harder keystrokes give louder, brighter notes. This touch-sensitive dynamic range — soft to loud, piano to forte — is the pianoforte's fundamental advance over the harpsichord."
+    }
+  ]
+}

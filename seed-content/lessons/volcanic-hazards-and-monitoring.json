@@ -1,0 +1,105 @@
+{
+  "slug": "volcanic-hazards-and-monitoring",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Rank the principal volcanic hazards (pyroclastic flows, lahars, ashfall, gases) by reach and lethality.",
+      "Explain the three pillars of monitoring: seismicity, ground deformation (InSAR, GPS), and gas geochemistry.",
+      "Interpret volcano alert-level systems and connect monitoring signals to forecasting and evacuation decisions."
+    ],
+    "prereqs": [
+      "eruption-styles-and-products"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The hazard hierarchy",
+      "body": "Volcanic hazards are not all equal in reach or lethality, and a key skill in hazard assessment is ranking them for a given volcano. The principal hazards, roughly from most immediately lethal to most insidious, are pyroclastic density currents, lahars, ashfall, and volcanic gases.\n\n**Pyroclastic density currents (PDCs).** As established in the previous lesson, these ground-hugging avalanches of hot gas and rock move at up to several hundred kilometers per hour and reach hundreds of degrees Celsius. They are unsurvivable and inescapable on foot. PDCs killed ~28,000 at **Saint-Pierre** below **Mont Pelée** in **1902** and entombed **Pompeii** and **Herculaneum** below **Vesuvius** in **79 AD**. They are the reason exclusion zones around restless stratovolcanoes are drawn generously.\n\n**Lahars.** Volcanic mudflows follow river valleys for tens of kilometers, long after or even without an eruption. The **1985** lahars from **Nevado del Ruiz** killed ~23,000 in **Armero**, Colombia, from a mere VEI 3 eruption — the second-deadliest eruption of the 20th century — because meltwater mobilized ash down a populated valley. Lahars make distance from the vent a poor proxy for safety; topography matters more.\n\n**Ashfall (tephra fall).** Ash blankets huge areas downwind. Wet ash is heavy — roofs collapse under loads exceeding a few hundred kilograms per square meter — and ash contaminates water, shorts out electrical systems, ruins crops, and abrades machinery. It also threatens aviation: the **2010 Eyjafjallajökull** eruption in **Iceland** closed European airspace for days because ingested ash can melt inside jet engines and cause flameout, as nearly befell a **British Airways** 747 over **Galunggung**, Indonesia, in **1982**.\n\n**Volcanic gases.** Magma releases water vapor, **carbon dioxide ($\\text{CO}_2$)**, **sulfur dioxide ($\\text{SO}_2$)**, hydrogen sulfide, hydrogen halides, and more. $\\text{CO}_2$ is dense and pools in low ground; in **1986** a sudden overturn of **Lake Nyos** in Cameroon released a cloud of volcanic $\\text{CO}_2$ that asphyxiated ~1,700 people and their livestock in nearby valleys — a **limnic eruption**. $\\text{SO}_2$ produces vog (volcanic smog) and acid rain and, in large eruptions, climate-altering aerosols.\n\nLesser but real hazards include **ballistic projectiles** (bombs and blocks lobbed near the vent), **lava flows** (destructive to property but usually slow enough to outwalk), volcanic **tsunamis** (as at **Krakatoa** in **1883** and **Anak Krakatau** in **2018**), and edifice **collapse** producing **debris avalanches** (famously the lateral blast and landslide at **Mount St. Helens** in **1980**). The hazard hierarchy is volcano-specific: a Hawaiian shield's main threat is lava, while a subduction stratovolcano's main threats are PDCs and lahars."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hm_1",
+        "kind": "multiple_choice",
+        "question": "The 1985 Nevado del Ruiz eruption was only VEI 3, yet it killed about 23,000 people in Armero, far from the summit. What hazard was chiefly responsible, and what general lesson does this illustrate?",
+        "options": [
+          "A pyroclastic flow; small eruptions cannot produce PDCs",
+          "Lahars (volcanic mudflows) that followed river valleys downstream; distance from the vent is a poor proxy for safety because topography channels some hazards far away",
+          "Ashfall that collapsed every roof in the country",
+          "Volcanic gases that spread across the continent"
+        ],
+        "correctIndex": 1,
+        "explanation": "At Nevado del Ruiz, meltwater from summit snow and ice mobilized loose ash into lahars that surged down river valleys and buried Armero tens of kilometers away. The disaster shows that eruption magnitude (VEI) alone does not predict lethality: secondary hazards like lahars can travel far down valleys, so topography and proximity to drainages matter more than straight-line distance to the vent."
+      },
+      "hints": [
+        "The town was far from the summit but in a river valley.",
+        "Meltwater plus loose ash equals what kind of flow?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Nevado del Ruiz melted summit ice; the meltwater swept loose ash into lahars that raced down drainages and buried Armero far downstream. The lesson is that VEI does not equal lethality and that valley-following hazards make distance alone misleading. Option B is correct."
+    },
+    {
+      "kind": "text",
+      "title": "Three pillars of monitoring",
+      "body": "Modern volcano observatories rest on three complementary monitoring methods. No single signal is decisive; forecasts come from watching all three converge.\n\n**1. Seismicity.** Magma moving through rock fractures it and resonates in conduits, generating earthquakes. Observatories deploy networks of **seismometers** to locate and classify these events. Two broad types matter (covered in depth in the next lesson): brittle-failure **volcano-tectonic** earthquakes and fluid-driven **long-period** events and **harmonic tremor**. A rising count of shallow quakes, migrating upward and shifting toward long-period character, is one of the most reliable signs that magma is ascending. The classic textbook success was **Mount St. Helens** in **1980**, where an intense earthquake swarm preceded the eruption; seismicity also drove the life-saving forecasts at **Pinatubo** in **1991**.\n\n**2. Ground deformation.** Magma accumulating at depth pushes the surface up and out; as it drains or erupts, the ground subsides. Measuring these millimeter-to-meter movements reveals the pressurizing source below. Two technologies dominate:\n- **GPS / GNSS**: networks of continuous receivers track the three-dimensional position of points on a volcano to millimeter precision, recording **inflation** and **deflation** over time.\n- **InSAR** (Interferometric Synthetic Aperture Radar): satellites such as the European **Sentinel-1** bounce radar off the ground on repeat passes; the phase difference between two images yields an **interferogram** whose colored fringes map surface displacement over an entire volcano at once. Each fringe corresponds to displacement of about half the radar wavelength (a few centimeters). InSAR famously revealed unsuspected uplift at volcanoes worldwide, including persistent inflation at **Yellowstone** and **Campi Flegrei** near Naples.\n\nThe deformation field is interpreted with physical models — most simply the **Mogi model** of a pressurized point source in an elastic half-space (developed in the next lesson), which converts an observed uplift pattern into an estimate of the depth and volume change of the magma body.\n\n**3. Gas geochemistry.** As magma rises and depressurizes, dissolved volatiles exsolve and escape, so the **composition and flux of volcanic gases** change before and during unrest. Scientists measure **$\\text{SO}_2$** flux remotely with instruments like the **COSPEC** and modern **DOAS** spectrometers, and increasingly from satellites (e.g., **OMI**, **TROPOMI**). They also sample fumaroles directly for ratios such as **$\\text{CO}_2/\\text{SO}_2$** and **$\\text{SO}_2/\\text{HCl}$**: because $\\text{CO}_2$ is less soluble and exsolves at greater depth than $\\text{SO}_2$, a rising $\\text{CO}_2/\\text{SO}_2$ ratio can signal deep magma recharge, while a later surge in total $\\text{SO}_2$ indicates magma has neared the surface. Gas chemistry thus provides a window on magma depth that complements the seismic and deformation pictures. The art of monitoring is **multiparameter integration** — recognizing when earthquakes, swelling, and degassing tell one coherent story of ascending magma."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_hm_1",
+        "kind": "math_expression",
+        "question": "In an InSAR interferogram, each complete color fringe corresponds to ground displacement of about **half the radar wavelength**. For Sentinel-1's C-band wavelength of roughly **56 mm**, approximately how many millimeters of displacement does one fringe represent?",
+        "acceptedAnswers": [
+          "28",
+          "28 mm",
+          "~28",
+          "about 28 mm"
+        ],
+        "hint": "Take half of 56 mm."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Alert levels and forecasting",
+      "body": "Monitoring is only useful if it informs decisions, so observatories translate the multiparameter picture into **alert-level systems** that communicate risk to authorities and the public. These systems share a common logic even though their labels differ by country.\n\nThe **United States Geological Survey (USGS)** uses a four-step **Volcano Alert Level** scheme — **Normal**, **Advisory**, **Watch**, **Warning** — paired with a separate **Aviation Color Code** of **Green**, **Yellow**, **Orange**, and **Red** designed for pilots and air-traffic control, since ash is primarily an aviation hazard. **Green/Normal** means background; **Yellow/Advisory** means elevated unrest; **Orange/Watch** means escalating unrest with increased likelihood of eruption or a minor eruption underway; **Red/Warning** means a hazardous eruption is imminent or in progress. Many other agencies use numeric scales — for example a 1-to-5 system in parts of the Philippines (**PHIVOLCS**) and Indonesia, or named levels elsewhere. The **Smithsonian/USGS Global Volcanism Program** maintains the worldwide catalog that underpins comparison.\n\nMoving up the ladder requires **converging precursors**. The canonical sequence of escalating signals is:\n- **Background**: steady, low seismicity; no deformation; baseline gas flux.\n- **Early unrest**: increased earthquake counts, the first detectable inflation on GPS/InSAR, a rising $\\text{CO}_2/\\text{SO}_2$ ratio hinting at deep recharge.\n- **Advancing toward eruption**: shallow earthquake swarms migrating upward, accelerating inflation, the appearance of **long-period** events and **harmonic tremor**, and a sharp rise in $\\text{SO}_2$ flux as magma nears the surface.\n- **Imminent/ongoing**: sustained tremor, possible phreatic (steam) explosions, and finally magmatic eruption.\n\nForecasting from these precursors is probabilistic, not deterministic. One quantitative tool is the **failure forecast method** of **Voight (1988)**, which models the acceleration of a precursor (such as the rate of seismic energy release or tilt) toward a singularity in time, fitting the inverse rate to estimate a likely eruption date. Such methods, combined with expert judgment and **event trees** that assign probabilities to branching outcomes, guide the timing of evacuations.\n\nThe stakes are concrete. At **Pinatubo** in **1991**, the integrated reading of seismic swarms, ground deformation, and rising gas emissions let **PHIVOLCS** and the **USGS** raise alerts and evacuate tens of thousands before the climactic VEI 6 eruption, saving thousands of lives and many aircraft. By contrast, the failure to act on warnings at **Nevado del Ruiz** in **1985** — where hazard maps had correctly identified the lahar threat to **Armero** but the message did not translate into evacuation — shows that monitoring science is necessary but not sufficient. The final, indispensable link is **communication**: turning converging instrument signals into a clear alert that decision-makers and communities act upon in time."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hm_2",
+        "kind": "multiple_choice",
+        "question": "An observatory reports rising shallow earthquake counts migrating upward, accelerating GPS inflation, and a sharp increase in SO2 flux. Within a four-level system (Normal, Advisory, Watch, Warning), how should this combination most appropriately be treated, and why?",
+        "options": [
+          "Keep it at Normal, because no single instrument has failed",
+          "Treat it as elevated-to-high alert (Watch or Warning), because multiple independent precursors are converging on the same interpretation: magma is ascending toward eruption",
+          "Lower the alert, because SO2 always falls before eruptions",
+          "Ignore the deformation; only seismicity matters"
+        ],
+        "correctIndex": 1,
+        "explanation": "The hallmark of an impending eruption is multiparameter convergence. Upward-migrating shallow seismicity, accelerating inflation, and surging SO2 flux all independently point to magma rising toward the surface. When the three pillars tell one coherent story, the alert level should rise to Watch or Warning to trigger preparations and evacuations, exactly as happened at Pinatubo in 1991."
+      },
+      "hints": [
+        "Do the signals agree or contradict each other?",
+        "What does converging evidence imply about magma movement?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Three independent monitoring pillars - seismicity, deformation, and gas - are all escalating in the direction expected for ascending magma. That convergence is precisely what justifies raising the alert to Watch or Warning and acting, as the Pinatubo response demonstrated. Option B is correct."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_hm_1",
+        "kind": "scenario",
+        "question": "Building a monitoring response",
+        "prompt": "You direct a small observatory watching a snow-capped subduction stratovolcano above a town that sits in a river valley 30 km downstream. Over two weeks, continuous GPS shows accelerating uplift, an InSAR interferogram develops several new fringes centered on the summit, earthquake swarms shallow upward, and the CO2/SO2 ratio of summit fumaroles first rises and then SO2 flux climbs steeply. Describe what each signal independently tells you about the magma, identify which downstream hazard most threatens the town given its setting, and explain what alert action and public message you would issue and why."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Monitoring as integrated science",
+      "body": "Hazard reduction is where volcanology meets society, and this lesson has laid out both the threats and the tools.\n\nThe **hazard hierarchy** is volcano-specific but follows clear patterns. **Pyroclastic density currents** are the most immediately lethal and unsurvivable, as **Mont Pelée (1902)** and **Vesuvius (79 AD)** showed. **Lahars** make topography more important than distance, as **Nevado del Ruiz (1985)** proved at **Armero**. **Ashfall** threatens vast downwind areas and aviation, as **Eyjafjallajökull (2010)** demonstrated over Europe. **Volcanic gases** can kill silently, as the **Lake Nyos (1986)** $\\text{CO}_2$ disaster in Cameroon showed. Add **tsunamis** (**Krakatoa 1883**) and **edifice collapse** (**Mount St. Helens 1980**) and the full spectrum of risk emerges.\n\nAgainst these, observatories deploy **three pillars of monitoring**:\n- **Seismicity** — earthquake swarms and tremor that track magma fracturing and resonating in the crust.\n- **Ground deformation** — **GPS/GNSS** and satellite **InSAR** (e.g., **Sentinel-1**) measuring inflation and deflation, interpreted with elastic source models.\n- **Gas geochemistry** — $\\text{SO}_2$ flux and ratios like $\\text{CO}_2/\\text{SO}_2$ that reveal magma depth and ascent.\n\nThe overriding principle is **multiparameter integration**: forecasts come not from one signal but from the convergence of all three, fed into **alert-level systems** (the USGS Normal-Advisory-Watch-Warning scheme and Aviation Color Code, and numeric scales elsewhere) and quantitative tools like **Voight's failure forecast method**. The triumph at **Pinatubo (1991)** and the tragedy at **Nevado del Ruiz (1985)** together teach that the science of detection must be matched by the discipline of communication and the will to evacuate.\n\nTwo of the three pillars — seismicity and deformation — are rich enough to demand their own quantitative treatment, which the next lesson provides. It dissects **volcano-tectonic versus long-period earthquakes** and **harmonic tremor**, derives the **Mogi model** that converts an InSAR or GPS uplift pattern into a magma source depth and volume, and shows how these precursors are combined into genuine **eruption forecasts**."
+    }
+  ]
+}

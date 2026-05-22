@@ -1,0 +1,106 @@
+{
+  "slug": "volcano-seismology-and-deformation",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish volcano-tectonic from long-period earthquakes and explain harmonic tremor as a resonance phenomenon.",
+      "Derive and apply the Mogi model relating surface deformation to a pressurized point source at depth.",
+      "Combine seismic and deformation precursors into probabilistic eruption forecasts."
+    ],
+    "prereqs": [
+      "volcanic-hazards-and-monitoring"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The seismic vocabulary of a restless volcano",
+      "body": "A volcano speaks in earthquakes, and learning to classify them is the core skill of **volcano seismology**, a field shaped by researchers such as **Bernard Chouet** at the **USGS** and the pioneering Japanese seismologist **Takeshi Minakami**, whose mid-20th-century classification of volcanic earthquakes (Types A, B, and explosion quakes) is still echoed today. Three signal families dominate the modern scheme.\n\n**Volcano-tectonic (VT) earthquakes** are ordinary brittle-failure events: rock fractures under stress as magma intrudes and inflates the edifice. They have a broadband, impulsive character with clear **P-wave** and **S-wave** arrivals, just like tectonic earthquakes, and they are usually small (magnitude < 3) but can come in intense **swarms**. VT swarms migrating upward toward the surface are a primary indicator that magma is forcing its way through the crust, as in the celebrated swarm beneath **Mount St. Helens** in **1980**.\n\n**Long-period (LP) earthquakes** (also called low-frequency events) are very different. They have emergent onsets, no clear S-wave, and energy concentrated in a narrow band, typically **0.5-5 Hz**. **Chouet** showed they arise not from rock fracture but from **pressure transients in fluid-filled cracks and conduits** — the resonance of a crack triggered by the unsteady flow of magma, gas, or hydrothermal fluid. Because they directly track fluid movement, the appearance and proliferation of LP events is a strong sign that the system is becoming charged with mobile magma and gas.\n\n**Harmonic tremor** is a sustained, often hours-to-days-long vibration with a fundamental frequency and overtones — a continuous signal rather than discrete quakes. It is widely interpreted as **sustained resonance** of a fluid-filled conduit or repeated, closely spaced LP events merging into a continuous train. The simplest mental model is an organ pipe: a conduit of length $L$ filled with a fluid in which acoustic waves travel at speed $c$ resonates at frequencies\n\n$$ f_n = \\frac{n\\,c}{2L}, \\qquad n = 1, 2, 3, \\dots $$\n\nso that measuring the tremor's frequencies constrains the geometry and fluid properties of the plumbing. Tremor frequently accompanies eruptions and magma ascent and is one of the most ominous real-time signals an observatory can record.\n\nA fourth category, **explosion earthquakes**, accompanies the discrete blasts of an ongoing eruption, and **very-long-period (VLP)** signals (tens of seconds and longer) image slow pressurization of large reservoirs. The art lies in tracking how the population shifts over time: a progression from scattered VT quakes, to swarms, to abundant LP events, to sustained harmonic tremor is the classic seismic march toward eruption, and it is one half of the forecasting picture. The other half is the silent swelling of the ground itself."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_vs_1",
+        "kind": "multiple_choice",
+        "question": "An observatory notes that its seismic record has shifted from scattered, impulsive volcano-tectonic (VT) earthquakes with clear P and S arrivals to abundant emergent, narrow-band long-period (LP) events around 1-3 Hz. What change in the volcano does this shift most directly indicate?",
+        "options": [
+          "The crust is cooling and contracting",
+          "A shift from brittle rock fracture toward pressure transients in fluid-filled cracks, indicating increasing movement of magma, gas, or hydrothermal fluid",
+          "Distant tectonic earthquakes are being recorded by accident",
+          "The seismometers have malfunctioned"
+        ],
+        "correctIndex": 1,
+        "explanation": "VT earthquakes are brittle-failure events (clear P and S, broadband), signaling rock breaking as magma intrudes. LP events, by contrast, arise from pressure transients and resonance in fluid-filled cracks and conduits (Chouet's work) and track fluid motion directly. A move from VT-dominated to LP-dominated seismicity indicates magma and gas are becoming more mobile in the system, an escalation toward eruption."
+      },
+      "hints": [
+        "VT = rock breaking; LP = fluid moving.",
+        "Which process do narrow-band, emergent signals reflect?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "VT earthquakes reflect brittle failure of rock; LP events reflect resonance and pressure transients in fluid-filled cracks and conduits. A transition from VT to LP therefore signals that fluids (magma, gas, hydrothermal water) are moving more vigorously, a recognized step toward eruption. Option B is correct."
+    },
+    {
+      "kind": "text",
+      "title": "The Mogi model of source inflation",
+      "body": "Ground deformation is the second great precursor, and the workhorse for interpreting it is the **Mogi model**, published by the Japanese geophysicist **Kiyoo Mogi** in **1958** while studying inflation at volcanoes including **Sakurajima** and the Hawaiian volcanoes. The model idealizes a magma reservoir as a **pressurized spherical point source** (a center of dilatation) embedded at depth $d$ in an elastic **half-space** — that is, in a uniform elastic Earth with a flat free surface.\n\nWhen the source undergoes a volume change $\\Delta V$ (magma recharge inflates it; withdrawal deflates it), it deforms the surface above in a characteristic bell-shaped pattern. For a source at depth $d$ directly below the origin, the **vertical** ($u_z$) and **radial horizontal** ($u_r$) surface displacements at horizontal distance $r$ from the epicenter are\n\n$$ u_z = \\frac{(1-\\nu)\\,\\Delta V}{\\pi}\\,\\frac{d}{(r^2+d^2)^{3/2}}, \\qquad u_r = \\frac{(1-\\nu)\\,\\Delta V}{\\pi}\\,\\frac{r}{(r^2+d^2)^{3/2}} $$\n\nwhere $\\nu$ is the **Poisson's ratio** of the crust (about 0.25). Equivalently, the deformation can be written in terms of a pressure change $\\Delta P$ in a sphere of radius $a$ (with $a \\ll d$) through the relation $\\Delta V = \\dfrac{\\pi\\,\\Delta P\\,a^3}{\\mu}$, where $\\mu$ is the shear modulus. Several powerful results follow directly from the geometry:\n- The **uplift is maximal directly over the source** ($r=0$), where $u_z^{\\max} = \\dfrac{(1-\\nu)\\,\\Delta V}{\\pi d^2}$, so peak uplift falls off as the inverse square of source depth.\n- The **width of the deformation bowl encodes the depth**: the horizontal displacement $u_r$ peaks at $r = d/\\sqrt{2}$. Thus simply measuring where the ground tilts most steeply gives the depth of the magma body, with no other assumptions.\n- The **ratio of horizontal to vertical motion** at any station, $u_r/u_z = r/d$, provides an independent depth check from a single well-instrumented site.\n\nThis is why a single **InSAR** interferogram or a **GPS** network is so informative: by fitting the observed fringe pattern or position changes to the Mogi equations, an analyst inverts for the source **depth** $d$ and the **volume change** $\\Delta V$ — the size and location of the intruding magma — even though the reservoir itself is invisible kilometers underground. The Mogi model is deliberately simple; real reservoirs are not points, the crust is not uniform, and elongated sills or dikes require extensions (the **Okada** dislocation solutions for finite rectangular sources, or ellipsoidal **Yang** models). But its compactness makes it the first tool reached for, and a remarkably good one: many volcanoes' deformation is fit to first order by a single inflating Mogi source whose deepening or shallowing over time tracks the migration of magma."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_vs_1",
+        "kind": "math_expression",
+        "question": "In the Mogi model the radial (horizontal) surface displacement peaks at a distance $r = d/\\sqrt{2}$ from the point above the source. If GPS shows the steepest horizontal motion at about **2.0 km** from the summit, estimate the source depth $d$ in kilometers (use $d = r\\sqrt{2}$, and $\\sqrt{2} \\approx 1.41$).",
+        "acceptedAnswers": [
+          "2.8",
+          "2.8 km",
+          "~2.8",
+          "2.83",
+          "about 2.8 km"
+        ],
+        "hint": "d = r * sqrt(2) = 2.0 * 1.41."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "From precursors to forecasts",
+      "body": "Seismology and deformation become **forecasting** only when their signals are combined and projected forward, and several quantitative frameworks make this rigorous.\n\nThe most influential is the **failure forecast method (FFM)** introduced by **Barry Voight** in **1988** and refined with collaborators. Voight observed that many precursors accelerate toward eruption as if the system were approaching material failure, obeying a simple rate law for an observable $\\Omega$ (such as cumulative seismic moment, RSAM amplitude, or tilt):\n\n$$ \\frac{d^2\\Omega}{dt^2} = A\\left(\\frac{d\\Omega}{dt}\\right)^{\\alpha} $$\n\nFor the common case $\\alpha = 2$, the **inverse rate** $1/\\dot{\\Omega}$ declines linearly toward zero, and extrapolating that line to the time axis gives an estimate of the failure (eruption) time. Plotting $1/\\dot{\\Omega}$ against time and watching it head for zero is now a standard real-time tool; it successfully anticipated dome-collapse and eruptive events at volcanoes such as **Mount St. Helens**, **Soufrière Hills** on **Montserrat**, and others.\n\nReal-time amplitude measures support this. **RSAM** (Real-time Seismic Amplitude Measurement), developed during the **Redoubt** (Alaska) crisis, reduces the entire seismic wavefield to a single rising number that tracks unrest intensity; **SSAM** adds spectral content. Combined with the seismic classification of the first slide — the march from VT swarms to LP events to harmonic tremor — and the deformation history from the **Mogi** inversions of the second slide, an observatory builds a coherent narrative of magma ascent.\n\nForecasting is fundamentally **probabilistic**, and the formal device is the **Bayesian Event Tree** (e.g., the **BET_EF** framework of **Marzocchi** and colleagues). Starting from monitoring inputs, the tree assigns conditional probabilities at each branch: Is there unrest? Given unrest, will magma reach the surface? Given an eruption, what size and what hazards? The output is not a single date but a distribution of outcomes with uncertainties, which is exactly what civil-protection authorities need to weigh the costs of evacuation against the probability and severity of an eruption.\n\nThe limits are real and worth stating. Volcanoes produce **false alarms** — unrest that wanes without eruption, as repeatedly at **Campi Flegrei** — and they can erupt with little warning, especially **phreatic** (steam-driven) blasts like the deadly **2014 Ontake** eruption in Japan, which gave almost no clear precursors. Magma can also stall as a failed intrusion. Forecasting therefore aims for honest probabilities, not certainty. Yet the combination of seismic classification, **inverse-rate** failure forecasting, and Mogi-constrained deformation has repeatedly delivered actionable warnings, and it remains the quantitative backbone on which the alert-level decisions of the previous lesson rest."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_vs_2",
+        "kind": "multiple_choice",
+        "question": "In Voight's failure forecast method, analysts often plot the inverse of a precursor's rate (for example 1/RSAM) against time. Why is the point where this line reaches zero meaningful?",
+        "options": [
+          "Zero inverse rate means the volcano has gone quiet and the crisis is over",
+          "When the precursor's rate accelerates toward a singularity, its inverse declines toward zero; extrapolating that line to zero estimates the likely eruption (failure) time",
+          "It marks the moment the seismometers saturate and stop recording",
+          "Inverse rate has no physical meaning and is plotted only for convenience"
+        ],
+        "correctIndex": 1,
+        "explanation": "Voight's rate law (with alpha = 2) implies that as a precursor accelerates toward failure, its rate tends to infinity, so the inverse rate 1/rate tends to zero linearly in time. Extrapolating the declining inverse-rate line to the time axis estimates when failure (eruption) is likely. A rate going to zero, by contrast, would be the inverse rate going to infinity, i.e., the system quieting; so the zero-crossing of inverse rate signals impending eruption, not calm."
+      },
+      "hints": [
+        "If a rate accelerates toward infinity, what does its reciprocal do?",
+        "The method forecasts a time, read off the time axis."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "An accelerating precursor has a rate that climbs steeply toward a singularity; the reciprocal of a quantity heading to infinity heads to zero, and Voight showed (for alpha = 2) that 1/rate declines roughly linearly. Extending that line to where it hits zero on the time axis gives the forecast failure/eruption time. Hence option B."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_vs_1",
+        "kind": "scenario",
+        "question": "Inverting and forecasting from real data",
+        "prompt": "Over six weeks your network records: (1) an InSAR interferogram whose fringes form a symmetric bowl with the steepest horizontal motion about 2.8 km from the summit and growing total uplift, (2) a seismic record that evolves from a VT swarm into frequent long-period events and finally bursts of harmonic tremor, and (3) an RSAM trace whose inverse-rate plot is descending steadily toward zero in about ten days. Explain what the InSAR pattern lets you infer via the Mogi model, what the seismic evolution implies physically, what the inverse-rate trend forecasts, and how you would synthesize all three into a forecast statement acknowledging its uncertainty."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Listening and watching, together",
+      "body": "This lesson has given quantitative substance to two of the three monitoring pillars introduced earlier, and shown how they fuse into forecasts.\n\n**Seismology** supplies a vocabulary of magma movement. **Volcano-tectonic (VT)** earthquakes are brittle rock failure as magma intrudes; **long-period (LP)** events, illuminated by **Bernard Chouet**, are resonance and pressure transients in fluid-filled cracks; and **harmonic tremor** is sustained conduit resonance, modeled like an organ pipe with $f_n = nc/2L$. The temporal march from VT swarms to LP events to tremor — building on **Minakami's** early classification — is the seismic signature of ascending magma.\n\n**Deformation**, interpreted through **Kiyoo Mogi's** 1958 point-source model, converts an invisible reservoir into numbers. The bell-shaped surface uplift, with peak horizontal motion at $r = d/\\sqrt{2}$ and a horizontal-to-vertical ratio $u_r/u_z = r/d$, lets an analyst invert **InSAR** or **GPS** data for the **depth** and **volume change** of the magma body, with finite-source extensions (**Okada**, **Yang**) for dikes and sills.\n\n**Forecasting** binds them. **Voight's failure forecast method** (1988) turns accelerating precursors into an estimated eruption time via the inverse-rate plot; **RSAM** distills the seismic stream into a single index; and **Bayesian event trees** (BET_EF) deliver honest probabilities across branching outcomes. Successes at **Mount St. Helens**, **Pinatubo**, and **Soufrière Hills** sit alongside cautions from **false alarms** at **Campi Flegrei** and the near-warning-less **Ontake (2014)** phreatic disaster.\n\nThe enduring themes are three. **Classification before interpretation**: you must know whether you are seeing rock break or fluid resonate. **Geometry encodes the hidden source**: the shape of a deformation field, not just its size, reveals depth. And **forecasts are probabilities, not prophecies**: the goal is calibrated uncertainty that authorities can act on. These tools see individual eruptions coming. But some eruptions are so large that they reshape the planet's climate and lie beyond the reach of any modern monitoring record. The next lesson confronts those rare giants — the **caldera-forming supereruptions** of **Yellowstone** and **Toba**, the **1815 Tambora** eruption and the **1816 'Year Without a Summer'**, and the sulfate-aerosol physics by which a single eruption can cool the entire Earth."
+    }
+  ]
+}

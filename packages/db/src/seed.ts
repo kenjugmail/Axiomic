@@ -4281,6 +4281,66 @@ function seedMasteryPaths() {
     ],
   });
 
+  // Triplet 20 — Cardiologist. The heart from Harvey through anatomy + the
+  // conduction system, the cardiac cycle, ECG, arrhythmias, coronary +
+  // heart-failure disease, valves, to the interventional frontier.
+  seedMasteryPath({
+    slug: "cardiologist",
+    title: "Cardiologist",
+    description:
+      "Cardiology from William Harvey through cardiac anatomy + the conduction system, the pressure-volume loop + hemodynamics, the ECG, arrhythmias + electrophysiology, coronary disease + heart failure, valvular disease, to the interventional + AI frontier.",
+    nodes: [
+      { slug: "cardiology-history-and-the-pv-loop", title: "History + the PV Loop", level: "apprentice", order: 1, pages: [], prereqs: [], description: "Harvey, Frank + Starling, Einthoven, Forssmann; the pressure-volume loop — preload, afterload, stroke volume, EF (interactive)." },
+      { slug: "cardiac-anatomy-and-the-conduction-system", title: "Anatomy + Conduction System", level: "apprentice", order: 2, pages: [], prereqs: ["cardiology-history-and-the-pv-loop"], description: "Chambers + valves + coronaries, the SA/AV/His-Purkinje conduction system, the cardiac action potential (phases 0-4), automaticity." },
+      { slug: "the-cardiac-cycle-and-hemodynamics", title: "The Cardiac Cycle + Hemodynamics", level: "practitioner", order: 3, pages: [], prereqs: ["cardiac-anatomy-and-the-conduction-system"], description: "Systole/diastole, the Wiggers diagram, CO = HR × SV, the Frank-Starling mechanism, preload vs afterload, ejection fraction." },
+      { slug: "electrocardiography-and-leads", title: "Electrocardiography + Leads", level: "practitioner", order: 4, pages: [], prereqs: ["the-cardiac-cycle-and-hemodynamics"], description: "Einthoven's triangle, the 12 leads, the PQRST complex, intervals (PR/QRS/QT), the cardiac axis, rhythm reading." },
+      { slug: "arrhythmias-and-electrophysiology", title: "Arrhythmias + Electrophysiology", level: "specialist", order: 5, pages: [], prereqs: ["electrocardiography-and-leads"], description: "AFib/flutter, AV blocks, reentry, VT/VF, long-QT, the EP study + catheter ablation, pacemakers/ICDs." },
+      { slug: "coronary-artery-disease-and-heart-failure", title: "Coronary Disease + Heart Failure", level: "expert", order: 6, pages: [], prereqs: ["the-cardiac-cycle-and-hemodynamics"], description: "Atherosclerosis, angina, MI (STEMI/NSTEMI, troponin), angiography + PCI, HFrEF vs HFpEF, the RAAS neurohormonal model." },
+      { slug: "valvular-and-structural-heart-disease", title: "Valvular + Structural Disease", level: "expert", order: 7, pages: [], prereqs: ["arrhythmias-and-electrophysiology"], description: "Stenosis vs regurgitation, murmurs, Doppler echo (ΔP ≈ 4v²), aortic stenosis + TAVR, mitral disease, congenital defects." },
+      { slug: "cardiology-frontiers", title: "Frontiers", level: "researcher", order: 8, pages: [], prereqs: ["coronary-artery-disease-and-heart-failure"], description: "Drug-eluting stents + TAVR, cardiac MRI/CT, AI ECG interpretation, AFib wearables, gene + regenerative therapy." },
+    ],
+  });
+
+  // Triplet 20 — Volcanologist. Volcanoes from Pliny through magma, plate
+  // settings, eruption styles, hazards + monitoring, volcano seismology,
+  // large eruptions + climate, to the remote-sensing frontier.
+  seedMasteryPath({
+    slug: "volcanologist",
+    title: "Volcanologist",
+    description:
+      "Volcanology from Pliny the Younger through magma + igneous processes, plate-tectonic settings, eruption styles, hazards + monitoring, volcano seismology + deformation, supereruptions + climate, to the remote-sensing + forecasting frontier.",
+    nodes: [
+      { slug: "volcanology-history-and-eruption-explosivity", title: "History + Eruption Explosivity", level: "apprentice", order: 1, pages: [], prereqs: [], description: "Pliny + Vesuvius 79 AD, Perret, Tazieff, the VEI; silica → viscosity → effusive vs explosive (interactive)." },
+      { slug: "magma-and-igneous-processes", title: "Magma + Igneous Processes", level: "apprentice", order: 2, pages: [], prereqs: ["volcanology-history-and-eruption-explosivity"], description: "Decompression/flux/heat melting, basaltic/andesitic/rhyolitic composition, Bowen's reaction series, viscosity, volatiles." },
+      { slug: "plate-tectonics-and-volcanic-settings", title: "Plate Tectonics + Settings", level: "practitioner", order: 3, pages: [], prereqs: ["magma-and-igneous-processes"], description: "Mid-ocean ridges, subduction arcs, hotspots (Wilson plume), the Ring of Fire, how setting controls magma chemistry." },
+      { slug: "eruption-styles-and-products", title: "Eruption Styles + Products", level: "practitioner", order: 4, pages: [], prereqs: ["plate-tectonics-and-volcanic-settings"], description: "Effusive (pāhoehoe/ʻaʻā) vs explosive (tephra, pyroclastic density currents, lahars), eruption columns, ash/bombs/pumice." },
+      { slug: "volcanic-hazards-and-monitoring", title: "Hazards + Monitoring", level: "specialist", order: 5, pages: [], prereqs: ["eruption-styles-and-products"], description: "PDCs, lahars, ashfall, gases; monitoring via seismicity, deformation (InSAR/GPS), gas geochemistry; alert levels." },
+      { slug: "volcano-seismology-and-deformation", title: "Seismology + Deformation", level: "expert", order: 6, pages: [], prereqs: ["volcanic-hazards-and-monitoring"], description: "Volcano-tectonic vs long-period earthquakes, harmonic tremor, the Mogi source model, eruption forecasting." },
+      { slug: "large-eruptions-and-climate", title: "Large Eruptions + Climate", level: "expert", order: 7, pages: [], prereqs: ["volcanic-hazards-and-monitoring"], description: "Caldera supereruptions (Yellowstone, Toba), VEI 7-8, Tambora 1815 + the Year Without a Summer, sulfate-aerosol forcing." },
+      { slug: "volcanology-frontiers", title: "Frontiers", level: "researcher", order: 8, pages: [], prereqs: ["volcano-seismology-and-deformation"], description: "Satellite thermal/SO₂ sensing, ML eruption forecasting, drone gas surveys, geothermal energy, planetary volcanism (Io, Mars)." },
+    ],
+  });
+
+  // Triplet 20 — Luthier. Instrument-making from Pythagoras + the Cremonese
+  // masters through string acoustics, tonewoods, the soundboard,
+  // construction, excitation, psychoacoustics, to computational lutherie.
+  seedMasteryPath({
+    slug: "luthier",
+    title: "Luthier",
+    description:
+      "Stringed-instrument making from Pythagoras + the Cremonese masters through string acoustics + Mersenne's laws, tonewoods, the soundboard + resonance, construction, bowed/plucked/struck excitation, psychoacoustics + timbre, to computational lutherie.",
+    nodes: [
+      { slug: "luthier-history-and-string-harmonics", title: "History + String Harmonics", level: "apprentice", order: 1, pages: [], prereqs: [], description: "Pythagoras, Amati/Stradivari/Guarneri, Mersenne's laws; the harmonic series, fundamental + overtones (interactive)." },
+      { slug: "string-acoustics-and-vibration", title: "String Acoustics + Vibration", level: "apprentice", order: 2, pages: [], prereqs: ["luthier-history-and-string-harmonics"], description: "Standing waves, Mersenne's laws f = (1/2L)√(T/μ), the harmonic series, nodes/antinodes, inharmonicity, pluck position + timbre." },
+      { slug: "tonewoods-and-materials", title: "Tonewoods + Materials", level: "practitioner", order: 3, pages: [], prereqs: ["string-acoustics-and-vibration"], description: "Spruce/cedar tops, maple/rosewood backs, ebony; grain, stiffness-to-weight, Young's modulus, sound speed, seasoning, varnish." },
+      { slug: "the-soundboard-and-resonance", title: "The Soundboard + Resonance", level: "practitioner", order: 4, pages: [], prereqs: ["tonewoods-and-materials"], description: "The top plate as a radiator, Chladni patterns + plate tuning (Hutchins), the Helmholtz air resonance, bass bar + sound post." },
+      { slug: "instrument-construction", title: "Instrument Construction", level: "specialist", order: 5, pages: [], prereqs: ["the-soundboard-and-resonance"], description: "Violin/guitar anatomy, plate arching, X-bracing, the bridge as a mechanical filter, scale length, fret placement + intonation." },
+      { slug: "bowed-plucked-and-struck", title: "Bowed, Plucked + Struck", level: "expert", order: 6, pages: [], prereqs: ["instrument-construction"], description: "The bow + Helmholtz stick-slip motion (rosin), plucked-string decay, the struck piano hammer, the attack-sustain-decay envelope." },
+      { slug: "psychoacoustics-and-timbre", title: "Psychoacoustics + Timbre", level: "expert", order: 7, pages: [], prereqs: ["string-acoustics-and-vibration"], description: "Pitch perception, the harmonic spectrum → timbre, formants, the Stradivari double-blind tests (Fritz, Curtin), temperament." },
+      { slug: "luthier-frontiers", title: "Frontiers", level: "researcher", order: 8, pages: [], prereqs: ["bowed-plucked-and-struck"], description: "Modal analysis + finite-element modeling, CT scanning historic violins, 3D-printed + carbon-fiber instruments, computational lutherie." },
+    ],
+  });
+
   seedExamPrepPaths();
 }
 

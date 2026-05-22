@@ -1,0 +1,103 @@
+{
+  "slug": "volcanology-frontiers",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Survey satellite remote sensing of volcanic thermal emission and SO2, and the role of drones in gas and thermal surveys.",
+      "Explain how machine learning is applied to eruption forecasting and signal classification.",
+      "Connect volcanology to geothermal energy and to planetary volcanism on Io and Mars."
+    ],
+    "prereqs": [
+      "large-eruptions-and-climate"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Eyes in orbit: satellite remote sensing",
+      "body": "The single greatest change in modern volcanology is that we now watch every volcano on Earth from space, including the roughly 1,500 potentially active volcanoes and the great many that lack any ground instruments. **Satellite remote sensing** observes three things especially well: heat, gas, and ground motion.\n\n**Thermal emission.** Active lava, domes, and crater lakes are far hotter than their surroundings, and infrared sensors detect that heat by **Planck's law**, $B(\\lambda,T) \\propto \\lambda^{-5}/(e^{hc/\\lambda k T}-1)$, with the radiance peaking at shorter wavelengths for hotter surfaces (**Wien's law**). Instruments like **MODIS** (on **Terra** and **Aqua**), **VIIRS**, **Landsat 8/9 TIRS**, and **ASTER** measure thermal anomalies; automated systems such as **MODVOLC** and **MIROVA** flag new **hotspots** worldwide within hours and estimate **lava effusion rates** from the radiated power. Geostationary weather satellites add near-continuous coverage of eruption columns.\n\n**Gas, especially $\\text{SO}_2$.** Because $\\text{SO}_2$ absorbs ultraviolet light at characteristic wavelengths, ultraviolet and infrared spectrometers map volcanic plumes from orbit. The lineage runs from **TOMS** through **OMI** to today's high-resolution **TROPOMI** on **Sentinel-5P**, which can detect $\\text{SO}_2$ from passive degassing as well as eruptions. These data quantify the **global volcanic sulfur budget** and feed the climate-forcing calculations of the previous lesson, and they are critical for the **Volcanic Ash Advisory Centers (VAACs)** that warn aviation.\n\n**Ground deformation by InSAR.** As covered earlier, satellite radar interferometry — now routine and free with the European **Sentinel-1** constellation — measures centimeter-scale inflation and deflation over whole volcanic regions. The leap is in scale: projects systematically process InSAR for thousands of volcanoes, surfacing unrest at remote, uninstrumented systems that ground networks would never have caught.\n\nThe defining advantage of satellites is **global, repeated, hazard-free coverage**. A volcanologist in one office can monitor heat, gas, and deformation at hundreds of volcanoes that no person has ever climbed. The limitations are equally real: clouds obscure optical and thermal sensors, polar-orbiting satellites revisit a given spot only every few days, spatial resolution can be coarse, and the sheer volume of data outpaces human analysis. That last limitation — too much data for people to examine — is precisely what is driving the next frontier: machine learning."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_vf_1",
+        "kind": "multiple_choice",
+        "question": "Satellite SO2 sensors such as OMI and TROPOMI detect volcanic plumes primarily by which physical principle?",
+        "options": [
+          "SO2 emits visible green light that cameras photograph",
+          "SO2 absorbs ultraviolet (and infrared) radiation at characteristic wavelengths, so its column amount can be retrieved from the spectrum of backscattered sunlight",
+          "SO2 is magnetic and deflects the satellite's instruments",
+          "SO2 is detected by its radioactivity"
+        ],
+        "correctIndex": 1,
+        "explanation": "SO2 has characteristic absorption bands in the ultraviolet (and infrared). Instruments like TOMS, OMI, and TROPOMI measure the spectrum of sunlight backscattered from the atmosphere and retrieve the SO2 column amount from the depth of these absorption features. This lets them map both eruptive and passive-degassing plumes globally and quantify the volcanic sulfur budget."
+      },
+      "hints": [
+        "Think absorption spectroscopy, not emission or radioactivity.",
+        "Which part of the spectrum does SO2 absorb?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "SO2 absorbs UV and IR light at specific wavelengths. UV/IR spectrometers on satellites measure backscattered sunlight and infer the SO2 column from how much is absorbed at those wavelengths. That is the basis of TOMS, OMI, and TROPOMI retrievals, so option B is correct."
+    },
+    {
+      "kind": "text",
+      "title": "Machine learning and uncrewed surveys",
+      "body": "Two technologies are reshaping how volcanic data are gathered and interpreted: **machine learning** for analysis and **drones** for measurement.\n\n**Machine learning (ML).** Volcano monitoring generates torrents of continuous data — seismograms, infrasound, GPS time series, InSAR stacks, satellite imagery — far beyond what analysts can review. ML excels at finding patterns in such streams:\n- **Seismic event classification.** Supervised classifiers and deep **convolutional** and **recurrent neural networks** automatically distinguish volcano-tectonic earthquakes, long-period events, and tremor (the taxonomy from the seismology lesson), labeling events in real time and catching subtle precursors. Unsupervised clustering finds repeating events and reveals families of signals a human might miss.\n- **InSAR deformation detection.** Convolutional neural networks trained on synthetic and real interferograms scan the global Sentinel-1 archive to flag the bull's-eye fringe patterns of inflating magma, automating what was once painstaking manual inspection.\n- **Eruption forecasting.** Frameworks such as the **DAS/transfer-learning** approach demonstrated at **Whakaari/White Island** in New Zealand (work by **David Dempsey**, **Shane Cronin**, and colleagues) train models on pre-eruption data to issue probabilistic short-term forecasts, complementing the physics-based methods of Lesson 6.\n\nThe caution is that ML models are only as good as their training data, and eruptions are rare and individual, so models risk overfitting and can fail on a volcano that behaves unlike any in the training set. ML augments expert judgment; it does not replace it.\n\n**Uncrewed aerial systems (drones).** The deadliest measurements in volcanology have historically required scientists to approach craters and gas vents in person — sometimes fatally, as in the **1993 Galeras** tragedy in Colombia, where an eruption during fieldwork killed six volcanologists. Drones now make many of these measurements remotely:\n- **Gas sensing.** Multirotor and fixed-wing drones carry miniaturized spectrometers and electrochemical sensors directly into plumes to measure $\\text{CO}_2/\\text{SO}_2$ ratios and total flux without risking a pilot, as demonstrated over **Manam** in Papua New Guinea and **Volcan de Fuego** in Guatemala.\n- **Thermal and photogrammetric surveys.** Thermal-infrared and optical cameras on drones map crater temperatures and build high-resolution **digital elevation models** by **structure-from-motion** photogrammetry, tracking dome growth and lava-flow volumes between flights.\n- **Sampling.** Experimental drones even collect ash and gas samples from otherwise inaccessible vents.\n\nTogether, ML and drones extend the human senses: drones reach where people cannot safely go, and ML processes more data than people can possibly examine. Both are accelerating the shift from reactive to anticipatory volcanology, and both depend on the physical understanding built in the earlier lessons to interpret what they detect."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_vf_1",
+        "kind": "math_expression",
+        "question": "A volcanic plume is detected at a temperature where thermal infrared radiance peaks. By Wien's displacement law, a *hotter* lava surface radiates with its peak at a *shorter* or *longer* wavelength? Answer with one word: 'shorter' or 'longer'.",
+        "acceptedAnswers": [
+          "shorter",
+          "Shorter"
+        ],
+        "hint": "Wien's law: peak wavelength is inversely proportional to temperature."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Geothermal energy and planetary volcanism",
+      "body": "Volcanology reaches beyond hazard into two further frontiers: harnessing volcanic heat as **energy**, and recognizing volcanism as a process that shapes **other worlds**.\n\n**Geothermal energy.** The same heat that drives eruptions is a vast, low-carbon energy resource. In volcanic and tectonically active regions, water circulating through hot rock can be tapped to spin turbines and heat buildings. **Iceland**, sitting on the Mid-Atlantic Ridge, generates roughly a quarter of its electricity and the great majority of its building heat from geothermal fields such as **Hellisheidi**. **New Zealand's Wairakei** (one of the world's first geothermal power stations, 1958), **Italy's Larderello** (the very first, 1904, exploiting the **Tuscan** steam fields), the **Geysers** in California (the largest geothermal complex on Earth), and fields in **Kenya's** East African Rift, **Indonesia**, the **Philippines**, and **Japan** all convert volcanic heat to power. The cutting edge pushes toward hotter resources: the **Iceland Deep Drilling Project (IDDP)** drilled into **supercritical** geothermal fluid and even into magma itself at **Krafla**, where a borehole unexpectedly struck rhyolite magma at ~2.1 km depth in 2009, opening the prospect of extracting energy from near-magmatic temperatures. Engineered (or enhanced) geothermal systems (**EGS**) aim to create artificial reservoirs in hot dry rock, broadening geothermal beyond naturally permeable volcanic zones. The thermodynamic ceiling is the **Carnot efficiency**, $\\eta_{\\max} = 1 - T_c/T_h$, which is why reaching higher reservoir temperatures $T_h$ (supercritical, even magmatic) is so valuable.\n\n**Planetary volcanism.** Volcanism is not unique to Earth; it is a fundamental way that rocky and icy worlds lose their internal heat. The most volcanically active body in the Solar System is Jupiter's moon **Io**, whose hundreds of erupting vents and lava lakes (such as **Loki Patera** and **Pele**) were discovered by the **Voyager** spacecraft in 1979 and are powered not by radioactive decay but by **tidal heating** — the relentless flexing of Io by Jupiter's gravity and the orbital resonance with **Europa** and **Ganymede**. **Mars** hosts the largest volcano known in the Solar System, **Olympus Mons**, a shield volcano of the **Tharsis** rise standing ~22 km high and ~600 km across; it grew so enormous because Mars lacks plate tectonics, so a stationary hotspot piled lava in one place for eons (the opposite of the moving-plate logic that strings out the Hawaiian chain). Earth's Moon records ancient basaltic flooding in its dark **maria**; **Venus** is resurfaced by extensive volcanism and may be active today, with recent radar evidence of vent changes from the **Magellan** data; and the outer Solar System displays **cryovolcanism** — eruptions of water and ammonia 'magma' — on **Enceladus** (whose **Cassini**-observed plumes vent from a subsurface ocean) and **Triton**. Comparative planetology turns volcanology into a universal science: the same principles of melting, buoyancy, viscosity, and degassing explain features across the Solar System, and Earth's volcanoes become one case among many."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_vf_2",
+        "kind": "multiple_choice",
+        "question": "Mars's Olympus Mons is far larger than any volcano on Earth. What aspect of Martian geology best explains how a single volcano grew so enormous?",
+        "options": [
+          "Mars has much stronger gravity, which pulls lava into a tall cone",
+          "Mars lacks plate tectonics, so a stationary hotspot erupted in the same place for hundreds of millions of years instead of building a chain of separate volcanoes",
+          "Olympus Mons is made of ice, not rock",
+          "Mars has no atmosphere, so lava cannot cool"
+        ],
+        "correctIndex": 1,
+        "explanation": "On Earth, a moving plate carries a volcano off its hotspot, distributing eruptions into a chain (e.g., Hawaii). Mars has no plate tectonics, so its crust stays fixed over the Tharsis hotspot; lava piles up in one location for eons, building a single colossal shield. Lower Martian gravity actually helps a tall edifice stand, but the key reason for the immense size is the absence of plate motion."
+      },
+      "hints": [
+        "Compare with how the Hawaiian chain forms on a moving plate.",
+        "What happens to a hotspot volcano if the plate above it never moves?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Hawaii's hotspot builds a chain because the Pacific Plate moves over it. Mars has no plate tectonics, so its surface stays put above the Tharsis hotspot and lava accumulates in one spot for hundreds of millions of years, producing the single giant shield Olympus Mons. Option B is correct."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_vf_1",
+        "kind": "scenario",
+        "question": "Designing a next-generation monitoring program",
+        "prompt": "You are asked to design a modern monitoring and research program for a remote, uninstrumented but historically dangerous tropical stratovolcano with no nearby roads. Drawing on the frontier tools in this lesson, explain how you would combine satellite thermal, SO2, and InSAR observations, drone gas and thermal surveys, and machine-learning analysis to detect and forecast unrest, and discuss one important limitation of each technology that you would communicate honestly to civil-protection authorities."
+      }
+    },
+    {
+      "kind": "text",
+      "title": "The expanding horizon of volcanology",
+      "body": "This final lesson surveyed where volcanology is heading, and how its tools are multiplying.\n\n**Satellite remote sensing** now watches heat, gas, and ground motion across the whole planet. Thermal sensors (**MODIS**, **VIIRS**, **ASTER**, **Landsat**) with automated systems (**MODVOLC**, **MIROVA**) detect eruptions and effusion rates by **Planck's** and **Wien's** laws; UV/IR spectrometers (**TOMS** to **OMI** to **TROPOMI**) map $\\text{SO}_2$ and quantify the global sulfur budget; and **Sentinel-1 InSAR** surfaces deformation at thousands of volcanoes. The advantage is global, repeated, hazard-free coverage; the limits are clouds, revisit time, and data volume.\n\n**Machine learning** tackles that data volume, classifying seismic events, scanning InSAR archives for inflation, and issuing probabilistic forecasts (as at **Whakaari/White Island**), while **drones** carry spectrometers and thermal cameras into plumes and over craters that killed scientists in person at **Galeras** in 1993. Both extend human reach but depend on physical understanding to interpret, and both can fail on volcanoes unlike their training data.\n\n**Geothermal energy** turns volcanic heat into low-carbon power, from **Larderello** and **Wairakei** to **Iceland's** deep drilling into supercritical fluid and even **Krafla** magma, bounded by **Carnot** efficiency. And **planetary volcanism** universalizes the science: tidally heated **Io**, the plate-tectonics-free giant **Olympus Mons** on **Mars**, ancient lunar **maria**, possibly active **Venus**, and **cryovolcanic** **Enceladus** all obey the same physics of melting, buoyancy, and degassing.\n\nLooking back across the whole path, a single thread connects **Pliny the Younger's** letters to a drone sampling a Martian-analog plume: volcanoes are **physical systems** governed by the chemistry of magma, the mechanics of buoyant fluids, and the physics of heat and gas. **Composition sets viscosity; viscosity and volatiles set eruption style; tectonic setting sets composition; and the products, hazards, and even the climate impact all follow.** From the **VEI** to the **Mogi model** to **sulfate radiative forcing** to satellite and ML monitoring, volcanology has become a quantitative, predictive, planetary science. Its frontier is not a single technology but the integration of all of them, in service of the discipline's oldest purpose: to understand the fire beneath our feet, and to live more safely alongside it."
+    }
+  ]
+}

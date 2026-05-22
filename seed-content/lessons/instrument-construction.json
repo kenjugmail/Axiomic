@@ -1,0 +1,114 @@
+{
+  "slug": "instrument-construction",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Compare violin and guitar anatomy, including plate arching and the role of the bridge as a mechanical filter.",
+      "Explain internal bracing strategies, especially the guitar X-brace.",
+      "Compute fret placement using the rule of 18 and the equal-tempered ratio, and explain intonation."
+    ],
+    "prereqs": [
+      "the-soundboard-and-resonance"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Anatomy: the violin and the guitar compared",
+      "body": "Two great families of stringed instrument dominate Western music, and comparing them reveals how form follows acoustic function.\n\nThe **violin family** (violin, viola, cello, double bass) descends from the **Cremonese** tradition of **Andrea Amati**, **Antonio Stradivari**, and **Giuseppe Guarneri del Gesu**. Its defining features:\n\n- A **carved, arched** top and back, each sculpted from solid wood to a domed shape.\n- Four strings, **bowed** (or plucked **pizzicato**), tuned in perfect fifths (G-D-A-E on the violin).\n- A **fretless** fingerboard, allowing continuous pitch and **vibrato**.\n- Paired **f-holes**, a **bass bar**, and a **sound post**.\n- The bridge stands under string **tension** and **downbearing**, transmitting a primarily **rocking** motion to the top.\n\nThe **guitar family** (classical, flamenco, steel-string, archtop) traces its modern form to the Spanish maker **Antonio de Torres Jurado** (1817-1892), who in the 1850s enlarged the body, standardized the proportions, and crucially developed **fan bracing**. Its features:\n\n- A **flat** (or in the archtop, carved) top, supported from beneath by **braces**.\n- Six strings, **plucked**, tuned mostly in fourths (E-A-D-G-B-E).\n- A **fretted** fingerboard fixing the pitches to a tempered scale.\n- A single round **soundhole** with a decorative **rosette**.\n- A **fixed bridge** glued to the top, with a thin saddle.\n\nWhy the difference? A **bowed** instrument receives continuous energy and must respond instantly across a fretless range, so the carved arch gives strength under the bow's sideways force while keeping the plate light and lively. A **plucked** instrument receives a single impulse that must **sustain**, so a flat braced top maximizes the radiating area and lets the maker tune sustain and balance through the brace pattern. The **archtop guitar**, developed by **Orville Gibson** and **Lloyd Loar** at **Gibson** in the early 20th century, is a deliberate hybrid: a carved, violin-like arched top on a guitar, prized for cutting through a jazz ensemble. **Christian Frederick Martin**, founder of **C. F. Martin & Co.** in 1833, pioneered the steel-string flat-top and the **dreadnought** body. Every anatomical choice — arch versus flat, bowed versus plucked, fretted versus fretless — is an acoustic decision."
+    },
+    {
+      "kind": "text",
+      "title": "Arching, bracing, and the bridge as a mechanical filter",
+      "body": "Beneath the decoration, three structural systems determine an instrument's voice: the **arching** of carved plates, the **bracing** of flat plates, and the **bridge** that couples strings to the top.\n\n**Arching** (violin family). A carved top is not flat but domed, with a height of roughly 15 mm on a violin. The arch is a structural **vault**: it lets a thin, light plate withstand the downward force of the strings pressing through the bridge (the **downbearing**, several kilograms of force) without collapsing. A higher, narrower arch generally yields a brighter, more focused but quieter tone; a flatter, broader arch gives more power and a darker tone. Stradivari's arches evolved over his career toward flatter, more powerful forms. The **graduation** — the carefully varied thickness, thinnest in the flexible regions and thicker over the sound post and bass bar — is tuned in tandem with the arch.\n\n**Bracing** (guitar family). A flat top has no vault, so it relies on glued internal struts. The single most important innovation is the **X-brace**, in which two main braces cross beneath the soundhole at a shallow angle, popularized by **C. F. Martin** in the 1840s and now standard on steel-string guitars. The X-brace:\n\n- Resists the **rotational torque** that steel strings (under high tension) apply to the bridge, preventing the top from bellying up behind the bridge and sinking in front.\n- Divides the top into regions with different stiffnesses, shaping which frequencies radiate.\n\n**Antonio de Torres** instead used **fan bracing** — several thin struts spreading like a fan below the soundhole — which suits the lower tension of nylon strings and gives the classical guitar its even, singing tone. Modern makers also use **lattice** bracing (a grid, developed by **Greg Smallman** for the guitarist **John Williams**) and **Kasha/Schneider** bracing. **Voicing** is the maker's act of shaving the braces while tapping the top, tuning its modes by ear and by Chladni pattern.\n\nThe **bridge** is far more than an anchor — it is a **mechanical filter**. It has its own mass and compliance, so it behaves like a small spring-mass system with resonances of its own. The violin bridge has a strong resonance near **3000 Hz**, the **bridge hill** (or **BH**), which boosts a band of frequencies the ear finds brilliant; this was studied by **Erik Jansson** and others. By shaping the bridge's waist, feet, and cutouts, the maker tunes which partials reach the body. A bridge that is too heavy dulls the highs; one too light or too stiff sounds harsh. The bridge is the gateway through which every note must pass, and tuning it is one of the luthier's most delicate arts."
+    },
+    {
+      "kind": "text",
+      "title": "Scale length, fret placement, and the rule of 18",
+      "body": "On a fretted instrument every fret must land in exactly the right place, or the instrument plays out of tune with itself. The mathematics of fret placement is one of the oldest applied-acoustics problems, and luthiers solved it long before equal temperament was fully formalized.\n\nThe **scale length** $L$ is the speaking length of the open string, measured from the **nut** to the **saddle** (bridge). A classical guitar is typically **650 mm**; a steel-string is often **643-648 mm**; a violin's vibrating string is about **328 mm**. By **Mersenne's first law**, frequency is inversely proportional to length, so shortening the string by pressing it against a fret raises the pitch.\n\nIn **equal temperament** the octave divides into 12 equal semitones, each a frequency ratio of $r = 2^{1/12} \\approx 1.05946$. To raise a pitch one semitone you must *reduce* the vibrating length by that same factor. The distance from the nut to the $n$th fret is therefore\n\n$$d_n = L\\left(1 - 2^{-n/12}\\right).$$\n\nEach successive fret sits closer to the previous one — the frets crowd together as you climb toward the body. At the **12th fret** the formula gives $d_{12} = L(1 - 1/2) = L/2$, exactly halfway, producing the octave (ratio 2:1) — a satisfying check that the math matches Pythagoras.\n\nHistorically, makers used the **rule of 18** (sometimes the *rule of 17.817*). Rather than a transcendental ratio, they divided the **remaining** string length by **18** to find each next fret: place a fret at $1/18$ of the distance from the current position to the saddle, then repeat from the new fret. This works because $2^{1/12} \\approx 1.0595$, and $1 - 1/18 = 0.9444 = 1/1.0588$ — an excellent approximation. The more precise constant **17.817** gives $1 - 1/17.817 = 1/2^{1/12}$ exactly. The rule of 18 let workshop luthiers lay out a fretboard with a single ruler and repeated division, no logarithms required.\n\n**Intonation** is the practical art of making the instrument play in tune across the whole neck. Two corrections matter:\n\n- **Compensation**: pressing a string to the fingerboard slightly **stretches** it, raising tension and sharpening the note, more so for thick strings. Makers therefore move the saddle slightly **back** (lengthening the scale) and angle it, so the fretted notes match the open strings. This is why a guitar saddle is slanted and often stepped.\n- **Nut and fret height**: high action stretches the string more when fretted, sharpening notes near the nut.\n\nA well-intoned instrument honors the equal-tempered fret math while compensating for the messy physics of a real, stiff, stretchable string. Theory sets the positions; the luthier's adjustments make them sing in tune."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ic_1",
+        "kind": "multiple_choice",
+        "question": "Why did **C. F. Martin** adopt the **X-brace** for steel-string guitar tops, and what does it accomplish?",
+        "options": [
+          "It is purely decorative and visible through the soundhole.",
+          "It resists the rotational torque that high-tension steel strings apply to the bridge — preventing the top from bellying and collapsing — while dividing the top into regions of differing stiffness that shape which frequencies radiate.",
+          "It raises the pitch of the open strings by stiffening them directly.",
+          "It eliminates the need for a bridge entirely."
+        ],
+        "correctIndex": 1,
+        "explanation": "Steel strings carry much higher tension than gut or nylon, applying a strong rotational torque to the glued bridge. The X-brace, two struts crossing beneath the soundhole, braces the top against this torque so it neither bellies up behind the bridge nor sinks in front, giving the structure longevity. It also partitions the top into regions with different stiffness, helping the maker tune the instrument's frequency response. Torres's fan bracing serves the lower-tension nylon-string classical guitar instead."
+      },
+      "hints": [
+        "Steel strings have much higher tension than nylon — what stress does that put on the bridge and top?",
+        "Think about both structural support and acoustic tuning."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "High-tension steel strings twist the bridge, threatening to deform a flat top. The X-brace braces against this torque, keeping the top stable, and simultaneously divides the top into stiffness regions that shape its radiated spectrum. That dual structural-and-acoustic role is why Martin's X-brace became the steel-string standard."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ic_1",
+        "kind": "math_expression",
+        "question": "A guitar has scale length $L = 650$ mm. Using $d_n = L(1 - 2^{-n/12})$, compute the distance from the nut to the **first fret** in millimeters, rounded to one decimal place.",
+        "acceptedAnswers": [
+          "36.5",
+          "36.5 mm",
+          "36.4",
+          "36.5mm"
+        ],
+        "hint": "Compute $2^{-1/12} \\approx 0.94387$, then $d_1 = 650 \\times (1 - 0.94387)$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ic_2",
+        "kind": "math_expression",
+        "question": "On any fretted instrument, at which fret number does the string length become exactly half the scale length, sounding one octave (a 2:1 ratio) above the open string?",
+        "acceptedAnswers": [
+          "12",
+          "12th",
+          "twelve"
+        ],
+        "hint": "Set $2^{-n/12} = 1/2$ and solve for $n$, or recall the octave is 12 equal semitones."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ic_1",
+        "kind": "scenario",
+        "question": "A newly built guitar plays in tune open but sharp up the neck.",
+        "prompt": "An apprentice positions the frets perfectly using $d_n = L(1 - 2^{-n/12})$ and places the saddle at exactly the scale-length distance from the nut. Open strings tune perfectly, but every fretted note plays progressively sharp, worst on the thick low strings. Explain why this happens in terms of string stretch and stiffness, and what compensation adjustment to the saddle position will correct the intonation."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ic_2",
+        "kind": "multiple_choice",
+        "question": "The historical **rule of 18** placed each new fret at $1/18$ of the distance from the current fret to the saddle. Why does this simple division approximate equal temperament so well?",
+        "options": [
+          "Because 18 is exactly twice the number of semitones in an octave.",
+          "Because $1 - 1/18 = 0.9444$ is very close to $2^{-1/12} \\approx 0.94387$, the equal-tempered semitone length ratio, so dividing by 18 reproduces the correct fret spacing without logarithms.",
+          "Because 18 frets fit on a standard fingerboard.",
+          "Because the rule of 18 ignores temperament and tunes each fret purely by Pythagorean fifths."
+        ],
+        "correctIndex": 1,
+        "explanation": "Each fret should reduce the remaining string length by the factor $2^{-1/12} \\approx 0.94387$. The rule of 18 multiplies the remaining length by $1 - 1/18 = 0.9444$, which is extremely close. The more precise constant 17.817 makes $1 - 1/17.817 = 2^{-1/12}$ exactly. The rule let pre-logarithm workshop luthiers lay out a fretboard with a ruler and repeated subdivision."
+      },
+      "hints": [
+        "Compare $1 - 1/18$ to $2^{-1/12}$ numerically.",
+        "What is the equal-tempered semitone length ratio?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Equal temperament needs each fret to scale the remaining length by $2^{-1/12} \\approx 0.94387$. The rule of 18 uses $1 - 1/18 = 0.9444$, a close match, so repeated division by 18 reproduces the fret positions. The refined constant 17.817 makes the match exact. This gave luthiers a logarithm-free layout method."
+    }
+  ]
+}

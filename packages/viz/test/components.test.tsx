@@ -84,6 +84,9 @@ import { MonteCarlo } from "../src/components/MonteCarlo";
 import { SerialPosition } from "../src/components/SerialPosition";
 import { HeatExchanger } from "../src/components/HeatExchanger";
 import { BlackHole } from "../src/components/BlackHole";
+import { CardiacPvLoop } from "../src/components/CardiacPvLoop";
+import { EruptionExplosivity } from "../src/components/EruptionExplosivity";
+import { StringHarmonics } from "../src/components/StringHarmonics";
 
 const VIZ_COMPONENTS = {
   KinshipDiagram,
@@ -160,6 +163,9 @@ const VIZ_COMPONENTS = {
   SerialPosition,
   HeatExchanger,
   BlackHole,
+  CardiacPvLoop,
+  EruptionExplosivity,
+  StringHarmonics,
 };
 
 describe("viz components — SSR smoke tests", () => {

@@ -1,0 +1,121 @@
+{
+  "slug": "cardiology-frontiers",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Survey modern interventional cardiology, including drug-eluting stents and transcatheter valves.",
+      "Compare the strengths of cardiac MRI and CT against echocardiography and explain AI-assisted ECG interpretation.",
+      "Describe wearable AFib detection and the emerging frontiers of gene and regenerative therapy."
+    ],
+    "prereqs": [
+      "coronary-artery-disease-and-heart-failure"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Interventional cardiology and advanced imaging",
+      "body": "Modern cardiology has shifted enormous ground from open-chest surgery to **catheter-based intervention**. The lineage runs from **Werner Forssmann** (self-catheterization, 1929) through **Andreas Gruentzig** (the first coronary balloon angioplasty, 1977) to today's sophisticated devices. Bare-metal stents solved angioplasty's problem of acute vessel recoil but suffered **in-stent restenosis** from neointimal overgrowth. The answer was the **drug-eluting stent (DES)**, which coats the metal scaffold with an antiproliferative drug (**sirolimus**, **everolimus**, or paclitaxel) released slowly to suppress restenosis; later generations use thinner struts and bioabsorbable polymers, dramatically improving outcomes. Interventionalists now also use **intravascular imaging** — **intravascular ultrasound (IVUS)** and **optical coherence tomography (OCT)** — to size stents and assess plaque, and **fractional flow reserve (FFR)**, a pressure-wire measurement validated by **Nico Pijls** and colleagues, to decide whether a borderline stenosis is physiologically significant before stenting. Structural intervention has exploded in parallel: **TAVR** for aortic stenosis, the **MitraClip** and tricuspid devices for regurgitation, and **left atrial appendage occlusion** (the **Watchman** device) to prevent stroke in atrial fibrillation without lifelong anticoagulation.\n\n**Advanced imaging** complements echocardiography with two powerful modalities. **Cardiac magnetic resonance imaging (cardiac MRI, or CMR)** is the gold standard for ventricular volumes, ejection fraction, and tissue characterization. Its signature technique, **late gadolinium enhancement (LGE)**, reveals scar and fibrosis — distinguishing ischemic infarct scar (subendocardial or transmural in a coronary territory) from non-ischemic patterns (mid-wall fibrosis in dilated cardiomyopathy, patchy enhancement in myocarditis or sarcoidosis). Newer **T1 and T2 mapping** quantifies diffuse fibrosis and edema, and CMR can detect iron overload and amyloid infiltration without biopsy. **Cardiac computed tomography (cardiac CT)** excels at the coronary arteries: **coronary CT angiography (CCTA)** is now a first-line, noninvasive way to rule out coronary disease in stable chest pain, and the **coronary artery calcium (CAC) score** (the **Agatston score**, introduced by **Arthur Agatston** in 1990) quantifies calcified plaque burden to refine cardiovascular risk and guide statin decisions. CT also plans TAVR by precisely sizing the aortic annulus. Together these tools let the cardiologist see not just the lumen and the motion, as the catheter and echo do, but the very **tissue composition** of the myocardium and the **physiology** of a stenosis, sharpening every decision from whether to stent to whether to implant a defibrillator."
+    },
+    {
+      "kind": "text",
+      "title": "Artificial intelligence and wearable detection",
+      "body": "Cardiology has become a proving ground for **artificial intelligence (AI)** in medicine, largely because its core signals — the **ECG** and the **echocardiogram** — are abundant, digital, and paired with hard outcomes. **Deep learning**, especially **convolutional neural networks (CNNs)**, learns features directly from raw waveforms and images that often exceed human pattern-recognition.\n\nThe most striking results come from the **12-lead ECG**. Groups at the **Mayo Clinic** trained CNNs to detect, from a single ordinary ECG that looks normal to the human eye, conditions a clinician cannot see at all: a reduced **left-ventricular ejection fraction** (asymptomatic systolic dysfunction), **paroxysmal atrial fibrillation** during sinus rhythm, **hypertrophic cardiomyopathy**, **hyperkalemia** estimated from T-wave morphology, and even the patient's **age and sex** — the so-called 'AI-ECG.' The promise is screening at scale, since an ECG is cheap and ubiquitous; the cautions are **dataset shift** (a model trained at one institution may fail at another), the risk of learning **confounders** rather than physiology, **calibration** and false positives, and the regulatory and ethical demands of deploying a 'black box' in clinical decisions. Explainability methods such as **saliency mapping** and rigorous **external validation** in prospective trials are active areas of work.\n\n**Wearables** have moved rhythm monitoring out of the clinic and onto the wrist. Two sensing technologies dominate: **photoplethysmography (PPG)**, which infers pulse irregularity from light absorption by pulsatile blood flow in the skin, and a single-lead **ECG** recorded by touching a watch electrode. The landmark **Apple Heart Study** (2019, with Stanford) enrolled over 419,000 participants and showed a consumer smartwatch could flag irregular pulses suggestive of **atrial fibrillation**, prompting confirmatory monitoring. Similar capabilities exist across consumer devices, and dedicated patch monitors (such as the **Zio patch**) and implantable loop recorders extend continuous monitoring for weeks to years. The clinical upside is earlier detection of paroxysmal AFib — relevant because untreated AFib raises stroke risk — and better correlation of symptoms with rhythm. The downsides mirror any screening test: **false positives** generating anxiety and downstream testing, uncertain benefit of treating very brief 'subclinical' AFib (studied in trials such as **NOAH-AFNET 6** and **ARTESIA**), and equity questions about who owns devices and how PPG performs across skin tones. Used judiciously, AI-augmented analysis and consumer wearables are extending the reach of cardiac diagnosis from episodic clinic visits to continuous, population-scale surveillance — a genuine shift in how arrhythmias and subclinical disease are found."
+    },
+    {
+      "kind": "text",
+      "title": "Gene and regenerative therapy: the cutting edge",
+      "body": "The deepest frontier aims not merely to image or unblock the heart, but to **repair or reprogram** it at the cellular and genetic level. The adult human heart regenerates poorly — after a myocardial infarction, dead myocytes are replaced by non-contractile **scar** — so a central goal is to restore lost muscle or correct the underlying genetic defect.\n\n**Gene therapy** delivers genetic material to treat disease, typically using engineered **adeno-associated virus (AAV)** vectors. The proof of principle in cardiology-adjacent disease is dramatic: **onasemnogene abeparvovec (Zolgensma)** for spinal muscular atrophy showed AAV gene replacement can be curative. In the heart, the most advanced target is **transthyretin (TTR) amyloid cardiomyopathy**, a once-untreatable infiltrative disease. Two strategies have arrived: **TTR gene silencing** with **small interfering RNA (siRNA)** drugs such as **patisiran** and **vutrisiran** or the antisense agent **inotersen**, which knock down hepatic TTR production (building on the **RNA interference** discovery by **Andrew Fire** and **Craig Mello**, Nobel Prize 2006); and, more radically, **in vivo CRISPR base/gene editing** — **NTLA-2001**, a CRISPR-Cas9 therapy delivered in lipid nanoparticles, demonstrated durable knockdown of TTR after a single infusion, an early landmark for **CRISPR** (developed by **Jennifer Doudna** and **Emmanuelle Charpentier**, Nobel Prize 2020) used directly inside the body. Stabilizer drugs such as **tafamidis** (the ATTR-ACT trial) also transformed this disease. Gene therapy is likewise being pursued for inherited cardiomyopathies and channelopathies.\n\n**Regenerative therapy** seeks to rebuild contractile tissue. Early hopes for adult stem cells were tempered when the **bone-marrow mononuclear cell** trials and the discredited **c-kit cardiac stem cell** work (the Anversa affair) failed to show true myocyte regeneration; the benefit, if any, appeared **paracrine** (secreted signals) rather than from new muscle. Attention has shifted to **human induced pluripotent stem cells (iPSCs)** — reprogrammed adult cells, a technology for which **Shinya Yamanaka** won the Nobel Prize in 2012 — differentiated into **cardiomyocytes** and delivered as **engineered heart tissue** patches or cell suspensions, now entering early human trials (such as the BlueRock and Heart Regeneration efforts). Complementary approaches include **direct reprogramming** of resident fibroblasts into cardiomyocytes, and harnessing the natural regenerative capacity seen in neonatal mammals and in **zebrafish** (studied by **Kenneth Poss**). Meanwhile, mechanical and biological replacement advance: durable **left ventricular assist devices (LVADs)** support or bridge failing hearts, and **xenotransplantation** reached a milestone in 2022 when surgeons at the University of Maryland transplanted a **genetically modified pig heart** (with multiple gene edits to reduce rejection) into a human. From siRNA and CRISPR that silence a toxic gene, to iPSC-derived muscle that might one day re-grow an infarct, to gene-edited pig hearts, cardiology's frontier is the convergence of molecular biology, bioengineering, and the catheter-based and imaging revolutions you have studied throughout this path."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_front_1",
+        "kind": "multiple_choice",
+        "question": "Drug-eluting stents improved on bare-metal stents primarily by addressing which problem?",
+        "options": [
+          "Acute vessel recoil immediately after balloon angioplasty",
+          "In-stent restenosis from neointimal (smooth-muscle) overgrowth",
+          "Inability to image the coronary lumen",
+          "Stroke from atrial appendage thrombus"
+        ],
+        "correctIndex": 1,
+        "explanation": "Bare-metal stents prevented acute recoil but were prone to in-stent restenosis from neointimal proliferation. Drug-eluting stents coat the scaffold with an antiproliferative drug (sirolimus, everolimus) that suppresses this overgrowth. Imaging is handled by IVUS/OCT, and appendage thrombus by devices like the Watchman."
+      },
+      "hints": [
+        "Bare-metal stents already fixed recoil; what remained was tissue regrowth narrowing the stent.",
+        "The 'drug' on the stent is antiproliferative."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Drug-eluting stents release an antiproliferative drug to prevent in-stent restenosis (neointimal overgrowth), the main limitation of bare-metal stents after they had solved acute recoil."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_front_2",
+        "kind": "multiple_choice",
+        "question": "On cardiac MRI, the technique of 'late gadolinium enhancement' is most useful for which purpose?",
+        "options": [
+          "Measuring coronary artery calcium score",
+          "Characterizing myocardial scar and fibrosis, distinguishing ischemic from non-ischemic patterns",
+          "Recording the cardiac rhythm continuously",
+          "Detecting irregular pulse from the wrist"
+        ],
+        "correctIndex": 1,
+        "explanation": "Late gadolinium enhancement (LGE) on cardiac MRI highlights scar and fibrosis: subendocardial/transmural enhancement in a coronary territory indicates ischemic infarct, while mid-wall or patchy patterns suggest non-ischemic causes (dilated cardiomyopathy, myocarditis, sarcoidosis). Calcium scoring is a CT method; rhythm and pulse detection are not MRI functions."
+      },
+      "hints": [
+        "Gadolinium accumulates in fibrotic, scarred tissue.",
+        "The pattern of enhancement separates infarct scar from other cardiomyopathies."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "LGE marks scar/fibrosis on cardiac MRI; the location (subendocardial coronary territory vs mid-wall/patchy) distinguishes ischemic infarct from non-ischemic cardiomyopathy, guiding diagnosis and risk."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_front_1",
+        "kind": "math_expression",
+        "question": "A smartwatch atrial fibrillation screening algorithm has a positive predictive value of 0.84 (84%). Out of 50 watch alerts flagged as possible AFib, approximately how many would be expected to be TRUE positives confirmed on follow-up monitoring?",
+        "acceptedAnswers": [
+          "42",
+          "42 alerts",
+          "approximately 42"
+        ],
+        "hint": "Multiply the number of alerts (50) by the positive predictive value (0.84)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_front_1",
+        "kind": "scenario",
+        "question": "An AI-ECG flags a normal-looking tracing",
+        "prompt": "A 67-year-old comes for a routine check-up feeling well. Her standard 12-lead ECG looks normal to the reading physician, but an AI-ECG model trained on large datasets flags a high probability of reduced left-ventricular ejection fraction. Discuss how a convolutional neural network could detect subclinical systolic dysfunction invisible to the human eye, what confirmatory test you would order next, and the key cautions you must keep in mind before acting on an AI prediction, including dataset shift, the possibility of learning confounders, false positives, and the need for external validation."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_front_3",
+        "kind": "multiple_choice",
+        "question": "The CRISPR therapy NTLA-2001 and the siRNA drugs patisiran and vutrisiran share what therapeutic strategy for transthyretin (TTR) amyloid cardiomyopathy?",
+        "options": [
+          "Regenerating dead myocardium with iPSC-derived cardiomyocytes",
+          "Reducing production of the toxic TTR protein (knockdown or gene editing)",
+          "Mechanically unloading the ventricle with an LVAD",
+          "Replacing the aortic valve via catheter"
+        ],
+        "correctIndex": 1,
+        "explanation": "Both approaches lower the toxic TTR protein: siRNA drugs (patisiran, vutrisiran) silence TTR messenger RNA, while NTLA-2001 uses in vivo CRISPR-Cas9 to edit and knock down the TTR gene after a single infusion. iPSC cardiomyocytes (regeneration), LVADs (mechanical support), and TAVR (valve replacement) are unrelated strategies."
+      },
+      "hints": [
+        "Both act on the same disease-causing protein, TTR.",
+        "RNA interference and CRISPR editing both reduce how much of that protein is made."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Both knock down the toxic TTR protein: siRNA (patisiran/vutrisiran) silences TTR mRNA, and NTLA-2001 edits the TTR gene with CRISPR in vivo. The shared goal is to stop production of the amyloidogenic protein."
+    }
+  ]
+}

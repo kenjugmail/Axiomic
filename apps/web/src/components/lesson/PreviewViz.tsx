@@ -618,6 +618,21 @@ const LazyBlackHole = lazy(() =>
     (m) => ({ default: m.BlackHole }),
   ),
 );
+const LazyCardiacPvLoop = lazy(() =>
+  import("../../../../../packages/viz/src/components/CardiacPvLoop").then(
+    (m) => ({ default: m.CardiacPvLoop }),
+  ),
+);
+const LazyEruptionExplosivity = lazy(() =>
+  import("../../../../../packages/viz/src/components/EruptionExplosivity").then(
+    (m) => ({ default: m.EruptionExplosivity }),
+  ),
+);
+const LazyStringHarmonics = lazy(() =>
+  import("../../../../../packages/viz/src/components/StringHarmonics").then(
+    (m) => ({ default: m.StringHarmonics }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -922,6 +937,12 @@ function VizByName({
       return <LazyHeatExchanger {...(props as object)} />;
     case "black-hole":
       return <LazyBlackHole {...(props as object)} />;
+    case "cardiac-pv-loop":
+      return <LazyCardiacPvLoop {...(props as object)} />;
+    case "eruption-explosivity":
+      return <LazyEruptionExplosivity {...(props as object)} />;
+    case "string-harmonics":
+      return <LazyStringHarmonics {...(props as object)} />;
     default:
       return null;
   }

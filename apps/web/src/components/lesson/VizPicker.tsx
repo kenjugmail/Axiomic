@@ -887,6 +887,27 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🕳️",
     tags: ["astrophysics", "black-hole", "schwarzschild", "relativity", "time-dilation"],
   },
+  {
+    name: "cardiac-pv-loop",
+    label: "Cardiac PV loop",
+    description: "Left-ventricular pressure–volume loop through its four phases; toggle preload/afterload to watch stroke volume change (Frank–Starling).",
+    thumb: "❤️",
+    tags: ["cardiology", "pv-loop", "frank-starling", "stroke-volume", "hemodynamics"],
+  },
+  {
+    name: "eruption-explosivity",
+    label: "Eruption explosivity",
+    description: "Magma silica → viscosity → effusive vs explosive eruption (and VEI); pick basaltic/andesitic/rhyolitic or slide the silica content.",
+    thumb: "🌋",
+    tags: ["volcanology", "magma", "viscosity", "vei", "explosivity"],
+  },
+  {
+    name: "string-harmonics",
+    label: "String harmonics",
+    description: "Standing waves on a fixed string and the harmonic series f_n = n·f₁; step the harmonic to see nodes, antinodes, and frequencies.",
+    thumb: "🎻",
+    tags: ["luthier", "acoustics", "standing-wave", "harmonics", "mersenne"],
+  },
 ];
 
 interface Props {
