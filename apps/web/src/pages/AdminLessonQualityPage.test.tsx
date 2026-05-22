@@ -28,6 +28,7 @@ const PAYLOAD = {
       hasViz: false,
       composite: 31,
       flags: ["LOW_TEXT_SLIDE_COUNT", "NO_VIZ"],
+      delta: -3,
     },
     {
       nodeSlug: "rich-lesson",
@@ -43,9 +44,18 @@ const PAYLOAD = {
       hasViz: true,
       composite: 97,
       flags: [],
+      delta: 5,
     },
   ],
-  summary: { total: 2, scored: 2, missing: 0, avg: 64, median: 97, flaggedCount: 1 },
+  summary: {
+    total: 2,
+    scored: 2,
+    missing: 0,
+    avg: 64,
+    median: 97,
+    flaggedCount: 1,
+    lastSnapshotAt: "2026-05-20T00:00:00.000Z",
+  },
 };
 
 function renderPage(): { container: HTMLDivElement; root: Root } {
@@ -116,6 +126,10 @@ describe("AdminLessonQualityPage", () => {
     expect(editHref?.getAttribute("href")).toBe(
       "/paths/demo-path/lessons/thin-lesson/edit",
     );
+
+    // Composite-delta column renders ▲/▼ badges from the snapshot diff.
+    expect(text).toContain("▼3"); // thin-lesson regressed by 3
+    expect(text).toContain("▲5"); // rich-lesson improved by 5
   });
 
   test("clicking the Words header re-sorts the table", async () => {

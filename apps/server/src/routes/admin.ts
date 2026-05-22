@@ -20,6 +20,7 @@ import {
   getDb,
   jobLeases,
   jobRuns,
+  lessonQualitySnapshots,
   masteryNodes,
   masteryPaths,
   newsArticles,
@@ -163,10 +164,42 @@ adminRouter.get("/lesson-quality", requireAdmin, async (c) => {
     return { ...base, ...scoreLessonContent(parsed as ScorableLesson) };
   });
 
-  lessons.sort((a, b) => a.composite - b.composite);
+  // Composite delta vs the most recent quality snapshot (if any). The
+  // snapshot is captured by `bun run snapshot:quality`, which scores the
+  // same DB lesson data, so deltas are exact. delta is null when a lesson
+  // wasn't present in the last snapshot (e.g. a brand-new lesson).
+  const latestRunRow = db
+    .select({ runAt: lessonQualitySnapshots.runAt })
+    .from(lessonQualitySnapshots)
+    .orderBy(desc(lessonQualitySnapshots.runAt))
+    .limit(1)
+    .all();
+  const lastSnapshotAt = latestRunRow[0]?.runAt ?? null;
+  const snapMap = new Map<string, number>();
+  if (lastSnapshotAt) {
+    const snaps = db
+      .select({
+        nodeSlug: lessonQualitySnapshots.nodeSlug,
+        composite: lessonQualitySnapshots.composite,
+      })
+      .from(lessonQualitySnapshots)
+      .where(eq(lessonQualitySnapshots.runAt, lastSnapshotAt))
+      .all();
+    for (const s of snaps) snapMap.set(s.nodeSlug, s.composite);
+  }
+
+  const lessonsWithDelta = lessons.map((l) => ({
+    ...l,
+    delta: snapMap.has(l.nodeSlug)
+      ? l.composite - (snapMap.get(l.nodeSlug) as number)
+      : null,
+  }));
+  lessonsWithDelta.sort((a, b) => a.composite - b.composite);
 
   // Summary stats over lessons that actually have content.
-  const scored = lessons.filter((l) => !l.flags.includes("NO_LESSON_DATA"));
+  const scored = lessonsWithDelta.filter(
+    (l) => !l.flags.includes("NO_LESSON_DATA"),
+  );
   const n = scored.length;
   const sortedComposites = scored
     .map((l) => l.composite)
@@ -178,14 +211,15 @@ adminRouter.get("/lesson-quality", requireAdmin, async (c) => {
   const flaggedCount = scored.filter((l) => l.flags.length > 0).length;
 
   return c.json({
-    lessons,
+    lessons: lessonsWithDelta,
     summary: {
-      total: lessons.length,
+      total: lessonsWithDelta.length,
       scored: n,
-      missing: lessons.length - n,
+      missing: lessonsWithDelta.length - n,
       avg,
       median,
       flaggedCount,
+      lastSnapshotAt,
     },
   });
 });

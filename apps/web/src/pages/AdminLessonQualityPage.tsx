@@ -24,6 +24,9 @@ interface LessonRow {
   hasViz: boolean;
   composite: number;
   flags: string[];
+  // Composite change since the last snapshot; null if the lesson wasn't
+  // in that snapshot (or no snapshot has been captured yet).
+  delta?: number | null;
 }
 
 interface QualityResponse {
@@ -35,6 +38,7 @@ interface QualityResponse {
     avg: number;
     median: number;
     flaggedCount: number;
+    lastSnapshotAt?: string | null;
   };
 }
 
@@ -66,6 +70,27 @@ function scoreClasses(c: number): string {
   if (c >= 80) return "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400";
   if (c >= 60) return "bg-amber-500/15 text-amber-600 dark:text-amber-400";
   return "bg-rose-500/15 text-rose-600 dark:text-rose-400";
+}
+
+// Composite change since the last snapshot: ▲ green (improved), ▼ rose
+// (regressed), "—" when there's no prior snapshot for this lesson.
+function DeltaBadge({ delta }: { delta: number | null | undefined }) {
+  if (delta == null) return <span className="text-muted-foreground">—</span>;
+  if (delta === 0)
+    return <span className="text-muted-foreground tabular-nums">0</span>;
+  const up = delta > 0;
+  return (
+    <span
+      className={`tabular-nums font-medium ${
+        up
+          ? "text-emerald-600 dark:text-emerald-400"
+          : "text-rose-600 dark:text-rose-400"
+      }`}
+    >
+      {up ? "▲" : "▼"}
+      {Math.abs(delta)}
+    </span>
+  );
 }
 
 // Flags that mean "no content at all" get a louder treatment.
@@ -326,6 +351,13 @@ export function AdminLessonQualityPage() {
                 ? `${rows.length} lessons`
                 : `${pathRows.length} paths`}
             </span>
+            {view === "lesson" && (
+              <span className="text-xs text-muted-foreground">
+                {data.summary.lastSnapshotAt
+                  ? `Δ vs snapshot ${new Date(data.summary.lastSnapshotAt).toLocaleDateString()}`
+                  : "no snapshot yet — run bun run snapshot:quality"}
+              </span>
+            )}
           </div>
 
           {view === "lesson" && (
@@ -334,6 +366,7 @@ export function AdminLessonQualityPage() {
               <thead className="bg-muted/40 text-muted-foreground text-xs">
                 <tr>
                   <SortableTh label="Score" sortKeyName="composite" />
+                  <th className="px-2 py-2 text-right font-medium">Δ</th>
                   <th className="px-2 py-2 text-left font-medium">Lesson</th>
                   <SortableTh label="Words" sortKeyName="totalBodyWords" />
                   <SortableTh label="Names" sortKeyName="nameDropCount" />
@@ -358,6 +391,9 @@ export function AdminLessonQualityPage() {
                       >
                         {l.composite}
                       </span>
+                    </td>
+                    <td className="px-2 py-2 text-right">
+                      <DeltaBadge delta={l.delta} />
                     </td>
                     <td className="px-2 py-2">
                       <Link

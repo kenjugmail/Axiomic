@@ -253,6 +253,26 @@ export const lessonVersions = sqliteTable("lesson_versions", {
   ),
 }));
 
+// Point-in-time quality snapshots for trend tracking. `bun run
+// snapshot:quality` scores every lesson node from the DB (same rubric as
+// the auditor + dashboard) and inserts one row per lesson, all sharing a
+// `runAt` batch timestamp. The /admin/lesson-quality endpoint reads the
+// most recent batch to show each lesson's composite delta since then.
+export const lessonQualitySnapshots = sqliteTable("lesson_quality_snapshots", {
+  id: text("id").primaryKey(),
+  runAt: text("run_at").notNull(),
+  nodeSlug: text("node_slug").notNull(),
+  composite: integer("composite").notNull(),
+  totalBodyWords: integer("total_body_words").notNull(),
+  nameDropCount: integer("name_drop_count").notNull(),
+  hasViz: integer("has_viz", { mode: "boolean" }).notNull(),
+  flags: text("flags").notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+}, (t) => ({
+  runIdx: index("lesson_quality_snapshots_run_idx").on(t.runAt),
+  slugIdx: index("lesson_quality_snapshots_slug_idx").on(t.nodeSlug),
+}));
+
 export const userProgress = sqliteTable("user_progress", {
   id: text("id").primaryKey(),
   userId: text("user_id").notNull().references(() => users.id),
