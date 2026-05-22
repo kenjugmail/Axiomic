@@ -224,6 +224,24 @@ adminRouter.get("/lesson-quality", requireAdmin, async (c) => {
   });
 });
 
+// Corpus-level quality trend: one point per snapshot batch (grouped by
+// runAt), for the dashboard sparkline. Captured by the daily
+// capture_quality_snapshot job or `bun run snapshot:quality`.
+adminRouter.get("/lesson-quality/history", requireAdmin, async (c) => {
+  const db = getDb();
+  const snapshots = db
+    .select({
+      runAt: lessonQualitySnapshots.runAt,
+      count: sql<number>`count(*)`,
+      avg: sql<number>`round(avg(${lessonQualitySnapshots.composite}))`,
+    })
+    .from(lessonQualitySnapshots)
+    .groupBy(lessonQualitySnapshots.runAt)
+    .orderBy(lessonQualitySnapshots.runAt)
+    .all();
+  return c.json({ snapshots });
+});
+
 // --- Sprint 52: Content proposal queue ------------------------------
 
 adminRouter.get("/proposals", requireAdmin, async (c) => {

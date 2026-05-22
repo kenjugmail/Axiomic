@@ -83,14 +83,23 @@ describe("AdminLessonQualityPage", () => {
   let container: HTMLDivElement | null = null;
 
   beforeEach(() => {
+    const HISTORY = {
+      snapshots: [
+        { runAt: "2026-05-19T00:00:00.000Z", count: 2, avg: 60 },
+        { runAt: "2026-05-20T00:00:00.000Z", count: 2, avg: 64 },
+      ],
+    };
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () =>
-        new Response(JSON.stringify(PAYLOAD), {
+      vi.fn(async (input: any) => {
+        const body = String(input).includes("/lesson-quality/history")
+          ? HISTORY
+          : PAYLOAD;
+        return new Response(JSON.stringify(body), {
           status: 200,
           headers: { "Content-Type": "application/json" },
-        }),
-      ),
+        });
+      }),
     );
   });
 
@@ -130,6 +139,10 @@ describe("AdminLessonQualityPage", () => {
     // Composite-delta column renders ▲/▼ badges from the snapshot diff.
     expect(text).toContain("▼3"); // thin-lesson regressed by 3
     expect(text).toContain("▲5"); // rich-lesson improved by 5
+
+    // Trend sparkline + biggest-movers panels render from the history feed.
+    expect(text).toContain("Avg composite trend");
+    expect(text).toContain("Biggest movers");
   });
 
   test("clicking the Words header re-sorts the table", async () => {

@@ -88,6 +88,7 @@ import { notifyExpiringCertsJob } from "./jobs/notifyExpiringCerts";
 import { resurfacingDecayJob } from "./jobs/resurfacingDecay";
 import { signTreeHeadJob } from "./jobs/signTreeHead";
 import { lapseCommitmentsJob } from "./jobs/lapseCommitments";
+import { captureQualitySnapshotJob } from "./jobs/captureQualitySnapshot";
 import { hardDeleteSoftDeletedUsersJob, cleanupOldLoginAttemptsJob } from "./lib/userCleanupJob";
 import { captureError } from "./lib/observability";
 import { bootstrapAdmin } from "./lib/bootstrapAdmin";
@@ -491,6 +492,8 @@ if (process.env.DISABLE_JOB_RUNNER !== "1") {
   registerJob(signTreeHeadJob);
   // Phase 34D — daily lapse sweep for learning commitments.
   registerJob(lapseCommitmentsJob);
+  // Daily lesson-quality snapshot for the /admin/quality trend view.
+  registerJob(captureQualitySnapshotJob);
   startJobRunner();
 }
 

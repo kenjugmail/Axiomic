@@ -42,6 +42,12 @@ interface QualityResponse {
   };
 }
 
+interface SnapshotPoint {
+  runAt: string;
+  count: number;
+  avg: number;
+}
+
 type SortKey =
   | "composite"
   | "totalBodyWords"
@@ -93,6 +99,26 @@ function DeltaBadge({ delta }: { delta: number | null | undefined }) {
   );
 }
 
+// Corpus avg-composite trend across snapshot batches.
+function Sparkline({ points }: { points: SnapshotPoint[] }) {
+  if (points.length < 2) return null;
+  const W = 160, H = 36, pad = 4;
+  const avgs = points.map((p) => p.avg);
+  const min = Math.min(...avgs), max = Math.max(...avgs);
+  const span = Math.max(1, max - min);
+  const x = (i: number) => pad + (i / (points.length - 1)) * (W - 2 * pad);
+  const y = (v: number) => H - pad - ((v - min) / span) * (H - 2 * pad);
+  const d = points
+    .map((p, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(p.avg).toFixed(1)}`)
+    .join(" ");
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label="Average composite trend" className="text-primary">
+      <path d={d} fill="none" stroke="currentColor" strokeWidth={1.5} />
+      <circle cx={x(points.length - 1)} cy={y(points[points.length - 1].avg)} r={2.5} fill="currentColor" />
+    </svg>
+  );
+}
+
 // Flags that mean "no content at all" get a louder treatment.
 const SEVERE = new Set(["INVALID_JSON", "NO_LESSON_DATA"]);
 
@@ -130,6 +156,7 @@ export function AdminLessonQualityPage() {
   const [view, setView] = useState<"lesson" | "path">("lesson");
   const [pathSortKey, setPathSortKey] = useState<PathSortKey>("avg");
   const [pathSortAsc, setPathSortAsc] = useState(true);
+  const [history, setHistory] = useState<SnapshotPoint[]>([]);
 
   const load = async () => {
     setError(null);
@@ -145,6 +172,13 @@ export function AdminLessonQualityPage() {
         throw new Error(`Failed (${r.status})`);
       }
       setData((await r.json()) as QualityResponse);
+      const hr = await fetch("/api/v1/admin/lesson-quality/history", {
+        credentials: "include",
+      });
+      if (hr.ok) {
+        const hj = (await hr.json()) as { snapshots?: SnapshotPoint[] };
+        setHistory(hj.snapshots ?? []);
+      }
     } catch (e: any) {
       setError(e?.message ?? "Failed to load");
     }
@@ -204,6 +238,17 @@ export function AdminLessonQualityPage() {
         : b[pathSortKey] - a[pathSortKey],
     );
   }, [data, pathSortKey, pathSortAsc]);
+
+  // Biggest composite movers since the last snapshot — what improved or
+  // regressed most. Computed from the per-lesson delta the endpoint returns.
+  const movers = useMemo(() => {
+    const withDelta = (data?.lessons ?? []).filter(
+      (l) => l.delta != null && l.delta !== 0,
+    ) as (LessonRow & { delta: number })[];
+    const up = withDelta.filter((l) => l.delta > 0).sort((a, b) => b.delta - a.delta).slice(0, 3);
+    const down = withDelta.filter((l) => l.delta < 0).sort((a, b) => a.delta - b.delta).slice(0, 3);
+    return { up, down };
+  }, [data]);
 
   if (user && user.role !== "admin") {
     return (
@@ -319,6 +364,52 @@ export function AdminLessonQualityPage() {
             <SummaryCard label="Flagged" value={data.summary.flaggedCount} />
             <SummaryCard label="Missing content" value={data.summary.missing} />
           </section>
+
+          {(history.length >= 2 || movers.up.length > 0 || movers.down.length > 0) && (
+            <section className="grid gap-3 sm:grid-cols-2 mb-6">
+              <div className="rounded-md border border-border p-3">
+                <div className="text-xs text-muted-foreground mb-1">
+                  Avg composite trend · {history.length} snapshot{history.length === 1 ? "" : "s"}
+                </div>
+                {history.length >= 2 ? (
+                  <div className="flex items-center gap-3">
+                    <Sparkline points={history} />
+                    <div className="text-sm tabular-nums">
+                      {history[0].avg} →{" "}
+                      <span className="font-semibold">{history[history.length - 1].avg}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-xs text-muted-foreground">
+                    Capture 2+ snapshots (<code>bun run snapshot:quality</code>) to see a trend.
+                  </div>
+                )}
+              </div>
+              <div className="rounded-md border border-border p-3">
+                <div className="text-xs text-muted-foreground mb-1">
+                  Biggest movers since last snapshot
+                </div>
+                {movers.up.length === 0 && movers.down.length === 0 ? (
+                  <div className="text-xs text-muted-foreground">No changes recorded yet.</div>
+                ) : (
+                  <div className="flex flex-col gap-0.5 text-xs">
+                    {movers.up.map((l) => (
+                      <div key={`u-${l.pathSlug}/${l.nodeSlug}`} className="flex justify-between gap-2">
+                        <span className="truncate">{l.title}</span>
+                        <span className="text-emerald-600 dark:text-emerald-400 tabular-nums">▲{l.delta}</span>
+                      </div>
+                    ))}
+                    {movers.down.map((l) => (
+                      <div key={`d-${l.pathSlug}/${l.nodeSlug}`} className="flex justify-between gap-2">
+                        <span className="truncate">{l.title}</span>
+                        <span className="text-rose-600 dark:text-rose-400 tabular-nums">▼{Math.abs(l.delta)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
 
           <div className="flex items-center gap-3 mb-3 flex-wrap">
             <div className="inline-flex rounded-md border border-border overflow-hidden text-xs">
