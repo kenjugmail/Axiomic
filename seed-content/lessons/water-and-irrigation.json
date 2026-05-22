@@ -1,0 +1,121 @@
+{
+  "slug": "water-and-irrigation",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Explain the soil-plant-atmosphere continuum and define field capacity, wilting point, and plant-available water.",
+      "Apply the FAO Penman-Monteith equation concept to calculate reference evapotranspiration and crop water requirements.",
+      "Compare major irrigation methods and evaluate water-use efficiency strategies including deficit irrigation."
+    ],
+    "prereqs": [
+      "soil-science-and-fertility"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The soil-plant-atmosphere continuum — water movement from soil to sky",
+      "body": "Water is the single most limiting input to crop production globally: approximately **60% of world crop failures** are caused by drought (Boyer, 1982, *Science*). Understanding how water moves from soil through plant to atmosphere is the foundation of irrigation management.\n\nThe **soil-plant-atmosphere continuum (SPAC)** is the conceptual framework describing water movement as a continuous flow along a **water potential gradient** — from high water potential (less negative) in the soil to low water potential (more negative) in the atmosphere. The concept was formalized by **Philip Slatyer** (CSIRO, Australia) in his 1967 textbook *Plant-Water Relationships*. Water potential ($\\Psi$) is measured in **megapascals (MPa)** or **bars**. At saturation, soil water potential is ~0 MPa; typical atmosphere at 50% relative humidity has $\\Psi \\approx -93$ MPa — an enormous gradient that drives transpiration.\n\n**Key points in the soil water retention curve**:\n- **Saturated soil**: all pores filled; $\\Psi \\approx 0$ MPa; waterlogged conditions restrict gas exchange and cause root anoxia within hours.\n- **Field capacity (FC)**: the water content retained after free drainage has ceased, typically 1-2 days after saturation. Tension = $-0.03$ to $-0.1$ MPa (by convention often defined at $-0.033$ MPa = $-33$ kPa = $-1/3$ bar). This is the upper end of plant-available water. Sandy soils: FC ~10% volumetric; clay soils: FC ~40-50%.\n- **Permanent wilting point (PWP)**: the water content at which plants can no longer extract water and wilt irreversibly. Defined as $\\Psi = -1.5$ MPa (= $-15$ bar). Below this point, roots cannot exert enough osmotic pressure to extract remaining water. PWP: sandy soils ~5%; clay soils ~20%.\n- **Plant-available water (PAW)**: $\\text{PAW} = \\theta_{FC} - \\theta_{PWP}$ where $\\theta$ is volumetric water content. Loam soils typically hold ~150-200 mm PAW per meter of soil depth.\n\n**Water uptake by roots** occurs by mass flow (driven by transpiration pull) and diffusion. Root architecture determines access to soil water: maize roots may reach 2 m depth by silking, while wheat roots can reach 1.5-2.0 m. **Water stress** reduces stomatal conductance (the **ABA-mediated stomatal closure** response — abscisic acid signaled from drying roots, first demonstrated by **Fred Davies** and **Hamlyn Jones** in the 1980s), which reduces $\\text{CO}_2$ entry and thus photosynthesis and yield.\n\n**The global water budget for agriculture**: irrigated agriculture covers approximately 20% of cropland but produces 40% of global food (FAO, 2020). Irrigation accounts for ~70% of global freshwater withdrawals. Groundwater over-extraction — **aquifer depletion** — threatens irrigation sustainability in the Punjab (India-Pakistan), the US High Plains (**Ogallala Aquifer**, which is being mined at 10-100× the natural recharge rate according to **David Steward**, Kansas State University, 2013), and the North China Plain. **Water productivity** (kg crop per m³ water) is therefore the central metric of sustainable irrigation."
+    },
+    {
+      "kind": "text",
+      "title": "Evapotranspiration, the Penman-Monteith equation, and crop water requirements",
+      "body": "**Evapotranspiration (ET)** is the combined loss of water from the soil surface by evaporation and from the crop canopy by transpiration. It is both the primary water use of irrigated and rainfed crops and the primary driver of atmospheric water cycling. Measuring and predicting ET is the core of irrigation scheduling.\n\n**Howard Penman** (1948, Rothamsted, UK) derived the first physically based equation for open-water evaporation from meteorological variables alone — temperature, humidity, wind speed, and net radiation — in his paper 'Natural Evaporation from Open Water, Bare Soil and Grass' (*Proceedings of the Royal Society of London A*, 1948). **John Monteith** (University of Nottingham) extended Penman's approach in 1965 to include canopy resistance, producing the **Penman-Monteith equation** that accounts for stomatal control of transpiration. The **FAO Penman-Monteith equation** — standardized in **FAO Irrigation and Drainage Paper No. 56** (Allen et al., 1998) — is now the worldwide standard for calculating **reference evapotranspiration ($\\text{ET}_0$)** for a hypothetical short grass reference crop:\n\n$$\\text{ET}_0 = \\frac{0.408\\,\\Delta(R_n - G) + \\gamma\\,\\frac{900}{T+273}\\,u_2(e_s - e_a)}{\\Delta + \\gamma(1 + 0.34\\,u_2)}$$\n\nwhere $R_n$ = net radiation (MJ/m²/day), $G$ = soil heat flux, $T$ = mean daily temperature (°C), $u_2$ = wind speed at 2 m height (m/s), $e_s$ = saturation vapor pressure (kPa), $e_a$ = actual vapor pressure (kPa), $\\Delta$ = slope of vapor pressure curve, and $\\gamma$ = psychrometric constant. In practice, $\\text{ET}_0$ values range from ~1-2 mm/day in cool, humid, low-radiation conditions to ~8-12 mm/day in hot, dry, high-radiation environments (e.g., Arizona summers).\n\n**Crop evapotranspiration** is calculated using the **crop coefficient ($K_c$)** approach:\n\n$$\\text{ET}_c = \\text{ET}_0 \\times K_c$$\n\n$K_c$ varies by crop and growth stage: it is low during emergence (small canopy), peaks near full canopy cover, and declines during ripening as the canopy senesces. For maize: $K_c$ (initial) ≈ 0.3, $K_c$ (mid) ≈ 1.20, $K_c$ (late) ≈ 0.35-0.60. For wheat: $K_c$ (mid) ≈ 1.15. $K_c$ values for over 80 crops are tabulated in **FAO-56 (Allen et al., 1998)**.\n\n**Seasonal crop water requirement** = $\\sum (\\text{ET}_0 \\times K_c)$ summed over the growing season. Typical values:\n- Maize (corn): 500-800 mm per season.\n- Wheat: 400-500 mm.\n- Cotton: 700-1,200 mm.\n- Sugarcane: 1,000-1,500 mm.\n\n**Irrigation scheduling** uses daily ET estimates (from weather station data or remote sensing) to track soil water depletion and trigger irrigations before the crop stress threshold is reached. The **allowable depletion (MAD, management allowable deficit)** is typically 40-50% of PAW before irrigation. Methods range from **tensiometers** and **neutron probes** (the original research tools) to modern **soil moisture sensors** (capacitance, TDR — time-domain reflectometry) and **satellite ET mapping** using Landsat and MODIS — the **METRIC model** (Mapping EvapoTranspiration at high Resolution with Internalized Calibration), developed by **Richard Allen** (University of Idaho) and widely used by western US water districts."
+    },
+    {
+      "kind": "text",
+      "title": "Irrigation methods, water-use efficiency, and deficit irrigation",
+      "body": "There are three primary families of irrigation methods, each with distinct tradeoffs in water-use efficiency, capital cost, energy use, and suitability by soil, topography, and crop.\n\n**Surface irrigation (flood and furrow)**:\nWater flows by gravity across or along the field surface. The oldest and still most widespread method globally (used on ~80% of irrigated area by surface area). **Basin irrigation** floods entire level fields; **furrow irrigation** directs water down parallel channels between crop rows. Low energy cost; high labor requirement; typically **application efficiency** of 60-75% (some water infiltrates too deep or runs off). Improvement techniques: **surge irrigation** (intermittent flow to reduce advance time and deep percolation) and **laser land leveling** (precision grading to ±2 cm, documented to improve surface irrigation efficiency by 20-30% in the Punjab by studies from **IWMI** — International Water Management Institute).\n\n**Sprinkler irrigation**:\nWater is pressurized and distributed through nozzles. **Center-pivot systems** — the dominant form in North America — rotate around a central pivot point, irrigating circles typically 400-800 m in radius. The center pivot was invented by **Frank Zybach** (Colorado) in 1948 (US Patent 2,604,359, issued 1952) and transformed irrigated agriculture in the US Great Plains and western Corn Belt, where the Ogallala Aquifer could be accessed. Application efficiency: **75-85%**. Center-pivot technology enabled the irrigation of over 4 million hectares in the US (USDA NASS, 2018 Farm and Ranch Irrigation Survey). **Low-Energy Precision Application (LEPA)** nozzles (developed by **William Lyle** and **James Bordovsky**, Texas A&M, 1981) drop the sprinkler head close to the canopy, reducing evaporation and achieving efficiencies of 95%+.\n\n**Drip (micro) irrigation**:\nWater is delivered through buried or surface-laid emitter tubes directly to the root zone, minimizing evaporation and surface runoff. Application efficiency: **90-95%**. **Simcha Blass** (1897-1982), an Israeli hydraulic engineer, is credited with inventing modern drip irrigation in the late 1950s after observing that a leaky pipe fitting caused dramatically vigorous tree growth. He partnered with **Kibbutz Hatzerim** to found **Netafim** in 1965, now the world's largest drip irrigation company. Drip systems can deliver fertilizers through the water (**fertigation**), allowing precise nutrient timing. The technology spread globally and is now used on cotton in Australia, wine grapes in California, vegetables in Israel and Spain, and smallholder crops in India and Kenya under **solar-powered drip** programs.\n\n**Water-use efficiency (WUE)** is defined as:\n$$\\text{WUE} = \\frac{\\text{crop yield (kg/ha)}}{\\text{water consumed (mm or m}^3\\text{/ha)}}$$\n\nModern drip-irrigated tomatoes can achieve WUE >15 kg/m³; rainfed wheat in semi-arid regions may achieve only 5-8 kg/m³. Improving WUE is a central goal of **precision irrigation** — delivering the right amount of water, at the right time, to the right location.\n\n**Deficit irrigation (DI)** is the deliberate application of water at less than full ET replacement, accepting moderate stress during drought-tolerant growth stages to **maximize water productivity** (output per unit of water). Research by **Fereres and Soriano** (*Journal of Experimental Botany*, 2007) and the FAO review **'Coping with Water Scarcity'** (Steduto et al., 2009) showed that many crops can sustain 10-20% yield penalties with 30-50% water savings — a net productivity gain. **Regulated deficit irrigation (RDI)** — precise stress imposition at specific crop growth stages — was developed by Australian researchers **David Chalmers** (CSIRO) and **Brian van den Ende** in the 1980s for peaches and is now applied to wine grapes, almonds, and cotton.\n\n**Drought and salinity**: when soils accumulate salts (from irrigation water, capillary rise, or poor drainage), osmotic potential decreases and plants must expend additional metabolic energy to extract water. **Soil salinity** is measured as **electrical conductivity of the saturation extract ($\\text{EC}_e$, dS/m)**. The threshold $\\text{EC}_e$ above which yields decline is crop-specific: wheat tolerates up to ~6 dS/m; maize up to ~1.7 dS/m; tomato up to ~2.5 dS/m (Maas and Hoffman, 1977, *Journal of Irrigation and Drainage Engineering*). Globally, an estimated **20% of irrigated land** is salt-affected (FAO, 2011), reducing yields and threatening the sustainability of irrigation in the Indus Basin, the Nile Delta, and the San Joaquin Valley of California."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_water_1",
+        "kind": "math_expression",
+        "question": "A maize crop is in its mid-season (silking) growth stage where $K_c$ = 1.20. The reference evapotranspiration for the current week is $\\text{ET}_0$ = 6.5 mm/day. What is the crop water requirement ($\\text{ET}_c$) in mm/day for this week? Give your answer to 1 decimal place.",
+        "acceptedAnswers": [
+          "7.8",
+          "7.8 mm/day",
+          "7.8 mm per day"
+        ],
+        "hint": "ET_c = ET_0 × K_c = 6.5 × 1.20. The K_c > 1.0 means full-canopy maize transpires more water per day than the grass reference crop."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_water_1",
+        "kind": "multiple_choice",
+        "question": "Simcha Blass and Kibbutz Hatzerim founded Netafim in 1965. What fundamental principle makes drip irrigation more water-efficient than flood or furrow irrigation?",
+        "options": [
+          "Drip systems apply water at night when temperatures are cooler, reducing convective heat loss from water droplets.",
+          "Drip emitters apply water very slowly over a large area, giving the soil more time to absorb it before runoff.",
+          "Drip systems deliver water directly to the root zone at a rate matched to root uptake capacity, eliminating evaporation from wet soil surfaces, deep percolation below the root zone, and runoff — the three main pathways of water loss in surface and sprinkler systems. Application efficiencies of 90-95% are typical, compared to 60-75% for flood/furrow and 75-85% for sprinklers. Blass's original observation — a leaky fitting causing dramatically vigorous tree growth — revealed that slow, continuous, locally delivered water was more effective than periodic flooding, because the root zone stays at near-optimal moisture tension rather than cycling through saturation and drought.",
+          "Drip systems use recycled water that has been treated to remove salts, making it more chemically effective per unit volume applied."
+        ],
+        "correctIndex": 2,
+        "explanation": "The efficiency advantage of drip irrigation comes from three sources: (1) elimination of soil evaporation (soil surface stays dry between emitters, only the root zone is wet); (2) elimination of deep percolation (emitter flow rates are matched to soil infiltration rates and root uptake, so water does not drain below the root zone); (3) elimination of runoff (no surface flooding). The result is 90-95% application efficiency versus 60-75% for flood/furrow. Fertigation — delivering dissolved fertilizers through drip lines — adds a second efficiency advantage: nutrients are placed directly in the wetted root zone where uptake is occurring, reducing both fertilizer loss and application labor. Netafim, founded by Blass and Kibbutz Hatzerim in 1965, pioneered commercial drip systems and now operates in 110 countries."
+      },
+      "hints": [
+        "Think about where water is lost in flood irrigation — surface evaporation, deep drainage, runoff.",
+        "Blass observed a single slow-leaking fitting creating unusually vigorous growth."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Drip irrigation achieves 90-95% efficiency by delivering water only to the root zone (no surface evaporation), at a rate matched to soil infiltration (no deep percolation), with no free surface water (no runoff). Flood/furrow loses water to all three pathways. Blass and Netafim (1965) commercialized the principle first demonstrated by observing that steady, slow, local water delivery was far more effective than periodic flooding."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_water_1",
+        "kind": "guided_derivation",
+        "question": "Calculate plant-available water and irrigation trigger depth",
+        "goal": "A loam soil has field capacity ($\\theta_{FC}$) = 30% and permanent wilting point ($\\theta_{PWP}$) = 12% (both volumetric water content). The rooting depth is 0.8 m. The management allowable deficit (MAD) = 50%. Calculate: (1) the total plant-available water (PAW) in mm; (2) the allowable depletion depth (the depth of water that can be removed before irrigation is needed).",
+        "steps": [
+          {
+            "prompt": "Step 1: Calculate total plant-available water (PAW) in mm for the 0.8 m root zone. (Hint: convert % to fraction, multiply by depth in mm.)",
+            "motivation": "PAW is the reservoir of water the crop can draw on between rain or irrigation events.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "144 mm",
+                "144",
+                "144 mm PAW"
+              ]
+            },
+            "hints": [
+              "PAW = (θ_FC - θ_PWP) × rooting depth in mm.",
+              "(0.30 - 0.12) × 800 mm = 0.18 × 800."
+            ],
+            "reveal": "PAW = (0.30 - 0.12) × 800 mm = 0.18 × 800 = 144 mm. This means the crop has access to 144 mm of water between the wet end (field capacity) and the irreversible wilting point. A loam soil's typical PAW of ~180 mm/m × 0.8 m ≈ 144 mm is consistent with general soil science references."
+          },
+          {
+            "prompt": "Step 2: Calculate the allowable depletion depth (the volume of water, in mm, that can be withdrawn before irrigation is triggered at MAD = 50%).",
+            "motivation": "This is the practical irrigation trigger — at 50% depletion the crop begins to stress.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "72 mm",
+                "72",
+                "72 mm allowable depletion"
+              ]
+            },
+            "hints": [
+              "Allowable depletion = MAD × PAW = 0.50 × 144."
+            ],
+            "reveal": "Allowable depletion = 0.50 × 144 = 72 mm. Irrigate when 72 mm of PAW has been depleted — i.e., when soil water content falls to θ_FC - 0.09 = 21% volumetric. At ET_c = 7.8 mm/day (from our math question), this 72 mm allowance lasts only 72 ÷ 7.8 ≈ 9 days during peak demand — so at silking in a hot, dry climate, the farmer must irrigate roughly every 9 days to avoid stress."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_water_1",
+        "kind": "scenario",
+        "question": "Designing an irrigation strategy under water scarcity",
+        "prompt": "A cotton farmer in the San Joaquin Valley, California, has been allocated only 60% of her normal water entitlement this year due to drought-driven reductions in surface water deliveries from the State Water Project. Her field has a drip irrigation system. Normal seasonal water application is 900 mm. She must decide how to manage with 540 mm for the season. Using the concepts of deficit irrigation (DI), regulated deficit irrigation (RDI), and water-use efficiency (WUE), and drawing on the research of Fereres and Soriano (2007) and the principle of ET_c = ET_0 × K_c, outline a strategy that: (a) identifies which cotton growth stages are most and least sensitive to water stress; (b) applies the 540 mm allowance by concentrating water on stress-sensitive stages; (c) quantifies, approximately, the expected yield penalty and water productivity gain. Mention the salinity risk from reduced leaching and how to manage it."
+      }
+    }
+  ]
+}

@@ -438,6 +438,21 @@ const LazyAirfoilPolar = lazy(() =>
     (m) => ({ default: m.AirfoilPolar }),
   ),
 );
+const LazyLedgerTAccounts = lazy(() =>
+  import("../../../../../packages/viz/src/components/LedgerTAccounts").then(
+    (m) => ({ default: m.LedgerTAccounts }),
+  ),
+);
+const LazyCropYieldResponse = lazy(() =>
+  import("../../../../../packages/viz/src/components/CropYieldResponse").then(
+    (m) => ({ default: m.CropYieldResponse }),
+  ),
+);
+const LazySurvivalCurve = lazy(() =>
+  import("../../../../../packages/viz/src/components/SurvivalCurve").then(
+    (m) => ({ default: m.SurvivalCurve }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -670,6 +685,12 @@ function VizByName({
       return <LazyFlavorWheel {...(props as object)} />;
     case "airfoil-polar":
       return <LazyAirfoilPolar {...(props as object)} />;
+    case "ledger-t-accounts":
+      return <LazyLedgerTAccounts {...(props as object)} />;
+    case "crop-yield-response":
+      return <LazyCropYieldResponse {...(props as object)} />;
+    case "survival-curve":
+      return <LazySurvivalCurve {...(props as object)} />;
     default:
       return null;
   }

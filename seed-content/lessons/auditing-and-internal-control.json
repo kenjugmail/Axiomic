@@ -1,0 +1,88 @@
+{
+  "slug": "auditing-and-internal-control",
+  "meta": {
+    "timeMinutes": 27,
+    "difficulty": "advanced",
+    "objectives": [
+      "Explain the four audit opinion types and the conditions that trigger each.",
+      "Apply the audit risk model AR = IR × CR × DR to plan detection risk and audit effort.",
+      "Describe the COSO 2013 framework components and how Sarbanes-Oxley Section 404 operationalizes internal control requirements."
+    ],
+    "prereqs": [
+      "gaap-ifrs-and-standards"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The external audit — opinion types, GAAS, and the audit process",
+      "body": "An **external audit** is an independent examination of a company's financial statements, culminating in a written **audit opinion** that tells users whether the statements present fairly, in all material respects, the entity's financial position and results of operations in conformity with the applicable accounting framework (US GAAP or IFRS). For US public companies, an annual audit is legally required under the **Securities Exchange Act of 1934**; the standards governing that audit have been set by the **Public Company Accounting Oversight Board (PCAOB)** since **2003**.\n\n**The four audit opinion types**:\n\n1. **Unqualified (clean) opinion**: the financial statements present fairly in all material respects. This is what every management team hopes to receive. The standard report language was revised by **PCAOB Auditing Standard 3101** (2017) to add a description of the auditor's responsibilities and, for large accelerated filers since **2020**, a discussion of **Critical Audit Matters (CAMs)** — the issues that required the most difficult or complex auditor judgment.\n\n2. **Qualified opinion**: except for the effects of a specific matter (a departure from GAAP or a scope limitation that is material but not pervasive), the statements present fairly. The phrase \"except for\" signals the qualification. Example: a company uses an accounting method not in conformity with GAAP for one category of assets.\n\n3. **Adverse opinion**: the financial statements do **not** present fairly because of a pervasive material misstatement. This is the most serious opinion; it effectively tells the market the statements cannot be relied upon. Rare in practice because management typically adjusts statements rather than receive an adverse opinion.\n\n4. **Disclaimer of opinion**: the auditor has been **unable to obtain sufficient appropriate evidence** to form an opinion (a pervasive scope limitation). The auditor is not saying the statements are wrong — they are saying they cannot say anything.\n\n**Generally Accepted Auditing Standards (GAAS)** for US private company audits are issued by the **Auditing Standards Board (ASB)** of the **AICPA**. For public companies, PCAOB standards apply. Internationally, the **International Auditing and Assurance Standards Board (IAASB)** — a body under **IFAC** — issues **International Standards on Auditing (ISAs)**, used in the EU, UK, Australia, Canada, and most IFRS jurisdictions.\n\n**The audit process** runs through four phases:\n- **Planning**: understand the client, its industry, and risks; set **materiality** (the threshold below which misstatements do not affect user decisions); identify risk areas; develop the audit strategy.\n- **Risk assessment**: identify and assess **risks of material misstatement** at the financial statement and assertion level. The assertions — existence, completeness, accuracy, cut-off, classification, presentation, rights and obligations — are the specific claims embedded in each financial statement line item.\n- **Testing**: substantive procedures (detail tests + analytical procedures) and, where the auditor chooses to rely on controls, **tests of controls**.\n- **Conclusion and reporting**: evaluate misstatements found; form the opinion; issue the report.\n\n**Materiality** is the pervasive organizing concept. The auditor's objective is to detect material misstatements — not all misstatements. Common materiality benchmarks: 5% of pre-tax income, 0.5–1% of total assets, or 1–2% of revenue, depending on the reporting context. Misstatements below the materiality threshold are evaluated individually and cumulatively (the 'clearly trivial' threshold is typically 3–5% of overall materiality)."
+    },
+    {
+      "kind": "text",
+      "title": "The audit risk model — inherent, control, and detection risk",
+      "body": "The **audit risk model** is the conceptual heart of audit planning. It expresses the relationship between the three components of audit risk:\n\n$$AR = IR \\times CR \\times DR$$\n\nwhere:\n- $AR$ = **Audit risk** — the risk that the auditor issues an incorrect (clean) opinion on materially misstated statements. In practice, auditors target $AR$ at 5% (i.e., they are willing to accept a 5% probability of issuing a clean opinion when the statements are materially wrong).\n- $IR$ = **Inherent risk** — the susceptibility of an assertion to material misstatement, assuming no related controls exist. High inherent risk areas: complex estimates (goodwill impairment, pension obligations, fair value of illiquid instruments), transactions with related parties, new accounting standards, industries subject to rapid change. Auditors **assess** inherent risk; they cannot change it.\n- $CR$ = **Control risk** — the risk that a material misstatement will not be prevented or detected by the entity's internal control system. If controls are strong and the auditor tests them and finds they are operating effectively, $CR$ can be set below 1.0. If the auditor chooses not to test controls (a common approach for smaller engagements), $CR$ defaults to 1.0 (maximum).\n- $DR$ = **Detection risk** — the risk that the auditor's own substantive procedures will fail to detect a misstatement that exists. This is the **only component the auditor can control** by adjusting the **nature, timing, and extent** of substantive tests.\n\n**The model is manipulated in planning**: given a target $AR$ and the auditor's assessments of $IR$ and $CR$, solve for the acceptable $DR$:\n$$DR = \\frac{AR}{IR \\times CR}$$\n\nIf $IR$ is high and $CR$ is high, the allowable $DR$ is very low — the auditor must do a great deal of substantive work to compensate. If controls are strong and the auditor has tested them (low $CR$), $DR$ can be higher, and less substantive testing is needed.\n\n**Example**: Target $AR = 0.05$. Assessed $IR = 0.80$ (high — complex estimate). Assessed $CR = 0.50$ (moderate — some controls, tested). Then $DR = 0.05 / (0.80 \\times 0.50) = 0.05 / 0.40 = 0.125$. The auditor must design substantive procedures that limit detection risk to 12.5%.\n\n**Professional skepticism** is the auditor's fundamental attitude: a questioning mind and critical assessment of audit evidence, neither assuming management is honest nor assuming dishonesty — but always asking what could go wrong and whether the evidence is sufficient and appropriate. **PCAOB AS 2101** and **ISA 200** both require professional skepticism throughout the engagement. The **KPMG / GE** controversies of the 1990s and the **PricewaterhouseCoopers / Satyam** scandal (Satyam Computer Services, India, **2009**) illustrate what happens when skepticism lapses."
+    },
+    {
+      "kind": "text",
+      "title": "Internal control — COSO, Sarbanes-Oxley, the PCAOB, and the Big Four",
+      "body": "**Internal control** is the process — designed and maintained by management — that provides reasonable assurance about the reliability of financial reporting, the effectiveness and efficiency of operations, and compliance with laws and regulations. The **Committee of Sponsoring Organizations of the Treadway Commission (COSO)** published the first integrated internal control framework in **1992** and updated it in **2013** (*Internal Control — Integrated Framework*). COSO is sponsored by five accounting and finance organizations: AICPA, CIMA, FEI, IIA, and IMA.\n\n**The COSO 2013 framework** has five components and seventeen principles:\n\n1. **Control environment**: the foundation — management's tone, the board's oversight, the organization's structure, its commitment to competence, and accountability. Without a healthy control environment, all other components are compromised.\n2. **Risk assessment**: identifying and analyzing risks that could prevent achievement of objectives. COSO 2013 added the requirement to assess risks of **fraud**.\n3. **Control activities**: the policies and procedures that respond to identified risks — authorizations, reconciliations, physical safeguards, IT controls, segregation of duties.\n4. **Information and communication**: relevant information must be identified, captured, and communicated in a timely manner; communication must flow up, down, and across the organization.\n5. **Monitoring activities**: ongoing and separate evaluations of whether the five components are present and functioning.\n\n**Sarbanes-Oxley Act (SOX)**, signed into law on **July 30, 2002** by President George W. Bush, was Congress's response to the accounting frauds at **Enron (2001)** and **WorldCom (2002)**. Enron's collapse involved off-balance-sheet special-purpose entities structured by CFO **Andrew Fastow** to hide debt and inflate earnings; WorldCom's fraud, executed under CFO **Scott Sullivan**, capitalized $3.8 billion of operating line costs to inflate assets. Both relied on auditors — **Arthur Andersen** — who failed to exercise professional skepticism.\n\nSOX's key provisions:\n- **Section 302**: CEO and CFO must personally certify the accuracy and completeness of financial statements in each periodic filing.\n- **Section 404**: Management must include in the annual report an assessment of the effectiveness of internal control over financial reporting (ICFR), and the external auditor must **attest** to that assessment. Section 404 is by far the most costly provision to implement; compliance costs for large public companies run into the tens of millions of dollars annually.\n- **Section 201**: Auditors are prohibited from providing most non-audit services (consulting, internal audit outsourcing, financial information systems design) to their audit clients — addressing the independence conflicts that compromised Arthur Andersen's Enron engagement.\n- **Section 301**: Requires independent audit committees with direct oversight of the external auditor.\n\n**The PCAOB** (Public Company Accounting Oversight Board) was created by SOX to oversee auditors of US public companies — replacing the profession's self-regulatory model. The PCAOB registers accounting firms, sets auditing standards (**PCAOB AS series**), and conducts periodic inspections. Its creation was constitutionally challenged in *Free Enterprise Fund v. PCAOB* (Supreme Court, **2010**) and survived.\n\n**The Big Four accounting firms** — **Deloitte**, **PricewaterhouseCoopers (PwC)**, **Ernst & Young (EY)**, and **KPMG** — audit the overwhelming majority of the world's large public companies by revenue. Before Arthur Andersen's collapse in **2002** following its Enron entanglement, there were five major firms (the \"Big Five\"). The concentration of global audit capacity in four firms is itself a systemic risk that regulators — including the EU's **Audit Regulation 537/2014** and the UK's **Brydon Review (2019)** — have repeatedly attempted to address through mandatory firm rotation, joint audits, and market-share restrictions."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_audit_1",
+        "kind": "math_expression",
+        "question": "An auditor sets target audit risk at 5% (0.05). Inherent risk for the revenue assertion is assessed at 0.80 and control risk at 0.40 (controls have been tested and found effective). What is the maximum acceptable detection risk? Express as a percentage rounded to one decimal place.",
+        "acceptedAnswers": [
+          "15.6%",
+          "15.6",
+          "0.156",
+          "15.625%",
+          "15.625"
+        ],
+        "hint": "DR = AR / (IR × CR) = 0.05 / (0.80 × 0.40) = 0.05 / 0.32 = 0.15625 ≈ 15.6%."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_audit_1",
+        "kind": "multiple_choice",
+        "question": "Under Sarbanes-Oxley Section 404, what does the external auditor do in addition to auditing the financial statements?",
+        "options": [
+          "The auditor issues an opinion on whether the company's board of directors is independent.",
+          "The auditor attests to management's assessment of the effectiveness of internal control over financial reporting.",
+          "The auditor provides a consulting report recommending improvements to internal controls.",
+          "The auditor certifies the accuracy of the CEO's Section 302 certification."
+        ],
+        "correctIndex": 1,
+        "explanation": "**SOX Section 404** has two requirements: (1) management must provide its own assessment of the effectiveness of internal control over financial reporting (ICFR) in the annual report; (2) the **external auditor must attest to — and independently assess — management's ICFR assessment**. This means the auditor issues a separate opinion on ICFR in addition to the standard audit opinion on the financial statements. For large accelerated filers, this integrated audit (ICFR + financial statements) is governed by **PCAOB Auditing Standard 2201**. The ICFR attestation is not a consulting engagement — it is an independent examination. Section 302 covers CEO/CFO certification of the financial statements themselves (a separate requirement). The auditor does not certify the Section 302 certification — that would be auditing the auditors' own oversight. The result of Section 404 is that companies must maintain formal, documented, and tested internal control frameworks — the COSO framework became the standard tool for structuring that documentation. Section 404 compliance is the single largest cost driver of SOX implementation, particularly for large companies with complex control environments."
+      },
+      "hints": [
+        "Section 404 has both a management component and an auditor component.",
+        "The auditor's role goes beyond simply reviewing — it is an independent attestation."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "SOX Section 404 requires the external auditor to attest to management's assessment of internal control over financial reporting. This creates a two-opinion annual report for large public companies: one on the financial statements and one on ICFR. The PCAOB governs this integrated audit through AS 2201. It is an independent examination, not a consulting engagement."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_audit_1",
+        "kind": "scenario",
+        "question": "Audit planning for a high-risk revenue cycle",
+        "prompt": "You are the audit manager on the first-year audit of CloudRev Inc., a SaaS company that went public six months ago. Revenue is $280 million, primarily from multi-year subscription contracts with complex performance obligations (implementation services bundled with software licenses and ongoing support). Management has recently revised its revenue recognition methodology after adopting ASC 606, resulting in a $15 million increase in reported revenue. Your preliminary materiality is $8 million (approximately 3% of revenue). Using the audit risk model, describe: (a) your assessment of inherent risk for the revenue assertion and the factors driving it; (b) how you would approach control risk given this is a first-year audit with no prior year knowledge; (c) the detection risk that results from your IR and CR assessments, assuming a target audit risk of 5%; (d) the substantive procedures you would design to address that detection risk for the revenue cycle."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_audit_1",
+        "kind": "explain_back",
+        "prompt": "In 150 words or fewer, explain the five components of the COSO 2013 internal control framework and identify which SOX section requires external auditors to assess internal controls. Name at least one accounting scandal that motivated SOX.",
+        "rubric": "Should correctly name all five COSO components in order: (1) control environment, (2) risk assessment, (3) control activities, (4) information and communication, (5) monitoring activities. Should identify SOX Section 404 as the provision requiring auditor attestation to ICFR (not Section 302, which covers CEO/CFO certification). Should name at least one of Enron (2001) or WorldCom (2002) as the motivating scandal; bonus for mentioning Arthur Andersen's role or naming Andrew Fastow (Enron CFO) or Scott Sullivan (WorldCom CFO). Bonus for noting the PCAOB was created by SOX to replace self-regulation of the audit profession, or for noting that Arthur Andersen collapsed in 2002 reducing the Big Five to the Big Four."
+      }
+    }
+  ]
+}

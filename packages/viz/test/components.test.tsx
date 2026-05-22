@@ -48,6 +48,9 @@ import { BeatGrid } from "../src/components/BeatGrid";
 import { VitalSignsMonitor } from "../src/components/VitalSignsMonitor";
 import { FlavorWheel } from "../src/components/FlavorWheel";
 import { AirfoilPolar } from "../src/components/AirfoilPolar";
+import { LedgerTAccounts } from "../src/components/LedgerTAccounts";
+import { CropYieldResponse } from "../src/components/CropYieldResponse";
+import { SurvivalCurve } from "../src/components/SurvivalCurve";
 
 const VIZ_COMPONENTS = {
   KinshipDiagram,
@@ -88,6 +91,9 @@ const VIZ_COMPONENTS = {
   VitalSignsMonitor,
   FlavorWheel,
   AirfoilPolar,
+  LedgerTAccounts,
+  CropYieldResponse,
+  SurvivalCurve,
 };
 
 describe("viz components — SSR smoke tests", () => {

@@ -4039,6 +4039,68 @@ function seedMasteryPaths() {
     ],
   });
 
+  // Triplet 16 — Accountant. Double-entry from Pacioli through the
+  // financial statements, the accounting cycle, accrual + revenue
+  // recognition, GAAP/IFRS, managerial costing, audit, to forensic
+  // accounting + the digital-reporting frontier.
+  seedMasteryPath({
+    slug: "accountant",
+    title: "Accountant",
+    description:
+      "Double-entry from Luca Pacioli through the financial statements, the accounting cycle, accrual + revenue recognition, GAAP/IFRS, managerial + cost accounting, auditing + internal control, to forensic accounting and the digital-reporting frontier.",
+    nodes: [
+      { slug: "accounting-history-and-double-entry", title: "History + Double-Entry", level: "apprentice", order: 1, pages: [], prereqs: [], description: "Pacioli's 1494 Summa, debits + credits, and the accounting equation Assets = Liabilities + Equity (interactive ledger)." },
+      { slug: "the-financial-statements", title: "The Financial Statements", level: "apprentice", order: 2, pages: [], prereqs: ["accounting-history-and-double-entry"], description: "Balance sheet, income statement, cash-flow statement + statement of equity — and how they articulate." },
+      { slug: "the-accounting-cycle", title: "The Accounting Cycle", level: "practitioner", order: 3, pages: [], prereqs: ["the-financial-statements"], description: "Journals → ledgers → trial balance → adjusting entries → statements → closing entries." },
+      { slug: "accrual-accounting-and-revenue-recognition", title: "Accrual + Revenue Recognition", level: "practitioner", order: 4, pages: [], prereqs: ["the-accounting-cycle"], description: "Accrual vs cash, the matching principle, and the ASC 606 / IFRS 15 five-step revenue model." },
+      { slug: "gaap-ifrs-and-standards", title: "GAAP, IFRS + Standards", level: "specialist", order: 5, pages: [], prereqs: ["accrual-accounting-and-revenue-recognition"], description: "FASB vs IASB, the conceptual framework, principles- vs rules-based, fair value vs historical cost." },
+      { slug: "managerial-and-cost-accounting", title: "Managerial + Cost Accounting", level: "specialist", order: 6, pages: [], prereqs: ["accrual-accounting-and-revenue-recognition"], description: "Cost behavior, CVP + break-even, standard costing + variances, activity-based costing, the balanced scorecard." },
+      { slug: "auditing-and-internal-control", title: "Auditing + Internal Control", level: "expert", order: 7, pages: [], prereqs: ["gaap-ifrs-and-standards"], description: "The audit opinion + risk model, COSO internal control, Sarbanes-Oxley + the PCAOB, the Big Four." },
+      { slug: "forensic-accounting-and-frontiers", title: "Forensic Accounting + Frontiers", level: "researcher", order: 8, pages: [], prereqs: ["auditing-and-internal-control"], description: "The fraud triangle, Enron/WorldCom/Madoff, Benford's Law, XBRL + AI/blockchain in audit." },
+    ],
+  });
+
+  // Triplet 16 — Agronomist. Crop science from Liebig's yield law
+  // through soil, plant nutrition, water, physiology + breeding, pest
+  // management, precision agriculture, to sustainable + gene-edited
+  // frontiers.
+  seedMasteryPath({
+    slug: "agronomist",
+    title: "Agronomist",
+    description:
+      "Crop science from Liebig's Law of the Minimum through soil fertility, plant nutrition + fertilizers, water + irrigation, crop physiology + breeding, pest/weed/disease management, precision agriculture, to sustainable + gene-edited frontiers.",
+    nodes: [
+      { slug: "agronomy-history-and-the-yield-equation", title: "History + the Yield Equation", level: "apprentice", order: 1, pages: [], prereqs: [], description: "Liebig's Law of the Minimum + Mitscherlich diminishing returns + Borlaug's Green Revolution (interactive yield curve)." },
+      { slug: "soil-science-and-fertility", title: "Soil Science + Fertility", level: "apprentice", order: 2, pages: [], prereqs: ["agronomy-history-and-the-yield-equation"], description: "Soil horizons + texture, cation exchange capacity, pH + liming, organic matter, soil testing." },
+      { slug: "plant-nutrition-and-fertilizers", title: "Plant Nutrition + Fertilizers", level: "practitioner", order: 3, pages: [], prereqs: ["soil-science-and-fertility"], description: "The 17 essential nutrients, N-P-K, the nitrogen cycle, Haber-Bosch, the 4Rs + eutrophication." },
+      { slug: "water-and-irrigation", title: "Water + Irrigation", level: "practitioner", order: 4, pages: [], prereqs: ["soil-science-and-fertility"], description: "Evapotranspiration (Penman-Monteith), field capacity, irrigation methods, drip + water-use efficiency." },
+      { slug: "crop-physiology-and-breeding", title: "Crop Physiology + Breeding", level: "specialist", order: 5, pages: [], prereqs: ["plant-nutrition-and-fertilizers"], description: "C3/C4/CAM photosynthesis, growing-degree-days, harvest index, Mendel → hybrid vigor → MAS + GMOs." },
+      { slug: "pest-weed-and-disease-management", title: "Pest, Weed + Disease Management", level: "specialist", order: 6, pages: [], prereqs: ["plant-nutrition-and-fertilizers"], description: "IPM + the economic threshold, modes of action + resistance, glyphosate, Silent Spring, biological control." },
+      { slug: "precision-agriculture-and-data", title: "Precision Agriculture + Data", level: "expert", order: 7, pages: [], prereqs: ["crop-physiology-and-breeding"], description: "GPS guidance, NDVI remote sensing, variable-rate application, yield mapping, drones + satellites." },
+      { slug: "sustainable-agriculture-and-frontiers", title: "Sustainable Agriculture + Frontiers", level: "researcher", order: 8, pages: [], prereqs: ["precision-agriculture-and-data"], description: "Cover crops + no-till, soil carbon, agroforestry, climate-smart ag, CRISPR crops, vertical farming." },
+    ],
+  });
+
+  // Triplet 16 — Actuary. Risk + mortality from Halley's life tables
+  // through interest theory, life contingencies, premiums + reserves,
+  // risk models, pricing, solvency, to the data-science frontier.
+  seedMasteryPath({
+    slug: "actuary",
+    title: "Actuary",
+    description:
+      "Risk + mortality from Halley's life tables through interest theory + annuities, life contingencies + the force of mortality, premiums + reserves, loss + risk models, pricing + credibility, solvency + ERM, to the data-science frontier.",
+    nodes: [
+      { slug: "actuarial-history-and-life-tables", title: "History + Life Tables", level: "apprentice", order: 1, pages: [], prereqs: [], description: "Graunt 1662 + Halley's 1693 Breslau table; the life-table columns l_x, d_x, q_x (interactive survival curve)." },
+      { slug: "interest-theory-and-annuities", title: "Interest Theory + Annuities", level: "apprentice", order: 2, pages: [], prereqs: ["actuarial-history-and-life-tables"], description: "Time value of money, compound interest + discounting, the force of interest, annuities-immediate vs -due." },
+      { slug: "life-contingencies-and-the-force-of-mortality", title: "Life Contingencies + Force of Mortality", level: "practitioner", order: 3, pages: [], prereqs: ["interest-theory-and-annuities"], description: "Survival models, the force of mortality, expectation of life, the Gompertz-Makeham laws." },
+      { slug: "premium-calculation-and-reserves", title: "Premiums + Reserves", level: "practitioner", order: 4, pages: [], prereqs: ["life-contingencies-and-the-force-of-mortality"], description: "The equivalence principle, net + gross premiums, the policy reserve (prospective + retrospective)." },
+      { slug: "probability-and-risk-models", title: "Probability + Risk Models", level: "specialist", order: 5, pages: [], prereqs: ["life-contingencies-and-the-force-of-mortality"], description: "Frequency × severity, the collective risk model, loss distributions, Cramér-Lundberg ruin theory." },
+      { slug: "pricing-and-experience-rating", title: "Pricing + Experience Rating", level: "specialist", order: 6, pages: [], prereqs: ["premium-calculation-and-reserves"], description: "P&C ratemaking, GLMs in pricing, Bühlmann credibility, loss reserving + chain-ladder." },
+      { slug: "solvency-and-enterprise-risk", title: "Solvency + Enterprise Risk", level: "expert", order: 7, pages: [], prereqs: ["probability-and-risk-models"], description: "Solvency II + RBC, VaR + Tail-VaR coherence, ERM + ORSA, economic capital + stress testing." },
+      { slug: "actuarial-frontiers-and-data-science", title: "Frontiers + Data Science", level: "researcher", order: 8, pages: [], prereqs: ["solvency-and-enterprise-risk"], description: "ML pricing, telematics, longevity risk, IFRS 17, climate + pandemic modeling, fairness in algorithms." },
+    ],
+  });
+
   seedExamPrepPaths();
 }
 

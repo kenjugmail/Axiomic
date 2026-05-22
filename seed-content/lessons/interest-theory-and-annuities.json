@@ -1,0 +1,134 @@
+{
+  "slug": "interest-theory-and-annuities",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "intro",
+    "objectives": [
+      "Apply compound interest, the accumulation factor $(1+i)^n$, and the discount factor $v = 1/(1+i)$ to time-value calculations.",
+      "Derive the present value of an annuity-immediate and an annuity-due, including the limiting case of a perpetuity.",
+      "Convert between effective annual rates, nominal rates $i^{(m)}$, and the force of interest $\\delta$."
+    ],
+    "prereqs": [
+      "actuarial-history-and-life-tables"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Compound interest, accumulation, and the discount factor",
+      "body": "**Interest theory** is the mathematical backbone of actuarial finance. Every premium, reserve, and benefit is a cash flow that must be moved through time at an agreed rate of interest before two sides of a contract can be compared. The key idea is that **a pound today is worth more than a pound tomorrow** — the **time value of money**.\n\n**Simple vs compound interest**. Under *simple interest* at rate $i$ per year, £1 grows to $1 + ni$ after $n$ years. Under *compound interest*, the interest earned in each period itself earns interest, so £1 grows to $(1+i)^n$. Compound interest is the actuarial standard because it is internally consistent: the accumulation over two periods equals the product of the accumulations over each period.\n\n**The accumulation factor** $A(0,n) = (1+i)^n$ answers: \"how much does £1 invested today accumulate to after $n$ years at annual effective rate $i$?\" The reciprocal $v = 1/(1+i)$ is the **present value factor** or **discount factor**: it tells you how much you must invest today to have £1 in one year. More generally, $v^n = (1+i)^{-n}$ discounts a payment of £1 due in $n$ years back to its value today.\n\n**Edmond Halley** used a discount rate of 6% ($v = 1/1.06$) in his 1693 Breslau annuity calculations — the first recorded actuarial application of $v$. **Richard Price** used 3% and 4% in his *Observations on Reversionary Payments* (1771) to value reversions and annuities for the Equitable Life.\n\n**Nominal rates and the effective rate**. In practice, interest may be payable more frequently than annually. A **nominal rate** $i^{(m)}$ convertible $m$ times per year means that $i^{(m)}/m$ is charged each sub-period, so £1 accumulates to $(1 + i^{(m)}/m)^m$ after one year. The **annual effective rate** $i$ satisfies $(1+i) = (1 + i^{(m)}/m)^m$. Common exam cases: $m=2$ (semi-annual), $m=4$ (quarterly), $m=12$ (monthly).\n\n**The force of interest** $\\delta$ is the continuously compounded rate, defined by $e^\\delta = 1+i$, or equivalently $\\delta = \\ln(1+i)$. Under constant force of interest, £1 grows to $e^{\\delta n}$ after $n$ years and $v = e^{-\\delta}$. The force of interest is the natural limit as $m \\to \\infty$ of $i^{(m)}$, and it appears throughout continuous-time survival models. For a nominal rate of $i = 5\\%$, $\\delta = \\ln 1.05 \\approx 0.04879$ — slightly less than $i$.\n\n**The discount rate** $d = 1 - v = i/(1+i)$ is the interest paid at the *beginning* of a period rather than the end. It satisfies $d = iv$ and $d + v = 1$. Actuarial notation uses $d$ extensively when pricing annuities-due."
+    },
+    {
+      "kind": "text",
+      "title": "Annuities-immediate, annuities-due, and perpetuities",
+      "body": "An **annuity** is a series of payments made at regular intervals. In actuarial science an annuity may be **certain** (payable regardless of survival — pure interest theory) or **life** (payable only while a named life survives — combining interest and mortality). This lesson focuses on **annuities-certain**.\n\n**Annuity-immediate** ($a_{\\overline{n}|}$): payments of £1 are made at the *end* of each of $n$ years. The present value at annual effective rate $i$ is:\n$$a_{\\overline{n}|} = v + v^2 + \\cdots + v^n = \\frac{1 - v^n}{i}$$\nThis is a finite geometric series with first term $v$ and ratio $v$. The notation $a_{\\overline{n}|}$ is read \"a-angle-n\" and is standard in the **International Actuarial Notation (IAN)** codified by the International Actuarial Association.\n\n**Annuity-due** ($\\ddot{a}_{\\overline{n}|}$): payments of £1 are made at the *beginning* of each year. Because each payment is one year earlier than in the annuity-immediate, $\\ddot{a}_{\\overline{n}|} = (1+i) \\cdot a_{\\overline{n}|}$. Equivalently:\n$$\\ddot{a}_{\\overline{n}|} = \\frac{1 - v^n}{d}$$\nwhere $d = iv/(1) = i/(1+i)$ is the discount rate. The annuity-due arises naturally for **life annuities** where the premium is paid at the start of each policy year.\n\n**Perpetuity-immediate**: an annuity with $n \\to \\infty$. Since $v^n \\to 0$ for $i > 0$:\n$$a_{\\overline{\\infty}|} = \\frac{1}{i}$$\nA perpetuity-due has present value $1/d$. The perpetuity formula is the foundation of equity valuation (the **Gordon Growth Model**, named after **Myron Gordon**'s 1962 paper, is a growing perpetuity).\n\n**Accumulation function** $s_{\\overline{n}|}$: the *future* value at time $n$ of the same series of payments. $s_{\\overline{n}|} = a_{\\overline{n}|} \\cdot (1+i)^n = [(1+i)^n - 1]/i$.\n\n**Increasing and decreasing annuities**. An **increasing annuity-immediate** $(I a)_{\\overline{n}|}$ has payments $1, 2, 3, \\ldots, n$; its PV is $[\\ddot{a}_{\\overline{n}|} - n v^n]/i$. A **decreasing annuity** $(D a)_{\\overline{n}|}$ has payments $n, n-1, \\ldots, 1$; the two satisfy $(I a)_{\\overline{n}|} + (D a)_{\\overline{n}|} = (n+1) a_{\\overline{n}|}$.\n\n**Continuous annuities**. Under continuous compounding, a **continuously payable annuity-certain** $\\bar{a}_{\\overline{n}|}$ replaces the sum with an integral:\n$$\\bar{a}_{\\overline{n}|} = \\int_0^n e^{-\\delta t}\\, dt = \\frac{1 - e^{-\\delta n}}{\\delta}$$\nContinuous annuities arise in life-contingencies when future lifetime is modelled as a continuous random variable.\n\n**Textbook references**. The definitive actuarial interest-theory text is **Stephen G. Kellison**, *The Theory of Interest* (3rd ed., 2008, Irwin/McGraw-Hill). The **SOA Exam FM** (Financial Mathematics) and **CAS Exam 2** both test this material extensively. The IFoA's **Subject CM1** (Actuarial Mathematics 1) covers the same ground in the UK fellowship pathway."
+    },
+    {
+      "kind": "text",
+      "title": "Loan schedules, equation of value, and yield rates",
+      "body": "Interest theory is not only about annuities — it underpins **loan amortisation**, **bond pricing**, **yield rates**, and the **equation of value** that ties together every financial calculation in actuarial practice.\n\n**The equation of value** states that, at a chosen **comparison date** (the valuation date), the present value of all inflows equals the present value of all outflows. For a loan of amount $L$ repaid by level instalments of $R$ per year for $n$ years:\n$$L = R \\cdot a_{\\overline{n}|}$$\nSolving for $R$ gives the **level payment**: $R = L / a_{\\overline{n}|}$.\n\n**Loan amortisation**. Each payment $R$ splits into **interest** $i \\cdot O_t$ (where $O_t$ is the outstanding balance at the start of year $t$) and **principal repayment** $R - i \\cdot O_t$. The outstanding balance at time $t$ is $O_t = R \\cdot a_{\\overline{n-t}|}$ (prospective method) or $O_t = L(1+i)^t - R \\cdot s_{\\overline{t}|}$ (retrospective method). Both give the same answer — a fact that is itself an equation of value.\n\n**Bond pricing**. A fixed-coupon bond with face value $F$, coupon rate $r$, maturity $n$ years, and valuation yield $i$ has price:\n$$P = F r \\cdot a_{\\overline{n}|} + F v^n$$\nThe first term is the PV of the coupon stream; the second is the PV of the redemption payment. **Premium bonds** ($P > F$) arise when $r > i$; **discount bonds** ($P < F$) when $r < i$. Bond mathematics is tested on the SOA's **Exam FM** and the IFoA's **Subject CM1**.\n\n**Yield rate (internal rate of return)**. The yield $i^*$ is the discount rate that makes the equation of value hold exactly. For most bonds and annuities there is a unique positive yield; for more complex projects with multiple sign changes in the cash-flow stream, the yield may not be unique (a limitation noted in the **Descartes' rule of signs** context).\n\n**Force of interest in continuous models**. When the force of interest is not constant but a function $\\delta(t)$, the accumulation from time $s$ to $t$ generalises to $\\exp\\!\\left(\\int_s^t \\delta(u)\\, du\\right)$. This generalisation is used in **stochastic interest models** such as the **Vasicek model** (Oldrich Vasicek, 1977) and the **Cox-Ingersoll-Ross (CIR) model** (1985), which underlie modern asset-liability management.\n\n**Asset-Liability Management (ALM)** is the actuarial discipline of matching the interest-rate sensitivity of a portfolio of liabilities (e.g., annuities) with an asset portfolio. The **duration** of a cash-flow stream — $D = -dP/di / P$ — measures price sensitivity to interest-rate changes. **Frederick Macaulay** formalised duration in his 1938 NBER study *Some Theoretical Problems Suggested by the Movements of Interest Rates, Bond Yields, and Stock Prices in the United States since 1856*. **Modified duration** $D^* = D/(1+i)$ and **convexity** are the standard ALM tools taught in SOA's **Exam IFM** and the IFoA's **Subject CM2**."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_int_1",
+        "kind": "math_expression",
+        "question": "At an annual effective rate of $i = 6\\%$, what is the present value of an annuity-immediate paying £1 at the end of each year for 10 years? Use $a_{\\overline{10}|} = (1 - v^{10})/i$ with $v = 1/1.06$. Give your answer to 4 decimal places.",
+        "acceptedAnswers": [
+          "7.3601",
+          "7.36",
+          "7.360087",
+          "7.3601 (approx)"
+        ],
+        "hint": "Compute $v^{10} = (1.06)^{-10} \\approx 0.55839$. Then $a_{\\overline{10}|} = (1 - 0.55839) / 0.06$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_int_1",
+        "kind": "multiple_choice",
+        "question": "Which relationship correctly converts a nominal rate $i^{(12)}$ (convertible monthly) to the annual effective rate $i$?",
+        "options": [
+          "$i = 12 \\cdot i^{(12)}$",
+          "$i = \\left(1 + \\dfrac{i^{(12)}}{12}\\right)^{12} - 1$",
+          "$i = e^{i^{(12)}} - 1$",
+          "$i = \\dfrac{i^{(12)}}{1 - i^{(12)}/12}$"
+        ],
+        "correctIndex": 1,
+        "explanation": "A nominal rate $i^{(12)}$ convertible monthly means that $i^{(12)}/12$ is the effective rate *per month*. After 12 months, £1 grows to $(1 + i^{(12)}/12)^{12}$, so the annual effective rate satisfies $1 + i = (1 + i^{(12)}/12)^{12}$, giving option B. Option A is the simple-interest approximation and ignores compounding — it is only accurate when $i^{(12)}$ is very small. Option C would apply if $i^{(12)}$ were already a force of interest (continuously compounded rate), but nominal rates are *not* forces of interest. Option D has no standard actuarial meaning. The distinction between nominal and effective rates appears throughout SOA Exam FM (formerly Course 2) and the IFoA Subject CM1 syllabus, and is critical whenever premiums or loan repayments are made more frequently than annually."
+      },
+      "hints": [
+        "The monthly sub-period rate is $i^{(12)}/12$.",
+        "Compounding 12 times gives the annual effective equivalent."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Monthly compounding: each month £1 grows by factor $(1 + i^{(12)}/12)$. Over 12 months the growth is $(1 + i^{(12)}/12)^{12}$. Setting this equal to $(1+i)$ gives the annual effective rate. For example, $i^{(12)} = 6\\%$ gives $i = (1 + 0.005)^{12} - 1 \\approx 6.168\\%$ — the effective rate is *higher* than the nominal rate because of within-year compounding."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_int_1",
+        "kind": "guided_derivation",
+        "question": "Derive the present value formula for an annuity-immediate $a_{\\overline{n}|}$",
+        "goal": "Starting from first principles — a series of $n$ end-of-year payments of £1 — derive the closed-form expression $a_{\\overline{n}|} = (1 - v^n)/i$.",
+        "steps": [
+          {
+            "prompt": "Write the present value as a sum of discounted payments.",
+            "motivation": "Express PV as a finite series before summing.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "a = v + v^2 + ... + v^n",
+                "PV = v + v^2 + v^3 + ... + v^n"
+              ]
+            },
+            "hints": [
+              "The payment at time $k$ is discounted by $v^k$."
+            ],
+            "reveal": "$a_{\\overline{n}|} = \\sum_{k=1}^{n} v^k = v + v^2 + \\cdots + v^n$. This is a geometric series with first term $v$ and common ratio $v$."
+          },
+          {
+            "prompt": "Apply the geometric series formula to obtain the closed form.",
+            "motivation": "Sum of a finite geometric series: $\\sum_{k=1}^{n} r^k = r(1-r^n)/(1-r)$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "v(1 - v^n)/(1 - v)",
+                "v(1-v^n)/(1-v)"
+              ]
+            },
+            "hints": [
+              "First term $v$, ratio $v$, $n$ terms."
+            ],
+            "reveal": "$a_{\\overline{n}|} = v \\cdot \\dfrac{1 - v^n}{1 - v}$. Now simplify using the identity $1 - v = 1 - 1/(1+i) = i/(1+i) = iv$."
+          },
+          {
+            "prompt": "Substitute $1 - v = iv$ to reach the standard form.",
+            "motivation": "Cancel $v$ in numerator and denominator.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(1 - v^n)/i",
+                "a = (1 - v^n)/i"
+              ]
+            },
+            "hints": [
+              "$v \\cdot \\frac{1 - v^n}{iv} = \\frac{1 - v^n}{i}$."
+            ],
+            "reveal": "$a_{\\overline{n}|} = v \\cdot \\dfrac{1 - v^n}{iv} = \\dfrac{1 - v^n}{i}$. This is the standard formula taught in Kellison's *Theory of Interest* (3rd ed., 2008) and tested on SOA Exam FM."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_int_1",
+        "kind": "explain_back",
+        "prompt": "In at most 150 words, explain to a non-specialist why the force of interest $\\delta$ is useful despite the existence of the simpler effective rate $i$, and give one actuarial context where $\\delta$ arises naturally.",
+        "rubric": "Response should convey: $\\delta = \\ln(1+i)$ is the continuously compounded rate; it emerges as $m \\to \\infty$ in the nominal-rate formula $i^{(m)}$; mathematically it linearises growth ($e^{\\delta t}$) and makes calculus tractable (differentiation/integration of $e^{-\\delta t}$). A good actuarial context: continuous life annuities $\\bar{a}_{\\overline{n}|} = (1 - e^{-\\delta n})/\\delta$ or continuous life insurance $\\bar{A}_x$ where survival and discounting are integrated simultaneously. Bonus: mention Vasicek (1977) or CIR (1985) stochastic force-of-interest models used in ALM. Should NOT say $\\delta = i$ — they are numerically close but not equal."
+      }
+    }
+  ]
+}

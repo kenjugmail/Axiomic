@@ -90,6 +90,9 @@ const BeatGrid = lazy(() => import("../../../../packages/viz/src/components/Beat
 const VitalSignsMonitor = lazy(() => import("../../../../packages/viz/src/components/VitalSignsMonitor").then(m => ({ default: m.VitalSignsMonitor })));
 const FlavorWheel = lazy(() => import("../../../../packages/viz/src/components/FlavorWheel").then(m => ({ default: m.FlavorWheel })));
 const AirfoilPolar = lazy(() => import("../../../../packages/viz/src/components/AirfoilPolar").then(m => ({ default: m.AirfoilPolar })));
+const LedgerTAccounts = lazy(() => import("../../../../packages/viz/src/components/LedgerTAccounts").then(m => ({ default: m.LedgerTAccounts })));
+const CropYieldResponse = lazy(() => import("../../../../packages/viz/src/components/CropYieldResponse").then(m => ({ default: m.CropYieldResponse })));
+const SurvivalCurve = lazy(() => import("../../../../packages/viz/src/components/SurvivalCurve").then(m => ({ default: m.SurvivalCurve })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -184,6 +187,9 @@ export const VIZ_NAMES = [
   "vital-signs-monitor",
   "flavor-wheel",
   "airfoil-polar",
+  "ledger-t-accounts",
+  "crop-yield-response",
+  "survival-curve",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -276,6 +282,9 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "vital-signs-monitor": VitalSignsMonitor,
   "flavor-wheel": FlavorWheel,
   "airfoil-polar": AirfoilPolar,
+  "ledger-t-accounts": LedgerTAccounts,
+  "crop-yield-response": CropYieldResponse,
+  "survival-curve": SurvivalCurve,
 };
 
 interface VizEmbedProps {

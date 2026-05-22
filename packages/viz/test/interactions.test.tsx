@@ -21,6 +21,9 @@ import { DnaElectropherogram } from "../src/components/DnaElectropherogram";
 import { VitalSignsMonitor } from "../src/components/VitalSignsMonitor";
 import { FlavorWheel } from "../src/components/FlavorWheel";
 import { AirfoilPolar } from "../src/components/AirfoilPolar";
+import { LedgerTAccounts } from "../src/components/LedgerTAccounts";
+import { CropYieldResponse } from "../src/components/CropYieldResponse";
+import { SurvivalCurve } from "../src/components/SurvivalCurve";
 
 let h: VizHarness | null = null;
 afterEach(() => {
@@ -97,5 +100,20 @@ describe("viz interactions", () => {
   test("AirfoilPolar: choosing an AoA preset moves the active highlight", () => {
     h = mountViz(createElement(AirfoilPolar));
     expectSelectionMoves(h, "Cruise 4°", "Stall 16°");
+  });
+
+  test("LedgerTAccounts: stepping transactions moves the active highlight", () => {
+    h = mountViz(createElement(LedgerTAccounts));
+    expectSelectionMoves(h, "1. Invest", "3. Borrow");
+  });
+
+  test("CropYieldResponse: picking a nutrient moves the active highlight", () => {
+    h = mountViz(createElement(CropYieldResponse));
+    expectSelectionMoves(h, "Nitrogen", "Potassium");
+  });
+
+  test("SurvivalCurve: switching era moves the active highlight", () => {
+    h = mountViz(createElement(SurvivalCurve));
+    expectSelectionMoves(h, "1900", "2000");
   });
 });

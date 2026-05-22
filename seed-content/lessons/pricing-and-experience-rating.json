@@ -1,0 +1,153 @@
+{
+  "slug": "pricing-and-experience-rating",
+  "meta": {
+    "timeMinutes": 27,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply the pure premium and loss ratio ratemaking methods to derive indicated rate changes.",
+      "Implement Bühlmann credibility to blend individual experience with a collective prior.",
+      "Use the chain-ladder and Bornhuetter-Ferguson methods to estimate IBNR reserves."
+    ],
+    "prereqs": [
+      "premium-calculation-and-reserves"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Non-life ratemaking: pure premium and loss ratio methods",
+      "body": "**Ratemaking** is the actuarial process of setting premium rates that are **adequate** (sufficient to pay losses and expenses), **not excessive** (competitive), and **not unfairly discriminatory** (legally required in most jurisdictions). The two classical methods are the **pure premium method** and the **loss ratio method**, both derived from the same fundamental decomposition.\n\n**Premium components**:\n$$P = \\frac{L + E_L}{1 - V - Q}$$\nwhere $L$ is expected losses, $E_L$ are loss adjustment expenses (LAE), $V$ is the variable expense ratio (as fraction of premium), and $Q$ is the target profit ratio. The quantity $L/P$ is the **loss ratio** and $E_L/P$ is the **LAE ratio**; together they form the **combined ratio** when expense ratio is added.\n\n**Pure premium method**: estimate the pure premium $PP = L / E$ directly from observed loss data, where $E$ is the earned exposure (policy-years for auto; payroll for workers' compensation). The indicated rate is then $PP / (1 - V - Q)$. Suitable when a new class is being introduced with no prior rates to compare against.\n\n**Loss ratio method**: compute the **indicated change factor**:\n$$\\text{ICF} = \\frac{\\text{Actual Loss Ratio}}{\\text{Expected (Permissible) Loss Ratio}} = \\frac{L / P}{1 - V - Q}$$\nThe current rate is multiplied by ICF to produce the indicated new rate. This method is preferred when the existing rate level is a reasonable anchor.\n\n**Trend factors**: historical losses must be adjusted to the future policy period. A **loss trend** factor projects observed losses to expected future levels, capturing inflation and changes in claim severity over time. **Casualty Actuarial Society** (CAS) *Statement of Principles Regarding Property and Casualty Insurance Ratemaking* (1988, revised) codifies these methods as the professional standard.\n\n**Generalized Linear Models in pricing**: the modern approach, originating with **Peter McCullagh** and **John Nelder's** *Generalized Linear Models* (1983; 2nd ed. 1989), replaces manual class relativities with a regression framework. For frequency, $N_i \\sim \\text{Poisson}(\\mu_i)$ with $\\log \\mu_i = \\mathbf{x}_i^\\top \\boldsymbol{\\beta}$; for severity, $X_i \\sim \\text{Gamma}(\\mu_i, \\phi)$ with $\\log \\mu_i = \\mathbf{x}_i^\\top \\boldsymbol{\\gamma}$. The GLM framework:\n- Automatically ensures positive predicted losses (log link).\n- Handles correlated rating factors (age, territory, vehicle type) jointly.\n- Produces statistically calibrated relativities with standard errors.\n- Superseded the old **minimum bias** iteration (Bailey and Simon, 1960) and is now the universal standard in the **UK General Insurance Market** following its adoption in the 1990s by companies including Zurich and Aviva.\n\n**Tweedie distribution** (Tweedie 1984): a compound Poisson-gamma distribution with $P(X=0) > 0$, used to model aggregate losses directly (frequency × severity combined) in a single GLM step. The Tweedie power parameter $p \\in (1,2)$ bridges Poisson ($p=1$) and gamma ($p=2$)."
+    },
+    {
+      "kind": "text",
+      "title": "Credibility theory: Bühlmann and limited-fluctuation credibility",
+      "body": "**Credibility theory** answers: when should a small insured's own loss history override or complement the manual (collective) rate? The credibility-weighted premium is:\n$$P^* = Z \\cdot \\bar{X} + (1-Z) \\cdot M$$\nwhere $\\bar{X}$ is the individual observed pure premium, $M$ is the manual (prior) rate, and $Z \\in [0,1]$ is the **credibility factor**.\n\n**Limited-fluctuation credibility** (also called **classical** or **American** credibility): developed by **Albert Whitney** (1918) and **Arthur Bailey** (1950). The credibility factor is $Z = \\min(1, \\sqrt{n/n_0})$ where $n_0$ is the **full-credibility standard** — the volume of exposure at which the observed mean is within $k\\%$ of the true mean with probability $p$. For pure premiums with $N \\sim$ Poisson and independent severity, the full-credibility standard is:\n$$n_0 = \\frac{z_{(1+p)/2}^2}{k^2}\\left(1 + \\frac{\\text{Var}(X)}{(E[X])^2}\\right)$$\nAt $p=0.90, k=0.05$: $n_0 \\approx 1082$ (frequency only) or higher for pure premiums. Limitations: $Z$ is derived from frequentist probability; it ignores structural information about the insured class.\n\n**Bühlmann credibility** (greatest-accuracy credibility, **Hans Bühlmann**, *Mathematical Methods in Risk Theory*, 1970): the theoretically optimal linear Bayes estimator. Given the hierarchical model where insured $i$ has risk parameter $\\Theta_i$ and conditional expected loss $\\mu(\\Theta_i) = E[X_{ij} | \\Theta_i]$:\n- **Expected value of process variance**: $v = E[\\text{Var}(X_{ij}|\\Theta_i)]$\n- **Variance of hypothetical means**: $a = \\text{Var}(\\mu(\\Theta_i))$\n- **Bühlmann parameter**: $k = v/a$\n- **Credibility factor**: $Z = n/(n+k)$\n\nThe Bühlmann credibility estimate $\\hat{\\mu} = Z\\bar{X} + (1-Z)M$ is the **best linear predictor** of the insured's future expected loss, minimizing mean-squared error over all linear combinations of $\\bar{X}$ and $M$. As $n \\to \\infty$, $Z \\to 1$ (full credibility); as $k \\to \\infty$ (high within-insured variance), $Z \\to 0$ (trust the manual rate).\n\n**Bühlmann-Straub model** (**Hans Bühlmann** and **Erwin Straub**, 1970, *Mitteilungen der Vereinigung Schweizerischer Versicherungsmathematiker*): extends to insureds with varying exposures $m_{ij}$, with $Z = m_i / (m_i + k)$ where $m_i = \\sum_j m_{ij}$. This is the standard for commercial lines experience rating.\n\n**Bonus-malus systems** (BMS): the most visible application of credibility in personal lines. After each claim-free year, a policyholder moves down on the BMS scale (bonus); after a claim, up (malus). **Jean Lemaire's** *Bonus-Malus Systems in Automobile Insurance* (1995) is the standard reference. Optimal BMS are derived as Bayesian credibility updates under a Poisson-Gamma prior. **Robert Bailey's** *Any Room Left in Credibility?* (1950) showed equivalence with limited-fluctuation credibility under special conditions."
+    },
+    {
+      "kind": "text",
+      "title": "Loss reserving: chain-ladder, Bornhuetter-Ferguson, and IBNR",
+      "body": "**Loss reserving** is the estimation of future claim payments on already-occurred events — one of the actuarially most consequential tasks because reserve errors directly affect reported earnings, solvency ratios, and pricing adequacy.\n\n**Development triangles**: paid or incurred losses are organized in a matrix with **accident years** as rows and **development ages** (time since accident) as columns. The bottom-right corner — losses not yet reported or not yet fully developed — is the **IBNR** (Incurred But Not Reported) reserve target.\n\n**Chain-ladder method** (also called the **development method** or **link ratio method**): estimate **age-to-age development factors** $f_k$ from historical patterns:\n$$f_k = \\frac{\\sum_{i} C_{i,k+1}}{\\sum_{i} C_{i,k}}$$\nwhere $C_{i,k}$ is cumulative paid losses for accident year $i$ at development age $k$ (only rows with data at both ages $k$ and $k+1$ contribute). Project the diagonal forward using these factors. First formalized by **Thomas Mack** (*Insurance: Mathematics and Economics*, 1993), who also derived the **Mack formula** for standard errors of chain-ladder reserves — a fundamental result showing the chain-ladder is the best linear unbiased estimator under certain assumptions.\n\n**Bornhuetter-Ferguson method** (**Ronald Bornhuetter** and **Ronald Ferguson**, *Proceedings of the Casualty Actuarial Society*, 1972): a credibility blend between the chain-ladder development projection and an *a priori* expected loss estimate. The reserve estimate is:\n$$R_{BF} = (1 - 1/f_k^{CDF}) \\cdot ELR \\cdot E$$\nwhere $ELR$ is the expected loss ratio (the prior), $E$ is earned premium, and $f_k^{CDF}$ is the cumulative development factor from the current age to ultimate. BF is preferred for **immature accident years** where there is little paid data — the chain-ladder is unstable in early development periods, and BF's prior anchors the projection. As accident years mature, BF and chain-ladder converge.\n\n**Paid vs. incurred reserving**: paid development triangles require a **tail factor** extrapolating beyond the last observed development age (often 10+ years for liability). Incurred (case-reserve) triangles include adjuster estimates and can introduce systematic bias if case-reserving practices change. The **Munich Chain Ladder** (**Gerhard Quarg** and **Thomas Mack**, 2004) reconciles paid and incurred triangles by modeling the residual correlation between them.\n\n**Bootstrap reserving** (**Peter England** and **Richard Verrall**, *British Actuarial Journal*, 1999, 2002): produces a full predictive distribution of the reserve estimate by resampling Pearson residuals from the chain-ladder model — the standard stochastic reserving method in **Solvency II** internal models.\n\n**GLM-based reserving**: the connection between chain-ladder and over-dispersed Poisson GLMs was established by **Piet de Jong** and **Gillian Gilchrist** and independently **Renshaw** and **Verrall** (1998) — showing the chain-ladder is equivalent to an over-dispersed Poisson log-linear model, unifying reserving with pricing methodology.\n\n**IBNR vs. IBNER**: **IBNR** (Incurred But Not Reported) covers claims not yet reported; **IBNER** (Incurred But Not Enough Reserved) covers reported but under-reserved claims. Modern reserve analyses separate these components. **International Accounting Standard IFRS 17** *Insurance Contracts* (effective 2023, replacing **IFRS 4**) requires explicit recognition of the **contractual service margin** (CSM) and liability for incurred claims (LIC) — directly changing how reserves appear on financial statements."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "me_price_1",
+        "kind": "math_expression",
+        "question": "An insured has $n=4$ years of loss experience with observed pure premium $\\bar{X} = 800$. The manual rate is $M = 1{,}000$. The Bühlmann parameter is $k = 6$. Compute the credibility-weighted premium $P^* = Z\\bar{X} + (1-Z)M$.",
+        "acceptedAnswers": [
+          "840",
+          "840.00",
+          "$840"
+        ],
+        "hint": "First compute $Z = n/(n+k) = 4/(4+6)$. Then $P^* = Z \\cdot 800 + (1-Z) \\cdot 1000$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_price_1",
+        "kind": "guided_derivation",
+        "question": "Apply the chain-ladder method to a small development triangle",
+        "goal": "Given the following cumulative paid loss triangle (accident years 2021-2023, development ages 12, 24, 36 months):\\n\\n| AY | 12 | 24 | 36 |\\n|----|----|----|-----|\\n| 2021 | 1000 | 1400 | 1600 |\\n| 2022 | 1200 | 1680 | — |\\n| 2023 | 1100 | — | — |\\n\\nEstimate the age-to-age factors $f_{12\\to24}$ and $f_{24\\to36}$, then project the ultimates for AY 2022 and AY 2023.",
+        "steps": [
+          {
+            "prompt": "Compute the volume-weighted age-to-age factor $f_{12 \\to 24}$.",
+            "motivation": "Volume-weighted factors are the standard chain-ladder estimate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "f_{12 to 24} = (1400 + 1680) / (1000 + 1200) = 3080/2200 = 1.4"
+              ]
+            },
+            "hints": [
+              "Sum the numerator ages across all accident years with data at both 12 and 24 months.",
+              "AY 2021 and AY 2022 both have 12- and 24-month data."
+            ],
+            "reveal": "$f_{12\\to24} = (C_{2021,24} + C_{2022,24}) / (C_{2021,12} + C_{2022,12}) = (1400+1680)/(1000+1200) = 3080/2200 = 1.400$. Only AY 2021 and 2022 contribute (AY 2023 has no 24-month column yet)."
+          },
+          {
+            "prompt": "Compute the volume-weighted age-to-age factor $f_{24 \\to 36}$.",
+            "motivation": "Only AY 2021 has both 24- and 36-month data.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "f_{24 to 36} = 1600/1400 = 1.1429",
+                "f_{24 to 36} = 1600/1400 ≈ 1.143",
+                "8/7",
+                "1600/1400"
+              ]
+            },
+            "hints": [
+              "Only AY 2021 has data at both ages 24 and 36."
+            ],
+            "reveal": "$f_{24\\to36} = C_{2021,36}/C_{2021,24} = 1600/1400 \\approx 1.143$. With only one year of data, this factor carries high parameter uncertainty — a situation where the Bornhuetter-Ferguson method would provide a more stable estimate."
+          },
+          {
+            "prompt": "Project the ultimate for AY 2022 (currently at 24-month development).",
+            "motivation": "Multiply current diagonal by remaining development factor.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1680 * 1.1429 ≈ 1920",
+                "1680 × (8/7) = 1920",
+                "1920"
+              ]
+            },
+            "hints": [
+              "AY 2022 is at age 24; multiply by $f_{24\\to36}$."
+            ],
+            "reveal": "AY 2022 ultimate $= C_{2022,24} \\times f_{24\\to36} = 1680 \\times (8/7) = 1920$. The IBNR for AY 2022 is $1920 - 1680 = 240$."
+          },
+          {
+            "prompt": "Project the ultimate for AY 2023 (currently at 12-month development).",
+            "motivation": "AY 2023 needs two development factors applied sequentially.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1100 * 1.4 * (8/7) = 1100 * 1.4 * 1.1429 ≈ 1760",
+                "1100 × 1.4 × (8/7) = 1760",
+                "1760"
+              ]
+            },
+            "hints": [
+              "Apply $f_{12\\to24}$ then $f_{24\\to36}$.",
+              "The CDF from 12 to ultimate is $f_{12\\to24} \\times f_{24\\to36}$."
+            ],
+            "reveal": "AY 2023 ultimate $= C_{2023,12} \\times f_{12\\to24} \\times f_{24\\to36} = 1100 \\times 1.400 \\times 1.143 = 1100 \\times 1.600 = 1760$. The IBNR for AY 2023 is $1760 - 1100 = 660$. Total IBNR reserve $= 240 + 660 = 900$."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_price_1",
+        "kind": "multiple_choice",
+        "question": "Why is the Bornhuetter-Ferguson (1972) method preferred over the chain-ladder method for **immature** accident years in loss reserving?",
+        "options": [
+          "BF always produces lower reserves than chain-ladder, which satisfies regulatory minimum capital requirements.",
+          "BF uses only paid data and avoids the instability in incurred triangles from case-reserving changes.",
+          "BF blends an *a priori* expected loss estimate with the chain-ladder development projection, anchoring the reserve when observed paid data is sparse and large development factors amplify noise in early accident years.",
+          "BF is required by IFRS 17 for all accident years regardless of maturity."
+        ],
+        "correctIndex": 2,
+        "explanation": "The **Bornhuetter-Ferguson (1972)** method (published in the *Proceedings of the Casualty Actuarial Society* by **Ronald Bornhuetter** and **Ronald Ferguson**) is a **credibility blend** between two extremes: pure chain-ladder development (which trusts observed data entirely) and pure expected losses (which ignores experience entirely). The reserve formula is $R_{BF} = (1 - 1/f^{CDF}) \\cdot ELR \\cdot E$, where the **expected unreported fraction** $(1 - 1/f^{CDF})$ acts as the weight on the prior expected losses $ELR \\cdot E$. For immature accident years, $f^{CDF}$ is very large (most losses are unreported), so $(1 - 1/f^{CDF}) \\approx 1$ and the reserve is almost entirely the *a priori* estimate — exactly what we want when there is almost no data. For mature years, $f^{CDF} \\to 1$ and $(1 - 1/f^{CDF}) \\to 0$, so BF collapses to the chain-ladder. In contrast, the chain-ladder for a young accident year multiplies small paid amounts by enormous cumulative development factors (e.g., $\\times 20$ for a 3-month-old accident year), making the estimate extremely volatile. **Thomas Mack's** 1993 paper showed that the chain-ladder's variance grows rapidly for immature years, quantifying this instability. Option A is false — BF can produce higher or lower reserves. Option B is false — BF can use either paid or incurred triangles. Option D is false — IFRS 17 requires a best estimate liability but does not mandate a specific reserving algorithm."
+      },
+      "hints": [
+        "Think about what happens to the chain-ladder when there is very little paid data at early development ages.",
+        "The BF formula includes an expected loss ratio (ELR) — what role does it play?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "For an immature accident year, most losses are unreported and the paid development factor $f^{CDF}$ is enormous. Chain-ladder multiplies a small paid amount by this huge factor, producing a volatile estimate. BF replaces this with a blend: the *a priori* ELR provides a stable anchor, and the blend weight $(1 - 1/f^{CDF})$ is close to 1 for immature years, so the BF reserve is almost entirely the prior — stabilizing the estimate. As the accident year matures, BF automatically transitions toward the chain-ladder. This is precisely the credibility logic: when there is little data, trust the prior; as experience accumulates, trust the data."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_price_1",
+        "kind": "explain_back",
+        "prompt": "In ≤150 words, explain Bühlmann credibility: what problem it solves, the roles of $v$ (expected process variance) and $a$ (variance of hypothetical means), how $k = v/a$ determines $Z = n/(n+k)$, and why this is theoretically superior to limited-fluctuation credibility. Cite Bühlmann 1970 and Bühlmann-Straub 1970.",
+        "rubric": "Should explain: the ratemaking problem of blending individual experience $\\bar{X}$ with the collective manual rate $M$; $v = E[\\text{Var}(X|\\Theta)]$ measures within-insured variability (process variance); $a = \\text{Var}(E[X|\\Theta])$ measures between-insured variability (structural risk heterogeneity); $k = v/a$: when within-insured variance dominates ($v$ large, $a$ small), $k$ is large and credibility $Z$ is low (trust the manual); when insured-to-insured variation dominates ($a$ large), $k$ is small and $Z$ rises quickly. Should cite **Hans Bühlmann**, *Mathematical Methods in Risk Theory* (1970, Springer) and **Bühlmann-Straub** (1970) for the varying-exposure extension. Superiority over limited-fluctuation credibility: $Z = n/(n+k)$ is the **best linear predictor** (minimum MSE), not just a threshold rule."
+      }
+    }
+  ]
+}

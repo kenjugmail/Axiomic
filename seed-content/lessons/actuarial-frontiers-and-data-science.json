@@ -1,0 +1,134 @@
+{
+  "slug": "actuarial-frontiers-and-data-science",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply gradient boosting and GLMs as complementary tools in actuarial pricing, explaining the explainability trade-off.",
+      "Describe IFRS 17 Insurance Contracts (2023) and its impact on reserve presentation and the contractual service margin.",
+      "Evaluate ethical and regulatory dimensions of algorithmic pricing, including fairness constraints and GDPR."
+    ],
+    "prereqs": [
+      "solvency-and-enterprise-risk"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Predictive analytics and machine learning in actuarial pricing",
+      "body": "The transition from **Generalized Linear Models** (GLMs, McCullagh and Nelder 1983/1989) to **machine learning** methods in actuarial pricing has been the dominant professional development of the 2010s–2020s. GLMs remain the regulatory and interpretive benchmark; ML methods provide predictive power on complex non-linear interactions.\n\n**Gradient Boosted Trees** (GBTs): the current leading ML method in P&C pricing. **Jerome Friedman's** *Greedy Function Approximation: A Gradient Boosting Machine* (*Annals of Statistics*, **2001**) introduced the general framework; **XGBoost** (**Tianqi Chen** and **Carlos Guestrin**, KDD **2016**) became the dominant implementation. GBTs fit an ensemble of shallow trees sequentially, each correcting the residuals of the previous. For insurance frequency-severity models:\n- GBT frequency outperforms GLM Poisson on large datasets with high-dimensional interaction effects.\n- GBT severity is compared to Gamma GLM; the two are sometimes ensembled.\n- **SHAP values** (**Scott Lundberg** and **Su-In Lee**, NeurIPS **2017**) — SHapley Additive exPlanations based on cooperative game theory (Lloyd Shapley, Nobel Memorial Prize in Economics **2012**) — provide the leading framework for interpreting ML predictions in actuarial contexts, satisfying the **dummy**, **symmetry**, and **efficiency** axioms.\n\n**Neural networks in insurance pricing**: **deep learning** feed-forward networks can capture complex non-linearities but require large datasets and are less interpretable. **Combined Actuarial Neural Network (CANN)** (**Mario Wüthrich** and **Michael Merz**, *SSRN*, **2019**): a hybrid architecture that uses a GLM prediction as an offset in a neural network, combining GLM interpretability with neural-network flexibility. The CANN architecture is the state of the art for mortality modeling and property pricing at insurers with large datasets.\n\n**Telematics and usage-based insurance (UBI)**: pricing based on actual driving behavior (speed, braking, cornering, mileage, time-of-day) transmitted via **telematics** devices or smartphone apps. **Progressive Insurance** pioneered Snapshot (US, launched **2010**); **Admiral** pioneered LittleBox in the UK (**2012**). UBI uses natural language processing (NLP) on telematics signals, gradient boosted models on trip-level features, and survival analysis for policy retention. The **Cambridge Centre for Risk Studies** (*Insurance Innovation: Telematics and UBI*, **2018**) documented the actuarial challenges: adverse selection on opt-in, data governance under **GDPR** (EU Regulation 2016/679), and the privacy-pricing trade-off.\n\n**Longevity risk and longevity swaps**: the risk that policyholders (especially annuitants and pension beneficiaries) live longer than expected. **David Blake, Andrew Cairns, and Kevin Dowd** developed the **CBD model** (Cairns-Blake-Dowd mortality model, *Journal of Risk and Insurance*, **2006**) — a two-factor stochastic mortality model tracking the level and slope of the mortality term structure. **Longevity swaps** transfer this risk to capital-market counterparties: the insurer pays expected mortality cash flows and receives actual mortality cash flows. **BT Pension Scheme** executed the world's first longevity swap with **Prudential** in **2009** (£1.1B). **PartnerRe** and **SCOR** are major longevity reinsurers. The **Life and Longevity Markets Association (LLMA)**, founded **2010**, promotes capital-market solutions for longevity risk."
+    },
+    {
+      "kind": "text",
+      "title": "IFRS 17 Insurance Contracts and parametric insurance",
+      "body": "**IFRS 17 Insurance Contracts** (International Accounting Standards Board, **IASB**): the new global accounting standard for insurance liabilities, **effective 1 January 2023** (replacing **IFRS 4** which had been a temporary standard since 2004). IFRS 17 is the most significant change to insurance accounting in decades.\n\n**Core measurement model — the General Model (BBA)**:\n$$\\text{Insurance Contract Liability} = \\text{BEL} + \\text{RA} + \\text{CSM}$$\n- **BEL (Best Estimate of Liabilities)**: the probability-weighted present value of future cash flows, discounted at the **current yield curve** (not locked-in historical rates). This marks liabilities to market, introducing volatility that IFRS 4 had concealed.\n- **RA (Risk Adjustment)**: an explicit charge for non-financial risk — the compensation the insurer requires for bearing uncertainty. Typically computed as TVaR or a cost-of-capital margin, disclosed as a confidence interval (e.g., 75th percentile).\n- **CSM (Contractual Service Margin)**: the unearned profit in an insurance contract at inception. The CSM is not recognized immediately as income but is released to profit or loss as insurance services are provided over the coverage period — fundamentally changing revenue recognition for long-duration contracts.\n\n**Premium Allocation Approach (PAA)**: a simplified method for short-duration contracts (coverage period ≤ 12 months) approximating the General Model — applicable to most P&C insurance and consistent with existing unearned premium reserve methods.\n\n**Variable Fee Approach (VFA)**: for **direct participation contracts** (unit-linked life, with-profits), the CSM is adjusted for changes in the fair value of underlying assets — the insurer shares market returns with policyholders.\n\nIFRS 17 requires the actuarial function to produce a **current estimate** of liabilities at every reporting date, creating a closer integration between actuarial and finance functions. The **Institute and Faculty of Actuaries (IFoA)** published *Actuaries and IFRS 17* (Working Party Report, **2022**) as a professional guidance document.\n\n**Parametric insurance**: policies that pay a predetermined amount when a measurable **trigger event** occurs (e.g., wind speed exceeds 120 mph at a specified location; earthquake Richter magnitude > 7.0; rainfall below a threshold over 30 days), rather than indemnifying actual losses. Advantages: **no basis risk from claims adjustment** (payment is automatic); eliminates moral hazard; pays within days of the event. Challenges: **basis risk** (trigger may not correlate perfectly with actual loss). Applications:\n- **Caribbean Catastrophe Risk Insurance Facility (CCRIF)**, established **2007** by the World Bank — the first multi-country risk pool offering parametric earthquake and hurricane cover to Caribbean governments.\n- **African Risk Capacity (ARC)**: parametric drought insurance for African sovereign governments, using satellite rainfall data.\n- **Munich Re's** NATHAN (Natural Hazards Assessment Network) — a geospatial risk modeling platform underlying many parametric insurance products.\n- ILS (Insurance-Linked Securities): **catastrophe bonds** triggered parametrically, transferring peak catastrophe risk to capital markets. **Swiss Re Capital Markets** and **Aon Securities** are leading ILS arrangers. The global ILS market exceeded **$100 billion** in outstanding notional by **2024** (Artemis.bm data)."
+    },
+    {
+      "kind": "text",
+      "title": "Algorithmic fairness, regulation, and the evolving actuarial profession",
+      "body": "**Explainability and fairness in algorithmic pricing** have become critical regulatory and professional issues as ML models penetrate insurance underwriting. The tension is fundamental: the variables that best predict loss (e.g., credit score, postcode/zip code, telematics behavior) are often correlated with **protected characteristics** (race, gender, disability, religion) under anti-discrimination law.\n\n**Regulatory landscape**:\n- **EU Gender Directive** (Council Directive 2004/113/EC; reinforced by **ECJ Case C-236/09, Test-Achats**, **2011**): prohibited the use of gender as a rating factor in EU insurance from **21 December 2012**. Actuarially, gender is a strong predictor of motor claim frequency; the ban created pricing cross-subsidies requiring GLM re-calibration using proxy variables (mileage, vehicle type, occupation).\n- **GDPR** (EU Regulation 2016/679, effective **2018**): **Article 22** restricts purely automated decisions with significant effects, requiring a human review option. Applied to insurance pricing, this constrains fully automated ML-driven underwriting for high-stakes decisions.\n- **UK FCA Consumer Duty** (2023): requires firms to demonstrate that pricing outcomes are **fair** and that vulnerable customers are not disadvantaged — including by algorithmic pricing.\n- **US state regulations**: several US states have enacted or proposed rules restricting the use of **credit-based insurance scores** (which correlate with race) in homeowners and auto insurance pricing. **Colorado** SB21-169 (2021) prohibits insurers from using any external data that has a discriminatory impact.\n\n**The SHAP-fairness tension**: SHAP values (Lundberg and Lee, 2017) explain a model's prediction by decomposing it into per-feature contributions based on Shapley values. A model that achieves **demographic parity** (equal predicted loss ratios across groups) may lose predictive accuracy; a model that achieves **equalized odds** (equal true positive rates across groups) is different again. **Moritz Hardt, Eric Price, Nathan Srebro** (*Advances in Neural Information Processing Systems*, **2016**) — *Equality of Opportunity in Supervised Learning* — formalized these fairness criteria. No single fairness criterion satisfies all simultaneously (the **impossibility theorem** of Chouldechova 2017 and Kleinberg et al. 2017).\n\n**Climate and pandemic catastrophe modeling**: the next frontier for actuarial science.\n- **Pandemic risk**: COVID-19 demonstrated that correlations between lines of business (business interruption, mortality, credit, travel, event cancellation) are far higher in a systemic shock than individual-line models assumed. **Lloyd's of London** estimated pandemic-related losses to the insurance industry of $\\$30-$\\$107$ billion from COVID-19 (2020). The **Pandemic Risk Insurance Act (PRIA)** proposed in the US Congress (2020) drew on TRIA (Terrorism Risk Insurance Act, **2002**) as a model for public-private risk-sharing.\n- **Climate risk modeling**: the **IPCC Sixth Assessment Report (AR6, 2021)** provides the scientific basis; actuaries integrate AR6 climate pathways with **RCP scenarios** (Representative Concentration Pathways) into catastrophe models. **RMS** (now **Moody's RMS**) and **AIR Worldwide** (now **Verisk**) produce the leading commercial catastrophe models incorporating climate change adjustments.\n\n**The evolving actuarial profession**: the **Institute and Faculty of Actuaries (IFoA)** revised its **Curriculum 2019** (and subsequent updates) to include data science, machine learning, and ERM alongside traditional examination subjects (CT1-CT8 now replaced by CM, CS, CB series). The **Society of Actuaries (SOA)** launched its **Predictive Analytics exam (PA)** in **2018**, formally incorporating statistical modeling into the credentialing pathway. The **CAS** introduced its **Exam 5** (Ratemaking and Reserving) updates to cover GLMs and ML validation frameworks. The **International Actuarial Association (IAA)** *Actuarial Aspects of ERM for Insurance Companies* note (**2016**) positioned the actuary as the natural owner of the ERM framework within insurers. The profession's challenge: remain technically credible in data science while preserving the judgment, ethics (**IFoA Actuaries' Code**, **SOA Code of Professional Conduct**), and legal accountability that distinguish actuarial certification from generic data science."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_front_1",
+        "kind": "multiple_choice",
+        "question": "Under IFRS 17 (effective 2023), what is the **Contractual Service Margin (CSM)** and how is it recognized in profit or loss?",
+        "options": [
+          "The CSM is the actuarial best estimate of future claims payments; it is immediately expensed when the policy is issued.",
+          "The CSM is an explicit charge for non-financial risk (uncertainty in timing and amount of cash flows), disclosed as a percentile of the loss distribution.",
+          "The CSM is the unearned profit in an insurance contract at inception; it is not recognized as income immediately but is released to profit or loss over the coverage period as insurance services are provided.",
+          "The CSM is the difference between the current yield-curve-discounted BEL and the locked-in historical discount rate BEL; it is recognized as interest accretion each period."
+        ],
+        "correctIndex": 2,
+        "explanation": "**IFRS 17 Insurance Contracts** (IASB, effective **1 January 2023**, replacing IFRS 4) fundamentally changed how insurance profitability is reported. The **Contractual Service Margin (CSM)** represents the **unearned profit** in an insurance contract at the date of initial recognition — i.e., the margin above the best-estimate liability and risk adjustment that the insurer expects to earn over the coverage period. The CSM is a **balance sheet liability** that is released to the income statement as insurance services are rendered (the coverage period elapses). This prevents day-one profit recognition on long-duration contracts, making insurance accounting more comparable to IFRS 15 revenue recognition in other industries.\\n\\nThe full **General Model (Building Block Approach, BBA)** liability is:\\n$$\\text{ICL} = \\text{BEL} + \\text{RA} + \\text{CSM}$$\\nwhere BEL is the **Best Estimate of Liabilities** (probability-weighted present value of future cash flows at the current yield curve — critically, **not** a locked-in historical rate), RA is the **Risk Adjustment** for non-financial risk (what the insurer would charge to transfer that uncertainty), and CSM is the unearned profit margin. If a group of contracts is onerous (BEL + RA > premiums), there is no CSM; instead, a **loss component** is recognized immediately in profit or loss.\\n\\nFor actuaries, IFRS 17 requires producing a **current estimate** at every balance sheet date, integrating with the finance function in ways that IFRS 4's flexibility had not required. The **IFoA Working Party Report** (*Actuaries and IFRS 17*, **2022**) outlined the governance and professional implications. Option A describes the claims BEL. Option B describes the Risk Adjustment. Option D confuses the CSM with the yield-curve discount effect (which affects BEL, not CSM)."
+      },
+      "hints": [
+        "IFRS 17 has three components: BEL + RA + CSM. Each serves a distinct purpose.",
+        "The CSM is a liability that decreases over time as insurance services are delivered."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Under IFRS 17, the insurance contract liability = BEL + Risk Adjustment + CSM. The **CSM** is the expected profit above the BEL and RA, deferred as a liability and released over the coverage period. This prevents immediate profit recognition — a fundamental change for life insurers who previously recognized profit at inception under IFRS 4. The actuarial function must estimate the BEL at each reporting date using the current yield curve, making the liability volatile with interest rate movements. The CSM absorbs changes in fulfilment cash flows on in-force business (within limits), smoothing income statement volatility."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_front_1",
+        "kind": "guided_derivation",
+        "question": "Evaluate a gradient boosting model for motor insurance pricing under fairness and regulatory constraints",
+        "goal": "A GBT model trained on motor insurance data includes: telematics harsh-braking score, postcode, age, vehicle age, occupation, and annual mileage. The model has Gini coefficient 0.42 vs 0.31 for the incumbent Poisson GLM. Regulatory concerns: postcode correlates with ethnicity; age < 25 is a proxy for sex (more males under 25). Walk through the actuarial validation and fairness assessment.",
+        "steps": [
+          {
+            "prompt": "Why is Gini coefficient 0.42 vs 0.31 alone insufficient to justify deploying the GBT model?",
+            "motivation": "Predictive power ≠ regulatory and professional acceptability.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Higher Gini shows better lift/discrimination but does not address: use of proxy variables for protected characteristics, GDPR Article 22 automated decision constraints, FCA Consumer Duty fairness requirements, or model explainability required for regulatory approval"
+              ]
+            },
+            "hints": [
+              "Consider both regulatory law (GDPR, EU Gender Directive) and professional obligations (IFoA Actuaries' Code).",
+              "What does the FCA Consumer Duty require beyond predictive accuracy?"
+            ],
+            "reveal": "Predictive performance (Gini) is necessary but not sufficient. The model must also satisfy: (1) **GDPR Article 22** — if pricing is fully automated with significant financial effect, a human review mechanism is required; (2) **UK FCA Consumer Duty (2023)** — pricing must produce fair outcomes; (3) **Indirect discrimination** analysis — postcode as a proxy for ethnicity, young age as a proxy for gender, must be shown to have legitimate actuarial justification and not to unfairly disadvantage protected groups; (4) **Explainability** — SHAP values (Lundberg and Lee, 2017) must be computable and comprehensible to underwriters and regulators."
+          },
+          {
+            "prompt": "Describe how SHAP values would be used to assess whether postcode is acting as a racial proxy in this model.",
+            "motivation": "SHAP provides the technical fairness diagnostic.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Compute SHAP values for the postcode feature across all predictions; compare mean absolute SHAP for postcode against its pure actuarial loss correlation; segment by ethnicity-correlated postcode groups and test whether SHAP contributions differ after controlling for loss experience"
+              ]
+            },
+            "hints": [
+              "SHAP decomposes each prediction into per-feature contributions summing to the model output.",
+              "Compute SHAP dependence plots and partial dependence plots for the postcode feature."
+            ],
+            "reveal": "SHAP values (Lundberg and Lee, NeurIPS 2017) assign each feature a contribution $\\phi_j$ to the prediction such that $\\sum_j \\phi_j = f(x) - E[f(X)]$. For the postcode feature: plot SHAP values against postcode-level mean claim frequency; compare to the postcode SHAP contributions stratified by demographic index (e.g., census ethnic composition). If the SHAP contribution for postcode is significantly higher in ethnically concentrated postcodes than the underlying loss data justifies, it signals proxy discrimination. The **disparate impact analysis** (standard in US fair lending, adopted by some EU regulators) tests whether the model's output ratio for protected vs non-protected group exceeds the 4/5ths rule threshold."
+          },
+          {
+            "prompt": "Propose a model architecture that preserves most of the GBT predictive gain while satisfying UK regulatory requirements.",
+            "motivation": "Practical resolution of the explainability-accuracy trade-off.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Use a two-stage approach: GLM for regulated factors (producing interpretable relativities for regulator submission) combined with a GBT residual model on permitted telematics and behavioral variables only; or use CANN architecture (Wüthrich-Merz 2019) with GLM offset"
+              ]
+            },
+            "hints": [
+              "Think about separating the model into a regulatory-facing component and an actuarial-precision component.",
+              "Wüthrich and Merz (2019) proposed a hybrid neural network architecture for this exact problem."
+            ],
+            "reveal": "Practical industry solution: **two-stage model**. Stage 1: Poisson GLM on age, vehicle, occupation, annual mileage — fully explainable, submittable to regulators, produces the 'actuarially justified' base rate. Stage 2: GBT on telematics features (harsh braking, acceleration, time of day, mileage) as an add-on to the GLM prediction. Postcode is either excluded or replaced with a continuous geographic risk score that can be shown to reflect claims experience without proxying ethnicity. Alternatively, the **CANN architecture** (Wüthrich and Merz, SSRN 2019) embeds the GLM as an offset layer in a neural network, combining both. SHAP is then run on the GBT/CANN component for regulatory review."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "me_front_1",
+        "kind": "math_expression",
+        "question": "A longevity swap covers a pension fund with 10,000 annuitants. Expected mortality payments over 30 years have a present value of £500M at the risk-free rate. The insurer charges a **longevity risk premium** of 8% of the BEL. What is the total premium paid by the pension fund for the longevity swap (in £M)?",
+        "acceptedAnswers": [
+          "540",
+          "540.0",
+          "£540M",
+          "540 million"
+        ],
+        "hint": "Total premium = BEL × (1 + longevity risk premium rate) = 500 × 1.08."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_front_1",
+        "kind": "explain_back",
+        "prompt": "In ≤160 words, explain why SHAP values (Lundberg and Lee, 2017) are the preferred explainability method for ML actuarial pricing models, how they relate to Shapley values from cooperative game theory, and what regulatory requirement makes explainability non-negotiable. Mention GDPR Article 22, the FCA Consumer Duty (2023), and the CANN architecture (Wüthrich and Merz, 2019) as a practical hybrid approach.",
+        "rubric": "Should explain: SHAP decomposes a model prediction into additive per-feature contributions satisfying **efficiency** (sum = prediction minus baseline), **dummy** (unused features get zero), and **symmetry** (equally contributing features get equal shares) — axioms inherited from **Lloyd Shapley's** cooperative game theory (1953/Nobel 2012). Preferred because it is model-agnostic, consistent with any ML architecture, and produces both local (individual prediction) and global (feature importance) explanations. **GDPR Article 22** (EU 2016/679): significant automated decisions require explainability and a human review option — mandatory in insurance underwriting. **FCA Consumer Duty (2023)**: firms must demonstrate fair outcomes, requiring explainability of pricing. **CANN** (Wüthrich and Merz, 2019): hybrid GLM+neural-net architecture that preserves GLM interpretability for regulatory filing while capturing neural-net predictive power — the practical production compromise. Bonus: mention SHAP's computational cost (TreeSHAP is $O(TLD^2)$ for gradient boosted trees — Lundberg et al. 2020)."
+      }
+    }
+  ]
+}

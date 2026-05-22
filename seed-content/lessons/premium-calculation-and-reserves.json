@@ -1,0 +1,120 @@
+{
+  "slug": "premium-calculation-and-reserves",
+  "meta": {
+    "timeMinutes": 28,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Apply the equivalence principle to derive net single premiums $A_x$ and net level annual premiums $P(A_x)$ for standard life insurance contracts.",
+      "Calculate and interpret the prospective and retrospective policy reserves, and verify their equality.",
+      "Extend net premiums to gross premiums by loading for expenses, and apply the net premium reserve recursion."
+    ],
+    "prereqs": [
+      "life-contingencies-and-the-force-of-mortality"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The equivalence principle and net single premiums",
+      "body": "A life insurance contract is a financial exchange: the **insured** pays premiums; the **insurer** promises to pay a benefit on death (or survival). The central actuarial question is: **what premium makes this exchange fair?** The answer is the **equivalence principle**.\n\n**The equivalence principle** states that at inception the **expected present value (EPV) of all premiums** equals the **EPV of all benefits**. This is sometimes called the **actuarial equivalence condition** or the **net premium principle**. It does not guarantee the insurer will profit or break even on any individual policy — life insurance is inherently random — but it ensures the portfolio is priced so that expected income equals expected outgo.\n\n**Net Single Premium (NSP)** for a whole-life insurance. A **whole-life policy** pays £1 on the death of a life currently aged $x$, regardless of when that occurs. The NSP is the single up-front payment that makes the contract fair. Discounting the benefit of £1 back from the random time of death $T_x$ at force of interest $\\delta$:\n$$\\bar{A}_x = E[e^{-\\delta T_x}] = \\int_0^\\infty e^{-\\delta t} {}_tp_x \\mu_{x+t}\\, dt$$\nIn the **discrete** model (benefit paid at end of year of death, curtate future lifetime $K_x$):\n$$A_x = E[v^{K_x+1}] = \\sum_{k=0}^{\\infty} v^{k+1} {}_kp_x q_{x+k}$$\n\n**Term insurance** $A^1_{x:\\overline{n}|}$ pays £1 only if death occurs within $n$ years:\n$$A^1_{x:\\overline{n}|} = \\sum_{k=0}^{n-1} v^{k+1} {}_kp_x q_{x+k}$$\n\n**Pure endowment** $A_{x:\\overline{n}|}^{\\;\\;1}$ (also written ${}_{n}E_x$) pays £1 if and only if the life **survives** $n$ years:\n$$_nE_x = v^n {}_np_x$$\nThe **endowment insurance** $A_{x:\\overline{n}|}$ combines both: it pays £1 on death within $n$ years or on survival to $n$ years, whichever is first:\n$$A_{x:\\overline{n}|} = A^1_{x:\\overline{n}|} + {}_nE_x$$\n\n**Second moment and variance**. The variance of the present value of benefits is:\n$$\\text{Var}(Z) = {}^2\\!A_x - (A_x)^2$$\nwhere ${}^2\\!A_x$ is evaluated at double the force of interest $2\\delta$ (equivalently, at $v^2$ instead of $v$). **Bruno de Finetti** (1906–1985), the Italian probabilist and actuary, formalised the variance approach to insurance mathematics.\n\nThe classical treatment is in **Bowers, Gerber, Hickman, Jones, and Nesbitt**, *Actuarial Mathematics* (2nd ed., 1997, Society of Actuaries) — **BGHJN** — and the more recent **Dickson, Hardy, and Waters**, *Actuarial Mathematics for Life Contingent Risks* (AMLCR, 3rd ed., Cambridge University Press, 2020), the current textbook for the SOA's **Exam LTAM** and the IFoA's **Subject CM1**."
+    },
+    {
+      "kind": "text",
+      "title": "Net level annual premiums and the policy reserve",
+      "body": "Most life insurance contracts are not paid for with a single premium but with **level annual premiums** — a constant amount $P$ paid each year the policy is in force. Finding $P$ by the equivalence principle requires equating the EPV of premiums to the NSP.\n\n**Net level annual premium** for whole-life insurance. The EPV of premiums of £$P$ per year payable at the start of each year (annuity-due) as long as the life survives is $P \\cdot \\ddot{a}_x$. By the equivalence principle:\n$$P \\cdot \\ddot{a}_x = A_x \\implies P(A_x) = \\frac{A_x}{\\ddot{a}_x}$$\nUsing the identity $A_x + d\\,\\ddot{a}_x = 1$ (the discrete analogue of $\\bar{A}_x + \\delta \\bar{a}_x = 1$):\n$$\\ddot{a}_x = \\frac{1 - A_x}{d} \\implies P(A_x) = \\frac{A_x \\cdot d}{1 - A_x}$$\nThis is the **net premium** — it covers expected claims only, with no allowance for expenses.\n\n**$n$-payment whole-life**: premiums are paid for at most $n$ years. The net premium is $_{n}P(A_x) = A_x / \\ddot{a}_{x:\\overline{n}|}$.\n\n**$n$-year endowment insurance premium**: $P(A_{x:\\overline{n}|}) = A_{x:\\overline{n}|} / \\ddot{a}_{x:\\overline{n}|}$.\n\n**The policy reserve** (also called the **actuarial reserve** or **benefit reserve**). At some duration $t > 0$ after policy issue, the policy is an ongoing obligation. The reserve $_{t}V$ is the amount the insurer must hold to meet future obligations, given that the insured is still alive.\n\n**Prospective reserve**: the EPV of future benefits minus the EPV of future premiums, evaluated for a life now aged $x+t$:\n$$_tV(A_x) = A_{x+t} - P(A_x) \\cdot \\ddot{a}_{x+t}$$\n\n**Retrospective reserve**: the accumulated value of past premiums minus the accumulated cost of past insurance:\n$$_tV(A_x) = P(A_x) \\cdot \\ddot{s}_{x:\\overline{t}|} - {}_{t}k_x$$\nwhere ${}_{t}k_x$ is the accumulated cost of insurance to time $t$. **Both methods give the same reserve** — a result sometimes called the **retrospective–prospective equality**, and a direct consequence of the equivalence principle.\n\nAt inception $t=0$: $_0V = 0$ (the equivalence principle). At the end of the contract $t=n$ (for endowment): $_nV = 1$ (the full benefit is due). Reserves increase monotonically with duration for most standard contracts — the **increase in reserve** each year is the difference between the net premium and the expected cost of insurance.\n\nThe regulatory context: **Solvency II** (EU Directive 2009/138/EC) and the **NAIC Model Regulation** (US) both require insurers to hold reserves no less than the net premium reserve, often with an additional **risk margin**. The **IAIS Insurance Capital Standard (ICS)** aligns with this globally."
+    },
+    {
+      "kind": "text",
+      "title": "Gross premiums, expense loading, and the reserve recursion",
+      "body": "Net premiums cover claims only. Real insurers also incur **expenses**: initial acquisition costs (agent commission, medical underwriting), renewal expenses (administration), and claim expenses (settlement costs). The **gross premium** $G$ loads for these.\n\n**Expense categories**:\n- **Initial (acquisition) expenses**: a percentage $\\alpha$ of the gross premium in year 1, plus a fixed per-policy cost $e_0$.\n- **Renewal expenses**: a percentage $\\beta$ of the gross premium in years 2 onward, plus a fixed per-policy renewal cost $e_r$ per year the policy continues.\n- **Claim expense**: a fixed amount $c$ payable on the death claim.\n\n**Gross premium equation of value**:\n$$G \\cdot \\ddot{a}_x = A_x + c \\cdot A_x + \\alpha G + (G\\beta + e_r)(\\ddot{a}_x - 1) + e_0$$\nSolving for $G$:\n$$G = \\frac{(1+c)A_x + e_0 + e_r(\\ddot{a}_x - 1)}{(1 - \\alpha - \\beta)\\ddot{a}_x + \\beta}$$\nIn practice $\\alpha, \\beta, c, e_0, e_r$ are set by the insurer's **expense investigation** — an internal study of actual unit costs, often benchmarked against industry surveys published by the **Association of British Insurers (ABI)** or the **LIMRA** (Life Insurance and Market Research Association) in the US.\n\n**Gross premium reserve** $_{t}V^g$: the prospective reserve using gross premiums and including future expenses:\n$$_tV^g = (1+c)A_{x+t} + e_r \\ddot{a}_{x+t} - G(1 - \\beta)\\ddot{a}_{x+t}$$\nThe **zillmerised reserve** (after **August Zillmer**, 1863) allows the first-year initial expense to be partially recovered from the reserve, reducing (sometimes to zero or below) the early-duration reserve. Zillmer's adjustment is permitted under **Solvency I** (EU Directive 91/674/EEC) but constrained under Solvency II.\n\n**Net premium reserve recursion**. Each year the reserve must grow by investment income and decrease by the cost of the death benefit. The **recursion formula** for integer-valued duration $t$:\n$$(_tV + P)(1+i) = q_{x+t} \\cdot 1 + p_{x+t} \\cdot _{t+1}V$$\nLeft side: the accumulated reserve plus premium earns interest for one year. Right side: with probability $q_{x+t}$ a claim of £1 is paid; with probability $p_{x+t}$ the reserve rolls forward to $_{t+1}V$. This recursion — sometimes written as the **prospective reserve recursion** — allows the entire reserve table to be computed forward from $_0V = 0$ or backward from the terminal condition, and is tested on both the SOA **Exam LTAM** and the IFoA **Subject CM1**.\n\n**Thiele's differential equation** is the continuous analogue. Named after **Thorvald Nicolai Thiele** (1838–1910), Danish astronomer and actuary, who derived it in his 1875 paper *On a Mathematical Formula for Life Insurance*, the equation governs the instantaneous rate of change of the policy reserve:\n$$\\frac{d}{dt}\\,_tV = \\delta \\cdot {}_tV + P_t - \\mu_{x+t}(b_t - {}_tV)$$\nHere $P_t$ is the continuous premium rate, $b_t$ is the benefit payable on death, and $(b_t - {}_tV)$ is the **net amount at risk** (the sum at risk). Thiele's equation integrates mortality, interest, and benefit design into a single ODE — it is one of the cornerstones of modern life insurance mathematics and is treated in depth in Dickson, Hardy, and Waters, *AMLCR* (2020)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_prem_1",
+        "kind": "math_expression",
+        "question": "Using the Illustrative Life Table (ILT): $A_{35} = 0.12872$, $\\ddot{a}_{35} = 15.3926$, and $d = 0.06/1.06$. Compute the net annual level premium $P(A_{35}) = A_{35} / \\ddot{a}_{35}$ per unit of benefit. Give your answer to 4 significant figures.",
+        "acceptedAnswers": [
+          "0.008362",
+          "0.00836",
+          "0.008362 per unit",
+          "8.362 per 1000"
+        ],
+        "hint": "Divide $A_{35}$ by $\\ddot{a}_{35}$: $P = 0.12872 / 15.3926$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_prem_1",
+        "kind": "multiple_choice",
+        "question": "The prospective policy reserve at duration $t$ for a whole-life policy is $_{t}V(A_x) = A_{x+t} - P(A_x)\\,\\ddot{a}_{x+t}$. What does this expression represent?",
+        "options": [
+          "The accumulated value of premiums paid minus claims settled from policy inception to time $t$.",
+          "The EPV of future benefits minus the EPV of future net premiums, valued for a life aged $x+t$ still in force at time $t$.",
+          "The profit the insurer has earned on the policy up to time $t$.",
+          "The single premium that would need to be paid at time $t$ to convert the policy into a paid-up policy with no further premiums."
+        ],
+        "correctIndex": 1,
+        "explanation": "The **prospective reserve** is defined as the expected present value of future obligations minus the expected present value of future income, both evaluated at the same valuation date for a life of the attained age $x+t$. It answers the question: 'How much must the insurer hold right now to meet future obligations, net of future premiums expected to be received?' It is positive because at duration $t$ the insured has aged, so future mortality is higher and the remaining premium-paying period may be shorter. Option A describes the **retrospective reserve** (accumulated past premiums minus accumulated past insurance costs) — which equals the prospective reserve by the equivalence principle, but is a different calculation. Option C (profit) is not a reserve concept — reserves are liabilities, not profit measures. Option D is the **paid-up insurance** or reduced paid-up value, which equals $_{t}V / A_{x+t}$ and is a related but distinct quantity. The prospective formula is the standard definition in BGHJN *Actuarial Mathematics* (2nd ed., 1997) and Dickson, Hardy, and Waters *AMLCR* (3rd ed., 2020), and is tested on SOA Exam LTAM."
+      },
+      "hints": [
+        "Prospective means 'looking forward from now.'",
+        "Benefits are an outgo; premiums are income — the reserve is the net expected outgo."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "The prospective reserve $_{t}V(A_x) = A_{x+t} - P(A_x)\\ddot{a}_{x+t}$ is the difference between two EPVs calculated at time $t$ for the attained age $x+t$: EPV of future benefits (the whole-life insurance $A_{x+t}$) minus EPV of future net premiums ($P(A_x)\\ddot{a}_{x+t}$). At $t=0$ this is zero by the equivalence principle. As $t$ increases, $A_{x+t}$ grows (the life is older) and $\\ddot{a}_{x+t}$ shrinks (fewer future premium years), so the reserve increases toward 1 as the life approaches the terminal age. This is the amount the insurer must hold in reserve."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_prem_1",
+        "kind": "guided_derivation",
+        "question": "Derive the net premium reserve recursion",
+        "goal": "Starting from the prospective reserve at time $t$, derive the recursion $(_tV + P)(1+i) = q_{x+t} + p_{x+t} \\cdot _{t+1}V$ by writing the prospective reserve one year later.",
+        "steps": [
+          {
+            "prompt": "Write the prospective reserve at time $t$ in terms of the reserve at time $t+1$.",
+            "motivation": "Separate the first year of coverage from the rest.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "_tV = v*q_{x+t} + v*p_{x+t}*_{t+1}V - P",
+                "tV = v*q + v*p*_{t+1}V - P"
+              ]
+            },
+            "hints": [
+              "The first year contributes: pay £1 if death ($q_{x+t}$); carry the reserve if survival ($p_{x+t}$).",
+              "The premium $P$ is received at the start of year $t$."
+            ],
+            "reveal": "At time $t$: the net premium $P$ is received; if death occurs in the next year (probability $q_{x+t}$) a benefit of $v$ is paid; if survival (probability $p_{x+t}$) the reserve at time $t+1$ is needed discounted back one year. So $_tV = -P + v \\cdot q_{x+t} + v \\cdot p_{x+t} \\cdot _{t+1}V$."
+          },
+          {
+            "prompt": "Rearrange to put premiums and reserve on the left, multiply both sides by $(1+i)$.",
+            "motivation": "Show the recursion in its standard accumulation form.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(_tV + P)(1+i) = q_{x+t} + p_{x+t} * _{t+1}V",
+                "(tV + P)(1+i) = q + p * (t+1)V"
+              ]
+            },
+            "hints": [
+              "Add $P$ to both sides then multiply by $1/v = 1+i$."
+            ],
+            "reveal": "Adding $P$: $_tV + P = v q_{x+t} + v p_{x+t} \\cdot _{t+1}V$. Multiplying by $(1+i) = 1/v$: $(_tV + P)(1+i) = q_{x+t} + p_{x+t} \\cdot _{t+1}V$. This is the **recursion**: the reserve plus premium, accumulated for one year at interest, equals the expected cost (probability $q$ of paying £1 plus probability $p$ of needing the next year's reserve). It runs forward from $_0V = 0$ or backward from the terminal condition."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_prem_1",
+        "kind": "explain_back",
+        "prompt": "In at most 150 words, explain to a non-actuary trustee why a pension fund must hold a reserve even though pensions are still being paid normally, and connect this to the equivalence principle, the prospective reserve formula, and the regulatory requirement under Solvency II.",
+        "rubric": "Response should convey: even while pensions are paid normally, future liabilities (promises to pay pensions for the rest of beneficiaries' lives) exceed the current year's outgo. The reserve is the EPV of future benefits minus EPV of future contributions — the prospective reserve formula. The equivalence principle means that at the time obligations were taken on, assets equalled liabilities; but as time passes and people age, the reserve grows. Solvency II (EU Directive 2009/138/EC) and the IAIS ICS require reserves plus a risk margin. Should mention that mortality improvement (CMI projections) can increase the EPV of future benefits, raising reserve requirements. Bonus: mention Thiele's differential equation as describing how the reserve evolves continuously. Must NOT say reserves are 'profit set aside' — they are liabilities."
+      }
+    }
+  ]
+}

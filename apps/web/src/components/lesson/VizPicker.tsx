@@ -635,6 +635,27 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "✈️",
     tags: ["pilot", "aerodynamics", "lift", "stall"],
   },
+  {
+    name: "ledger-t-accounts",
+    label: "Double-entry ledger",
+    description: "Step through a company's transactions; T-accounts post equal debits/credits and the Assets = Liabilities + Equity bar stays balanced.",
+    thumb: "📒",
+    tags: ["accounting", "double-entry", "balance-sheet", "pacioli"],
+  },
+  {
+    name: "crop-yield-response",
+    label: "Crop yield response",
+    description: "Mitscherlich diminishing-returns yield vs nutrient input with the Liebig ceiling; pick N / P / K and slide the application rate.",
+    thumb: "🌾",
+    tags: ["agronomy", "fertilizer", "liebig", "yield"],
+  },
+  {
+    name: "survival-curve",
+    label: "Life-table survival",
+    description: "Gompertz-Makeham survivorship l_x + mortality q_x with life expectancy e0; toggle 1900 / 1950 / 2000 cohorts to watch rectangularization.",
+    thumb: "📉",
+    tags: ["actuary", "mortality", "life-table", "gompertz"],
+  },
 ];
 
 interface Props {

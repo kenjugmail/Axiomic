@@ -1,0 +1,88 @@
+{
+  "slug": "solvency-and-enterprise-risk",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Explain the Solvency II three-pillar framework and compute the SCR as a 99.5% one-year Value-at-Risk.",
+      "Distinguish Value-at-Risk from Tail-VaR and apply the Artzner-Delbaen-Eber-Heath coherence axioms.",
+      "Design an ORSA narrative integrating stress testing, economic capital, and enterprise risk management."
+    ],
+    "prereqs": [
+      "probability-and-risk-models"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Solvency II: the three-pillar architecture and the SCR",
+      "body": "**Solvency regulation** exists because insurance is a promise made today for events that materialize years hence — policyholders cannot monitor insurer solvency in real time, creating a textbook case of **information asymmetry** and justifying regulatory capital requirements.\n\n**Solvency II** is the EU-wide prudential framework for insurance, effective **1 January 2016** (Directive 2009/138/EC), replacing the earlier Solvency I regime that dated from the 1970s. It is explicitly risk-based and modeled on the **Basel II** banking framework. Solvency II rests on **three pillars**:\n\n**Pillar 1 — Quantitative requirements**:\n- **Solvency Capital Requirement (SCR)**: the primary capital standard. Defined as the **Value-at-Risk of basic own funds at the 99.5% confidence level over a one-year horizon** — i.e., the capital needed to absorb a 1-in-200-year loss event. Computed using either the **Standard Formula** (a prescribed factor-based model) or an approved **Internal Model**.\n- **Minimum Capital Requirement (MCR)**: a lower floor (roughly 25-45% of SCR); breach triggers supervisory intervention and ultimately licence withdrawal. The MCR must be between 25% and 45% of the SCR.\n- **Technical provisions**: the **Best Estimate Liability** (BEL, probability-weighted present value of future cash flows under the risk-free term structure) plus a **Risk Margin** (cost-of-capital margin at 6% per year on the SCR required to run off non-hedgeable risks).\n\n**Pillar 2 — Supervisory review**:\n- **Own Risk and Solvency Assessment (ORSA)**: the internal document in which the insurer demonstrates to itself (and the regulator) that it holds sufficient capital for its own risk appetite, stress scenarios, and business plan — independent of the Standard Formula. The ORSA integrates **Enterprise Risk Management (ERM)**.\n- Governance requirements: risk management function, actuarial function, compliance function, internal audit.\n- The **Supervisory Review Process** (SRP): national regulators (e.g., PRA in the UK post-Brexit, EIOPA at EU level) assess Pillar 2 and can impose **capital add-ons** if the Standard Formula materially underestimates the insurer's true risk.\n\n**Pillar 3 — Disclosure and transparency**:\n- **Solvency and Financial Condition Report (SFCR)**: public annual disclosure.\n- **Regular Supervisory Report (RSR)**: confidential report to the supervisor.\n- Quantitative reporting templates (QRTs): standardized data enabling cross-insurer comparison.\n\n**Standard Formula SCR modules**: market risk, counterparty default risk, life underwriting risk, non-life underwriting risk, health underwriting risk, operational risk — aggregated using a prescribed correlation matrix. The non-life premium and reserve risk module uses a log-normal approximation parameterized by the **coefficient of variation** of premium and reserve risks.\n\n**US Risk-Based Capital (RBC)**: the parallel US system, introduced by the **National Association of Insurance Commissioners (NAIC)** in 1993, uses a formula-based **RBC ratio** (Total Adjusted Capital / Authorized Control Level RBC). Action levels (Company Action Level, Regulatory Action Level, Authorized Control Level, Mandatory Control Level) trigger progressively stronger regulatory intervention. Unlike Solvency II's VaR basis, US RBC is more ad-hoc but similarly addresses the core solvency goal."
+    },
+    {
+      "kind": "text",
+      "title": "Coherent risk measures: Value-at-Risk, Tail-VaR, and the Artzner-Delbaen-Eber-Heath axioms",
+      "body": "**Risk measures** are functions $\\rho: \\mathcal{L} \\to \\mathbb{R}$ that map a loss random variable to a capital requirement. The two most important in actuarial and banking practice are **Value-at-Risk** and **Tail Value-at-Risk**.\n\n**Value-at-Risk** at confidence level $\\alpha \\in (0,1)$:\n$$\\text{VaR}_\\alpha(X) = \\inf\\{x \\in \\mathbb{R} : P(X \\leq x) \\geq \\alpha\\} = F_X^{-1}(\\alpha)$$\nFor $\\alpha = 0.995$ (Solvency II SCR): the loss that is exceeded with probability at most 0.5%. **VaR is not subadditive** — it is possible that $\\text{VaR}_\\alpha(X + Y) > \\text{VaR}_\\alpha(X) + \\text{VaR}_\\alpha(Y)$, meaning the sum of two portfolios could require more capital than each individually. This violates the economic principle that diversification should reduce risk.\n\n**Tail Value-at-Risk** (TVaR), also called **Expected Shortfall** (ES) or **Conditional Tail Expectation** (CTE):\n$$\\text{TVaR}_\\alpha(X) = \\frac{1}{1-\\alpha}\\int_\\alpha^1 \\text{VaR}_u(X)\\,du = E[X \\mid X > \\text{VaR}_\\alpha(X)]$$\n(the last equality holds for continuous $X$). TVaR is the average loss in the worst $(1-\\alpha)$ fraction of scenarios.\n\n**The Artzner-Delbaen-Eber-Heath (ADEH) coherence axioms** (Philippe Artzner, Freddy Delbaen, Jean-Marc Eber, David Heath, *Mathematical Finance*, **1999**, \"Coherent Measures of Risk\"): a risk measure $\\rho$ is **coherent** if it satisfies:\n1. **Translation invariance**: $\\rho(X + c) = \\rho(X) - c$ for any constant $c$ (adding cash reduces required capital by that amount).\n2. **Subadditivity**: $\\rho(X + Y) \\leq \\rho(X) + \\rho(Y)$ (diversification does not increase required capital).\n3. **Positive homogeneity**: $\\rho(\\lambda X) = \\lambda\\rho(X)$ for $\\lambda > 0$ (scaling risk scales capital).\n4. **Monotonicity**: $X \\leq Y \\Rightarrow \\rho(X) \\leq \\rho(Y)$ (worse outcomes require more capital).\n\n**VaR fails subadditivity** for non-elliptic distributions — a critical flaw exposed by the credit correlation models that failed in the **2008 financial crisis**. **TVaR satisfies all four axioms** — it is coherent. This is the theoretical basis for the **Basel III/IV** shift toward Expected Shortfall at 97.5% replacing VaR at 99% for banking trading-book capital (BCBS, 2016 **Fundamental Review of the Trading Book**, FRTB).\n\n**Spectral risk measures** (**Carlo Acerbi**, 2002): a generalization of TVaR defined as $\\rho_\\phi(X) = \\int_0^1 \\phi(u) \\text{VaR}_u(X) du$ for a weighting function $\\phi$ that is non-decreasing and integrates to 1. TVaR corresponds to $\\phi(u) = \\mathbf{1}_{u > \\alpha}/(1-\\alpha)$.\n\n**Distortion risk measures**: introduced by **Shaun Wang** (1995, *Insurance: Mathematics and Economics*) — $\\rho_g(X) = \\int_0^\\infty g(\\bar{F}_X(x)) dx$ for a distortion function $g: [0,1] \\to [0,1]$. The **Wang transform** $g(s) = \\Phi(\\Phi^{-1}(s) + \\lambda)$ produces risk-adjusted premiums consistent with CAPM in asset pricing — a foundational result connecting insurance pricing and financial economics."
+    },
+    {
+      "kind": "text",
+      "title": "Enterprise Risk Management, economic capital, and lessons from 2008",
+      "body": "**Enterprise Risk Management (ERM)** is the holistic, firm-wide framework for identifying, measuring, monitoring, and managing all material risks — not just insurance underwriting risk but market, credit, liquidity, operational, and strategic risk. The **Casualty Actuarial Society** (CAS) and **Society of Actuaries** (SOA) jointly developed the **ERM framework** in the early 2000s; the **Committee of Sponsoring Organizations (COSO)** *Enterprise Risk Management — Integrated Framework* (2004; updated 2017) is the governance standard.\n\n**Economic capital (EC)** is the capital an insurer believes it actually needs to remain solvent at a chosen internal confidence level (often 99.5% or 99.9% TVaR over one year), computed by internal models rather than regulatory formulas. EC models integrate all risk types using **copulas** to capture dependency structures. The **Gaussian copula** was famously misused in CDO pricing (David Li, \"On Default Correlation: A Copula Function Approach,\" *Journal of Fixed Income*, **2000**) — a lesson: a copula calibrated to normal markets catastrophically underestimates joint tail events in a crisis.\n\n**AIG and the 2008 crisis**: **American International Group (AIG)** used VaR and internal models that failed to capture the **wrong-way risk** in its credit default swap (CDS) book — the phenomenon where counterparty default is positively correlated with the size of the exposure. AIG's Financial Products division wrote $\\$441$ billion in credit protection; collateral calls triggered by ratings downgrades in September 2008 required a US government bailout of $\\$182$ billion. The episode illustrated that:\n- **Diversification across correlated risks is not true diversification** (subadditivity of VaR failed).\n- **Liquidity risk** (collateral calls, not just ultimate credit loss) is not captured by standard VaR models.\n- **Regulatory arbitrage** (AIG was an insurer, not a bank, and hence subject to weaker capital rules for CDS).\n\n**Stress testing and scenario analysis**: required under Solvency II's ORSA. Scenarios include:\n- **Deterministic stress tests**: e.g., 200-basis-point interest rate shock, 40% equity market decline, major hurricane with $\\$100$B industry loss.\n- **Reverse stress tests**: identify the scenario that would cause the insurer to fail — required by the PRA (UK Prudential Regulation Authority).\n- **Pandemic scenarios** (post-COVID-19): excess mortality stress, claims inflation stress, operational disruption.\n- **Climate scenario analysis**: **EIOPA** (2021) and **Network for Greening the Financial System (NGFS)** publish standardized climate scenarios (orderly, disorderly, hot house world) for use in insurer ORSA processes.\n\n**Own Risk and Solvency Assessment (ORSA)**: the ORSA document must cover: (1) the insurer's own risk and solvency assessment process; (2) the overall solvency needs including stress scenarios; (3) continuous compliance with Solvency II; (4) the deviation of the company's risk profile from the Standard Formula assumptions. Under **IAA (International Actuarial Association)** standards, the **Appointed Actuary** or **Chief Actuary** signs off the ORSA, embedding actuarial judgment into governance at the highest level."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "me_solv_1",
+        "kind": "math_expression",
+        "question": "An insurer's loss $X$ follows a Pareto distribution with $\\alpha=4$ and $\\theta=3{,}000{,}000$. Compute $\\text{VaR}_{0.995}(X)$, the 99.5th percentile. Recall $F(x) = 1 - (\\theta/(\\theta+x))^\\alpha$.",
+        "acceptedAnswers": [
+          "16865524",
+          "16,865,524",
+          "16865524.2",
+          "16,865,524.20",
+          "16865524.22"
+        ],
+        "hint": "Set $1 - (\\theta/(\\theta+x))^\\alpha = 0.995$ and solve for $x$: $(\\theta/(\\theta+x))^\\alpha = 0.005$, so $\\theta/(\\theta+x) = 0.005^{1/4}$, giving $x = \\theta(0.005^{-1/4} - 1)$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_solv_1",
+        "kind": "multiple_choice",
+        "question": "Which of the following correctly explains why Value-at-Risk (VaR) is **not** a coherent risk measure, while Tail-VaR (TVaR/Expected Shortfall) is?",
+        "options": [
+          "VaR requires knowing the full distribution of losses; TVaR only requires the mean and standard deviation.",
+          "VaR fails the **subadditivity** axiom of Artzner, Delbaen, Eber and Heath (1999): for non-elliptic loss distributions, merging two portfolios can yield a VaR higher than the sum of the individual VaRs, violating the principle that diversification reduces risk. TVaR, defined as the mean loss beyond the VaR threshold, satisfies all four ADEH coherence axioms — translation invariance, subadditivity, positive homogeneity, and monotonicity.",
+          "VaR fails monotonicity — it assigns a lower capital requirement to riskier portfolios.",
+          "TVaR is coherent only for normal distributions; for heavy-tailed losses, neither VaR nor TVaR is coherent."
+        ],
+        "correctIndex": 1,
+        "explanation": "The **ADEH coherence axioms** (Philippe Artzner, Freddy Delbaen, Jean-Marc Eber, David Heath, published in *Mathematical Finance* in **1999** — one of the most cited papers in actuarial and financial mathematics) established the theoretical framework for evaluating risk measures. **Subadditivity** is the axiom that reflects the diversification principle: $\\rho(X+Y) \\leq \\rho(X) + \\rho(Y)$. Intuitively, a merged portfolio should not require more capital than the sum of the parts — otherwise a firm could reduce its capital requirement by legally splitting itself in two.\\n\\nFor elliptic distributions (normal, Student-t), VaR is subadditive and the problem does not arise. But for non-elliptic distributions — including fat-tailed credit portfolios, catastrophe reinsurance books, and credit default swap positions — VaR can violate subadditivity. The most famous example: two bonds each with 99% probability of full repayment and 1% probability of total loss. Individual VaR at 99% = 0. Portfolio VaR at 99% can be positive if the two defaults are (even weakly) correlated. **AIG's 2008 failure** was in part a consequence of VaR models that did not capture this correlation correctly.\\n\\nTVaR (Expected Shortfall) satisfies subadditivity because it is a **spectral risk measure** — a weighted integral of VaRs — and the Minkowski integral inequality guarantees subadditivity. This is why Basel III's **Fundamental Review of the Trading Book** (FRTB, BCBS 2016) replaced VaR at 99% with ES at 97.5% as the banking trading-book standard. Solvency II retained VaR at 99.5% for the SCR, but many internal models use TVaR."
+      },
+      "hints": [
+        "Recall the four ADEH coherence axioms from Artzner et al. 1999.",
+        "Think about what happens to VaR when two positively-correlated catastrophic risks are combined."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "VaR fails **subadditivity** for non-elliptic distributions. The canonical counterexample is two independent Bernoulli losses each with $P(L_i = 1M) = 0.006$ and $P(L_i = 0) = 0.994$. At $\\alpha = 0.99$: $\\text{VaR}_{0.99}(L_1) = 0$ and $\\text{VaR}_{0.99}(L_2) = 0$, but $P(L_1 + L_2 > 0) = 1 - 0.994^2 = 0.012 > 0.01$, so $\\text{VaR}_{0.99}(L_1+L_2) = 1M > 0 = \\text{VaR}_{0.99}(L_1) + \\text{VaR}_{0.99}(L_2)$. TVaR avoids this by averaging the entire tail, which is always subadditive."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_solv_1",
+        "kind": "scenario",
+        "question": "ORSA stress test design",
+        "prompt": "You are the Chief Actuary of a mid-sized UK general insurer writing motor, property, and liability business. The PRA has requested that your ORSA include a **reverse stress test** identifying the scenario that would breach your SCR coverage ratio of 150%. Your current economic capital model uses a Gaussian copula to model dependence between underwriting, market (equity + interest rate), and credit risks. Drawing on: (a) the ADEH coherence framework and the known failures of the Gaussian copula (David Li, 2000; AIG 2008); (b) Solvency II Pillar 2 ORSA requirements; and (c) the distinction between VaR and TVaR as risk metrics — design the reverse stress test: specify which risk factors to jointly stress, explain why a Gaussian copula will underestimate joint tail probabilities, describe how you would use a **t-copula** or **Gumbel copula** instead, and state what governance steps are required before the board approves the ORSA."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_solv_1",
+        "kind": "explain_back",
+        "prompt": "In ≤160 words, explain the Solvency II SCR: what it measures, how the 99.5% VaR threshold translates to a capital amount, the relationship between the SCR and the MCR, and one key weakness of VaR identified by Artzner, Delbaen, Eber and Heath (1999). Reference both Solvency II Directive 2009/138/EC and the ADEH 1999 paper.",
+        "rubric": "Should cover: SCR = VaR of basic own funds at 99.5% over one year (1-in-200-year loss); requires insurers to hold sufficient eligible own funds to cover this amount; MCR is the lower absolute floor (25-45% of SCR) whose breach triggers supervisory intervention. Key VaR weakness: **non-subadditivity** — VaR can penalize diversification rather than reward it, violating the ADEH subadditivity axiom. ADEH 1999 showed TVaR/Expected Shortfall satisfies all four coherence axioms (translation invariance, subadditivity, positive homogeneity, monotonicity) — VaR violates subadditivity for non-elliptic distributions. Should cite Solvency II Directive 2009/138/EC (2016 effective date) and Artzner, Delbaen, Eber, Heath, *Mathematical Finance* 1999. Bonus: mention that FRTB (Basel, 2016) switched banking from VaR to ES for this reason."
+      }
+    }
+  ]
+}

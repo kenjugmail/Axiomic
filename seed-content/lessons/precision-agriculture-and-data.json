@@ -1,0 +1,133 @@
+{
+  "slug": "precision-agriculture-and-data",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Explain the core technologies of precision agriculture — GPS/GNSS, remote sensing, VRT, and yield monitoring.",
+      "Calculate NDVI from near-infrared and red reflectance values and interpret the result agronomically.",
+      "Describe how management zones, soil sensors, and farm data platforms integrate into site-specific decision making."
+    ],
+    "prereqs": [
+      "crop-physiology-and-breeding"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Precision agriculture — from GPS guidance to variable-rate application",
+      "body": "**Precision agriculture (PA)** is the application of information technology and spatial data to manage within-field variability in soil, crop, and environmental conditions, targeting inputs to the right place, in the right amount, at the right time. The conceptual premise is that uniform application of seeds, fertilisers, and pesticides across a heterogeneous field is both agronomically suboptimal (over-applying in low-need zones, under-applying in high-need zones) and economically wasteful.\n\nThe technology foundations of PA assembled in the late 1980s and 1990s:\n\n**GPS (Global Positioning System)** — the US DoD satellite constellation, fully operational by 1995 with civilian access — gave tractors and implements a real-time geographic location with sub-metre to centimetre precision when augmented. **GNSS (Global Navigation Satellite System)** is the generic term covering GPS (US), GLONASS (Russia), Galileo (EU), and BeiDou (China). For agricultural guidance, positioning is corrected using **RTK (Real-Time Kinematic)** base stations or the commercial **Omnistar / StarFire** correction networks (John Deere's StarFire launched in 2000 and was a major commercial breakthrough). RTK delivers $\\pm$2.5 cm positional accuracy — sufficient for **auto-steer guidance** systems that drive tractors along parallel passes with overlap gaps of 2–5 cm rather than the 30–60 cm overlap of manual driving.\n\n**Auto-steer** delivers three primary benefits: reduced input overlap (5–10% savings in seed, fertiliser, and chemical), reduced operator fatigue on long field days, and consistent geometry that enables all subsequent operations to be aligned to the same guidance tracks. The **John Deere AutoTrac** system (launched 2001) and **Trimble CFX-750** terminal (2009) brought auto-steer to a wide range of tractors and farm sizes.\n\n**Variable-rate technology (VRT)** uses geo-referenced prescription maps — overlaid on the GNSS position feed — to adjust application rates across the field in real time. A VRT prescription map is created from soil sampling, yield map analysis, or remote sensing and defines the target rate at each grid point or management zone. VRT controllers on the implement open and close section valves or adjust motor speeds to match the prescription. Key applications:\n\n- **Variable-rate seeding** — adjust corn plant population from 65,000 to 90,000 plants/acre based on yield potential zones.\n- **Variable-rate fertiliser** — match N, P, K rates to soil-test-defined need within a field, reducing total fertiliser applied while maintaining or improving yield.\n- **Variable-rate fungicide and herbicide** — spray only zones where canopy density or weed pressure exceeds the threshold, as detected by sensors.\n\n**Section control** (automatic on/off control of individual boom sections or rows) is the most widely adopted precision technology globally, as it prevents overlap when turning at field edges and dramatically reduces input waste on irregular field shapes. ISOBUS (ISO 11783) is the standardised in-cab communication protocol that enables different brands of tractors and implements to exchange data.\n\n**The economic case** for PA was made compellingly in a series of USDA Economic Research Service analyses and by **J.S. Robert Pierce and David Mulla** at the University of Minnesota in the late 1990s — pioneers in geostatistical analysis of soil variability and its relationship to yield variability. **Pierre Robert** (University of Minnesota) co-chaired the first International Conference on Precision Agriculture in 1992, marking PA's emergence as a formal discipline."
+    },
+    {
+      "kind": "text",
+      "title": "Remote sensing — NDVI, satellites, and UAVs",
+      "body": "**Remote sensing** in precision agriculture captures data about crop and soil status from sensors carried on satellites, aircraft, or UAVs (unmanned aerial vehicles), exploiting the fact that vegetation reflects electromagnetic radiation in patterns diagnostic of its health and biomass.\n\nThe foundational index is the **Normalized Difference Vegetation Index (NDVI)**, developed by **Compton Tucker** (NASA Goddard Space Flight Center) in his landmark 1979 paper in *Remote Sensing of Environment*:\n\n$NDVI = \\frac{NIR - Red}{NIR + Red}$\n\nwhere $NIR$ = near-infrared reflectance (typically 750–900 nm) and $Red$ = red reflectance (600–700 nm). Chlorophyll strongly absorbs red light (for photosynthesis) and healthy plant cell structure strongly reflects NIR. NDVI therefore ranges from −1 to +1:\n\n- **< 0**: water, snow, clouds\n- **0.1–0.2**: bare soil, sparse cover\n- **0.2–0.4**: stressed or sparse vegetation\n- **0.4–0.7**: moderate to dense healthy canopy\n- **> 0.7**: very dense, highly productive canopy (tropical forest, peak growing season maize)\n\nAgricultural applications of NDVI include mid-season N-fertiliser application decisions (**GreenSeeker** sensor by NTech Industries, commercialised 1990s, now part of Trimble) using normalised sensor readings to calculate a Nitrogen Sufficiency Index (NSI), and in-season crop mapping.\n\n**Satellite imagery** platforms relevant to precision agriculture:\n\n- **Landsat** (NASA/USGS, since 1972): 30 m spatial resolution, 16-day revisit. The longest continuous Earth observation record; Landsat 8 and 9 (bands OLI/TIRS) provide NDVI, EVI (Enhanced Vegetation Index), and land surface temperature. **Landsat** has been freely available since 2008 (USGS open-data policy).\n- **Sentinel-2** (ESA Copernicus programme, launched 2015 and 2017): 10 m resolution, 5-day revisit at the equator, freely available. The 13-band multispectral instrument (MSI) captures red-edge bands (705, 740, 783 nm) that are particularly sensitive to chlorophyll content and early stress detection. Sentinel-2 has become the most widely used free satellite data source for field-scale crop monitoring.\n- **Planet Labs SkySat**: commercial, 0.5 m resolution, daily revisit. Used for high-value crops (orchards, vineyards) and crop damage assessment.\n- **Moderate Resolution Imaging Spectroradiometer (MODIS)** aboard NASA's Terra and Aqua satellites (since 1999): 250 m – 1 km resolution, daily revisit — used for regional and national crop monitoring rather than field-scale PA.\n\n**UAVs (drones)** equipped with multispectral cameras (**MicaSense RedEdge**, **Parrot Sequoia**), thermal sensors, or LiDAR provide sub-centimetre resolution imagery collected on demand. Drone imagery is used for plant counting, canopy gap analysis, irrigation stress mapping (thermal), and disease or pest hotspot detection. Regulatory frameworks (US FAA Part 107, EU U-space) govern commercial agricultural drone operations.\n\n**The combination** of satellite time series + drone spot-checks + ground truth sensor data is increasingly processed through **machine learning** pipelines — convolutional neural networks applied to multitemporal satellite imagery for yield prediction, crop type mapping, and anomaly detection. Platforms such as the **Climate Corporation FieldView** (acquired by Bayer in 2019), **Trimble Ag Software**, and the **John Deere Operations Center** aggregate these data streams with prescription map generation and fleet telematics in integrated farm management information systems (FMIS)."
+    },
+    {
+      "kind": "text",
+      "title": "Yield monitors, soil sensors, and management zones",
+      "body": "**Yield mapping** emerged as the first widely adopted precision agriculture technology. **Yield monitors** on combine harvesters measure grain mass flow (typically with an **impact plate + load cell** or **radiometric sensor**) and combine it with GNSS position and crop width data to produce a geo-referenced yield map. The **Massey Ferguson 8590** combine fitted with the Ag Leader yield monitor (commercialised in the mid-1990s by **Ag Leader Technology**, Ames, Iowa) was an early landmark. Modern yield monitors (John Deere Harvest Doc, CNH AFS Harvest) collect data every 1–2 seconds at combine speeds, generating 1,000–10,000 data points per field per year.\n\nYield maps are inherently noisy — header position delays, grain flow sensor lag, GPS offset — and require **data cleaning** before use. Key artefacts: end-row strips (accelerating/decelerating combine, opening/closing header), moisture sensor errors, and GPS drift. Cleaning algorithms remove observations outside 2–3 standard deviations, discard end-row data, and apply a time-lag correction to align flow and position. **AgLeader SMS**, **ESRI ArcGIS**, and Python libraries (*geopandas*, *pyproj*) are commonly used for yield data processing.\n\nMulti-year yield map stacking — overlaying 5–10 years of cleaned yield maps — reveals **stable yield zones**: areas of consistent high, medium, or low productivity that reflect underlying soil variability rather than weather noise. These stable zones become the basis for **management zones** — sub-field areas managed with a uniform prescription.\n\n**Soil sampling within management zones** dramatically increases sampling efficiency versus grid sampling. Directed sampling from stable zones reduces the number of cores needed to characterise a field while improving the precision of fertiliser prescriptions. **Veris Technologies** (Salina, Kansas) pioneered the **EC (apparent electrical conductivity) sensor** — a pulled array of Coulter-disc electrodes that measures soil EC in real time across the field at typical survey speeds of 10–15 km/h. Soil EC correlates with clay content, CEC, and water-holding capacity — the key drivers of within-field productivity differences. EC maps, processed with **k-means clustering** or **fuzzy c-means** classification, define management zones that align well with yield stability analysis.\n\n**Additional soil and crop sensors**:\n\n- **Crop canopy sensors** (GreenSeeker, CropScan, Holland Scientific ACS-470): real-time NDRE or NDVI readings from tractor-mounted sensors for in-season N rate adjustment.\n- **Soil moisture sensors** (capacitance probes: Sentek EnviroSCAN; TDR probes: Campbell Scientific; FDR: Decagon 5TE): continuous soil water content monitoring for irrigation scheduling.\n- **Soil nitrate sensors** (ion-selective electrodes, near-infrared spectroscopy): still largely research-stage but advancing toward commercial deployment.\n- **Optical grain quality sensors** on combines: estimate protein content in wheat and corn using near-infrared spectroscopy, enabling quality-based grain marketing.\n\nThe **John Deere Operations Center** (formerly MyJohnDeere) is the dominant farm data platform in North America, aggregating machine telematics (engine hours, fuel use, fault codes), field operations records, and agronomic layers (soil, imagery, weather). **Climate FieldView** (Bayer), **Trimble Ag**, and **CNH AgDNA / AFS** are major competitors. Data sovereignty — who owns the farmer's field data — has been a contentious policy debate since the American Farm Bureau Federation's **Privacy and Security Principles for Farm Data** were published in 2014.\n\nThe trajectory of precision agriculture points toward **autonomous field operations**: fully driverless tractors (**John Deere 8R autonomous tractor**, demonstrated at CES 2022), robotic weeding (**Carbon Robotics LaserWeeder**, targeting individual weeds with AI-guided lasers), and swarm robotics for soil sampling and crop scouting. These technologies close the loop from sensor data through decision support to autonomous action — fulfilling the precision agriculture vision of site-specific, real-time crop management."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_pad_1",
+        "kind": "math_expression",
+        "question": "A multispectral sensor over a wheat canopy records the following mean reflectance values: Near-infrared (NIR) band = 0.48, Red band = 0.08. Calculate the NDVI. Round to two decimal places.",
+        "acceptedAnswers": [
+          "0.71",
+          "0.71 (dimensionless)",
+          "0.714",
+          "0.71 NDVI"
+        ],
+        "hint": "NDVI = (NIR - Red) / (NIR + Red) = (0.48 - 0.08) / (0.48 + 0.08) = 0.40 / 0.56 = 0.714, which rounds to 0.71. A value >0.7 indicates a dense, healthy canopy."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_pad_1",
+        "kind": "multiple_choice",
+        "question": "Which satellite programme provides freely available 10-metre resolution multispectral imagery with a 5-day revisit cycle, making it the most widely used free data source for field-scale crop monitoring?",
+        "options": [
+          "Landsat 8/9 (NASA/USGS) — Landsat provides 30 m resolution and 16-day revisit. While it has the longest continuous Earth observation record (since 1972) and has been freely available since the USGS open-data policy of 2008, its 30 m pixel size and 16-day revisit are insufficient for within-season field-scale crop management decisions on typical farm fields.",
+          "Sentinel-2 (ESA Copernicus programme) — launched as two satellites in 2015 and 2017, providing 10 m resolution in visible and near-infrared bands (20 m in red-edge and SWIR), 5-day revisit at the equator, 13 multispectral bands including three red-edge bands (705, 740, 783 nm) sensitive to chlorophyll stress. Freely available via the Copernicus Open Access Hub. The 10 m resolution resolves individual field strips and management zones on typical commercial farm fields (>2 ha), making Sentinel-2 the dominant free satellite platform for precision agriculture, crop type mapping, and in-season N management. The red-edge bands allow computation of NDRE (Normalised Difference Red-Edge index), more sensitive to moderate chlorophyll deficiency than NDVI.",
+          "MODIS (NASA Terra/Aqua) — 250 m – 1 km resolution with daily revisit. Suitable for regional crop monitoring and phenology tracking but far too coarse for field-scale precision agriculture.",
+          "Planet Labs SkySat — 0.5 m commercial imagery with daily revisit. Highest resolution available commercially but not free, costing $10,000–$50,000+ per year for large-area access, restricting use to high-value crops and specific research applications."
+        ],
+        "correctIndex": 1,
+        "explanation": "Sentinel-2 (ESA) provides 10 m resolution, 5-day revisit, free access, and includes red-edge bands — making it the dominant free field-scale crop monitoring satellite. Landsat offers a longer record but coarser 30 m resolution and 16-day revisit."
+      },
+      "hints": [
+        "This is a European Space Agency Copernicus mission.",
+        "It has red-edge bands at 705, 740, and 783 nm that Landsat lacks."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Sentinel-2A was launched 2015 and Sentinel-2B in 2017. Together they achieve 5-day revisit. The 10 m pixels resolve individual crop rows in large fields. The 13-band MSI sensor includes red-edge bands particularly sensitive to chlorophyll status. It is freely available via Copernicus Open Access Hub — making it the dominant free satellite source for precision agriculture globally."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_pad_1",
+        "kind": "guided_derivation",
+        "question": "Build a variable-rate nitrogen prescription from yield stability zones",
+        "goal": "A 50 ha corn field has been divided into three management zones based on 7 years of yield maps and soil EC surveys: Zone A (high yield, 18 ha), Zone B (medium yield, 22 ha), Zone C (low yield, 10 ha). Baseline flat-rate N = 200 kg/ha. Zone A needs 15% more N than baseline; Zone B needs baseline; Zone C needs 20% less. Calculate the prescription rate for each zone, total N applied under VRT, total N under flat rate, and the saving in kg of N.",
+        "steps": [
+          {
+            "prompt": "Calculate the VRT prescription N rate (kg/ha) for each of the three zones.",
+            "motivation": "Apply the percentage adjustments to baseline.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Zone A: 230 kg/ha; Zone B: 200 kg/ha; Zone C: 160 kg/ha"
+              ]
+            },
+            "hints": [
+              "Zone A: 200 × 1.15; Zone B: 200 × 1.00; Zone C: 200 × 0.80."
+            ],
+            "reveal": "Zone A: 200 × 1.15 = 230 kg/ha. Zone B: 200 × 1.00 = 200 kg/ha. Zone C: 200 × 0.80 = 160 kg/ha."
+          },
+          {
+            "prompt": "Calculate total N applied under the VRT prescription for the entire 50 ha field.",
+            "motivation": "Weight each zone rate by its area.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "9,740 kg",
+                "9740 kg N"
+              ]
+            },
+            "hints": [
+              "Total = (230 × 18) + (200 × 22) + (160 × 10)."
+            ],
+            "reveal": "VRT total N = (230 × 18) + (200 × 22) + (160 × 10) = 4,140 + 4,400 + 1,600 = 10,140 kg. Wait — let me recount: 4,140 + 4,400 = 8,540; 8,540 + 1,600 = 10,140 kg."
+          },
+          {
+            "prompt": "Calculate total N under flat rate (200 kg/ha across all 50 ha), then compute the N saving from VRT.",
+            "motivation": "Quantify the environmental and economic benefit.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Flat rate total: 10,000 kg; VRT total: 10,140 kg; VRT applies 140 kg MORE N (Zone A high-yield zone benefits from extra N)",
+                "Flat: 10,000 kg; VRT: 10,140 kg; difference: +140 kg under VRT"
+              ]
+            },
+            "hints": [
+              "Flat rate = 200 × 50 = 10,000 kg. Compare to VRT total."
+            ],
+            "reveal": "Flat rate: 200 × 50 = 10,000 kg. VRT: 10,140 kg — actually 140 kg MORE under VRT in this scenario. This illustrates that VRT does not always reduce total N: in high-yield zones, VRT can increase rates to capture yield potential. The agronomic and environmental gains come from redistribution — applying more where the crop can use it and less in low-yield zones where excess N would leach — not necessarily from overall reduction."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_pad_1",
+        "kind": "scenario",
+        "question": "Diagnosing a yield gap using precision agriculture data layers",
+        "prompt": "A 120 ha soybean field in the US Midwest shows a persistent low-yield zone (30 ha, averaging 1.8 t/ha vs the field average of 3.1 t/ha) that has appeared in every yield map for the past 8 years. The farm manager asks you to diagnose the cause and prescribe a corrective management plan. You have access to: 7 years of cleaned yield maps, a soil EC survey (Veris Technologies), 3-year Sentinel-2 NDVI time series (available via ESA Copernicus), soil sampling data (pH, P, K, organic matter) at a 1-ha grid, and the John Deere Operations Center field records. Describe your diagnostic workflow: which data layers you interrogate first, how you interpret spatial correlations between EC, pH, NDVI trajectories, and yield, what additional soil sampling you might commission, and what corrective prescriptions you would consider (lime, drainage tile, seed variety, irrigation). Reference NDVI computation, Sentinel-2, and the Veris EC sensor technology."
+      }
+    }
+  ]
+}

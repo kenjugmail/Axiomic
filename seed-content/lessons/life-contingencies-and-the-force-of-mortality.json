@@ -1,0 +1,135 @@
+{
+  "slug": "life-contingencies-and-the-force-of-mortality",
+  "meta": {
+    "timeMinutes": 27,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Define the survival function $S(x)$ and the force of mortality $\\mu_x$, and state their relationship via $_tp_x = \\exp\\!\\left(-\\int_0^t \\mu_{x+s}\\,ds\\right)$.",
+      "Apply the De Moivre, Gompertz (1825), and Makeham (1860) analytic mortality laws to compute survival probabilities.",
+      "Compute the complete and curtate expectations of life and explain the role of select-and-ultimate tables."
+    ],
+    "prereqs": [
+      "interest-theory-and-annuities"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The survival function, future lifetime, and the force of mortality",
+      "body": "**Life contingencies** is the branch of actuarial mathematics that models cash flows whose occurrence and timing depend on human survival. The foundation is a **survival model** — a probabilistic description of how long a randomly chosen life will live.\n\n**The future lifetime random variable** $T_x$ denotes the *additional* time that a life currently aged exactly $x$ will live. The **survival function** $_tp_x$ is the probability that this life survives at least $t$ more years:\n$$_tp_x = \\Pr(T_x > t)$$\nFor a newborn, $S(t) = {}_tp_0$ is the unconditional survival function of the population. It satisfies $S(0) = 1$, $S(t)$ is non-increasing, and $S(\\omega) = 0$ for some maximum age $\\omega$.\n\nThe **probability of death** within $t$ years is the cumulative distribution function $_tq_x = 1 - {}_tp_x$, and the **probability density** of $T_x$ is:\n$$f_{T_x}(t) = {}_tp_x \\cdot \\mu_{x+t}$$\n\n**The force of mortality** $\\mu_x$ (also written $\\mu(x)$) is the **instantaneous hazard rate** of death at exact age $x$. Formally:\n$$\\mu_x = -\\frac{d}{dx} \\ln S(x) = \\frac{-S'(x)}{S(x)}$$\nIntuitively, $\\mu_x\\, dt$ is the probability of death in the infinitesimal interval $[x, x+dt)$ for a life known to have survived to age $x$. In demography, $\\mu_x$ is called the **age-specific hazard** or **instantaneous death rate**.\n\n**The fundamental integral relationship**. Because $\\mu_x = -d\\ln S(x)/dx$, integrating both sides gives:\n$$S(x) = \\exp\\!\\left(-\\int_0^x \\mu_t\\, dt\\right)$$\nand for a life already aged $x$:\n$$_tp_x = \\frac{S(x+t)}{S(x)} = \\exp\\!\\left(-\\int_0^t \\mu_{x+s}\\, ds\\right)$$\nThis is the **master formula** of continuous survival analysis. It shows that the life table column $l_x / l_0 = S(x)$ is completely determined by the force-of-mortality curve $\\mu_x$.\n\n**The joint density** factorisation $f_{T_x}(t) = {}_tp_x \\cdot \\mu_{x+t}$ is the engine behind continuous life insurance and annuity formulae. It appears throughout **Jordan's *Life Contingencies*** (2nd ed., 1967, Society of Actuaries), the classic North American graduate text. The UK equivalent is **Bowers, Gerber, Hickman, Jones, and Nesbitt**, *Actuarial Mathematics* (2nd ed., 1997, SOA), universally known as **BGHJN** — the textbook for the SOA's former Course 150 and all subsequent MLC/MAS exams."
+    },
+    {
+      "kind": "text",
+      "title": "Analytic mortality laws — De Moivre, Gompertz, and Makeham",
+      "body": "Rather than relying solely on tabulated $l_x$ values, actuaries use **parametric mortality laws** that specify $\\mu_x$ (or $S(x)$) as a closed-form function. Three laws dominate the historical and pedagogical literature.\n\n**De Moivre's law** (Abraham de Moivre, proposed in his *Annuities upon Lives*, 1725, with the uniform-distribution interpretation formalised later) assumes that $T_0$ is uniformly distributed on $[0, \\omega]$:\n$$S(x) = 1 - \\frac{x}{\\omega}, \\quad 0 \\le x < \\omega$$\nThe force of mortality is $\\mu_x = 1/(\\omega - x)$, increasing to $\\infty$ as $x \\to \\omega$. Under De Moivre's law, $T_x \\sim \\text{Uniform}(0, \\omega - x)$, making the complete expectation of life $\\bar{e}_x = (\\omega - x)/2$. De Moivre's law is unrealistic (it implies no infant mortality and a hard maximum age) but is analytically tractable and widely used in exam problems.\n\n**Gompertz's law** (Benjamin Gompertz, *On the Nature of the Function Expressive of the Law of Human Mortality*, **Philosophical Transactions of the Royal Society**, **1825**) proposes that the force of mortality grows **exponentially** with age:\n$$\\mu_x = B c^x, \\quad B > 0,\\ c > 1$$\nThis gives $S(x) = \\exp\\!\\left(-\\frac{B}{\\ln c}(c^x - 1)\\right)$ and a survival curve with the characteristic **S-shape** observed in human populations over adult ages. Gompertz's insight was empirical: he fitted his model to London Bills of Mortality and the Northampton Table (Richard Price, 1771) and found it fit observed adult mortality remarkably well. The **Gompertz distribution** remains central to reliability theory and biostatistics.\n\n**Makeham's law** (William Matthew Makeham, *On the Law of Mortality and the Construction of Annuity Tables*, **Journal of the Institute of Actuaries**, **1860**) adds a **constant background hazard** $A$ representing age-independent causes of death (accidents, infections):\n$$\\mu_x = A + B c^x, \\quad A \\ge 0$$\nThis improves the fit at younger adult ages where Gompertz underestimates mortality. The corresponding survival function is $S(x) = \\exp\\!\\left(-Ax - \\frac{B}{\\ln c}(c^x - 1)\\right)$. The **Makeham-Gompertz law** is the standard two-component model used in fitting graduated mortality tables such as the **A1967-70 table** (CMIR 1, Institute of Actuaries) and in modern **Lee-Carter mortality projection models** (Ronald D. Lee and Lawrence R. Carter, *Modelling and Forecasting U.S. Mortality*, **Journal of the American Statistical Association**, **1992**).\n\n**Select-and-ultimate tables**. A **select period** of length $r$ years means that lives who were last medically underwritten (selected) $r$ or more years ago have mortality rates indistinguishable from the **ultimate** table. Within the select period, $\\mu_{[x]+s}$ (a life selected at age $x$, now aged $x+s$, $s < r$) is lower than the ultimate $\\mu_{x+s}$ because underwriting screens out impaired lives. The IFoA's **A2000 (select)** table has a 2-year select period; the SOA's **Illustrative Life Table (ILT)** used on exam MLC is an ultimate-only table. Select tables appear in group underwriting, individual life pricing, and in the **Continuous Mortality Investigation (CMI) Bureau** reports published by the IFoA since 1973."
+    },
+    {
+      "kind": "text",
+      "title": "Expectations of life and combining interest with mortality",
+      "body": "Once the survival model is specified, two key summary statistics describe how long a life is expected to live, and a third set of quantities combines mortality with discounting to price contingent cash flows.\n\n**Complete expectation of life** $\\bar{e}_x$ (also written $e_x^\\circ$) is the expected value of $T_x$:\n$$\\bar{e}_x = E[T_x] = \\int_0^\\infty {}_tp_x\\, dt$$\nFor De Moivre's law this simplifies to $(\\omega - x)/2$. Under Gompertz's law no closed form exists but $\\bar{e}_x$ can be computed numerically. Note $\\bar{e}_x = \\sum_{k=0}^{\\infty} {}_kp_x \\cdot {}_1p_{x+k} \\cdot \\text{(fractional year)}$ — the integral over survival probabilities is a standard result derived from integration by parts.\n\n**Curtate expectation of life** $e_x$ is the expected number of *complete* years lived:\n$$e_x = E[K_x] = \\sum_{k=1}^{\\infty} {}_kp_x$$\nwhere $K_x = \\lfloor T_x \\rfloor$ is the **curtate future lifetime** (integer part). The relationship $\\bar{e}_x \\approx e_x + \\tfrac{1}{2}$ holds exactly under the **Uniform Distribution of Deaths (UDD)** assumption within each year of age — the most common interpolation assumption used to convert a discrete life table into a continuous model. UDD was the default assumption in the **2001 CSO mortality table** (Commissioners Standard Ordinary, adopted by the NAIC) and in many SOA exam problems.\n\n**Temporary expectations**. The **$n$-year temporary complete expectation** $\\bar{e}_{x:\\overline{n}|}$ is the expected time lived in the next $n$ years:\n$$\\bar{e}_{x:\\overline{n}|} = \\int_0^n {}_tp_x\\, dt$$\nIt satisfies $\\bar{e}_x = \\bar{e}_{x:\\overline{n}|} + {}_np_x \\cdot \\bar{e}_{x+n}$ — the **recursive decomposition** of expected life.\n\n**Combining interest and mortality**. The **net single premium** for a whole-life insurance paying £1 on death is:\n$$\\bar{A}_x = \\int_0^\\infty v^t \\cdot {}_tp_x \\cdot \\mu_{x+t}\\, dt = \\int_0^\\infty e^{-\\delta t} \\cdot {}_tp_x \\cdot \\mu_{x+t}\\, dt$$\nThe **whole-life annuity** paying £1 per year continuously is:\n$$\\bar{a}_x = \\int_0^\\infty v^t \\cdot {}_tp_x\\, dt$$\nThese two quantities satisfy the fundamental **life-office identity**:\n$$\\bar{A}_x + \\delta \\bar{a}_x = 1$$\nwhich can be derived by integrating by parts or by an insurance argument (the proceeds of a £1 whole-life policy fund a perpetuity of force $\\delta$). This identity is tested on the SOA's **Exam MLC** (now LTAM — Long-Term Actuarial Mathematics) and the IFoA's **Subject CM1**. The discrete analogue is $A_x + d\\,\\ddot{a}_x = 1$, where $d = i/(1+i)$ is the annual discount rate."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_lc_1",
+        "kind": "math_expression",
+        "question": "Under De Moivre's law with $\\omega = 100$, compute $_5p_{40}$ — the probability that a life aged 40 survives to age 45.",
+        "acceptedAnswers": [
+          "5/6",
+          "0.8333",
+          "0.83333",
+          "50/60",
+          "0.8333 (approx)"
+        ],
+        "hint": "Under De Moivre's law, $S(x) = 1 - x/\\omega$. Use $_5p_{40} = S(45)/S(40) = (1 - 45/100)/(1 - 40/100)$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_lc_1",
+        "kind": "multiple_choice",
+        "question": "Benjamin Gompertz (1825) proposed that the force of mortality $\\mu_x$ follows which pattern with age?",
+        "options": [
+          "$\\mu_x$ is constant for all ages — the exponential distribution of lifetimes.",
+          "$\\mu_x = 1/(\\omega - x)$ — increasing hyperbolically to infinity at age $\\omega$.",
+          "$\\mu_x = Bc^x$ — increasing exponentially with age (geometric growth of the hazard).",
+          "$\\mu_x = A + Bc^x$ — a constant background hazard plus an exponentially growing component."
+        ],
+        "correctIndex": 2,
+        "explanation": "Gompertz's 1825 paper *On the Nature of the Function Expressive of the Law of Human Mortality*, published in the *Philosophical Transactions of the Royal Society*, proposed $\\mu_x = Bc^x$ with $B > 0$ and $c > 1$. This means the force of mortality doubles every $\\ln 2 / \\ln c$ years of age — roughly every 8–10 years in typical human populations. Gompertz fitted this to the London Bills of Mortality and the Northampton Table (Richard Price, 1771) and found excellent agreement for ages 20–80. Option A (constant hazard) implies an exponential lifetime distribution — unrealistic because it ignores ageing. Option B is De Moivre's law (uniform lifetime). Option D is the Makeham extension (1860): William Matthew Makeham added the constant $A$ to capture age-independent mortality causes, improving fit at younger adult ages. The Gompertz component $Bc^x$ in Makeham's law is the same as in Gompertz (1825)."
+      },
+      "hints": [
+        "The law was proposed in 1825 and involves exponential growth in the hazard.",
+        "Two parameters: $B$ scales the hazard, $c$ is the base of the exponential."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Gompertz (1825) proposed $\\mu_x = Bc^x$. The exponential form captures the **doubling time** of mortality risk with advancing age — a remarkably good empirical description of adult human mortality. Makeham (1860) added the constant $A$ to get $\\mu_x = A + Bc^x$. The De Moivre law ($\\mu_x = 1/(\\omega-x)$, option B) was an earlier and simpler analytical device. A constant hazard (option A) corresponds to no ageing — the memoryless exponential distribution, appropriate for certain machines but not humans."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_lc_1",
+        "kind": "guided_derivation",
+        "question": "Derive the identity $\\bar{A}_x + \\delta \\bar{a}_x = 1$",
+        "goal": "Starting from the definitions of $\\bar{A}_x$ and $\\bar{a}_x$ as integrals over the future lifetime density, derive the fundamental life-office identity by integration by parts.",
+        "steps": [
+          {
+            "prompt": "Write $\\bar{A}_x$ and $\\bar{a}_x$ as integrals involving $_tp_x$ and $\\mu_{x+t}$.",
+            "motivation": "Express both quantities in common notation before relating them.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "A_x = integral e^{-delta t} t_p_x mu_{x+t} dt; a_x = integral e^{-delta t} t_p_x dt",
+                "bar A_x = int_0^infty e^{-delta t} _tp_x mu_{x+t} dt and bar a_x = int_0^infty e^{-delta t} _tp_x dt"
+              ]
+            },
+            "hints": [
+              "Use the density $f_{T_x}(t) = {}_tp_x \\mu_{x+t}$ for $\\bar{A}_x$."
+            ],
+            "reveal": "$\\bar{A}_x = \\int_0^\\infty e^{-\\delta t} {}_tp_x \\mu_{x+t}\\, dt$ and $\\bar{a}_x = \\int_0^\\infty e^{-\\delta t} {}_tp_x\\, dt$."
+          },
+          {
+            "prompt": "Note that $\\frac{d}{dt}(-{}_tp_x) = {}_tp_x \\mu_{x+t}$. Use this to rewrite $\\bar{A}_x$ as an integral involving $-d(_tp_x)/dt$.",
+            "motivation": "Connect the insurance integrand to the derivative of the survival probability.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "A_x = -integral e^{-delta t} d(_tp_x)/dt dt",
+                "bar A_x = int_0^infty e^{-delta t} (-d/dt _tp_x) dt"
+              ]
+            },
+            "hints": [
+              "$d(_tp_x)/dt = -_tp_x \\mu_{x+t}$, so $-d(_tp_x)/dt = {}_tp_x \\mu_{x+t}$."
+            ],
+            "reveal": "$\\bar{A}_x = \\int_0^\\infty e^{-\\delta t} \\left(-\\frac{d}{dt}\\,{}_tp_x\\right) dt$. This sets up integration by parts with $u = e^{-\\delta t}$ and $dv = -d(_tp_x)$."
+          },
+          {
+            "prompt": "Apply integration by parts: boundary terms plus remaining integral.",
+            "motivation": "The boundary terms vanish; the remaining integral yields $\\delta \\bar{a}_x$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1 + delta * integral e^{-delta t} _tp_x dt = 1 + delta * a_x... so A_x = 1 - delta a_x",
+                "boundary gives [e^{-delta t} _tp_x] from 0 to infty = 0 - 1 = -1; remaining integral gives delta bar_a_x; so bar A_x = 1 - delta bar a_x"
+              ]
+            },
+            "hints": [
+              "At $t=0$: $e^0 \\cdot {}_0p_x = 1$. As $t \\to \\infty$: $e^{-\\delta t} \\cdot {}_tp_x \\to 0$."
+            ],
+            "reveal": "Integration by parts: $\\bar{A}_x = \\left[-e^{-\\delta t}{}_tp_x\\right]_0^\\infty + \\int_0^\\infty (-\\delta)e^{-\\delta t}{}_tp_x\\, dt$. Boundary: $(0) - (-1) = 1$. Remaining term: $-\\delta \\bar{a}_x$. So $\\bar{A}_x = 1 - \\delta \\bar{a}_x$, i.e., $\\bar{A}_x + \\delta \\bar{a}_x = 1$."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_lc_1",
+        "kind": "scenario",
+        "question": "Selecting the right mortality assumption for a bulk annuity transaction",
+        "prompt": "An insurance company is about to price a **bulk purchase annuity (BPA)** — taking over £200 million of pension liabilities for 1,500 pensioners from a corporate pension fund. The pricing actuary must choose a mortality basis. The fund's actuary has been using the S2 standard tables (CMI, 2010) with the CMI 2016 projection model. A rival insurer is using the **IFoA SAPS S3 tables** (2019) with CMI 2021 projections and a Makeham-style parametric overlay. Describe: (a) why the mortality basis matters so much to a BPA price; (b) what the Makeham $A + Bc^x$ form contributes that a pure table cannot; (c) how the Lee-Carter model (1992) or CMI projection model extends static tables to allow for future mortality improvement; and (d) what the commercial risk is if the winning insurer has used the most optimistic (lowest-mortality) assumption."
+      }
+    }
+  ]
+}
