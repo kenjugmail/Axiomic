@@ -468,6 +468,34 @@ export function MasteryPathPage() {
                       </div>
                       );
                     })()}
+                    {user && completed && (() => {
+                      // Completed nodes stay open for review — a lesson can
+                      // be re-read (the player restores your slide position)
+                      // and a quiz re-taken. Styled as a secondary action so
+                      // it reads as "revisit", not "do it now".
+                      const isLab =
+                        !!node.nodeKind && node.nodeKind !== "lesson";
+                      return (
+                        <div className="flex items-center gap-2 shrink-0">
+                          {(node.hasLesson || isLab) && (
+                            <Link
+                              to={`/paths/${slug}/lessons/${node.slug}`}
+                              className="px-3 py-1 rounded-md text-xs font-medium border border-border text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
+                            >
+                              {isLab ? "Reopen" : "Review lesson"}
+                            </Link>
+                          )}
+                          {!isLab && (
+                            <button
+                              onClick={() => setQuizFor(node)}
+                              className="px-3 py-1 rounded-md text-xs font-medium border border-border text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
+                            >
+                              Retake quiz
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 );
               })}
