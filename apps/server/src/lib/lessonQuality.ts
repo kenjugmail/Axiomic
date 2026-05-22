@@ -34,7 +34,7 @@ export interface LessonScoreMetrics {
 // aren't sentence-initial. Counts unique tokens to avoid inflating
 // scores via repetition.
 export function countNameDrops(text: string): number {
-  const tokens = text.match(/(?<![.!?]\s)\b[A-Z][a-zA-Z'\-]{2,}\b/g) ?? [];
+  const tokens = text.match(/(?<![.!?]\s)\b[A-Z][-a-zA-Z']{2,}\b/g) ?? [];
   return new Set(tokens).size;
 }
 
