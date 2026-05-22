@@ -719,6 +719,48 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "💪",
     tags: ["sports-science", "muscle", "hill", "power", "biomechanics"],
   },
+  {
+    name: "event-loop",
+    label: "JS event loop",
+    description: "Step a script through the call stack, microtask + macrotask queues, and console — see why Promise.then beats setTimeout(0).",
+    thumb: "🔁",
+    tags: ["javascript", "event-loop", "async", "microtask", "frontend"],
+  },
+  {
+    name: "render-pipeline",
+    label: "Browser render pipeline",
+    description: "JS → Style → Layout → Paint → Composite; toggle a reflow vs repaint vs compositor-only change to see which stages re-run.",
+    thumb: "🖼️",
+    tags: ["frontend", "rendering", "reflow", "performance", "css"],
+  },
+  {
+    name: "wcag-contrast",
+    label: "WCAG contrast",
+    description: "Foreground/background contrast ratio vs the WCAG AA/AAA thresholds for normal vs large text; drag the luminances.",
+    thumb: "🔲",
+    tags: ["accessibility", "wcag", "contrast", "a11y", "frontend"],
+  },
+  {
+    name: "galaxy-rotation-curve",
+    label: "Galaxy rotation curve",
+    description: "Flat observed rotation vs the Keplerian prediction from visible mass; add a dark-matter halo to close the gap (Rubin & Ford).",
+    thumb: "🌀",
+    tags: ["astronomy", "dark-matter", "galaxy", "rotation-curve", "cosmology"],
+  },
+  {
+    name: "hubble-expansion",
+    label: "Hubble's law",
+    description: "Recession velocity vs distance (v = H₀d); slide H₀ to read off the age of the universe and see the Planck/SH0ES tension.",
+    thumb: "🌌",
+    tags: ["cosmology", "hubble", "expansion", "redshift", "astronomy"],
+  },
+  {
+    name: "cpu-scheduler",
+    label: "CPU scheduler",
+    description: "Gantt chart for FCFS / SJF / round-robin on one workload, with average waiting + turnaround time; slide the RR quantum.",
+    thumb: "⏱️",
+    tags: ["operating-systems", "scheduling", "round-robin", "processes", "systems"],
+  },
 ];
 
 interface Props {

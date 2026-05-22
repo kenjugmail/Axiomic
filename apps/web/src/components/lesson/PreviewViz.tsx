@@ -498,6 +498,36 @@ const LazyForceVelocityCurve = lazy(() =>
     (m) => ({ default: m.ForceVelocityCurve }),
   ),
 );
+const LazyEventLoop = lazy(() =>
+  import("../../../../../packages/viz/src/components/EventLoop").then(
+    (m) => ({ default: m.EventLoop }),
+  ),
+);
+const LazyRenderPipeline = lazy(() =>
+  import("../../../../../packages/viz/src/components/RenderPipeline").then(
+    (m) => ({ default: m.RenderPipeline }),
+  ),
+);
+const LazyWcagContrast = lazy(() =>
+  import("../../../../../packages/viz/src/components/WcagContrast").then(
+    (m) => ({ default: m.WcagContrast }),
+  ),
+);
+const LazyGalaxyRotationCurve = lazy(() =>
+  import("../../../../../packages/viz/src/components/GalaxyRotationCurve").then(
+    (m) => ({ default: m.GalaxyRotationCurve }),
+  ),
+);
+const LazyHubbleExpansion = lazy(() =>
+  import("../../../../../packages/viz/src/components/HubbleExpansion").then(
+    (m) => ({ default: m.HubbleExpansion }),
+  ),
+);
+const LazyCpuScheduler = lazy(() =>
+  import("../../../../../packages/viz/src/components/CpuScheduler").then(
+    (m) => ({ default: m.CpuScheduler }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -754,6 +784,18 @@ function VizByName({
       return <LazyEnergyBalance {...(props as object)} />;
     case "force-velocity-curve":
       return <LazyForceVelocityCurve {...(props as object)} />;
+    case "event-loop":
+      return <LazyEventLoop {...(props as object)} />;
+    case "render-pipeline":
+      return <LazyRenderPipeline {...(props as object)} />;
+    case "wcag-contrast":
+      return <LazyWcagContrast {...(props as object)} />;
+    case "galaxy-rotation-curve":
+      return <LazyGalaxyRotationCurve {...(props as object)} />;
+    case "hubble-expansion":
+      return <LazyHubbleExpansion {...(props as object)} />;
+    case "cpu-scheduler":
+      return <LazyCpuScheduler {...(props as object)} />;
     default:
       return null;
   }

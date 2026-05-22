@@ -60,6 +60,12 @@ import { QuorumReplication } from "../src/components/QuorumReplication";
 import { ToothAnatomy } from "../src/components/ToothAnatomy";
 import { EnergyBalance } from "../src/components/EnergyBalance";
 import { ForceVelocityCurve } from "../src/components/ForceVelocityCurve";
+import { EventLoop } from "../src/components/EventLoop";
+import { RenderPipeline } from "../src/components/RenderPipeline";
+import { WcagContrast } from "../src/components/WcagContrast";
+import { GalaxyRotationCurve } from "../src/components/GalaxyRotationCurve";
+import { HubbleExpansion } from "../src/components/HubbleExpansion";
+import { CpuScheduler } from "../src/components/CpuScheduler";
 
 const VIZ_COMPONENTS = {
   KinshipDiagram,
@@ -112,6 +118,12 @@ const VIZ_COMPONENTS = {
   ToothAnatomy,
   EnergyBalance,
   ForceVelocityCurve,
+  EventLoop,
+  RenderPipeline,
+  WcagContrast,
+  GalaxyRotationCurve,
+  HubbleExpansion,
+  CpuScheduler,
 };
 
 describe("viz components — SSR smoke tests", () => {

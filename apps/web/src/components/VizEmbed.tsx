@@ -102,6 +102,12 @@ const QuorumReplication = lazy(() => import("../../../../packages/viz/src/compon
 const ToothAnatomy = lazy(() => import("../../../../packages/viz/src/components/ToothAnatomy").then(m => ({ default: m.ToothAnatomy })));
 const EnergyBalance = lazy(() => import("../../../../packages/viz/src/components/EnergyBalance").then(m => ({ default: m.EnergyBalance })));
 const ForceVelocityCurve = lazy(() => import("../../../../packages/viz/src/components/ForceVelocityCurve").then(m => ({ default: m.ForceVelocityCurve })));
+const EventLoop = lazy(() => import("../../../../packages/viz/src/components/EventLoop").then(m => ({ default: m.EventLoop })));
+const RenderPipeline = lazy(() => import("../../../../packages/viz/src/components/RenderPipeline").then(m => ({ default: m.RenderPipeline })));
+const WcagContrast = lazy(() => import("../../../../packages/viz/src/components/WcagContrast").then(m => ({ default: m.WcagContrast })));
+const GalaxyRotationCurve = lazy(() => import("../../../../packages/viz/src/components/GalaxyRotationCurve").then(m => ({ default: m.GalaxyRotationCurve })));
+const HubbleExpansion = lazy(() => import("../../../../packages/viz/src/components/HubbleExpansion").then(m => ({ default: m.HubbleExpansion })));
+const CpuScheduler = lazy(() => import("../../../../packages/viz/src/components/CpuScheduler").then(m => ({ default: m.CpuScheduler })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -208,6 +214,12 @@ export const VIZ_NAMES = [
   "tooth-anatomy",
   "energy-balance",
   "force-velocity-curve",
+  "event-loop",
+  "render-pipeline",
+  "wcag-contrast",
+  "galaxy-rotation-curve",
+  "hubble-expansion",
+  "cpu-scheduler",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -312,6 +324,12 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "tooth-anatomy": ToothAnatomy,
   "energy-balance": EnergyBalance,
   "force-velocity-curve": ForceVelocityCurve,
+  "event-loop": EventLoop,
+  "render-pipeline": RenderPipeline,
+  "wcag-contrast": WcagContrast,
+  "galaxy-rotation-curve": GalaxyRotationCurve,
+  "hubble-expansion": HubbleExpansion,
+  "cpu-scheduler": CpuScheduler,
 };
 
 interface VizEmbedProps {

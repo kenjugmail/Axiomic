@@ -15,6 +15,8 @@
     {
       "kind": "text",
       "title": "The event loop, precisely",
+      "viz": "event-loop",
+      "vizProps": {},
       "body": "Browser + Node's event loop has this structure (simplified):\n\n```\nwhile (true) {\n  task = dequeue(macrotask_queue); // 1 macrotask per turn\n  task.run();\n  while (microtask_queue.length > 0) {\n    microtask_queue.dequeue().run(); // ALL pending microtasks\n  }\n  render(); // only on browser, only if needed + frame budget allows\n}\n```\n\n**Macrotasks**: I/O completion, setTimeout / setInterval, UI events (click, keyup), MessageChannel.\n**Microtasks**: `Promise.then()` callbacks, `queueMicrotask()`, MutationObserver.\n\nKey property: microtasks run TO COMPLETION before the next macrotask. A promise chain that's still pending when its first `.then` runs will queue another microtask + run synchronously-ish before returning to the loop.\n\nConsequence: a tight loop of promise resolutions can starve macrotasks (UI events) — the browser appears frozen even though it's busy."
     },
     {

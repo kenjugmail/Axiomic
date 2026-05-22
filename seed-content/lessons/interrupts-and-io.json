@@ -15,6 +15,8 @@
     {
       "kind": "text",
       "title": "Interrupts, the asynchronous mechanism",
+      "viz": "cpu-scheduler",
+      "vizProps": {},
       "body": "When hardware needs the CPU's attention (network packet arrived, disk read completed, key pressed), it raises an **interrupt** — a hardware signal that suspends the current task + jumps to a kernel handler.\n\nProcess (simplified x86):\n1. Device asserts IRQ line.\n2. CPU completes current instruction.\n3. CPU saves RIP + RFLAGS, looks up IDT (Interrupt Descriptor Table) for IRQ handler.\n4. Jumps to handler (kernel code).\n5. Handler does minimum (acknowledge device, queue work for a 'softirq' or kernel thread), returns.\n6. CPU restores state, resumes interrupted task.\n\nCost: ~1µs per interrupt on modern CPUs. Not free — but vastly better than polling at the kernel's rate.\n\n**Top-half / bottom-half split**: the top half runs in interrupt context (preempts everything; must be fast). It schedules a bottom half (softirq, tasklet, work queue) to run with normal priority, doing the actual work. Network packet handling is the canonical example: top half ACKs the device + pulls the packet to RAM; bottom half does TCP processing."
     },
     {

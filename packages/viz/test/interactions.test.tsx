@@ -33,6 +33,12 @@ import { QuorumReplication } from "../src/components/QuorumReplication";
 import { ToothAnatomy } from "../src/components/ToothAnatomy";
 import { EnergyBalance } from "../src/components/EnergyBalance";
 import { ForceVelocityCurve } from "../src/components/ForceVelocityCurve";
+import { EventLoop } from "../src/components/EventLoop";
+import { RenderPipeline } from "../src/components/RenderPipeline";
+import { WcagContrast } from "../src/components/WcagContrast";
+import { GalaxyRotationCurve } from "../src/components/GalaxyRotationCurve";
+import { HubbleExpansion } from "../src/components/HubbleExpansion";
+import { CpuScheduler } from "../src/components/CpuScheduler";
 
 let h: VizHarness | null = null;
 afterEach(() => {
@@ -169,5 +175,35 @@ describe("viz interactions", () => {
   test("ForceVelocityCurve: switching fiber type moves the active highlight", () => {
     h = mountViz(createElement(ForceVelocityCurve));
     expectSelectionMoves(h, "Fast (Type II)", "Slow (Type I)");
+  });
+
+  test("EventLoop: switching scenario moves the active highlight", () => {
+    h = mountViz(createElement(EventLoop));
+    expectSelectionMoves(h, "setTimeout + Promise", "Promise chain");
+  });
+
+  test("RenderPipeline: switching change type moves the active highlight", () => {
+    h = mountViz(createElement(RenderPipeline));
+    expectSelectionMoves(h, "Reflow", "Composite");
+  });
+
+  test("WcagContrast: switching text size moves the active highlight", () => {
+    h = mountViz(createElement(WcagContrast));
+    expectSelectionMoves(h, "Normal text", "Large text");
+  });
+
+  test("GalaxyRotationCurve: switching mode moves the active highlight", () => {
+    h = mountViz(createElement(GalaxyRotationCurve));
+    expectSelectionMoves(h, "Observed", "Visible mass");
+  });
+
+  test("HubbleExpansion: switching H0 preset moves the active highlight", () => {
+    h = mountViz(createElement(HubbleExpansion));
+    expectSelectionMoves(h, "Planck 67", "SH0ES 73");
+  });
+
+  test("CpuScheduler: switching algorithm moves the active highlight", () => {
+    h = mountViz(createElement(CpuScheduler));
+    expectSelectionMoves(h, "FCFS", "Round-robin");
   });
 });

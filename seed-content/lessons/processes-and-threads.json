@@ -13,6 +13,8 @@
     {
       "kind": "text",
       "title": "Process vs thread, precisely",
+      "viz": "cpu-scheduler",
+      "vizProps": {},
       "body": "**Process**: an instance of a running program. Has its own address space (virtual memory), file descriptors, signal handlers, working directory. Created by `fork()` (Unix) or `CreateProcess()` (Windows). Isolated from other processes — a buggy process can't (directly) corrupt another.\n\n**Thread**: a unit of execution within a process. Shares the process's address space, file descriptors, etc. with other threads. Created by `pthread_create()` / `std::thread` / language-level abstractions. Lighter than processes (no address-space setup); communication via shared memory.\n\nThe trade-off:\n- **Processes**: heavyweight (~1ms to fork), strong isolation, IPC via pipes/sockets.\n- **Threads**: cheap (~10µs to create), shared memory, no isolation (one thread's bug can corrupt others).\n\nProduction patterns:\n- **Multi-process**: Chrome (process-per-tab for isolation), Postgres (process-per-connection historically), Apache pre-fork.\n- **Multi-thread**: most modern application servers, JVMs, the kernel itself.\n\nThe Python GIL + Ruby GVL famously limit thread parallelism in those languages, pushing CPU-bound work back to multi-process (multiprocessing module)."
     },
     {

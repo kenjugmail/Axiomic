@@ -13,6 +13,8 @@
     {
       "kind": "text",
       "title": "The browser rendering pipeline",
+      "viz": "render-pipeline",
+      "vizProps": {},
       "body": "When the browser renders a page, it runs a multi-stage pipeline:\n\n1. **Parse**: HTML → DOM tree. CSS → CSSOM.\n2. **Style**: combine DOM + CSSOM → render tree (only visible elements with styles applied).\n3. **Layout** (a.k.a. reflow): compute geometry — size, position of every box. Cost: $O(n)$ over visible elements, but cascades across siblings + ancestors.\n4. **Paint**: fill pixels for each layer (text, backgrounds, borders, shadows). Cost: roughly proportional to painted area.\n5. **Composite**: stack layers on the GPU. Cheap.\n\nNot every change runs the full pipeline. Changing a `transform` or `opacity` typically skips layout + paint (composite-only) — that's why CSS animations on those properties are smooth at 60fps.\n\nChanging a `width` or `top` triggers layout (potentially cascading). Changing a `background-color` triggers paint but not layout. Knowing which is which is the foundation of front-end performance work."
     },
     {
