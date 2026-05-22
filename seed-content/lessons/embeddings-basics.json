@@ -58,6 +58,75 @@
       }
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "emb_gd1",
+        "kind": "guided_derivation",
+        "question": "Derive cosine similarity and explain why dot product measures semantic closeness",
+        "goal": "Show step-by-step why the dot product of two L2-normalized vectors equals their cosine similarity, and connect this to why attention (QK^T) measures semantic relevance.",
+        "steps": [
+          {
+            "prompt": "Write the dot product u·v in terms of the magnitudes ||u||, ||v|| and the angle θ between the vectors.",
+            "motivation": "The geometric definition of the dot product is the bridge between algebra and angle.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "u·v = ||u|| ||v|| cos(theta)",
+                "u·v = |u||v|cos(θ)",
+                "||u|| ||v|| cos(theta)"
+              ]
+            },
+            "hints": [
+              "This is the geometric definition of the dot product from linear algebra."
+            ],
+            "reveal": "u·v = ||u|| · ||v|| · cos(θ). This is the fundamental identity linking the algebraic operation (sum of products of components) to the geometric angle between vectors."
+          },
+          {
+            "prompt": "If both u and v are L2-normalized (||u|| = ||v|| = 1), what does u·v simplify to?",
+            "motivation": "Normalization is what makes dot product equal to cosine similarity.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "cos(theta)",
+                "cos(θ)",
+                "cosine of theta"
+              ]
+            },
+            "hints": [
+              "Substitute ||u|| = 1 and ||v|| = 1 into the equation from step 1."
+            ],
+            "reveal": "u·v = 1 · 1 · cos(θ) = cos(θ). For unit vectors, dot product IS cosine similarity. Many transformers work with L2-normalized key and query vectors for exactly this reason — the dot product directly scores angular closeness."
+          },
+          {
+            "prompt": "In attention, the score for query q attending to key k is q·k (or q·k / √d_k). If embeddings of semantically similar words cluster in the same direction, what does a high score q·k mean?",
+            "motivation": "Connecting the math to the semantic geometry closes the loop on why attention works.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "q and k point in similar directions, so they are semantically related",
+                "the query and key are semantically close / aligned",
+                "small angle between q and k means high similarity"
+              ]
+            },
+            "hints": [
+              "High cosine similarity ↔ small angle ↔ vectors pointing in the same direction ↔ semantically related by the distributional hypothesis."
+            ],
+            "reveal": "A high dot product score q·k means q and k point in similar directions in the embedding space — they are semantically related by the distributional hypothesis. Attention is therefore computing, for each query, how semantically relevant each key is, then doing a weighted average of the values. The geometric structure of the embedding space is the direct substrate of the attention mechanism."
+          }
+        ],
+        "finalResult": "u·v = ||u|| ||v|| cos(θ). For unit vectors: dot product = cos(θ) = cosine similarity. Attention scores q·k measure the semantic angle between query and key — high score means semantically close, low score means unrelated. The distributional geometry learned during training is what makes this meaningful."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "emb_scen1",
+        "kind": "scenario",
+        "question": "Analogy arithmetic and the OOV problem",
+        "prompt": "You are working with a pre-trained word embedding model. A colleague demonstrates the famous analogy: king − man + woman ≈ queen (Mikolov et al., 2013), and asks two follow-up questions. (1) A new word 'GPT-5' was coined after the model's training cutoff and has no embedding. How would you represent this out-of-vocabulary (OOV) token in practice? Name at least two strategies and their tradeoffs. (2) The analogy king − man + woman ≈ queen works, but doctor − man + woman gives a result closer to 'nurse' than 'doctor' (female). What does this reveal about how distributional training encodes societal bias, and what are the implications for using these embeddings in a production system?"
+      }
+    },
+    {
       "kind": "section",
       "title": "Part 3 — Embeddings inside the transformer",
       "body": "Embeddings are the *start*, not the destination. Everything downstream is a transformation of this vector field."

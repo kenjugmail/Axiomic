@@ -3,7 +3,17 @@
     {
       "kind": "text",
       "title": "Three transformer flavors",
-      "body": "Not every transformer is shaped the same way. Three variants dominate:\n\n- **Encoder-only**: BERT, RoBERTa, DeBERTa. Bidirectional attention; trained with masked language modeling. Good for embedding, classification, retrieval. Not used for free-form generation.\n- **Decoder-only**: GPT-2/3/4, LLaMA, Mistral, Claude (architecturally). Causal masking; trained with next-token prediction. Generates text autoregressively. This is the dominant LLM shape today.\n- **Encoder-decoder**: T5, BART, the original transformer paper. An encoder reads the input bidirectionally; a decoder generates the output autoregressively, attending back to the encoder's output via cross-attention. Used for translation, summarization, structured tasks.\n\nThe decision tree: do you need to generate text? Decoder-only or encoder-decoder. Do you have a clear input/output split (translation, summarization)? Encoder-decoder might help. Are you embedding or classifying? Encoder-only."
+      "viz": "attention-heatmap",
+      "vizProps": {
+        "tokens": ["the","cat","sat","on"],
+        "weights": [
+          [0.4,0.3,0.2,0.1],
+          [0.25,0.4,0.25,0.1],
+          [0.1,0.3,0.4,0.2],
+          [0.15,0.2,0.25,0.4]
+        ]
+      },
+      "body": "Not every transformer is shaped the same way. Three variants dominate:\n\n- **Encoder-only**: BERT, RoBERTa, DeBERTa. Bidirectional attention; trained with masked language modeling. Good for embedding, classification, retrieval. Not used for free-form generation.\n- **Decoder-only**: GPT-2/3/4, LLaMA, Mistral, Claude (architecturally). Causal masking; trained with next-token prediction. Generates text autoregressively. This is the dominant LLM shape today.\n- **Encoder-decoder**: T5, BART, the original transformer paper. An encoder reads the input bidirectionally; a decoder generates the output autoregressively, attending back to the encoder's output via cross-attention. Used for translation, summarization, structured tasks.\n\nThe decision tree: do you need to generate text? Decoder-only or encoder-decoder. Do you have a clear input/output split (translation, summarization)? Encoder-decoder might help. Are you embedding or classifying? Encoder-only.\n\nThe heatmap shows a **dense, unmasked self-attention matrix** — the kind used inside an encoder. Every token attends to every other token, including future positions. Compare this to the strictly lower-triangular pattern of a decoder's causal mask: the encoder has no forbidden positions, giving it a bidirectional view of the whole sequence."
     },
     {
       "kind": "text",
@@ -53,9 +63,77 @@
       }
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "ed_gd1",
+        "kind": "guided_derivation",
+        "question": "Derive the encoder-decoder information flow and explain the role of bidirectionality vs causality",
+        "goal": "Trace how the original Transformer (Vaswani et al., 2017) splits work between encoder and decoder: the encoder produces a rich bidirectional representation; the decoder uses it autoregressively via cross-attention.",
+        "steps": [
+          {
+            "prompt": "The encoder runs self-attention with NO causal mask. What does this mean for each token's representation at the output?",
+            "motivation": "Understanding full bidirectionality motivates why encoders produce richer per-token context than decoders.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "each token can attend to all other tokens, including future tokens",
+                "every token attends to all positions in both directions",
+                "full bidirectional context"
+              ]
+            },
+            "hints": [
+              "No masking means the attention matrix has no forbidden positions."
+            ],
+            "reveal": "Without a mask, every token attends to every other token — past and future. By the final encoder layer, each token's hidden state is a contextualized summary of the entire input sequence, not just what came before it. This is why encoder representations (as in BERT) are richer for understanding tasks than decoder representations."
+          },
+          {
+            "prompt": "The decoder generates tokens one at a time at inference. Which attention mechanism prevents it from seeing future output tokens during training?",
+            "motivation": "Connecting causal masking to the decoder's autoregressive objective.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "causal self-attention (masked self-attention)",
+                "causal mask / autoregressive mask",
+                "masked self-attention"
+              ]
+            },
+            "hints": [
+              "The upper triangle of the decoder's self-attention score matrix is set to -∞ before softmax."
+            ],
+            "reveal": "The decoder uses causal (masked) self-attention: score matrix entries S[i,j] are set to -∞ for j > i before softmax, preventing position i from attending to any future output position. This makes training equivalent to N parallel autoregressive predictions over the target sequence."
+          },
+          {
+            "prompt": "The decoder also has a cross-attention sublayer. What are Q, K, V in that sublayer, and what computation does it enable?",
+            "motivation": "Cross-attention is the bridge between the two stacks — naming it precisely closes the derivation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Q from decoder, K and V from encoder output",
+                "Q = decoder state, K = encoder output, V = encoder output"
+              ]
+            },
+            "hints": [
+              "The decoder is generating (provides queries); the encoder has the source context (provides keys and values)."
+            ],
+            "reveal": "Cross-attention: Q = decoder hidden state (current generation step), K = encoder output, V = encoder output. Each decoder step can attend to any encoder position with full bidirectional context. This is how the decoder 'reads' the source input at every generation step — the key mechanism Vaswani et al. (2017) introduced in 'Attention Is All You Need' (NeurIPS 2017)."
+          }
+        ],
+        "finalResult": "Encoder (bidirectional self-attention, no mask) → full-context representations. Decoder (causal self-attention + cross-attention to encoder) → autoregressive generation conditioned on the full source. The split is: encoder understands, decoder generates while attending back to that understanding."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ed_scen1",
+        "kind": "scenario",
+        "question": "Choosing between encoder-decoder and decoder-only for a new task",
+        "prompt": "Your team is building a system that takes a 500-word legal document as input and must produce a structured 3-sentence summary in a fixed format. A colleague argues for a decoder-only model (like LLaMA) with the document prepended as context; you argue for an encoder-decoder model (like T5 or BART). Make the case for encoder-decoder: explain (1) why bidirectional encoding of the source document is beneficial here, (2) how cross-attention allows each summary token to reference any part of the 500-word source, and (3) one scenario where the decoder-only approach would actually be preferable despite these advantages."
+      }
+    },
+    {
       "kind": "text",
       "title": "What's next",
       "body": "The architecture-flavor decision is largely settled today: decoder-only for general-purpose LLMs, encoder-only for embeddings, encoder-decoder for specific input→output tasks where the bifurcation helps.\n\nWith all three shapes covered, the next conceptual piece is [[masked-self-attention]] — how the causal mask actually works in the decoder, and why it's necessary for autoregressive training to be efficient.\n\nKey takeaways:\n- Encoder-only: bidirectional attention; embeddings + classification\n- Decoder-only: causal mask; autoregressive generation; modern LLMs\n- Encoder-decoder: cross-attention bridges input and output; translation / summarization"
-    }
+      }
   ]
 }
