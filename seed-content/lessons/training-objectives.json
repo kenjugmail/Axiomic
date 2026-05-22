@@ -56,6 +56,29 @@
       "kind": "text",
       "title": "What's next",
       "body": "Now you know what 'training a language model' actually means: minimize cross-entropy loss over next-token predictions, then fine-tune on instructions, then optimize for human preferences.\n\nCommon misconceptions:\n- *More than one loss function?* No — even RLHF / DPO are still ultimately log-likelihood-based, just over different distributions.\n- *Models 'memorize' the training data?* Not exactly. They learn a probability distribution that *includes* high probability for verbatim training sequences but generalizes beyond them. Whether that's memorization or learning is partly philosophical.\n\nNext: [[sampling-decoding]] — once you have a probability distribution over next tokens, how do you actually pick which one to generate?"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_trainobj_1",
+        "kind": "math_expression",
+        "question": "Perplexity is defined as $\\text{PPL} = e^{\\mathcal{L}}$, where $\\mathcal{L}$ is the mean per-token cross-entropy loss (in nats). A model reaches a validation cross-entropy of $\\mathcal{L} = \\ln 4$ nats. Compute its perplexity.",
+        "acceptedAnswers": [
+          "4",
+          "e^(ln 4)",
+          "4.0"
+        ],
+        "hint": "Perplexity is just the exponential of the cross-entropy: $\\text{PPL} = e^{\\mathcal{L}} = e^{\\ln 4} = 4$. Intuitively the model is as uncertain as if it were choosing uniformly among 4 equally likely tokens at each step."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_trainobj_1",
+        "kind": "scenario",
+        "question": "Choosing between a causal LM and a masked LM objective",
+        "prompt": "You are starting a new project and must pick a pretraining objective. The first goal is an open-ended assistant that generates fluent multi-paragraph answers; a later goal is a high-quality sentence-embedding encoder for semantic search over the same corpus. Explain which objective (causal/autoregressive LM versus masked/bidirectional LM) you would choose for each goal and why, referencing how the loss is computed (every position versus only the ~15% masked positions) and what each objective gives up — generation ability for MLM, bidirectional context for CLM. Justify your recommendation in 3-5 sentences."
+      }
     }
   ]
 }

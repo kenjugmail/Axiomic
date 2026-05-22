@@ -56,6 +56,29 @@
       "kind": "text",
       "title": "What's next",
       "body": "RAG is the dominant pattern for connecting LLMs to external knowledge in 2024+. Vector search + retrieval-augmented prompting is in nearly every production deployment.\n\nThe next conceptual frontier is [[mechanistic-interp]] — actually understanding *what* a model is computing, beyond benchmarks and behavioral evals. RAG is for grounding behavior; mech-interp is for understanding mechanism.\n\nKey takeaways:\n- RAG = retrieve relevant context + prompt the LLM with it\n- Three substeps: chunk, embed, search\n- Reranking with a cross-encoder is often the biggest single quality win\n- End-to-end eval covers both retrieval (hit rate / MRR) and generation (faithfulness / relevance)\n- Perfect retrieval doesn't guarantee perfect output — generation can still fail"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_rag_1",
+        "kind": "math_expression",
+        "question": "A query embedding is $\\mathbf{q} = (1, 0, 1)$ and a candidate chunk embedding is $\\mathbf{d} = (1, 1, 0)$. Compute their cosine similarity $\\cos\\theta = \\frac{\\mathbf{q}\\cdot\\mathbf{d}}{\\lVert\\mathbf{q}\\rVert\\,\\lVert\\mathbf{d}\\rVert}$. Give the value to three decimals.",
+        "acceptedAnswers": [
+          "0.5",
+          "1/2",
+          "0.500"
+        ],
+        "hint": "Dot product: $1\\cdot1 + 0\\cdot1 + 1\\cdot0 = 1$. Both norms are $\\sqrt{2}$, so the denominator is $\\sqrt{2}\\cdot\\sqrt{2} = 2$. Thus $\\cos\\theta = 1/2 = 0.5$ — exactly the score a vector index would use to rank this chunk."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_rag_1",
+        "kind": "scenario",
+        "question": "Diagnosing hallucination in a production RAG system",
+        "prompt": "Users report that your documentation chatbot confidently invents API parameters that do not exist, even though the correct docs are in the knowledge base. You have access to the retrieved chunks for each query, the embedding model, the chunking config, and the generation prompt. Walk through how you would localize whether the failure is in retrieval (the right chunk never makes it into the top-k) or in generation (the right chunk is retrieved but ignored or overridden by the model's prior). Propose at least two concrete fixes spanning both stages (for example: re-chunking, adding a cross-encoder reranker, raising k, or instructing the model to answer only from context and abstain otherwise), and explain how you'd measure whether each fix actually reduced hallucination. Answer in 3-5 sentences."
+      }
     }
   ]
 }

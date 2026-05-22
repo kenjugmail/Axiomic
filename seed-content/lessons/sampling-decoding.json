@@ -58,6 +58,29 @@
       "kind": "text",
       "title": "What's next",
       "body": "Sampling is where the model's probability distribution becomes actual generated text. It's a tunable layer that doesn't change the model's weights — you can swap sampling strategies at inference time without retraining.\n\nNext: [[kv-cache]] — the optimization that makes autoregressive generation actually fast in practice.\n\nKey takeaways:\n- Temperature: scale logits, flatten or sharpen the distribution\n- Higher T → flatter (more random); lower T → sharper (more deterministic)\n- Top-p adaptively keeps only the top tokens covering p% of mass\n- Default: temperature 0.7 + top-p 0.9 for general generation\n- Code / math: temperature 0; creative: temperature 0.8+"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sampling_1",
+        "kind": "math_expression",
+        "question": "Two tokens have logits $z_1 = 2$ and $z_2 = 1$. Using temperature-scaled softmax $p_i = \\frac{e^{z_i/T}}{\\sum_j e^{z_j/T}}$ at temperature $T = 1$, compute the probability $p_1$ of the higher-logit token. Give the value to three decimals.",
+        "acceptedAnswers": [
+          "0.731",
+          "e^2/(e^2+e^1)",
+          "1/(1+e^-1)"
+        ],
+        "hint": "At $T=1$, $p_1 = \\frac{e^2}{e^2+e^1} = \\frac{1}{1+e^{-1}} = \\frac{1}{1+0.368} \\approx 0.731$. Lowering $T$ would push this toward 1 (sharper); raising $T$ would push it toward 0.5 (flatter)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sampling_1",
+        "kind": "scenario",
+        "question": "Tuning decoding for factual versus creative use cases",
+        "prompt": "You operate one model behind two endpoints: a customer-support assistant that must give precise, reproducible factual answers, and a marketing-copy generator that should produce varied, surprising phrasings. Explain how you would set temperature and top-p (nucleus) differently for each endpoint, and why — referencing what raising temperature does to the distribution and how top-p adapts the candidate set to the model's confidence. Mention at least one failure mode you would watch for at each extreme (e.g. degenerate repetition near greedy decoding, or incoherent/off-topic tokens at high temperature). Justify your settings in 3-5 sentences."
+      }
     }
   ]
 }

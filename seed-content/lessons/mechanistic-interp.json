@@ -56,6 +56,29 @@
       "kind": "text",
       "title": "What's next",
       "body": "Mech-interp is a slow methodology. Finding one clean circuit takes months; understanding a full forward pass at frontier scale is still open. The trade-off is that mech-interp claims constrain a much larger input space than benchmark scores do.\n\nKey takeaways:\n- Mech-interp = reverse-engineer the *mechanism*, not just measure behavior\n- Induction heads are the canonical example: a small circuit explains a large capability\n- Superposition: models pack more features than dimensions, so individual neurons are polysemantic\n- Sparse autoencoders learn a wider, sparser feature dictionary that's more interpretable\n- The methodology is slow but produces structural claims that survive distribution shift\n\nThis was the last lesson in the ml-engineer path. From [[tokens]] through mechanistic interpretability, you've covered the full conceptual stack of modern LLMs. The remaining lessons in other paths (math, physics, ai-researcher) build on or alongside this content."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mechinterp_1",
+        "kind": "math_expression",
+        "question": "The logit lens reads a hidden state by projecting it onto an unembedding direction via a dot product. A residual-stream vector is $\\mathbf{h} = (0.5, -1, 2)$ and the unembedding row for the candidate token 'B' is $\\mathbf{u}_B = (2, 0, 1)$. Compute the logit contribution $\\mathbf{h}\\cdot\\mathbf{u}_B$ that this state assigns to 'B'.",
+        "acceptedAnswers": [
+          "3",
+          "3.0",
+          "+3"
+        ],
+        "hint": "Dot product: $0.5\\cdot2 + (-1)\\cdot0 + 2\\cdot1 = 1 + 0 + 2 = 3$. A larger value means the residual stream is pushing harder toward predicting 'B' at the output — the core move behind logit-lens and direct-logit-attribution analyses."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mechinterp_1",
+        "kind": "scenario",
+        "question": "Designing an experiment to test an induction-head hypothesis",
+        "prompt": "You suspect a specific pair of attention heads forms an induction circuit responsible for the model's ability to copy repeated patterns (given '... A B ... A', predict 'B'). Design an experiment to test this causal claim: describe the controlled prompts you would use, how you would ablate or patch the candidate heads (e.g. zero-ablation or activation patching from a corrupted run), and what behavioral change would confirm versus refute that these heads cause the copying behavior. Explain why a purely behavioral correlation would be weaker evidence than an intervention. Answer in 3-5 sentences."
+      }
     }
   ]
 }

@@ -56,6 +56,29 @@
       "kind": "text",
       "title": "What's next",
       "body": "Scaling laws are predictive. The constants shift; the qualitative claims hold. Use them to: estimate before you train, sanity-check after you train, and avoid building a deeply under-trained model.\n\nNext: [[modern-architectures]] — RoPE, GQA, SwiGLU. The architectural details that all modern open models share, beyond the basic transformer.\n\nKey takeaways:\n- Loss falls as a power law in N, D, and C\n- Chinchilla: ~20 tokens per parameter is compute-optimal\n- Modern open models over-train (1000+ tokens/param) for inference economics\n- LR schedule, data quality, and architecture all shift the law's constants"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_scaling_1",
+        "kind": "math_expression",
+        "question": "Suppose loss follows the power law $L(N) = (N_c / N)^{\\alpha}$ with exponent $\\alpha = 0.076$ (the Kaplan parameter exponent). If you double the number of parameters $N$ (so $N \\to 2N$), by what factor does the loss change? Compute the ratio $L(2N)/L(N)$ to three decimal places.",
+        "acceptedAnswers": [
+          "0.949",
+          "2^(-0.076)",
+          "0.5^0.076"
+        ],
+        "hint": "The ratio is $L(2N)/L(N) = (N_c/2N)^{\\alpha} / (N_c/N)^{\\alpha} = (1/2)^{\\alpha} = 2^{-\\alpha}$. Plug in $\\alpha = 0.076$: $2^{-0.076} \\approx 0.949$, i.e. about a 5.1% reduction in loss per doubling of $N$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_scaling_1",
+        "kind": "scenario",
+        "question": "Allocating a fixed FLOP budget between parameters and tokens",
+        "prompt": "Your lab has committed a fixed compute budget of roughly $C \\approx 6ND$ FLOPs to train a single new model, and leadership wants the lowest possible pretraining loss. A senior engineer proposes copying GPT-3's recipe (a very large $N$, only ~1.7 tokens per parameter). Using Chinchilla's finding that the compute-optimal point sits near ~20 tokens per parameter, explain how you would reallocate the budget between $N$ and $D$, why the Kaplan-style allocation likely leaves loss on the table, and what additional factor (inference cost over the model's serving lifetime) might push you to deliberately over-train an even smaller model. Justify your final recommendation in 3-5 sentences."
+      }
     }
   ]
 }
