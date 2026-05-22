@@ -51,6 +51,12 @@ import { ConsistentHashing } from "../src/components/ConsistentHashing";
 import { Hydrograph } from "../src/components/Hydrograph";
 import { IronCarbonDiagram } from "../src/components/IronCarbonDiagram";
 import { EyeRefraction } from "../src/components/EyeRefraction";
+import { ShortestPath } from "../src/components/ShortestPath";
+import { SimplexLp } from "../src/components/SimplexLp";
+import { MonteCarlo } from "../src/components/MonteCarlo";
+import { SerialPosition } from "../src/components/SerialPosition";
+import { HeatExchanger } from "../src/components/HeatExchanger";
+import { BlackHole } from "../src/components/BlackHole";
 
 let h: VizHarness | null = null;
 afterEach(() => {
@@ -277,5 +283,35 @@ describe("viz interactions", () => {
   test("EyeRefraction: switching condition moves the active highlight", () => {
     h = mountViz(createElement(EyeRefraction));
     expectSelectionMoves(h, "Emmetropia", "Myopia");
+  });
+
+  test("ShortestPath: switching algorithm moves the active highlight", () => {
+    h = mountViz(createElement(ShortestPath));
+    expectSelectionMoves(h, "Dijkstra", "BFS (hops)");
+  });
+
+  test("SimplexLp: switching objective moves the active highlight", () => {
+    h = mountViz(createElement(SimplexLp));
+    expectSelectionMoves(h, "Max 3x+2y", "Max x+4y");
+  });
+
+  test("MonteCarlo: switching sample count moves the active highlight", () => {
+    h = mountViz(createElement(MonteCarlo));
+    expectSelectionMoves(h, "1,000", "5,000");
+  });
+
+  test("SerialPosition: switching recall mode moves the active highlight", () => {
+    h = mountViz(createElement(SerialPosition));
+    expectSelectionMoves(h, "Immediate", "Delayed");
+  });
+
+  test("HeatExchanger: switching flow arrangement moves the active highlight", () => {
+    h = mountViz(createElement(HeatExchanger));
+    expectSelectionMoves(h, "Counterflow", "Parallel");
+  });
+
+  test("BlackHole: switching mass moves the active highlight", () => {
+    h = mountViz(createElement(BlackHole));
+    expectSelectionMoves(h, "Stellar 10 M☉", "Sgr A* 4.3M M☉");
   });
 });

@@ -16,6 +16,8 @@
     {
       "kind": "text",
       "title": "Linear programming: the workhorse of OR",
+      "viz": "simplex-lp",
+      "vizProps": {},
       "body": "**Linear program (LP)** in standard form:\n  min cᵀ x   subject to   A x = b,  x ≥ 0\n\n(Inequality form converts via slack variables.) Feasible region is a convex polytope; optimum (when finite) is attained at a vertex (basic feasible solution). LP duality (every primal has a dual) underpins economic interpretation.\n\n**Geometry**: each constraint is a half-space; intersection of half-spaces is a polytope; objective is a linear function pushing toward one vertex. Walk along edges to find the corner. \n\n**Why so important?**\n- Convex (any local min = global).\n- Polynomial time (Khachiyan 1979 ellipsoid; Karmarkar 1984 interior-point).\n- Mature solvers (simplex still competitive on most problems).\n- Building block for MIP, conic, nonlinear.\n\n**Classic LP applications**:\n- **Stigler diet (1939)**: minimize cost of foods s.t. nutritional needs. First famous LP.\n- **Transportation**: ship goods from sources to sinks (Hitchcock 1941).\n- **Assignment**: workers to jobs (special case of transportation).\n- **Refinery blending**: continuous mix of crude oils → products.\n- **Portfolio optimization (Markowitz)**: with quadratic cost actually QP, but feasibility = LP.\n- **Network flow**: shortest path / max flow / min-cost flow as LPs."
     },
     {

@@ -120,6 +120,12 @@ const ConsistentHashing = lazy(() => import("../../../../packages/viz/src/compon
 const Hydrograph = lazy(() => import("../../../../packages/viz/src/components/Hydrograph").then(m => ({ default: m.Hydrograph })));
 const IronCarbonDiagram = lazy(() => import("../../../../packages/viz/src/components/IronCarbonDiagram").then(m => ({ default: m.IronCarbonDiagram })));
 const EyeRefraction = lazy(() => import("../../../../packages/viz/src/components/EyeRefraction").then(m => ({ default: m.EyeRefraction })));
+const ShortestPath = lazy(() => import("../../../../packages/viz/src/components/ShortestPath").then(m => ({ default: m.ShortestPath })));
+const SimplexLp = lazy(() => import("../../../../packages/viz/src/components/SimplexLp").then(m => ({ default: m.SimplexLp })));
+const MonteCarlo = lazy(() => import("../../../../packages/viz/src/components/MonteCarlo").then(m => ({ default: m.MonteCarlo })));
+const SerialPosition = lazy(() => import("../../../../packages/viz/src/components/SerialPosition").then(m => ({ default: m.SerialPosition })));
+const HeatExchanger = lazy(() => import("../../../../packages/viz/src/components/HeatExchanger").then(m => ({ default: m.HeatExchanger })));
+const BlackHole = lazy(() => import("../../../../packages/viz/src/components/BlackHole").then(m => ({ default: m.BlackHole })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -244,6 +250,12 @@ export const VIZ_NAMES = [
   "hydrograph",
   "iron-carbon-diagram",
   "eye-refraction",
+  "shortest-path",
+  "simplex-lp",
+  "monte-carlo",
+  "serial-position",
+  "heat-exchanger",
+  "black-hole",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -366,6 +378,12 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "hydrograph": Hydrograph,
   "iron-carbon-diagram": IronCarbonDiagram,
   "eye-refraction": EyeRefraction,
+  "shortest-path": ShortestPath,
+  "simplex-lp": SimplexLp,
+  "monte-carlo": MonteCarlo,
+  "serial-position": SerialPosition,
+  "heat-exchanger": HeatExchanger,
+  "black-hole": BlackHole,
 };
 
 interface VizEmbedProps {

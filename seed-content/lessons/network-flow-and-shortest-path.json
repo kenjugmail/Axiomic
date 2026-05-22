@@ -16,6 +16,8 @@
     {
       "kind": "text",
       "title": "Network flows: structured LPs with fast algorithms",
+      "viz": "shortest-path",
+      "vizProps": {},
       "body": "**Network optimization**: problems on graphs (nodes + arcs) where one ships flow from sources to sinks subject to capacities + balance constraints. A special case of LP with **totally unimodular constraint matrix** → LP relaxation always integer. Specialized algorithms run much faster than generic simplex.\n\n**Canonical problems**:\n1. **Shortest path**: minimum-distance route from s to t.\n2. **Max flow**: maximum flow from s to t under arc capacities.\n3. **Min-cost flow**: send required flow at min cost (combines flow + cost).\n4. **Assignment**: bipartite matching with weights.\n5. **Transportation**: ship from sources to sinks with supply/demand.\n6. **Multi-commodity flow**: multiple flow types share arcs.\n7. **Project scheduling (PERT/CPM)**: longest path in a DAG.\n8. **Spanning trees** (MST): connect all nodes min cost.\n\n**Applications**:\n- Routing (Dijkstra in your GPS).\n- Telecoms (max flow for bandwidth provisioning).\n- Logistics (min-cost transportation, supply chain).\n- Project management (CPM / PERT).\n- Network design (which links to build).\n- Bipartite matching (workers to jobs, residents to hospitals — NRMP).\n- Image segmentation (graph cuts).\n- Power grids (DC OPF as a network LP).\n\n**Why fast**: special structure (network simplex, augmenting paths, push-relabel) gives strongly polynomial complexity, often O(VE) or better."
     },
     {

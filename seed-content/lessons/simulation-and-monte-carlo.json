@@ -16,6 +16,8 @@
     {
       "kind": "text",
       "title": "When analytical models fail: simulation",
+      "viz": "monte-carlo",
+      "vizProps": {},
       "body": "**Simulation**: numerically experiment with a model of a system to estimate performance. Used when analytical models are intractable (complex stochastic dynamics, non-Markovian distributions, multiple interacting queues, complex routing, blocking, balking, reneging, time-varying arrivals).\n\n**Major paradigms**:\n1. **Discrete-event simulation (DES)**: state changes at discrete event times (arrival, service start/end, etc.). Maintain event calendar; advance clock to next event; update state + collect stats.\n2. **Agent-based modeling (ABM)**: each entity has rules + state; emergent behavior from interactions. Used in epidemiology (e.g., COVID models), urban planning, ecology.\n3. **Monte Carlo simulation**: random sampling from distributions for static problems (integration, risk, finance, physics).\n4. **System dynamics**: continuous-time aggregate stocks + flows (Forrester 1961). Used in policy modeling.\n5. **Hybrid simulation**: combine paradigms.\n\n**Software**: AnyLogic (multi-paradigm, commercial), Simio, FlexSim, Arena, SIMUL8 (commercial DES); SimPy, salabim (open-source Python DES); JuliaSim, AgentPy, Mesa (ABM); R, MATLAB, Python for Monte Carlo.\n\n**Use cases**:\n- Manufacturing throughput + WIP analysis.\n- Healthcare patient flow + capacity planning.\n- Airport passenger flow + security screening.\n- Supply chain resilience under disruption.\n- Financial portfolio Monte Carlo.\n- Epidemic + transmission modeling.\n- Traffic flow + autonomous vehicle interaction.\n- Server farm capacity + SLA validation."
     },
     {

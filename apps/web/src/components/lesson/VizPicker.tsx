@@ -845,6 +845,48 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "👁️",
     tags: ["optometry", "myopia", "hyperopia", "diopters", "lens"],
   },
+  {
+    name: "shortest-path",
+    label: "Shortest path",
+    description: "Dijkstra (min weight) vs BFS (min hops) on a weighted graph; toggle to watch the shortest-path tree + per-node distances change.",
+    thumb: "🗺️",
+    tags: ["algorithms", "dijkstra", "bfs", "graph", "shortest-path"],
+  },
+  {
+    name: "simplex-lp",
+    label: "Linear programming",
+    description: "Maximize a linear objective over a feasible polygon; slide the iso-profit line and swap objectives to see the optimum jump corners.",
+    thumb: "📐",
+    tags: ["algorithms", "linear-programming", "simplex", "optimization", "dantzig"],
+  },
+  {
+    name: "monte-carlo",
+    label: "Monte Carlo π",
+    description: "Estimate π by random sampling inside the unit square; watch the estimate tighten as 1/√N as you raise the sample count.",
+    thumb: "🎲",
+    tags: ["simulation", "monte-carlo", "sampling", "pi", "convergence"],
+  },
+  {
+    name: "serial-position",
+    label: "Serial-position curve",
+    description: "The U-shaped recall curve (primacy + recency); a filled delay erases the recency tail (Glanzer & Cunitz) — toggle immediate vs delayed.",
+    thumb: "🧠",
+    tags: ["psychology", "memory", "primacy", "recency", "serial-position"],
+  },
+  {
+    name: "heat-exchanger",
+    label: "Heat exchanger",
+    description: "Counterflow vs parallel-flow temperature profiles + the log-mean ΔT; see why counterflow lets the cold outlet exceed the hot outlet.",
+    thumb: "🌡️",
+    tags: ["chemical-engineering", "heat-transfer", "lmtd", "counterflow", "exchanger"],
+  },
+  {
+    name: "black-hole",
+    label: "Black-hole geometry",
+    description: "Schwarzschild radius, photon sphere, and ISCO; slide an observer's radius to read off gravitational time dilation √(1 − r_s/r).",
+    thumb: "🕳️",
+    tags: ["astrophysics", "black-hole", "schwarzschild", "relativity", "time-dilation"],
+  },
 ];
 
 interface Props {

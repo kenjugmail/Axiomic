@@ -588,6 +588,36 @@ const LazyEyeRefraction = lazy(() =>
     (m) => ({ default: m.EyeRefraction }),
   ),
 );
+const LazyShortestPath = lazy(() =>
+  import("../../../../../packages/viz/src/components/ShortestPath").then(
+    (m) => ({ default: m.ShortestPath }),
+  ),
+);
+const LazySimplexLp = lazy(() =>
+  import("../../../../../packages/viz/src/components/SimplexLp").then(
+    (m) => ({ default: m.SimplexLp }),
+  ),
+);
+const LazyMonteCarlo = lazy(() =>
+  import("../../../../../packages/viz/src/components/MonteCarlo").then(
+    (m) => ({ default: m.MonteCarlo }),
+  ),
+);
+const LazySerialPosition = lazy(() =>
+  import("../../../../../packages/viz/src/components/SerialPosition").then(
+    (m) => ({ default: m.SerialPosition }),
+  ),
+);
+const LazyHeatExchanger = lazy(() =>
+  import("../../../../../packages/viz/src/components/HeatExchanger").then(
+    (m) => ({ default: m.HeatExchanger }),
+  ),
+);
+const LazyBlackHole = lazy(() =>
+  import("../../../../../packages/viz/src/components/BlackHole").then(
+    (m) => ({ default: m.BlackHole }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -880,6 +910,18 @@ function VizByName({
       return <LazyIronCarbonDiagram {...(props as object)} />;
     case "eye-refraction":
       return <LazyEyeRefraction {...(props as object)} />;
+    case "shortest-path":
+      return <LazyShortestPath {...(props as object)} />;
+    case "simplex-lp":
+      return <LazySimplexLp {...(props as object)} />;
+    case "monte-carlo":
+      return <LazyMonteCarlo {...(props as object)} />;
+    case "serial-position":
+      return <LazySerialPosition {...(props as object)} />;
+    case "heat-exchanger":
+      return <LazyHeatExchanger {...(props as object)} />;
+    case "black-hole":
+      return <LazyBlackHole {...(props as object)} />;
     default:
       return null;
   }

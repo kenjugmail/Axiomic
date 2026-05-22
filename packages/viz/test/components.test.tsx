@@ -78,6 +78,12 @@ import { ConsistentHashing } from "../src/components/ConsistentHashing";
 import { Hydrograph } from "../src/components/Hydrograph";
 import { IronCarbonDiagram } from "../src/components/IronCarbonDiagram";
 import { EyeRefraction } from "../src/components/EyeRefraction";
+import { ShortestPath } from "../src/components/ShortestPath";
+import { SimplexLp } from "../src/components/SimplexLp";
+import { MonteCarlo } from "../src/components/MonteCarlo";
+import { SerialPosition } from "../src/components/SerialPosition";
+import { HeatExchanger } from "../src/components/HeatExchanger";
+import { BlackHole } from "../src/components/BlackHole";
 
 const VIZ_COMPONENTS = {
   KinshipDiagram,
@@ -148,6 +154,12 @@ const VIZ_COMPONENTS = {
   Hydrograph,
   IronCarbonDiagram,
   EyeRefraction,
+  ShortestPath,
+  SimplexLp,
+  MonteCarlo,
+  SerialPosition,
+  HeatExchanger,
+  BlackHole,
 };
 
 describe("viz components — SSR smoke tests", () => {
