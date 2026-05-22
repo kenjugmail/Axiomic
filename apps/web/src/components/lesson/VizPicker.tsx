@@ -656,6 +656,48 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "📉",
     tags: ["actuary", "mortality", "life-table", "gompertz"],
   },
+  {
+    name: "btree-vs-lsm",
+    label: "B-Tree vs LSM-Tree",
+    description: "Compare in-place B-tree updates against log-structured LSM compaction; toggle the engine and slide the read/write mix to see read/write/space amplification.",
+    thumb: "🗄️",
+    tags: ["database", "storage-engine", "lsm", "b-tree", "rocksdb"],
+  },
+  {
+    name: "key-exchange",
+    label: "Diffie–Hellman exchange",
+    description: "Alice and Bob derive a shared secret over a public channel via modular exponentiation; an eavesdropper is stuck on the discrete-log problem.",
+    thumb: "🔐",
+    tags: ["cryptography", "diffie-hellman", "key-exchange", "discrete-log"],
+  },
+  {
+    name: "virtual-memory",
+    label: "Virtual memory translation",
+    description: "Translate a virtual address through the TLB and page table to a physical frame; switch between TLB hit, TLB miss, and page fault.",
+    thumb: "🧠",
+    tags: ["operating-systems", "virtual-memory", "tlb", "paging"],
+  },
+  {
+    name: "cache-hierarchy",
+    label: "Cache hierarchy",
+    description: "Watch a lookup fall through L1 → L2 → L3 → RAM → SSD, paying each level's latency; the same shape as browser → CDN edge → origin.",
+    thumb: "⚡",
+    tags: ["systems", "cache", "cdn", "latency", "amat"],
+  },
+  {
+    name: "dag-pipeline",
+    label: "Task DAG scheduler",
+    description: "Step a workflow DAG (Airflow / Spark) through dependency-respecting waves; tasks run only after every upstream succeeds.",
+    thumb: "🔀",
+    tags: ["data-engineering", "airflow", "spark", "dag", "orchestration"],
+  },
+  {
+    name: "quorum-replication",
+    label: "Quorum replication",
+    description: "N replicas with R/W quorums; see how R + W > N forces read/write overlap (strong consistency) versus stale reads (eventual consistency).",
+    thumb: "🔵",
+    tags: ["distributed-systems", "quorum", "replication", "cap", "consistency"],
+  },
 ];
 
 interface Props {

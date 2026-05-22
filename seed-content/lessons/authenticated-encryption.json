@@ -15,6 +15,8 @@
     {
       "kind": "text",
       "title": "AEAD: authenticated encryption with associated data",
+      "viz": "key-exchange",
+      "vizProps": {},
       "body": "AEAD (Authenticated Encryption with Associated Data) is the modern crypto contract:\n- Confidentiality of plaintext.\n- Integrity of plaintext.\n- Integrity of ASSOCIATED data (not encrypted but bound to the ciphertext).\n\nAPI:\n```\nencrypt(key, nonce, plaintext, associated_data) → ciphertext, tag\ndecrypt(key, nonce, ciphertext, tag, associated_data) → plaintext OR ⊥\n```\n\nIf the tag doesn't verify, decryption returns failure (don't try to use partial output). If it verifies, plaintext is authentic + integrity-protected.\n\n**Why AEAD won**:\n- Pre-AEAD: 'encrypt-then-MAC' was the recipe; getting it right was easy to mess up.\n- AEAD bundles encryption + authentication into one primitive with one key.\n- All modern crypto APIs (libsodium, Web Crypto, AWS Encryption SDK) expose AEAD.\n\nDominant constructions: **AES-GCM** (hardware-accelerated on AES-NI CPUs), **ChaCha20-Poly1305** (software-friendly, used by TLS 1.3 + WireGuard), **XChaCha20-Poly1305** (24-byte nonce, randomly-generated, easier to use safely)."
     },
     {

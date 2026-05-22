@@ -453,6 +453,36 @@ const LazySurvivalCurve = lazy(() =>
     (m) => ({ default: m.SurvivalCurve }),
   ),
 );
+const LazyBtreeVsLsm = lazy(() =>
+  import("../../../../../packages/viz/src/components/BtreeVsLsm").then(
+    (m) => ({ default: m.BtreeVsLsm }),
+  ),
+);
+const LazyKeyExchange = lazy(() =>
+  import("../../../../../packages/viz/src/components/KeyExchange").then(
+    (m) => ({ default: m.KeyExchange }),
+  ),
+);
+const LazyVirtualMemory = lazy(() =>
+  import("../../../../../packages/viz/src/components/VirtualMemory").then(
+    (m) => ({ default: m.VirtualMemory }),
+  ),
+);
+const LazyCacheHierarchy = lazy(() =>
+  import("../../../../../packages/viz/src/components/CacheHierarchy").then(
+    (m) => ({ default: m.CacheHierarchy }),
+  ),
+);
+const LazyDagPipeline = lazy(() =>
+  import("../../../../../packages/viz/src/components/DagPipeline").then(
+    (m) => ({ default: m.DagPipeline }),
+  ),
+);
+const LazyQuorumReplication = lazy(() =>
+  import("../../../../../packages/viz/src/components/QuorumReplication").then(
+    (m) => ({ default: m.QuorumReplication }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -691,6 +721,18 @@ function VizByName({
       return <LazyCropYieldResponse {...(props as object)} />;
     case "survival-curve":
       return <LazySurvivalCurve {...(props as object)} />;
+    case "btree-vs-lsm":
+      return <LazyBtreeVsLsm {...(props as object)} />;
+    case "key-exchange":
+      return <LazyKeyExchange {...(props as object)} />;
+    case "virtual-memory":
+      return <LazyVirtualMemory {...(props as object)} />;
+    case "cache-hierarchy":
+      return <LazyCacheHierarchy {...(props as object)} />;
+    case "dag-pipeline":
+      return <LazyDagPipeline {...(props as object)} />;
+    case "quorum-replication":
+      return <LazyQuorumReplication {...(props as object)} />;
     default:
       return null;
   }

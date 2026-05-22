@@ -51,6 +51,12 @@ import { AirfoilPolar } from "../src/components/AirfoilPolar";
 import { LedgerTAccounts } from "../src/components/LedgerTAccounts";
 import { CropYieldResponse } from "../src/components/CropYieldResponse";
 import { SurvivalCurve } from "../src/components/SurvivalCurve";
+import { BtreeVsLsm } from "../src/components/BtreeVsLsm";
+import { KeyExchange } from "../src/components/KeyExchange";
+import { VirtualMemory } from "../src/components/VirtualMemory";
+import { CacheHierarchy } from "../src/components/CacheHierarchy";
+import { DagPipeline } from "../src/components/DagPipeline";
+import { QuorumReplication } from "../src/components/QuorumReplication";
 
 const VIZ_COMPONENTS = {
   KinshipDiagram,
@@ -94,6 +100,12 @@ const VIZ_COMPONENTS = {
   LedgerTAccounts,
   CropYieldResponse,
   SurvivalCurve,
+  BtreeVsLsm,
+  KeyExchange,
+  VirtualMemory,
+  CacheHierarchy,
+  DagPipeline,
+  QuorumReplication,
 };
 
 describe("viz components — SSR smoke tests", () => {

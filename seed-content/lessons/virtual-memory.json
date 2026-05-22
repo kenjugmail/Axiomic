@@ -15,6 +15,8 @@
     {
       "kind": "text",
       "title": "Virtual memory, the substrate",
+      "viz": "virtual-memory",
+      "vizProps": {},
       "body": "Every process sees its own contiguous virtual address space (typically 64-bit, so 2^64 addresses available — vastly more than physical RAM). The kernel + MMU translate virtual → physical via per-process page tables.\n\nLinux x86-64 uses 4-level page tables (5-level on modern CPUs):\n- 48 bits of virtual address split into 4 × 9-bit indices + 12-bit page offset.\n- Each level is a 4KB table of 512 entries (8 bytes each).\n- Walking the table = 4 memory reads per translation.\n\nThis is too slow to do per memory access. The **TLB** (Translation Lookaside Buffer) caches recent translations on-CPU. Modern x86: L1 TLB ~64-128 entries (instruction + data separately), L2 ~1500 entries. Hit = single-cycle. Miss = page walk (~50-100 cycles).\n\nLarge working sets that don't fit in TLB → TLB thrashing → 50× slowdown on memory-heavy workloads. Database engines + JITs tune for this; the trick is **huge pages** (2MB or 1GB instead of 4KB)."
     },
     {

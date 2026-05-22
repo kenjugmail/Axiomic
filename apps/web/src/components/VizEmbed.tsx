@@ -93,6 +93,12 @@ const AirfoilPolar = lazy(() => import("../../../../packages/viz/src/components/
 const LedgerTAccounts = lazy(() => import("../../../../packages/viz/src/components/LedgerTAccounts").then(m => ({ default: m.LedgerTAccounts })));
 const CropYieldResponse = lazy(() => import("../../../../packages/viz/src/components/CropYieldResponse").then(m => ({ default: m.CropYieldResponse })));
 const SurvivalCurve = lazy(() => import("../../../../packages/viz/src/components/SurvivalCurve").then(m => ({ default: m.SurvivalCurve })));
+const BtreeVsLsm = lazy(() => import("../../../../packages/viz/src/components/BtreeVsLsm").then(m => ({ default: m.BtreeVsLsm })));
+const KeyExchange = lazy(() => import("../../../../packages/viz/src/components/KeyExchange").then(m => ({ default: m.KeyExchange })));
+const VirtualMemory = lazy(() => import("../../../../packages/viz/src/components/VirtualMemory").then(m => ({ default: m.VirtualMemory })));
+const CacheHierarchy = lazy(() => import("../../../../packages/viz/src/components/CacheHierarchy").then(m => ({ default: m.CacheHierarchy })));
+const DagPipeline = lazy(() => import("../../../../packages/viz/src/components/DagPipeline").then(m => ({ default: m.DagPipeline })));
+const QuorumReplication = lazy(() => import("../../../../packages/viz/src/components/QuorumReplication").then(m => ({ default: m.QuorumReplication })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -190,6 +196,12 @@ export const VIZ_NAMES = [
   "ledger-t-accounts",
   "crop-yield-response",
   "survival-curve",
+  "btree-vs-lsm",
+  "key-exchange",
+  "virtual-memory",
+  "cache-hierarchy",
+  "dag-pipeline",
+  "quorum-replication",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -285,6 +297,12 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "ledger-t-accounts": LedgerTAccounts,
   "crop-yield-response": CropYieldResponse,
   "survival-curve": SurvivalCurve,
+  "btree-vs-lsm": BtreeVsLsm,
+  "key-exchange": KeyExchange,
+  "virtual-memory": VirtualMemory,
+  "cache-hierarchy": CacheHierarchy,
+  "dag-pipeline": DagPipeline,
+  "quorum-replication": QuorumReplication,
 };
 
 interface VizEmbedProps {

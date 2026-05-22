@@ -24,6 +24,12 @@ import { AirfoilPolar } from "../src/components/AirfoilPolar";
 import { LedgerTAccounts } from "../src/components/LedgerTAccounts";
 import { CropYieldResponse } from "../src/components/CropYieldResponse";
 import { SurvivalCurve } from "../src/components/SurvivalCurve";
+import { BtreeVsLsm } from "../src/components/BtreeVsLsm";
+import { KeyExchange } from "../src/components/KeyExchange";
+import { VirtualMemory } from "../src/components/VirtualMemory";
+import { CacheHierarchy } from "../src/components/CacheHierarchy";
+import { DagPipeline } from "../src/components/DagPipeline";
+import { QuorumReplication } from "../src/components/QuorumReplication";
 
 let h: VizHarness | null = null;
 afterEach(() => {
@@ -115,5 +121,35 @@ describe("viz interactions", () => {
   test("SurvivalCurve: switching era moves the active highlight", () => {
     h = mountViz(createElement(SurvivalCurve));
     expectSelectionMoves(h, "1900", "2000");
+  });
+
+  test("BtreeVsLsm: switching engine moves the active highlight", () => {
+    h = mountViz(createElement(BtreeVsLsm));
+    expectSelectionMoves(h, "B-Tree", "LSM-Tree");
+  });
+
+  test("KeyExchange: switching parameter preset moves the active highlight", () => {
+    h = mountViz(createElement(KeyExchange));
+    expectSelectionMoves(h, "g=5, p=23", "g=2, p=97");
+  });
+
+  test("VirtualMemory: switching scenario moves the active highlight", () => {
+    h = mountViz(createElement(VirtualMemory));
+    expectSelectionMoves(h, "TLB hit", "Page fault");
+  });
+
+  test("CacheHierarchy: choosing a level moves the active highlight", () => {
+    h = mountViz(createElement(CacheHierarchy));
+    expectSelectionMoves(h, "L1", "L3");
+  });
+
+  test("DagPipeline: switching example DAG moves the active highlight", () => {
+    h = mountViz(createElement(DagPipeline));
+    expectSelectionMoves(h, "Daily ETL", "ML Pipeline");
+  });
+
+  test("QuorumReplication: switching preset moves the active highlight", () => {
+    h = mountViz(createElement(QuorumReplication));
+    expectSelectionMoves(h, "Quorum", "Read-optimized");
   });
 });
