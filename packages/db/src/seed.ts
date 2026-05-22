@@ -4101,6 +4101,66 @@ function seedMasteryPaths() {
     ],
   });
 
+  // Triplet 17 — Dentist. Clinical dentistry from Pierre Fauchard through
+  // oral histology, cariology, periodontology, restorative materials,
+  // endodontics, prosthodontics + orthodontics, to the digital frontier.
+  seedMasteryPath({
+    slug: "dentist",
+    title: "Dentist",
+    description:
+      "Clinical dentistry from Pierre Fauchard through oral anatomy + histology, cariology, periodontology, restorative materials, endodontics, prosthodontics + orthodontics, to the digital-dentistry frontier.",
+    nodes: [
+      { slug: "dentistry-history-and-tooth-anatomy", title: "History + Tooth Anatomy", level: "apprentice", order: 1, pages: [], prereqs: [], description: "Hesy-Ra + Fauchard's 1728 Le Chirurgien Dentiste; enamel / dentin / pulp + tooth notation (interactive tooth cross-section)." },
+      { slug: "oral-anatomy-and-histology", title: "Oral Anatomy + Histology", level: "apprentice", order: 2, pages: [], prereqs: ["dentistry-history-and-tooth-anatomy"], description: "Enamel (ameloblasts), dentin (odontoblasts + tubules), pulp, the periodontium, the TMJ + salivary glands." },
+      { slug: "dental-caries-and-cariology", title: "Dental Caries + Cariology", level: "practitioner", order: 3, pages: [], prereqs: ["oral-anatomy-and-histology"], description: "S. mutans + biofilm, the Stephan curve + critical pH 5.5, de-/remineralization, fluoride, DMFT + ICDAS." },
+      { slug: "periodontology", title: "Periodontology", level: "practitioner", order: 4, pages: [], prereqs: ["dental-caries-and-cariology"], description: "Gingivitis vs periodontitis, probing + attachment loss, Socransky's red complex, the 2017 staging + grading." },
+      { slug: "restorative-dentistry-and-materials", title: "Restorative Dentistry + Materials", level: "specialist", order: 5, pages: [], prereqs: ["periodontology"], description: "Amalgam vs composite (BisGMA), glass-ionomer, Buonocore's acid-etch bonding, crowns + ceramics (zirconia)." },
+      { slug: "endodontics", title: "Endodontics", level: "specialist", order: 6, pages: [], prereqs: ["restorative-dentistry-and-materials"], description: "Pulpitis + necrosis, root-canal therapy (NiTi files, NaOCl irrigation, gutta-percha), regenerative endodontics." },
+      { slug: "prosthodontics-and-orthodontics", title: "Prosthodontics + Orthodontics", level: "expert", order: 7, pages: [], prereqs: ["endodontics"], description: "Angle's occlusion classes, dentures + bridges, Brånemark osseointegration + implants, aligners + cephalometrics." },
+      { slug: "digital-dentistry-frontiers", title: "Digital Dentistry + Frontiers", level: "researcher", order: 8, pages: [], prereqs: ["prosthodontics-and-orthodontics"], description: "CAD/CAM (CEREC), intraoral scanners, cone-beam CT, dental lasers, AI radiograph diagnosis, teledentistry." },
+    ],
+  });
+
+  // Triplet 17 — Nutritionist. Nutrition science from Lind + Lavoisier
+  // through macronutrients, energy balance, micronutrients, digestion,
+  // dietary guidelines, clinical + sports nutrition, to nutrigenomics.
+  seedMasteryPath({
+    slug: "nutritionist",
+    title: "Nutritionist",
+    description:
+      "Nutrition science from James Lind + Lavoisier through macronutrients, energy balance + metabolism, micronutrients, digestion + absorption, dietary guidelines, clinical + sports nutrition, to the nutrigenomics frontier.",
+    nodes: [
+      { slug: "nutrition-science-history-and-energy-balance", title: "History + Energy Balance", level: "apprentice", order: 1, pages: [], prereqs: [], description: "Lind's scurvy trial, Lavoisier's calorimetry, Atwater factors (4/4/9), Eijkman + Funk's vitamins (interactive energy balance)." },
+      { slug: "macronutrients", title: "Macronutrients", level: "apprentice", order: 2, pages: [], prereqs: ["nutrition-science-history-and-energy-balance"], description: "Carbohydrates + glycemic index, protein quality (PDCAAS) + amino acids, lipids, omega-3/6, LDL/HDL." },
+      { slug: "energy-balance-and-metabolism", title: "Energy Balance + Metabolism", level: "practitioner", order: 3, pages: [], prereqs: ["macronutrients"], description: "BMR/RMR, TDEE = BMR + TEF + activity, Harris-Benedict + Mifflin-St Jeor, indirect calorimetry + RQ." },
+      { slug: "micronutrients-vitamins-and-minerals", title: "Micronutrients", level: "practitioner", order: 4, pages: [], prereqs: ["energy-balance-and-metabolism"], description: "Fat- vs water-soluble vitamins, scurvy / rickets / pellagra / beriberi, iron + iodine, fortification, the DRIs." },
+      { slug: "digestion-and-absorption", title: "Digestion + Absorption", level: "specialist", order: 5, pages: [], prereqs: ["micronutrients-vitamins-and-minerals"], description: "The GI tract + enzymes, small-intestine absorption (villi), bile + pancreas, the gut microbiome + SCFAs." },
+      { slug: "dietary-assessment-and-guidelines", title: "Dietary Assessment + Guidelines", level: "specialist", order: 6, pages: [], prereqs: ["digestion-and-absorption"], description: "24-h recall + FFQs, the DRIs + Dietary Guidelines, MyPlate, Mediterranean + DASH, glycemic load, labels." },
+      { slug: "clinical-and-sports-nutrition", title: "Clinical + Sports Nutrition", level: "expert", order: 7, pages: [], prereqs: ["dietary-assessment-and-guidelines"], description: "Obesity + type-2 diabetes, cardiovascular nutrition, carbohydrate loading + protein timing, enteral / parenteral." },
+      { slug: "nutrigenomics-frontiers", title: "Nutrigenomics + Frontiers", level: "researcher", order: 8, pages: [], prereqs: ["clinical-and-sports-nutrition"], description: "Nutrigenomics (MTHFR, FTO, lactase), the PREDICT study + CGMs, the microbiome, metabolomics, AI diet tools." },
+    ],
+  });
+
+  // Triplet 17 — Sports Scientist. Exercise science from A.V. Hill through
+  // muscle physiology, bioenergetics, cardiorespiratory fitness,
+  // biomechanics, strength + conditioning, recovery, to the data frontier.
+  seedMasteryPath({
+    slug: "sports-scientist",
+    title: "Sports Scientist",
+    description:
+      "Exercise science from A.V. Hill through skeletal-muscle physiology, bioenergetics, cardiorespiratory fitness, biomechanics, strength + conditioning, recovery + ergogenics, to the wearables + force-velocity frontier.",
+    nodes: [
+      { slug: "sports-science-history-and-force-velocity", title: "History + Force-Velocity", level: "apprentice", order: 1, pages: [], prereqs: [], description: "A.V. Hill (Nobel 1922) + the 1938 force-velocity equation; Krogh, Astrand, Margaria (interactive force-velocity curve)." },
+      { slug: "skeletal-muscle-physiology", title: "Skeletal Muscle Physiology", level: "apprentice", order: 2, pages: [], prereqs: ["sports-science-history-and-force-velocity"], description: "Sliding-filament theory (Huxley), the cross-bridge cycle, Henneman's size principle, Type I / IIa / IIx fibers." },
+      { slug: "bioenergetics-and-energy-systems", title: "Bioenergetics + Energy Systems", level: "practitioner", order: 3, pages: [], prereqs: ["skeletal-muscle-physiology"], description: "ATP-PCr, anaerobic glycolysis + lactate, oxidative phosphorylation, the energy-system continuum, EPOC + RER." },
+      { slug: "cardiorespiratory-fitness", title: "Cardiorespiratory Fitness", level: "practitioner", order: 4, pages: [], prereqs: ["bioenergetics-and-energy-systems"], description: "VO2max + the Fick equation, cardiac output + stroke volume, lactate + ventilatory thresholds, Cooper + Bruce tests." },
+      { slug: "biomechanics", title: "Biomechanics", level: "specialist", order: 5, pages: [], prereqs: ["cardiorespiratory-fitness"], description: "Kinematics vs kinetics, ground-reaction force + force plates, lever classes, torque, gait + motion capture." },
+      { slug: "strength-and-conditioning", title: "Strength + Conditioning", level: "specialist", order: 6, pages: [], prereqs: ["biomechanics"], description: "Progressive overload, Matveyev periodization, 1RM, hypertrophy, the SAID principle, Selye's GAS, plyometrics." },
+      { slug: "recovery-and-ergogenics", title: "Recovery + Ergogenics", level: "expert", order: 7, pages: [], prereqs: ["strength-and-conditioning"], description: "Sleep + glycogen resynthesis, DOMS + overtraining, creatine / caffeine / beta-alanine / nitrate, WADA, HRV + RPE." },
+      { slug: "sports-science-frontiers", title: "Frontiers", level: "researcher", order: 8, pages: [], prereqs: ["recovery-and-ergogenics"], description: "Wearables + IMUs, Samozino-Morin force-velocity profiling, the acute:chronic workload ratio, ACTN3, return-to-play." },
+    ],
+  });
+
   seedExamPrepPaths();
 }
 

@@ -57,6 +57,9 @@ import { VirtualMemory } from "../src/components/VirtualMemory";
 import { CacheHierarchy } from "../src/components/CacheHierarchy";
 import { DagPipeline } from "../src/components/DagPipeline";
 import { QuorumReplication } from "../src/components/QuorumReplication";
+import { ToothAnatomy } from "../src/components/ToothAnatomy";
+import { EnergyBalance } from "../src/components/EnergyBalance";
+import { ForceVelocityCurve } from "../src/components/ForceVelocityCurve";
 
 const VIZ_COMPONENTS = {
   KinshipDiagram,
@@ -106,6 +109,9 @@ const VIZ_COMPONENTS = {
   CacheHierarchy,
   DagPipeline,
   QuorumReplication,
+  ToothAnatomy,
+  EnergyBalance,
+  ForceVelocityCurve,
 };
 
 describe("viz components — SSR smoke tests", () => {

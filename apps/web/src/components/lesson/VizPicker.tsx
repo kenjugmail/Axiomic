@@ -698,6 +698,27 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "🔵",
     tags: ["distributed-systems", "quorum", "replication", "cap", "consistency"],
   },
+  {
+    name: "tooth-anatomy",
+    label: "Tooth cross-section",
+    description: "Enamel / dentin / pulp layers in a tooth cross-section; drag a caries lesion inward to see the clinical response change at each layer.",
+    thumb: "🦷",
+    tags: ["dentist", "caries", "enamel", "endodontics", "anatomy"],
+  },
+  {
+    name: "energy-balance",
+    label: "Energy balance",
+    description: "Intake vs TDEE (BMR × activity, Mifflin–St Jeor) with the Atwater macro split and a projected weekly weight change; slide intake + pick an activity level.",
+    thumb: "🍽️",
+    tags: ["nutrition", "tdee", "bmr", "calories", "macros"],
+  },
+  {
+    name: "force-velocity-curve",
+    label: "Force–velocity curve",
+    description: "Hill's muscle force–velocity hyperbola + the power curve that peaks near ⅓ F₀; toggle fast/slow fibers and slide the load.",
+    thumb: "💪",
+    tags: ["sports-science", "muscle", "hill", "power", "biomechanics"],
+  },
 ];
 
 interface Props {

@@ -1,0 +1,115 @@
+{
+  "slug": "sports-science-frontiers",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Explain how wearables (GPS, accelerometry, IMUs) and force-velocity profiling quantify athletic performance.",
+      "Apply the acute:chronic workload ratio to athlete load management and interpret its limitations.",
+      "Discuss machine learning, genetic testing (ACTN3), environmental training, and return-to-play in modern sport science."
+    ],
+    "prereqs": [
+      "cardiorespiratory-fitness",
+      "strength-and-conditioning",
+      "recovery-and-ergogenics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Wearables and force-velocity profiling",
+      "body": "The frontier of sport science is increasingly defined by **quantification**: instrumenting athletes to measure what was once only estimated. The most visible tools are **wearables**.\n\nThe workhorse of team-sport monitoring is the **GPS (Global Positioning System)** unit, typically worn between the shoulder blades, which logs an athlete's position several times per second and yields distances, speeds, and the number of high-speed runs and sprints. Modern units integrate an **accelerometer** (measuring linear acceleration), a **gyroscope** (measuring angular velocity), and a **magnetometer**; together these constitute an **inertial measurement unit (IMU)**. Accelerometry captures the mechanical load of accelerations, decelerations, and impacts that GPS alone misses, often summarized as **PlayerLoad**, a proprietary metric pioneered by the company **Catapult Sports**. IMUs can also estimate ground-contact time and stride characteristics, and indoors, where satellite signals fail, **local positioning systems (LPS)** using ultra-wideband radio substitute for GPS.\n\nA second frontier method is **force-velocity profiling**, developed by the French sport scientists **Pierre Samozino** and **Jean-Benoit Morin**. Building directly on **A.V. Hill's** force-velocity-power relationship, their approach fits a linear force-velocity relationship to data from a series of sprints or loaded jumps. Because Samozino's method can extract this profile from simple field measurements (for sprinting, from split times or radar; for jumping, from jump height under several loads), it brings laboratory-grade mechanical analysis to the training ground.\n\nThe profile yields several individualized variables:\n\n- $F_0$, the theoretical maximal force at zero velocity (an athlete's force capacity).\n- $V_0$, the theoretical maximal velocity at zero force (their velocity capacity).\n- $P_{max}$, the maximal power, which for a linear profile equals $\\frac{F_0 \\times V_0}{4}$.\n\nCrucially, the method identifies whether an athlete is **force-deficient** or **velocity-deficient** relative to their optimal profile, allowing training to be targeted at the limiting quality. A sprinter with ample force but poor velocity would train differently from one with the opposite imbalance. Force-velocity profiling thus closes a circle that began with Hill in 1938: a century-old equation, now extracted from a smartphone-timed sprint, individualizing modern training."
+    },
+    {
+      "kind": "text",
+      "title": "Load management and the acute:chronic workload ratio",
+      "body": "With wearables generating continuous load data, the central applied question becomes **load management**: how to prescribe enough training to drive adaptation while avoiding the spikes that precede injury and the exhaustion stage of Selye's General Adaptation Syndrome.\n\nThe most influential framework of the 2010s was the **acute:chronic workload ratio (ACWR)**, popularized by the sport scientist **Tim Gabbett**. The idea is to compare an athlete's recent training load with what they are accustomed to:\n\n$$ACWR = \\frac{\\text{acute load}}{\\text{chronic load}}$$\n\nThe **acute load** is typically the total load over the most recent week, and the **chronic load** is the rolling average weekly load over the preceding four weeks (the chronic load represents the athlete's training base, or fitness, while the acute load represents recent fatigue). The ratio thus expresses this week's training relative to the recent norm.\n\nGabbett's analyses suggested a **sweet spot** for the ratio, often cited as roughly $0.8$ to $1.3$, within which injury risk was lowest. A ratio well above this (for example above $1.5$), produced by a sudden spike in training, was associated with elevated injury risk in the following week or weeks, while very low ratios (detraining) were also undesirable. The practical message, summarized in the maxim that it is the **spike**, not the absolute load, that injures, encouraged coaches to build training **gradually** and to maintain a robust chronic base, captured by Gabbett's phrase about training hard to be available, not training little to be safe.\n\nThe ACWR has since attracted important **methodological criticism**. Statisticians and sport scientists, including **Franco Impellizzeri** and colleagues, have argued that the original couplings of acute and chronic windows can introduce mathematical artefacts (because the acute load is part of the chronic load), that the choice of windows and smoothing (simple rolling averages versus exponentially weighted moving averages) materially changes the result, and that the evidence linking specific ratios to injury is weaker and more context-dependent than early enthusiasm implied. The current consensus treats ACWR as one useful descriptive lens among several, not a precise injury-prediction formula. The episode is itself instructive: it shows the maturing of sport science from compelling single metrics toward rigorous, statistically literate scrutiny, a healthy sign for the discipline."
+    },
+    {
+      "kind": "text",
+      "title": "Machine learning, genetics, environment, and return to play",
+      "body": "Several further frontiers are reshaping the field.\n\n**Machine learning** is increasingly applied to the torrents of data that wearables and video produce. Computer-vision systems perform **markerless motion capture**, tracking joints from ordinary video without reflective markers; in tracking-rich sports such as basketball and football, models analyze positional data to quantify tactics and predict outcomes. Injury-risk models attempt to combine load, wellness, and biomechanical data, though they face the same statistical pitfalls that beset the ACWR, namely small samples, rare events, and the risk of overfitting. The promise is real, but careful validation is essential.\n\n**Genetic testing** has entered sport, most famously around the **ACTN3** gene, often dubbed the **speed gene**. ACTN3 encodes **alpha-actinin-3**, a protein found specifically in **fast-twitch (Type II)** muscle fibers. A common loss-of-function variant, the **R577X** polymorphism, leaves some people (those with the XX genotype) entirely lacking functional alpha-actinin-3; this genotype is rare among elite **sprint and power** athletes and was characterized by **Kathryn North**, **Daniel MacArthur**, and colleagues. However, ACTN3 explains only a small fraction of performance variance, performance is **polygenic**, and authorities including the **American College of Sports Medicine (ACSM)** caution strongly against using direct-to-consumer genetic tests to select or stream young athletes, both for scientific and ethical reasons.\n\n**Environmental training** exploits stressors beyond the gym. **Altitude training** uses the lower oxygen availability (hypoxia) at elevation to stimulate **erythropoietin (EPO)** and raise red-cell mass; the popular **live high, train low** model, studied by **Benjamin Levine** and **James Stray-Gundersen**, has athletes sleep at altitude for the haematological adaptation while training near sea level to preserve workout quality. **Heat training** (heat acclimation) drives expansion of **plasma volume** and improved thermoregulation and cardiovascular function, and may share adaptive pathways with altitude work.\n\nFinally, **return-to-play (RTP)** protocols formalize the decision of when an injured athlete may safely compete again. Rather than relying on time alone, modern RTP uses staged, **criteria-based** progressions, for example strength symmetry thresholds, hop-test limb symmetry indices, and sport-specific functional tests after a knee ligament reconstruction. In **concussion**, graduated return-to-sport protocols, formalized in the **Concussion in Sport Group** consensus statements, advance an athlete step by step through increasing exertion only if they remain symptom-free. Across all these frontiers, the throughline is the same scientific method that began with **A.V. Hill** and **August Krogh**: measure carefully, reason from physiology, and remain humble about the limits of any single number."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sf_1",
+        "kind": "math_expression",
+        "question": "An athlete's acute (1-week) training load is $3000$ arbitrary units and their chronic (4-week rolling average) load is $2400$ units. Compute the acute:chronic workload ratio (ACWR). Round to two decimal places.",
+        "acceptedAnswers": [
+          "1.25",
+          "1.25 ",
+          "1.250"
+        ],
+        "hint": "Divide the acute load by the chronic load."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sf_2",
+        "kind": "math_expression",
+        "question": "For a linear force-velocity profile, maximal power is $P_{max} = (F_0 \\times V_0)/4$. If $F_0 = 1000\\ \\text{N}$ and $V_0 = 8\\ \\text{m/s}$, compute $P_{max}$ in watts. Give the number only.",
+        "acceptedAnswers": [
+          "2000",
+          "2000 W",
+          "2000.0"
+        ],
+        "hint": "Multiply F0 by V0, then divide by 4."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sf_1",
+        "kind": "multiple_choice",
+        "question": "What does the ACTN3 R577X polymorphism most directly affect, and what is the appropriate scientific stance on using it to select athletes?",
+        "options": [
+          "It determines aerobic capacity, and it should be the primary tool for selecting marathon runners.",
+          "It affects the presence of alpha-actinin-3 in fast-twitch fibers, but it explains only a small fraction of performance variance, so genetic talent-selection of young athletes is cautioned against.",
+          "It guarantees elite sprint ability if the XX genotype is present.",
+          "It has no relationship to muscle whatsoever."
+        ],
+        "correctIndex": 1,
+        "explanation": "ACTN3 encodes alpha-actinin-3, expressed in fast-twitch (Type II) fibers; the R577X variant produces a non-functional protein in XX individuals, and this genotype is under-represented among elite sprint and power athletes. But performance is polygenic and ACTN3 explains only a small share of the variance, so bodies such as the ACSM caution against using such tests to select or stream young athletes."
+      },
+      "hints": [
+        "ACTN3 is expressed in fast-twitch fibers.",
+        "Performance is polygenic; one gene cannot select talent."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "ACTN3 codes for alpha-actinin-3 in fast-twitch fibers, and the R577X loss-of-function variant (XX genotype) is rarer in elite sprinters, linking it to power performance. Yet the effect size is small and athletic ability is polygenic, so the gene cannot reliably predict or select talent, and authorities like the ACSM advise against such testing in youth. The second option captures both the biology and the ethical stance."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sf_1",
+        "kind": "scenario",
+        "question": "Critique a club's reliance on a single ACWR threshold.",
+        "prompt": "A football club's analyst flags every player whose acute:chronic workload ratio exceeds 1.5 and automatically benches them, citing injury risk. As the lead sport scientist, explain to the coaching staff both the original rationale for the ACWR sweet spot and the methodological criticisms raised by researchers such as Franco Impellizzeri (for example, mathematical coupling of the acute and chronic windows and sensitivity to the smoothing method). Recommend how you would use load data more responsibly, integrating it with other monitoring such as HRV and wellness rather than treating a single ratio as a hard injury-prediction rule."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sf_2",
+        "kind": "multiple_choice",
+        "question": "Why is the 'live high, train low' model often preferred over simply living and training at altitude?",
+        "options": [
+          "Because oxygen is more abundant at altitude, making training easier.",
+          "Because sleeping at altitude stimulates erythropoietin and raises red-cell mass, while training near sea level preserves the training intensity and quality that high-altitude hypoxia would otherwise degrade.",
+          "Because altitude has no effect on red blood cells, so where you sleep is irrelevant.",
+          "Because training low prevents any haematological adaptation."
+        ],
+        "correctIndex": 1,
+        "explanation": "Studied by Benjamin Levine and James Stray-Gundersen, the live-high, train-low model lets athletes gain the haematological benefit of hypoxia (raised erythropoietin and red-cell mass) by sleeping at altitude, while training nearer sea level where the higher oxygen availability allows the high-intensity, high-quality workouts that genuine altitude would blunt. It thus separates the adaptation stimulus from the training-quality cost."
+      },
+      "hints": [
+        "Living high drives the red-cell adaptation; training low protects workout quality.",
+        "Hypoxia at altitude makes hard training harder to perform well."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "At altitude, hypoxia stimulates erythropoietin and increases red-cell mass, but it also degrades the quality of hard training because less oxygen is available. The live-high, train-low model, developed by Levine and Stray-Gundersen, captures the haematological benefit by sleeping high while preserving training intensity by working out low. This separation of adaptation from training quality is the rationale, so the second option is correct."
+    }
+  ]
+}

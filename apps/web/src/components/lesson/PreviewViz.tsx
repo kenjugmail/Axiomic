@@ -483,6 +483,21 @@ const LazyQuorumReplication = lazy(() =>
     (m) => ({ default: m.QuorumReplication }),
   ),
 );
+const LazyToothAnatomy = lazy(() =>
+  import("../../../../../packages/viz/src/components/ToothAnatomy").then(
+    (m) => ({ default: m.ToothAnatomy }),
+  ),
+);
+const LazyEnergyBalance = lazy(() =>
+  import("../../../../../packages/viz/src/components/EnergyBalance").then(
+    (m) => ({ default: m.EnergyBalance }),
+  ),
+);
+const LazyForceVelocityCurve = lazy(() =>
+  import("../../../../../packages/viz/src/components/ForceVelocityCurve").then(
+    (m) => ({ default: m.ForceVelocityCurve }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -733,6 +748,12 @@ function VizByName({
       return <LazyDagPipeline {...(props as object)} />;
     case "quorum-replication":
       return <LazyQuorumReplication {...(props as object)} />;
+    case "tooth-anatomy":
+      return <LazyToothAnatomy {...(props as object)} />;
+    case "energy-balance":
+      return <LazyEnergyBalance {...(props as object)} />;
+    case "force-velocity-curve":
+      return <LazyForceVelocityCurve {...(props as object)} />;
     default:
       return null;
   }

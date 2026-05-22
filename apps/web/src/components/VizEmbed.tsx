@@ -99,6 +99,9 @@ const VirtualMemory = lazy(() => import("../../../../packages/viz/src/components
 const CacheHierarchy = lazy(() => import("../../../../packages/viz/src/components/CacheHierarchy").then(m => ({ default: m.CacheHierarchy })));
 const DagPipeline = lazy(() => import("../../../../packages/viz/src/components/DagPipeline").then(m => ({ default: m.DagPipeline })));
 const QuorumReplication = lazy(() => import("../../../../packages/viz/src/components/QuorumReplication").then(m => ({ default: m.QuorumReplication })));
+const ToothAnatomy = lazy(() => import("../../../../packages/viz/src/components/ToothAnatomy").then(m => ({ default: m.ToothAnatomy })));
+const EnergyBalance = lazy(() => import("../../../../packages/viz/src/components/EnergyBalance").then(m => ({ default: m.EnergyBalance })));
+const ForceVelocityCurve = lazy(() => import("../../../../packages/viz/src/components/ForceVelocityCurve").then(m => ({ default: m.ForceVelocityCurve })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -202,6 +205,9 @@ export const VIZ_NAMES = [
   "cache-hierarchy",
   "dag-pipeline",
   "quorum-replication",
+  "tooth-anatomy",
+  "energy-balance",
+  "force-velocity-curve",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -303,6 +309,9 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "cache-hierarchy": CacheHierarchy,
   "dag-pipeline": DagPipeline,
   "quorum-replication": QuorumReplication,
+  "tooth-anatomy": ToothAnatomy,
+  "energy-balance": EnergyBalance,
+  "force-velocity-curve": ForceVelocityCurve,
 };
 
 interface VizEmbedProps {

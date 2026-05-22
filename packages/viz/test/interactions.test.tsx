@@ -30,6 +30,9 @@ import { VirtualMemory } from "../src/components/VirtualMemory";
 import { CacheHierarchy } from "../src/components/CacheHierarchy";
 import { DagPipeline } from "../src/components/DagPipeline";
 import { QuorumReplication } from "../src/components/QuorumReplication";
+import { ToothAnatomy } from "../src/components/ToothAnatomy";
+import { EnergyBalance } from "../src/components/EnergyBalance";
+import { ForceVelocityCurve } from "../src/components/ForceVelocityCurve";
 
 let h: VizHarness | null = null;
 afterEach(() => {
@@ -151,5 +154,20 @@ describe("viz interactions", () => {
   test("QuorumReplication: switching preset moves the active highlight", () => {
     h = mountViz(createElement(QuorumReplication));
     expectSelectionMoves(h, "Quorum", "Read-optimized");
+  });
+
+  test("ToothAnatomy: switching caries stage moves the active highlight", () => {
+    h = mountViz(createElement(ToothAnatomy));
+    expectSelectionMoves(h, "Healthy", "Dentin");
+  });
+
+  test("EnergyBalance: switching activity level moves the active highlight", () => {
+    h = mountViz(createElement(EnergyBalance));
+    expectSelectionMoves(h, "Moderate", "Active");
+  });
+
+  test("ForceVelocityCurve: switching fiber type moves the active highlight", () => {
+    h = mountViz(createElement(ForceVelocityCurve));
+    expectSelectionMoves(h, "Fast (Type II)", "Slow (Type I)");
   });
 });
