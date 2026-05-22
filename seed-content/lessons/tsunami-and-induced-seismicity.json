@@ -1,0 +1,117 @@
+{
+  "slug": "tsunami-and-induced-seismicity",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Explain tsunami generation and shallow-water propagation via $v = \\sqrt{gh}$.",
+      "Summarize the 2004 Sumatra and 2011 Tōhoku events and the DART warning system.",
+      "Describe induced seismicity from fluid injection and reservoir impoundment."
+    ],
+    "prereqs": [
+      "earthquake-sources-and-faulting",
+      "seismic-hazard-and-engineering"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Tsunami generation and shallow-water propagation",
+      "body": "A **tsunami** (Japanese for \"harbour wave\") is a series of very long-wavelength water waves generated when a large volume of ocean is suddenly displaced. The dominant cause is the **vertical seafloor motion** of a great **subduction-zone megathrust** earthquake: when the overriding plate snaps upward by several metres over a fault hundreds of kilometres long, it lifts the entire water column above it, and that bulge collapses outward as a tsunami. (Submarine landslides and volcanic collapses can also generate tsunamis.) Crucially, **strike-slip** earthquakes, which move the seabed mostly horizontally, are far less efficient tsunami sources than vertical thrust faulting.\n\nThe physics of propagation is governed by the **shallow-water wave** approximation, which applies whenever the wavelength greatly exceeds the water depth — and tsunami wavelengths of $100$–$200$ km dwarf the ocean's $\\sim 4$ km depth. In this regime the wave speed depends only on the depth $h$ and gravity $g$:\n\n$$v = \\sqrt{g\\,h}.$$\n\nIn the deep open ocean ($h \\approx 4000$ m), this gives $v = \\sqrt{9.81 \\times 4000} \\approx 198$ m/s — about **700 km/h**, the speed of a jetliner. Yet in deep water a tsunami is nearly undetectable: its amplitude is only tens of centimetres spread over a wavelength of $\\sim 150$ km, so a ship rides over it unnoticed.\n\nThe danger emerges at the coast. As the wave reaches shallow water, $h$ decreases, so by $v = \\sqrt{gh}$ the **speed drops**. The leading edge slows while the following water catches up, so the wave **shortens and steepens**, and by conservation of energy flux its **amplitude grows** — a process called **shoaling**. Energy flux scales roughly as $v\\,a^2$ (with $a$ the amplitude), giving **Green's law**, $a \\propto h^{-1/4}$, so the wave can rise from tens of centimetres to many metres as it climbs onto the shelf. The maximum vertical height reached on land is the **run-up**. Because the wavelength is so long, a tsunami arrives not as a single breaking wave but as a fast, prolonged surge — often the sea first **withdraws** dramatically (when a trough leads), exposing the seabed, before the crest rushes in. Recognizing that withdrawal as a natural warning sign has saved lives. The long period also means the wave carries immense momentum and can penetrate kilometres inland, the defining hazard explored next."
+    },
+    {
+      "kind": "text",
+      "title": "Great tsunamis and the warning system",
+      "body": "Two catastrophes in the early twenty-first century reshaped tsunami science and policy.\n\nThe **2004 Indian Ocean (Sumatra–Andaman) earthquake** of **26 December 2004** was a megathrust rupture of moment magnitude **$M_w \\approx 9.1$–9.3** along roughly $1300$ km of the **Sunda Trench**, where the Indo-Australian plate subducts beneath the Sunda plate. It was one of the largest earthquakes ever recorded and the longest-duration faulting observed (the rupture took some 8–10 minutes). The resulting tsunami devastated coastlines across the Indian Ocean — **Indonesia (Aceh), Thailand, Sri Lanka, India**, and as far as **East Africa** — killing about **230,000** people. Critically, the Indian Ocean had **no tsunami warning system** in 2004, so coastal populations received no alert; the disaster directly prompted the creation of the **Indian Ocean Tsunami Warning System (2006)**.\n\nThe **2011 Tōhoku (Great East Japan) earthquake** of **11 March 2011** was an $M_w \\approx 9.0$–9.1 megathrust off northeastern Honshu on the **Japan Trench**, where the Pacific plate subducts. Despite Japan's advanced preparedness, the tsunami's run-up exceeded **15 m** in places and overtopped seawalls, killing about **18,000–20,000** people and causing the **Fukushima Daiichi nuclear** meltdowns when the wave flooded the plant's backup generators. Tōhoku exposed the danger of **underestimating maximum magnitude**: the segment had been thought incapable of an $M\\,9$, a sobering lesson for hazard models everywhere.\n\nThe global response rests on a layered **warning infrastructure**:\n\n- **Seismic detection**: networks (USGS, regional centers) locate and size the earthquake within minutes; a large, shallow, thrust earthquake under the ocean triggers an initial alert.\n- **Sea-level confirmation**: the key instruments are **DART buoys** (**Deep-ocean Assessment and Reporting of Tsunamis**), developed by **NOAA's PMEL**. A **DART** system pairs a pressure recorder on the seafloor — which detects the tiny ($\\sim$ cm) passing tsunami in the deep ocean by the change in overlying water pressure — with a surface buoy that relays the data by satellite in near real time. Coastal **tide gauges** provide further confirmation.\n- **Warning centers**: the **Pacific Tsunami Warning Center (PTWC)** in Hawaii and the **National Tsunami Warning Center** issue forecasts using pre-computed propagation models calibrated by the DART data.\n\nBecause a tsunami crosses an ocean basin in hours while the warning travels at the speed of light, distant coasts can be evacuated in time — but near-field coasts, like Aceh in 2004 and Tōhoku in 2011, have only minutes, so **education and immediate self-evacuation on feeling strong shaking or seeing the sea withdraw** remain the front line of survival."
+    },
+    {
+      "kind": "text",
+      "title": "Induced and triggered seismicity",
+      "body": "Not all earthquakes are purely natural. **Induced seismicity** refers to earthquakes caused by human activity, and understanding it has become a major branch of applied seismology. The unifying physics is again **effective stress** and the **Coulomb failure** criterion: a fault slips when the shear stress exceeds friction times the *effective* normal stress, $\\tau \\ge \\mu_f(\\sigma_n - p)$, where $p$ is the **pore-fluid pressure**. Anything that **raises pore pressure on a fault** reduces the clamping effective normal stress and can push an already-stressed fault to failure — even a small perturbation, because tectonic stresses do most of the work.\n\nThe principal human causes are:\n\n- **Fluid injection.** Pumping fluid into the subsurface raises pore pressure directly. The classic demonstration was the **Rocky Mountain Arsenal** well near **Denver** in the **1960s**, where wastewater injection produced earthquakes whose rate tracked the injection rate — and which were experimentally turned on and off, a near-controlled experiment described by **David Evans (1966)**. Modern episodes are dominated by **wastewater disposal** from oil and gas operations: deep injection of large brine volumes raised seismicity sharply in **Oklahoma** after about 2009, including the **2016 Pawnee $M\\,5.8$**, the state's largest recorded earthquake. **Hydraulic fracturing (\"fracking\")** itself induces mostly tiny earthquakes, but it can occasionally trigger felt events; the larger problem is usually the associated wastewater disposal.\n- **Geothermal operations.** Injecting water into hot rock (**enhanced geothermal systems**) can induce earthquakes; the **Basel, Switzerland (2006)** project was halted after it triggered an $M\\,3.4$ felt by the city.\n- **Reservoir-induced seismicity (RIS).** Filling a large reservoir behind a dam adds both the **weight of water** (changing stress) and, more importantly, **increased pore pressure** as water diffuses into the rock. The **Koyna Dam, India (1967)** earthquake, $M\\,6.3$, which killed about 180 people, is the most cited case of reservoir-triggered seismicity.\n- **Carbon capture and storage (CCS)** raises analogous concerns as $\\mathrm{CO_2}$ is injected for sequestration, making induced-seismicity monitoring central to its safe deployment.\n\nManagement relies on the **\"traffic-light\" protocol**: operators monitor microseismicity in real time and reduce or stop injection if magnitudes climb past set thresholds. The distinction between **induced** (caused by the activity) and merely **triggered** (a natural earthquake advanced in time by a small human nudge) is subtle and often legally and scientifically contested. What is clear is that managing pore pressure — the same Terzaghi effective-stress idea behind liquefaction — is the key control, and that human activity has measurably reshaped the seismic hazard of regions like Oklahoma. Induced seismicity thus closes the loop between fundamental fault mechanics and contemporary energy policy."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_tsu_1",
+        "kind": "multiple_choice",
+        "question": "Why are great **subduction-zone megathrust** earthquakes far more efficient tsunami generators than large **strike-slip** earthquakes of similar magnitude?",
+        "options": [
+          "Megathrusts release more total energy regardless of fault motion.",
+          "Megathrust faulting produces large vertical seafloor displacement, lifting the whole overlying water column, whereas strike-slip moves the seabed mostly horizontally and displaces little water.",
+          "Strike-slip earthquakes occur only on land.",
+          "Tsunamis require shallow earthquakes, which only strike-slip faults produce."
+        ],
+        "correctIndex": 1,
+        "explanation": "Tsunamis are generated by sudden vertical displacement of the seafloor, which lifts the overlying water column. Subduction megathrusts thrust the overriding plate upward by metres over hundreds of kilometres, displacing enormous volumes of water. Strike-slip faulting moves the seabed primarily horizontally, displacing little water vertically, so it is an inefficient tsunami source even at large magnitude."
+      },
+      "hints": [
+        "What kind of seafloor motion displaces a water column — vertical or horizontal?",
+        "Which fault type moves the seabed up, and which moves it sideways?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "A tsunami is created by sudden vertical displacement of the ocean floor, which raises (or drops) the entire overlying water column; that bulge then collapses outward. Subduction-zone megathrusts produce large vertical uplift of the overriding plate over very long ruptures, displacing huge volumes of water — hence the great Sumatra 2004 and Tōhoku 2011 tsunamis. Strike-slip earthquakes move the seabed mainly horizontally, displacing little water vertically, so even a large strike-slip event generates a comparatively minor tsunami. Magnitude alone does not determine tsunami potential; the vertical seafloor motion does."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_tsu_1",
+        "kind": "math_expression",
+        "question": "Using the shallow-water speed $v = \\sqrt{g h}$ with $g = 9.81\\,\\text{m/s}^2$ and open-ocean depth $h = 4000$ m, compute the tsunami speed $v$ in m/s (to the nearest m/s).",
+        "acceptedAnswers": [
+          "198",
+          "~198",
+          "198 m/s",
+          "198.1",
+          "200"
+        ],
+        "hint": "$\\sqrt{9.81 \\times 4000} = \\sqrt{39240}$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_tsu_2",
+        "kind": "multiple_choice",
+        "question": "What is the central physical mechanism by which **fluid injection** can induce earthquakes on a pre-existing fault?",
+        "options": [
+          "The injected fluid chemically dissolves the fault rock.",
+          "Raising the pore-fluid pressure reduces the effective normal (clamping) stress on the fault, $\\tau \\ge \\mu_f(\\sigma_n - p)$, so an already-stressed fault can slip.",
+          "The fluid adds heat that melts the fault.",
+          "Injection physically pushes the two fault blocks apart over kilometres."
+        ],
+        "correctIndex": 1,
+        "explanation": "By the Coulomb criterion with pore pressure, a fault slips when shear stress exceeds friction times the effective normal stress $\\sigma_n - p$. Injecting fluid raises pore pressure $p$, lowering the effective clamping stress and reducing the fault's frictional resistance. Tectonic stress supplies most of the driving shear, so even a modest pressure rise can push an already-loaded fault to failure — as at the Rocky Mountain Arsenal and across Oklahoma's wastewater-disposal seismicity."
+      },
+      "hints": [
+        "Recall the effective-stress idea: $\\sigma' = \\sigma_n - p$.",
+        "Does higher pore pressure clamp the fault more or less tightly?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "A fault slips when the driving shear stress $\\tau$ exceeds the frictional resistance $\\mu_f(\\sigma_n - p)$, where $\\sigma_n$ is the normal stress and $p$ the pore-fluid pressure. Injecting fluid increases $p$, which lowers the effective normal stress $\\sigma_n - p$ and thus the frictional strength holding the fault shut. Because tectonic stress already supplies most of the shear, even a small pressure increase can trigger slip. This is the mechanism behind the Rocky Mountain Arsenal earthquakes (1960s) and the surge of Oklahoma seismicity (including the 2016 Pawnee $M\\,5.8$) from wastewater disposal — the same effective-stress principle that governs liquefaction."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_tsu_1",
+        "kind": "scenario",
+        "question": "Designing a near-field tsunami response.",
+        "prompt": "You advise a coastal town that sits only 40 km from an offshore subduction trench capable of an $M_w\\,9$ earthquake. A DART-based warning center exists, but for this town the tsunami could arrive within roughly 10–15 minutes of the earthquake. Explain why a distant warning-center alert may not reach residents in time for such a near-field source, why feeling strong, prolonged shaking or seeing the sea suddenly withdraw should itself trigger immediate evacuation to high ground, and how the lessons of Aceh (2004) and Tōhoku (2011) support emphasizing self-evacuation over waiting for an official message."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_tsu_2",
+        "kind": "math_expression",
+        "question": "A tsunami travels at $v = 200$ m/s across deep ocean. How long, in hours, does it take to cross 3600 km of open ocean? (Use $3600\\,\\text{km} = 3.6\\times10^6$ m; give the answer to one decimal place.)",
+        "acceptedAnswers": [
+          "5",
+          "5.0",
+          "5 hours",
+          "~5"
+        ],
+        "hint": "Time $= 3.6\\times10^6\\,\\text{m} \\div 200\\,\\text{m/s} = 18000$ s; convert to hours (÷3600)."
+      }
+    }
+  ]
+}

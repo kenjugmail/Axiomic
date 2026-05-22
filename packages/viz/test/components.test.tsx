@@ -66,6 +66,9 @@ import { WcagContrast } from "../src/components/WcagContrast";
 import { GalaxyRotationCurve } from "../src/components/GalaxyRotationCurve";
 import { HubbleExpansion } from "../src/components/HubbleExpansion";
 import { CpuScheduler } from "../src/components/CpuScheduler";
+import { XrayAttenuation } from "../src/components/XrayAttenuation";
+import { SeismicWaves } from "../src/components/SeismicWaves";
+import { Audiogram } from "../src/components/Audiogram";
 
 const VIZ_COMPONENTS = {
   KinshipDiagram,
@@ -124,6 +127,9 @@ const VIZ_COMPONENTS = {
   GalaxyRotationCurve,
   HubbleExpansion,
   CpuScheduler,
+  XrayAttenuation,
+  SeismicWaves,
+  Audiogram,
 };
 
 describe("viz components — SSR smoke tests", () => {

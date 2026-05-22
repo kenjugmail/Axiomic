@@ -108,6 +108,9 @@ const WcagContrast = lazy(() => import("../../../../packages/viz/src/components/
 const GalaxyRotationCurve = lazy(() => import("../../../../packages/viz/src/components/GalaxyRotationCurve").then(m => ({ default: m.GalaxyRotationCurve })));
 const HubbleExpansion = lazy(() => import("../../../../packages/viz/src/components/HubbleExpansion").then(m => ({ default: m.HubbleExpansion })));
 const CpuScheduler = lazy(() => import("../../../../packages/viz/src/components/CpuScheduler").then(m => ({ default: m.CpuScheduler })));
+const XrayAttenuation = lazy(() => import("../../../../packages/viz/src/components/XrayAttenuation").then(m => ({ default: m.XrayAttenuation })));
+const SeismicWaves = lazy(() => import("../../../../packages/viz/src/components/SeismicWaves").then(m => ({ default: m.SeismicWaves })));
+const Audiogram = lazy(() => import("../../../../packages/viz/src/components/Audiogram").then(m => ({ default: m.Audiogram })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -220,6 +223,9 @@ export const VIZ_NAMES = [
   "galaxy-rotation-curve",
   "hubble-expansion",
   "cpu-scheduler",
+  "xray-attenuation",
+  "seismic-waves",
+  "audiogram",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -330,6 +336,9 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "galaxy-rotation-curve": GalaxyRotationCurve,
   "hubble-expansion": HubbleExpansion,
   "cpu-scheduler": CpuScheduler,
+  "xray-attenuation": XrayAttenuation,
+  "seismic-waves": SeismicWaves,
+  "audiogram": Audiogram,
 };
 
 interface VizEmbedProps {

@@ -1,0 +1,114 @@
+{
+  "slug": "radiation-physics-and-safety",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Describe how ionizing radiation interacts with matter via the photoelectric and Compton effects.",
+      "Distinguish absorbed dose (gray) from equivalent and effective dose (sievert), and stochastic from deterministic effects.",
+      "Apply ALARA, half-value-layer shielding, and the linear-no-threshold model to radiation protection."
+    ],
+    "prereqs": [
+      "x-ray-production-and-radiography"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Ionizing radiation and its interactions with matter",
+      "body": "**Ionizing radiation** is radiation energetic enough to eject electrons from atoms, creating ion pairs and, in tissue, the reactive species and DNA damage that underlie both its medical utility and its hazard. The threshold energy for ionization is only a few electronvolts, so X-rays and gamma rays (tens to hundreds of keV) are firmly ionizing, whereas the radiofrequency and ultrasound energies used in MRI and sonography are **non-ionizing**, the fundamental safety distinction across imaging modalities. At diagnostic photon energies, three interaction mechanisms dominate, and which one prevails depends on photon energy and the atomic number $Z$ of the absorber.\n\nThe **photoelectric effect**, whose explanation earned **Albert Einstein** the **1921 Nobel Prize in Physics**, occurs when a photon is **completely absorbed** by an inner-shell electron, which is then ejected; the atom is left ionized and emits characteristic radiation as the vacancy is filled. The photoelectric effect is highly dependent on atomic number, its probability scaling roughly as $Z^3/E^3$, falling steeply with photon energy and rising steeply with $Z$. This strong $Z$ dependence is precisely what creates **radiographic contrast** between bone (calcium, $Z=20$) and soft tissue, and what makes high-$Z$ contrast agents like **iodine** ($Z=53$) and **barium** ($Z=56$) so effective. It also deposits all the photon energy locally, contributing to patient dose.\n\nThe **Compton effect**, discovered by **Arthur Holly Compton** (who won the **1927 Nobel Prize in Physics** for it), is the **inelastic scattering** of a photon off a loosely bound (essentially free) outer electron: the photon transfers part of its energy to the recoiling electron and continues in a new direction with reduced energy. The wavelength shift follows the **Compton formula**:\n\n$$\\Delta\\lambda = \\frac{h}{m_e c}\\,(1 - \\cos\\theta)$$\n\nwhere $h$ is Planck's constant, $m_e$ the electron mass, $c$ the speed of light, and $\\theta$ the scattering angle. The Compton effect is nearly independent of atomic number and dominates at the higher diagnostic and therapeutic energies; it is the chief source of **scatter radiation**, which both degrades image contrast (the reason for anti-scatter grids) and creates the **occupational exposure** that requires staff protection in fluoroscopy and interventional suites. A third process, **coherent (Rayleigh) scattering**, contributes minor scatter at low energies, while **pair production** requires photon energies above 1.022 MeV and so appears only in radiotherapy, not diagnosis. Understanding which interaction dominates at a given energy explains contrast, scatter, dose deposition, and shielding all at once."
+    },
+    {
+      "kind": "text",
+      "title": "Dose units and biological effects",
+      "body": "Quantifying radiation requires a careful hierarchy of units, codified by the **International Commission on Radiation Units and Measurements (ICRU)** and the **International Commission on Radiological Protection (ICRP)**. The starting point is **exposure** (ionization in air), but the clinically and biologically meaningful quantities are doses.\n\n**Absorbed dose** measures the energy deposited per unit mass of tissue, in the SI unit the **gray (Gy)**, where one gray equals one joule per kilogram, named for the British physicist **Louis Harold Gray**. The older unit was the **rad** (1 Gy = 100 rad). Absorbed dose alone, however, does not capture biological harm, because different radiations of equal energy cause different amounts of damage.\n\nTo account for this, the absorbed dose is multiplied by a **radiation weighting factor** $w_R$ to give the **equivalent dose**, measured in the **sievert (Sv)**, named for the Swedish physicist **Rolf Sievert** (the older unit was the **rem**, 1 Sv = 100 rem). For X-rays, gamma rays, and electrons $w_R = 1$, so equivalent dose equals absorbed dose numerically; but for **alpha particles** $w_R$ is about **20**, reflecting the dense ionization and far greater biological damage of high-LET (linear energy transfer) radiation. To compare whole-body risk from non-uniform exposures, each organ's equivalent dose is further multiplied by a **tissue weighting factor** $w_T$ (reflecting that organ's radiosensitivity) and summed to give the **effective dose**, also in sieverts, the quantity used to express overall stochastic risk and to compare examinations. For reference, the average annual natural **background radiation** is about **3 millisieverts**, a chest radiograph delivers roughly **0.02 mSv**, and an abdominal CT roughly **8 to 10 mSv**.\n\nBiological effects divide into two fundamentally different categories. **Deterministic effects** (also called tissue reactions) have a **threshold dose** below which they do not occur, and a **severity that increases with dose** above the threshold. Examples include skin erythema, epilation (hair loss), cataracts, and, at high doses, acute radiation syndrome; these are relevant to prolonged fluoroscopy and radiotherapy, not to ordinary diagnostic studies. **Stochastic effects**, by contrast, are **probabilistic**: the **likelihood** (not the severity) of the effect increases with dose, and there is assumed to be **no threshold**. The principal stochastic effects are **radiation-induced cancer** and **heritable genetic effects**. This stochastic, probabilistic, no-assumed-threshold nature of cancer induction is the entire rationale for minimizing even small diagnostic doses, and it leads directly to the protection philosophy discussed next."
+    },
+    {
+      "kind": "text",
+      "title": "ALARA, shielding, and the linear-no-threshold model",
+      "body": "Radiation protection rests on a guiding philosophy and a set of quantitative tools. The philosophy is **ALARA**, **As Low As Reasonably Achievable**, promulgated by the **ICRP** and national bodies such as the U.S. **NCRP** and enforced by regulators like the **Nuclear Regulatory Commission** and, for devices, the **FDA**. ALARA is operationalized through the classic triad for occupational protection:\n\n- **Time**: minimize the duration of exposure, since dose accumulates with time. Reducing fluoroscopy 'beam-on' time directly cuts dose.\n- **Distance**: maximize distance from the source, exploiting the **inverse-square law**, intensity falls as $1/d^2$, so doubling distance quarters the dose, the single most powerful protective measure.\n- **Shielding**: interpose attenuating material such as **lead** aprons, thyroid shields, leaded glass, and lead-lined walls between source and person.\n\nShielding effectiveness is quantified by the **half-value layer (HVL)**, the thickness of a material that reduces beam intensity by half, derived from the Beer-Lambert law as $\\mathrm{HVL} = \\ln 2 / \\mu = 0.693/\\mu$. Successive HVLs reduce intensity multiplicatively: one HVL leaves $1/2$, two leave $1/4$, three leave $1/8$, and $n$ half-value layers leave a fraction $(1/2)^n$. The related **tenth-value layer (TVL)** reduces intensity to one tenth and is convenient for room shielding design. Higher-energy beams have larger HVLs because they are more penetrating, so shielding is energy-dependent.\n\nThe assumption underpinning protection at low doses is the **linear-no-threshold (LNT) model**. LNT holds that the probability of stochastic harm is **directly proportional to dose all the way down to zero**, with **no safe threshold**, so that even very small doses carry a small, proportionate risk. The model is extrapolated from high-dose epidemiology, most influentially the long-term **Life Span Study** of survivors of the **Hiroshima and Nagasaki** atomic bombings conducted by the **Radiation Effects Research Foundation**. LNT is endorsed for radiation-protection purposes by the ICRP, the NCRP, and the U.S. **National Academy of Sciences BEIR VII** report, precisely because it is **conservative**: it treats every dose as carrying some risk and therefore justifies ALARA and dose minimization. It remains scientifically debated at very low doses, where competing hypotheses include a true threshold or even **hormesis** (a small beneficial effect), because the predicted excess cancers are too few to measure against the large natural background incidence. For the practicing radiologist, however, the operational stance is settled: assume no dose is entirely without risk, justify every examination, optimize technique, and keep exposures to patients and staff as low as reasonably achievable. This is the ethical and physical core of safe radiology."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_rad_1",
+        "kind": "multiple_choice",
+        "question": "Which statement correctly contrasts the photoelectric and Compton interactions at diagnostic energies?",
+        "options": [
+          "The photoelectric effect is independent of atomic number, while the Compton effect scales strongly with Z.",
+          "The photoelectric effect scales roughly as Z^3/E^3 and creates tissue contrast, while the Compton effect is nearly independent of Z and is the chief source of scatter and occupational exposure.",
+          "Both effects scatter the photon without absorbing it.",
+          "The Compton effect requires photon energies above 1.022 MeV."
+        ],
+        "correctIndex": 1,
+        "explanation": "The photoelectric effect fully absorbs the photon and varies steeply with atomic number (about Z^3) and inversely with energy (about 1/E^3), producing the bone-versus-soft-tissue contrast and the efficacy of iodine and barium agents. The Compton effect scatters the photon off a loosely bound electron, is nearly independent of Z, and dominates scatter radiation that degrades contrast and exposes staff. Pair production, not Compton, needs more than 1.022 MeV."
+      },
+      "hints": [
+        "One interaction is strongly Z-dependent and underlies contrast; the other underlies scatter.",
+        "Recall the approximate Z^3/E^3 scaling of the photoelectric effect."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "The photoelectric effect absorbs the photon entirely; its probability rises roughly as Z^3 and falls as 1/E^3, so high-Z tissues (bone) and contrast agents (iodine, barium) absorb strongly, giving image contrast and depositing dose locally. The Compton effect scatters the photon off an outer electron, is essentially Z-independent, dominates at higher diagnostic energies, and produces the scatter that fogs images and irradiates personnel. Therefore option B is the correct contrast."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_rad_2",
+        "kind": "multiple_choice",
+        "question": "Which statement correctly distinguishes stochastic from deterministic radiation effects?",
+        "options": [
+          "Stochastic effects have a threshold dose and worsen in severity with dose; deterministic effects are random with no threshold.",
+          "Stochastic effects (e.g., cancer) are probabilistic with no assumed threshold, their likelihood rising with dose; deterministic effects (e.g., cataracts, skin erythema) have a threshold and increase in severity above it.",
+          "Both stochastic and deterministic effects have strict thresholds below which nothing happens.",
+          "Stochastic and deterministic effects are two names for the same phenomenon."
+        ],
+        "correctIndex": 1,
+        "explanation": "Stochastic effects such as radiation-induced cancer and heritable mutations are modeled as having no threshold; increasing dose raises the probability of the effect, not its severity. Deterministic effects (tissue reactions) such as erythema, epilation, and cataracts have a threshold dose, and above it their severity grows with dose. This distinction underlies why even small diagnostic doses are minimized."
+      },
+      "hints": [
+        "Which type increases in probability versus severity?",
+        "Cancer induction is the canonical stochastic effect with no assumed threshold."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Deterministic (tissue-reaction) effects require a threshold dose; below it they do not occur, and above it severity scales with dose (cataracts, erythema, epilation, acute radiation syndrome). Stochastic effects are probabilistic: the chance of cancer or heritable damage rises with dose with no assumed threshold, while severity is independent of dose. The no-threshold nature of stochastic risk motivates ALARA even at low diagnostic doses. Option B is correct."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_rad_1",
+        "kind": "math_expression",
+        "question": "A shielding barrier is 4 half-value layers thick for a given beam. Compute the fraction of the incident intensity that is transmitted, using transmitted fraction = (1/2)^n.",
+        "acceptedAnswers": [
+          "0.0625",
+          "1/16",
+          "0.0625 ",
+          "(1/2)^4"
+        ],
+        "hint": "Each HVL halves intensity: (1/2)^4 = 1/16."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_rad_2",
+        "kind": "math_expression",
+        "question": "An alpha-particle exposure delivers an absorbed dose of 0.5 Gy. With a radiation weighting factor w_R = 20 for alpha particles, compute the equivalent dose in sieverts using H = w_R * D.",
+        "acceptedAnswers": [
+          "10",
+          "10 Sv",
+          "20*0.5"
+        ],
+        "hint": "Equivalent dose = w_R * absorbed dose = 20 * 0.5 Gy."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_rad_1",
+        "kind": "scenario",
+        "question": "An interventional radiologist performs long fluoroscopically guided procedures and is concerned about both patient skin dose and her own occupational exposure.",
+        "prompt": "An interventional radiologist routinely performs lengthy fluoroscopy-guided procedures. She is worried about a deterministic skin reaction on patients and about her own cumulative stochastic risk and lens-of-the-eye dose. As a radiation-safety consultant, explain which effects threaten the patient versus the operator, and lay out a concrete protection plan using the time-distance-shielding triad, half-value-layer reasoning for protective equipment, and the LNT rationale. Justify each recommendation with the relevant physics."
+      }
+    }
+  ]
+}

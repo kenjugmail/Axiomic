@@ -528,6 +528,21 @@ const LazyCpuScheduler = lazy(() =>
     (m) => ({ default: m.CpuScheduler }),
   ),
 );
+const LazyXrayAttenuation = lazy(() =>
+  import("../../../../../packages/viz/src/components/XrayAttenuation").then(
+    (m) => ({ default: m.XrayAttenuation }),
+  ),
+);
+const LazySeismicWaves = lazy(() =>
+  import("../../../../../packages/viz/src/components/SeismicWaves").then(
+    (m) => ({ default: m.SeismicWaves }),
+  ),
+);
+const LazyAudiogram = lazy(() =>
+  import("../../../../../packages/viz/src/components/Audiogram").then(
+    (m) => ({ default: m.Audiogram }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -796,6 +811,12 @@ function VizByName({
       return <LazyHubbleExpansion {...(props as object)} />;
     case "cpu-scheduler":
       return <LazyCpuScheduler {...(props as object)} />;
+    case "xray-attenuation":
+      return <LazyXrayAttenuation {...(props as object)} />;
+    case "seismic-waves":
+      return <LazySeismicWaves {...(props as object)} />;
+    case "audiogram":
+      return <LazyAudiogram {...(props as object)} />;
     default:
       return null;
   }

@@ -761,6 +761,27 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "⏱️",
     tags: ["operating-systems", "scheduling", "round-robin", "processes", "systems"],
   },
+  {
+    name: "xray-attenuation",
+    label: "X-ray attenuation",
+    description: "Beer–Lambert decay I = I₀e^(−μx) through a tissue with its Hounsfield value; pick air/fat/soft-tissue/bone and slide the thickness.",
+    thumb: "🩻",
+    tags: ["radiology", "x-ray", "ct", "beer-lambert", "hounsfield"],
+  },
+  {
+    name: "seismic-waves",
+    label: "Seismic P/S waves",
+    description: "Seismogram with P then S arrivals; the S−P interval widens with distance and yields the range to the epicenter.",
+    thumb: "📈",
+    tags: ["seismology", "earthquake", "p-wave", "s-wave", "epicenter"],
+  },
+  {
+    name: "audiogram",
+    label: "Audiogram",
+    description: "Hearing threshold (dB HL) vs frequency over the speech banana + severity bands; toggle normal / noise-notch / presbycusis.",
+    thumb: "👂",
+    tags: ["audiology", "hearing", "audiogram", "presbycusis", "speech-banana"],
+  },
 ];
 
 interface Props {

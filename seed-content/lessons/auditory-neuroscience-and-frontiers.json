@@ -1,0 +1,111 @@
+{
+  "slug": "auditory-neuroscience-and-frontiers",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Trace the central auditory pathway from cochlear nucleus to auditory cortex.",
+      "Explain spatial hearing via interaural time and level differences and the duplex theory.",
+      "Survey auditory scene analysis, AI noise reduction, and hair-cell regeneration frontiers."
+    ],
+    "prereqs": [
+      "amplification-and-cochlear-implants"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The central auditory pathway",
+      "body": "Hearing does not end at the cochlea; the **auditory nerve** is merely the first relay in a richly interconnected pathway that climbs through the brainstem and midbrain to the cortex, transforming a stream of nerve spikes into the perception of speech, music, and a soundscape. The pathway is notable for its many synaptic stations, its extensive **crossing** of information between the two sides, and powerful **descending (efferent)** feedback.\n\nFrom the **spiral ganglion**, auditory-nerve fibers enter the brainstem and synapse in the **cochlear nucleus**, the obligatory first central station, which preserves the cochlea's **tonotopic** map and splits the signal into parallel streams (some carrying fine timing, some carrying intensity and onset). Fibers project, largely crossing to the opposite side, to the **superior olivary complex (SOC)**, the first place where inputs from the **two ears converge**, which makes it the crucial hub for **sound localization**. From the SOC the pathway ascends through the **lateral lemniscus** to the **inferior colliculus** in the midbrain, a major integrative center where nearly all ascending auditory information is gathered and where the prominent **wave V** of the ABR is generated. The signal then relays through the **medial geniculate body** of the **thalamus** and finally projects to the **primary auditory cortex (A1)** in the **superior temporal gyrus** of the temporal lobe, an area mapped in humans by **Wilder Penfield** and known by the German term **Heschl's gyrus**.\n\nThe auditory cortex is itself **tonotopically organized**, so neighboring patches of cortex respond to neighboring frequencies, a map preserved all the way from the basilar membrane. Beyond A1 lie belt and parabelt regions and higher areas specialized for complex sounds; in the left hemisphere these feed language regions including **Wernicke's area**, where speech is decoded into meaning. A defining feature of the system is its **massive efferent** control: the **olivocochlear bundle**, described by **Grant Rasmussen in 1946**, sends fibers from the superior olive back **down to the outer hair cells**, allowing the brain to adjust the cochlear amplifier's gain, sharpen signals in noise, and protect the ear. Hearing is therefore not a passive sensor but a closed loop in which the brain continuously tunes its own ear. Understanding these stations matters clinically: the ABR waves map onto them one by one, central auditory processing disorders arise from dysfunction above the cochlea, and an auditory brainstem implant deliberately stimulates the cochlear nucleus to re-enter this pathway when the nerve is gone.",
+      "viz": null
+    },
+    {
+      "kind": "text",
+      "title": "Spatial hearing and the cocktail-party problem",
+      "body": "With two ears the brain computes **where** a sound comes from, a feat of neural arithmetic worked out in the brainstem. The classic account is the **duplex theory** of **Lord Rayleigh (John William Strutt)**, published in **1907**, which holds that localization in the horizontal plane relies on **two complementary cues** operating in different frequency ranges.\n\nThe first cue is the **interaural time difference (ITD)**: a sound to your right reaches the right ear slightly before the left, because the path to the far ear is longer. The maximum ITD for a human head is only about **600-700 microseconds**, an astonishingly small interval that the brain resolves to a few tens of microseconds. ITDs dominate localization at **low frequencies (below roughly 1500 Hz)**, where the wavelength is larger than the head and the brain can compare the **phase** of the waveform at the two ears unambiguously. The **medial superior olive (MSO)** contains coincidence-detector neurons, organized along the lines of the **Jeffress model (Lloyd Jeffress, 1948)** with its delay-line concept, that fire when inputs from the two ears arrive simultaneously, reading out ITD as a place code of direction.\n\nThe second cue is the **interaural level difference (ILD)**: at high frequencies the head casts an acoustic **shadow**, so a sound is louder at the near ear than at the far ear. ILDs dominate at **high frequencies (above roughly 1500-2000 Hz)**, where wavelengths are short enough to be blocked by the head, and they are computed largely in the **lateral superior olive (LSO)**. Together ITD (low frequencies) and ILD (high frequencies) cover the spectrum, the essence of the duplex theory. Front-back and up-down judgments rely instead on the **spectral notches** imposed by the **pinna**, encoded in the **head-related transfer function (HRTF)** that virtual-reality audio engineers now model to place sounds in three dimensions over headphones.\n\nSpatial hearing is the brain's main weapon against the **cocktail-party problem**, a term coined by **Colin Cherry in 1953**: the everyday miracle of following one talker among many competing voices. Because each talker is at a different location, **binaural** processing lets the listener spatially separate and attend to one stream, a benefit called **spatial release from masking**. This is why hearing loss is so disabling in noise and why single-sided deafness is more than half a problem: losing binaural cues collapses the listener's ability to segregate the scene. Modern bilateral hearing aids and bilateral cochlear implants try to restore some of this binaural advantage, though current devices preserve fine ITD cues poorly, which is an active area of engineering research.",
+      "viz": null
+    },
+    {
+      "kind": "text",
+      "title": "Frontiers: scene analysis, AI, and regeneration",
+      "body": "Three frontiers define the future of hearing science, spanning perception, engineering, and biology.\n\nThe first is **auditory scene analysis**, the framework set out by **Albert Bregman** in his landmark 1990 book of that name. Bregman asked how the brain parses the single jumbled pressure wave at each eardrum into separate perceptual **streams**, this voice, that piano, the traffic outside. He showed that the auditory system groups sound elements using cues such as **common onset** (components that start together belong together), **harmonicity** (partials sharing a fundamental fuse into one source), **common fate** (frequencies that move together group together), and **spatial location**. **Sequential streaming** organizes sound over time, so a fast alternation of high and low tones splits into two separate melodic streams. This is the perceptual machinery behind solving the cocktail-party problem, and its breakdown in hearing loss and auditory processing disorders explains why audibility alone does not guarantee understanding.\n\nThe second frontier is **artificial intelligence in hearing technology**. Where classical noise reduction could only suppress steady-state noise, **deep neural networks** now perform **speech enhancement** and **source separation**, learning from vast datasets to pull a target voice out of babble and reverberation in ways that approach human scene analysis. Deep-learning **denoising** is moving onto the low-power chips inside hearing aids and cochlear-implant processors, and **automatic scene classification** lets a device recognize whether the wearer is in a restaurant, a car, or a quiet room and adapt instantly. These systems promise the largest gains exactly where users struggle most, understanding speech in noise, and represent the most active commercial research front in the field.\n\nThe third and most revolutionary frontier is **biological regeneration**. In mammals, cochlear **hair cells do not naturally regenerate**: once destroyed by noise, age, or ototoxic drugs, they are gone, which is why sensorineural loss has been permanent. But in **1988** researchers including **Edwin Rubel**, **Douglas Cotanche**, and **Jeffrey Corwin** made a startling discovery, **birds spontaneously regenerate cochlear hair cells** after damage and recover their hearing, because avian **supporting cells** can divide and transdifferentiate into new hair cells. The race is now on to switch this capacity back on in humans. Strategies under investigation include manipulating the **Notch** and **Wnt** signaling pathways and the master transcription factor **ATOH1 (Math1)**, which can coax supporting cells to become hair cells; small-molecule gamma-secretase inhibitors tested in early clinical trials; and **gene therapy** for specific genetic deafness. A striking proof of principle came in **2023-2024**, when gene therapy delivering a working copy of the **OTOF** gene restored hearing in children with **otoferlin**-related congenital deafness, the first time an inherited deafness was substantially reversed in humans. If hair-cell regeneration or gene therapy matures, it could one day cure forms of deafness that today are managed only with the hearing aids and cochlear implants of the previous lessons, closing the loop from von Bekesy's traveling wave to a regrown, working cochlea.",
+      "viz": null
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_neuro_1",
+        "kind": "multiple_choice",
+        "question": "According to the **duplex theory**, which cue dominates localization of a **low-frequency** sound (below about 1500 Hz)?",
+        "options": [
+          "The interaural level difference, because the head shadows low frequencies strongly.",
+          "The interaural time difference, because at low frequencies the wavelength exceeds the head size and the brain can compare the waveform phase at the two ears unambiguously.",
+          "The spectral notch from the pinna, because low frequencies are filtered by the ear canal.",
+          "The acoustic reflex latency."
+        ],
+        "correctIndex": 1,
+        "explanation": "Rayleigh's duplex theory assigns low-frequency localization to interaural time differences (ITD). At low frequencies the wavelength is larger than the head, so the head casts little acoustic shadow (weak ILD), but the slowly varying waveform lets the brain compare phase at the two ears without ambiguity. ILD takes over at high frequencies where the head shadow is strong; spectral pinna cues handle front-back and elevation."
+      },
+      "hints": [
+        "At low frequencies the wavelength is larger than the head, so there is little level shadow.",
+        "Phase comparison works when the waveform changes slowly."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "The duplex theory assigns low-frequency localization to the interaural time difference. Long wavelengths produce little head shadow, so level differences are weak, but the brain can compare the phase of the slow waveform at the two ears without ambiguity. Interaural level differences dominate only at high frequencies where the head casts an acoustic shadow."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_neuro_1",
+        "kind": "scenario",
+        "question": "Why noise is so hard with one ear.",
+        "prompt": "A patient with single-sided deafness reports that they manage fine in a quiet room but cannot follow conversation at a noisy dinner party, where everyone with two good ears seems comfortable. Using the concepts of binaural processing, spatial release from masking, and auditory scene analysis, explain why the loss of one ear specifically sabotages listening in a multi-talker environment."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_neuro_2",
+        "kind": "multiple_choice",
+        "question": "Why has sensorineural hearing loss been permanent in humans, and what biological discovery offers hope of reversing it?",
+        "options": [
+          "Because the auditory nerve cannot carry signals, and brain transplants might fix it.",
+          "Because mammalian cochlear hair cells do not regenerate once destroyed; the 1988 finding that birds spontaneously regenerate hair cells (via dividing supporting cells) inspired efforts to reactivate this capacity in humans through pathways like Notch and Wnt and the transcription factor ATOH1, plus gene therapy.",
+          "Because the ossicles fuse with age and cannot be replaced.",
+          "Because the endolymph permanently loses its potassium and cannot be restored."
+        ],
+        "correctIndex": 1,
+        "explanation": "Unlike birds, mammals cannot regenerate cochlear hair cells, so sensory loss is permanent. The 1988 discovery by Rubel, Cotanche, Corwin and others that birds regrow hair cells from supporting cells launched regeneration research. Strategies now target Notch and Wnt signaling and the master factor ATOH1 to convert supporting cells into hair cells, alongside gene therapy such as the OTOF gene work that reversed otoferlin-related deafness."
+      },
+      "hints": [
+        "Think about why birds recover hearing after damage but mammals do not.",
+        "A key transcription factor and the Notch/Wnt pathways are the regeneration targets."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Mammalian cochlear hair cells do not naturally regenerate, so once they die from noise, age, or drugs the loss is permanent. The 1988 discovery that birds regenerate hair cells from their supporting cells opened the field. Researchers now try to reactivate this in humans via Notch and Wnt signaling and the transcription factor ATOH1, and via gene therapy like the OTOF work that restored hearing in otoferlin deafness."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_neuro_1",
+        "kind": "math_expression",
+        "question": "A sound arrives from straight ahead, equidistant from both ears. What is the **interaural time difference** in microseconds for this source?",
+        "acceptedAnswers": [
+          "0",
+          "0 microseconds",
+          "0 us"
+        ],
+        "hint": "If the path lengths to the two ears are equal, the sound arrives at the same instant at both."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_neuro_2",
+        "kind": "scenario",
+        "question": "Audibility restored but understanding poor.",
+        "prompt": "An older patient is fitted with well-programmed hearing aids verified by real-ear measurement, so all speech sounds are now clearly audible, yet they still struggle to follow one talker in a busy cafe. Using the concepts of auditory scene analysis (streaming, common onset, harmonicity) and central or cognitive factors, explain why making sounds audible does not automatically restore the ability to separate and follow a single voice in a complex scene."
+      }
+    }
+  ]
+}

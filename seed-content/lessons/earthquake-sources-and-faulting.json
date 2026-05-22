@@ -1,0 +1,115 @@
+{
+  "slug": "earthquake-sources-and-faulting",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Explain elastic rebound theory and how stored strain drives earthquakes.",
+      "Classify faults as strike-slip, normal, or thrust/reverse and read focal mechanisms.",
+      "Compute and interpret the seismic moment $M_0 = \\mu A D$."
+    ],
+    "prereqs": [
+      "seismology-history-and-seismic-waves"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Elastic rebound: how a fault stores and releases energy",
+      "body": "The modern theory of why earthquakes happen was forged from the disaster of the **1906 San Francisco earthquake** ($M_w \\approx 7.9$) on the **San Andreas Fault**. The State Earthquake Investigation Commission, led by **Andrew Lawson**, surveyed the surface rupture, and the geophysicist **Harry Fielding Reid (1859–1944)** of **Johns Hopkins University** synthesized the data into the **elastic rebound theory** (published 1910).\n\nReid's insight was that the crust on either side of a locked fault behaves like an elastic solid. As **plate motion** drags the two sides past each other, the rock near the locked fault deforms and **stores elastic strain energy**, much like a bent ruler or a wound spring. Stress builds until it exceeds the **frictional strength** of the fault. At that instant the fault slips suddenly, the rock on each side **snaps back (rebounds)** toward its unstrained shape, and the stored energy is released as **seismic waves** plus heat and fracturing. The cycle then repeats — the basis of the **earthquake cycle** and of long-term **recurrence-interval** estimates.\n\nReid had direct evidence: geodetic survey lines crossing the San Andreas, measured before and after 1906 by the **U.S. Coast and Geodetic Survey**, showed that distant points had moved steadily for decades while points near the fault lagged, then jumped during the quake. The offset reached about $4.7$ m of right-lateral slip near Point Reyes.\n\nKey vocabulary:\n\n- **Hypocenter (focus)**: the point at depth where rupture begins.\n- **Epicenter**: the point on the surface directly above the focus.\n- **Stress drop**: the difference between the shear stress on the fault before and after the earthquake, typically a few **megapascals (MPa)**.\n- **Asperities**: strong patches on the fault that resist slip and store the most energy.\n- **Foreshocks, mainshock, aftershocks**: the temporal sequence; aftershocks decay according to **Omori's law** (Fusakichi Omori, 1894), in which their rate falls roughly as $1/t$.\n\nElastic rebound also explains why earthquakes cluster on **plate boundaries** mapped by **plate tectonics** (the framework synthesized in the 1960s by workers such as **J. Tuzo Wilson**). The relentless strain delivered at boundaries is what loads faults; rebound is how that strain escapes. Understanding the *source* this way lets seismologists connect a wiggle on a seismogram to a physical block of rock slipping underground."
+    },
+    {
+      "kind": "text",
+      "title": "Fault types and focal mechanisms",
+      "body": "Faults are classified by the **relative motion** of the two blocks, which in turn reflects the **stress regime**. The geometry uses the **fault plane**, its **dip** (angle from horizontal), and the **hanging wall** (the block above an inclined fault) versus the **footwall** (the block below).\n\n- **Strike-slip fault**: the blocks slide **horizontally** past each other; dip is near vertical. Driven by **shear stress**. The **San Andreas** is the classic right-lateral (dextral) example. **Transform** plate boundaries are dominated by strike-slip.\n- **Normal fault**: the hanging wall slides **down** relative to the footwall. Driven by **extension** (tension), as in continental rifts like the **Basin and Range** or the **East African Rift**. Normal faulting *lengthens* the crust.\n- **Thrust / reverse fault**: the hanging wall rides **up** over the footwall. Driven by **compression**, as at **subduction zones** and in mountain belts like the Himalaya. A low-angle reverse fault (dip $< 30°$) is called a **thrust**; the **megathrust** interfaces of subduction zones produce the largest earthquakes on Earth. Reverse faulting *shortens* the crust.\n\nMany real ruptures are **oblique**, mixing strike-slip and dip-slip motion.\n\n**Reading the source: the focal mechanism.** Seismologists summarize the geometry of slip with a **focal mechanism**, drawn as the famous **\"beach ball\"** diagram — formally the lower-hemisphere projection of the **double-couple** radiation pattern. The principle is that the **first motion** of the P wave (whether the ground first moves *toward* or *away from* the source) varies systematically with the direction to each station. Stations in compressional **quadrants** record an initial *up* (toward) motion; stations in dilatational quadrants record an initial *down* (away) motion.\n\nThe beach ball shades the **compressional quadrants dark** and the dilatational quadrants white, separated by two orthogonal **nodal planes**. One nodal plane is the actual **fault plane**; the other is the **auxiliary plane**, and the two cannot be told apart from first motions alone (the *fault-plane ambiguity*) — additional data such as aftershock alignment resolves it. The pattern instantly reveals the mechanism:\n\n- **Strike-slip**: a four-quadrant pattern with two vertical nodal planes (the classic checkerboard).\n- **Normal fault**: white center (dilatational), dark edges.\n- **Thrust fault**: dark center (compressional), white edges.\n\nThe modern, generalized version is the **moment tensor**, a symmetric $3\\times3$ tensor describing the equivalent force system at the source, routinely computed in catalogs such as the **Global Centroid Moment Tensor (GCMT)** project founded by **Adam Dziewoński**. From it, seismologists extract the orientation, the type of faulting, and the size — to which we now turn."
+    },
+    {
+      "kind": "text",
+      "title": "Seismic moment: the physical size of an earthquake",
+      "body": "How big *is* an earthquake, physically? The decisive quantity, introduced through the work of **Keiiti Aki (1966)**, is the **seismic moment** $M_0$. It is defined directly from the source geometry as\n\n$$M_0 = \\mu \\, A \\, D,$$\n\nwhere\n\n- $\\mu$ is the **shear modulus (rigidity)** of the rock, typically about $3 \\times 10^{10}$ Pa ($30$ GPa) in the crust and larger in the mantle;\n- $A$ is the **rupture area** of the fault that slipped (length $\\times$ down-dip width), in $\\text{m}^2$;\n- $D$ is the **average slip (displacement)** across that area, in meters.\n\nThe units are pascals $\\times$ $\\text{m}^2$ $\\times$ m $=$ **newton-metres (N·m)**, the units of a torque, because the equivalent force system at the source is a **double couple** — two opposing force pairs with zero net force and zero net torque. The seismic moment is therefore a far more *physical* measure than older amplitude-based magnitudes: it scales linearly with the product of fault area and slip and does not saturate for great earthquakes.\n\n**A worked example.** Suppose a fault ruptures over a length of $100$ km and a width of $20$ km, so $A = 2.0\\times10^{9}\\,\\text{m}^2$, with average slip $D = 3$ m and rigidity $\\mu = 3\\times10^{10}$ Pa. Then\n\n$$M_0 = (3\\times10^{10})(2.0\\times10^{9})(3) = 1.8\\times10^{20}\\ \\text{N·m}.$$\n\nThat is a large earthquake — moment of order $10^{20}$ N·m corresponds to a moment magnitude near $M_w \\approx 7.5$, using the **Hanks–Kanamori (1979)** relation\n\n$$M_w = \\frac{2}{3}\\log_{10} M_0 - 6.07,$$\n\nwith $M_0$ in N·m. (The great earthquakes — Chile **1960** at $M_w\\,9.5$, the largest ever recorded — reach $M_0 \\sim 10^{23}$ N·m.) We will study magnitude scales in detail in a later lesson; for now the essential point is that the source size is captured cleanly by $M_0 = \\mu A D$.\n\nSeismic moment also unifies the source description with the **moment tensor**: $M_0$ is essentially the scalar size of that tensor. And it ties back to **elastic rebound** — the slip $D$ is the rebound offset, while $A$ is the area of fault that snapped. A large earthquake is simply a large area slipping a large distance through stiff rock."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_src_1",
+        "kind": "multiple_choice",
+        "question": "According to **Harry Fielding Reid's elastic rebound theory**, what is the immediate source of the energy released as seismic waves?",
+        "options": [
+          "Heat rising from the molten outer core that boils the crust.",
+          "Elastic strain energy stored in the rock on either side of a locked fault, released when the fault suddenly slips and the rock rebounds.",
+          "Chemical explosions of trapped gases along the fault plane.",
+          "The gravitational collapse of an underground cavity."
+        ],
+        "correctIndex": 1,
+        "explanation": "Reid showed that plate motion slowly strains the elastic crust adjacent to a locked fault, storing energy like a bent spring. When stress exceeds friction the fault slips, the rock rebounds toward its unstrained shape, and the stored elastic energy radiates as seismic waves (plus heat and fracturing). Geodetic surveys across the San Andreas before and after 1906 confirmed the pre-strain and the rebound offset."
+      },
+      "hints": [
+        "Think about a bent ruler or wound spring storing energy.",
+        "What did the geodetic survey lines across the San Andreas reveal before and after 1906?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Elastic rebound theory (Reid, 1910) says the crust beside a locked fault deforms elastically as plates move, storing strain energy. When the shear stress exceeds the fault's frictional strength, the fault slips suddenly and each side snaps back toward its unstrained configuration. The previously stored elastic strain energy is released as seismic waves, heat, and new fracturing. Geodetic lines across the San Andreas, measured before and after the 1906 quake, showed the slow pre-strain and the sudden rebound, confirming the model."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_src_1",
+        "kind": "math_expression",
+        "question": "A fault has rupture area $A = 2.0\\times10^{9}\\,\\text{m}^2$, average slip $D = 3$ m, and rigidity $\\mu = 3\\times10^{10}$ Pa. Compute the **seismic moment** $M_0 = \\mu A D$ in N·m.",
+        "acceptedAnswers": [
+          "1.8e20",
+          "1.8 \\times 10^{20}",
+          "1.8x10^20",
+          "1.8e20 N·m",
+          "180000000000000000000"
+        ],
+        "hint": "Multiply $3\\times10^{10}$ by $2.0\\times10^{9}$ by $3$; add the exponents."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_src_2",
+        "kind": "multiple_choice",
+        "question": "A subduction-zone megathrust earthquake is produced by which fault type and stress regime?",
+        "options": [
+          "Strike-slip faulting driven by horizontal shear.",
+          "Normal faulting driven by crustal extension (tension).",
+          "Thrust (low-angle reverse) faulting driven by compression, where the hanging wall rides up over the footwall.",
+          "Oblique faulting with no net change in crustal length."
+        ],
+        "correctIndex": 2,
+        "explanation": "Subduction zones are compressional: one plate is forced beneath another along a shallow-dipping megathrust. The hanging wall thrusts up over the footwall (a low-angle reverse fault), shortening the crust. Such megathrusts produce the largest earthquakes on Earth, including Chile 1960 ($M_w$ 9.5). Strike-slip is shear-driven; normal faulting is extension-driven."
+      },
+      "hints": [
+        "Is a subduction zone in compression or extension?",
+        "Which block moves up in a reverse/thrust fault?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "At a subduction zone two plates converge and one descends beneath the other along a shallow-dipping interface, the megathrust. This is a compressional regime: the hanging wall rides up over the footwall along a low-angle reverse (thrust) fault, shortening the crust. These megathrusts host the planet's greatest earthquakes (e.g., Chile 1960, $M_w$ 9.5; Tōhoku 2011, $M_w$ 9.0–9.1). Strike-slip is shear-driven and normal faulting is extension-driven, so neither matches."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_src_1",
+        "kind": "scenario",
+        "question": "Interpreting a beach-ball focal mechanism.",
+        "prompt": "An analyst hands you a focal-mechanism beach ball whose center is dark (compressional) and whose outer edges are white (dilatational), with two shallow-dipping nodal planes. The earthquake occurred just offshore of a subduction trench at 25 km depth. State what type of faulting this beach ball indicates, explain how P-wave first motions produce the dark and white quadrants, and discuss the fault-plane ambiguity — why you cannot tell which nodal plane is the true fault from first motions alone, and what extra evidence would resolve it."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_src_2",
+        "kind": "math_expression",
+        "question": "Using the **Hanks–Kanamori** relation $M_w = \\tfrac{2}{3}\\log_{10} M_0 - 6.07$ (with $M_0$ in N·m), estimate $M_w$ for $M_0 = 1.8\\times10^{20}$ N·m. Give the answer to one decimal place.",
+        "acceptedAnswers": [
+          "7.5",
+          "~7.5",
+          "7.4"
+        ],
+        "hint": "$\\log_{10}(1.8\\times10^{20}) \\approx 20.26$; then $\\tfrac{2}{3}(20.26) - 6.07$."
+      }
+    }
+  ]
+}

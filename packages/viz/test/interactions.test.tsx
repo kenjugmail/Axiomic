@@ -39,6 +39,9 @@ import { WcagContrast } from "../src/components/WcagContrast";
 import { GalaxyRotationCurve } from "../src/components/GalaxyRotationCurve";
 import { HubbleExpansion } from "../src/components/HubbleExpansion";
 import { CpuScheduler } from "../src/components/CpuScheduler";
+import { XrayAttenuation } from "../src/components/XrayAttenuation";
+import { SeismicWaves } from "../src/components/SeismicWaves";
+import { Audiogram } from "../src/components/Audiogram";
 
 let h: VizHarness | null = null;
 afterEach(() => {
@@ -205,5 +208,20 @@ describe("viz interactions", () => {
   test("CpuScheduler: switching algorithm moves the active highlight", () => {
     h = mountViz(createElement(CpuScheduler));
     expectSelectionMoves(h, "FCFS", "Round-robin");
+  });
+
+  test("XrayAttenuation: switching tissue moves the active highlight", () => {
+    h = mountViz(createElement(XrayAttenuation));
+    expectSelectionMoves(h, "Soft tissue", "Bone");
+  });
+
+  test("SeismicWaves: switching distance preset moves the active highlight", () => {
+    h = mountViz(createElement(SeismicWaves));
+    expectSelectionMoves(h, "Local 100 km", "Regional 500 km");
+  });
+
+  test("Audiogram: switching hearing pattern moves the active highlight", () => {
+    h = mountViz(createElement(Audiogram));
+    expectSelectionMoves(h, "Normal", "Presbycusis");
   });
 });

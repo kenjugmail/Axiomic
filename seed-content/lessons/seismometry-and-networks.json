@@ -1,0 +1,115 @@
+{
+  "slug": "seismometry-and-networks",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Explain how an inertial seismometer (mass, transducer, damping) records ground motion.",
+      "Describe digital broadband instruments and the roles of USGS and IRIS networks.",
+      "Locate an epicenter by triangulation and by arrival-time inversion."
+    ],
+    "prereqs": [
+      "seismology-history-and-seismic-waves"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The physics of the seismometer",
+      "body": "A **seismometer** must measure the motion of the ground — but it sits *on* the ground, so it cannot use the ground as a fixed reference. The solution, exploited since **John Milne**'s horizontal pendulum and **Emil Wiechert**'s inverted-pendulum instrument of 1900, is **inertia**: suspend a **proof mass** from a spring inside a frame anchored to the ground. For ground motion faster than the instrument's natural period, the mass tends to **stay still** (Newton's first law) while the frame moves with the Earth, so the *relative* displacement between mass and frame records the ground motion.\n\nThe mass–spring system is a damped harmonic oscillator. If $x$ is the displacement of the mass relative to the frame and $u$ is the ground displacement, the equation of motion is\n\n$$\\ddot{x} + 2\\zeta\\omega_0\\dot{x} + \\omega_0^2 x = -\\ddot{u},$$\n\nwhere $\\omega_0 = \\sqrt{k/m}$ is the **natural angular frequency** ($k$ spring stiffness, $m$ mass) and $\\zeta$ is the **damping ratio**. The natural period is $T_0 = 2\\pi/\\omega_0 = 2\\pi\\sqrt{m/k}$. The response has three regimes: for ground motion *much faster* than $T_0$ the instrument records ground **displacement**; near $T_0$ it is resonant; and *much slower* than $T_0$ it records ground **acceleration**. To capture long-period waves faithfully, instruments need a long natural period, which historically meant large, delicate mechanical systems.\n\nThree elements define any modern instrument:\n\n- **Inertial mass + spring** — the oscillator that lags the ground.\n- **Transducer** — converts the relative motion into an electrical signal. Modern designs use an **electromagnetic (velocity) transducer**: a coil moving in a magnetic field generates a voltage proportional to velocity, after **Faraday's law of induction**.\n- **Damping** — without it the mass would ring at $T_0$ forever after each pulse. Engineers set the damping ratio to **$\\zeta \\approx 0.707$** (critical-ish, the same value used in many filters) to give the flattest, broadest, distortion-free response.\n\nA decisive modern advance is **force-balance feedback** (the **force-balance accelerometer** principle): rather than letting the mass swing freely, a feedback coil applies a force to hold it nearly stationary, and the *feedback current* needed becomes the output. This linearizes the response, extends the usable period range enormously, and is the heart of today's broadband sensors. The same principles, scaled down, appear in the tiny **MEMS** accelerometers in smartphones, now used in citizen-science seismic networks."
+    },
+    {
+      "kind": "text",
+      "title": "Digital broadband instruments and global networks",
+      "body": "Twentieth-century seismology was transformed twice. First came the **World-Wide Standardized Seismograph Network (WWSSN)** in the early 1960s — about 120 stations with identical instruments, partly motivated by **nuclear-test monitoring**, whose uniform records helped confirm **plate tectonics**. Second came the **digital broadband revolution**.\n\nA **broadband seismometer** uses force-balance feedback to deliver a **flat velocity response** over a very wide band — typical instruments such as the **Streckeisen STS-2** or **Güralp** sensors span roughly **120 seconds to 50 Hz**, four to five decades of frequency. This single instrument replaces the old split between long-period and short-period seismographs. For strong shaking close to large earthquakes, where a velocity sensor would clip, networks add **strong-motion accelerometers** that stay on-scale at high accelerations. Together they give an unsaturated picture from the faintest microseism to the most violent near-fault pulse.\n\nThe signal chain is now fully digital. The transducer voltage is sampled by a high-resolution **analog-to-digital converter** (often **24-bit sigma-delta**), giving enormous **dynamic range**, and is time-stamped with **GPS** to better than a millisecond — essential, because location depends on precise relative arrival times across stations. Data are transmitted in standard formats (**SEED / miniSEED**) and archived for open use.\n\nThe institutional backbone in the United States has two pillars:\n\n- The **U.S. Geological Survey (USGS)** operates the **Advanced National Seismic System (ANSS)** and the **National Earthquake Information Center (NEIC)** in Golden, Colorado, which locates and reports earthquakes worldwide, often within minutes.\n- **IRIS** — the **Incorporated Research Institutions for Seismology** (founded 1984, now part of the **EarthScope Consortium**) — manages the **Global Seismographic Network (GSN)** jointly with the USGS and runs the **IRIS Data Management Center**, an open archive through which researchers freely download waveforms. The ambitious **USArray** component of **EarthScope** rolled a dense grid of broadband stations across the continental United States during the 2000s and 2010s, imaging the crust and mantle in unprecedented detail.\n\nInternationally, the **International Seismological Centre (ISC)** compiles a definitive global earthquake bulletin, and the **CTBTO**'s International Monitoring System watches for nuclear tests. The common thread is **open, standardized, precisely timed digital data**: the modern equivalent of Milne's dream of identical instruments worldwide, now realized at the scale of thousands of stations streaming continuously. This shared infrastructure is what makes routine, rapid, accurate earthquake location possible — the subject of the next slide."
+    },
+    {
+      "kind": "text",
+      "title": "Locating an epicenter: triangulation and inversion",
+      "body": "Once stations record an earthquake, the central task is **location**: find the **hypocenter** $(x_0, y_0, z_0)$ and **origin time** $t_0$. Two complementary methods are used.\n\n**Triangulation (the classic method).** Recall that a single station's **S−P interval** gives the *distance* $d$ to the source via\n\n$$d = \\frac{\\Delta t}{\\frac{1}{v_S}-\\frac{1}{v_P}} \\approx 8\\,\\Delta t \\ \\text{(km, with $\\Delta t$ in s)}.$$\n\nThat distance defines a **circle** of possible epicenters around the station. With **three or more** stations, the circles intersect at (ideally) a single point — the **epicenter**. In practice the three circles rarely meet exactly because of model error and depth, leaving a small triangle whose center is the best estimate. This is the method generations of analysts used with paper records and a drafting compass, and it remains a fine intuition pump and a quick first guess.\n\n**Arrival-time inversion (the modern method).** With many stations and digital data, seismologists solve the location as a least-squares **inverse problem**, the **Geiger method** (Ludwig Geiger, 1910). The predicted arrival time of a phase at station $i$ is\n\n$$t_i^{\\text{pred}} = t_0 + T_i(x_0, y_0, z_0),$$\n\nwhere $T_i$ is the travel time from the trial hypocenter to station $i$ computed from a **velocity model**. We adjust the four unknowns $(x_0,y_0,z_0,t_0)$ to **minimize the residuals** between observed and predicted arrival times,\n\n$$\\chi^2 = \\sum_i \\left(t_i^{\\text{obs}} - t_i^{\\text{pred}}\\right)^2,$$\n\niterating from a starting guess by linearizing $T_i$ about the current location (Newton-style updates). The procedure naturally weights many arrivals, estimates **formal uncertainties**, and yields **depth** as well as epicenter — something a flat triangulation map struggles with, because depth is poorly constrained unless a station lies close to the epicenter (small **azimuthal gap**) or depth phases such as **pP** are read.\n\nSeveral refinements sharpen this. **Wadati diagrams** plot S−P time against P arrival time to estimate the origin time and the $v_P/v_S$ ratio from a single event. For clustered events, **relative relocation** methods — especially the **double-difference algorithm (HypoDD, Waldhauser and Ellsworth, 2000)** — use the *differences* in arrival times between nearby earthquakes recorded at common stations to cancel shared velocity-model error, collapsing fuzzy clouds of hypocenters into sharp fault planes. Accuracy ultimately hinges on **station geometry, timing precision (GPS), and the velocity model**, tying the location problem back to the network design and the Earth structure of earlier lessons."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_net_1",
+        "kind": "multiple_choice",
+        "question": "In an inertial seismometer, why is the **proof mass** suspended on a spring rather than rigidly attached to the frame?",
+        "options": [
+          "To make the instrument lighter and cheaper.",
+          "So that for ground motion faster than the natural period the mass tends to stay still by inertia while the frame moves with the ground, and the relative motion between them records the ground motion.",
+          "To amplify the seismic signal by resonance at all frequencies.",
+          "To shield the sensor from temperature changes."
+        ],
+        "correctIndex": 1,
+        "explanation": "A seismometer rests on the moving ground and has no external fixed reference. Suspending a mass on a spring exploits inertia: for ground motion faster than the instrument's natural period the mass lags behind (tends to stay still) while the frame moves with the Earth, so the relative displacement between mass and frame is a record of the ground motion. A transducer converts that relative motion to a voltage."
+      },
+      "hints": [
+        "There is no fixed reference frame on the moving Earth — what provides one?",
+        "Think of Newton's first law for a suspended mass."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "The instrument sits on the very ground it is trying to measure, so it has no external fixed point. A mass on a spring provides an inertial reference: by Newton's first law, for ground motions faster than the natural period $T_0 = 2\\pi\\sqrt{m/k}$ the mass tends to remain stationary in space while the frame moves with the ground. The relative displacement between mass and frame is therefore a faithful record of ground motion, which a transducer (typically an electromagnetic coil sensing velocity) converts to a voltage. Damping near $\\zeta \\approx 0.707$ keeps the response flat and stops the mass ringing."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_net_1",
+        "kind": "math_expression",
+        "question": "A seismometer has a proof mass $m = 1$ kg on a spring of stiffness $k = 4$ N/m. Compute its **natural period** $T_0 = 2\\pi\\sqrt{m/k}$ in seconds (two decimals).",
+        "acceptedAnswers": [
+          "3.14",
+          "3.1416",
+          "~3.14",
+          "pi",
+          "π"
+        ],
+        "hint": "$\\sqrt{1/4} = 0.5$, so $T_0 = 2\\pi(0.5) = \\pi$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_net_2",
+        "kind": "multiple_choice",
+        "question": "What advantage does **arrival-time inversion (the Geiger method)** offer over simple three-circle **triangulation** for locating an earthquake?",
+        "options": [
+          "It requires only a single station.",
+          "It uses many arrivals in a least-squares fit to solve simultaneously for epicenter, depth, and origin time, weighting all data and giving formal uncertainties.",
+          "It does not need any velocity model.",
+          "It ignores arrival times and uses only amplitudes."
+        ],
+        "correctIndex": 1,
+        "explanation": "Triangulation intersects distance circles from S−P times and gives a quick epicenter but struggles with depth. The Geiger method treats location as a least-squares inverse problem: minimize the residuals between observed and predicted arrival times over the four unknowns $(x_0,y_0,z_0,t_0)$, iterating from a starting guess. It uses all available arrivals, weights them, returns depth and origin time, and provides formal error estimates — though it still requires a velocity model."
+      },
+      "hints": [
+        "Which method gives depth and origin time, not just the epicenter?",
+        "Think least-squares fit over many stations versus three circles."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Triangulation draws a distance circle around each station from its S−P time and intersects three or more circles to estimate the epicenter; it is intuitive but gives little depth control and no rigorous uncertainty. The Geiger method poses location as a least-squares inverse problem: predict each station's arrival time as $t_0 + T_i(x_0,y_0,z_0)$ from a velocity model, then adjust the four unknowns to minimize the sum of squared residuals, iterating by linearization. This uses all arrivals at once, weights them, solves for depth and origin time as well as epicenter, and yields formal uncertainties. It still needs a velocity model and good station geometry."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_net_1",
+        "kind": "scenario",
+        "question": "Diagnosing a poorly constrained location.",
+        "prompt": "An automatic system locates a magnitude 4 earthquake using five stations, but all five lie to the north and west of the epicenter, leaving a large gap in coverage to the south and east, and the reported depth has a huge uncertainty. Explain why this lopsided station geometry (a large azimuthal gap) degrades the location, why depth in particular is hard to constrain when no station is near the epicenter, and what additional data — such as a nearby station, a read depth phase like pP, or precise GPS timing — would tighten the solution."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_net_2",
+        "kind": "math_expression",
+        "question": "Three stations report S−P intervals of 5 s, 10 s, and 15 s for the same earthquake. Using $d \\approx 8\\,\\Delta t$ km, what is the source distance (in km) from the **nearest** station?",
+        "acceptedAnswers": [
+          "40",
+          "40 km",
+          "~40"
+        ],
+        "hint": "The nearest station has the smallest S−P interval; multiply that by 8."
+      }
+    }
+  ]
+}

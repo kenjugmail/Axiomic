@@ -1,0 +1,114 @@
+{
+  "slug": "ultrasound-and-doppler",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Explain how piezoelectric transducers generate and detect ultrasound and how reflection arises from acoustic impedance.",
+      "Describe B-mode image formation and the Doppler effect for measuring blood flow.",
+      "Interpret ultrasound attenuation and the mechanical and thermal safety indices."
+    ],
+    "prereqs": [
+      "radiology-history-and-x-ray-attenuation"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Piezoelectric transducers and acoustic impedance",
+      "body": "**Ultrasound** imaging uses high-frequency sound waves, typically **2 to 18 megahertz**, far above the roughly 20 kHz upper limit of human hearing, to image soft tissue in real time without any ionizing radiation. The heart of the system is the **transducer**, which both transmits and receives sound using the **piezoelectric effect**, discovered in **1880** by the brothers **Pierre Curie** and **Jacques Curie**. A piezoelectric material develops a voltage when mechanically deformed and, conversely, deforms when a voltage is applied. Early transducers used quartz; modern ones use the synthetic ceramic **lead zirconate titanate (PZT)** or piezocomposites. The French physicist **Paul Langevin** first harnessed piezoelectric ultrasound during **World War I** to build **sonar** for detecting submarines, and the medical application followed: the Austrian neurologist **Karl Theodore Dussik** attempted to image the brain in the 1940s, the American surgeon **John Wild** pioneered tissue characterization, and the Glasgow obstetrician **Ian Donald** established **obstetric ultrasound** in the late 1950s. When the scanner applies a short electrical pulse, the crystal vibrates and launches a sound pulse into the body; when returning echoes strike the crystal, they generate tiny voltages that the machine reads. A **matching layer** improves energy transfer into tissue, **backing material** damps ringing for short pulses, and **acoustic coupling gel** eliminates the air gap at the skin.\n\nThe physics of how sound reflects is governed by **acoustic impedance**, defined as $Z = \\rho c$, the product of tissue density $\\rho$ and the **speed of sound** $c$ in that tissue (assumed to be about **1540 m/s** in average soft tissue for the scanner's calculations). When a sound wave meets a boundary between two media of impedances $Z_1$ and $Z_2$, part of the energy is reflected. At normal incidence the **intensity reflection coefficient** is:\n\n$$R = \\left(\\frac{Z_2 - Z_1}{Z_2 + Z_1}\\right)^2$$\n\nThe consequences shape every ultrasound image:\n\n- **Large impedance mismatches** (soft tissue to **air** in the lungs or bowel gas, or soft tissue to **bone**) reflect almost all the energy, casting acoustic **shadows** and preventing imaging beyond them. This is why ultrasound cannot see through gas or bone, and why coupling gel is essential to bridge the skin-air mismatch.\n- **Small mismatches** between adjacent soft tissues reflect only a tiny fraction, generating the faint echoes that build the grey-scale anatomic image.\n\nThe machine forms images using **pulse-echo ranging**: knowing the assumed speed of sound, it converts each echo's **round-trip travel time** into a depth via $d = c\\,t/2$, exactly analogous to sonar and to the echolocation of bats and dolphins. Spatial **resolution** has two components: **axial resolution** (along the beam), set by the pulse length and improving with higher frequency, and **lateral resolution** (across the beam), set by beam width and focusing. A fundamental trade-off pervades the field: **higher frequencies** give better resolution but are more strongly attenuated and so penetrate less deeply, which is why a high-frequency linear probe images superficial structures and a low-frequency curved probe is used for the deep abdomen."
+    },
+    {
+      "kind": "text",
+      "title": "B-mode imaging and the Doppler effect for flow",
+      "body": "The standard grey-scale ultrasound image is built in **B-mode** (brightness mode). Each transmitted pulse produces a line of echoes; the machine displays echo **amplitude as brightness** along that line (a strong reflector is bright, an echo-free region like fluid is black). By electronically sweeping the beam across many lines, often using a **phased array** that steers the beam by adjusting the timing of many small elements, the scanner assembles a two-dimensional cross-sectional image many times per second, producing the **real-time** moving picture that makes ultrasound uniquely interactive and operator-dependent. Earlier modes still in use include **A-mode** (amplitude versus depth, a simple trace) and **M-mode** (motion mode, a single line plotted over time, valuable in echocardiography for measuring valve and wall motion).\n\nTo measure **blood flow**, ultrasound exploits the **Doppler effect**, described in **1842** by the Austrian physicist **Christian Doppler**, the same phenomenon that raises the pitch of an approaching siren. Doppler's prediction was experimentally confirmed for sound in **1845** by the Dutch meteorologist **Christophorus Buys Ballot**, who used trumpeters on a moving train, and the medical application to blood flow was pioneered by the Japanese researcher **Shigeo Satomura** in **1955**. When sound reflects off moving red blood cells, the echo's frequency is **shifted**: higher if the cells move toward the transducer, lower if away. The **Doppler equation** relates the frequency shift to flow velocity:\n\n$$f_d = \\frac{2 f_0 v \\cos\\theta}{c}$$\n\nwhere $f_d$ is the Doppler shift, $f_0$ the transmitted frequency, $v$ the blood velocity, $c$ the speed of sound, and $\\theta$ the **insonation angle** between the beam and the direction of flow. Two practical lessons follow. First, the **factor of 2** appears because both the moving reflector and the returning echo are shifted (a round trip). Second, and critically, the measured shift depends on $\\cos\\theta$: at $\\theta = 90$ degrees the cosine is zero and **no shift is detected**, while accurate velocity estimates require keeping the angle below about 60 degrees and correcting for it, since the cosine changes rapidly near 60 degrees and small angle errors then cause large velocity errors. Clinically, **spectral (pulsed and continuous-wave) Doppler** displays a waveform of velocity over time for quantifying stenoses and valve gradients, while **color Doppler** overlays flow direction and speed as color (conventionally red toward, blue away) on the B-mode image, and **power Doppler** displays the strength of the flow signal for sensitive detection of slow flow. Doppler is indispensable in vascular ultrasound (carotid stenosis, deep vein thrombosis), echocardiography, and obstetric assessment of fetal and placental circulation."
+    },
+    {
+      "kind": "text",
+      "title": "Attenuation and the safety indices",
+      "body": "As an ultrasound pulse travels through tissue it is progressively weakened by **attenuation**, the loss of acoustic energy through three mechanisms: **absorption** (conversion of sound energy into heat, the dominant effect), **scattering** off small inhomogeneities, and **reflection** at boundaries. Attenuation increases with both depth and frequency. A useful clinical rule of thumb is that soft tissue attenuates roughly **0.5 decibels per centimetre per megahertz** (the attenuation coefficient), so a 10 MHz beam loses signal far faster with depth than a 3 MHz beam, the physical reason for the resolution-versus-penetration trade-off introduced earlier. The scanner partly compensates with **time-gain compensation (TGC)**, electronically amplifying later (deeper) echoes more than earlier ones so that similar reflectors appear equally bright regardless of depth. Attenuation also produces recognizable artifacts that radiologists must interpret, such as **acoustic shadowing** behind gallstones and calcifications, and **posterior acoustic enhancement** (increased brightness) deep to fluid-filled structures like cysts and the bladder, because fluid attenuates less than surrounding tissue.\n\nAlthough ultrasound uses **no ionizing radiation** and has an excellent safety record, the sound energy deposited in tissue is not entirely without **bioeffects**, and operators follow the **ALARA** principle here too. Two standardized safety indices are displayed on every modern scanner and are mandated by regulators such as the U.S. **Food and Drug Administration (FDA)**:\n\n- The **Thermal Index (TI)** estimates the potential for **tissue heating**, expressed roughly as the ratio of the acoustic power being used to the power that would raise tissue temperature by one degree Celsius. It is reported in variants for soft tissue (TIS), bone (TIB), and cranial bone (TIC), because bone absorbs sound strongly and heats more readily.\n- The **Mechanical Index (MI)** estimates the potential for non-thermal mechanical bioeffects, chiefly **cavitation**, the formation and violent collapse of microscopic gas bubbles under the pressure swings of the wave. The MI is defined from the **peak negative (rarefactional) pressure** $p_r$ and the centre frequency $f_c$ as $\\mathrm{MI} = p_r / \\sqrt{f_c}$ (with $p_r$ in megapascals and $f_c$ in megahertz).\n\nThese indices are most consequential in **obstetric** scanning, especially in the first trimester and when imaging the fetal brain and eyes, and the principle of keeping exposure **as low as reasonably achievable** while obtaining the needed information applies fully. Spectral Doppler in particular concentrates energy and raises the thermal index, so guidelines from organizations such as the **American Institute of Ultrasound in Medicine (AIUM)** caution against unnecessary Doppler over the embryo. Thus ultrasound is among the safest imaging modalities, real-time, portable, inexpensive, and free of ionizing radiation, but competent practice still requires understanding attenuation and respecting the thermal and mechanical limits the scanner reports."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_us_1",
+        "kind": "multiple_choice",
+        "question": "Why can ultrasound not image structures lying behind a gas-filled bowel loop or behind bone?",
+        "options": [
+          "Because gas and bone emit their own ultrasound that drowns out echoes.",
+          "Because the large acoustic-impedance mismatch at soft-tissue-to-air and soft-tissue-to-bone interfaces reflects almost all the sound energy, leaving little to penetrate deeper.",
+          "Because gas and bone are radiolucent to ultrasound.",
+          "Because the Doppler shift becomes zero in gas."
+        ],
+        "correctIndex": 1,
+        "explanation": "The intensity reflection coefficient R = ((Z2 - Z1)/(Z2 + Z1))^2 becomes very large when impedances differ greatly, as at soft tissue to air or to bone. Nearly all energy reflects at such boundaries, so little remains to travel deeper, producing acoustic shadows. This is also why coupling gel is needed to bridge the skin-air mismatch."
+      },
+      "hints": [
+        "Look at the reflection-coefficient formula for very different impedances.",
+        "Air and bone are at the extremes of acoustic impedance."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Acoustic impedance Z = rho * c. Air has very low Z and bone very high Z compared with soft tissue, so the mismatch (Z2 - Z1) is large. The reflection coefficient R = ((Z2 - Z1)/(Z2 + Z1))^2 then approaches 1, meaning almost total reflection. With little transmitted energy, structures beyond are shadowed and cannot be imaged. Hence option B is correct."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_us_2",
+        "kind": "multiple_choice",
+        "question": "In Doppler ultrasound, why must the operator keep the insonation angle (theta) well below 90 degrees, ideally under about 60 degrees?",
+        "options": [
+          "Because the Doppler shift is proportional to cos(theta); at 90 degrees cos is zero (no detectable shift), and near 60 degrees the cosine changes steeply so small angle errors cause large velocity errors.",
+          "Because angles above 60 degrees increase the patient's radiation dose.",
+          "Because the speed of sound changes with angle.",
+          "Because color Doppler only works at exactly 90 degrees."
+        ],
+        "correctIndex": 0,
+        "explanation": "The Doppler equation contains cos(theta). At 90 degrees the cosine is zero, so flow perpendicular to the beam yields no shift and apparent absence of flow. As the angle approaches 60 degrees the cosine curve steepens, so a small error in the assumed angle translates into a large error in the computed velocity. Keeping the angle low and accurately corrected minimizes this error."
+      },
+      "hints": [
+        "Recall the cos(theta) term in the Doppler equation.",
+        "Think about both the zero at 90 degrees and the steepness of cosine near 60 degrees."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "The Doppler shift f_d = 2*f0*v*cos(theta)/c depends on cos(theta). At theta = 90 degrees, cos = 0, so no shift is measured even for fast flow. Between 60 and 90 degrees the cosine falls rapidly and nonlinearly, so any uncertainty in theta produces a large fractional error in the velocity estimate. Keeping theta below about 60 degrees and applying angle correction yields accurate velocities. Option A is correct."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_us_1",
+        "kind": "math_expression",
+        "question": "An echo returns 130 microseconds (130e-6 s) after the pulse is transmitted. Using d = c*t/2 with c = 1540 m/s, compute the reflector depth in centimetres. Give the value to one decimal place.",
+        "acceptedAnswers": [
+          "10.0",
+          "10",
+          "10.01",
+          "1540*130e-6/2*100"
+        ],
+        "hint": "Depth = c*t/2 = 1540 * 130e-6 / 2 (in metres), then convert to cm by multiplying by 100. This is about 0.10 m."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_us_2",
+        "kind": "math_expression",
+        "question": "A pulse has peak rarefactional pressure pr = 1.5 MPa at a center frequency fc = 9 MHz. Using MI = pr / sqrt(fc), compute the Mechanical Index. Give the value to one decimal place.",
+        "acceptedAnswers": [
+          "0.5",
+          "1.5/sqrt(9)",
+          "0.50"
+        ],
+        "hint": "sqrt(9) = 3, so MI = 1.5 / 3."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_us_1",
+        "kind": "scenario",
+        "question": "A first-trimester obstetric scan needs Doppler interrogation of the embryo, and the sonographer notices the thermal index rising.",
+        "prompt": "During an early first-trimester obstetric ultrasound, a trainee wants to apply prolonged spectral Doppler directly over the embryo to document cardiac activity, and you observe the thermal index (TI) climbing on the display. As the supervising radiologist, explain the bioeffect concern, how the thermal and mechanical indices guide your decision, and what the ALARA principle dictates here. Recommend a safer approach to confirm embryonic cardiac activity and justify it physically and clinically."
+      }
+    }
+  ]
+}

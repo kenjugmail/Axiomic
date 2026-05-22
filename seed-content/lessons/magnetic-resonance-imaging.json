@@ -1,0 +1,113 @@
+{
+  "slug": "magnetic-resonance-imaging",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Explain nuclear magnetic resonance and the origin of the MRI signal.",
+      "Distinguish T1 and T2 relaxation and how they generate image contrast.",
+      "Describe gradient spatial encoding, k-space, and why MRI uses no ionizing radiation."
+    ],
+    "prereqs": [
+      "radiology-history-and-x-ray-attenuation"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "From nuclear magnetic resonance to imaging",
+      "body": "**Magnetic resonance imaging (MRI)** exploits a quantum-mechanical property of atomic nuclei called **nuclear spin**. The hydrogen nucleus, a single **proton**, is abundant in the body's water and fat and possesses a magnetic moment, behaving like a tiny bar magnet. The underlying physics, **nuclear magnetic resonance (NMR)**, was discovered independently in **1946** by **Felix Bloch** at **Stanford University** and **Edward Mills Purcell** at **Harvard University**, who shared the **1952 Nobel Prize in Physics**. Bloch's phenomenological **Bloch equations** still describe how nuclear magnetization evolves.\n\nThe key ideas build in steps. Placed in a strong static magnetic field $B_0$ (clinical scanners run at **1.5 or 3 tesla**, far stronger than Earth's roughly 50-microtesla field), the protons' magnetic moments align preferentially with the field, producing a small **net longitudinal magnetization**. Each proton also **precesses** about $B_0$ like a spinning top, at the **Larmor frequency**:\n\n$$f = \\gamma B_0$$\n\nwhere $\\gamma$ is the **gyromagnetic ratio** (about $42.58\\ \\mathrm{MHz/T}$ for hydrogen). At 1.5 T this is roughly 64 MHz, in the radiofrequency (RF) band. A precisely tuned **RF pulse** at the Larmor frequency tips the magnetization away from $B_0$, a **resonance** phenomenon, and the now-transverse, rotating magnetization induces a measurable voltage in a receiver coil, the **MR signal** or **free induction decay**.\n\nTurning NMR from a spectroscopy tool into an imaging method required a further leap, made by **Paul Lauterbur** at the **State University of New York at Stony Brook**, who in 1973 introduced **magnetic field gradients** to encode spatial position, and by **Sir Peter Mansfield** at the **University of Nottingham**, who developed the mathematics and fast techniques (including **echo-planar imaging**) to make it practical. They shared the **2003 Nobel Prize in Physiology or Medicine**. (The chemist **Richard Ernst** had earlier won the 1991 Nobel in Chemistry for Fourier-transform and 2D NMR methods that MRI relies on, and **Raymond Damadian** built an early whole-body scanner.) The result is a tomographic imaging modality of extraordinary soft-tissue contrast that, crucially, uses no ionizing radiation."
+    },
+    {
+      "kind": "text",
+      "title": "T1, T2 relaxation, and the spin echo",
+      "body": "After an RF pulse tips the magnetization into the transverse plane, the system **relaxes** back toward equilibrium by two independent processes, and the contrast in MR images comes almost entirely from differences in these **relaxation times** between tissues.\n\n**T1 relaxation** (also called **longitudinal** or **spin-lattice relaxation**) is the recovery of the longitudinal magnetization $M_z$ back toward its equilibrium value as energy is dumped into the surrounding molecular lattice. It follows an exponential recovery:\n\n$$M_z(t) = M_0\\left(1 - e^{-t/T_1}\\right)$$\n\n**T1** is short (fast recovery) in fat and longer in fluids like cerebrospinal fluid (CSF). On a **T1-weighted** image (short repetition time TR and short echo time TE), tissues with short T1 (fat) appear **bright** and fluids appear **dark**; T1-weighted images give excellent anatomical detail and are the basis for **gadolinium contrast** enhancement, since gadolinium chelates shorten T1.\n\n**T2 relaxation** (also called **transverse** or **spin-spin relaxation**) is the decay of the transverse magnetization $M_{xy}$ as individual spins lose phase coherence with one another:\n\n$$M_{xy}(t) = M_0\\, e^{-t/T_2}$$\n\n**T2** is long in fluids and short in solids and many tissues. On a **T2-weighted** image (long TR and long TE), fluids and many pathologies, such as **edema**, **inflammation**, and many **tumors**, appear **bright**, making T2 weighting exquisitely sensitive to disease. A subtlety: actual transverse decay is faster than the true T2 because static field inhomogeneities add dephasing; this combined faster decay is called **T2-star (T2*)**.\n\nThe trick that recovers the true T2 is the **spin echo**, devised by **Erwin Hahn** in 1950. After the initial 90-degree excitation pulse, a **180-degree refocusing pulse** is applied; it flips the dephased spins so that the dephasing caused by fixed field inhomogeneities reverses and the spins **rephase** into an **echo** at the echo time TE. The spin echo cancels reversible (T2*) dephasing, leaving only the irreversible true-T2 signal. By choosing the **repetition time (TR)** and **echo time (TE)**, the operator dials in T1-weighting, T2-weighting, or proton-density weighting. Additional sequences, **FLAIR** (fluid-attenuated inversion recovery, which nulls CSF to highlight periventricular lesions), **STIR** (which nulls fat), **gradient echo**, and **diffusion-weighted imaging (DWI)** (sensitive to acute stroke), extend this contrast toolkit. Understanding that MRI contrast is fundamentally about the **time constants of relaxation**, not about density as in CT, is the conceptual heart of reading MR images."
+    },
+    {
+      "kind": "text",
+      "title": "Gradients, k-space, and no ionizing radiation",
+      "body": "A single RF pulse excites every proton at the Larmor frequency simultaneously, giving no spatial information. **Spatial encoding** is achieved by superimposing **magnetic field gradients**, the great insight of **Paul Lauterbur**. A gradient coil makes $B_0$ vary linearly with position along an axis, so the Larmor frequency $f = \\gamma B$ becomes position-dependent, and frequency now encodes location. Imaging uses three orthogonal gradient systems in sequence:\n\n- **Slice-selection gradient**: applied during the RF pulse so that only protons in one thin slice are at the resonant frequency and get excited.\n- **Phase-encoding gradient**: applied briefly to imprint a position-dependent **phase** along one in-plane axis; repeated with stepped strengths over many TR intervals.\n- **Frequency-encoding (readout) gradient**: applied during signal acquisition so that signal frequency maps to position along the other in-plane axis.\n\nThe acquired signal is stored not as a picture but in a spatial-frequency domain called **k-space**, where each acquired data line corresponds to a particular spatial frequency. The image is recovered by applying a two-dimensional **inverse Fourier transform** to the filled k-space, the same Fourier mathematics for which **Richard Ernst** was honored. The **centre of k-space** holds low spatial frequencies (overall contrast and brightness) while the **periphery** holds high spatial frequencies (fine edges and detail), which is why partial or accelerated sampling strategies, such as **parallel imaging** (SENSE, GRAPPA) and **compressed sensing**, can speed acquisition by cleverly undersampling.\n\nThe defining safety advantage of MRI is that it uses **no ionizing radiation**. Its energy inputs are a static magnetic field, switched gradient fields, and radiofrequency pulses, none of which ionize atoms or break chemical bonds, so MRI carries none of the stochastic cancer risk associated with X-ray and CT. This makes it preferred for many pediatric, obstetric, and repeated-follow-up examinations and for soft-tissue problems in the brain, spinal cord, joints, and pelvis. MRI has its own distinct safety considerations, however, governed by bodies like the **American College of Radiology (ACR)**: the powerful magnet poses a **projectile hazard** for ferromagnetic objects and can disrupt or heat implanted devices (pacemakers, some aneurysm clips), RF deposition is limited by the **specific absorption rate (SAR)** to prevent tissue heating, rapidly switched gradients produce loud acoustic noise and can cause peripheral nerve stimulation, and the rare but serious complication of **nephrogenic systemic fibrosis** historically linked to gadolinium in renal failure demands care with contrast. Thus MRI trades the radiation risk of X-rays for a different, magnetism-based safety regime, while delivering unmatched soft-tissue contrast."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mri_1",
+        "kind": "multiple_choice",
+        "question": "On a T2-weighted brain MRI (long TR, long TE), how do cerebrospinal fluid (CSF) and many pathologies such as edema typically appear, and why?",
+        "options": [
+          "CSF and edema appear dark because fluids have very short T2.",
+          "CSF and edema appear bright because fluids have long T2, so they retain transverse signal at the long echo time.",
+          "CSF appears bright only because of gadolinium uptake.",
+          "All tissues appear identical because T2 weighting removes contrast."
+        ],
+        "correctIndex": 1,
+        "explanation": "T2-weighting uses a long TE, by which time short-T2 tissues have lost most transverse signal while long-T2 fluids retain theirs and appear bright. CSF, edema, inflammation, and many tumors have prolonged T2, making T2-weighted imaging highly sensitive to such pathology. This is intrinsic relaxation behavior, not a contrast-agent effect."
+      },
+      "hints": [
+        "Long T2 means slow transverse decay, so signal persists at long TE.",
+        "Fluids have long T2."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Transverse magnetization decays as exp(-TE/T2). At a long TE, tissues with short T2 have already decayed to near zero (dark), whereas fluids with long T2 still have substantial signal (bright). CSF and edematous or inflamed tissue have long T2, so they light up on T2-weighted images, which is why T2 weighting is so sensitive to disease. Option B captures this correctly."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mri_2",
+        "kind": "multiple_choice",
+        "question": "What is the purpose of the 180-degree refocusing pulse in a spin-echo sequence?",
+        "options": [
+          "It excites a second slice of tissue simultaneously.",
+          "It reverses dephasing from static field inhomogeneities (T2-star effects) so spins rephase into an echo, isolating the true T2 decay.",
+          "It converts the scanner from MRI to CT mode.",
+          "It permanently saturates the longitudinal magnetization."
+        ],
+        "correctIndex": 1,
+        "explanation": "After the 90-degree excitation, spins dephase partly due to fixed field inhomogeneities (a reversible T2-star effect) and partly due to irreversible spin-spin interactions (true T2). The 180-degree pulse flips the spins so the fixed-inhomogeneity dephasing reverses and they rephase into an echo, leaving only true-T2 attenuation. This is Hahn's spin-echo trick."
+      },
+      "hints": [
+        "Distinguish reversible (T2-star) from irreversible (true T2) dephasing.",
+        "The 180-degree pulse undoes the reversible part."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Transverse signal decays faster than true T2 because static field inhomogeneities add reversible dephasing (T2-star). The 180-degree refocusing pulse inverts the accumulated phase so that the constant inhomogeneity-induced dephasing cancels by the echo time, producing an echo whose amplitude reflects only the irreversible true-T2 decay. Hence option B correctly describes the spin echo's purpose."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mri_1",
+        "kind": "math_expression",
+        "question": "For hydrogen, the gyromagnetic ratio is 42.58 MHz/T. Using f = gamma * B0, compute the Larmor frequency in MHz at B0 = 3.0 T. Give the value to one decimal place.",
+        "acceptedAnswers": [
+          "127.7",
+          "127.74",
+          "42.58*3"
+        ],
+        "hint": "Multiply the gyromagnetic ratio by the field strength: 42.58 * 3.0."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mri_2",
+        "kind": "math_expression",
+        "question": "A tissue has T1 = 800 ms. After an inversion-recovery-style 90-degree pulse, longitudinal magnetization recovers as Mz(t) = M0*(1 - e^(-t/T1)). Compute Mz/M0 at t = 800 ms (one T1). Give the value to two decimal places.",
+        "acceptedAnswers": [
+          "0.63",
+          "0.632",
+          "1-e^-1"
+        ],
+        "hint": "At t = T1 the exponent is -1, so Mz/M0 = 1 - e^(-1) = 1 - 0.368."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mri_1",
+        "kind": "scenario",
+        "question": "A patient with a possible posterior-fossa lesion and a renal function concern needs advanced imaging; a CT was nondiagnostic.",
+        "prompt": "A 45-year-old with progressive headaches has a nondiagnostic CT of the posterior fossa (degraded by bone-related beam-hardening artifact). The neurologist asks whether MRI would help, and notes the patient also has reduced kidney function. As the radiologist, justify why MRI is superior for posterior-fossa soft tissue, explain why it avoids the ionizing-radiation concern entirely, and address how the renal status influences your decision about gadolinium contrast. Recommend specific sequences (for example T2, FLAIR, DWI, post-contrast T1) and explain what each would show."
+      }
+    }
+  ]
+}

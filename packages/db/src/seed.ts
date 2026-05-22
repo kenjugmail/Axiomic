@@ -4161,6 +4161,66 @@ function seedMasteryPaths() {
     ],
   });
 
+  // Triplet 18 — Radiologist. Medical imaging from Röntgen through X-ray
+  // production, CT, MRI, ultrasound, nuclear medicine, radiation safety,
+  // to AI-assisted diagnosis.
+  seedMasteryPath({
+    slug: "radiologist",
+    title: "Radiologist",
+    description:
+      "Medical imaging from Wilhelm Röntgen through X-ray production + radiography, computed tomography, MRI, ultrasound + Doppler, nuclear medicine + PET, radiation physics + safety, to the AI-assisted-diagnosis frontier.",
+    nodes: [
+      { slug: "radiology-history-and-x-ray-attenuation", title: "History + X-ray Attenuation", level: "apprentice", order: 1, pages: [], prereqs: [], description: "Röntgen (1895), the Curies, Hounsfield + Cormack (CT); Beer-Lambert I=I₀e^(−μx) + Hounsfield units (interactive attenuation)." },
+      { slug: "x-ray-production-and-radiography", title: "X-ray Production + Radiography", level: "apprentice", order: 2, pages: [], prereqs: ["radiology-history-and-x-ray-attenuation"], description: "The X-ray tube, bremsstrahlung + characteristic radiation, kVp vs mAs, projection radiography, contrast + scatter." },
+      { slug: "computed-tomography", title: "Computed Tomography", level: "practitioner", order: 3, pages: [], prereqs: ["x-ray-production-and-radiography"], description: "The Radon transform + filtered back-projection, helical/multi-detector CT, the Hounsfield scale, windowing, dose (CTDI)." },
+      { slug: "magnetic-resonance-imaging", title: "Magnetic Resonance Imaging", level: "practitioner", order: 4, pages: [], prereqs: ["computed-tomography"], description: "NMR (Bloch + Purcell), Lauterbur + Mansfield; T1 vs T2 relaxation, spin echo, gradients + k-space, no ionizing radiation." },
+      { slug: "ultrasound-and-doppler", title: "Ultrasound + Doppler", level: "specialist", order: 5, pages: [], prereqs: ["magnetic-resonance-imaging"], description: "Piezoelectric transducers, acoustic impedance, B-mode, the Doppler effect for flow, the mechanical + thermal indices." },
+      { slug: "nuclear-medicine-and-pet", title: "Nuclear Medicine + PET", level: "specialist", order: 6, pages: [], prereqs: ["magnetic-resonance-imaging"], description: "Radiotracers (Tc-99m, FDG), the gamma camera + SPECT, PET (511 keV coincidence), half-life, hybrid PET-CT." },
+      { slug: "radiation-physics-and-safety", title: "Radiation Physics + Safety", level: "expert", order: 7, pages: [], prereqs: ["computed-tomography"], description: "Photoelectric + Compton interactions, gray + sievert, stochastic vs deterministic effects, ALARA, the LNT model." },
+      { slug: "ai-and-the-future-of-radiology", title: "AI + the Future of Radiology", level: "researcher", order: 8, pages: [], prereqs: ["radiation-physics-and-safety"], description: "CAD, deep-learning detection/segmentation, radiomics, the PACS + DICOM pipeline, theranostics, photon-counting CT." },
+    ],
+  });
+
+  // Triplet 18 — Seismologist. Earthquake science from Milne + Oldham
+  // through faulting, Earth structure, magnitude, instrumentation, hazard,
+  // tsunami, to exploration + planetary seismology.
+  seedMasteryPath({
+    slug: "seismologist",
+    title: "Seismologist",
+    description:
+      "Earthquake science from John Milne + Richard Oldham through faulting + the seismic moment, Earth structure, magnitude + energy, seismometry + networks, seismic hazard, tsunami, to the exploration + planetary-seismology frontier.",
+    nodes: [
+      { slug: "seismology-history-and-seismic-waves", title: "History + Seismic Waves", level: "apprentice", order: 1, pages: [], prereqs: [], description: "Milne, Oldham, Richter, Lehmann; P vs S waves and the S−P travel-time → distance (interactive seismogram)." },
+      { slug: "earthquake-sources-and-faulting", title: "Earthquake Sources + Faulting", level: "apprentice", order: 2, pages: [], prereqs: ["seismology-history-and-seismic-waves"], description: "Reid's elastic-rebound theory, fault types, focal mechanisms (beach balls), the seismic moment M₀ = μAD." },
+      { slug: "seismic-waves-and-earth-structure", title: "Seismic Waves + Earth Structure", level: "practitioner", order: 3, pages: [], prereqs: ["earthquake-sources-and-faulting"], description: "Body vs surface waves, Snell's law, travel-time curves, the Mohorovičić discontinuity, the shadow zone + core." },
+      { slug: "magnitude-intensity-and-energy", title: "Magnitude, Intensity + Energy", level: "practitioner", order: 4, pages: [], prereqs: ["seismic-waves-and-earth-structure"], description: "Richter vs moment magnitude Mw (Hanks-Kanamori), Modified Mercalli intensity, Gutenberg-Richter, energy scaling." },
+      { slug: "seismometry-and-networks", title: "Seismometry + Networks", level: "specialist", order: 5, pages: [], prereqs: ["magnitude-intensity-and-energy"], description: "The seismometer (inertial mass + damping), broadband digital instruments, networks, epicenter triangulation." },
+      { slug: "seismic-hazard-and-engineering", title: "Seismic Hazard + Engineering", level: "expert", order: 6, pages: [], prereqs: ["seismometry-and-networks"], description: "Probabilistic seismic hazard analysis, ground-motion models, response spectra, liquefaction, ShakeAlert early warning." },
+      { slug: "tsunami-and-induced-seismicity", title: "Tsunami + Induced Seismicity", level: "expert", order: 7, pages: [], prereqs: ["seismometry-and-networks"], description: "Tsunami generation + shallow-water waves (v=√gh), 2004/2011 events, DART buoys, injection-induced seismicity." },
+      { slug: "exploration-and-frontiers", title: "Exploration + Frontiers", level: "researcher", order: 8, pages: [], prereqs: ["seismic-hazard-and-engineering"], description: "Reflection seismology + imaging, ambient-noise tomography, ML phase-picking, planetary seismology (Apollo, InSight)." },
+    ],
+  });
+
+  // Triplet 18 — Audiologist. Hearing science from Fletcher + von Békésy
+  // through acoustics, ear anatomy, cochlear mechanics, hearing loss,
+  // audiometry, amplification, to auditory neuroscience.
+  seedMasteryPath({
+    slug: "audiologist",
+    title: "Audiologist",
+    description:
+      "Hearing science from Fletcher + von Békésy through acoustics + the decibel, ear anatomy, cochlear mechanics, hearing loss, audiometry + diagnostics, amplification + cochlear implants, to the auditory-neuroscience frontier.",
+    nodes: [
+      { slug: "audiology-history-and-the-audiogram", title: "History + the Audiogram", level: "apprentice", order: 1, pages: [], prereqs: [], description: "Fletcher + Munson's equal-loudness, von Békésy's traveling wave, Carhart; the audiogram in dB HL (interactive)." },
+      { slug: "acoustics-and-the-decibel", title: "Acoustics + the Decibel", level: "apprentice", order: 2, pages: [], prereqs: ["audiology-history-and-the-audiogram"], description: "Sound pressure vs intensity, the decibel (20·log₁₀ p/p₀), frequency + pitch, the audible range, equal-loudness contours." },
+      { slug: "anatomy-of-the-ear", title: "Anatomy of the Ear", level: "practitioner", order: 3, pages: [], prereqs: ["acoustics-and-the-decibel"], description: "Outer (pinna, canal), middle (ossicles + impedance matching), and inner ear (cochlea, semicircular canals)." },
+      { slug: "cochlear-mechanics-and-transduction", title: "Cochlear Mechanics + Transduction", level: "practitioner", order: 4, pages: [], prereqs: ["anatomy-of-the-ear"], description: "Basilar-membrane tonotopy, inner vs outer hair cells, von Békésy's traveling wave, the cochlear amplifier, OAEs." },
+      { slug: "hearing-loss-and-pathology", title: "Hearing Loss + Pathology", level: "specialist", order: 5, pages: [], prereqs: ["cochlear-mechanics-and-transduction"], description: "Conductive vs sensorineural, presbycusis, the 4-kHz noise notch, ototoxicity, tinnitus, the Weber + Rinne tests." },
+      { slug: "audiometry-and-diagnostics", title: "Audiometry + Diagnostics", level: "specialist", order: 6, pages: [], prereqs: ["hearing-loss-and-pathology"], description: "Pure-tone + speech audiometry, tympanometry + the acoustic reflex, the ABR, OAE + newborn hearing screening." },
+      { slug: "amplification-and-cochlear-implants", title: "Amplification + Cochlear Implants", level: "expert", order: 7, pages: [], prereqs: ["audiometry-and-diagnostics"], description: "Hearing aids (DSP, compression, feedback cancellation), the cochlear implant (Clark + House), bone-anchored devices." },
+      { slug: "auditory-neuroscience-and-frontiers", title: "Auditory Neuroscience + Frontiers", level: "researcher", order: 8, pages: [], prereqs: ["amplification-and-cochlear-implants"], description: "The central auditory pathway, spatial hearing (ITD/ILD), auditory scene analysis, AI denoising, hair-cell regeneration." },
+    ],
+  });
+
   seedExamPrepPaths();
 }
 
