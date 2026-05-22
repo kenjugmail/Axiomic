@@ -624,6 +624,29 @@ meRouter.get("/today", requireAuth, (c) => {
       )
       .get() != null;
 
+  // Recently completed lessons — a "go back and review" surface. Most
+  // recent first; lesson-kind nodes only (they re-open in the lesson player).
+  const recentlyCompleted = db
+    .select({
+      nodeSlug: masteryNodes.slug,
+      title: masteryNodes.title,
+      pathSlug: masteryPaths.slug,
+      completedAt: userProgress.completedAt,
+    })
+    .from(userProgress)
+    .innerJoin(masteryNodes, eq(userProgress.nodeId, masteryNodes.id))
+    .innerJoin(masteryPaths, eq(masteryNodes.pathId, masteryPaths.id))
+    .where(
+      and(
+        eq(userProgress.userId, me.id),
+        eq(userProgress.completed, true),
+        eq(masteryNodes.nodeKind, "lesson"),
+      ),
+    )
+    .orderBy(desc(userProgress.completedAt))
+    .limit(5)
+    .all();
+
   return c.json({
     dueFlashcards: { count: dueCards.length, sample: dueCards.slice(0, 5) },
     weakConcepts: weak,
@@ -632,6 +655,7 @@ meRouter.get("/today", requireAuth, (c) => {
     goalPathNext: goalNext,
     reviewStreak: streak,
     streakInDanger: streak > 0 && !loggedToday,
+    recentlyCompleted,
   });
 });
 

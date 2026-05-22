@@ -53,6 +53,7 @@ export function MasteryPathPage() {
   const [error, setError] = useState<string | null>(null);
   const [quizFor, setQuizFor] = useState<MasteryNode | null>(null);
   const [view, setView] = useState<"list" | "graph">("list");
+  const [completedOnly, setCompletedOnly] = useState(false);
   const [levelUpBanner, setLevelUpBanner] = useState<string | null>(null);
   const prevHighestRef = useRef<number>(-2); // sentinel: not initialized yet
   const user = useAuthStore((s) => s.user);
@@ -191,6 +192,14 @@ export function MasteryPathPage() {
     nodes: nodes.filter((n) => n.level === level).sort((a, b) => a.order - b.order),
   })).filter((g) => g.nodes.length > 0);
 
+  // "Completed only" filter (list view) — a fast way to re-find finished
+  // lessons to review.
+  const displayedByLevel = completedOnly
+    ? nodesByLevel
+        .map((g) => ({ ...g, nodes: g.nodes.filter((n) => isCompleted(n.id)) }))
+        .filter((g) => g.nodes.length > 0)
+    : nodesByLevel;
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="mb-8">
@@ -284,6 +293,18 @@ export function MasteryPathPage() {
         ) : (
           <span />
         )}
+        {view === "list" && completedCount > 0 && (
+          <button
+            onClick={() => setCompletedOnly((v) => !v)}
+            className={`text-xs px-3 py-1.5 rounded-md border transition-colors ${
+              completedOnly
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border text-muted-foreground hover:text-foreground hover:bg-accent/40"
+            }`}
+          >
+            {completedOnly ? "✓ Completed only" : "Completed only"}
+          </button>
+        )}
         <div className="flex gap-1 p-1 rounded-md bg-muted text-xs">
           <button
             onClick={() => setView("list")}
@@ -327,13 +348,13 @@ export function MasteryPathPage() {
       )}
 
       {/* Nodes by level */}
-      {view === "list" && (nodesByLevel.length === 0 ? (
+      {view === "list" && (displayedByLevel.length === 0 ? (
         <div className="max-w-2xl mx-auto py-12 text-center text-muted-foreground">
           No nodes in this path yet.
         </div>
       ) : (
       <div className="space-y-8">
-        {nodesByLevel.map(({ level, label, nodes: levelNodes }) => (
+        {displayedByLevel.map(({ level, label, nodes: levelNodes }) => (
           <div key={level}>
             <div className="flex items-center gap-2 mb-3">
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${LEVEL_COLORS[level]}`}>

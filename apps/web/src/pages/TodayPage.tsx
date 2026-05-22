@@ -16,6 +16,7 @@ import {
   Clock,
   Target,
   CalendarClock,
+  RotateCcw,
 } from "lucide-react";
 import { api, ApiError } from "../lib/api";
 import { useAuthStore } from "../stores/auth";
@@ -172,6 +173,30 @@ export function TodayPage() {
                 </li>
               ))}
             </Card>
+          )}
+
+          {data.recentlyCompleted.length > 0 && (
+            <div className="rounded-lg border border-border bg-card p-4">
+              <div className="text-sm font-semibold inline-flex items-center gap-1.5">
+                <RotateCcw className="w-4 h-4 text-primary" />
+                Revisit recent lessons
+                <span className="text-muted-foreground">
+                  · {data.recentlyCompleted.length}
+                </span>
+              </div>
+              <ul className="mt-2 space-y-1 text-sm">
+                {data.recentlyCompleted.map((r) => (
+                  <li key={`${r.pathSlug}/${r.nodeSlug}`} className="truncate">
+                    <Link
+                      to={`/paths/${r.pathSlug}/lessons/${r.nodeSlug}`}
+                      className="text-primary hover:underline"
+                    >
+                      {r.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
 
           {data.decay.staleCredentials.length > 0 && (

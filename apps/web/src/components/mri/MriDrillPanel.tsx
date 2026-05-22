@@ -173,6 +173,15 @@ export function MriDrillPanel({ node, pathSlug, onClose }: Props) {
             Open the wiki page →
           </Link>
         )}
+
+        {node.status === "mastered" && node.nodeSlug && (
+          <Link
+            to={`/paths/${pathSlug}/lessons/${node.nodeSlug}`}
+            className="block text-xs px-3 py-2 rounded-md border border-border hover:bg-accent/40 transition-colors"
+          >
+            Review the lesson →
+          </Link>
+        )}
       </div>
 
       <footer className="border-t border-border p-3 bg-muted/20">

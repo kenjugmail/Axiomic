@@ -3331,6 +3331,12 @@ export const api = {
         goalPathNext: Array<{ slug: string; title: string }>;
         reviewStreak: number;
         streakInDanger: boolean;
+        recentlyCompleted: Array<{
+          nodeSlug: string;
+          title: string;
+          pathSlug: string;
+          completedAt: string | null;
+        }>;
       }>("/me/today"),
     // Phase 34D — signed learning commitments.
     commitments: () =>
