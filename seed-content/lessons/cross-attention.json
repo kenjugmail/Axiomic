@@ -3,7 +3,17 @@
     {
       "kind": "text",
       "title": "Self-attention vs cross-attention",
-      "body": "Standard transformer attention is **self-attention**: Q, K, and V all come from the same sequence. Every token in the sequence attends to every other token in the same sequence.\n\n**Cross-attention** is the same mechanism with one twist: Q comes from sequence A, while K and V come from sequence B.\n\n```\nself-attention (decoder):\n  Q, K, V = decoder_state, decoder_state, decoder_state\n\ncross-attention (encoder-decoder):\n  Q       = decoder_state    # what's the decoder asking?\n  K, V    = encoder_output   # what does the encoder offer?\n```\n\nThe shape of the computation is identical (`softmax(QK^T/√d_k)V`); only the source of K and V differs.\n\nCross-attention is what lets a decoder 'look at' an encoder's output during generation. It's the bridge that makes encoder-decoder models work."
+      "viz": "attention-heatmap",
+      "vizProps": {
+        "tokens": ["the","cat","sat","down"],
+        "weights": [
+          [0.7,0.2,0.05,0.05],
+          [0.2,0.6,0.15,0.05],
+          [0.05,0.2,0.6,0.15],
+          [0.05,0.05,0.2,0.7]
+        ]
+      },
+      "body": "Standard transformer attention is **self-attention**: Q, K, and V all come from the same sequence. Every token in the sequence attends to every other token in the same sequence.\n\n**Cross-attention** is the same mechanism with one twist: Q comes from sequence A, while K and V come from sequence B.\n\n```\nself-attention (decoder):\n  Q, K, V = decoder_state, decoder_state, decoder_state\n\ncross-attention (encoder-decoder):\n  Q       = decoder_state    # what's the decoder asking?\n  K, V    = encoder_output   # what does the encoder offer?\n```\n\nThe shape of the computation is identical (`softmax(QK^T/√d_k)V`); only the source of K and V differs.\n\nCross-attention is what lets a decoder 'look at' an encoder's output during generation. It's the bridge that makes encoder-decoder models work.\n\nThe heatmap illustrates a soft near-diagonal alignment typical of cross-attention: each decoder query attends most strongly to its corresponding encoder key/value, with gentle spill to adjacent positions — the pattern seen in learned translation alignments."
     },
     {
       "kind": "text",
@@ -53,9 +63,77 @@
       }
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "ca_gd1",
+        "kind": "guided_derivation",
+        "question": "Derive the cross-attention equation and contrast it with self-attention",
+        "goal": "Write the cross-attention forward pass showing that Q comes from the decoder and K, V from the encoder, then identify the one structural difference from self-attention.",
+        "steps": [
+          {
+            "prompt": "In standard scaled dot-product self-attention, Q, K, V are all linear projections of the same input X. Write the equation: Attention(Q,K,V) = ?",
+            "motivation": "Establishing the base equation makes the cross-attention modification obvious by contrast.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "softmax(QK^T/sqrt(d_k))V",
+                "softmax(Q K^T / sqrt(d_k)) V",
+                "\\text{softmax}\\left(\\frac{QK^T}{\\sqrt{d_k}}\\right)V"
+              ]
+            },
+            "hints": [
+              "The scaling factor is the square root of the key dimension d_k."
+            ],
+            "reveal": "Attention(Q,K,V) = softmax(QK^T / √d_k) · V. This is scaled dot-product attention: Q and K form a similarity score, softmax normalizes it into weights, and V is the weighted sum of values."
+          },
+          {
+            "prompt": "In cross-attention, let the decoder hidden state be H_dec (shape: T_dec × d_model) and the encoder output be H_enc (shape: T_enc × d_model). Write the projections for Q, K, V.",
+            "motivation": "Seeing the two sources side by side makes the cross-attention pattern concrete.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Q = H_dec W^Q, K = H_enc W^K, V = H_enc W^V",
+                "Q=H_dec*W_Q; K=H_enc*W_K; V=H_enc*W_V"
+              ]
+            },
+            "hints": [
+              "The decoder provides queries because it is asking questions. The encoder provides keys and values because it holds the answers."
+            ],
+            "reveal": "Q = H_dec · W^Q (shape T_dec × d_k); K = H_enc · W^K (shape T_enc × d_k); V = H_enc · W^V (shape T_enc × d_v). The score matrix QK^T has shape T_dec × T_enc — each decoder position scores against every encoder position."
+          },
+          {
+            "prompt": "What is the single structural difference between self-attention and cross-attention?",
+            "motivation": "Naming the difference precisely shows that the math is identical — only the data sources change.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "K and V come from a different sequence (encoder) than Q (decoder)",
+                "Q comes from decoder, K and V from encoder",
+                "the source of K and V is different from Q"
+              ]
+            },
+            "hints": [
+              "The formula softmax(QK^T/√d_k)V is identical — what changes is where Q, K, V are computed from."
+            ],
+            "reveal": "The only difference is the data source: in self-attention Q, K, V all come from the same sequence (Q = K = V source = X). In cross-attention, Q comes from the decoder state and K, V come from the encoder output. The forward-pass formula is word-for-word identical."
+          }
+        ],
+        "finalResult": "Cross-attention: Q = H_dec · W^Q, K = H_enc · W^K, V = H_enc · W^V. Output = softmax(QK^T / √d_k) · V. Score matrix shape is T_dec × T_enc. The math is identical to self-attention; only the source sequences for K and V differ."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ca_scen1",
+        "kind": "scenario",
+        "question": "Cross-attention shapes when source and target lengths differ",
+        "prompt": "You are building a machine translation model (English → French) using a standard encoder-decoder transformer. The encoder processes an English sentence of length T_src = 12 tokens. The decoder is generating a French translation of length T_tgt = 15 tokens. The model has d_model = 512, d_k = 64, and h = 8 attention heads. Answer the following: (1) What is the shape of the cross-attention score matrix QK^T for a single head? (2) Does this matrix need causal masking, and why or why not? (3) If T_src = 5 and T_tgt = 20 (a short source, long target), does cross-attention break? Explain how the decoder handles a target sequence longer than the source using cross-attention."
+      }
+    },
+    {
       "kind": "text",
       "title": "What's next",
       "body": "Cross-attention generalizes the attention mechanism to two distinct sequences. It's the key insight behind encoder-decoder architectures, and it shows up in modern multimodal models that need to fuse different data types.\n\nNext we'll cover [[training-objectives]] — what loss the model actually optimizes during training, and the difference between MLM (masked LM) for encoders and CLM (causal LM) for decoders.\n\nKey takeaways:\n- Cross-attention: Q from decoder, K/V from encoder (or any other 'source' sequence)\n- Same math as self-attention; different source for K/V\n- Decoder-only models with concatenation have largely replaced encoder-decoder for general tasks\n- Cross-attention is still the right tool for translation, summarization, multimodal fusion"
-    }
+      }
   ]
 }

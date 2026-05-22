@@ -1,0 +1,169 @@
+{
+  "slug": "reaction-mechanisms-and-arrow-pushing",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Push curly arrows to depict electron flow in any organic mechanism.",
+      "Distinguish SN1 vs SN2, E1 vs E2, + predict elimination regioselectivity.",
+      "Reason about electrophilic aromatic substitution + directing effects."
+    ],
+    "prereqs": [
+      "functional-groups-and-reactivity"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Arrow pushing: the calculus of organic chemistry",
+      "body": "An organic reaction is a redistribution of electron pairs (and occasionally single electrons in radical chemistry). The **curly-arrow** convention — pioneered by Robert Robinson + Christopher Ingold in the 1920s — represents electron flow:\n\n- A **full-headed curly arrow** (↷) represents the movement of a pair of electrons.\n- A **half-headed (fishhook) arrow** (⇁) represents the movement of a single electron — for radical mechanisms.\n- An arrow's **tail** sits on the source of electrons (a lone pair, a σ bond, a π bond, an aromatic ring, an anion).\n- An arrow's **head** points to where the electrons go — onto an atom (to form a bond or place a lone pair) or between atoms (to form a bond).\n\n**Rules of arrow pushing**:\n1. Conserve electrons: count before + after.\n2. Conserve atoms + charge: charge balance maintained step by step.\n3. Don't draw nonsense intermediates: each step must give a Lewis-valid structure.\n4. No more than two electrons in any arrow.\n5. Electrons flow from nucleophilic (electron-rich) to electrophilic (electron-poor) regions.\n6. Strong electrophiles + strong nucleophiles meet → polar reactions; weak electron donors/acceptors with bond homolysis → radical reactions.\n\n**Canonical arrow patterns** every chemist memorizes:\n- **Acid-base**: lone pair on base attacks H of acid; H–A σ bond breaks back to A. Two arrows.\n- **Nucleophilic addition to C=O**: lone pair on Nu attacks C=O carbon; π bond breaks back to O. Two arrows.\n- **SN2**: Nu lone pair → C; C–LG σ bond → LG. Two arrows, backside attack, concerted.\n- **SN1**: C–LG σ bond → LG (heterolysis, generates carbocation); then Nu lone pair → C⁺. Two-step.\n- **E2**: base lone pair → β-H; β-C–H σ bond → α-C–β-C π bond; α-C–LG σ bond → LG. Three arrows, concerted, anti-periplanar.\n- **Electrophilic aromatic substitution**: ring π → electrophile; ring becomes sp³ at one C with cationic resonance; base takes H back, restoring aromaticity. Multiple arrows over two/three steps.\n- **Pericyclic** (Diels-Alder, electrocyclization, sigmatropic): cyclic flow of arrows around the transition state. Woodward-Hoffmann rules govern allowed/forbidden geometries.\n\n**Reading a paper's mechanism** = reading curly arrows. The skill is the universal language of organic chemistry — without it, no synthesis can be planned, no mechanism predicted, no transition state drawn. Modern mechanistic understanding is rooted in **frontier molecular orbital (FMO) theory** (Fukui Nobel 1981; Hoffmann Nobel 1981): the dominant interaction is HOMO(nucleophile) → LUMO(electrophile). Computational chemistry (DFT, B3LYP, M06) now routinely confirms (or contradicts) curly-arrow mechanisms via transition-state location."
+    },
+    {
+      "kind": "text",
+      "title": "Nucleophilic substitution + elimination: SN1, SN2, E1, E2",
+      "body": "Four canonical mechanisms organize the universe of substitution + elimination reactions at saturated C.\n\n**SN2 (bimolecular nucleophilic substitution)** — concerted, single step:\n\n  Nu⁻ + R–LG → [Nu···R···LG]‡ → Nu–R + LG⁻\n\n- **Rate** = k[Nu][R-LG]: second order.\n- **Stereochemistry**: backside attack — Walden inversion (CIP configuration flips R↔S).\n- **Substrate preference**: methyl > 1° > 2° >> 3° (steric crowding kills SN2 at 3°).\n- **Nucleophile**: stronger nucleophiles favored. Polarizability + basicity matter. I⁻ > Br⁻ > Cl⁻ in polar aprotic; reversed in polar protic (solvation).\n- **Solvent**: polar aprotic (DMSO, DMF, acetone, acetonitrile) — solvates cations but leaves anions naked + nucleophilic. Polar protic (water, MeOH) H-bond-solvates anion, slowing SN2.\n- **Leaving group**: weaker base = better LG. Order: I⁻ > Br⁻ > Cl⁻ > F⁻ ≈ OTs ≈ OMs > carboxylate >> OH⁻.\n\n**SN1 (unimolecular nucleophilic substitution)** — stepwise via carbocation:\n\n  R–LG → R⁺ + LG⁻ (slow, rate-determining) → R–Nu (fast)\n\n- **Rate** = k[R-LG]: first order, independent of Nu.\n- **Stereochemistry**: planar carbocation → racemization (often 50:50 R:S; ion-pair effects can give slight inversion bias).\n- **Substrate preference**: 3° > 2° >> 1° > methyl (carbocation stability: tertiary R₃C⁺ > secondary > primary >> methyl). Allylic + benzylic carbocations especially stable (resonance).\n- **Nucleophile**: weaker, even neutral solvent molecules (SN1 = solvolysis when solvent attacks).\n- **Solvent**: polar protic — stabilizes both cation + anion.\n\n**Carbocation rearrangements**: 1,2-hydride + 1,2-alkyl shifts move charge to a more stable carbocation. Watch for unexpected products (Wagner-Meerwein rearrangement).\n\n**E2 (bimolecular elimination)** — concerted:\n\n  B⁻ + H–Cβ–Cα–LG → B–H + Cα=Cβ + LG⁻\n\n- Three arrows; **anti-periplanar** geometry (H–C–C–LG dihedral ≈ 180°) for σ → π hyperconjugation in TS.\n- Rate = k[B][R-LG].\n- **Saytzeff (Zaitsev) rule** (1875): more substituted alkene preferred (more stable). Default in most cases.\n- **Hofmann rule**: less substituted alkene preferred when steric bulk dominates (bulky base like KOtBu, or bulky leaving group like trialkylammonium → Hofmann elimination of N-oxides + sulfonium salts).\n- **Selectivity controlled by base + LG + substrate**.\n\n**E1 (unimolecular elimination)** — stepwise via carbocation, parallel to SN1:\n\n  R–LG → R⁺ + LG⁻ → alkene + H⁺\n\n- Rate = k[R-LG].\n- Same carbocation can give SN1 (Nu attack) or E1 (β-H loss); ratio depends on Nu/base + temperature (higher T favors elimination via ΔS).\n- Saytzeff product dominates (most stable alkene from most stable C⁺).\n\n**SN2 vs SN1 vs E2 vs E1 decision tree** — substrate first:\n- **1° + good Nu + polar aprotic** → SN2.\n- **3° + weak Nu + polar protic, heat** → SN1/E1 mixture.\n- **2° + strong base, bulky** → E2.\n- **2° + good Nu, moderate base** → SN2-dominant.\n- **Sulfonate (OTs) leaving groups** + 1°/2° + strong Nu → SN2 (Mitsunobu, Appel).\n\n**Carbocation stability**: 3° > 2° > 1° > methyl; resonance-stabilized (allyl, benzyl, oxocarbenium R₂C⁺–OR') exceptionally stable; α-fluoro destabilizing; β-silyl + β-silicon-effect stabilizes via hyperconjugation."
+    },
+    {
+      "kind": "text",
+      "title": "Electrophilic aromatic substitution + directing effects",
+      "body": "**Electrophilic aromatic substitution (EAS)** — the canonical mechanism for installing functional groups on aromatic rings. Aromaticity provides the driving force: the ring keeps its 4n+2 π electron system after reaction.\n\n**Mechanism (general)**:\n1. Generate electrophile E⁺ (often via Lewis-acid activation).\n2. **σ-complex (Wheland intermediate, arenium ion)** forms: ring π electrons attack E⁺, giving a cyclohexadienyl cation with positive charge delocalized over three ring carbons.\n3. Base (often the conjugate of the activator) removes H from the sp³ carbon, restoring aromaticity → Ar–E.\n\nFour arrows total; the σ-complex is the (usually) rate-limiting intermediate.\n\n**The 5 canonical EAS reactions**:\n- **Nitration**: HNO₃ + H₂SO₄ → NO₂⁺ (nitronium ion) + HSO₄⁻ + H₂O. Installs –NO₂.\n- **Halogenation**: X₂ + Lewis acid (FeBr₃, FeCl₃, AlCl₃) → X⁺ equivalent. Bromination + chlorination work; F₂ too reactive (radical); I₂ too unreactive (need oxidant like HNO₃).\n- **Sulfonation**: H₂SO₄ + SO₃ → HSO₃⁺ → Ar–SO₃H. Reversible (key for synthesis blocking strategies).\n- **Friedel-Crafts alkylation**: R–Cl + AlCl₃ → R⁺ + AlCl₄⁻. Installs alkyl group. Limitations: carbocation rearrangements (1° R⁺ rearranges to 2°/3°); polyalkylation (product more activated than starting material). Modern alternatives via cross-coupling.\n- **Friedel-Crafts acylation**: RCOCl + AlCl₃ → RCO⁺ (acylium) → Ar–CO–R. No rearrangement (acylium is stabilized). No polyacylation (ketone deactivates ring).\n\n**Activating vs deactivating substituents** — substituent on the ring affects rate + regioselectivity:\n\n**Activators (ortho/para directors)** — donate electron density into the ring:\n- Strongly activating: –NH₂, –NHR, –NR₂, –OH, –O⁻. π-Donors via lone-pair resonance.\n- Moderately activating: –NHCOR, –OR, –OC(O)R.\n- Weakly activating: –R (alkyl), –Ar (aryl), –CH=CR₂ (vinyl).\n- All direct ortho + para (resonance places ⁻ charge at o/p positions in σ-complex when E⁺ adds at o/p).\n\n**Deactivators (meta directors)** — withdraw electron density:\n- Strongly deactivating: –NO₂, –CN, –SO₃H, –CF₃, –NR₃⁺.\n- Moderately deactivating: –COOH, –COOR, –CHO, –COR, –CONR₂.\n- All direct meta (resonance destabilizes σ-complex when E⁺ adds at o/p adjacent to EWG).\n\n**Halogens** — special case: deactivating (σ-withdrawing) but **ortho/para directing** (π-donating via lone pair). Slower than benzene but products are o/p.\n\n**Why directing patterns work**: draw the three resonance structures of the σ-complex (Wheland intermediate) for ortho, meta, para attack. An activator at o/p has its lone pair adjacent to a positively charged ring carbon → extra resonance stabilization → faster. A deactivator at o/p destabilizes (places positive charge on adjacent EWG) → meta becomes favored.\n\n**Multiple substituents**: directing effects sum; the more strongly activating group dominates. Steric bulk shifts product distribution toward para (less hindered) over ortho.\n\n**Practical synthetic orchestration**: choosing the order of EAS installations matters. Nitrate first (meta) then reduce to aniline (ortho/para) to access different patterns. Blocking groups (sulfonation) protect positions; removed later.\n\n**Other aromatic substitution mechanisms**:\n- **SNAr (nucleophilic aromatic substitution)**: works on EWG-activated aryl halides (Meisenheimer intermediate). Modern pharmacophore-installation tool.\n- **Benzyne (elimination-addition)**: strong base (NaNH₂) + aryl halide → benzyne → addition. Found in Felkin + indolyl chemistry.\n- **Cross-coupling** (Pd, Cu catalysis; Suzuki, Negishi, Buchwald-Hartwig): the modern alternative to EAS for C–C + C–N + C–O bond formation. Covered in organometallics lesson.\n- **C–H activation**: directly functionalize C–H bonds without pre-installed handle. State-of-the-art (Sames, Yu, Hartwig, Sanford, Engle). The frontier."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mech_sn",
+        "kind": "guided_derivation",
+        "question": "Predict products: 2-bromopropane + NaOEt in EtOH at 80°C",
+        "goal": "Walk through the mechanism choice + identify major + minor products. Use substrate/Nu/base/solvent/temp reasoning.",
+        "steps": [
+          {
+            "prompt": "Classify the substrate, nucleophile/base, solvent, + temperature.",
+            "motivation": "Set up SN1/SN2/E1/E2 decision.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2° substrate; strong base + nucleophile; polar protic; elevated T"
+              ]
+            },
+            "hints": [
+              "2-bromopropane = isopropyl bromide (secondary).",
+              "Ethoxide is a strong base + good nucleophile.",
+              "EtOH polar protic; 80°C high."
+            ],
+            "reveal": "Substrate: 2° (secondary alkyl halide). Nu/base: EtO⁻ — strong base, good nucleophile. Solvent: EtOH (polar protic, ionizing but H-bonds anions). Temperature: 80°C — elevated, favoring elimination via ΔS."
+          },
+          {
+            "prompt": "Which mechanism(s) compete for 2° + strong base?",
+            "motivation": "Decision tree.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E2 + SN2; some E1/SN1"
+              ]
+            },
+            "hints": [
+              "2° substrate is the ambiguous middle: all four mechanisms possible."
+            ],
+            "reveal": "2° substrate + strong base + polar protic + heat → **E2 dominates** (strong base + heat favor elimination); SN2 competes (some product); E1/SN1 minor (some carbocation chemistry in polar protic at high T). E2 typically > 60% in this combination."
+          },
+          {
+            "prompt": "Draw E2 transition state + identify the alkene product.",
+            "motivation": "Anti-periplanar geometry; Saytzeff vs Hofmann.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "propene (only alkene possible) via anti-periplanar elimination"
+              ]
+            },
+            "hints": [
+              "Only β-H's available are on the CH₃ groups.",
+              "Both β-positions equivalent (symmetry)."
+            ],
+            "reveal": "E2: EtO⁻ takes a β-H from a CH₃ (anti-periplanar to the C–Br), the β-C–H σ bond becomes π to α-C, the α-C–Br σ bond becomes Br⁻. Product: **propene (CH₃CH=CH₂)** — the only possible alkene (both β-positions are equivalent CH₃). No Saytzeff/Hofmann choice here."
+          },
+          {
+            "prompt": "What's the SN2 product?",
+            "motivation": "Competing pathway.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2-ethoxypropane (isopropyl ethyl ether)"
+              ]
+            },
+            "hints": [
+              "Nu replaces LG with inversion."
+            ],
+            "reveal": "SN2: EtO⁻ attacks the α-C from the back side; Br⁻ leaves; Walden inversion (irrelevant here, no chirality). Product: **2-ethoxypropane (CH₃CH(OEt)CH₃)**. ~30-40% of mixture typically."
+          },
+          {
+            "prompt": "Estimate the E2:SN2 ratio + product distribution at these conditions.",
+            "motivation": "Quantitative expectation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~60-70% propene + ~25-35% 2-ethoxypropane + traces of E1/SN1"
+              ]
+            },
+            "hints": [
+              "Heat + strong base favor E2; 2° substrate allows both."
+            ],
+            "reveal": "Typical mixture: **~60-70% propene (E2)** + **~25-35% 2-ethoxypropane (SN2)** + traces of E1/SN1 in polar protic. At lower T (RT) + bulkier alcohol (tBuO⁻) the elimination yield rises to 90%+ (Hofmann-like). Mechanistic prediction is probabilistic — chemists list dominant + minor products + rationalize via the SN/E decision tree + Maitland Jones-style mechanism worksheets."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{2° + strong base + heat} \\to \\text{E2 dominant; SN2 competes; E1/SN1 minor}}$$ The full decision tree (substrate × base/Nu × solvent × temperature) predicts the outcome. Every chemist memorizes this matrix; it's the practical application of the SN1/SN2/E1/E2 framework. Modern computational methods (DFT) confirm + refine these predictions for novel substrates."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mech_eas",
+        "kind": "multiple_choice",
+        "question": "Anisole (methoxybenzene, PhOMe) undergoes nitration. What is the major product?",
+        "options": [
+          "Meta-nitroanisole.",
+          "Para-nitroanisole (with ortho as minor product) — the methoxy group is a strong π-donor (lone pair on O donates into the ring); the σ-complex Wheland intermediate with E⁺ at ortho or para has the positive charge stabilized by direct resonance from the methoxy oxygen onto a ring carbon; at the para position the steric profile is most favorable. Ratio is typically ~70% para : ~30% ortho : <1% meta. Methoxy is also strongly activating — anisole is ~10⁴× faster than benzene in nitration.",
+          "Equal mixture of all three.",
+          "No reaction occurs."
+        ],
+        "correctIndex": 1,
+        "explanation": "Methoxy is an activating ortho/para director: its lone pair conjugates into the ring. The σ-complex from p-attack has a resonance structure with the + charge ON the carbon directly attached to OMe, which is stabilized by an oxocarbenium-like resonance (the O's lone pair forms a partial π bond). Para usually exceeds ortho due to sterics + para resonance availability. Meta is disfavored — its σ-complex has no stabilization from OMe."
+      },
+      "hints": [
+        "OMe donates by resonance; where does the σ-complex want to place its + charge?",
+        "Para vs ortho: sterics."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Methoxy donates via O lone pair into ring → ortho/para director, strongly activating. σ-Complex from para attack has + charge stabilized by direct conjugation with OMe oxygen. Para is favored over ortho due to sterics. Meta is forbidden by directing effects. Major product: para-nitroanisole."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mech_carbocation",
+        "kind": "scenario",
+        "question": "Diagnosing an unexpected rearranged product",
+        "prompt": "You react 3,3-dimethyl-2-butanol (neopentyl-alcohol-like) with concentrated HCl. The expected SN1 product would be 2-chloro-3,3-dimethylbutane, but mass spectrometry + NMR show the actual product is 2-chloro-2,3-dimethylbutane (rearranged). Diagnose the mechanism, identify the rearrangement step, + draw all curly arrows."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mech_rate",
+        "kind": "math_expression",
+        "question": "An SN2 reaction is 1st order in nucleophile + 1st order in substrate. If [Nu] doubles + [R-LG] triples, the rate increases by what factor?",
+        "acceptedAnswers": [
+          "6"
+        ],
+        "hint": "Rate = k[Nu][R-LG]; factor = 2 × 3."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mech",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why curly-arrow pushing is sometimes called 'the universal language of organic chemistry'.",
+        "rubric": "Mentions: Robinson + Ingold 1920s; every organic reaction can be expressed as electron flow (full arrows for pairs; fishhooks for single electrons); the formalism encodes mechanism, stereochemistry, + selectivity in a compact, transferable, universal notation; chemists communicate mechanism across labs + decades using identical pictures; arrow pushing makes predictions (regioselectivity, stereochemistry, kinetics) testable + falsifiable; it scales — every advanced transformation (pericyclic, radical, organometallic, photochemical) extends the same conventions; computational chemistry (DFT) confirms or refutes proposed arrow-pushing sequences. Without arrow pushing organic chemistry would be a memorized catalog; with it, the discipline becomes generative — chemists invent new transformations by extrapolating arrow patterns. The skill underlies all of synthesis + retrosynthesis."
+      }
+    }
+  ]
+}

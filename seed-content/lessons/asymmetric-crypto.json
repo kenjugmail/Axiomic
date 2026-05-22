@@ -15,6 +15,8 @@
     {
       "kind": "text",
       "title": "Public-key crypto, in one paragraph",
+      "viz": "key-exchange",
+      "vizProps": {},
       "body": "**Symmetric** crypto: same key encrypts + decrypts. Fast, but key distribution is hard.\n\n**Asymmetric** (public-key) crypto: separate public and private keys, one for each direction. Public key is freely shared; private key is secret. Solves key distribution but is orders of magnitude slower than symmetric crypto, so in practice it bootstraps a symmetric session key for the actual data.\n\n**RSA**: security reduces to factoring large semiprimes. Key sizes 2048 / 3072 / 4096 bits for current security levels.\n\n**ECC** (Elliptic Curve Cryptography): security reduces to elliptic-curve discrete log. Equivalent security at much smaller key sizes — Curve25519 with 256-bit keys is ~equivalent to 3072-bit RSA. Smaller keys mean faster operations + less bandwidth.\n\n**Diffie-Hellman**: two parties exchange public values, derive a shared secret without ever transmitting it. The foundational key-exchange primitive — TLS 1.3 uses elliptic-curve DH (X25519) for every session.\n\nThe modern default: Curve25519 (or P-256 for FIPS environments) + Ed25519 signatures + ChaCha20-Poly1305 or AES-GCM for the symmetric session. Built on libsodium / age / WireGuard-style primitives."
     },
     {

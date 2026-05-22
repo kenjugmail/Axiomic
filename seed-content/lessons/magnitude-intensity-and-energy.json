@@ -1,0 +1,115 @@
+{
+  "slug": "magnitude-intensity-and-energy",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish Richter local magnitude from moment magnitude $M_w$ and explain saturation.",
+      "Contrast magnitude with Modified Mercalli intensity and the Gutenberg–Richter law.",
+      "Use energy scaling $\\log E \\approx 1.5 M + 4.8$ to compare earthquake energies."
+    ],
+    "prereqs": [
+      "earthquake-sources-and-faulting"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "From Richter local magnitude to moment magnitude",
+      "body": "In **1935** at **Caltech**, **Charles Francis Richter (1900–1985)**, drawing on a logarithmic idea suggested by **Beno Gutenberg** and on stellar-magnitude analogies, defined the first quantitative earthquake size measure: the **local magnitude** $M_L$, the original \"Richter scale.\" It is defined for Southern California from the peak amplitude $A$ (in micrometres) recorded on a standard **Wood–Anderson torsion seismograph**:\n\n$$M_L = \\log_{10} A - \\log_{10} A_0(\\delta),$$\n\nwhere $A_0(\\delta)$ is a distance-correction term (the expected amplitude of a reference \"zero-magnitude\" event at epicentral distance $\\delta$). Because the scale is **base-10 logarithmic**, each whole unit of magnitude corresponds to a **tenfold increase in ground-motion amplitude**. Richter set the zero point so a magnitude-3 quake gives a $1$-mm trace at $100$ km on the Wood–Anderson instrument.\n\n$M_L$ was a triumph but has two limitations. First, it is tied to a particular instrument and region, prompting later variants — **body-wave magnitude** $m_b$ (from teleseismic P amplitudes) and **surface-wave magnitude** $M_S$ (from $\\sim 20$-second Rayleigh waves), introduced by Gutenberg and Richter for distant events. Second, all amplitude-based magnitudes **saturate**: for the largest earthquakes the chosen wave's amplitude stops growing in proportion to the true source size, so $M_S$ tops out near $\\sim 8.3$–$8.5$ and $m_b$ near $\\sim 6.5$.\n\nThe modern remedy is the **moment magnitude** $M_w$, introduced by **Thomas Hanks and Hiroo Kanamori (1979)**. It is built directly from the **seismic moment** $M_0 = \\mu A D$ (rigidity $\\times$ rupture area $\\times$ average slip) rather than from a wave amplitude, so it **does not saturate** and is meaningful for the greatest earthquakes. With $M_0$ in newton-metres,\n\n$$M_w = \\frac{2}{3}\\log_{10} M_0 - 6.07.$$\n\nThe coefficients are chosen so $M_w$ agrees with $M_L$ and $M_S$ in their valid range, making it a seamless extension. The largest instrumentally recorded earthquake, the **1960 Valdivia (Chile)** event, reaches $M_w \\approx 9.5$; the **2011 Tōhoku** earthquake was $M_w \\approx 9.0$. Today, when the media report \"magnitude,\" they almost always mean $M_w$. The lesson: magnitude is a **logarithmic, source-size** measure, and $M_w$ is the physically grounded one because it inherits its meaning from $M_0$."
+    },
+    {
+      "kind": "text",
+      "title": "Intensity versus magnitude, and the Modified Mercalli scale",
+      "body": "It is essential to separate two ideas that the public often confuses. **Magnitude** is a single number describing the **size of the source** — how much energy the earthquake released — and one earthquake has exactly one magnitude. **Intensity** describes the **strength of shaking and damage at a particular place**, so a single earthquake produces *many* intensity values, generally largest near the epicenter and fading with distance. Magnitude is measured by instruments; intensity is assessed from observed effects.\n\nThe standard intensity measure in the United States is the **Modified Mercalli Intensity (MMI) scale**, a twelve-level Roman-numeral scale running from **I to XII**. Its lineage runs from the **Rossi–Forel** scale (1880s) to the **Mercalli** scale of the Italian volcanologist **Giuseppe Mercalli (1902)**, modified by **Harry O. Wood and Frank Neumann (1931)** for North American construction. Representative levels:\n\n- **I–III**: not felt to weakly felt indoors; hanging objects may swing.\n- **IV–V**: felt by many; dishes rattle; sleepers wake.\n- **VI–VII**: felt by all; furniture moves; weak masonry cracks; difficult to stand.\n- **VIII–IX**: heavy damage; poorly built structures collapse; ground cracks.\n- **X–XII**: most masonry destroyed; rails bent; near-total devastation; objects thrown into the air.\n\nBecause intensity is based on human observation, modern agencies crowdsource it. The **U.S. Geological Survey (USGS)** runs **\"Did You Feel It?\"** to gather public reports and produces **ShakeMap**, which interpolates instrumental and reported data into contour maps of intensity. Lines of equal intensity are called **isoseismals**, and their pattern reveals local geology: soft sediment basins amplify shaking, raising local intensity well above what the distance alone would predict (a key theme of seismic hazard).\n\nThe relationship between the two concepts is statistical, not exact: a useful rule of thumb near the epicenter relates peak intensity to magnitude, but identical-magnitude earthquakes can produce very different intensities depending on **depth, distance, and site conditions**. A deep $M_w\\,7$ earthquake may be barely felt, while a shallow $M_w\\,6$ directly beneath a city on soft soil can be devastating — exactly the situation in the **1985 Mexico City** disaster, where lake-bed sediments amplified distant shaking. Keep the distinction crisp: **magnitude is about the earthquake; intensity is about the place.**"
+    },
+    {
+      "kind": "text",
+      "title": "The Gutenberg–Richter law and energy scaling",
+      "body": "Earthquakes do not occur at random sizes — they follow a remarkably robust statistical pattern. The **Gutenberg–Richter law** (Beno Gutenberg and Charles Richter, 1944) states that in any region and time window the number $N$ of earthquakes with magnitude **at least** $M$ obeys\n\n$$\\log_{10} N = a - bM,$$\n\nwhere $a$ measures the overall seismicity rate and the slope $b$ — the **b-value** — is typically close to **1.0** for tectonic earthquakes. A $b$-value near $1$ means that for each unit increase in magnitude, earthquakes become about **ten times less frequent**: roughly ten $M\\,5$ events for every $M\\,6$, a hundred $M\\,4$ for every $M\\,6$, and so on. This power-law (fractal) behavior holds over many magnitude units and is one of the cornerstones of seismic hazard estimation; departures from $b\\approx1$ (for example, lower $b$ before some large events, or higher $b$ in volcanic swarms) are studied as possible diagnostics of stress state.\n\nMagnitude is logarithmic in *amplitude*, but the quantity that matters for damage and for physics is **radiated seismic energy** $E$. The standard energy–magnitude relation, due to **Gutenberg and Richter**, is\n\n$$\\log_{10} E \\approx 1.5\\,M + 4.8,$$\n\nwith $E$ in joules. The coefficient $1.5$ is the crucial number. It means that **one unit of magnitude corresponds to a factor of $10^{1.5} \\approx 31.6$ in energy**, and **two units to a factor of $10^{3} = 1000$**. So an $M\\,7$ releases about $32$ times the energy of an $M\\,6$ and about a thousand times that of an $M\\,5$. This is why the difference between a magnitude 7 and a magnitude 9 — only \"two points\" — is a factor of roughly **a thousand** in energy: the $M_w\\,9.0$ Tōhoku earthquake released on the order of $10^{18}$ J, dwarfing thousands of moderate quakes combined.\n\nA worked comparison makes the scaling vivid. For an $M\\,6$, $\\log_{10}E \\approx 1.5(6)+4.8 = 13.8$, so $E \\approx 10^{13.8} \\approx 6.3\\times10^{13}$ J. For an $M\\,8$, $\\log_{10}E \\approx 1.5(8)+4.8 = 16.8$, so $E \\approx 6.3\\times10^{16}$ J — a factor of $10^{3} = 1000$ larger, consistent with the rule. The same $1.5$ slope reappears in the **Hanks–Kanamori** moment-magnitude definition (the $\\tfrac{2}{3}$ coefficient is its reciprocal), because $E$ is roughly proportional to $M_0$. Together the Gutenberg–Richter frequency law and the energy-scaling law let seismologists forecast how often a region will shake, and how hard."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mag_1",
+        "kind": "multiple_choice",
+        "question": "Why did **Hanks and Kanamori (1979)** introduce **moment magnitude** $M_w$ to supplement the older amplitude-based scales such as $M_S$?",
+        "options": [
+          "Because $M_w$ is easier to read off a single seismogram than $M_S$.",
+          "Because amplitude-based magnitudes saturate for the largest earthquakes, whereas $M_w$ is derived from the seismic moment $M_0 = \\mu A D$ and so keeps increasing with true source size.",
+          "Because $M_w$ measures shaking at a site rather than the source.",
+          "Because $M_w$ is not logarithmic and so avoids large numbers."
+        ],
+        "correctIndex": 1,
+        "explanation": "Amplitude scales like $M_S$ and $m_b$ saturate: above a certain size the measured wave amplitude no longer grows with the source, so $M_S$ tops out near 8.3–8.5. Moment magnitude is computed from the seismic moment $M_0 = \\mu A D$, a direct physical measure of rupture area times slip times rigidity, so it does not saturate and remains valid for great earthquakes like Chile 1960 ($M_w$ 9.5). It is still logarithmic and is calibrated to match the older scales in their valid range."
+      },
+      "hints": [
+        "What happens to wave amplitude for the very largest earthquakes?",
+        "What physical quantity is $M_w$ built from?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Older magnitudes are based on the peak amplitude of a particular wave (20-second Rayleigh waves for $M_S$, teleseismic P for $m_b$). For very large earthquakes those amplitudes stop scaling with the true source size — the scales saturate ($M_S$ near 8.3–8.5, $m_b$ near 6.5). Hanks and Kanamori defined $M_w = \\tfrac{2}{3}\\log_{10}M_0 - 6.07$ from the seismic moment $M_0 = \\mu A D$, which measures rupture area times slip times rigidity directly. Because $M_0$ keeps growing with the rupture, $M_w$ does not saturate, while still matching the older scales where they are valid."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mag_1",
+        "kind": "math_expression",
+        "question": "Using $\\log_{10} E \\approx 1.5 M + 4.8$ (with $E$ in joules), by what factor does the radiated energy of an $M\\,8$ earthquake exceed that of an $M\\,6$ earthquake?",
+        "acceptedAnswers": [
+          "1000",
+          "10^3",
+          "1000x",
+          "1e3",
+          "about 1000"
+        ],
+        "hint": "The energy difference is $10^{1.5\\,\\Delta M}$ with $\\Delta M = 2$, i.e. $10^{3}$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mag_1",
+        "kind": "scenario",
+        "question": "Magnitude versus intensity in a real disaster.",
+        "prompt": "Two earthquakes occur in the same week. Earthquake A is $M_w\\,7.2$ at 120 km depth far offshore; earthquake B is $M_w\\,6.1$ at 8 km depth directly beneath a city built on a soft lake-bed basin. News reports note that earthquake B caused far more damage even though its magnitude was a full point smaller. Using the distinction between magnitude and Modified Mercalli intensity, and what you know about depth, distance, and site amplification (recall 1985 Mexico City), explain how the smaller-magnitude earthquake produced the higher intensities and greater damage."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mag_2",
+        "kind": "math_expression",
+        "question": "In a region the **Gutenberg–Richter** law $\\log_{10} N = a - bM$ holds with $b = 1.0$. If there are 100 earthquakes per year of magnitude $\\geq 4$, how many per year of magnitude $\\geq 6$ does the law predict?",
+        "acceptedAnswers": [
+          "1",
+          "1 per year",
+          "one"
+        ],
+        "hint": "With $b=1$, each magnitude unit cuts the count by a factor of 10; two units cuts it by 100."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mag_2",
+        "kind": "multiple_choice",
+        "question": "A $b$-value of about **1.0** in the Gutenberg–Richter law implies which statement?",
+        "options": [
+          "Earthquakes of all magnitudes are equally common.",
+          "For each unit increase in magnitude, earthquakes become roughly ten times less frequent.",
+          "Larger earthquakes are more frequent than smaller ones.",
+          "The total number of earthquakes is independent of magnitude."
+        ],
+        "correctIndex": 1,
+        "explanation": "With $\\log_{10}N = a - bM$ and $b \\approx 1$, increasing $M$ by one unit decreases $\\log_{10}N$ by one, i.e. divides $N$ by ten. So there are about ten times as many $M\\,5$ events as $M\\,6$, a hundred times as many $M\\,4$, and so on — the characteristic power-law (fractal) frequency–magnitude distribution of tectonic seismicity."
+      },
+      "hints": [
+        "Substitute $M$ and $M+1$ into $\\log_{10}N = a - bM$ and subtract.",
+        "A change of 1 in $\\log_{10}N$ is a factor of 10 in $N$."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "From $\\log_{10}N = a - bM$, going from magnitude $M$ to $M+1$ changes $\\log_{10}N$ by $-b$. With $b \\approx 1.0$ that is a change of $-1$ in the logarithm, i.e. $N$ is divided by $10$. Hence roughly ten times more $M\\,5$ than $M\\,6$ earthquakes, a hundred times more $M\\,4$, etc. This ten-fold-per-unit frequency falloff is the hallmark of the Gutenberg–Richter distribution and underpins seismic-hazard rate estimates."
+    }
+  ]
+}

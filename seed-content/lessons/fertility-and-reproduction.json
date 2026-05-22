@@ -1,0 +1,157 @@
+{
+  "slug": "fertility-and-reproduction",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Define + compute CBR, GFR, ASFR, TFR, PPR + distinguish cohort + period measures.",
+      "Apply Bongaarts proximate-determinants decomposition.",
+      "Survey theories of fertility decline (Caldwell, Becker, Easterlin, Cleland-Wilson, Lesthaeghe-Van de Kaa) + the lowest-low fertility cluster (Lutz, Kohler, Ortega)."
+    ],
+    "prereqs": [
+      "population-structure-and-pyramids"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Fertility measures: CBR + GFR + ASFR + TFR + PPR + cohort vs period",
+      "body": "Fertility ('natality') = the rate at which a population produces births. The discipline's vocabulary is layered, and distinguishing the levels is essential.\n\n**Crude birth rate (CBR)** = births / mid-year population × 1000. Easiest to compute; conflates fertility levels with age structure. World 2023 CBR ~17 per 1000; range Niger ~46 to Korea ~5.\n\n**General fertility rate (GFR)** = births / mid-year women aged 15-49 × 1000. Controls for the share of women of reproductive age — better than CBR for cross-country comparison.\n\n**Age-specific fertility rate (ASFR)** = births to women age $x$ / mid-year women age $x$ × 1000. The fundamental atomic measure; usually tabulated in 5-year age groups 15-19, 20-24, …, 45-49.\n\n**Total fertility rate (TFR)** = sum of ASFRs × age-group width = $\\sum_x \\mathrm{ASFR}_x \\cdot n$ (where $n$ is the age-group width in years). Interpreted as the *period* TFR: the number of births a synthetic cohort of women would have if they experienced the current period's ASFRs throughout their reproductive lives. The single most-quoted fertility statistic.\n- **Replacement level** TFR ≈ 2.1 (slightly above 2 because of female childhood mortality + the slight male bias in SRB).\n- World TFR (2023, UN WPP) ~2.25 + falling.\n- Range: Niger 6.7, Korea 0.78 (2022).\n\n**Net reproduction rate (NRR)** = expected number of *daughters* born to a synthetic cohort given current ASFRs + female survivorship. NRR = 1 ↔ exact replacement (each woman replaced by one daughter on average). NRR is more rigorous than 'TFR = 2.1' because it incorporates mortality.\n\n**Cohort vs period fertility**:\n- **Period TFR** = synthetic-cohort summary of *this year's* ASFRs. Affected by **tempo** distortions: if women postpone childbearing, fewer births fall in any given year + period TFR drops below cohort TFR. Reverse if women advance childbearing.\n- **Cohort fertility (completed fertility, CCF)** = average number of children born to women in a real birth cohort (e.g., women born 1970) by age 50. Only measurable retrospectively; the truer measure of generational reproduction.\n- **Bongaarts-Feeney 1998** tempo-adjusted TFR* corrects for changes in mean age at childbearing, recovering an estimate of what period TFR would be absent tempo shifts.\n- **Cohort-period divergence**: Italy's period TFR ~1.21, but cohort fertility for 1975 cohort ~1.45 — postponement inflates the gap.\n\n**Parity progression ratios (PPR)** $a_n$ = probability a woman with $n$ children proceeds to have an $(n+1)^{\\rm th}$ child. Decomposes TFR into transitions: $\\mathrm{TFR} = a_0 + a_0 a_1 + a_0 a_1 a_2 + \\dots$ . Useful for separating 'whether to have any children' from 'how many'.\n\n**Adolescent fertility rate** = births per 1000 women aged 15-19. Highest in sub-Saharan Africa + parts of Latin America; falling globally.\n\n**Total marital fertility rate (TMFR)**: ASFRs among married women only. In societies with low extramarital fertility, TMFR is the relevant biological maximum × proximate-determinants context.\n\n**Cohort-component projection** (lesson 6) uses ASFRs by age × period to project future births — the most sensitive lever in long-horizon projections."
+    },
+    {
+      "kind": "text",
+      "title": "Bongaarts proximate determinants + below-replacement fertility",
+      "body": "**Bongaarts proximate-determinants framework** — *Population and Development Review* (1978, 1982): only a small set of *proximate* variables directly affect fertility; all distal factors (income, education, urbanization, culture) must operate through them.\n\n**The Bongaarts decomposition**:\n$$\\mathrm{TFR} = TF \\times C_m \\times C_c \\times C_a \\times C_i$$\nwhere $TF$ is the **total fecundity** (biological maximum, ~15.3 absent contraception + abortion + breastfeeding); each $C$ is an *index* between 0 and 1 measuring the fertility-reducing effect of one proximate determinant:\n- $C_m$: **marriage / sexual exposure** — share of reproductive-age women in regular sexual unions weighted by age-specific exposure.\n- $C_c$: **contraception** — $C_c = 1 - 1.08 \\cdot u \\cdot e$, where $u$ is the proportion of women using contraception + $e$ is method-mix effectiveness.\n- $C_a$: **induced abortion** — reduces fertility relative to the no-abortion counterfactual.\n- $C_i$: **postpartum infecundability** — duration of lactational amenorrhea + abstinence + sterility; modeled $C_i = 20 / (18.5 + i)$ where $i$ is mean postpartum infecundable interval in months.\n\n**Decomposition example** — a hypothetical society with $TF = 15.3$, $C_m = 0.7$, $C_c = 0.3$, $C_a = 0.9$, $C_i = 0.6$:\n$\\mathrm{TFR} = 15.3 \\times 0.7 \\times 0.3 \\times 0.9 \\times 0.6 \\approx 1.7$.\nUseful for cross-country attribution: rising contraception drove most of the East Asian transition; rising age at marriage drove much of the South Asian transition; postpartum infecundability decline (with bottle-feeding) raised fertility in early-20th-century West before contraception offset.\n\n**Replacement-level fertility = 2.1** in low-mortality settings; can rise to ~2.5-3 in high-mortality settings (because more daughters must be born for one to survive to reproductive age). Lutz + Sanderson note this: 'replacement' is mortality-conditional.\n\n**Below-replacement fertility + the lowest-low cluster**:\n- ~50% of world population now lives in countries with TFR < 2.1 (UN WPP 2024).\n- **Lowest-low fertility** (Kohler + Billari + Ortega *Population and Development Review* 2002): TFR < 1.3. Countries reaching it: Italy (since 1992), Spain (1990), Korea (1998), Japan (briefly 2005), Singapore (since 2003), Hong Kong, Taiwan, Greece, Portugal, much of Eastern Europe. **Korea TFR = 0.78 (2022)**, lowest national TFR ever recorded.\n- **Lutz low-fertility trap hypothesis** (Lutz + Skirbekk + Testa *Vienna Yearbook of Population Research* 2006): once TFR < 1.5, three reinforcing mechanisms make recovery hard: (1) **demographic** — smaller cohorts of potential parents → fewer absolute births even at constant TFR; (2) **economic** — declining youth → labor scarcity + housing pressure + delayed family formation; (3) **sociological** — small-family norm becomes default + reduces ideal family size in successive cohorts.\n- Recovery cases: France TFR ~2.0 in 2010 (recently slipped to ~1.7); Sweden ~1.85 (slipped to ~1.5); Russia briefly recovered to ~1.78 with policy + 'maternity capital' (slipped back). Evidence for the trap is mixed but the persistence of low TFR is striking.\n\n**The 'fertility crisis' debate**:\n- Pronatalist view: aging + workforce shrinking → pension + growth + innovation costs (Goodhart + Pradhan *The Great Demographic Reversal* 2020).\n- Neutralist view: below-replacement is a stable + perhaps desirable transition feature; immigration + automation offset (Pearce *Peoplequake*; many demographers).\n- Environmentalist view: below-replacement helps with climate + biodiversity (cf. Wynes + Nicholas 2017 on per-capita emissions).\n\n**Mean age at first birth** has risen substantially in HICs:\n- Korea: ~32.5 (2022).\n- Italy: 31.5 (2022).\n- US: 27.5 (2022, up from ~21 in 1970).\n- Sub-Saharan Africa: ~21.\nDelayed first birth is the proximate engine of period-TFR decline via tempo distortion."
+    },
+    {
+      "kind": "text",
+      "title": "Theories of fertility transition: Caldwell + Becker + Easterlin + Cleland-Wilson + Lesthaeghe + Van de Kaa",
+      "body": "**Why does fertility decline?** No single theory wins; modern demography treats fertility transition as a multi-causal phenomenon with regional + temporal heterogeneity.\n\n**Cross-national patterns — Cleland + Wilson 1987** *Population Studies* 'Demand theories of the fertility transition: an iconoclastic view': WFS data (1972-1984) showed fertility transitions clustered in cultural + linguistic + religious zones more tightly than in development zones — onset of transition uncorrelated with crossing income thresholds. Catalyzed the **ideational + diffusion** turn; emphasized cultural transmission + media exposure + norm change over narrow economic incentives. Confirmed by **Princeton European Fertility Project** (Coale + Watkins 1986 *Decline of Fertility in Europe*): fertility decline in 19th-century Europe spread across cultural zones (French-speaking regions transitioned earlier than German-speaking regardless of industrialization).\n\n**Economic theories**:\n- **Gary Becker** (*Quarterly Journal of Economics* 1960; *Treatise on the Family* 1981) — **quantity-quality trade-off**: parents allocate scarce resources between number of children (quantity) + investment per child (quality); rising returns to schooling + female wages shift the optimum toward fewer + higher-quality children. Foundational for the New Home Economics; underpins modern microeconomic fertility models.\n- **Richard Easterlin** (*Birth and Fortune* 1980) — **relative income hypothesis**: fertility decisions reflect young couples' income *relative to their parents' standard of living*; small cohorts (born in low-fertility periods) face less labor-market competition + higher relative income → choose more children; large cohorts face more competition + lower relative income → fewer children. Predicts fertility cycles. Mixed empirical support.\n- **Becker-Lewis** (1973), **Mincer** (1963), **Galor + Weil** (2000) — quantity-quality + women's wages + unified growth theory.\n\n**Cultural + ideational theories**:\n- **John Caldwell** *Theory of Fertility Decline* (1982) — **wealth-flows reversal**: pre-transition wealth flows from children to parents (child labor + old-age support); mass schooling + Westernized nuclear-family norms reverse the flow → fertility falls. Emphasized education + media as engines.\n- **Lesthaeghe + Van de Kaa** — **second demographic transition** (Van de Kaa *Population Bulletin* 1987; Lesthaeghe *Population and Development Review* 1995, 2010): below-replacement fertility, cohabitation, delayed marriage, voluntary childlessness reflect **postmaterialist** values (Inglehart): self-fulfillment, autonomy, secularism, gender equity. Not purely economic; reflects a values shift.\n- **Coale's three preconditions** (Princeton European Fertility Project 1973): for fertility decline to start, (1) **fertility must be within the calculus of conscious choice** (ready); (2) **lower fertility must be advantageous** (willing); (3) **effective fertility-reducing means must be available** (able). The Ready-Willing-Able framework.\n\n**Modern syntheses + frontier work**:\n- **McDonald** (2000, 2013) — **gender-equity hypothesis**: lowest-low fertility persists where gender equity in *public* spheres (education, employment) outpaces equity in *private* spheres (housework, childcare). Italy + Korea + Japan canonical cases.\n- **Goldscheider + Bernhardt + Lappegård** (2015) — **gender revolution** in two halves: first (women enter public sphere) lowered fertility; second (men enter private sphere) may stabilize or raise it. Sweden + Norway furthest along.\n- **Kohler-Billari-Ortega** (2002) — lowest-low fertility as a sociological + economic equilibrium driven by labor-market precarity + intensive-parenting norms + housing costs.\n- **Bongaarts + Sobotka** — **tempo-adjusted TFR** + the role of postponement in driving period decline; suggests cohort TFR is more stable than period TFR.\n- **Wolfgang Lutz + Vegard Skirbekk** — education + human capital as a separate projection dimension; rising education systematically lowers fertility globally.\n\n**Field-level open questions**:\n- Why has sub-Saharan Africa's fertility decline lagged Asia + Latin America by 30-50 years (Bongaarts + Casterline 2013 *Population and Development Review* 'Fertility Transition: Is sub-Saharan Africa Different?')?\n- Does the Lutz low-fertility trap operate, or do family-friendly policies + cultural change recover fertility?\n- Will Korea's TFR ~0.78 stabilize, decline further, or rebound?\n- What is the long-run cohort TFR floor — 1.2? 1.5? 1.7?\n- How will climate + economic shocks affect fertility (Black + Adger; lesson 5)?\n\nFertility is the most consequential single demographic process for long-horizon projection (lesson 6): a 0.3 change in TFR shifts world population in 2100 by ~2 billion."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fert_bongaarts_1",
+        "kind": "guided_derivation",
+        "question": "Apply Bongaarts proximate-determinants decomposition to a fertility decline",
+        "goal": "Use $\\mathrm{TFR} = TF \\times C_m \\times C_c \\times C_a \\times C_i$ to attribute Bangladesh's TFR decline from 6.9 (1971) to 2.0 (2020) across proximate determinants.",
+        "steps": [
+          {
+            "prompt": "What is TF + why ~15 children?",
+            "motivation": "Biological maximum.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "total fecundity is the biological maximum about 15.3, observed in some Hutterite-like populations with no contraception, abortion, or breastfeeding"
+              ]
+            },
+            "hints": [
+              "Hutterite-like populations."
+            ],
+            "reveal": "$TF \\approx 15.3$: biological maximum observed in populations with high marriage rates + no contraception + no abortion + no extended breastfeeding (mid-20th-century Hutterites approached 12-13 because they did breastfeed). Bongaarts standardizes to $TF = 15.3$. All real TFRs lie far below this because the four $C$ indices each reduce realized fertility."
+          },
+          {
+            "prompt": "Bangladesh 1971: marriage near-universal ($C_m \\approx 0.85$), low contraception ($C_c \\approx 0.95$, ~5% use), low abortion ($C_a \\approx 0.95$), long breastfeeding ($C_i \\approx 0.55$). Compute predicted TFR.",
+            "motivation": "Apply the decomposition.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "6.5",
+                "6.4",
+                "15.3*0.85*0.95*0.95*0.55"
+              ]
+            },
+            "hints": [
+              "Multiply all five terms."
+            ],
+            "reveal": "$\\mathrm{TFR} = 15.3 \\times 0.85 \\times 0.95 \\times 0.95 \\times 0.55 \\approx 6.45$. Close to observed 6.9 (small residual reflects model approximations + sterility). The model says high TFR is sustained by (a) universal early marriage; (b) very limited contraception; (c) substantial breastfeeding partially offsets."
+          },
+          {
+            "prompt": "Bangladesh 2020: contraceptive prevalence ~62% so $C_c \\approx 0.40$; marriage delayed so $C_m \\approx 0.65$; abortion stable $C_a \\approx 0.95$; less breastfeeding $C_i \\approx 0.70$. Compute predicted TFR.",
+            "motivation": "Recompute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2.6",
+                "2.7",
+                "15.3*0.65*0.4*0.95*0.7"
+              ]
+            },
+            "hints": [
+              "Big change in $C_c$."
+            ],
+            "reveal": "$\\mathrm{TFR} = 15.3 \\times 0.65 \\times 0.40 \\times 0.95 \\times 0.70 \\approx 2.65$. Slightly above the observed ~2.0; sub-replacement requires further $C_c$ + $C_m$ reductions or additional fertility postponement. Decomposition attribution: contraception ($C_c$ from 0.95 → 0.40) explains the bulk; delayed marriage ($C_m$ from 0.85 → 0.65) adds; reduced breastfeeding ($C_i$ from 0.55 → 0.70) *raises* fertility, partially offsetting."
+          },
+          {
+            "prompt": "What does this decomposition tell us causally vs. mechanically?",
+            "motivation": "Limits of the model.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "decomposition is mechanical: it attributes proximate but not distal causes; we still need theories of why contraception adoption rose"
+              ]
+            },
+            "hints": [
+              "Proximate vs distal."
+            ],
+            "reveal": "The decomposition is **mechanical, not causal**. It tells us *how* TFR fell (rising contraception + delayed marriage); it doesn't tell us *why* contraception rose. That requires theories: Caldwell (wealth-flows reversal via mass schooling), Becker (quantity-quality, rising female wages), Cleland-Wilson (ideational diffusion + Matlab-style family-planning programs), Lesthaeghe (postmaterialist values). Bangladesh's case is often cited as Cleland-Wilson + Matlab triumph: rapid contraceptive adoption + female-schooling expansion + intensive NGO programs (BRAC, Grameen) delivered fertility decline well before income thresholds expected."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fert_1",
+        "kind": "multiple_choice",
+        "question": "Why did Kohler + Billari + Ortega (2002) introduce the term *lowest-low fertility* + why does it matter?",
+        "options": [
+          "Random.",
+          "Kohler, Billari + Ortega (*Population and Development Review* 2002) coined **lowest-low fertility** for TFR below 1.3 — a threshold that had never been observed for a sustained period in any national population before the 1990s. Their paper documented that ~50% of the European population (and Japan + later Korea + Singapore + much of East Asia) had crossed it. Importance: (1) marks a qualitative regime change — at TFR < 1.3, each generation is ~40% smaller than the last, with rapid + irreversible aging; (2) raises the question of the **Lutz low-fertility trap** — whether self-reinforcing demographic + economic + sociological feedbacks make recovery impossible; (3) catalyzed comparative + cross-national research on the sociology + economics of family formation under labor-market precarity + intensive parenting + gender-inequity in unpaid work (McDonald 2000, 2013); (4) reshaped long-horizon UN WPP projections — assumed recovery toward replacement was rejected as default. Korea's 0.78 (2022) is the lowest national TFR ever recorded.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Kohler + Billari + Ortega (2002) defined lowest-low fertility as TFR < 1.3 — a then-unprecedented threshold reached by Italy, Spain, Korea, Japan, etc. Marks qualitative regime change (40% generational shrinkage), raises Lutz low-fertility-trap question, and catalyzed McDonald gender-equity theory + Lesthaeghe SDT integration. Korea TFR 0.78 (2022) is the all-time national low."
+      },
+      "hints": [
+        "What threshold + countries?",
+        "Why is it a regime change?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Lowest-low fertility = TFR < 1.3 (Kohler-Billari-Ortega 2002). Crossed by Italy, Spain, Korea, Japan, Singapore. Each generation 40% smaller; raises Lutz low-fertility-trap question; drove McDonald gender-equity + Lesthaeghe SDT theory. Korea 0.78 (2022) is the all-time low."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fert_1",
+        "kind": "scenario",
+        "question": "Reasoning about Spain's TFR collapse",
+        "prompt": "Spain's TFR fell from 2.8 (1975) to 1.13 (1996), recovered modestly to 1.40 (2008), then declined again to 1.16 (2022). In ≤200 words, write a diagnostic note covering: (a) which **Bongaarts proximate determinant** carries most of the 1975-1996 fall (cite the trajectory of contraceptive prevalence + age at first birth); (b) whether **Caldwell**, **Becker**, **Lesthaeghe-Van de Kaa**, or **McDonald** best explains the *persistence* below 1.5; (c) what the 2008-2022 second decline indicates about the **Lutz low-fertility trap**; (d) two empirical patterns you would test in INE microdata + EVS / GGS surveys to discriminate among theories. Note the 2008 financial crisis + Spanish youth unemployment as part of context."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fert_1",
+        "kind": "math_expression",
+        "question": "A country reports ASFRs (per 1000 women) by 5-year age group: 15-19 = 20, 20-24 = 80, 25-29 = 120, 30-34 = 90, 35-39 = 40, 40-44 = 10, 45-49 = 0. Compute TFR.",
+        "acceptedAnswers": [
+          "1.80",
+          "1.8",
+          "(20+80+120+90+40+10+0)*5/1000"
+        ],
+        "hint": "TFR = $\\sum_x \\mathrm{ASFR}_x \\times n / 1000$ with $n=5$. Sum ASFRs $= 360$; $\\times 5 / 1000 = 1.80$. Sub-replacement; typical post-transition pattern with childbearing concentrated at ages 25-34."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fert_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, explain the layered vocabulary of fertility measures + the central theoretical debates. Cover CBR / GFR / ASFR / TFR / NRR / PPR; cohort vs period; Bongaarts proximate determinants; replacement level; lowest-low fertility; and the Caldwell, Becker, Easterlin, Cleland-Wilson, Lesthaeghe / Van de Kaa traditions.",
+        "rubric": "Mentions: hierarchy CBR (births / pop, crude) → GFR (births / women 15-49) → ASFR (births / women age $x$) → TFR (sum of ASFRs × age-group width, synthetic cohort) → NRR (daughters per woman with survivorship). Cohort fertility = completed fertility for real birth cohort; period TFR subject to tempo distortion (Bongaarts-Feeney 1998). PPR = parity progression. Bongaarts proximate determinants $\\mathrm{TFR} = TF \\times C_m \\times C_c \\times C_a \\times C_i$ — marriage + contraception + abortion + lactational amenorrhea. Replacement level ~2.1 (mortality-conditional). Lowest-low (Kohler-Billari-Ortega 2002) TFR < 1.3; Korea 0.78. Theories: Caldwell wealth-flows; Becker quantity-quality; Easterlin relative income; Cleland-Wilson ideational diffusion (Princeton European Fertility Project); Lesthaeghe + Van de Kaa SDT postmaterialist values; McDonald gender equity; Lutz low-fertility trap. Concludes: fertility is multi-causal, regionally heterogeneous, and the single most sensitive lever in long-horizon projection."
+      }
+    }
+  ]
+}

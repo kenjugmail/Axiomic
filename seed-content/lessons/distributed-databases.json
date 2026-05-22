@@ -1,0 +1,170 @@
+{
+  "slug": "distributed-databases",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Trace the NoSQL revolution from Dynamo + BigTable.",
+      "Compare NewSQL designs (Spanner, CockroachDB, Yugabyte, TiDB).",
+      "Apply sharding + consistent hashing + Maglev + jump hash."
+    ],
+    "prereqs": [
+      "replication-and-quorums"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The NoSQL revolution: Dynamo, BigTable, and the systems they spawned",
+      "body": "**The NoSQL movement** (2007-2012) emerged from two grand papers + the limits of vertical-scaling relational DBs at internet companies. Stonebraker (2010 'SQL Databases v. NoSQL') was a vocal critic — arguing the field was sacrificing too much ACID for scale + that better ACID-scalable RDBMSes (eventually NewSQL) were possible. He was largely right; the pendulum swung back.\n\n**Amazon Dynamo** (DeCandia, Hastorun, Jampani, Kakulapati, Lakshman, Pilchin, Sivasubramanian, Vosshall, Vogels 2007 SOSP, 'Dynamo: Amazon's Highly Available Key-value Store'). Designed for Amazon's shopping cart: always-writable, partition-tolerant, eventually consistent. Key contributions:\n- **Consistent hashing** (Karger 1997) to distribute keys.\n- **Replication factor N** + **quorum (R, W)** tunable per request.\n- **Vector clocks** for conflict detection.\n- **Sloppy quorums + hinted handoff** for availability.\n- **Merkle trees** for anti-entropy.\n- **Gossip-based** membership.\n- **Read repair** on conflicts.\nWerner Vogels championed 'eventually consistent'; the paper directly inspired Cassandra, Riak, Voldemort, Project-Voldemort. **DynamoDB** (2012) is the managed cloud descendant.\n\n**Google BigTable** (Chang, Dean, Ghemawat, Hsieh, Wallach, Burrows, Chandra, Fikes, Gruber 2006 OSDI, 'Bigtable: A Distributed Storage System for Structured Data'). Sparse, distributed, persistent multidimensional sorted map: `(row, column, timestamp) → value`. Built on **GFS** (Google File System, 2003) + **Chubby** (Burrows 2006). Inspired:\n- **HBase** (Apache) — open-source BigTable clone on HDFS.\n- **Cassandra** (Lakshman + Malik 2008 LADIS, originally Facebook) — combines BigTable column model + Dynamo replication.\n- **Hypertable**, **Accumulo**.\n\n**Other major NoSQL systems**:\n- **MongoDB** (2009): document store, BSON, replica sets, sharded; popular for app development; sometimes criticized for default consistency choices (improved in v4+ with transactions).\n- **Redis** (Salvatore Sanfilippo 2009): in-memory key-value, data structures (lists, sets, sorted sets, streams, HLL). Single-process but distributed via Cluster + Sentinel + Active-Active CRDT in Enterprise.\n- **Cassandra**: write-heavy, geo-distributed, log-structured storage (LSM tree).\n- **Riak** (Basho 2009): Dynamo-style with CRDTs.\n- **CouchDB / PouchDB**: document store, multi-master, MVCC, JSON over HTTP.\n- **Neo4j**: graph database (separate genealogy).\n- **Elasticsearch**: search-oriented; eventual consistency.\n\n**Why NoSQL?**\n- Horizontal scale beyond what a single RDBMS could deliver in 2007.\n- Schema flexibility for evolving web apps.\n- Lower operational complexity per node.\n- Eventually consistent + AP for high availability.\n\n**Stonebraker's critique** (2010): NoSQL traded ACID + structured query for scale that was achievable in an ACID system. The community largely agreed by ~2015 → **NewSQL** systems."
+    },
+    {
+      "kind": "text",
+      "title": "NewSQL: Spanner, CockroachDB, YugabyteDB, TiDB, FoundationDB",
+      "body": "**NewSQL** = ACID + SQL + horizontal scale + (often) global distribution. Pat Helland's 'Life Beyond Distributed Transactions' (2007) anticipated; Stonebraker's 2010 critique demanded.\n\n**Google Spanner** (Corbett et al. 2012 OSDI, 'Spanner: Google's Globally-Distributed Database'): the seminal NewSQL paper. Built on:\n- **TrueTime** (GPS + atomic clocks per datacenter → bounded uncertainty interval ⟨earliest, latest⟩, ε ~1-7 ms).\n- **Paxos groups** per shard (replication).\n- **Two-phase commit** across Paxos groups for cross-shard transactions.\n- **MVCC** with TrueTime timestamps.\n- **Commit-wait** for external consistency: waits 2ε before reporting commit.\n- **Schematized SQL** layer added in F1 (Shute et al. 2013).\n\nSpanner runs Google's AdWords + production systems at exabyte scale, globally distributed, strict serializable. The TrueTime hardware investment + Paxos-everywhere expense made it Google-internal for years. Available externally as **Cloud Spanner** since 2017.\n\n**F1** (Shute et al. 2013): SQL layer on Spanner used by AdWords; introduced declarative storage hierarchies, columnar storage extensions.\n\n**CockroachDB** (Cockroach Labs, founded 2015 by ex-Googlers Spencer Kimball, Peter Mattis, Ben Darnell): open-source Spanner-style. Uses **HLC (hybrid logical clocks)** instead of TrueTime → no special hardware. Multi-Raft (one Raft group per range), MVCC, distributed transactions via 2PC + parallel commits + atomic clocks NOT required. Postgres wire-compatible. Powers many financial + SaaS startups.\n\n**YugabyteDB** (Yugabyte, founded 2016 by ex-Facebook Cassandra leads): Postgres-compatible YSQL + Cassandra-compatible YCQL. Storage based on **DocDB** (sharded, replicated via Raft, RocksDB-backed). Also uses HLC; integrates with K8s well.\n\n**TiDB / TiKV** (PingCAP, 2015-): Spanner + F1-inspired. **TiKV** is the Rust-based key-value layer (Raft + HLC + MVCC); **TiDB** is the SQL layer; **TiFlash** is the columnar HTAP analytic engine. MySQL-compatible. Used by ByteDance, Square, JD.com.\n\n**FoundationDB** (Apple acquired 2015): transactional ordered key-value, strict serializable. Famous for its **simulation testing framework** (deterministic simulation finds bugs that production rarely reveals — see 'Examining the Apple's FoundationDB Talk', Snowflake, iCloud). Used as foundation for Snowflake's metadata + Apple's iCloud.\n\n**VoltDB** (Stonebraker 2010+) — in-memory shared-nothing OLTP; uses single-threaded partitions + ACID. Direct realization of Stonebraker's NewSQL vision.\n\n**Aurora + ScalarDB + RonDB + others**: cloud-native variants of the NewSQL theme.\n\n**Common NewSQL ingredients**:\n- **Consensus per shard** (Paxos or Raft) for replication.\n- **MVCC** for snapshot reads + serializable concurrency.\n- **HLC or TrueTime** for global timestamps + external consistency.\n- **2PC or parallel-commit** for cross-shard transactions.\n- **Range-based sharding** with online rebalancing.\n- **SQL + Postgres or MySQL wire compatibility**.\n\n**Global transactions + TrueTime**: Spanner's killer feature. CockroachDB approximates via HLC + retries on uncertainty; works without dedicated hardware. The cost of strong global consistency is commit latency proportional to clock uncertainty + 2PC round-trips.\n\n**HTAP (Hybrid Transactional/Analytical Processing)**: TiDB, SingleStore, Apache Doris, Greenplum offer mixed OLTP + OLAP on the same system, often via column stores layered onto the row engine."
+    },
+    {
+      "kind": "text",
+      "title": "Sharding + partitioning: hash, range, consistent hashing, Maglev, jump hash",
+      "body": "**Sharding (horizontal partitioning)** splits a logical dataset across nodes. Two basic schemes:\n\n**Range partitioning**: contiguous key ranges → shards. Good for range scans + ordered iteration. Risk: hot ranges (sequential writes); requires monitoring + split/merge.\n- Used by HBase, BigTable, Spanner, CockroachDB, YugabyteDB, TiKV.\n- Automatic splits when range size exceeds threshold (~64-512 MB).\n\n**Hash partitioning**: shard = hash(key) mod N (or via consistent hashing). Even distribution, no range scans.\n- Used by Cassandra, DynamoDB, Riak.\n- **Consistent hashing** (Karger, Lehman, Leighton, Levine, Lewin, Panigrahy 1997, 'Consistent Hashing + Random Trees' STOC) replaces mod-N to minimize churn on resize.\n\n**Consistent hashing**: place nodes + keys on a circle (hash space [0, 2^k)); key owned by next clockwise node. Adding/removing a node moves only 1/N keys (vs all keys with mod-N).\n- **Virtual nodes (vnodes)** spread one physical node across many points → balances load.\n- Used by Dynamo, Cassandra, Memcached client libs (libketama), Riak.\n\n**Maglev** (Eisenbud et al. 2016, Google NSDI 'Maglev: A Fast and Reliable Software Network Load Balancer'): consistent-hashing load balancer for network traffic. Uses a permutation table + offset to compute target backend in O(1) lookups. Minimal disruption (≈ 1/M entries change on a backend join/leave). Used in Google's external load balancing tier; design influenced Cilium + Katran + IPVS extensions.\n\n**Jump consistent hash** (Lamping + Veach 2014, Google, 'A Fast, Minimal Memory, Consistent Hash Algorithm'): hash key into bucket [0, N) using a closed-form jump algorithm. No memory state; constant memory; O(log N) per lookup. Used by databases for shard assignment when shards are numbered + don't have arbitrary node identities.\n\n**Rendezvous hashing (HRW, Thaler-Ravishankar 1998)**: hash key with each node; pick max. Equally good as consistent hashing for minimal disruption + simpler conceptually.\n\n**Re-sharding + rebalancing**:\n- **Online** (CockroachDB, Spanner, TiKV, MongoDB sharding): split ranges, migrate replicas to new nodes without downtime via Raft re-replication.\n- **Hot-spot detection**: split high-traffic ranges; merge low-traffic.\n- **Manual** (older systems): planned migration with maintenance windows.\n\n**Citus** (now Microsoft Citus for Postgres): sharding extension for PostgreSQL — distributes tables by hash key across worker nodes; SQL + foreign tables route queries. Used for analytics on multi-tenant SaaS.\n\n**Vitess** (YouTube origin, now CNCF): sharding middleware for MySQL — manages hundreds of MySQL instances behind a single logical schema. Used by YouTube, Slack, GitHub, Square, JD.com. Handles online resharding + tablet management.\n\n**Maglev + Katran + ECMP + Anycast**: production load-balancing stacks. Cloudflare + Google + Facebook each have their own variants.\n\n**Sharding tradeoffs**:\n- **Cross-shard transactions** are slow (2PC) — minimize them in design.\n- **Secondary indexes** across shards either co-located, distributed, or kept eventually consistent.\n- **Foreign keys** + joins across shards must be planned (denormalize, or use co-location).\n- **Hot keys**: even consistent hashing struggles with skewed access patterns (Bieber-effect tweets); add random suffix or salt.\n\n**Multi-tenant sharding**:\n- **One DB per tenant**: maximum isolation, hard to operate at scale.\n- **Shared DB, shared schema** with tenant_id column: efficient but harder noisy-neighbor isolation.\n- **Shared DB, per-tenant schema** (Postgres schemas): middle ground.\n- **Sharded by tenant_id** with affinity routing: scales well; used by Citus + Salesforce."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_db_1",
+        "kind": "guided_derivation",
+        "question": "Pick a distributed database for three workloads",
+        "goal": "Three workloads: (A) global financial ledger (strict serializability + multi-region); (B) social media feed (write-heavy, eventual OK); (C) multi-tenant SaaS analytics (per-tenant SQL).",
+        "steps": [
+          {
+            "prompt": "(A) Financial ledger — which database family + why?",
+            "motivation": "Strict serializability globally.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Spanner or CockroachDB (NewSQL with TrueTime/HLC + Paxos/Raft + 2PC)"
+              ]
+            },
+            "hints": [
+              "NewSQL family."
+            ],
+            "reveal": "**Spanner** (Corbett 2012) or **CockroachDB**. Both offer **strict serializability** via consensus-per-shard + cross-shard 2PC. Spanner uses TrueTime + commit-wait for external consistency; CockroachDB uses HLC + retries. YugabyteDB is a Postgres-compatible alternative. Acceptable latency cost: ~10-100 ms per transaction for the strong guarantees."
+          },
+          {
+            "prompt": "(B) Social feed — which family + replication topology?",
+            "motivation": "Write-heavy + AP.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Cassandra or DynamoDB (Dynamo-style leaderless quorum + eventual consistency)"
+              ]
+            },
+            "hints": [
+              "Leaderless quorum."
+            ],
+            "reveal": "**Cassandra**, **ScyllaDB**, or **DynamoDB**. Leaderless quorum-replicated; LSM-tree storage absorbs writes efficiently; consistent hashing + virtual nodes balance load. Tune R/W per query. Use Cassandra Counters or CRDT-friendly patterns for like-counts; consider Redis caches for hot feeds. Scales to billions of events/day (Discord moved to ScyllaDB famously)."
+          },
+          {
+            "prompt": "(C) Multi-tenant SaaS analytics — which option?",
+            "motivation": "SQL + multi-tenancy.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Citus (Postgres sharding) or TiDB or Spanner with per-tenant schema"
+              ]
+            },
+            "hints": [
+              "Sharded Postgres or HTAP."
+            ],
+            "reveal": "**Citus** (sharded Postgres by tenant_id), **TiDB** with TiFlash for OLAP queries, or **YugabyteDB**. Citus is ideal when the workload is Postgres-native + tenants are the natural shard key. For mixed OLTP+OLAP, TiDB's HTAP design separates row (TiKV) + columnar (TiFlash). For very heavy analytics, separate an OLAP store (Snowflake, ClickHouse, BigQuery, Databricks) fed via CDC."
+          },
+          {
+            "prompt": "What hashing strategy will Cassandra/Dynamo use for (B) + why?",
+            "motivation": "Consistent hashing rationale.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "consistent hashing with virtual nodes (Karger 1997); minimizes key movement on cluster changes"
+              ]
+            },
+            "hints": [
+              "Karger 1997."
+            ],
+            "reveal": "**Consistent hashing** (Karger et al. 1997) with **virtual nodes** (256 per physical node typical). Adding/removing a node moves ~1/N of keys instead of all — critical for elastic scaling without downtime. Vnodes spread load evenly even with heterogeneous machines. Maglev (Google 2016) + jump hash (Lamping-Veach 2014) are related techniques used elsewhere in the stack (load balancers, shard selection)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_db_1",
+        "kind": "multiple_choice",
+        "question": "Why did NewSQL systems (Spanner, CockroachDB, YugabyteDB, TiDB) reclaim ACID + SQL after the NoSQL wave?",
+        "options": [
+          "Random.",
+          "Stonebraker's 2010 critique ('SQL Databases v. NoSQL') argued NoSQL sacrificed ACID + structured query for scale that was achievable with proper engineering. Helland's 'Life Beyond Distributed Transactions' (2007) anticipated reconciling the two. **Spanner** (Corbett et al. 2012) proved global ACID + SQL + horizontal scale possible using **TrueTime** (GPS + atomic clocks) + **Paxos per shard** + **2PC across shards**. **CockroachDB** (Kimball, Mattis, Darnell 2015+) showed it can be done without special hardware using **HLC** + **Multi-Raft**. **YugabyteDB** + **TiDB** + **FoundationDB** + **Cloud Spanner** broadened access. Why developers care: SQL ergonomics, ACID safety, joins + secondary indexes, Postgres/MySQL compatibility, transactional invariants (no double-spend, balance ≥ 0). The pendulum bent back — the future is 'strong by default, weaker by choice' (CockroachDB, Spanner) rather than 'eventually consistent everywhere'.",
+          "NoSQL was fake.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Stonebraker (2010), Helland (2007), Spanner (2012) drove the NewSQL wave. Achieved global ACID + SQL + horizontal scale via TrueTime + HLC + Paxos/Raft + 2PC. Developers want SQL + ACID + scale; CockroachDB + Yugabyte + TiDB + Spanner deliver."
+      },
+      "hints": [
+        "Stonebraker, Helland, Spanner.",
+        "What did NewSQL prove was achievable?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "NewSQL reclaimed ACID + SQL + scale. Driven by Stonebraker critique + Helland + Spanner paper. Uses TrueTime/HLC + Paxos/Raft + 2PC. Cockroach, Yugabyte, TiDB, Spanner deliver."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_db_1",
+        "kind": "scenario",
+        "question": "A multi-tenant SaaS sees a 'hot tenant' producing 100x average traffic. Cassandra-style consistent hashing distributes by tenant_id. What's wrong + how to fix?",
+        "options": [
+          "Consistent hashing distributes evenly **across keys**, but if one tenant_id has 100x traffic, that shard is hot regardless. Fix: **salt the partition key** (e.g., tenant_id + random bucket 0-99) to fan out one tenant across shards; or **split-by-time** for time-series tenant data; or co-locate hot tenant in a dedicated shard with extra resources.",
+          "Add more nodes.",
+          "Switch to range partitioning.",
+          "Random."
+        ],
+        "correctIndex": 0,
+        "explanation": "Consistent hashing evenly distributes **distinct** keys but cannot help when one key (tenant_id) has skewed access. Fix patterns: **salted partition key** (tenant_id + bucket) + scatter-gather on read; **per-tenant time-bucketed partitions** for time-series; **isolated shard** for the heaviest tenant with more capacity; or move to **range partitioning + automatic hot-range splits** (Spanner, CockroachDB). Monitoring + adaptive routing (e.g., Cassandra dynamic snitch) help. Salesforce + Stripe famously co-locate heaviest tenants on bigger nodes."
+      },
+      "hints": [
+        "Hot key.",
+        "Salt the partition key."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Hot tenant = hot shard despite consistent hashing. Fix: salt partition key with bucket; time-bucket; isolated shard for hot tenant; or auto-split ranges (CockroachDB, Spanner)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_db_1",
+        "kind": "math_expression",
+        "question": "With consistent hashing + N nodes, what fraction of keys must move when one node joins or leaves?",
+        "acceptedAnswers": [
+          "1/N",
+          "1/(N+1)",
+          "≈ 1/N"
+        ],
+        "hints": [
+          "Karger 1997.",
+          "Compare to mod-N which moves all keys."
+        ],
+        "explanation": "Consistent hashing (Karger 1997): only the keys belonging to the joining/leaving node — about **1/N** of total keys — change ownership. Mod-N hashing would shuffle nearly all keys. With virtual nodes (vnodes), the movement is even more balanced + finer-grained. Maglev (Google 2016) achieves ≈ 1/M perturbation where M is the permutation table size (~65k). Jump hash (Lamping-Veach 2014) similarly minimizes movement. This minimal-disruption property is why every elastic distributed cache + database + load balancer uses consistent hashing."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_db_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, sketch the evolution from RDBMS → NoSQL → NewSQL + when to pick each today.",
+        "rubric": "Mentions: RDBMS (Codd 1970; Stonebraker's Ingres + Postgres; Oracle; SQL Server; MySQL; Postgres) — strong ACID + SQL, hard to scale horizontally pre-2010. **NoSQL** (Dynamo 2007 Vogels + DeCandia; BigTable 2006 Chang et al.; Cassandra 2008 Lakshman; MongoDB 2009; Redis 2009; DynamoDB 2012) — horizontal scale + flexible schema + AP/eventual consistency; great for write-heavy + flexible-schema apps but lacks ACID + joins. Stonebraker (2010) criticized the tradeoff. **NewSQL** (Spanner 2012 Corbett; F1 2013; CockroachDB 2015 Kimball-Mattis-Darnell; YugabyteDB 2016; TiDB; FoundationDB; VoltDB) — restored ACID + SQL + global distribution via TrueTime/HLC + Paxos/Raft per shard + 2PC. Picks today: NewSQL for OLTP needing ACID + scale; NoSQL for very-write-heavy + eventual OK; OLAP store (Snowflake/ClickHouse/BigQuery) for analytics; Postgres + read replicas for many midsize apps. Best-of-breed stacks combine: NewSQL OLTP + CDC → OLAP + cache + search."
+      }
+    }
+  ]
+}

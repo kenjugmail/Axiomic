@@ -15,6 +15,8 @@
     {
       "kind": "text",
       "title": "Sync vs async vs semi-sync",
+      "viz": "quorum-replication",
+      "vizProps": {},
       "body": "**Synchronous replication**: the leader doesn't acknowledge a write to the client until $W$ followers have it. Guarantees: no data loss if $\\leq f$ nodes fail. Cost: client-perceived write latency includes the slowest replica's round-trip.\n\n**Asynchronous replication**: the leader acknowledges the write immediately, replicates in the background. Fast for the client; if the leader fails before replication catches up, that data is lost. The standard Postgres / MySQL default for many years.\n\n**Semi-synchronous**: acknowledge after at least one (or a configurable count) replica has the write. A middle ground. MySQL Group Replication and most modern primary-replica setups use this.\n\n**Modern default**: consensus-based replication (Raft, MultiPaxos) commits on majority, which is effectively synchronous to a quorum. CockroachDB, TiDB, Spanner all work this way. Async-only replication has fallen out of favor for any data where loss is unacceptable.\n\nLatency arithmetic: cross-region async replication ~100-200ms; cross-region sync-to-quorum ~150-300ms. For globally-distributed strongly-consistent systems, this latency is the dominant cost of consistency."
     },
     {

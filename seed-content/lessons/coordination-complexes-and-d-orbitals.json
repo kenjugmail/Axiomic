@@ -1,0 +1,159 @@
+{
+  "slug": "coordination-complexes-and-d-orbitals",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply Werner coordination theory + denticity + chelate effect to predict complex geometries.",
+      "Use Crystal-Field Theory to compute Δ_oct, CFSE, and high-spin vs low-spin splitting.",
+      "Distinguish geometric, optical, linkage, and ionization isomerism + apply Ligand-Field Theory + spectrochemical series."
+    ],
+    "prereqs": [
+      "inorganic-foundations-and-periodicity"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Werner + coordination + denticity + chelate effect + geometries",
+      "body": "**Alfred Werner (1893; Nobel 1913)**: founded coordination chemistry. Studied 'molecular compounds' like CoCl₃·6NH₃, CoCl₃·5NH₃, CoCl₃·4NH₃ — different colors, different conductivities. Werner's insight: each metal has a **primary valence** (oxidation state) and a **secondary valence** (coordination number) — the latter dictates geometry. The cobalt complex [Co(NH₃)₆]Cl₃ has 6 NH₃ at the inner sphere, octahedrally arranged, with 3 Cl⁻ outside as counterions (conductivity 4 ions). [Co(NH₃)₅Cl]Cl₂ has 5 NH₃ + 1 Cl⁻ in the inner sphere, 2 Cl⁻ outside (conductivity 3 ions). [Co(NH₃)₄Cl₂]Cl: 2 inner Cl⁻, 1 outer (2 ions, plus cis/trans isomerism). Werner predicted optical isomerism in tris-bidentate complexes years before he could resolve them; later resolved Co(en)₃³⁺ to definitively prove octahedral geometry.\n\n**Modern terminology**:\n- **Coordination compound (complex)**: central metal (Lewis acid) + ligands (Lewis bases) forming a defined geometry.\n- **Coordination number (CN)**: number of donor atoms directly bonded to the metal.\n- **Ligand**: ion or molecule donating electron pair(s).\n- **Denticity**: number of donor atoms per ligand (monodentate, bidentate, tridentate, ..., polydentate).\n- **Chelate**: bidentate or higher ligand forming a ring with the metal.\n- **Macrocycle**: ring-shaped polydentate ligand (porphyrin, crown ether, calixarene).\n\n**Common ligands by denticity**:\n- Monodentate: H₂O, NH₃, OH⁻, Cl⁻, Br⁻, I⁻, CN⁻, NO₂⁻, CO, NCS⁻.\n- Bidentate: ethylenediamine (en), oxalate (ox²⁻), acetylacetonate (acac⁻), bipyridine (bpy), 1,10-phenanthroline (phen).\n- Tridentate: terpyridine (terpy), iminodiacetate (IDA).\n- Tetradentate: porphyrins, salen, EDTA-like (also hex).\n- Hexadentate: **EDTA⁴⁻** (ethylenediaminetetraacetate) — the workhorse complexometric titration ligand.\n- Macrocyclic: crown ethers (size-selective Na⁺/K⁺ binding; Pedersen-Cram-Lehn Nobel 1987), cryptands, porphyrins (heme, chlorophyll, cobalamin).\n\n**Chelate effect**: a polydentate ligand forms a more stable complex than the same number of donor atoms from monodentate ligands.\n- $[Ni(en)_3]^{2+}$ has log K ≈ 18; $[Ni(NH_3)_6]^{2+}$ has log K ≈ 9. Same N₆ donor set; chelate gains ~10⁹ in stability.\n- **Thermodynamic origin**: ΔS_chelation > 0 (one polydentate ligand + 6 H₂O → complex + 6 H₂O = no net change; while 6 monodentate + 6 H₂O → complex + 6 H₂O = also no net but 7 → 7 particles vs. 1 polydentate + 6 H₂O → 1 complex + 6 H₂O = 7 → 7 particles too; actually the entropy gain is subtle and depends on definition — but the empirical effect is enormous).\n- **Macrocyclic effect**: even larger stability for preorganized macrocycles — porphyrin-Fe (heme) extraordinary stability.\n- Industrial: EDTA in water treatment, food preservation, cosmetics; gadolinium-DTPA MRI contrast; chelation therapy (Pb, Hg, Fe overload).\n\n**Coordination numbers + geometries**:\n- CN 2: linear (Cu(I), Ag(I), Au(I), Hg(II)). [Ag(NH₃)₂]⁺.\n- CN 4: tetrahedral (Zn(II), Cd(II), small/early d⁰) or square planar (d⁸: Ni(II), Pd(II), Pt(II), Rh(I), Ir(I)). [Ni(CN)₄]²⁻ is square planar; [NiCl₄]²⁻ is tetrahedral (ligand-field effects).\n- CN 5: trigonal bipyramidal or square pyramidal (Berry pseudorotation interconverts).\n- CN 6: **octahedral** — by far the most common for first-row transition metals.\n- CN 7-12: lanthanides + actinides; large radii allow more ligands.\n- **Ferrocene + sandwich** (Kealy + Pauson 1951; Fischer + Wilkinson Nobel 1973): two η⁵-Cp ligands bind Fe in a sandwich → coordination number ~10 if each Cp is counted as 3 donor sites."
+    },
+    {
+      "kind": "text",
+      "title": "Crystal-Field Theory: Δ_oct, Δ_tet, CFSE, Jahn-Teller",
+      "body": "**Crystal-Field Theory (CFT)** (Bethe 1929; Van Vleck 1932): treats ligands as point negative charges. The 5 degenerate d orbitals of a free metal ion split when surrounded by ligands due to **electrostatic repulsion** with ligand lone pairs.\n\n**Octahedral field**: 6 ligands along ±x, ±y, ±z axes.\n- $d_{z^2}$ + $d_{x^2-y^2}$ point AT ligands → high energy → **e_g** set (degenerate).\n- $d_{xy}$ + $d_{xz}$ + $d_{yz}$ point BETWEEN ligands → low energy → **t_{2g}** set (degenerate).\n- Energy gap: **Δ_oct** (also Δ₀ or 10Dq).\n- $t_{2g}$ lowered by 0.4·Δ_oct = -4Dq; $e_g$ raised by 0.6·Δ_oct = +6Dq (center-of-gravity preserved).\n\n**Tetrahedral field**: 4 ligands at alternate corners of a cube.\n- $d_{xy} + d_{xz} + d_{yz}$ point AT ligand directions → high energy → **t_2** set.\n- $d_{z^2}$ + $d_{x^2-y^2}$ point BETWEEN → low energy → **e** set.\n- Energy gap: **Δ_tet** ≈ (4/9) Δ_oct (smaller because fewer ligands + no direct overlap).\n- The labels switch! Tetrahedral: e below t_2 (opposite to octahedral).\n\n**Square planar**: derived from octahedral by removing the two axial ligands.\n- Top to bottom in energy: $d_{x^2-y^2}$ (highest, points at 4 ligands) >> $d_{xy}$ > $d_{z^2}$ > $d_{xz}, d_{yz}$ (lowest, degenerate).\n- Big gap between $d_{x^2-y^2}$ + lower orbitals → favored for d⁸ (Ni(II), Pd(II), Pt(II)) because all bonding/nonbonding orbitals filled, the empty $d_{x^2-y^2}$ left alone.\n\n**High-spin vs low-spin**: for d⁴-d⁷ in octahedral fields, two configurations possible.\n- Δ_oct < pairing energy P → high spin: electrons fill all 5 orbitals before pairing (Hund).\n- Δ_oct > P → low spin: electrons pair in t_{2g} first.\n- **Weak-field ligands** (H₂O, F⁻, Cl⁻): small Δ → usually high spin.\n- **Strong-field ligands** (CN⁻, CO, NO₂⁻, en, bpy): large Δ → usually low spin.\n- For 4d + 5d metals: Δ much larger (4-5× of 3d analog) → almost always low spin (Rh, Ru, Pd, Pt, Ir, Au commonly low spin).\n- d⁸ octahedral always (t_{2g}⁶ e_g²) — no high/low spin choice.\n\n**Crystal-Field Stabilization Energy (CFSE)**: energy gained by occupying t_{2g} preferentially.\n- $\\text{CFSE} = (-0.4 n_{t_{2g}} + 0.6 n_{e_g})\\Delta_{oct} + n_{pair}P$\n- d⁰: CFSE = 0. d¹: -0.4Δ. d²: -0.8Δ. d³: -1.2Δ. d⁴ HS: -0.6Δ; d⁴ LS: -1.6Δ + P. d⁵ HS: 0; d⁵ LS: -2.0Δ + 2P. d⁶ HS: -0.4Δ; d⁶ LS: -2.4Δ + 2P. d⁷ HS: -0.8Δ; d⁷ LS: -1.8Δ + P. d⁸: -1.2Δ. d⁹: -0.6Δ. d¹⁰: 0.\n- CFSE explains: lattice energy 'double-humped' curve across 3d (Cu²⁺ + Ni²⁺ extra-stable in MX₂ lattices); hydration enthalpies; Irving-Williams series stability (Mn²⁺ < Fe²⁺ < Co²⁺ < Ni²⁺ < Cu²⁺ > Zn²⁺).\n\n**Jahn-Teller distortion** (Jahn + Teller 1937): a non-linear molecule in an electronically degenerate state will spontaneously distort to lift the degeneracy.\n- **Strong J-T**: d⁹ Cu²⁺ + d⁴ HS Cr²⁺ + d⁷ LS Co²⁺ + d⁴ Mn(III) — uneven occupation of e_g (one orbital with 1 electron, the other empty/full) → axial elongation or compression.\n- **Weak J-T**: uneven t_{2g} occupation (smaller effect on bond lengths).\n- Cu(II) complexes show characteristic axial elongation: [Cu(H₂O)₆]²⁺ has 4 short equatorial Cu-O (1.97 Å) + 2 long axial Cu-O (2.43 Å)."
+    },
+    {
+      "kind": "text",
+      "title": "Ligand-Field Theory + spectrochemical series + isomerism",
+      "body": "**Ligand-Field Theory (LFT)**: an extension of CFT that includes **covalent bonding** between metal d orbitals + ligand orbitals via Molecular Orbital theory.\n- σ donation: ligand lone pair → metal e_g (in octahedral). Lowers e_g (bonding MO) + raises antibonding e_g* — the latter is the relevant 'd orbital' for electron configuration.\n- π donation (ligand → metal): ligand filled π orbitals donate into metal t_{2g}. Raises t_{2g} (now antibonding π*) → smaller Δ. Examples: F⁻, Cl⁻, OH⁻, H₂O, OR⁻.\n- π acceptance (metal → ligand back-donation): empty ligand π* (CO, CN⁻, pyridine, NO, alkenes) accepts metal t_{2g} electrons. Lowers t_{2g} → larger Δ. Critical for organometallic + low-oxidation-state metal stability.\n- **Net effect on Δ**:\n  - σ-only ligand (NH₃, en, amines): moderate Δ.\n  - π-donor only (F⁻, OH⁻): small Δ.\n  - σ-donor + π-acceptor (CO, CN⁻, bpy, phen): large Δ.\n\n**Spectrochemical series** (approximate ordering of Δ for fixed metal):\n\n$$I^- < Br^- < S^{2-} < SCN^- < Cl^- < N_3^- < F^- < urea \\sim OH^- < ox^{2-} \\sim O^{2-} < H_2O < NCS^- < CH_3CN < py < NH_3 < en < bpy < phen < NO_2^- < phosphine < CN^- \\sim CO \\sim NO$$\n\nWeak-field (π-donors, soft) → strong-field (σ + π-acceptors). The series order is largely transferable across metals, predicting spin state + color.\n\n**Metal-dependent Δ trends**:\n- Increases with oxidation state: M³⁺ > M²⁺ generally.\n- Increases down a group: 3d < 4d < 5d (about 5×; major reason 4d + 5d are nearly always low-spin).\n- 3d metals: Δ values for aquo complexes ~7000-13000 cm⁻¹; CN⁻ complexes ~30000+ cm⁻¹.\n\n**Color of transition metal complexes**: arises from d-d transitions absorbing visible photons. Energy = Δ. Δ ~ 10000-30000 cm⁻¹ = visible range. Complement of absorbed wavelength = perceived color. [Ti(H₂O)₆]³⁺ purple; [Cr(H₂O)₆]³⁺ violet; [Co(H₂O)₆]²⁺ pink; [Ni(H₂O)₆]²⁺ green; [Cu(H₂O)₆]²⁺ blue.\n\n**Isomerism in coordination complexes**:\n- **Geometric (cis/trans)**: octahedral MA₄B₂ + square-planar MA₂B₂ have cis/trans forms. Cisplatin = cis-[Pt(NH₃)₂Cl₂] (anticancer drug, Rosenberg 1965); transplatin inactive.\n- **Optical (chirality)**: tris-bidentate complexes like [Co(en)₃]³⁺ exist as Δ (right-handed propeller) + Λ (left-handed) enantiomers. Werner resolved these and won 1913 Nobel.\n- **Linkage**: ambidentate ligand (NO₂⁻ vs ONO⁻; SCN⁻ vs NCS⁻) bonds via different donor atom. [Co(NH₃)₅NO₂]²⁺ (nitro, N-bonded) vs [Co(NH₃)₅ONO]²⁺ (nitrito, O-bonded). Linkage isomers have different colors + redox properties.\n- **Ionization**: same composition, different inner/outer sphere arrangement: [Co(NH₃)₅Br]SO₄ vs [Co(NH₃)₅SO₄]Br.\n- **Coordination**: [Co(NH₃)₆][Cr(CN)₆] vs [Cr(NH₃)₆][Co(CN)₆] — both cations + anions are complex.\n- **Solvate / hydrate**: [Cr(H₂O)₆]Cl₃ (violet) vs [Cr(H₂O)₅Cl]Cl₂·H₂O (green) vs [Cr(H₂O)₄Cl₂]Cl·2H₂O (dark green).\n- **Polymerization**: [Pt(NH₃)₄][PtCl₄] vs [Pt(NH₃)₂Cl₂] — different formula multiples.\n\nAll these isomers can have different colors, magnetic moments, reactivity, and biological activity — coordination chemistry is rich because of this combinatorial structural diversity."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_coord_cfse",
+        "kind": "guided_derivation",
+        "question": "Compute CFSE for an octahedral d⁶ complex (high spin vs low spin)",
+        "goal": "Compare CFSE for [Fe(H₂O)₆]²⁺ (HS, weak field) and [Fe(CN)₆]⁴⁻ (LS, strong field), both d⁶.",
+        "steps": [
+          {
+            "prompt": "[Fe(H₂O)₆]²⁺ is high spin (H₂O weak field, Δ_oct ≈ 10400 cm⁻¹ < P). Distribute 6 electrons across t_{2g} + e_g.",
+            "motivation": "Hund's rule first, then pair.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "t_{2g}^4 e_g^2 with 4 unpaired electrons"
+              ]
+            },
+            "hints": [
+              "5 orbitals; first fill all alone (Hund), then pair from lowest.",
+              "6 e⁻: 5 unpaired one each, then 1 must pair → pair in t_{2g}."
+            ],
+            "reveal": "5 orbitals get 1 e⁻ each (Hund, all spin parallel — 5 unpaired). Then 6th e⁻ pairs with one of the t_{2g}. Final: $t_{2g}^4 e_g^2$ with 4 unpaired electrons. Magnetic moment μ ≈ √(n(n+2)) = √24 ≈ 4.9 μ_B (Bohr magnetons)."
+          },
+          {
+            "prompt": "Compute CFSE for HS d⁶: CFSE = (-0.4 × n_{t_{2g}} + 0.6 × n_{e_g}) Δ_oct. Plug in n_{t_{2g}} = 4, n_{e_g} = 2.",
+            "motivation": "Energy formula.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "CFSE = (-0.4 × 4 + 0.6 × 2) Δ = (-1.6 + 1.2) Δ = -0.4 Δ"
+              ]
+            },
+            "hints": [
+              "-1.6 + 1.2 = -0.4.",
+              "Slightly stabilizing."
+            ],
+            "reveal": "CFSE = (-1.6 + 1.2) Δ_oct = **-0.4 Δ_oct**. With Δ_oct = 10400 cm⁻¹, CFSE ≈ -4160 cm⁻¹ ≈ -50 kJ/mol. Modest stabilization."
+          },
+          {
+            "prompt": "[Fe(CN)₆]⁴⁻ is low spin (CN⁻ strong field, Δ_oct ≈ 33800 cm⁻¹ >> P ≈ 17600 cm⁻¹). Distribute 6 electrons.",
+            "motivation": "All in t_{2g}.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "t_{2g}^6 e_g^0 with 0 unpaired electrons"
+              ]
+            },
+            "hints": [
+              "Δ >> P → pair in t_{2g} before promoting to e_g.",
+              "All 6 in t_{2g}; diamagnetic."
+            ],
+            "reveal": "$t_{2g}^6 e_g^0$ — all electrons paired → diamagnetic (μ ≈ 0). Famous example of how ligand field dramatically changes magnetic properties of the same d-electron count."
+          },
+          {
+            "prompt": "Compute CFSE for LS d⁶, including pairing-energy penalty. Note 2 extra pairs vs HS configuration.",
+            "motivation": "CFSE - 2P.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "CFSE = -2.4 Δ_oct + 2P (relative to spherical field)"
+              ]
+            },
+            "hints": [
+              "-0.4 × 6 = -2.4.",
+              "LS d⁶ has 3 pairs in t_{2g}; HS d⁶ has 1 pair. +2P."
+            ],
+            "reveal": "CFSE = (-0.4 × 6 + 0.6 × 0) Δ_oct + 2P (relative to HS) = **-2.4 Δ_oct + 2P**. With Δ_oct = 33800, P ≈ 17600: CFSE ≈ -81120 + 35200 = -45920 cm⁻¹ ≈ -549 kJ/mol. Massive stabilization → why [Fe(CN)₆]⁴⁻ is so kinetically + thermodynamically stable. Used industrially in Prussian blue, blueprints, photography, gold-cyanide extraction."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{HS d}^6\\text{ CFSE} = -0.4\\Delta_{oct}; \\quad \\text{LS d}^6\\text{ CFSE} = -2.4\\Delta_{oct} + 2P}$$ Strong-field ligand (CN⁻) gives ~10× more stabilization than weak field (H₂O) for d⁶, dramatically alters magnetic + redox behavior. The d⁶ low-spin configuration ($t_{2g}^6 e_g^0$) is one of the most thermodynamically + kinetically stable in inorganic chemistry — explains the inertness of Co(III), Rh(III), Ir(III), Pt(IV), Os(II) complexes that dominate medicinal chemistry + catalysis."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_coord_chelate",
+        "kind": "multiple_choice",
+        "question": "Why is the chelate effect (a polydentate ligand binding more strongly than the same donor atoms in separate monodentate ligands) thermodynamically favorable?",
+        "options": [
+          "Random.",
+          "**Primarily entropic, with some enthalpic contribution**. Consider [Ni(NH₃)₆]²⁺ + 3 en → [Ni(en)₃]²⁺ + 6 NH₃. The reaction starts with 4 particles (1 complex + 3 en) and ends with 7 particles (1 complex + 6 NH₃). ΔS > 0 → -TΔS < 0 → ΔG decreases. The log K difference (≈10⁹) is mostly entropic. Additional contributions: (1) **Macrocyclic effect** — preorganized rings (porphyrin, crown ethers, EDTA) gain even more from preorganization (less ligand reorganization on binding); (2) **Reduced dissociation rate** — when one donor of a chelate dissociates, the other(s) hold the ligand near the metal → re-association faster than loss → kinetic stability. **Practical impact**: EDTA (hexadentate) ubiquitous in water treatment, complexometric titration, medicinal chelation therapy (lead, mercury, iron-overload thalassemia); cisplatin's bidentate-related analogs (carboplatin) more clinically useful; gadolinium-DTPA + Gd-DOTA macrocyclic MRI contrast agents. Lehn, Pedersen, Cram Nobel 1987 for crown ether + cryptand recognition chemistry.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Chelate effect is largely entropic: forming 1 chelate complex + releasing many monodentates increases particle count → ΔS > 0 → favorable ΔG. Macrocyclic effect adds preorganization benefit. Practical impact: EDTA, porphyrins, crown ethers, MRI contrast agents, chelation therapy. Pedersen-Cram-Lehn Nobel 1987."
+      },
+      "hints": [
+        "Compare particle counts before + after the ligand exchange.",
+        "ΔS sign determines spontaneity for entropic effects."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Chelate effect = entropic gain from releasing many monodentates when forming one polydentate complex: 4 particles → 7 particles (in en/NH₃ example). Macrocyclic effect adds preorganization. EDTA, porphyrins, crown ethers (Pedersen-Cram-Lehn Nobel 1987) all exploit this."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_coord_isomers",
+        "kind": "scenario",
+        "question": "Cisplatin and isomerism",
+        "prompt": "Cisplatin = cis-[Pt(NH₃)₂Cl₂] is one of the most successful anticancer drugs (Rosenberg 1965; first FDA approval 1978; ~50% of all chemotherapy regimens). Transplatin = trans-[Pt(NH₃)₂Cl₂] is chemically nearly identical but biologically inactive. Why does geometric isomerism produce such different biological outcomes? What does this tell us about (a) the mechanism of cisplatin action with DNA, (b) the limitations of treating geometric isomers as 'almost the same molecule', and (c) why second-generation Pt drugs (carboplatin, oxaliplatin) use bidentate chelating leaving groups instead of two Cl⁻?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_coord_unpaired",
+        "kind": "math_expression",
+        "question": "[Co(NH₃)₆]³⁺ is d⁶ low-spin with all electrons paired. Compute the spin-only magnetic moment μ in Bohr magnetons (μ_B) using μ = √(n(n+2)) where n = number of unpaired electrons.",
+        "acceptedAnswers": [
+          "0",
+          "0 μ_B",
+          "0 mu_B",
+          "diamagnetic"
+        ],
+        "hint": "Low-spin d⁶ in octahedral field: t_{2g}^6 e_g^0; all electrons paired → n = 0 → μ = 0; diamagnetic. Compare [Co(H₂O)₆]²⁺ d⁷ high-spin: 3 unpaired, μ ≈ 3.87 μ_B."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_coord",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, explain how Crystal-Field Theory + Ligand-Field Theory + the spectrochemical series + Jahn-Teller distortion together explain the color, magnetism, geometry, and reactivity of d-block complexes.",
+        "rubric": "Mentions: CFT (Bethe 1929, Van Vleck 1932) treats ligands as point charges → 5 d orbitals split (octahedral: t_{2g} below e_g, Δ_oct; tetrahedral: e below t_2, Δ_tet ≈ 4/9 Δ_oct); LFT extends to MO + σ-donation + π-donation (lowers Δ) + π-acceptance (raises Δ). Spectrochemical series ranks ligand-field strength: I⁻ < F⁻ < OH⁻ < H₂O < NH₃ < en < CN⁻ ~ CO. d-d transitions absorb visible → color, with energy ≈ Δ. High-spin vs low-spin determined by Δ vs pairing energy → magnetic moment. CFSE explains lattice + hydration energy trends (Irving-Williams), Jahn-Teller stabilizes degenerate-state distortions (Cu(II) axial elongation; d⁴, d⁷ LS, d⁹). Geometric, optical, linkage, ionization isomers diversify chemistry. Werner (1893, Nobel 1913) founded the field; cisplatin, hemoglobin, chlorophyll, vitamin B12 all rely on these principles."
+      }
+    }
+  ]
+}

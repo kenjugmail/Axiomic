@@ -6,7 +6,9 @@
 // without committing the user to a navigation.
 
 import { Hono } from "hono";
-import { eq, and, count, desc } from "drizzle-orm";
+import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
+import { eq, and, count, desc, sql } from "drizzle-orm";
 import {
   getDb,
   wikiPages,
@@ -14,6 +16,7 @@ import {
   forumTopics,
   userProgress,
   masteryNodes,
+  masteryPaths,
 } from "@axiomic/db";
 import { getSessionUser } from "../middleware/auth";
 import { nodesForWikiSlug } from "../lib/crossLinks";
@@ -132,7 +135,191 @@ conceptsRouter.get("/:slug/preview", async (c) => {
   });
 });
 
-// Suppress unused-import warning for desc + masteryNodes (kept for
-// future enrichment — e.g., recent forum activity timestamp).
+// Suppress unused-import warning for desc (kept for future
+// enrichment — e.g., recent forum activity timestamp).
 void desc;
-void masteryNodes;
+
+// ---- Cross-path concept search ---------------------------------------
+//
+// Lightweight keyword scan across mastery_nodes joined to mastery_paths.
+// Unlike the embeddings-backed /search route, this needs no AI provider
+// — pure SQL LIKE — so it's fast + dependency-free + always available.
+// Returns hits grouped by path so the UI can show "this concept appears
+// in 4 paths" naturally.
+//
+// Scoring: node-title match (3) > lesson slide-title match (2) >
+// node-description or lesson-body match (1). Per node we report the
+// highest-scoring location it matched.
+
+const searchSchema = z.object({
+  q: z.string().min(1).max(100),
+  limit: z.coerce.number().int().min(1).max(200).default(80),
+});
+
+type MatchKind = "node-title" | "node-description" | "lesson-title" | "lesson-body" | "path-title";
+
+interface SlideShape {
+  kind?: string;
+  title?: string;
+  body?: string;
+  question?: { question?: string };
+}
+
+function lowerIncludes(haystack: string | null | undefined, needle: string): boolean {
+  if (!haystack) return false;
+  return haystack.toLowerCase().includes(needle);
+}
+
+function makeSnippet(text: string, needle: string, windowChars = 120): string {
+  const lower = text.toLowerCase();
+  const idx = lower.indexOf(needle);
+  if (idx < 0) return text.slice(0, windowChars);
+  const start = Math.max(0, idx - 40);
+  const end = Math.min(text.length, idx + needle.length + windowChars - 40);
+  let s = text.slice(start, end);
+  if (start > 0) s = "…" + s;
+  if (end < text.length) s = s + "…";
+  return s;
+}
+
+function searchLesson(lessonJson: string, needle: string): { matchedIn: MatchKind; snippet: string; score: number } | null {
+  let parsed: { slides?: SlideShape[] };
+  try {
+    parsed = JSON.parse(lessonJson) as { slides?: SlideShape[] };
+  } catch {
+    return null;
+  }
+  const slides = parsed.slides ?? [];
+  for (const s of slides) {
+    if (lowerIncludes(s.title, needle)) {
+      return { matchedIn: "lesson-title", snippet: s.title ?? "", score: 2 };
+    }
+    if (lowerIncludes(s.question?.question, needle)) {
+      return { matchedIn: "lesson-title", snippet: s.question?.question ?? "", score: 2 };
+    }
+  }
+  for (const s of slides) {
+    if (lowerIncludes(s.body, needle)) {
+      return { matchedIn: "lesson-body", snippet: makeSnippet(s.body ?? "", needle), score: 1 };
+    }
+  }
+  return null;
+}
+
+conceptsRouter.get("/search", zValidator("query", searchSchema), (c) => {
+  const { q, limit } = c.req.valid("query");
+  const needle = q.trim().toLowerCase();
+  if (needle.length < 2) {
+    return c.json({ query: q, groups: [], totalHits: 0 });
+  }
+  const pattern = `%${needle}%`;
+  const db = getDb();
+
+  const rows = db
+    .select({
+      nodeId: masteryNodes.id,
+      nodeSlug: masteryNodes.slug,
+      nodeTitle: masteryNodes.title,
+      nodeDescription: masteryNodes.description,
+      nodeOrder: masteryNodes.order,
+      lessonData: masteryNodes.lessonData,
+      pathSlug: masteryPaths.slug,
+      pathTitle: masteryPaths.title,
+    })
+    .from(masteryNodes)
+    .innerJoin(masteryPaths, eq(masteryNodes.pathId, masteryPaths.id))
+    .where(
+      sql`lower(${masteryNodes.title}) LIKE ${pattern} OR lower(${masteryNodes.description}) LIKE ${pattern} OR (${masteryNodes.lessonData} IS NOT NULL AND lower(${masteryNodes.lessonData}) LIKE ${pattern}) OR lower(${masteryPaths.title}) LIKE ${pattern}`,
+    )
+    .limit(500)
+    .all();
+
+  interface ConceptHit {
+    pathSlug: string;
+    pathTitle: string;
+    nodeSlug: string;
+    nodeTitle: string;
+    nodeDescription: string;
+    nodeOrder: number;
+    matchedIn: MatchKind;
+    snippet: string;
+    score: number;
+  }
+
+  const hits: ConceptHit[] = [];
+  for (const row of rows) {
+    let matchedIn: MatchKind | null = null;
+    let snippet = "";
+    let score = 0;
+    if (lowerIncludes(row.nodeTitle, needle)) {
+      matchedIn = "node-title";
+      snippet = row.nodeTitle ?? "";
+      score = 3;
+    } else if (lowerIncludes(row.nodeDescription, needle)) {
+      matchedIn = "node-description";
+      snippet = makeSnippet(row.nodeDescription ?? "", needle);
+      score = 1;
+    } else if (row.lessonData) {
+      const found = searchLesson(row.lessonData, needle);
+      if (found) {
+        matchedIn = found.matchedIn;
+        snippet = found.snippet;
+        score = found.score;
+      }
+    }
+    if (matchedIn === null && lowerIncludes(row.pathTitle, needle)) {
+      matchedIn = "path-title";
+      snippet = row.nodeDescription ?? row.nodeTitle ?? "";
+      score = 0.5;
+    }
+    if (matchedIn === null) continue;
+    hits.push({
+      pathSlug: row.pathSlug,
+      pathTitle: row.pathTitle,
+      nodeSlug: row.nodeSlug,
+      nodeTitle: row.nodeTitle,
+      nodeDescription: row.nodeDescription ?? "",
+      nodeOrder: row.nodeOrder ?? 0,
+      matchedIn,
+      snippet,
+      score,
+    });
+  }
+
+  hits.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    if (a.pathTitle !== b.pathTitle) return a.pathTitle.localeCompare(b.pathTitle);
+    return a.nodeOrder - b.nodeOrder;
+  });
+  const trimmed = hits.slice(0, limit);
+
+  interface ConceptGroup {
+    pathSlug: string;
+    pathTitle: string;
+    topScore: number;
+    hits: Array<Omit<ConceptHit, "pathSlug" | "pathTitle">>;
+  }
+  const byPath = new Map<string, ConceptGroup>();
+  for (const h of trimmed) {
+    const existing = byPath.get(h.pathSlug) ?? {
+      pathSlug: h.pathSlug,
+      pathTitle: h.pathTitle,
+      topScore: 0,
+      hits: [],
+    };
+    existing.hits.push({
+      nodeSlug: h.nodeSlug,
+      nodeTitle: h.nodeTitle,
+      nodeDescription: h.nodeDescription,
+      nodeOrder: h.nodeOrder,
+      matchedIn: h.matchedIn,
+      snippet: h.snippet,
+      score: h.score,
+    });
+    if (h.score > existing.topScore) existing.topScore = h.score;
+    byPath.set(h.pathSlug, existing);
+  }
+
+  const groups = Array.from(byPath.values()).sort((a, b) => b.topScore - a.topScore);
+  return c.json({ query: q, groups, totalHits: trimmed.length });
+});

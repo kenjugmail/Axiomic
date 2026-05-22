@@ -1,0 +1,113 @@
+{
+  "slug": "x-ray-production-and-radiography",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Explain how an X-ray tube produces bremsstrahlung and characteristic radiation.",
+      "Distinguish the roles of kVp and mAs in controlling beam quality, quantity, and dose.",
+      "Describe how projection radiography forms contrast and how grids manage scatter."
+    ],
+    "prereqs": [
+      "radiology-history-and-x-ray-attenuation"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Inside the X-ray tube",
+      "body": "Every diagnostic X-ray begins inside an **X-ray tube**, an evacuated glass or metal envelope containing two electrodes. The **cathode** is a coiled **tungsten filament** that, when heated by a current, releases electrons by **thermionic emission**, a process described by the **Richardson-Dushman equation** (named for the Nobel laureate **Owen Richardson**). A large potential difference, the **tube voltage**, accelerates these electrons across the vacuum toward the **anode**. In modern tubes the anode is a spinning disc of a **tungsten-rhenium alloy** on a molybdenum stem, the **rotating anode** invented to spread heat over a large area; it can spin at thousands of revolutions per minute so that no single spot melts under the intense electron bombardment. The small region struck by the electron beam is the **focal spot**, and keeping it small is essential for sharp images, creating a perpetual engineering tension between geometric sharpness and heat tolerance, partly resolved by the **line-focus principle** of an angled anode face.\n\nWhen the high-speed electrons slam into the anode, less than **one percent** of their kinetic energy becomes X-rays; the rest becomes heat, which is why anode cooling dominates tube design. Two distinct physical mechanisms create the X-ray photons. The first is **bremsstrahlung**, German for 'braking radiation': as an electron is deflected and decelerated by the strong electric field of a tungsten nucleus, it emits a photon whose energy can be anything from near zero up to the full electron kinetic energy. This produces a **continuous spectrum** whose maximum photon energy in kiloelectronvolts equals the tube voltage in kilovolts (the **Duane-Hunt limit**, after **William Duane** and **Franklin Hunt**). The second mechanism is **characteristic radiation**: an incoming electron knocks out an inner-shell (K-shell) electron of a tungsten atom, and when an outer electron falls in to fill the vacancy it emits a photon of a precise energy equal to the difference in binding energies. These appear as sharp **characteristic peaks** (the K-alpha and K-beta lines, around 59 and 67 keV for tungsten) superimposed on the bremsstrahlung continuum. The combination, after filtration removes the useless low-energy photons, is the **polychromatic beam** that exits the tube and enters the patient. Inherent and added **aluminium filtration** hardens the beam, and total filtration is regulated to protect patients from soft photons that would only add skin dose without contributing to the image."
+    },
+    {
+      "kind": "text",
+      "title": "kVp and mAs: controlling the beam",
+      "body": "Two operator-selected parameters dominate radiographic technique, and confusing them is a classic novice error. The first is **kVp**, the **peak kilovoltage**, the maximum voltage applied across the tube. The second is **mAs**, the product of tube current in **milliamperes** and exposure **time in seconds**. They control different things.\n\n**kVp governs beam quality (energy/penetration) and to a lesser degree quantity.** Raising kVp accelerates electrons harder, shifting the bremsstrahlung spectrum to higher energies. The consequences are:\n\n- **Higher penetration**: a higher-energy beam has a smaller linear attenuation coefficient $\\mu$, so it passes through thicker or denser body parts.\n- **Lower subject contrast**: as energy rises, the difference in attenuation between tissues shrinks (the photoelectric effect, which strongly favours high-$Z$ tissue like bone, falls off roughly as $1/E^3$), so high-kVp images look 'greyer' with a long grey scale, whereas low-kVp images are high-contrast and 'short-scale'.\n- **More photons too**: photon output rises steeply, roughly as the **square of kVp**, so increasing kVp also increases quantity, not just quality.\n\n**mAs governs beam quantity (number of photons) and hence image density and patient dose, in direct proportion.** Doubling mAs doubles the number of electrons hitting the anode, doubles the photon fluence, doubles film/detector density (darkening), and doubles dose, with no change in the spectrum's shape. A useful approximate trade rule, the **fifteen-percent rule**, states that a 15% increase in kVp roughly doubles exposure to the detector, allowing a compensating halving of mAs to keep image density constant while reducing dose, at the cost of some contrast. Output also obeys the **inverse-square law**: intensity falls as $1/d^2$ with distance $d$ from the focal spot, which matters for technique factors and for occupational protection. Mastering the kVp-versus-mAs distinction, with kVp as the contrast and penetration knob and mAs as the density and dose knob, is the foundation of competent radiographic technique and of the ALARA-driven goal of diagnostic images at minimal dose."
+    },
+    {
+      "kind": "text",
+      "title": "Projection radiography, contrast, and scatter",
+      "body": "**Projection radiography** is the oldest and most common imaging method: a divergent X-ray beam passes through the patient and casts a two-dimensional shadow onto a detector. Historically this detector was photographic film paired with intensifying screens; today it is almost universally a **digital detector**, either **computed radiography (CR)** photostimulable phosphor plates or **digital radiography (DR)** flat-panel detectors using amorphous silicon or selenium. The fundamental image-forming principle remains the **Beer-Lambert law**: each ray is attenuated according to $I = I_0 e^{-\\int \\mu\\, dx}$ along its path, so the brightness at each detector point encodes the total attenuation of all tissues the ray traversed. This is why radiography produces **superimposed** images in which overlying structures project on top of one another, the chief limitation that CT later overcame.\n\n**Image contrast** is the difference in signal between adjacent regions, and it arises from differences in tissue **attenuation**, which depend on density, effective atomic number, and the chosen kVp. **Density** (in the film sense, the degree of blackening) reflects how much radiation reached the detector. The canonical example is the **chest radiograph**, the single most frequently performed examination in medicine. On a chest film one sees the natural contrast of four basic densities, often taught as **air, fat, soft tissue/water, and bone (plus metal)**: the air-filled **lungs** appear dark (radiolucent), the **heart and mediastinum** are water-density and appear light (radiopaque), the **ribs and clavicles** are denser still, and the diaphragmatic borders, costophrenic angles, and cardiac silhouette provide the landmarks for detecting pneumonia, effusions, pneumothorax, and cardiomegaly. A standard chest exam is taken **posteroanterior (PA)** at a 180 cm source-to-image distance, in full inspiration.\n\nA major degrader of contrast is **scatter radiation**, photons that undergo **Compton scattering** within the patient and reach the detector travelling in the wrong direction, adding a veil of fog unrelated to anatomy. Scatter worsens with larger body parts, larger field sizes, and higher kVp. The principal countermeasure is the **anti-scatter grid**, an array of thin lead strips separated by radiolucent interspaces, invented by **Gustav Bucky** in 1913 and improved with motion by **Hollis Potter** (the **Potter-Bucky grid**). The grid lets through primary rays travelling parallel to its strips while absorbing obliquely travelling scatter, sharpening contrast at the price of requiring more mAs (and thus dose). Other scatter-management tactics include tight **collimation** to restrict the beam, and the **air gap** technique. Balancing penetration, contrast, scatter, sharpness, and dose is the everyday craft of producing a diagnostic radiograph."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_prod_1",
+        "kind": "multiple_choice",
+        "question": "Which statement correctly distinguishes the two mechanisms that produce X-rays in the tube?",
+        "options": [
+          "Bremsstrahlung produces discrete energy peaks while characteristic radiation produces a continuous spectrum.",
+          "Bremsstrahlung is a continuous spectrum from decelerating electrons, while characteristic radiation produces discrete peaks when inner-shell vacancies are filled.",
+          "Both bremsstrahlung and characteristic radiation produce only discrete peaks at the kVp value.",
+          "Characteristic radiation arises from electrons being deflected by the nucleus, and bremsstrahlung from electron-shell transitions."
+        ],
+        "correctIndex": 1,
+        "explanation": "Bremsstrahlung ('braking radiation') is emitted as electrons decelerate in the nuclear field, yielding a continuous spectrum up to the Duane-Hunt limit. Characteristic radiation arises when an incident electron ejects an inner-shell electron and an outer electron fills the vacancy, releasing a photon of precise (characteristic) energy, producing sharp peaks such as tungsten's K-alpha and K-beta lines."
+      },
+      "hints": [
+        "One mechanism involves deceleration near the nucleus; the other involves electron-shell transitions.",
+        "Continuous spectrum versus discrete peaks is the key distinction."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "When fast electrons strike the tungsten anode, most are gradually decelerated by nuclear electric fields, emitting photons of a wide range of energies, the continuous bremsstrahlung spectrum bounded above by the Duane-Hunt limit (keV equals kVp). A minority of electrons eject inner K-shell electrons; the resulting vacancy is filled by an outer electron, which emits a photon of fixed energy equal to the binding-energy difference, the characteristic peaks. Thus B correctly maps each mechanism to its spectral signature."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_prod_1",
+        "kind": "math_expression",
+        "question": "A radiograph is taken at 200 mA for 0.05 s. Compute the mAs (the product of tube current in milliamperes and exposure time in seconds).",
+        "acceptedAnswers": [
+          "10",
+          "10 mAs",
+          "200*0.05"
+        ],
+        "hint": "mAs = mA * s. Multiply 200 by 0.05."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_prod_2",
+        "kind": "math_expression",
+        "question": "An exposure delivers a detector air kerma of 4.0 mGy at a source-to-detector distance of 100 cm. Using the inverse-square law, compute the air kerma in mGy if the distance is increased to 200 cm (same technique). Give the value to one decimal place.",
+        "acceptedAnswers": [
+          "1.0",
+          "1",
+          "4*(100/200)^2"
+        ],
+        "hint": "Intensity scales as 1/d^2. Doubling distance reduces intensity by a factor of 4: 4.0 / 4 = 1.0 mGy."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_prod_2",
+        "kind": "multiple_choice",
+        "question": "A technologist increases kVp from 70 to 81 (a roughly 15% rise) while halving the mAs. What is the most likely combined effect?",
+        "options": [
+          "Image density rises sharply and patient dose increases substantially.",
+          "Image density stays roughly constant, contrast decreases somewhat, and patient dose decreases.",
+          "Contrast increases and penetration decreases.",
+          "Nothing changes because kVp and mAs are interchangeable."
+        ],
+        "correctIndex": 1,
+        "explanation": "By the 15% rule, a 15% kVp increase roughly doubles detector exposure, so halving mAs keeps density about constant. The higher kVp produces a more penetrating, longer-scale (lower-contrast) beam, and because dose tracks mAs, halving mAs lowers patient dose. This is a standard ALARA dose-reduction maneuver, accepting slightly reduced contrast."
+      },
+      "hints": [
+        "Recall the 15% rule relating kVp changes to exposure.",
+        "Dose follows mAs; contrast follows kVp."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "The 15% rule states that raising kVp by about 15% doubles the exposure reaching the detector. To maintain constant image density the technologist compensates by halving mAs. Since patient dose is proportional to mAs, halving it reduces dose. The higher kVp shifts the spectrum upward, lowering subject contrast (longer grey scale) and increasing penetration. The net effect, matching option B, is constant density, somewhat reduced contrast, and reduced dose."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_prod_1",
+        "kind": "scenario",
+        "question": "A portable chest radiograph on a large ICU patient looks foggy and low in contrast.",
+        "prompt": "You review a bedside (portable) AP chest radiograph of a large patient in the ICU. The image appears grey and washed out, with poor contrast between the lungs and mediastinum. Reason through the likely physical causes: discuss how patient body habitus and field size affect Compton scatter, why a portable exam often omits a grid, and what changes to grid use, collimation, kVp, and positioning you would recommend to improve diagnostic contrast while keeping dose acceptable. Justify each recommendation physically."
+      }
+    }
+  ]
+}

@@ -1,0 +1,159 @@
+{
+  "slug": "geospatial-analysis-and-modeling",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Compute + interpret Moran's I, LISA, variogram, kriging for spatial autocorrelation.",
+      "Apply spatial regression (SAR, SEM, GWR) + acknowledge nonstationarity.",
+      "Survey routing (Dijkstra, OSRM, Valhalla), isochrones, geocoding."
+    ],
+    "prereqs": [
+      "gis-fundamentals-and-spatial-data",
+      "topography-and-relief"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Spatial autocorrelation — Moran's I, Geary's c, LISA, variogram, kriging",
+      "body": "**Tobler's first law of geography (1970)**: 'Everything is related to everything else, but near things are more related than distant things.' This intuitive observation is the empirical foundation of all spatial statistics — measure it; exploit it for interpolation; correct for it in regression.\n\n**Global spatial autocorrelation — Moran's I**:\n- **Moran (1950)** defined the global spatial autocorrelation statistic:\n  $$I = \\frac{N}{W} \\cdot \\frac{\\sum_{i,j} w_{ij} (x_i - \\bar{x})(x_j - \\bar{x})}{\\sum_i (x_i - \\bar{x})^2}$$\n  where $w_{ij}$ is a spatial-weights matrix (binary contiguity, k-nearest, inverse distance, ...) + $W = \\sum w_{ij}$.\n- $I$ ranges roughly -1 to +1 (analogously to Pearson correlation); $E(I) = -1/(N-1) \\approx 0$ under randomness.\n- $I > 0$: positive autocorrelation (similar values cluster — hot + cold spots).\n- $I < 0$: negative autocorrelation (chessboard pattern; rarer).\n- $I \\approx 0$: spatially random.\n- Inference via permutation test or analytical Z-score.\n\n**Geary's c (1954)**:\n- An alternative: $c$ ∈ [0, 2], more sensitive to local differences. Equivalent in many cases; $I$ more standard.\n\n**Local indicators of spatial association (LISA, Anselin 1995)**:\n- **Luc Anselin** (GeoDa creator) introduced **LISAs** — local versions of Moran's I + Geary's c that identify which specific locations contribute to the global statistic. Reveal **hot spots** + **cold spots** + **spatial outliers** at the feature level.\n- **GeoDa software (Anselin + students)** is the standard tool; integrated into PySAL.\n- LISAs categorize each location: high-high (hot), low-low (cold), high-low or low-high (spatial outlier).\n\n**Variogram + kriging — geostatistics**:\n- **Georges Matheron** (École des Mines de Paris, 1960s) formalized **geostatistics**, building on **Daniel Krige's (1951)** South African gold-mining ore-grade estimation. **Kriging** is named after Krige.\n- **Variogram (semivariogram)**: $\\gamma(h) = (1/2) E[(Z(x + h) - Z(x))^2]$ — expected squared difference as function of separation $h$.\n  - **Nugget** $c_0$ — variance at $h = 0$ (measurement noise + sub-distance variability).\n  - **Sill** $c_0 + c$ — total variance.\n  - **Range** $a$ — distance beyond which no spatial correlation.\n- **Models**: spherical, exponential, Gaussian, Matérn — fit to empirical variogram.\n- **Kriging** — Best Linear Unbiased Predictor (BLUP) using the variogram. Variants:\n  - **Ordinary kriging** — unknown mean.\n  - **Simple kriging** — known mean.\n  - **Universal kriging / kriging with external drift** — incorporates covariates.\n  - **Co-kriging** — multiple variables.\n  - **Indicator kriging** — categorical / probabilistic.\n  - **Bayesian kriging + Gaussian Processes** — modern probabilistic framing.\n- **Tools**: **gstat (R, Edzer Pebesma)** is the canonical geostatistics R package; **PyKrige** in Python; **scikit-gstat**; **scikit-learn GaussianProcessRegressor** for ML-style kriging.\n\n**Applications of geostatistics**:\n- **Mining ore-grade interpolation** — Krige's original use case; still standard.\n- **Soil + agricultural mapping** — precision agriculture (yield maps, nutrient applications).\n- **Climate + meteorology** — rainfall + temperature interpolation across station networks.\n- **Air quality + pollution** — PM2.5 + NO2 across sensor networks.\n- **Hydrology + groundwater** — aquifer head + contamination.\n- **Health geography** — disease-rate smoothing."
+    },
+    {
+      "kind": "text",
+      "title": "Spatial regression + GWR — modeling with spatial dependence",
+      "body": "**OLS assumptions break in space** — residuals are typically spatially autocorrelated (Tobler's law), violating independence. Three families of spatial regression handle this.\n\n**Spatial Autoregressive (SAR) model — spatial lag**:\n- Adds a lagged dependent variable: $y = \\rho W y + X\\beta + \\epsilon$, where $W$ is the spatial-weights matrix + $\\rho$ is the spatial-lag coefficient.\n- Interpretation: $y_i$ depends on $y$ at neighbors. **Spillover effects** — a change at one location propagates through the network.\n- Estimated by maximum likelihood (Anselin 1988) or instrumental variables; OLS biased + inconsistent.\n\n**Spatial Error Model (SEM)**:\n- Spatial structure in the error term: $y = X\\beta + u$, $u = \\lambda W u + \\epsilon$.\n- Models unmeasured spatial covariates; the **omitted-variable** interpretation.\n\n**Spatial Durbin Model (SDM)**:\n- Includes both lagged $y$ + lagged $X$: $y = \\rho W y + X\\beta + W X \\gamma + \\epsilon$. The most flexible specification; recommended starting point per **LeSage + Pace (2009) *Introduction to Spatial Econometrics***.\n\n**Geographically Weighted Regression (GWR, Fotheringham + Brunsdon + Charlton 1996+, MGWR 2017+)**:\n- **A. Stewart Fotheringham, Chris Brunsdon, + Martin Charlton** developed **GWR** at Newcastle: estimate local regressions at each point using **distance-weighted** observations.\n- $\\hat{\\beta}(u_i, v_i) = (X^T W(u_i, v_i) X)^{-1} X^T W(u_i, v_i) y$ — coefficients vary in space.\n- Maps of $\\hat{\\beta}(u, v)$ reveal **spatial nonstationarity** — relationships that differ across geography (e.g., the effect of education on income varies by region).\n- **Multiscale GWR (MGWR, Fotheringham + Yang + Kang 2017)** — different covariates have different bandwidths.\n- Tools: **GWR4 (Fotheringham group)**, **mgwr (Python, Oshan + Fotheringham)**, **spgwr (R)**.\n- **Caveats**: multiple-testing concerns, bandwidth selection (AICc), interpretation as exploratory rather than confirmatory.\n\n**Bayesian spatial models**:\n- **CAR (Conditional Autoregressive)** + **ICAR** priors for areal data — Besag + York + Mollié 1991.\n- **Stochastic Partial Differential Equation (SPDE) approach** — **Lindgren + Rue + Lindström 2011** — represents Gaussian Random Fields as solutions to SPDEs solved on a mesh; the basis of **INLA (Integrated Nested Laplace Approximation, Rue + Martino + Chopin 2009)** for fast Bayesian spatial inference. The modern standard for large Bayesian spatial models.\n- **Stan + NumPyro + PyMC** — flexible Bayesian for moderate-size spatial problems.\n\n**Spatial machine learning**:\n- **Random forests + boosted trees** with x, y as features — naïve but common; biased near boundaries.\n- **GeoStatistical ML / Random Forest Kriging** — combine RF with kriged residuals.\n- **Graph Neural Networks** — explicit spatial-network message passing; rapidly developing field.\n- **Convolutional + ViT** on rasterized inputs — image-based deep learning for remote-sensing prediction.\n\n**Spatial dependence vs. spatial heterogeneity** (Anselin distinction):\n- **Dependence**: $y$ values correlated across space (Tobler's law).\n- **Heterogeneity**: model parameters vary across space (GWR's domain).\n- Both can coexist; tests + diagnostics needed.\n\n**Modern best practice**:\n1. Compute Moran's I on residuals to detect spatial autocorrelation.\n2. Run LISA to localize.\n3. Compare OLS vs. SAR vs. SEM (Lagrange Multiplier tests, Anselin 1988).\n4. Consider GWR for spatial nonstationarity.\n5. For Bayesian, use INLA or SPDE.\n6. Cross-validate spatially (block CV, not random CV — random CV is overoptimistic for autocorrelated data — Roberts et al. 2017)."
+    },
+    {
+      "kind": "text",
+      "title": "Network analysis, routing, isochrones, + geocoding",
+      "body": "**Network GIS — graphs on the ground**:\n- A **transportation network** is a graph: nodes = intersections, edges = road segments with costs (length, travel time, slope, danger).\n- **Dijkstra's algorithm (1959)** — shortest path on weighted graph, $O((V + E) \\log V)$ with binary heap. Foundation of all routing.\n- **A* (Hart, Nilsson, Raphael 1968)** — informed search using heuristic (e.g., Euclidean distance to goal) — typically much faster.\n- **Contraction Hierarchies (Geisberger et al. 2008)** — preprocess graph into hierarchy; query in milliseconds on continent-scale networks. The trick behind modern car-routing engines.\n- **Multi-Level Dijkstra + Hub Labeling** — alternative speedup techniques.\n\n**Open-source routing engines**:\n- **OSRM (Open Source Routing Machine, 2010+, Dennis Luxen + KIT)** — C++, Contraction Hierarchies; very fast OSM-based routing; powers many web apps. Single-mode profiles (car, bike, foot).\n- **GraphHopper (Peter Karich, 2012+, Java)** — multimodal + custom profiles + isochrones + matrix; commercial + open editions.\n- **Valhalla (Mapzen → Linux Foundation)** — multimodal routing with elevation + dynamic costing; powers Mapbox Directions + Tesla + Amazon.\n- **pgRouting (PostGIS extension)** — Dijkstra, A*, k-shortest, traveling salesman on a database; good for custom + DB-integrated workflows.\n- **GraphHopper Map Matching + Valhalla Map Matching** — snap GPS traces to roads.\n\n**Isochrones + accessibility**:\n- **Isochrone** = polygon enclosing all reachable points within time $t$ from origin. Computed by running Dijkstra to time $t$ + computing the alpha-shape or grid-based polygon around reached nodes.\n- Used for: travel-time analysis (15-min city, hospital accessibility, transit equity), site selection, food deserts (Walker et al. spatial accessibility literature).\n- Tools: OSRM `/isochrone`, GraphHopper `/isochrone`, Mapbox Isochrone API, **R5 (Conveyal)** for multimodal transit + walking + biking.\n\n**Accessibility metrics**:\n- **Gravity model accessibility**: $A_i = \\sum_j O_j f(d_{ij})$ — opportunities $O_j$ discounted by distance.\n- **Cumulative accessibility**: count of opportunities within threshold (e.g., jobs within 30 min by transit).\n- **2SFCA (Two-Step Floating Catchment Area)** — supply-demand competition (medical care, schools).\n- **R5 + Conveyal Analysis** + **OpenTripPlanner (OTP)** + **OSMnx (Geoff Boeing)** for transit + multimodal access.\n\n**Geocoding + reverse geocoding**:\n- **Geocoding**: street address → lat/lon. Hard because addresses are ambiguous, inconsistent, multilingual, hierarchical (country + city + street + house number).\n- **Reverse geocoding**: lat/lon → administrative name + nearest address.\n- **Engines**:\n  - **Google Geocoding API** — commercial; high-quality; expensive at scale.\n  - **Mapbox Geocoding API** — commercial; OSM-derived.\n  - **HERE Geocoding** — commercial; legacy NAVTEQ data.\n  - **Pelias (Mapzen → Linux Foundation)** — open source; multimodal (addresses, places, neighborhoods); ElasticSearch backend.\n  - **Nominatim (OSM)** — free reference geocoder for OSM data; community-run + self-hostable; powers OSM main site search.\n  - **Photon (Komoot)** — OSM geocoder; faster than Nominatim for many queries.\n  - **U.S. Census Geocoder** — free official US address geocoder.\n  - **OpenStreetMap + libpostal (Mapzen)** — open-source address parsing + normalization with deep learning.\n\n**Place disambiguation + entity resolution**:\n- 'Springfield' is in nearly every U.S. state; 'Cambridge' is in MA + UK + Ontario. Disambiguation uses context (other nearby places, country, language).\n- **GeoNames (1999+, Marc Wick)** — global place-name database, ~12M entries, hierarchical (country / admin / city); free + standard reference.\n- **WikiData + Wikipedia geo entries** — semantic-web place data.\n- **Conflating heterogeneous gazetteers** — recurring research problem.\n\n**Spatial network analytics**:\n- **OSMnx (Geoff Boeing, 2017+)** — Python library for downloading + analyzing OSM street networks; centrality, distance, network simplification; basis of many urban-form studies.\n- **NetworKit + NetworkX + igraph** — generic graph libraries used for spatial network analysis.\n- **Centrality measures** — betweenness, closeness, eigenvector — for streetcorner identification."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_anal_1",
+        "kind": "guided_derivation",
+        "question": "Test for spatial autocorrelation in county-level voting",
+        "goal": "You have county-level Democratic vote share. Compute Moran's I + interpret, with steps.",
+        "steps": [
+          {
+            "prompt": "How do you build the spatial-weights matrix $W$?",
+            "motivation": "Define neighbors.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Queen or rook contiguity (binary 1 if share boundary, 0 else); or k-nearest-neighbors; or inverse-distance with decay",
+                "contiguity weights matrix"
+              ]
+            },
+            "hints": [
+              "Common choices: contiguity vs. k-NN."
+            ],
+            "reveal": "**Queen contiguity**: $w_{ij} = 1$ if counties $i$ + $j$ share any boundary point; else 0. **Rook**: share an edge (not just corner). **K-nearest-neighbors** (k = 4-8). **Inverse-distance**: $w_{ij} = 1/d_{ij}$ with cutoff. Standard practice: queen contiguity for areal data + row-standardize ($\\sum_j w_{ij} = 1$ per row). PySAL `weights.Queen.from_dataframe()`."
+          },
+          {
+            "prompt": "Compute Moran's I formula + how to test significance.",
+            "motivation": "Calculation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "I = (N/W) Σ w_ij (x_i - μ)(x_j - μ) / Σ (x_i - μ)²; test by permutation (999 reps); compare to E(I) = -1/(N-1)",
+                "Moran I + permutation test"
+              ]
+            },
+            "hints": [
+              "Permutation test or analytical Z-score."
+            ],
+            "reveal": "$I = \\frac{N}{W} \\cdot \\frac{\\sum_{i,j} w_{ij}(x_i - \\bar{x})(x_j - \\bar{x})}{\\sum_i (x_i - \\bar{x})^2}$. Under H_0 (no spatial pattern), $E(I) = -1/(N-1) \\approx 0$. Test by **permutation**: randomly shuffle $x$ across counties 999+ times; compute I each time; observed I more extreme than 95% of permutations → reject H_0. Or analytical Z-score from variance formula (Moran 1950)."
+          },
+          {
+            "prompt": "Suppose I = 0.62 with p < 0.001. Interpret.",
+            "motivation": "Substantive reading.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Strong positive spatial autocorrelation; Democratic-vote counties cluster geographically; urban-rural divide",
+                "strong positive autocorrelation; clustering"
+              ]
+            },
+            "hints": [
+              "Positive I means..."
+            ],
+            "reveal": "**Strong positive spatial autocorrelation** ($I = 0.62$ is high; values near 0.5+ indicate substantial clustering). Politically: Democratic vote share clusters in space — neighboring counties tend to vote similarly. This is the well-known **urban-rural divide** + regional political geography (Pacific coast, Northeast, Black Belt vs. rural interior). LISA would localize hot + cold spots: blue urban cores + Black Belt, red rural counties."
+          },
+          {
+            "prompt": "How does this change your modeling approach?",
+            "motivation": "Methodological consequence.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Use SAR/SEM/SDM instead of OLS; run LISA for local; consider GWR for nonstationarity; block CV not random CV",
+                "spatial regression + LISA + GWR + block CV"
+              ]
+            },
+            "hints": [
+              "OLS independence assumption violated."
+            ],
+            "reveal": "**OLS residuals are not independent** — assumptions violated → biased SE + invalid inference. Use **SAR (Anselin 1988)** for direct spatial-lag effects, **SEM** for unobserved spatial covariates, **SDM** for both. Apply **Lagrange Multiplier tests** (Anselin) to choose. Run **LISA** to identify hot/cold spots. For varying-effects modeling, **GWR (Fotheringham + Brunsdon + Charlton 1996)** estimates location-specific coefficients. **Cross-validation**: use **spatial block CV** (Roberts 2017) — random CV is over-optimistic because nearby test points share information with nearby train points. The whole apparatus of spatial econometrics applies."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_anal_1",
+        "kind": "multiple_choice",
+        "question": "What is **Geographically Weighted Regression (GWR)** + when is it the right tool?",
+        "options": [
+          "Random.",
+          "**GWR (Geographically Weighted Regression, Fotheringham + Brunsdon + Charlton 1996+)** estimates a **separate regression at each location** using observations weighted by distance — $\\hat{\\beta}(u_i, v_i) = (X^T W(u_i, v_i) X)^{-1} X^T W(u_i, v_i) y$, where $W(u_i, v_i)$ is a distance kernel (typically Gaussian or bisquare) with bandwidth chosen by AICc cross-validation. The output is a **map of coefficients** rather than a single global estimate — coefficients vary spatially. **When to use**: when relationships between covariates + response are **spatially nonstationary** — e.g., the effect of education on income differs by region, the effect of a price on house values differs by neighborhood, the effect of tree cover on air quality differs by climate. Distinguished from spatial regression (SAR / SEM / SDM, **LeSage + Pace 2009**) which models spatial **dependence** in observations / errors with a single global coefficient. **Multiscale GWR (MGWR, Fotheringham + Yang + Kang 2017)** allows different covariates to have different bandwidths — improving model fidelity. **Tools**: GWR4 (Fotheringham group), **mgwr (Python, Oshan + Fotheringham)**, **spgwr (R)**. **Caveats**: (1) multiple testing across thousands of locations; (2) bandwidth choice sensitive; (3) treat as **exploratory + descriptive** rather than confirmatory — Wheeler + Tiefelsdorf critiques. Pairs naturally with **LISA (Anselin 1995)** for local exploratory analysis.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "GWR (Fotheringham + Brunsdon + Charlton 1996+) estimates separate regression at each location using distance-weighted observations. Produces map of coefficients revealing spatial nonstationarity. Distinct from SAR/SEM (LeSage + Pace 2009) which model spatial dependence with global coefficient. Multiscale GWR (MGWR 2017) allows covariate-specific bandwidth. Tools: mgwr (Python), spgwr (R). Use for nonstationary relationships; treat as exploratory."
+      },
+      "hints": [
+        "What is a 'local' regression?",
+        "What is the output?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "GWR (Fotheringham + Brunsdon + Charlton 1996) — local regression at each point using distance-weighted observations; outputs map of spatially-varying coefficients. Reveals nonstationary relationships. MGWR (2017) allows per-covariate bandwidth. Distinct from SAR/SEM which handle spatial dependence with global coefficient. Exploratory tool."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_anal_1",
+        "kind": "scenario",
+        "question": "Design a 15-minute-city accessibility study",
+        "prompt": "A city planning department wants to evaluate the **15-minute-city** concept (Carlos Moreno) — how much of the population lives within 15 minutes (by foot, bike, transit) of essential services (groceries, schools, healthcare, parks)? Design the geospatial-analysis pipeline. Address: (1) **Data assembly** — OSM street network via OSMnx (Geoff Boeing), GTFS transit feeds, POI from OSM + commercial data, residential population from census blocks + dasymetric refinement (Tobler pycnophylactic + WorldPop); (2) **Routing engine** — Valhalla or OSRM or R5 (Conveyal) for multimodal; profile per mode; (3) **Isochrones** — 15-min walking / 15-min biking / 15-min transit from each residence to each POI category; alpha-shape polygons; (4) **Accessibility metric** — cumulative accessibility (# of grocery stores within 15 min walk per residence) + 2SFCA (with supply-demand competition for schools + clinics); (5) **Spatial statistics** — Moran's I (1950) for autocorrelation in accessibility scores; LISA (Anselin 1995) for hot/cold spot identification; (6) **Inequity analysis** — overlay with race/income/age demographics; GWR (Fotheringham + Brunsdon + Charlton 1996) to test whether the relationship between demographics + access varies spatially; (7) **Cartographic output** — choropleth at census block + dot-density at block (using Jenks classification + ColorBrewer sequential); web map with Mapbox/MapLibre vector tiles + deck.gl for animated transit; (8) **Caveats** — MAUP (Openshaw 1984) at block vs. tract scale; ecological fallacy (Robinson 1950); routing-graph + sidewalk-data gaps; (9) **Policy linkage** — where to add transit, where to subsidize markets, where to build parks. Deliver a methods memo + a sample analysis report."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_anal_1",
+        "kind": "math_expression",
+        "question": "Moran's I returns 0.0 + permutation-test p = 0.5 for residuals of an OLS regression of house prices on size + bedrooms. Interpret the result for spatial-regression model choice.",
+        "acceptedAnswers": [
+          "no spatial autocorrelation in residuals; OLS is adequate",
+          "no spatial pattern; OLS okay",
+          "OLS adequate",
+          "no spatial autocorrelation"
+        ],
+        "hint": "$I = 0$ + $p = 0.5$ → residuals are spatially random; no evidence for SAR or SEM. OLS coefficients are unbiased + standard errors valid. Spatial regression not needed — but consider GWR if you suspect spatial heterogeneity in *coefficients* rather than residuals."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_anal_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, explain (1) spatial autocorrelation + Moran's I + LISA + kriging; (2) spatial regression (SAR, SEM, GWR); (3) routing + isochrones + geocoding.",
+        "rubric": "Mentions: **Tobler's first law (1970)** — near things more related. **Moran's I (Moran 1950)** — global spatial autocorrelation; **Geary's c (1954)** alternative. **LISA (Anselin 1995)** — local hot/cold spots; GeoDa tool. **Variogram + kriging (Matheron, Krige 1951)** — geostatistical interpolation; nugget + sill + range; ordinary, universal, co-kriging; **gstat (Pebesma R package)**. **Spatial regression**: **SAR (spatial lag)**, **SEM (spatial error)**, **SDM (Spatial Durbin)** per **LeSage + Pace 2009**; estimated by ML; OLS biased under spatial dependence. **GWR (Fotheringham + Brunsdon + Charlton 1996+)** — local regression with distance-weighted observations; reveals spatial nonstationarity; MGWR (2017) covariate-specific bandwidths. **Bayesian**: INLA + SPDE (Lindgren + Rue + Lindström 2011). **Routing**: **Dijkstra (1959)**, **A* (1968)**, **Contraction Hierarchies (2008)**; engines **OSRM, GraphHopper, Valhalla, pgRouting, R5 Conveyal**. **Isochrones** + **2SFCA accessibility**. **Geocoding**: **Nominatim, Pelias, Photon, Google, Mapbox**; **GeoNames** reference. Concludes: spatial structure must be modeled — both in observations (autocorrelation) + in parameters (nonstationarity); modern toolkit is rich + open."
+      }
+    }
+  ]
+}

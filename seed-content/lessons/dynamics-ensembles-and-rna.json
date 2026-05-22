@@ -1,0 +1,153 @@
+{
+  "slug": "dynamics-ensembles-and-rna",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Run MD intelligently.",
+      "Generate conformational ensembles.",
+      "Reason about RNA structure."
+    ],
+    "prereqs": [
+      "alphafold-and-computational-structure"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Molecular dynamics + enhanced sampling: μs to ms timescales",
+      "body": "**Molecular dynamics (MD)** numerically integrates Newton's equations for ~10⁴-10⁶ atoms over fs-ms timescales, producing trajectories of conformational motion. Foundation of computational structural biology since the first MD simulation of a protein (BPTI, McCammon + Karplus + Gelin 1977 *Nature*).\n\n**Force fields** — parametrized potential energy functions:\n- **AMBER** (Cornell + Kollman 1995; ff14SB Maier 2015; ff19SB Tian 2020): widely used for proteins + DNA + RNA + lipids.\n- **CHARMM** (Karplus + MacKerell; CHARMM36m Huang 2017): protein + lipid + carbohydrate.\n- **OPLS** (Jorgensen 1996; OPLS4 Lu 2021): small molecules + drug-like.\n- **GROMOS, ENCAD**: older alternatives.\n- **Polarizable**: AMOEBA, CHARMM Drude — explicit electronic polarization for charged ligands + ion channels.\n- **Implicit solvent**: GB/SA (Generalized Born / Surface Area) — faster but less accurate than explicit TIP3P/TIP4P/SPC waters.\n\n**MD engines**:\n- **GROMACS** (Lindahl 1991+, Stockholm): fast, open-source; CHARMM/AMBER/OPLS support; dominant in academic biomolecular MD.\n- **AMBER (pmemd)**: GPU-optimized; widely used for nucleic acids + ligand FEP.\n- **CHARMM**: original; classic for membrane systems.\n- **NAMD** (Schulten lab, UIUC): scalable parallel; large systems.\n- **OpenMM** (Eastman + Pande 2017): Python-scriptable; GPU; HOOMD-blue alternative.\n- **Desmond** (D. E. Shaw Research / Schrödinger): high-performance.\n- **LAMMPS**: general-purpose, large systems.\n\n**Specialized hardware**:\n- **Anton 1/2/3** (D. E. Shaw Research 2008-2021): custom ASICs reaching ms of all-atom MD on a single 1024-node machine; revealed BPTI substate kinetics, GPCR activation, kinase dynamics. Anton 3 (~100× Anton 1) released 2021.\n- **Folding@Home** (Pande, distributed computing): millions of GPUs world-wide; reached ExaFLOPS during COVID for SARS-CoV-2 spike + Mpro dynamics.\n\n**Timescale problem**: MD time step ~2 fs (constrained X-H bonds); accessible single-trajectory ~μs-ms (Anton). Many biological processes (allosteric transitions, folding, large conformational changes) occur on ms-s — beyond brute force.\n\n**Enhanced sampling methods**:\n- **Replica exchange MD (REMD / parallel tempering)** (Sugita + Okamoto 1999): run N copies at different temperatures; swap configurations; cross energy barriers via high T.\n- **Metadynamics** (Laio + Parrinello 2002): bias a small set of collective variables (CVs) with history-dependent Gaussians filling minima. Variants: well-tempered metadynamics, PBMetaD, OPES (Invernizzi 2020).\n- **Umbrella sampling**: harmonic restraints along a reaction coordinate + WHAM/MBAR free-energy reconstruction.\n- **Steered MD (SMD)**: pull a ligand along a path; Jarzynski equality recovers ΔG.\n- **Accelerated MD (aMD), Gaussian aMD (GaMD)** (Miao + McCammon 2015): boost potential energy below threshold.\n- **String method, milestoning, transition path sampling**: rare-event methods.\n- **Markov State Models (MSMs)** (Pande, Noé): assemble many short trajectories into kinetic networks; PyEMMA, MSMBuilder.\n\n**ML interatomic potentials (MLIPs)** — new revolution:\n- **NequIP** (Batzner + Smidt + Kozinsky 2022 *Nat Commun*): SE(3)-equivariant message-passing neural network on atomic configurations; chemistry-accurate (DFT-level) at ~10⁵× speedup over DFT.\n- **MACE** (Batatia + Csányi 2022): equivariant message-passing with high-body-order features.\n- **Allegro** (Musaelian + Kozinsky 2023): strictly local equivariant network; massive scaling.\n- **Universal MLIPs**: **MACE-MP-0** (Batatia 2023), **CHGNet**, **M3GNet**, **GNoME** (Merchant + DeepMind 2023) cover all of the periodic table.\n- **Specialized biomolecular**: **MACE-OFF23** for organic chemistry, **EquiFold**, **DLPNO-style** ML PES.\n- These enable ab initio-quality MD on millisecond timescales — a paradigm shift coming online 2024-2025.\n\n**Practical advice**: equilibrate carefully (minimize → heat → NVT → NPT → production); validate against experiment (RMSD, RMSF, NMR order parameters, SAXS, HDX); analyze with **MDAnalysis**, **MDTraj**, **PyEMMA**, **VMD**, **ChimeraX**."
+    },
+    {
+      "kind": "text",
+      "title": "Conformational ensembles, multistate prediction + integrative dynamics",
+      "body": "**The 'one structure' problem of AlphaFold**: AF2 returns a single static conformation (highest-confidence MSA-consensus structure) but proteins live in **ensembles** — substates, alternative folds, allosteric states, induced fit upon binding. Predicting ensembles + dynamics is the next frontier.\n\n**Multistate methods on AF2 backbones**:\n- **AlphaFold-Multistate / AF-Cluster** (Wayment-Steele + Kern 2024 *Nature*): cluster the MSA into subsets to bias AF2 toward distinct states. Successfully captured KaiB fold switching + GPCR active/inactive states.\n- **MSA subsampling**: shallow MSAs (~32-64 sequences) yield more conformational variance — picks up alternative states.\n- **Dropout sampling**: stochastic dropout in AF2 inference gives an ensemble of related conformations.\n- **Recycling variation**: more or fewer recycles biases the prediction.\n\n**Generative ensemble models**:\n- **AlphaFlow** (Jing + Berger + Jaakkola 2024): flow-matching model fine-tuned on MD trajectories; generates Boltzmann-weighted ensembles consistent with AF2 + MD.\n- **ESMFlow** (Jing 2024): ESM-2 backbone version.\n- **EigenFold** (Jing + Corso + Barzilay 2023): harmonic-diffusion ensembles.\n- **Boltz-Steering** (MIT 2024): guides Boltz toward experimentally consistent conformations.\n- **DiG (Distributional Graphormer)** (Microsoft Research Asia, Zheng 2023): generates conformational distributions, not single structures.\n- **Distance-conditioned generative models**: cryo-EM density-guided ensemble generation.\n\n**Experimental dynamics methods**:\n- **HDX-MS (hydrogen-deuterium exchange mass spectrometry)**: backbone amide protons exchange with deuterium at rates depending on H-bonding + accessibility; reports on local dynamics + ligand binding effects.\n- **smFRET (single-molecule FRET)**: report distance distributions + state-switching kinetics between two dye-labeled residues.\n- **SAXS (small-angle X-ray scattering)**: solution shape + flexibility; ensemble optimization methods (EOM, BILBOMD) fit experimental SAXS to AF/MD ensembles.\n- **NMR relaxation (R₁, R₂, NOE, T₁ρ, CPMG, RDC)**: ps-ns + μs-ms timescale motions; per-residue order parameters S² + chemical exchange parameters.\n- **Cryo-EM 3D classification + 3DVA + cryoDRGN** (Zhong + Berger 2021 *Nat Methods*): extract conformational continua from cryo-EM particle stacks using deep generative models.\n- **Time-resolved cryo-EM, XFEL, IR/UV pump-probe**: capture transient states.\n\n**Integrative structural biology**:\n- **IMP (Integrative Modeling Platform)** (Sali lab): combines X-ray + cryo-EM + cross-linking MS + SAXS + interaction data into a single Bayesian framework.\n- **HADDOCK** (Bonvin): docking with experimental restraints.\n- **PyMOL/ChimeraX scripts** integrating density, distance, contact data.\n- Used for: nuclear pore complex (Beck + Hurt + Sali 2018 *Nature* — 552-protein assembly), spliceosome (Shi, Nagai, Cusack), respirasome (Sazanov, Hirst, Kühlbrandt), 26S proteasome (Beck, Förster), ciliary axoneme (Bui + Ishikawa).\n\n**AlphaFold 3 + complex prediction with dynamics**:\n- AF3 produces ensembles by stochastic diffusion sampling — multiple seeds give a posterior distribution.\n- Better than AF-Multimer for transient interactions, ligand binding pockets, and certain disordered regions — but still single-snapshot per seed.\n- Combined with MD post-relaxation (OpenMM, GROMACS) + ML potentials (MACE), gives a dynamic + ensemble view.\n\n**Druggability + dynamics**:\n- **Cryptic pockets**: revealed by MD or AF-Cluster ensembles; KRAS switch-II pocket (Shokat 2013) was a paradigmatic example invisible in static crystal structures.\n- **Allosteric networks**: extracted from MD + perturbation response scanning (PRS) + linear-response theory.\n- **Markov state models** identify metastable states for drug targeting in distinct conformations (Type II kinase inhibitors targeting DFG-out).\n- ML-based pocket discovery: P2Rank, PocketMiner, DeepPocket."
+    },
+    {
+      "kind": "text",
+      "title": "RNA structure + cryo-electron tomography + in-cell biology",
+      "body": "**RNA structure** is the next frontier after protein folding — and harder, because RNA is more flexible + sparse in PDB (~5000 RNA structures vs ~200k protein in 2024).\n\n**RNA secondary structure**:\n- Driven by **Watson-Crick base pairs** (A-U, G-C) + **non-canonical** (G-U wobble, sheared GA, Hoogsteen, sugar-edge interactions classified by Leontis + Westhof 2001).\n- **Loops + bulges + multi-way junctions** + **pseudoknots** form 3D topology.\n- **RNAfold / ViennaRNA** (Lorenz + Hofacker 2011): dynamic programming over Nussinov + Turner thermodynamic parameters; predicts minimum free-energy secondary structure + suboptimal ensemble.\n- **mfold / UNAFold** (Zuker): classical alternative.\n- **CONTRAfold, EternaFold, RNAstructure**: ML + statistical alternatives.\n- **SHAPE-MaP, DMS-MaPseq** (Weeks, Rouskin): chemical probing of single-stranded vs paired bases; experimentally constrains secondary structure.\n- **CONTRAfold + R2R + RNAcanvas**: visualization.\n\n**RNA tertiary structure**:\n- Hard — far fewer training examples, more conformational flexibility, often metal-dependent.\n- **AlphaFold 3** (Abramson 2024): predicts RNA tertiary at sub-3 Å for many cases — landmark improvement over RoseTTAFoldNA + DeepFoldRNA + RhoFold. Still struggles with complex multi-way junctions + Mg²⁺ binding.\n- **RoseTTAFoldNA** (Baek + Baker 2024 *Nat Methods*): extended RoseTTAFold to nucleic acids + protein-RNA complexes.\n- **RhoFold+, ARES, NuFold**: specialized RNA models.\n- **Rosetta FARFAR / FARNA + Stepwise** (Das lab): physics-based assembly.\n\n**Functional RNAs of interest**:\n- **Ribozymes**: hammerhead, hairpin, HDV, glmS, group I + II self-splicing introns, RNase P, spliceosome (Cech + Altman Nobel 1989; Steitz Nobel 2009 for ribosome).\n- **Riboswitches**: ligand-binding regulatory elements (purine, thiamine, FMN, glycine, fluoride riboswitches) — emerging antibiotic targets.\n- **CRISPR guide RNAs + tracrRNAs**.\n- **lncRNAs + miRNAs + tRNAs + snoRNAs**.\n- **Viral RNAs**: SARS-CoV-2 5'-UTR + frameshift element (FSE) + 3'-UTR pseudoknot — antiviral targets.\n- **RNA G-quadruplexes** in 5'-UTRs + telomeres.\n\n**RNA drug discovery**:\n- **Risdiplam** (Roche, FDA 2020) — first oral small-molecule RNA splicing modulator; targets SMN2 pre-mRNA for spinal muscular atrophy.\n- **Branaplam** (Novartis): SMN2 splice modulator.\n- **Antisense oligonucleotides** (Nusinersen for SMA, Eteplirsen for DMD, Inotersen, Tofersen).\n- **siRNA** therapies (Patisiran for hereditary TTR amyloidosis, Givosiran, Lumasiran, Inclisiran for cholesterol).\n- **mRNA vaccines + therapies** (Pfizer-BioNTech + Moderna COVID; Moderna + BioNTech personalized cancer vaccines in trials).\n- Small-molecule RNA targeting + structure-based design is an emerging frontier (Disney lab, Hargrove, Schneekloth).\n\n**Cryo-electron tomography (cryo-ET) + in-cell structural biology**:\n\n**Cryo-ET workflow**:\n1. **Cryo-FIB milling** (focused ion beam): thin frozen cells/tissue to ~150-300 nm lamellae.\n2. **Tilt series**: collect images at ±60° tilt at small angular increments (e.g., 2°).\n3. **3D reconstruction**: weighted back projection or Bayesian methods → tomogram (3D volume).\n4. **Sub-tomogram averaging (STA)**: pick repeating particles, align + average → near-atomic resolution for abundant species (ribosomes, nuclear pore subunits, viral capsids, mitochondrial complexes).\n\n**Landmark cryo-ET achievements**:\n- **Nuclear pore complex (NPC)** in situ (Beck + Hurt + Glavy + Sali 2007-2022): 552 proteins, ~120 MDa; revealed inner-ring vs outer-ring scaffold + cytoplasmic + nuclear filaments + central FG-repeat barrier.\n- **Ribosomes** in situ (Pfeffer + Plitzko 2014; Engel + Förster 2020): translating ribosomes in human cells imaged with ribosome-bound mRNAs + nascent chains.\n- **Mitochondrial complexes**: respirasome supercomplex (I+III+IV; Letts + Sazanov 2016; Hartmann + Kühlbrandt 2018) + ATP synthase + MICOS.\n- **Bacterial chemotaxis arrays + flagellar motor** (Jensen lab).\n- **Photosynthesis + thylakoid membrane** (Engel + Plitzko).\n- **SARS-CoV-2 spike** on virion surface (Ke + Briggs 2020); in vivo virion architecture.\n- **Synaptic vesicle architecture + tethering proteins**.\n\n**Software**: IMOD, RELION (tomo branch), Warp, M, AreTomo, EMAN2, Dynamo, novaCTF, cryoCARE, isoNet.\n\n**Visual proteomics**: combining cryo-ET + AF/AF3 predictions + cross-linking MS to identify every protein in a tomogram by their structure — emerging integrative paradigm.\n\n**Resolution-scale hierarchy now spans**: atomic (X-ray, cryo-EM SPA, NMR) → mesoscale (cryo-ET STA) → cellular (FIB-SEM, light-sheet, super-resolution LM) — all linkable via integrative modeling (IMP). The future of structural biology is in-cell + dynamic + integrative."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dyn_rna_1",
+        "kind": "guided_derivation",
+        "question": "Compute MD timescales + decide on enhanced sampling",
+        "goal": "You need to characterize a conformational transition that takes ~10 ms in experiment. MD time step is 2 fs, your GPU machine runs ~100 ns/day. Reason about feasibility, then design an enhanced-sampling strategy.",
+        "steps": [
+          {
+            "prompt": "How many MD steps + how much wall-time for a single 10 ms trajectory?",
+            "motivation": "Brute-force feasibility check.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "5 × 10¹² steps; ~10⁵ days ≈ ~270 years on a single GPU"
+              ]
+            },
+            "hints": [
+              "Steps = time / dt; wall-time = time / (rate per day)."
+            ],
+            "reveal": "Steps = 10⁻² s / (2 × 10⁻¹⁵ s) = 5 × 10¹² steps. At 100 ns/day, 10 ms = 10⁷ ns → 10⁵ days ≈ 274 years. Infeasible on a single GPU. Even on Anton 3 (~ms/day for moderate-size systems), this is at the edge."
+          },
+          {
+            "prompt": "Which enhanced-sampling method is appropriate?",
+            "motivation": "Choose based on known reaction coordinate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "metadynamics or REMD if no good CV; umbrella sampling if you know the CV; Markov State Models from many short trajectories"
+              ]
+            },
+            "hints": [
+              "What enhanced-sampling methods overcome high barriers?"
+            ],
+            "reveal": "Options: (1) **Metadynamics** with collective variables capturing the transition (RMSD-to-state-A, key dihedrals, contact maps); (2) **REMD** if no clear CV — energy-driven crossing of barriers; (3) **Umbrella sampling** along a 1-D reaction coordinate with WHAM reconstruction; (4) **Markov State Models** built from many short trajectories aggregating to ms timescale kinetics."
+          },
+          {
+            "prompt": "What experimental data would you compare against?",
+            "motivation": "Validate ensembles.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "NMR order parameters S² + CPMG relaxation, HDX-MS, smFRET distance distributions, SAXS scattering profile"
+              ]
+            },
+            "hints": [
+              "What experimental observables report ns-ms dynamics?"
+            ],
+            "reveal": "Compare against: (1) **NMR S² order parameters** from ¹⁵N relaxation for ns dynamics; **R₂ CPMG** for μs-ms exchange; (2) **HDX-MS** rates per peptide; (3) **smFRET** distance distributions + dwell times; (4) **SAXS** P(r) + Rg + Kratky plot for solution flexibility; (5) **EOM** (Ensemble Optimization Method) fits SAXS to candidate ensembles."
+          },
+          {
+            "prompt": "How would ML interatomic potentials (MACE / NequIP) change this picture?",
+            "motivation": "MLIPs change the time-cost equation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "MLIPs provide DFT-quality accuracy at ~10⁵× speedup over DFT; enable accurate reactive + metal-dependent simulations + integration with classical MD for hybrid pipelines"
+              ]
+            },
+            "hints": [
+              "What's the killer app of MACE/NequIP for biomolecular MD?"
+            ],
+            "reveal": "MACE, NequIP, Allegro, MACE-OFF23 provide near-DFT accuracy at orders of magnitude lower cost — enable accurate simulation of metal sites, enzyme reactions, ion permeation, ligand polarization. Hybrid MM/MLIP setups: classical force field for bulk, MLIP for active site or ligand. Universal MLIPs (MACE-MP-0, CHGNet, GNoME) cover all of chemistry. Combined with enhanced sampling, could collapse months of QM/MM into days; emerging frontier 2024-2025."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dyn_rna_1",
+        "kind": "multiple_choice",
+        "question": "Why is AlphaFold's single static structure not the whole story for biology?",
+        "options": [
+          "Wrong.",
+          "AlphaFold 2 returns the **MSA-consensus highest-confidence structure** — but real proteins live in **ensembles**: alternative substates, allosteric conformations, fold switches, induced fit on binding, intrinsic disorder. Biology routinely depends on dynamics + multistate behavior: kinase DFG-in/DFG-out for type I/II inhibitors, GPCR active/inactive states for biased agonism, transporters' alternating access, KaiB fold-switching, prions, riboswitch ligand binding, allosteric networks. **Ensemble methods address this**: (1) **AlphaFold-Multistate / AF-Cluster** (Wayment-Steele + Kern 2024 *Nature*) clusters MSAs to bias toward different states; (2) **MSA subsampling + dropout** in AF2 inference gives sample variance; (3) **AlphaFlow / ESMFlow / EigenFold / Boltz-Steering** (Jing + Berger + Jaakkola 2024) are generative ensemble models fine-tuned on MD; (4) **Markov State Models** + **enhanced-sampling MD** (REMD, metadynamics, MLIPs MACE/NequIP/Allegro); (5) experimental: **HDX-MS** (backbone dynamics), **smFRET** (distance distributions), **NMR R₂ relaxation** (μs-ms exchange), **SAXS** (solution flexibility), **cryo-EM 3D classification + cryoDRGN** (continuous heterogeneity). Cryptic pockets (KRAS switch-II) visible only in ensembles — drives modern druggability expansion. Future: AF3 + diffusion + MLIPs + experimental dynamics together produce dynamic + Boltzmann-weighted predictions, not just single static snapshots.",
+          "Wrong.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "AF2 = single MSA-consensus snapshot; proteins are ensembles (substates, allosteric switches, induced fit, disorder). Ensemble methods: AF-Cluster (Wayment-Steele + Kern 2024 *Nature*) for MSA clustering; AlphaFlow/ESMFlow/EigenFold/Boltz-Steering generative; MD + MLIPs (MACE, NequIP); MSMs. Experiments: HDX-MS, smFRET, NMR R₂, SAXS, cryo-EM 3DVA + cryoDRGN. Cryptic pockets (KRAS switch-II) only visible in ensembles."
+      },
+      "hints": [
+        "What is AF2's output + what does it miss?",
+        "Name 3 ensemble methods + 3 experimental dynamics probes."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "AF2 returns single MSA-consensus snapshot but proteins are ensembles — substates, allosteric states, fold-switching, induced fit, disorder. Methods: AF-Cluster (MSA clustering, Wayment-Steele + Kern 2024); AlphaFlow/ESMFlow/EigenFold generative; MD + MLIPs (MACE/NequIP/Allegro/MACE-OFF23); enhanced sampling (REMD, metadynamics); MSMs. Experiment: HDX-MS, smFRET, NMR S²/R₂, SAXS, cryo-EM 3DVA + cryoDRGN. Cryptic pockets (KRAS switch-II) only in ensembles."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_dyn_rna_1",
+        "kind": "scenario",
+        "question": "Solve a riboswitch + drug it",
+        "prompt": "You discover a bacterial riboswitch (~120 nt) regulating an essential gene in a pathogen. Two states (ligand-bound + apo) regulate transcription termination. Walk through: (a) how you predict secondary + tertiary structure (RNAfold + SHAPE-MaP + AlphaFold 3); (b) how you experimentally determine apo + holo structures (X-ray + cryo-EM + NMR); (c) how you discover small-molecule ligands binding the riboswitch (fragment soaking + DEL + virtual screening of ZINC22); (d) how MD + metadynamics + MLIPs map cryptic pockets + ligand binding kinetics; (e) what makes RNA targeting harder than protein targeting + risdiplam-style precedent."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_dyn_rna_1",
+        "kind": "math_expression",
+        "question": "MSM eigenvalue ↔ implied timescale: if a transition matrix has eigenvalue λ₂ = 0.99 at lag time τ = 1 ns, what is the implied timescale t₂?",
+        "acceptedAnswers": [
+          "99.5 ns",
+          "-1 / ln(0.99) ≈ 99.5",
+          "t = -τ/ln(λ₂) = -1/ln(0.99) ≈ 99.5 ns"
+        ],
+        "hint": "$t_i = -\\tau / \\ln(\\lambda_i)$. $\\ln(0.99) \\approx -0.01005$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dyn_rna_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why dynamics + ensembles + RNA + cryo-ET extend structural biology beyond static single-protein structures.",
+        "rubric": "Mentions: AlphaFold returns single snapshots but biology = ensembles + dynamics. MD (AMBER/CHARMM/GROMACS/OpenMM/NAMD; Anton, Folding@Home) reaches μs-ms; enhanced sampling (REMD Sugita 1999, metadynamics Laio + Parrinello 2002, MSMs); ML potentials (NequIP, MACE, Allegro, MACE-OFF23) bring DFT-quality at 10⁵× speedup. Ensemble prediction: AF-Cluster (Wayment-Steele + Kern 2024 *Nature*), AlphaFlow / ESMFlow / EigenFold / Boltz-Steering, MSA subsampling + dropout. Experimental dynamics: HDX-MS, smFRET, NMR S²/R₂ relaxation, SAXS, cryo-EM 3DVA + cryoDRGN. Cryptic pockets (KRAS switch-II Shokat 2013 → sotorasib FDA 2021). RNA: ViennaRNA/RNAfold + SHAPE-MaP for 2°; AF3 + RoseTTAFoldNA for 3°; ribozymes, riboswitches, viral RNAs, SARS-CoV-2 FSE; risdiplam first oral RNA-splicing modulator (FDA 2020), antisense + siRNA + mRNA therapies. Cryo-ET + cryo-FIB + STA: in-cell ribosomes, nuclear pore (Beck/Hurt/Sali 552-protein assembly), mitochondrial respirasome, SARS-CoV-2 virion; integrative modeling (IMP, HADDOCK) combines X-ray + cryo-EM + cross-linking + SAXS. Concludes: structural biology is now in-cell + dynamic + integrative — atoms to cells across resolution scales — enabled by AF + diffusion + cryo-ET + MLIPs."
+      }
+    }
+  ]
+}

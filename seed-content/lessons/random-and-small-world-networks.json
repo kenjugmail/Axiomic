@@ -1,0 +1,154 @@
+{
+  "slug": "random-and-small-world-networks",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Derive Erdős-Rényi properties.",
+      "Trace small-world experiments.",
+      "Explain Watts-Strogatz model."
+    ],
+    "prereqs": [
+      "network-foundations-and-graph-theory"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Erdős-Rényi: the random-graph baseline",
+      "body": "**Erdős-Rényi (ER) random graphs** (Paul Erdős + Alfréd Rényi, *Publicationes Mathematicae Debrecen* 1959; *On the Evolution of Random Graphs* 1960; Gilbert 1959 concurrent): the canonical null model of network science.\n\n**Two equivalent ensembles**:\n- **G(n, p)** (Gilbert 1959): n nodes; each of (n choose 2) possible edges present independently with probability p.\n- **G(n, m)** (Erdős-Rényi 1959): n nodes; choose m edges uniformly at random.\n\nThey're equivalent in the n → ∞ limit when p · (n-1) = ⟨k⟩ stays fixed.\n\n**Degree distribution**: each node has k_i ~ Binomial(n-1, p) → Poisson(⟨k⟩) for large n + small p. P(k) = e^(-⟨k⟩) ⟨k⟩^k / k!. Mean ⟨k⟩ = (n-1)p. Variance σ² = ⟨k⟩. Sharply peaked around mean — utterly unlike real heavy-tailed networks.\n\n**Phase transitions of ER as p varies**:\n- **p < 1/n (⟨k⟩ < 1)**: subcritical. All components have size O(log n); no giant component.\n- **p = 1/n (⟨k⟩ = 1)**: **critical point**. Largest component size O(n^(2/3)). Power-law cluster-size distribution.\n- **p > 1/n (⟨k⟩ > 1)**: **supercritical**. A unique **giant component** emerges containing fraction S(⟨k⟩) of all nodes; satisfies 1 - S = e^(-⟨k⟩·S). At ⟨k⟩ = 1.5 about 58% in giant; at ⟨k⟩ = 2 about 80%; at ⟨k⟩ = 5 about 99%.\n- **p ~ ln(n)/n**: connectivity threshold. Above this, the graph is connected with high probability.\n\n**Percolation analogy**: the giant-component emergence is a second-order phase transition. Same universality class as random percolation on Bethe lattice; critical exponents ν = 1, β = 1, γ = 1.\n\n**Clustering coefficient**: C_ER = p = ⟨k⟩/(n-1) → 0 as n → ∞. ER graphs are locally tree-like — wildly different from real social networks (C ~ 0.1-0.6).\n\n**Average path length**: ⟨d⟩ ~ ln(n) / ln(⟨k⟩). Small-world in path-length terms — but missing the clustering.\n\n**Why ER matters despite being unrealistic**: it's the null model. Any deviation a real network shows (high clustering, hubs, communities, motifs) must be measured against ER as baseline. Statistical significance of motifs (Milo + Alon 2002), modularity (Newman + Girvan 2004), small-worldness (Humphries + Gurney 2008) all reference ER. The **configuration model** generalizes ER while preserving a given degree sequence — the standard null model when degrees matter."
+    },
+    {
+      "kind": "text",
+      "title": "Six degrees of separation: Milgram + beyond",
+      "body": "**The small-world question**: How short are paths between random people in a large social network?\n\n**Karinthy 1929**: Frigyes Karinthy's short story *Láncszemek* (Chain-Links) first proposed the conjecture that any two people are connected by ≤ 5 intermediaries.\n\n**Milgram 1967 — *The Small-World Problem* (Psychology Today)**: Stanley Milgram + Jeffrey Travers asked ~300 residents of Omaha (NE) + Boston to forward a packet to a target stockbroker in Sharon (MA) by passing it only through personal acquaintances. About 64 packets arrived. Median chain length ~5.5 hops. Gave rise to the popular '**six degrees of separation**' phrase (later play by John Guare 1990; film 1993).\n\n**Travers + Milgram 1969**: more rigorous follow-up; replicated the result.\n\n**Caveats of Milgram's experiment**:\n- Massive attrition (~80% of packets lost) — selection bias toward successful chains.\n- Inferred from successful chains only; failures may indicate much longer paths.\n- Small sample (~300 starters; 64 completed).\n- Geographic + socioeconomic biases (Boston-Omaha).\n\n**Dodds + Muhamad + Watts (2003 Science)**: massive replication via email. 24,000 participants worldwide; 18 targets in 13 countries. Found median 5-7 hops for completed chains; but only ~3% of chains completed. The 'six degrees' may hold approximately but the **funneling** to celebrities + hubs is over-counted in completed chains.\n\n**Backstrom + Boldi + Rosa + Ugander + Vigna (2012)**: Facebook with 721M users + 69B friendships; mean shortest path ~4.74. 'Six degrees' actually closer to **four degrees** in modern online social networks.\n\n**LinkedIn, Twitter studies**: confirm the small-world property with mean shortest paths ~4-6.\n\n**Why small-world?** Two competing facts:\n- Most acquaintances are local (friends of friends + friends; high clustering).\n- A few **long-range ties** dramatically shrink path length.\n\n**Granovetter (1973) *The Strength of Weak Ties***: most jobs found through weak ties (acquaintances) not strong ties (close friends). Weak ties bridge clusters + carry novel information. Foundational sociology paper; informed later mathematical models.\n\n**Kleinberg (2000 Nature) navigable small worlds**: showed that decentralized greedy routing finds short paths only if the long-range-link distance distribution decays as 1/d² (in 2D lattice) — a special exponent. Universality of geographic-distance link distributions in real social networks. Foundation for distributed hash tables (Chord, Symphony), peer-to-peer networks, navigable networks."
+    },
+    {
+      "kind": "text",
+      "title": "Watts-Strogatz: clustering + small-world together",
+      "body": "**Watts-Strogatz model** (Duncan Watts + Steven Strogatz, *Nature* 1998 *Collective dynamics of small-world networks*): the first network model with both **high clustering** + **small average path length**. >50,000 citations; cofounded modern network science.\n\n**Construction**:\n1. Start with a ring lattice: n nodes arranged in a circle; each connected to its 2K nearest neighbors. High clustering: C_lattice ≈ 3(K-1)/(2(2K-1)) ≈ 0.75 for K large. Long path length: ⟨d⟩ ~ n/(4K).\n2. **Rewire** each edge with probability p, attaching one endpoint to a uniformly random node. Self-loops + duplicates forbidden.\n3. Sweep p from 0 (regular lattice) to 1 (ER random graph).\n\n**Small-world regime (p ~ 0.01-0.1)**:\n- Clustering C(p) stays near lattice value (only a few edges rewired — local triangles preserved).\n- Path length L(p) drops sharply (a single long-range shortcut can cut path length dramatically).\n- This **gap** between C(p)/C(0) ≈ 1 + L(p)/L(0) ≪ 1 defines the small-world regime.\n\n**Small-world coefficient σ** (Humphries + Gurney 2008): σ = (C/C_random) / (L/L_random). σ > 1 indicates small-world; many real networks have σ ~ 1-10.\n\n**Empirical examples from Watts + Strogatz**:\n- *C. elegans* neural network (302 neurons): high C, short L → small-world.\n- Western US power grid: small-world.\n- Movie actor collaboration (Internet Movie Database): small-world.\n\n**Applications**:\n- **Brain networks** (Sporns + Bullmore + others): structural + functional connectivity are small-world — efficient information integration with sparse wiring.\n- **Social networks**: nearly universal small-world.\n- **Epidemic spreading**: in small-world networks, diseases spread far faster than on lattices (Kuperman + Abramson 2001).\n- **Synchronization**: Kuramoto oscillators reach global sync earlier on small-world topologies (next lessons).\n- **Distributed computing**: small-world networks have efficient routing (Kleinberg).\n\n**Limitations of WS**:\n- Still has Poisson-like degree distribution (no heavy tails).\n- Doesn't explain hubs.\n- Static; no growth.\n- WS + ER → Barabási-Albert (next lesson) addresses these.\n\n**Newman + Watts variant (1999)**: instead of rewiring, **add** shortcuts at probability p. Often analytically cleaner; same small-world phenomenology.\n\n**Conceptual takeaway**: real networks live in the small-world regime — small distances + high clustering coexist. WS was the first model to make this explicit + measurable. Together with Barabási-Albert (1999 scale-free) + Girvan-Newman (2002 communities), WS launched the network-science era."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sw_1",
+        "kind": "guided_derivation",
+        "question": "Derive ER giant-component threshold",
+        "goal": "Show that the giant component emerges at ⟨k⟩ = 1 by self-consistency.",
+        "steps": [
+          {
+            "prompt": "Let u = probability a randomly chosen node is NOT in the giant component. Then u = probability all its neighbors are also not in the giant component. Each neighbor (~ Poisson neighbors) is independently not-in-giant with probability u. Express u self-consistently.",
+            "motivation": "Branching-process argument.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "u = e^(-⟨k⟩(1-u))",
+                "u = exp(-⟨k⟩(1-u))"
+              ]
+            },
+            "hints": [
+              "Each neighbor is in giant with probability 1-u; expected neighbors = ⟨k⟩; Poisson-thinning gives e^(-⟨k⟩(1-u))."
+            ],
+            "reveal": "u = e^(-⟨k⟩(1-u)). Setting S = 1 - u (fraction in giant), 1 - S = e^(-⟨k⟩·S)."
+          },
+          {
+            "prompt": "When does the equation S = 1 - e^(-⟨k⟩·S) have a nonzero solution?",
+            "motivation": "Linearize around S = 0.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "⟨k⟩ > 1"
+              ]
+            },
+            "hints": [
+              "Taylor expand: 1 - e^(-x) ≈ x - x²/2 + ..."
+            ],
+            "reveal": "Near S = 0: S ≈ ⟨k⟩·S - (⟨k⟩·S)²/2 + ... Nontrivial solution requires slope ⟨k⟩ > 1. So **critical threshold ⟨k⟩_c = 1**, i.e. p_c = 1/(n-1) ≈ 1/n."
+          },
+          {
+            "prompt": "Critical exponent for S near threshold?",
+            "motivation": "Scaling behavior.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "S ~ (⟨k⟩ - 1) linear; β = 1"
+              ]
+            },
+            "hints": [
+              "From quadratic expansion of self-consistency equation."
+            ],
+            "reveal": "S ~ 2(⟨k⟩ - 1) just above threshold. Critical exponent β = 1 (mean-field). Same universality class as percolation on Bethe lattice + Curie-Weiss ferromagnet."
+          },
+          {
+            "prompt": "What does this mean for connectivity at ⟨k⟩ = 0.99 vs ⟨k⟩ = 1.01?",
+            "motivation": "Sharp phase transition.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "below: only O(log n) components; above: O(n) giant component"
+              ]
+            },
+            "hints": [
+              "Sub-/super-critical regimes."
+            ],
+            "reveal": "Below: largest component has size O(log n) (exponentially small). Above: a unique giant component of size O(n). At threshold the cluster-size distribution has a heavy tail with O(n^(2/3)) largest cluster — second-order transition. Foundational for percolation theory, network robustness (next lessons), epidemic threshold."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sw_1",
+        "kind": "multiple_choice",
+        "question": "Why is the Watts-Strogatz model considered a foundational result of modern network science?",
+        "options": [
+          "Random.",
+          "Watts + Strogatz (1998 Nature) proposed the first generative model exhibiting both **high clustering** + **short average path length** — the empirically observed small-world property of real networks. Starting from a regular lattice (high C, long L) + rewiring a small fraction p of edges, they showed that L(p) drops dramatically while C(p) stays near the lattice value — a gap defining the small-world regime. Applied to C. elegans neural network, US power grid + movie-actor collaboration networks — all small-world. Together with Erdős-Rényi (1959), Barabási-Albert (1999 scale-free) + Girvan-Newman (2002 communities), WS launched the modern network-science era — informing brain connectomics (small-world coefficient σ > 1 nearly universal), epidemic spreading (Kuperman + Abramson), synchronization (Kuramoto), distributed computing (Kleinberg navigable small worlds), + drove >50,000 citations across physics, biology, sociology + CS. Demonstrated mathematically that a tiny number of long-range shortcuts radically shorten paths while preserving local clustering — the formal version of Milgram's six-degrees insight + Granovetter's weak-ties sociology.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Watts-Strogatz (1998 Nature) gave the first model with both high clustering + short path length — the small-world property of real networks. Rewiring lattice edges interpolates from regular (high C, long L) to random (low C, short L); a tiny p ~ 0.01-0.1 produces dramatic L reduction while preserving C. Applied to C. elegans, power grid, actor networks. Foundation for brain connectomics, epidemic spreading, synchronization, distributed computing. With ER + BA + Girvan-Newman, launched modern network science."
+      },
+      "hints": [
+        "What problem did it solve?",
+        "Which real networks did they test?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Watts-Strogatz (1998 Nature) introduced rewiring of lattice edges, interpolating from high-C lattice to low-C random graph. Tiny p ~ 0.01-0.1 drops L while preserving C — the small-world regime. Validated on C. elegans, power grid, actor collaboration. Foundation for brain connectomics, epidemic spreading, synchronization, distributed routing. With ER + BA + Girvan-Newman it launched modern network science; >50,000 citations."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sw_1",
+        "kind": "scenario",
+        "question": "You've measured C ≈ 0.4 + ⟨L⟩ ≈ 6 + ⟨k⟩ ≈ 10 on a 1M-node social network.",
+        "prompt": "Compute the small-worldness coefficient σ given ER baseline C_random = ⟨k⟩/n + L_random ≈ ln n / ln ⟨k⟩. Compare to typical real-world values (σ ~ 1-10 ranges). What does it tell you about: (a) information diffusion speed; (b) epidemic spreading; (c) community structure; (d) robustness to random node removal? Tie back to Granovetter's weak ties + Kleinberg's navigability."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sw_1",
+        "kind": "math_expression",
+        "question": "Write the self-consistency equation for the giant-component fraction S in an Erdős-Rényi graph with mean degree ⟨k⟩.",
+        "acceptedAnswers": [
+          "S = 1 - e^(-⟨k⟩ S)",
+          "1 - S = e^(-⟨k⟩ S)",
+          "S = 1 - exp(-<k>*S)"
+        ],
+        "hint": "Each node is not in giant iff all ⟨k⟩ (Poisson) neighbors are not in giant."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sw_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why Erdős-Rényi + Watts-Strogatz together define the foundational toolkit of network science.",
+        "rubric": "Mentions: Erdős-Rényi (1959) is the canonical random-graph null model — Poisson degrees, giant-component transition at ⟨k⟩ = 1 (sharp second-order phase transition, percolation universality class), connectivity at ⟨k⟩ ~ log n. ER's vanishing clustering + Poisson degrees expose how real networks differ. Watts-Strogatz (1998 Nature) is the first model reproducing observed small-world property: lattice rewiring at tiny p creates short paths while preserving clustering. Applied to C. elegans neurons, US power grid, actor collaboration. Validates Milgram's 1967 six-degrees insight + Granovetter's 1973 weak-ties theory. Together with Barabási-Albert (1999 scale-free) + community detection (Girvan-Newman 2002), ER + WS launched modern network science. Provides null models, generative models, + analytical machinery underlying contemporary work on brain connectomics, epidemics, synchronization, search, GNNs."
+      }
+    }
+  ]
+}

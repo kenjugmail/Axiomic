@@ -3,7 +3,18 @@
     {
       "kind": "text",
       "title": "Why we need a mask",
-      "body": "Standard self-attention lets every token attend to every other token. For a decoder model that generates text one token at a time, this is a problem: at position `t`, the model would 'see' tokens `t+1, t+2, ...` — the answer it's supposed to predict.\n\nThe **causal mask** (or 'autoregressive mask') prevents this leak. The rule: token at position `i` can only attend to positions `j ≤ i`.\n\nIn matrix form, the attention scores `S = Q · K^T` are masked so that all upper-triangular entries (where `j > i`) are set to `-inf` before softmax:\n\n```\n    j=0  j=1  j=2  j=3\ni=0  s    -∞   -∞   -∞\ni=1  s    s    -∞   -∞\ni=2  s    s    s    -∞\ni=3  s    s    s    s\n```\n\nWith `-inf` going through softmax, those positions get weight 0 — equivalent to ignoring them entirely."
+      "viz": "attention-heatmap",
+      "vizProps": {
+        "tokens": ["The","cat","sat","on","mat"],
+        "weights": [
+          [1,0,0,0,0],
+          [0.5,0.5,0,0,0],
+          [0.34,0.33,0.33,0,0],
+          [0.25,0.25,0.25,0.25,0],
+          [0.2,0.2,0.2,0.2,0.2]
+        ]
+      },
+      "body": "Standard self-attention lets every token attend to every other token. For a decoder model that generates text one token at a time, this is a problem: at position `t`, the model would 'see' tokens `t+1, t+2, ...` — the answer it's supposed to predict.\n\nThe **causal mask** (or 'autoregressive mask') prevents this leak. The rule: token at position `i` can only attend to positions `j ≤ i`.\n\nIn matrix form, the attention scores `S = Q · K^T` are masked so that all upper-triangular entries (where `j > i`) are set to `-inf` before softmax:\n\n```\n    j=0  j=1  j=2  j=3\ni=0  s    -∞   -∞   -∞\ni=1  s    s    -∞   -∞\ni=2  s    s    s    -∞\ni=3  s    s    s    s\n```\n\nWith `-inf` going through softmax, those positions get weight 0 — equivalent to ignoring them entirely.\n\nThe heatmap shows the causal mask in action: each row is row-normalized and lower-triangular. Token 0 (\"The\") attends only to itself; token 4 (\"mat\") attends equally to all five tokens. No future information leaks backward."
     },
     {
       "kind": "text",
@@ -53,9 +64,76 @@
       }
     },
     {
+      "kind": "question",
+      "question": {
+        "id": "ma_gd1",
+        "kind": "guided_derivation",
+        "question": "Derive why a decoder must mask future positions using -∞ before softmax",
+        "goal": "Show that setting upper-triangular logits to -∞ before softmax is the unique correct way to prevent a decoder token at position i from attending to positions j > i, and explain the triangular structure that results.",
+        "steps": [
+          {
+            "prompt": "What happens to a logit set to -∞ when passed through softmax? Write exp(-∞).",
+            "motivation": "Softmax exponentiates each logit. Understanding this case proves why -∞ is the correct sentinel value.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0",
+                "exp(-inf) = 0"
+              ]
+            },
+            "hints": [
+              "exp of a very large negative number approaches what limit?"
+            ],
+            "reveal": "exp(-∞) = 0. Because softmax computes softmax(z)_j = exp(z_j) / Σ_k exp(z_k), any logit set to -∞ contributes exactly 0 to both the numerator and denominator. The remaining unmasked positions normalize cleanly among themselves."
+          },
+          {
+            "prompt": "For a sequence of length T, which entries (i, j) of the score matrix S = QK^T must be masked so that token i never attends to token j > i?",
+            "motivation": "Identifying the set of masked positions reveals the triangular structure.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "all j > i",
+                "upper triangle: j > i",
+                "entries where j > i"
+              ]
+            },
+            "hints": [
+              "Draw a T×T matrix. Position i is the row, position j is the column. Causal means 'past and present only'."
+            ],
+            "reveal": "The mask covers all (i, j) where j > i — the strict upper triangle of the T×T score matrix. The resulting valid-attention region is a lower triangle (including the diagonal), which is exactly the lower-triangular structure shown in the heatmap: position 0 attends only to itself, position 1 to positions 0–1, and so on."
+          },
+          {
+            "prompt": "Why would setting masked entries to 0 (not -∞) before softmax fail to prevent attention leakage?",
+            "motivation": "Contrasting with the wrong approach sharpens understanding of where normalization happens.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "exp(0) = 1, so masked positions still get nonzero softmax weight",
+                "exp(0)=1, the masked entries still contribute to the sum"
+              ]
+            },
+            "hints": [
+              "What is exp(0)?"
+            ],
+            "reveal": "exp(0) = 1, so a zeroed-out logit still contributes 1 to the softmax denominator and receives weight 1 / (Σ exp(unmasked logits) + number_masked). Future tokens still receive nonzero attention weight — the leak is not eliminated. Only -∞ drives the weight to exactly 0."
+          }
+        ],
+        "finalResult": "Masked logit -∞ → exp(-∞) = 0 → softmax weight 0. Setting all upper-triangular entries S[i,j] = -∞ for j > i produces the causal lower-triangular attention pattern: each token attends only to itself and earlier positions, making autoregressive generation and efficient parallel training both correct and equivalent."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "ma_scen1",
+        "kind": "scenario",
+        "question": "Diagnosing a mask removal bug during training",
+        "prompt": "A student is debugging a GPT-style language model. To speed up an experiment, they comment out the line that applies the causal mask before softmax, reasoning that 'during training the model sees the full sequence anyway, so the mask is redundant.' After training for a few hundred steps, the model achieves near-zero training loss almost immediately, but when asked to generate text autoregressively at inference time, it produces incoherent nonsense. Explain: (1) why training loss collapses so quickly without the mask, (2) why generation is broken, and (3) what the correct fix is."
+      }
+    },
+    {
       "kind": "text",
       "title": "What's next",
       "body": "Causal masking is the small architectural detail that makes autoregressive generation possible and efficient. Combined with [[multi-head-attention]] and the rest of the [[transformer-block]], you have a working decoder.\n\nNext: [[cross-attention]] — the encoder-decoder bridge — and [[training-objectives]], where we look at exactly what loss the model is minimizing.\n\nKey takeaways:\n- Causal mask sets `S[i, j] = -inf` for `j > i` before softmax\n- It enables training on all N positions in a single forward pass\n- It also enables the KV-cache at inference time"
-    }
+      }
   ]
 }

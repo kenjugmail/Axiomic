@@ -1,0 +1,159 @@
+{
+  "slug": "modern-frontier-pediatrics",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Survey precision pediatrics — newborn screening, rapid genomic NICU, + gene therapies.",
+      "Apply AI tools in pediatric care + critique their limits.",
+      "Frame the post-2020 child-health agenda: climate, screens, mental health, obesity."
+    ],
+    "prereqs": [
+      "neonatology-and-the-newborn",
+      "vaccines-and-preventive-care",
+      "adolescent-medicine-and-mental-health"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Precision pediatrics + genomics: from newborn screen to gene therapy",
+      "body": "**Newborn screening (NBS)** — public-health screening for treatable congenital conditions, the most successful population genomics program in history. Originated with Robert Guthrie's 1963 dried-blood-spot PKU test; expanded by tandem mass spectrometry in the 2000s + now DNA-based assays.\n\n**RUSP (Recommended Uniform Screening Panel)** — US Secretary of HHS-endorsed panel; 2024 includes 38 core + 26 secondary conditions: amino acid + organic acid + fatty acid oxidation disorders, hemoglobinopathies (sickle cell, thal), endocrinopathies (CH, CAH), CF, SCID (severe combined immunodeficiency), galactosemia, biotinidase, hearing loss (UNHS), critical CHD (pulse-ox screening), SMA (spinal muscular atrophy, added 2018), MPS-I + ALD + Pompe + Krabbe (newer additions). Each addition follows the Wilson + Jungner-style screening principles + evidence-based RUSP nomination.\n\n**Genomic NBS pilots**: BabySeq (Boston, 2015-19) sequenced healthy newborns for ~1000 actionable genes; ~9% had a clinically significant pediatric finding. Successor: NBSeq, GUARDIAN (Columbia, NYC), Generation Study (UK Genomics England, 100,000 newborns 2024). Ethical issues: incidental findings, adult-onset disease, parental consent, equity, psychological impact.\n\n**Rapid whole-genome sequencing (rWGS) in the NICU**:\n- **Project Baby Bear (California, 2018)** — pilot of rWGS for critically ill infants demonstrated ~40-50% diagnostic yield + > 25% management change + cost savings via shorter ICU stays + targeted therapy.\n- **NSIGHT consortium, Rady Children's San Diego (Stephen Kingsmore)** — pioneer of < 24-h rWGS, multiple cohort studies.\n- **NICUSeq + UK NHS rapid genomes** — international rollout.\n- Indications: critical illness with suspected genetic cause + dysmorphic features + metabolic + immune presentation. The 'fast-track' diagnostic odyssey is collapsing from years to days.\n\n**Gene therapy + pediatric breakthroughs**:\n- **Spinal Muscular Atrophy (SMA)** — autosomal recessive SMN1 deficiency, leading genetic cause of infant mortality before 2016. Three transformative therapies:\n  - **Nusinersen (Spinraza, Biogen, 2016)** — antisense oligonucleotide intrathecal, modifies SMN2 splicing.\n  - **Onasemnogene abeparvovec (Zolgensma, Novartis, 2019)** — AAV9 gene therapy with SMN1 cDNA, single IV dose, approved for < 2 yr. Most expensive drug in history (~$2.1M). Transforms outcomes when given pre-symptomatic via NBS.\n  - **Risdiplam (Evrysdi, Roche, 2020)** — small-molecule oral SMN2 splicing modifier.\n  - NBS for SMA + early gene therapy in pre-symptomatic infants → near-normal motor outcomes.\n- **Sickle cell disease — exa-cel / Casgevy (Vertex + CRISPR Therapeutics, 2023)**: first CRISPR-Cas9 gene-editing therapy approved (FDA + UK MHRA Dec 2023). Edits BCL11A enhancer in autologous HSCs to reactivate fetal hemoglobin (HbF). Approved for severe sickle cell + β-thalassemia. Companion: Lyfgenia (lentiviral gene addition, bluebird bio). Pediatric access expanding 2024+. ~$2.2M cost; access + equity challenges acute given disease's disproportionate Black + low-income populations.\n- **Cerebral adrenoleukodystrophy** — Skysona (elivaldogene autotemcel, bluebird bio 2022).\n- **β-thalassemia** — Zynteglo (bluebird bio 2022; predecessor to Lyfgenia).\n- **DMD (Duchenne muscular dystrophy)** — Elevidys (delandistrogene moxeparvovec, Sarepta 2023+) — AAV micro-dystrophin gene therapy, contentious but approved for 4-5 yr olds.\n- **Pipeline**: Leber congenital amaurosis (Luxturna 2017), hemophilia A/B, MPS, lysosomal storage, retinitis pigmentosa.\n\n**CFTR modulators** (Trikafta 2019) treat ~90% of CF patients — covered in childhood illnesses lesson; transformed life expectancy.\n\n**Targeted oncology**: pediatric oncology increasingly molecular-driven — TRK inhibitors (larotrectinib) for NTRK fusions, ALK inhibitors for neuroblastoma + ALCL, RET + MEK inhibitors, CAR-T (tisagenlecleucel/Kymriah for pediatric B-ALL, 2017 — first FDA-approved CAR-T)."
+    },
+    {
+      "kind": "text",
+      "title": "AI + pediatrics: from EHR to retina to ethics",
+      "body": "**AI in pediatric care** is expanding rapidly but faces unique challenges — small + heterogeneous datasets across developmental ages, rare-disease tail, parental consent + child assent, + downstream lifelong consequences of clinical decisions. Several frontier applications:\n\n**EHR-based deep learning**:\n- **Rajkomar et al. 2018 (Google + Stanford)** — deep learning over raw EHR (sequence-modeled FHIR records) accurately predicts inpatient mortality, readmission, length of stay, + final discharge diagnosis. While not pediatric-specific, set the template for sequence-of-events EHR ML. Pediatric extensions (Children's Hospital of Philadelphia, Boston Children's, others) predict deterioration, sepsis, ICU transfer, asthma exacerbations.\n- **Pediatric early warning scores (PEWS) augmented with ML** improve sensitivity + specificity vs hand-crafted scores.\n- **Sepsis prediction** — Epic Sepsis Model received scrutiny after independent validation showed overstated performance (Wong et al. 2021 JAMA Internal Medicine) — cautionary tale for naive deployment.\n\n**Imaging AI**:\n- **DeepMind retinal disease screening**: Moorfields + DeepMind 2018 (De Fauw, Nature Medicine) showed referral-level accuracy across 50 ophthalmologic conditions from OCT. Pediatric applications: **retinopathy of prematurity (ROP)** screening — i-ROP DL (Campbell, Chiang, Coyner) shows ophthalmologist-level performance, addressing the global shortage of trained ROP graders.\n- **Pediatric chest x-rays** — pneumonia + tuberculosis + foreign body detection; CheXNet + pediatric extensions.\n- **Skin imaging** — dermatology AI (Esteva et al. 2017, Liu et al. 2020) generally trained on adult skin; pediatric extension + diverse-skin-tone datasets underdeveloped.\n- **Cardiac imaging** — automated echocardiographic measurement; congenital heart disease detection from fetal echo.\n- **Pediatric radiology bone age** assessment via CNN matched expert performance + reduces inter-observer variability.\n\n**EEG + seizure detection**:\n- **Epileptic seizure detection** — automated EEG analysis + wearable detection (Empatica Embrace, NightWatch) reduces missed seizures + SUDEP risk. Pediatric ICU EEG monitoring increasingly AI-augmented.\n- **Neonatal seizure detection** — Roehri + others; ANSeR algorithm trialed in clinical RCTs.\n\n**Genomics + variant interpretation**:\n- AI-assisted variant calling (DeepVariant), splicing prediction (SpliceAI), pathogenicity (REVEL, ClinPred, AlphaMissense from DeepMind), + rare-disease diagnostic AI (Face2Gene for dysmorphology) accelerate pediatric genetics workups.\n\n**Predictive + risk stratification**: ML predicts complications (DKA, asthma exacerbations, NEC risk in preterm), school + developmental risk, + readmission. ML models for child maltreatment risk are contested — Allegheny screening tool prompted ethical + bias concerns (Eubanks, 2018 *Automating Inequality*).\n\n**Ethics of pediatric AI**:\n- **Bias** — pediatric datasets underrepresent low-income, racial/ethnic minority, + rare-disease children. Algorithms validated on majority populations may underperform or harm minorities. Pulse oximetry skin-tone bias (Sjoding 2020) extends to AI.\n- **Consent + assent** — children are not the decision-makers; parents + guardians consent; older children give assent. AI decisions affect a child's whole life.\n- **Transparency + accountability** — black-box models complicate clinical reasoning + medico-legal accountability.\n- **Data privacy** — pediatric data has 80+ years of life remaining; far longer than adult data + with evolving privacy contexts.\n- **Deployment + monitoring** — pediatric ML models drift as populations + practices evolve; ongoing monitoring + recalibration are essential.\n- **AAP + FDA + WHO frameworks** are emerging; AAP 2023 AI policy statement emphasizes equity + child voice."
+    },
+    {
+      "kind": "text",
+      "title": "Frontiers + the future agenda for child health",
+      "body": "**Climate + child health**:\n- **Lancet Countdown on Health + Climate Change** (annual since 2015) tracks indicators including child-specific outcomes — extreme heat days, vector-borne disease range expansion (malaria, dengue, Lyme), wildfire smoke, food + water insecurity, displacement.\n- Children disproportionately affected — higher respiratory rate (more pollutant exposure per kg), developing organs, longer remaining lifespan, dependence on adults. UNICEF *Children's Climate Risk Index* (2021): ~1 billion children at 'extremely high' risk.\n- AAP Council on Environmental Health + Climate Change (2015 policy) advocates pediatricians integrate climate counseling + advocate for mitigation.\n- Concrete clinical effects: heatwave deaths, asthma exacerbations during wildfire smoke, vector-borne disease emergence, mental-health effects of climate anxiety + disasters (post-traumatic stress, depression in displaced + climate-aware adolescents).\n\n**Screen time + media — AAP 2016 + updates**:\n- < 18 mo: no screens (except video chat).\n- 18-24 mo: limited high-quality co-viewing.\n- 2-5 yr: ≤ 1 h/day of high-quality programming.\n- ≥ 6 yr: limit screen use, balance with sleep + activity + offline time.\n- AAP Family Media Plan tool (HealthyChildren.org).\n- Strong association between heavy screen + adolescent media use + depression + anxiety + sleep disruption + obesity, though causal direction debated. Jonathan Haidt's *The Anxious Generation* (2024) argues smartphones drove adolescent mental-health collapse 2010-2020; alternative explanations (post-2008 economy, education changes, identity awareness) also discussed.\n\n**Mental-health crisis (post-COVID)**:\n- US child + adolescent depression, anxiety, suicidal ideation rose sharply 2010-2020; pandemic accelerated.\n- **Surgeon General Vivek Murthy 2021 advisory: 'Protecting Youth Mental Health'**; **2023 advisory: 'Social Media + Youth Mental Health'**; **2023 advisory on loneliness**.\n- AAP + AACAP + Children's Hospital Association declared **national pediatric mental-health emergency (October 2021)**.\n- Workforce shortage: ~70% of US counties lack a child psychiatrist. Integrated behavioral health + pediatric primary care, telepsychiatry, school-based mental-health, + parent + caregiver mental-health treatment are scaling responses.\n- Suicide is now the #1 cause of death ages 10-14 + #2 ages 15-24 (US 2022). Means restriction (firearms — Children's Hospital of Pennsylvania ASK campaign), safety planning, lethal-means counseling, + crisis lines (988) are evidence-based interventions.\n\n**Childhood obesity + cardiometabolic disease**:\n- US child obesity ~19% (NHANES 2017-20), up from ~5% (1970s). Type 2 diabetes in adolescents now ~5,300 new cases/yr + rising.\n- **GLP-1 agonists for adolescents**: **liraglutide** (Saxenda, FDA-approved adolescents ≥ 12 yr 2020), **semaglutide** (Wegovy, approved ≥ 12 yr 2022). Trials (STEP-TEENS, Kelly et al. 2020 NEJM for liraglutide) show 5-16% body-weight reduction. Concerns: long-term use over decades, growth, bone density, eating behavior, equity of access. STAMPEDE-style adolescent bariatric surgery trials (Teen-LABS) show durable outcomes but invasiveness limits uptake.\n- AAP 2023 obesity treatment guideline endorses intensive health behavior + lifestyle treatment + pharmacotherapy + bariatric surgery in adolescents — a substantial shift from historical conservatism.\n\n**Other frontiers**:\n- **Microbiome + early life** — antibiotic stewardship + breastfeeding + delivery mode + microbiome-targeted therapies (FMT for C. difficile, ongoing trials in NEC + IBD).\n- **Allergy prevention** — LEAP trial (2015) + early peanut introduction reduced peanut allergy ~80% → AAP 2017 guideline reversal.\n- **Long COVID in children** — under-recognized; estimated ~5-15% of pediatric infections have persistent symptoms.\n- **Trans + non-binary youth care** — clinical + political controversy; WPATH 2022 SOC-8; emerging long-term outcome data.\n- **Global child health post-COVID** — immunization recovery, food security, education loss recovery (UNESCO + UNICEF).\n- **AI + ethics + child voice** — pediatric assent, equity, data privacy, intergenerational data effects.\n\n**Pediatrics in 2030+**: precision medicine + AI + life-course epidemiology + climate adaptation + behavioral + social science integrate into a discipline broader than its biomedical roots — the field traces a direct line from Jacobi's clean-milk crusade + Kempe's safeguarding to Shonkoff's toxic stress + Murthy's mental-health advisories + Zolgensma's gene therapy. Children remain the canary + the future of human health."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_front_1",
+        "kind": "guided_derivation",
+        "question": "Trace the diagnostic + therapeutic pathway for a newborn with hypotonia + positive SMA newborn screen.",
+        "goal": "Connect screening → confirmation → gene therapy.",
+        "steps": [
+          {
+            "prompt": "What does the SMA NBS detect + how?",
+            "motivation": "Screening method.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "SMN1 exon-7 deletion via PCR/MLPA on dried blood spot"
+              ]
+            },
+            "hints": [
+              "Genetic screen on dried blood spot."
+            ],
+            "reveal": "SMA NBS (added to RUSP 2018) detects **biallelic SMN1 exon 7 deletion** by PCR or MLPA on the dried blood spot. ~95% of SMA patients have this homozygous deletion; the remaining ~5% have compound heterozygous deletions + point mutations not detected by basic NBS."
+          },
+          {
+            "prompt": "Confirmation + risk stratification?",
+            "motivation": "Confirmatory testing.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "confirm SMN1 deletion + count SMN2 copies; SMN2 copy number predicts severity"
+              ]
+            },
+            "hints": [
+              "SMN2 modifies disease."
+            ],
+            "reveal": "Confirm with diagnostic-grade genetic testing + **SMN2 copy number** assessment. SMN2 is a paralog that produces a small amount of functional SMN protein due to a single-base difference in exon 7 splicing. SMN2 copy number predicts severity: 1 copy → SMA type 0 (severe, neonatal); 2 copies → SMA type 1 (severe, infantile); 3 copies → type 2; 4+ → type 3-4. Critically, SMN2 copy number guides treatment urgency + counseling — even 'mild' SMA benefits from pre-symptomatic treatment."
+          },
+          {
+            "prompt": "What treatments are available + when must they be given?",
+            "motivation": "Therapies.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "onasemnogene (Zolgensma) AAV9 gene therapy, nusinersen (Spinraza) ASO intrathecal, risdiplam oral; all most effective when given pre-symptomatically"
+              ]
+            },
+            "hints": [
+              "Three therapies."
+            ],
+            "reveal": "Three FDA-approved therapies: **Zolgensma (onasemnogene abeparvovec, Novartis 2019)** — AAV9-delivered SMN1 cDNA, single IV dose, approved for < 2 yr; **Spinraza (nusinersen, Biogen 2016)** — antisense oligonucleotide intrathecal, q4 mo after loading; **Evrysdi (risdiplam, Roche 2020)** — oral SMN2-splicing modifier. All work best **pre-symptomatic** — neurons lost cannot regenerate. NBS + immediate treatment within first weeks of life achieves near-normal motor outcomes; symptomatic treatment recovers function partially but irreversibly less than pre-symptomatic. Decision factors: SMN2 copy number, age, prior treatment, family preference, cost (~$2.1M Zolgensma), antibody screening (AAV9 preexisting immunity)."
+          },
+          {
+            "prompt": "What equity + ethics issues arise?",
+            "motivation": "Beyond biomedicine.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "cost + access, race/income disparities in NBS follow-up, AAV9 antibody barriers, long-term safety unknown, insurance + Medicaid coverage"
+              ]
+            },
+            "hints": [
+              "Who can access these therapies?"
+            ],
+            "reveal": "Zolgensma at $2.1M is the most expensive drug in history; access depends on insurance + Medicaid coverage + outcomes-based contracts. Pre-existing AAV9 antibodies exclude ~5% of infants. Disparities: NBS implementation + follow-up vary by state + by race/income; lower follow-up rates in underserved populations risk missed treatment windows. Long-term safety (liver injury, cardiac, regeneration durability) is being tracked through ~15-year mandatory follow-up. Ethics: parental consent for irreversible single-dose gene therapy, weighing cost against alternative therapies, + ensuring equitable access. This is the prototype case for the broader pediatric gene-therapy era."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_front_1",
+        "kind": "multiple_choice",
+        "question": "Why is exa-cel (Casgevy, 2023) a milestone in pediatric medicine?",
+        "options": [
+          "It was the first vaccine for sickle cell.",
+          "**Exa-cel (Casgevy, Vertex + CRISPR Therapeutics, FDA + MHRA Dec 2023)** is the **first FDA-approved CRISPR-Cas9 gene-editing therapy** in any disease. Edits the BCL11A erythroid-specific enhancer in autologous hematopoietic stem cells (ex vivo) to reactivate fetal hemoglobin (HbF), which prevents sickling. Approved for severe sickle-cell disease + transfusion-dependent β-thalassemia, ages 12+. Trials showed > 90% sustained freedom from vaso-occlusive crises. Pediatric implications: indication likely to expand to younger ages; alongside Lyfgenia (lentiviral gene addition), establishes hematopoietic gene therapy as a real cure rather than chronic management. Equity + access concerns acute given SCD's disproportionate burden in Black + low-income populations; cost ~$2.2M; centers + insurance + global access remain barriers.",
+          "It is a small molecule for HbF induction.",
+          "It is a stem-cell transplant from matched donor."
+        ],
+        "correctIndex": 1,
+        "explanation": "Exa-cel (Casgevy, Vertex + CRISPR Therapeutics, FDA 2023) is the first FDA-approved CRISPR-Cas9 gene-editing therapy. Edits BCL11A enhancer in autologous HSCs to reactivate fetal hemoglobin in sickle cell disease + β-thalassemia. > 90% sustained crisis freedom in trials. Establishes ex vivo gene editing as a real cure; equity + cost ($2.2M) remain central concerns for SCD populations."
+      },
+      "hints": [
+        "First-of-its-kind technology?",
+        "Disease + mechanism?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Exa-cel (Casgevy 2023) is the first FDA-approved CRISPR-Cas9 gene-editing therapy. Targets BCL11A enhancer in autologous HSCs to reactivate fetal hemoglobin for sickle cell + β-thalassemia. > 90% crisis freedom. Equity + access concerns are central given SCD demographics + $2.2M cost."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_front_1",
+        "kind": "scenario",
+        "question": "A 14-year-old with BMI 38 (Z-score > +3 σ) has prediabetes + obstructive sleep apnea + non-alcoholic fatty liver disease. Apply the 2023 AAP obesity treatment guideline.",
+        "scenario": "Use the AAP 2023 framework + GLP-1 evidence.",
+        "modelAnswer": "Apply AAP 2023 *Clinical Practice Guideline for the Evaluation + Treatment of Children + Adolescents with Obesity*. Tier 1: **Intensive Health Behavior + Lifestyle Treatment (IHBLT)** — ≥ 26 contact hours over 3-12 mo with multidisciplinary team (pediatrician, dietitian, behavioral specialist, exercise specialist). Address sleep, screen, family, food environment, mental health, ACEs, school + social factors. Tier 2: **Pharmacotherapy** considered ≥ 12 yr with obesity. Options: **semaglutide (Wegovy, FDA-approved adolescents ≥ 12 yr 2022)** — Kelly et al. STEP-TEENS NEJM 2022 showed ~16% mean body-weight reduction vs placebo. **Liraglutide** (Saxenda, ≥ 12 yr 2020) ~5%. Phentermine-topiramate, orlistat lesser-used in this age. Counsel on long-term commitment, GI side effects, hypoglycemia + biliary risk, growth + bone-density monitoring, eating-behavior monitoring. Tier 3: **Metabolic + bariatric surgery** considered ≥ 13 yr with BMI ≥ 120% of 95th %ile + severe comorbidities; **Teen-LABS** + STAMPEDE-style adolescent cohorts show durable outcomes 10+ yr with caveats. Multidisciplinary surgical evaluation + family commitment essential. Address comorbidities concurrently: NAFLD (vitamin E, lifestyle), prediabetes (metformin), OSA (CPAP, ENT eval for adenotonsillectomy), mental-health screening, family/social-determinants assessment. Avoid weight-shaming language; use motivational interviewing; engage family system. Equity: ensure access to all tiers regardless of insurance.",
+        "rubric": "Applies AAP 2023 tiered approach (IHBLT → pharmacotherapy → surgery), names semaglutide + liraglutide + Teen-LABS, addresses comorbidities, + integrates psychosocial + equity considerations."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_front_1",
+        "kind": "math_expression",
+        "question": "Onasemnogene (Zolgensma) costs ~$2.1M. If pre-symptomatic treatment via NBS prevents 30 years of disability + ~$200,000/yr lifetime medical + caregiving costs, what is the simple undiscounted cost offset?",
+        "acceptedAnswers": [
+          "$6,000,000",
+          "$6M",
+          "6 million",
+          "200000 × 30",
+          "$6,000,000 vs $2.1M cost"
+        ],
+        "explanation": "30 × $200,000 = $6,000,000 in averted lifetime costs vs $2.1M drug cost = ~$3.9M net societal offset (undiscounted). Discounting + clinical-effectiveness modeling (QALYs) refine this; ICER + other HTA agencies have evaluated Zolgensma + found cost-effectiveness highly sensitive to long-term durability + symptomatic-treatment comparator. The math illustrates why outcomes-based contracts + government payers cover these therapies despite headline price tags. The bigger ethical question is global equity — Zolgensma is unavailable in most low- + middle-income countries despite SMA's universal incidence."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_front_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how pediatrics has changed in the post-2020 era + what the field's biggest frontier challenges are.",
+        "rubric": "Mentions: (1) precision pediatrics — rapid genomic NICU sequencing (Project Baby Bear, Rady's NSIGHT), expanded NBS (RUSP), gene therapies (Zolgensma for SMA, exa-cel for SCD, Trikafta for CF). (2) AI in pediatrics — Rajkomar-style EHR ML, DeepMind retinal + dermatologic + cardiac imaging, ROP screening, seizure detection, with ethical guardrails on bias + consent + transparency. (3) Mental-health crisis: Surgeon General Murthy 2021 + 2023 advisories; AAP/AACAP 2021 national emergency; PHQ-9-A universal screening; lethal-means restriction. (4) Climate + child health (Lancet Countdown, UNICEF Climate Risk Index). (5) Childhood obesity + GLP-1 agonists (semaglutide, liraglutide) for adolescents (AAP 2023). (6) Equity + access — gene therapy + AI bias + climate justice all concentrate on the same vulnerable populations. Concludes: pediatrics has become a precision + relational + planetary discipline."
+      }
+    }
+  ]
+}

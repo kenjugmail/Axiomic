@@ -1,0 +1,109 @@
+{
+  "slug": "frontiers-additive-and-advanced-alloys",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Explain metal additive manufacturing and the metallurgy of selective laser melting.",
+      "Describe high-entropy alloys, amorphous metallic glasses, and advanced titanium and nickel superalloys.",
+      "Explain integrated computational materials engineering and its role in alloy design."
+    ],
+    "prereqs": [
+      "extractive-and-physical-metallurgy"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Metal additive manufacturing",
+      "body": "**Additive manufacturing (AM)**, popularly called **3D printing**, builds components layer by layer directly from a digital model, inverting the subtractive logic of machining. For metals, the dominant family is **powder-bed fusion**. In **selective laser melting (SLM)** — also marketed as **direct metal laser sintering (DMLS)** or **laser powder-bed fusion (L-PBF)** — a thin layer of metal powder (typically 20 to 50 micrometers) is spread across a build plate, and a high-power **fiber laser** selectively melts the cross-section of the part; the plate lowers, a new powder layer is spread, and the process repeats. **Electron-beam melting (EBM)**, pioneered commercially by **Arcam**, uses an electron beam in vacuum and a hot powder bed, reducing residual stress. A related class, **directed energy deposition (DED)**, blows powder or feeds wire into a melt pool, enabling repair and large parts.\n\nThe metallurgy of AM is distinctive and challenging. Each melt pool solidifies in **microseconds to milliseconds**, with cooling rates of $10^4$ to $10^6$ kelvin per second — far faster than casting. This **rapid solidification** produces extremely fine, often non-equilibrium microstructures: very fine cellular-dendritic substructures, columnar grains aligned with the steep thermal gradient along the build direction (a strong **crystallographic texture** and **anisotropy**), and sometimes metastable phases. The repeated thermal cycling acts as an intrinsic, complex **heat treatment** of previously deposited layers.\n\nThe principal defects an AM metallurgist must control are **porosity** (gas porosity from entrapped gas, and **lack-of-fusion** voids from insufficient energy), **residual stress** and distortion from the steep thermal gradients (often relieved by build-plate heating and post-build stress relief), **balling** and spatter, and **cracking** in crack-prone alloys. **Process parameters** — laser power, scan speed, hatch spacing, and layer thickness — are often combined into a **volumetric energy density**, $E_v = P/(v\\,h\\,t)$, that correlates with density. Post-processing almost always includes **hot isostatic pressing (HIP)** to close internal pores and **heat treatment** to homogenize and develop properties.\n\nAM's advantages are geometric freedom (internal cooling channels, **lattice** and topology-optimized structures impossible to machine), part consolidation, rapid iteration, and reduced material waste (**buy-to-fly ratio**). Its limitations include build-rate and size constraints, surface roughness, powder cost and handling, and the difficulty of qualification for safety-critical parts. AM is now in production for aerospace fuel nozzles (famously the **GE LEAP** engine nozzle, consolidating about twenty parts into one), patient-specific orthopaedic and dental implants in **Ti-6Al-4V**, and complex tooling. It is the most disruptive shift in metal manufacturing since continuous casting."
+    },
+    {
+      "kind": "text",
+      "title": "High-entropy alloys, metallic glasses, and advanced alloys",
+      "body": "Three frontiers in alloy design have reshaped the field in recent decades.\n\n**High-entropy alloys (HEAs)** overturned a foundational assumption. Classical metallurgy builds an alloy on one principal (base) element with minor additions. In **2004**, **Jien-Wei Yeh** in Taiwan and, independently, **Brian Cantor** in the United Kingdom proposed alloys of **five or more principal elements in roughly equal (near-equiatomic) proportions**. The high configurational **entropy of mixing**, $\\Delta S_{mix} = -R\\sum x_i \\ln x_i$ (maximized at equiatomic composition, where it reaches $R\\ln n$), was argued to stabilize a single simple solid solution (FCC, BCC, or HCP) rather than the brittle intermetallics one might expect. The archetype, the **Cantor alloy** CoCrFeMnNi, is a single-phase FCC solid solution with outstanding low-temperature toughness. HEAs (also called **multi-principal-element** or **complex concentration alloys**) exhibit four hallmark effects — the **high-entropy** effect, **severe lattice distortion**, **sluggish diffusion**, and the **cocktail** effect — and have produced refractory HEAs for extreme temperatures and alloys with exceptional strength-toughness combinations.\n\n**Amorphous metals**, or **metallic glasses**, lack the long-range crystalline order of ordinary metals: their atoms are frozen in a disordered, glass-like arrangement. The first was made by **Pol Duwez** at Caltech in **1960**, who **splat-quenched** a gold-silicon alloy at roughly $10^6$ kelvin per second to outrun crystallization. Because they have no grain boundaries and no dislocations, metallic glasses can be extremely strong and elastic (high resilience) and corrosion-resistant; many are excellent **soft magnetic** materials (the iron-based **Metglas** used in efficient transformer cores). Later work, notably by **William Johnson** and **Akihisa Inoue**, produced **bulk metallic glasses (BMGs)** — zirconium-, palladium-, and titanium-based alloys with such sluggish crystallization (multicomponent **confusion principle**) that they form glass at modest cooling rates and in centimeter sections, enabling castable, near-net-shape glassy parts. Their main limitation is a tendency to **shear-band** and fail with limited ductility.\n\nAlongside these novelties, the classical high-performance families continue to advance. **Titanium alloys** beyond **Ti-6Al-4V** include high-temperature near-alpha alloys and metastable beta alloys, and titanium intermetallics such as the **gamma titanium aluminides (TiAl)** now used in low-pressure turbine blades for their low density and high-temperature strength. **Nickel-base superalloys** have progressed through generations of **single-crystal** alloys with increasing **rhenium** and **ruthenium** content, protected by **thermal-barrier coatings** (yttria-stabilized zirconia) that let blades run above the alloy's nominal limit. Shape-memory and superelastic **Nitinol** (nickel-titanium) and bioabsorbable magnesium alloys round out a rapidly expanding menu of advanced metals."
+    },
+    {
+      "kind": "text",
+      "title": "Integrated computational materials engineering (ICME)",
+      "body": "Historically, developing a new alloy or process took **ten to twenty years** of expensive, largely empirical trial and error. The emerging discipline of **integrated computational materials engineering (ICME)** aims to compress that cycle by linking computational models across length and time scales to predict, design, and optimize materials before they are ever melted. The term was crystallized by a 2008 United States **National Research Council** study, and ICME was a central motivation for the U.S. **Materials Genome Initiative (MGI)**, launched in **2011** to accelerate materials discovery by integrating computation, experiment, and data.\n\nICME rests on the **process-structure-property-performance** chain: processing determines microstructure, microstructure determines properties, and properties determine performance. ICME models each link computationally and couples them. The toolkit spans scales:\n\n- **Electronic / atomic scale**: **density functional theory (DFT)**, building on the **Hohenberg-Kohn** theorems and **Kohn-Sham** equations of **Walter Kohn** (Nobel 1998), computes phase stability, elastic constants, and defect energies from first principles. **Molecular dynamics** simulates atomic motion.\n- **Microstructural scale**: the **CALPHAD** method (CALculation of PHAse Diagrams), pioneered by **Larry Kaufman** in the 1970s, builds thermodynamic databases that compute multicomponent phase diagrams and drive software such as **Thermo-Calc**; **phase-field** models simulate microstructure evolution during solidification and transformation; **kinetic Monte Carlo** and precipitation models track diffusion.\n- **Continuum scale**: **crystal-plasticity finite element** modeling and homogenization predict mechanical response from microstructure; conventional **finite element analysis (FEA)** predicts component performance.\n\nThese are increasingly fused with **machine learning** and **data-driven** methods that screen vast composition spaces, build surrogate models, and perform **inverse design** — specifying a target property and searching for the alloy that delivers it. High-throughput **autonomous laboratories** and databases such as the **Materials Project** (led by **Kristin Persson** and **Gerbrand Ceder**), **AFLOW**, and **OQMD** supply training data and computed properties for hundreds of thousands of compounds. ICME has already shortened development of aerospace alloys, additive-manufacturing process windows, and superalloys, and it is reshaping the metallurgist's role: from one who discovers materials by experiment alone toward one who **designs** them computationally and validates them experimentally. Combined with additive manufacturing's process flexibility and the vast compositional space opened by high-entropy alloys, ICME points toward a future in which metals are engineered atom-up, by intent, to meet specifications — the culmination of the journey that began with the empirical smiths of the Bronze Age."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fr_hea",
+        "kind": "multiple_choice",
+        "question": "What is the defining compositional feature of a high-entropy alloy as proposed by Yeh and Cantor in 2004?",
+        "options": [
+          "A single base element with trace additions below 1%",
+          "Five or more principal elements in roughly equal (near-equiatomic) proportions, whose high mixing entropy can stabilize a single solid solution",
+          "Exactly two elements forming an intermetallic compound",
+          "A metal containing no crystalline order at all"
+        ],
+        "correctIndex": 1,
+        "explanation": "High-entropy alloys depart from the one-base-element paradigm by combining five or more principal elements in near-equiatomic proportions. The large configurational entropy of mixing (maximized at equiatomic composition, reaching R*ln(n)) can favor a single simple solid solution over brittle intermetallics. The Cantor alloy CoCrFeMnNi is the archetype. An alloy with no crystalline order is a metallic glass, a different concept."
+      },
+      "hints": [
+        "The name refers to configurational entropy of mixing.",
+        "Think 'many elements in equal amounts', not 'one base element'."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "A high-entropy alloy contains five or more principal elements in roughly equal proportions (option B). The maximized configurational entropy of mixing, R*ln(n) at equiatomic composition, helps stabilize a single solid solution (e.g. the FCC Cantor alloy CoCrFeMnNi). Option A is conventional dilute alloying; option C is an intermetallic; option D describes a metallic glass."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fr_slm",
+        "kind": "scenario",
+        "question": "Microstructure and defects in a laser-printed turbine part",
+        "prompt": "An engineer prints a Ti-6Al-4V bracket by selective laser melting and finds it has anisotropic mechanical properties (stronger across the build layers than along them), some internal porosity, and high residual stress causing distortion. Explain how the extremely high cooling rates (10^4 to 10^6 K/s) and the directional thermal gradient produce fine, textured, columnar microstructures and anisotropy, distinguish gas porosity from lack-of-fusion porosity, and recommend post-processing (such as hot isostatic pressing and stress-relief heat treatment) to address these issues."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fr_entropy",
+        "kind": "math_expression",
+        "question": "The configurational molar entropy of mixing for an ideal equiatomic alloy of n elements is dS = R*ln(n), with R = 8.314 J/(mol*K). For an equiatomic 5-element high-entropy alloy (n = 5), compute dS in J/(mol*K) to one decimal place. (ln 5 = 1.609.)",
+        "acceptedAnswers": [
+          "13.4",
+          "13.4 J/(mol*K)",
+          "13.38",
+          "13.4 J/mol/K"
+        ],
+        "hint": "dS = R*ln(5) = 8.314 * 1.609 = 13.4 J/(mol*K)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fr_glass",
+        "kind": "multiple_choice",
+        "question": "Why can amorphous metallic glasses achieve very high strength and act as excellent soft magnetic materials?",
+        "options": [
+          "They have unusually large grains",
+          "They lack long-range crystalline order, so there are no grain boundaries and no crystalline dislocations to enable easy slip or to pin magnetic domain walls",
+          "They contain a high volume fraction of cementite",
+          "They are pure single crystals with one slip system"
+        ],
+        "correctIndex": 1,
+        "explanation": "Metallic glasses, first made by Pol Duwez in 1960, have a disordered atomic structure with no crystal lattice. Because there are no dislocations to glide and no grain boundaries, they resist plastic flow and can reach near-theoretical strength. For the same reason, magnetic domain walls move freely without crystalline pinning, giving very low coercivity and hysteresis loss, which makes iron-based glasses (Metglas) excellent for efficient transformer cores."
+      },
+      "hints": [
+        "Think about what is absent in a glass: grains and dislocations.",
+        "No crystalline pinning sites means soft magnetic behavior."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "A metallic glass has no long-range crystalline order, hence no grain boundaries and no dislocations (option B). Without dislocations to glide it resists plastic deformation and reaches very high strength; without crystalline pinning, magnetic domain walls move easily, giving low coercivity and low core loss (soft magnetic behavior, as in Metglas). Large grains, cementite, and single-crystal descriptions all assume crystallinity, which a glass lacks."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fr_icme",
+        "kind": "scenario",
+        "question": "Using ICME to shorten alloy development",
+        "prompt": "A company wants to develop a new corrosion-resistant superalloy in three years rather than the traditional fifteen. Explain how integrated computational materials engineering (ICME) could compress this timeline by linking the process-structure-property-performance chain across scales, naming at least one method at each scale (for example DFT at the atomic scale, CALPHAD/Thermo-Calc and phase-field at the microstructural scale, crystal-plasticity FEA at the continuum scale). Discuss the role of machine learning and databases like the Materials Project in inverse design, and explain why experimental validation still remains essential."
+      }
+    }
+  ]
+}

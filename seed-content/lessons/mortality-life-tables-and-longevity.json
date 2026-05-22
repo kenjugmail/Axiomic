@@ -1,0 +1,168 @@
+{
+  "slug": "mortality-life-tables-and-longevity",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Construct + interpret a life table — $\\ell_x$, $q_x$, $L_x$, $a_x$, $e_0$.",
+      "Apply Lee-Carter mortality forecasting + Heligman-Pollard parametric models.",
+      "Survey longevity frontier — Oeppen-Vaupel broken limits, Olshansky skepticism, GeroScience hallmarks of aging."
+    ],
+    "prereqs": [
+      "population-structure-and-pyramids"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Life tables: Halley + Gompertz + Makeham + cohort vs period",
+      "body": "The **life table** is demography's most powerful single tool — a tabular representation of mortality experienced by a cohort (real or synthetic) from birth to extinction. From it flow every measure of survival, life expectancy, healthy life expectancy, and projection denominator.\n\n**Edmond Halley (1656-1742)**: *An Estimate of the Degrees of the Mortality of Mankind* (1693, *Philosophical Transactions of the Royal Society*) — used Caspar Neumann's parish register data from Breslau (Wrocław) to build the first proper cohort life table; computed survivorship + life expectancy; demonstrated insurance pricing. Foundational for actuarial science.\n\n**Benjamin Gompertz (1779-1865)**: *On the Nature of the Function Expressive of the Law of Human Mortality* (1825, *Philosophical Transactions*) — the **Gompertz law**: $\\mu(x) = B e^{\\theta x}$, where $\\mu(x)$ is the force of mortality (hazard rate) at age $x$, $B$ is baseline frailty, and $\\theta$ ~0.1 is the senescence parameter. Mortality rises exponentially with age — meaning $\\theta = \\ln(2) / 8 \\approx 0.087$, mortality doubles every 8 years from young adulthood. Empirically valid from ~age 30 to ~85.\n\n**William Makeham (1826-1891)**: *Makeham law* (1860) adds a constant *background* term: $\\mu(x) = A + B e^{\\theta x}$. $A$ captures age-independent mortality (accidents, infections); $B e^{\\theta x}$ captures senescence. Better empirical fit at adult ages.\n\n**Heligman-Pollard model** (1980, *Journal of the Institute of Actuaries*): an 8-parameter law combining infant mortality (sharply declining curve), accident hump (peak ~age 18-23), and senescent component: $q_x / p_x = A^{(x+B)^C} + D \\exp[-E (\\ln x / F)^2] + G H^x$. Fits whole age range; widely used in actuarial + life-insurance work.\n\n**Standard life-table columns** (period synthetic-cohort form):\n- $x$ — exact age.\n- $\\ell_x$ — number surviving to exact age $x$ from a radix (e.g., 100000 born). $\\ell_0 = 100000$.\n- $d_x$ — deaths between ages $x$ + $x+n$.\n- $q_x$ — probability of dying between $x$ + $x+n$, given alive at $x$. $q_x = d_x / \\ell_x$.\n- $p_x = 1 - q_x$ — probability of surviving.\n- $L_x$ — person-years lived between $x$ + $x+n$. Approximately $L_x = (\\ell_x + \\ell_{x+n}) n / 2$.\n- $a_x$ — average years lived in $[x, x+n)$ by those who die in the interval. Usually $a_x = n/2$; for infants $a_0 \\approx 0.1$ (deaths concentrated at birth).\n- $T_x = \\sum_{y \\geq x} L_y$ — total person-years remaining beyond age $x$.\n- $e_x = T_x / \\ell_x$ — life expectancy at age $x$.\n\n**Period vs cohort life table**:\n- **Period (current) life table**: uses age-specific mortality from a single calendar year. $e_0$ from a 2023 period table is the average life expectancy a newborn would experience if 2023's mortality rates held for life. Most commonly reported.\n- **Cohort (generation) life table**: traces a real birth cohort through actual age-specific mortality. Only fully measurable after the cohort is extinct. Cohort $e_0$ usually exceeds period $e_0$ when mortality is declining: cohort members benefit from continued improvement.\n\n**$e_0$ in 2023** (period, UN + WHO):\n- World: 73.4 (M 71.0 / F 75.9).\n- Japan: 84.3 (M 81.5 / F 87.6).\n- Switzerland: 83.6.\n- US: 77.5 (decline from 78.8 in 2014, then recovery from COVID).\n- Sub-Saharan Africa: ~62, range ~55-75.\n- Lowest: Central African Republic ~54; Lesotho ~53.\n\n**Age-specific life expectancy**:\n- $e_{65}$ in 2023 (years remaining at 65): Japan ~22; US ~19; sub-Saharan Africa ~14.\n- $e_x$ becomes increasingly informative + policy-relevant as $x$ rises in low-mortality countries.\n\n**Healthy life expectancy (HALE)** (WHO): years lived in 'full health' — incorporates disability weights. World HALE ~63.5 in 2023; gap to total $e_0$ ~10 years."
+    },
+    {
+      "kind": "text",
+      "title": "Mortality forecasting + compression vs expansion",
+      "body": "**Lee-Carter model** (Ronald Lee + Lawrence Carter, *JASA* 1992) — the dominant probabilistic mortality forecasting framework:\n$$\\ln m_{x,t} = a_x + b_x k_t + \\varepsilon_{x,t}$$\nwhere $m_{x,t}$ is the central death rate at age $x$ in year $t$; $a_x$ is the age-pattern of average log-mortality; $k_t$ is a time-varying mortality index; $b_x$ is the age-specific sensitivity to $k_t$. Estimated by **SVD** of the log-mortality matrix (after subtracting age means) — first singular component captures most variation. $k_t$ is then forecast by a **random-walk-with-drift ARIMA** model.\n\n**Why Lee-Carter dominates**:\n- Parsimonious — captures most of 20th-century mortality decline with one time series.\n- Generates *probabilistic* forecasts (forecast intervals from the ARIMA $k_t$ + observation error).\n- Adopted by US Social Security Administration, UN Population Division, Eurostat, many national statistical offices.\n- Many extensions:\n  - **Lee-Miller** (2001) — adjusts jump-off bias.\n  - **Booth-Maindonald-Smith** (2002) — variant period selection.\n  - **Renshaw-Haberman** (2006) — cohort-effect term $\\gamma_{t-x}$.\n  - **Li-Lee** (2005) — multi-population coherent forecasting.\n  - **Currie's CBD model** + **Plat model** — alternatives for high-age forecasting.\n  - **Bayesian Lee-Carter** (Pedroza 2006; Wiśniowski-Bijak-Forster-Smith-Bryant 2015) — full uncertainty quantification.\n\n**Extension to cause of death**: decompose mortality into competing causes (heart disease, cancer, stroke, accidents, respiratory, …); forecast each separately. Used by Foreman + GBD (Murray + Lopez *Global Burden of Disease*).\n\n**Compression vs expansion of mortality** — central debate of late-20th-century demography:\n- **James Fries** *NEJM* 1980 'Aging, natural death, and the compression of morbidity': as mortality is postponed into late life, the *distribution* of age at death compresses against a biological limit; morbidity is also postponed + compressed. Implies bounded longevity gains + a 'rectangularization' of survivorship curves $\\ell_x$ approaching a step function.\n- **Vaupel + Manton + Stallard** (1979 *Demography*) — frailty heterogeneity: even with constant individual hazards, observed mortality declines at very old ages because frail individuals die first, leaving robust survivors.\n- **Compression evidence**: standard deviation of age at death has declined in HICs from ~25 yr (1900) to ~15 yr (2020); survivorship curve has rectangularized substantially.\n- **Decompression / expansion evidence**: at very old ages (90+), mortality declines have *accelerated* — Vaupel's centenarian + supercentenarian work — pushing the frontier.\n\n**Two views of the longevity frontier**:\n- **Oeppen + Vaupel** *Science* (2002) 'Broken Limits to Life Expectancy': record female life expectancy (highest national $e_0$ each year, currently Japan) has risen ~3 months per calendar year for 160 years with *no sign of deceleration*. Extrapolation: continued steady rise — no fixed biological maximum.\n- **S. Jay Olshansky + Bruce Carnes** ('In Search of Methuselah' *Science* 1990) + later work: biological constraints — mitochondrial damage, senescent-cell accumulation, telomere attrition, cumulative DNA damage — limit longevity; the rapid 20th-century gains came from low-hanging public-health fruit (infant mortality, infectious disease, smoking); future gains will be slower; $e_0$ may plateau ~85-90.\n- **Empirical record**: Jeanne Calment (1875-1997, France) — 122 years 164 days; verified by Allard, Lébre, Robine (*Jeanne Calment: From Van Gogh's Time to Ours* 1998). Closest verified successors several years lower; no human has surpassed Calment in 28 years (as of 2025). Dong + Milholland + Vijg *Nature* 2016 argued for a 'natural limit' ~115 (controversial; replies by Lenart-Vaupel; Hughes-Hekimi; Brown).\n\n**Supercentenarian demography**: number of verified 110+ supercentenarians ~600 globally; 90%+ female. Heavy concentration in Japan, France, Italy, US. Validation is hard (record fraud, missing documents). International Database on Longevity (IDL) curates.\n\n**Hallmarks of aging** (López-Otín + Blasco + Partridge + Serrano + Kroemer *Cell* 2013, updated 2023) — the cell-biology core of modern geroscience:\n1. Genomic instability.\n2. Telomere attrition.\n3. Epigenetic alterations.\n4. Loss of proteostasis.\n5. Disabled macroautophagy.\n6. Deregulated nutrient sensing.\n7. Mitochondrial dysfunction.\n8. Cellular senescence.\n9. Stem cell exhaustion.\n10. Altered intercellular communication.\n11. Chronic inflammation.\n12. Dysbiosis.\nInterventions targeting these (rapamycin, senolytics, metformin, NAD+ precursors, dietary restriction) are tested in **TAME** + **Interventions Testing Program** — geroscience aims to compress morbidity + raise healthspan, not necessarily maximum lifespan."
+    },
+    {
+      "kind": "text",
+      "title": "Longevity frontier + biomarkers + the geroscience agenda",
+      "body": "**The longevity frontier debate** asks whether human life expectancy + maximum lifespan are bounded or open-ended. Demography + biology each provide partial answers.\n\n**Olshansky-Vaupel debate**:\n- Olshansky + Carnes (*Science* 1990, *The Quest for Immortality* 2001): 20th-century longevity gains depended on reducing infant + young-adult mortality (smallpox, sepsis, TB, road traffic, smoking). These were one-time gains; future gains must come from reducing late-life mortality, which is harder because senescence + cumulative damage are intrinsic.\n- Vaupel + Oeppen + Christensen + Robine: empirically, longevity is rising fastest at oldest ages — not slowing. Frailty heterogeneity, geroscience interventions, and continued late-life mortality decline can sustain the Oeppen-Vaupel trajectory.\n- Field consensus (~2025): both effects operate. $e_0$ continues to rise in many countries but at slower rates than 1950-2000; some countries (US, UK) plateaued or declined in 2010s ('deaths of despair'; obesity; opioid epidemic — Case + Deaton *Deaths of Despair and the Future of Capitalism* 2020). COVID-19 caused a 1-3 year drop in $e_0$ in many countries (2020-2021); most recovered partially by 2023.\n\n**Geroscience hallmarks of aging** (López-Otín et al. 2013, 2023): 12 cellular + molecular hallmarks; intervention targets:\n- Rapamycin (mTOR inhibitor) — life extension in mice; trials in dogs (Dog Aging Project Kaeberlein + Promislow) + humans (MILES, TRIIM-X).\n- Senolytics (dasatinib + quercetin, navitoclax) — kill senescent cells; clinical trials in idiopathic pulmonary fibrosis, diabetic kidney disease, Alzheimer's.\n- Metformin (TAME trial, Barzilai NIA): generic diabetes drug as anti-aging.\n- NAD+ precursors (NR, NMN): reverse age-related NAD+ decline; clinical trials mixed.\n- Caloric / dietary restriction: lifespan extension in many species; human evidence (CALERIE, CRON-Diet) more modest.\n- Reprogramming + Yamanaka factors (Belmonte; Altos Labs; Calico): controlled epigenetic reprogramming in vivo; preclinical promising; safety concerns.\n\n**Biomarkers of aging**:\n- **Epigenetic / DNA-methylation clocks** (Horvath 2013 *Genome Biology*; Hannum 2013; PhenoAge Levine 2018; GrimAge Lu-Levine 2019; DunedinPACE Belsky 2022): tissue methylation patterns track chronological + biological age; deviation predicts mortality + disease.\n- **Telomere length**: weaker biomarker; confounded by inflammation.\n- **Proteomic + metabolomic clocks**: Lehallier + Wyss-Coray *Nature Medicine* 2019, 2023.\n- **Frailty index** (Rockwood + Mitnitski): cumulative deficit count.\n- **AI-based biological-age models**: Levine; Wong + Singh; multimodal EHR + imaging integration.\n\n**Multi-state + healthy life expectancy**:\n- Sullivan method (1971): combines period life table + age-specific disability prevalence to compute disability-free / active / healthy life expectancy.\n- Multi-state life tables (Land + Hayward; Crimmins): explicit healthy + disabled states with transition rates.\n- WHO HALE; OECD Health at a Glance.\n\n**Decomposition of mortality decline**:\n- **Arriaga method** (1984): decomposes $e_0$ differences across populations or time periods into age-specific contributions.\n- **Pollard-Andreev method**: extends to cause-of-death decomposition.\n\n**Life expectancy gaps**:\n- Female-male gap: 4-7 years in most HICs (5 in 2023 globally; up to 10+ in post-Soviet states). Biological (estrogen, immune) + behavioral (smoking, accidents, suicide).\n- Socioeconomic gap: Chetty et al. *JAMA* 2016 — US bottom 1% vs top 1% income at 40: 10-15 year $e_0$ gap; widening since 2001.\n- Racial gap (US): Black-White $e_0$ gap ~4-6 years (narrowed pre-COVID; widened with COVID; black life expectancy ~73 vs white ~78).\n- Geographic gap (US): West Virginia vs Hawaii ~7 years.\n\n**Causes of recent reversals**:\n- US life-expectancy decline 2014-2017 (Case-Deaton 'deaths of despair' — opioids, alcohol, suicide; falling working-class male life expectancy).\n- COVID-19 (2020-21): largest single-year $e_0$ drop since WWII for many countries.\n- Post-Soviet (1991-2003): male $e_0$ fell to ~58 (alcohol, cardiovascular, suicide).\n\n**Open questions on the longevity frontier**:\n- Is there a fixed maximum lifespan or is the Oeppen-Vaupel trajectory continuous?\n- Will geroscience interventions translate from mice + dogs to humans?\n- Can morbidity be compressed (Fries) faster than life expectancy rises (Vaupel)?\n- How will socioeconomic + racial + geographic mortality inequalities respond to AI-driven medicine?\n\nLesson 6 develops projection methodology + lesson 8 develops the AI + computational frontier."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mort_lifetable_1",
+        "kind": "guided_derivation",
+        "question": "Construct a simplified life table + compute life expectancy",
+        "goal": "Given mortality rates $q_x$ for a population, build $\\ell_x$, $d_x$, $L_x$, $T_x$, $e_x$ + compute $e_0$.",
+        "steps": [
+          {
+            "prompt": "Start with radix $\\ell_0 = 100000$ + 5-year age groups. If $q_0 = 0.03$ (3% chance of dying in first 5 yr), compute $d_0$ + $\\ell_5$.",
+            "motivation": "Mechanics.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "d_0 = 3000 and ell_5 = 97000"
+              ]
+            },
+            "hints": [
+              "$d_0 = \\ell_0 q_0$; $\\ell_5 = \\ell_0 - d_0$."
+            ],
+            "reveal": "$d_0 = 100000 \\times 0.03 = 3000$; $\\ell_5 = 100000 - 3000 = 97000$. Survivors at exact age 5. Note: infant mortality is the largest component; we've collapsed it into 0-5 here. A real table separates 0, 1-4, 5-9, …"
+          },
+          {
+            "prompt": "$L_x$ approximates person-years lived in $[x, x+n)$. With $a_x = 2.5$ (mid-interval for 5-year group, ignoring infant concentration), $L_0 = ?$",
+            "motivation": "Person-years contribution.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "L_0 = (100000 + 97000) * 5 / 2 = 492500 or equivalently 5*ell_5 + a_x*d_x = 5*97000 + 2.5*3000 = 492500"
+              ]
+            },
+            "hints": [
+              "Trapezoid approximation."
+            ],
+            "reveal": "$L_0 = n \\ell_5 + a_0 d_0 = 5 \\times 97000 + 2.5 \\times 3000 = 485000 + 7500 = 492500$ person-years. Or equivalent trapezoid $(\\ell_0 + \\ell_5) n / 2 = 492500$. For infant mortality you would use $a_0 \\approx 0.1$ to reflect heavy concentration of deaths at birth, lowering $L_0$ slightly."
+          },
+          {
+            "prompt": "Suppose for ages 5-100 you've computed $\\sum_{y\\geq 5} L_y = 7507500$ person-years. Compute $T_0$ + $e_0$.",
+            "motivation": "Sum + ratio.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "T_0 = 492500 + 7507500 = 8000000 and e_0 = 80"
+              ]
+            },
+            "hints": [
+              "$e_0 = T_0 / \\ell_0$."
+            ],
+            "reveal": "$T_0 = L_0 + \\sum_{y\\geq 5} L_y = 492500 + 7507500 = 8000000$. $e_0 = T_0 / \\ell_0 = 8000000 / 100000 = 80$ years. Life expectancy at birth = 80, in line with HIC mortality."
+          },
+          {
+            "prompt": "How would you compute $e_{65}$ (life expectancy at 65)?",
+            "motivation": "Conditional life expectancy.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "e_65 = T_65 / ell_65 where T_65 sums L_y for y >= 65"
+              ]
+            },
+            "hints": [
+              "Survivor base + remaining person-years."
+            ],
+            "reveal": "$e_{65} = T_{65} / \\ell_{65}$. Sum $L_y$ for $y \\geq 65$ + divide by survivors at exact age 65. In Japan 2023, $e_{65} \\approx 22$; in US ~19; in sub-Saharan Africa ~14. $e_{65}$ is policy-relevant for pensions + retirement design (lesson 8). It tends to rise more slowly than $e_0$ because senescence-stage mortality declines are harder than infant-mortality declines."
+          },
+          {
+            "prompt": "What's the difference between period $e_0$ + cohort $e_0$ + which is greater under mortality decline?",
+            "motivation": "Synthetic vs real cohort.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "period uses current cross-sectional rates; cohort traces a real birth cohort; cohort e_0 exceeds period when mortality is declining"
+              ]
+            },
+            "hints": [
+              "Mortality is improving."
+            ],
+            "reveal": "**Period** $e_0$ assumes 2023's mortality rates hold for life — a synthetic cohort. **Cohort** $e_0$ traces a real cohort (e.g., 1950 birth) through its actual age-specific mortality from 1950 onward. Under mortality decline, cohort members benefit from continued improvements at older ages, so **cohort $e_0$ > period $e_0$**. Vaupel: cohort $e_0$ for current births in HICs may exceed 100 if Oeppen-Vaupel trajectory continues."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mort_1",
+        "kind": "multiple_choice",
+        "question": "Why is Lee-Carter (1992) the dominant mortality-forecasting framework?",
+        "options": [
+          "Random.",
+          "**Lee-Carter** (Lee + Carter *JASA* 1992): $\\ln m_{x,t} = a_x + b_x k_t + \\varepsilon_{x,t}$. SVD of the log-mortality matrix isolates a single dominant time-varying index $k_t$ (the mortality 'trend') + an age-specific sensitivity $b_x$. $k_t$ is forecast by random-walk-with-drift ARIMA, giving *probabilistic* forecasts with intervals. Adopted by SSA (US), UN Population Division, Eurostat, ONS, INSEE, Statistics Japan, MPIDR — the dominant probabilistic mortality forecast worldwide. Strengths: (1) parsimony — captures most 20th-century mortality decline with one time series; (2) probabilistic forecast intervals; (3) easily extended (Lee-Miller, Renshaw-Haberman cohort term, Li-Lee multi-population, Bayesian variants). Limits: (1) assumes age pattern is fixed up to overall scale; (2) struggles at oldest ages; (3) does not naturally handle cause-of-death decomposition or sudden shocks (COVID).",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Lee-Carter (1992) — SVD-based decomposition $\\ln m_{x,t} = a_x + b_x k_t$ with $k_t$ forecast by random-walk ARIMA. Probabilistic forecasts; parsimonious; adopted by SSA + UN + Eurostat + most major statistical offices. Many extensions (Lee-Miller, Renshaw-Haberman cohort, Li-Lee multi-population, Bayesian). Limits at very old ages + with sudden shocks."
+      },
+      "hints": [
+        "What does it decompose?",
+        "Why is it widely adopted?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Lee-Carter (1992) decomposes log-mortality into age pattern $a_x$ + time index $k_t$ × age sensitivity $b_x$ via SVD; $k_t$ forecast by random-walk ARIMA. Parsimonious + probabilistic + widely adopted (SSA, UN, Eurostat). Extensions (Lee-Miller, Renshaw-Haberman, Li-Lee, Bayesian) address known limits."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mort_1",
+        "kind": "scenario",
+        "question": "Reasoning about US life-expectancy stagnation",
+        "prompt": "US $e_0$ stagnated then declined 2014-2017 (Case + Deaton 'deaths of despair'), dropped sharply 2020-2021 (COVID), recovered partially by 2023 to ~77.5 — still below most HICs by 4-7 years. In ≤200 words, write a diagnostic note covering: (a) what **Lee-Carter** does + does *not* capture about this trajectory; (b) which causes of death drove the 2014-2017 stagnation per Case-Deaton (and likely Pollard-Arriaga cause decomposition); (c) how to compare US vs Japan trajectories — period vs cohort distinctions, $e_{65}$ vs $e_0$, Black-White gap; (d) two extensions to Lee-Carter (Renshaw-Haberman cohort effects, Li-Lee multi-population, cause-of-death decomposition Foreman-GBD) that would improve forecasts. Cite at least one source you'd consult (HMD, CDC WONDER, IHME GBD)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mort_1",
+        "kind": "math_expression",
+        "question": "Under the Gompertz law $\\mu(x) = B e^{\\theta x}$ with $\\theta = 0.087$, the mortality doubling time is $\\ln 2 / \\theta$. Compute it.",
+        "acceptedAnswers": [
+          "8",
+          "8.0",
+          "ln(2)/0.087",
+          "0.693/0.087"
+        ],
+        "hint": "$T_2 = \\ln 2 / \\theta = 0.693 / 0.087 \\approx 7.97$ years. Mortality roughly doubles every 8 years from young adulthood through age ~85 — the Gompertz law of senescent mortality (1825). Heligman-Pollard adds infant-mortality + accident-hump terms for a full age range."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mort_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, explain how mortality is measured, modeled, and forecast. Cover the life-table machinery ($\\ell_x$, $q_x$, $L_x$, $a_x$, $e_x$); Gompertz + Makeham + Heligman-Pollard laws; Lee-Carter forecasting; the Fries compression vs Vaupel broken-limits debate; and the geroscience-era biomarkers (López-Otín hallmarks, Horvath methylation clocks).",
+        "rubric": "Mentions: life table — radix $\\ell_0$, survivorship $\\ell_x$, mortality probability $q_x$, person-years $L_x$ with $a_x$ midpoint convention, total remaining $T_x$, life expectancy $e_x = T_x / \\ell_x$. Period vs cohort: cohort $e_0$ > period $e_0$ under decline. Halley (1693 Breslau) first life table. Parametric: Gompertz (1825) $\\mu(x) = B e^{\\theta x}$, doubling ~every 8 yr; Makeham (1860) adds constant $A$; Heligman-Pollard (1980) 8-parameter full age range. Forecasting: Lee-Carter (1992) $\\ln m_{x,t} = a_x + b_x k_t$ via SVD + random-walk ARIMA. Compression debate: Fries (1980) rectangularization vs Oeppen-Vaupel (2002) broken limits (3 mo / yr rise in record female $e_0$ for 160 yr); Olshansky skepticism. Frontier: Calment 122; 12 hallmarks of aging (López-Otín 2013, 2023); Horvath + GrimAge methylation clocks; senolytics + rapamycin + TAME. Concludes: mortality forecasting is the second sensitivity (after fertility) in long-horizon projection."
+      }
+    }
+  ]
+}

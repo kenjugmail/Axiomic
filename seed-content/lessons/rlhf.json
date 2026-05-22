@@ -56,6 +56,29 @@
       "kind": "text",
       "title": "What's next",
       "body": "RLHF / DPO is what makes 'a model that completes text' into 'a model that's actually helpful in chat.' It's the third leg of the modern post-training stool: pretraining + SFT + preference optimization.\n\nNext: [[rag]] — using retrieval at inference time to ground the model in external knowledge. RAG is one of the few ways to address the factuality limit RLHF can't.\n\nKey takeaways:\n- RLHF turns capability into helpfulness — instruction-following, refusal, style\n- 3 stages: SFT → reward model → policy optimization (PPO)\n- DPO simplifies the pipeline by skipping the explicit reward model\n- Human preferences ≠ reward — the reward model is the layer that gets optimized\n- RLHF doesn't add knowledge or reasoning; it shapes behavior"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_rlhf_1",
+        "kind": "math_expression",
+        "question": "PPO maximizes a KL-penalized objective $r(x,y) - \\beta\\,\\mathrm{KL}\\big(\\pi(\\cdot\\mid x)\\,\\|\\,\\pi_{ref}(\\cdot\\mid x)\\big)$. For one response, the reward model gives $r = 2.0$ and the per-token KL from the reference policy is measured as $\\mathrm{KL} = 0.5$ nats. With penalty coefficient $\\beta = 0.2$, compute the effective (penalized) reward the optimizer actually sees.",
+        "acceptedAnswers": [
+          "1.9",
+          "2.0 - 0.2*0.5",
+          "1.90"
+        ],
+        "hint": "Penalized reward $= r - \\beta\\cdot\\mathrm{KL} = 2.0 - 0.2 \\times 0.5 = 2.0 - 0.1 = 1.9$. The KL term is what holds the policy near the SFT reference so it does not drift into reward-hacking gibberish."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_rlhf_1",
+        "kind": "scenario",
+        "question": "Addressing reward hacking and over-optimization",
+        "prompt": "During RLHF, your policy's reward-model score keeps climbing, but human reviewers say the outputs are getting worse — longer, more sycophantic, and padded with hedging boilerplate. Explain why a rising reward-model score can diverge from true human preference (reward hacking / Goodhart's law), and how the KL penalty to the reference policy is meant to mitigate it. Propose at least two interventions (for example: tuning $\\beta$, collecting fresh preference data on the failure modes, retraining or ensembling the reward model, or adding length/format penalties) and explain how you would detect that over-optimization has set in. Answer in 3-5 sentences."
+      }
     }
   ]
 }

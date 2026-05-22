@@ -1,0 +1,155 @@
+{
+  "slug": "population-projection",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Construct a cohort-component projection using the Leslie matrix.",
+      "Interpret UN WPP variants + Raftery-Ševčíková probabilistic projection.",
+      "Critique long-horizon point estimates + subnational projection methods (Hamilton-Perry, Wilson-Bell)."
+    ],
+    "prereqs": [
+      "fertility-and-reproduction",
+      "mortality-life-tables-and-longevity",
+      "migration-and-mobility"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Cohort-component method: Whelpton + Leslie + UN methodology",
+      "body": "**Population projection** = computing future population by age + sex from a base population + assumptions on fertility, mortality, and migration. The dominant method since the 1930s is the **cohort-component method (CCM)**.\n\n**Pascal K. Whelpton** (*Population of the United States 1925-1975*, 1928; *Forecasts of the Population of the United States, 1945-1975*, 1947) — Scripps Foundation for Research in Population Problems: introduced + popularized the cohort-component projection method. Whelpton projected each birth cohort separately by applying age-specific fertility, mortality, and migration rates iteratively. Foundational; adopted by US Census Bureau, UN Population Division, every national statistical office.\n\n**Patrick Leslie** (*Biometrika* 1945 'On the Use of Matrices in Certain Population Mathematics') — independently developed in ecology: the **Leslie matrix** $L$ encodes age-specific fertility + survival; the population vector $\\mathbf{n}_t$ projects forward as $\\mathbf{n}_{t+1} = L \\mathbf{n}_t$. The dominant eigenvalue of $L$ equals the population's intrinsic growth rate; the dominant eigenvector is the stable age distribution (Lotka).\n\n**Leslie matrix structure**:\n$$L = \\begin{pmatrix} F_0 & F_1 & F_2 & \\cdots & F_{w-1} \\\\ s_0 & 0 & 0 & \\cdots & 0 \\\\ 0 & s_1 & 0 & \\cdots & 0 \\\\ \\vdots & & \\ddots & & \\vdots \\\\ 0 & 0 & 0 & s_{w-2} & 0 \\end{pmatrix}$$\nFirst row: age-specific fertility rates $F_x$ (births per woman in age class $x$ per period × period length); subdiagonal: age-specific survival probabilities $s_x = L_{x+1}/L_x$ from the life table. For a two-sex projection use a sex-specific matrix (or apply only to females + back out males from sex ratio at birth).\n\n**Cohort-component projection** in detail:\n1. **Start** with base population by age × sex, year $t$.\n2. **Project survival**: $\\ell_{x+1, t+1} = \\ell_{x,t} \\times p_x$ (age-specific survivorship from life table).\n3. **Project births**: $B_t = \\sum_x \\mathrm{ASFR}_x \\times \\mathrm{Females}_{x, t}$ (or female-only contribution).\n4. **Split births by sex**: $B_t^M = B_t \\times \\mathrm{SRB} / (1+\\mathrm{SRB})$; $B_t^F = B_t / (1+\\mathrm{SRB})$.\n5. **Apply infant survival**: $\\ell_{0, t+1} = B_t \\times \\ell_0 / \\ell_{-1}$ (or directly age-0 survival).\n6. **Add net migration** by age × sex.\n7. **Iterate** 5-year periods for the projection horizon.\n\n**Key inputs**:\n- **Fertility**: ASFRs by age × time. UN WPP uses Bayesian hierarchical model (Alkema + Raftery + Gerland + Buettner *Demographic Research* 2011, 2015) modeling the **double-logistic** fertility transition.\n- **Mortality**: ASMRs by age × sex × time. UN WPP uses **Lee-Carter** + **Coale-Demeny / UN model life tables** for incomplete data; Bayesian hierarchical for full uncertainty.\n- **Migration**: net migration by age × sex × time. The hardest input — historical data sparse + future highly uncertain. UN uses 'persistence + decay' assumptions.\n\n**UN World Population Prospects (WPP)** methodology:\n- Base year: 2024 for WPP 2024 (most recent).\n- Projection horizon: 1950-2100 (historical + forward).\n- Countries: 237 (countries + territories + regions).\n- Variants: low / medium / high / constant fertility / instant-replacement / zero migration + 95% probabilistic intervals.\n- **WPP 2024 medium projection**: world population 8.2 B (2025) → 9.7 B (2050) → peak ~10.3 B (~2084) → 10.1 B (2100) + declining. Revised down from earlier projections (WPP 2022 was 10.4 B peak ~2086) as fertility falls faster than expected.\n- **Probabilistic intervals**: 95% range at 2100 is roughly 9.0-11.6 B.\n- **Methodology shift**: WPP 2014 + onward use full **Bayesian probabilistic projection** for ~all countries (Raftery + Alkema + Gerland *Statistics + Public Policy* 2014); previous WPPs used deterministic variants + scenarios.\n\n**Other major projection programs**:\n- **IIASA Wittgenstein Centre** — Lutz + KC: explicit education-by-age dimension; outputs population by age × sex × education level (5 categories).\n- **US Census Bureau International Database**: country-by-country deterministic projections.\n- **Eurostat / EU Reference Scenarios**: harmonized European projections.\n- **National statistical offices** for sub-national (US Census, ONS, INE, etc.)."
+    },
+    {
+      "kind": "text",
+      "title": "Probabilistic projection: Raftery + Ševčíková + UN Bayesian methodology",
+      "body": "**Why probabilistic projection?**\n\nDeterministic projections produce a single trajectory + bracketing high / low scenarios. They:\n- Mask uncertainty quantification.\n- Don't communicate likelihood of outcomes.\n- Mix non-equivalent assumptions across countries.\n- Provide no formal way to update with new data.\n\n**Adrian Raftery** + **Hana Ševčíková** + **Patrick Gerland** + collaborators (University of Washington Center for Statistics + the Social Sciences + UN Population Division): developed the **Bayesian probabilistic population projection (BPPP)** adopted by the UN in 2014 + after.\n\n**Architecture (high level)**:\n1. **Fertility model**: each country's TFR trajectory modeled as a country-specific phase-1 (transition) + phase-2 (post-transition) Bayesian hierarchical double-logistic curve. Parameters borrow strength across countries. Posterior gives full distribution of future TFR.\n   - **Alkema + Raftery + Gerland + Clark + Pelletier + Buettner + Heilig** *Demography* (2011) 'Probabilistic projections of the total fertility rate for all countries'.\n2. **Mortality model**: Bayesian Lee-Carter or coherent multi-population Li-Lee with shared random effects across countries.\n   - **Ševčíková + Li + Raftery** *Demographic Research* (2016) probabilistic life expectancy.\n3. **Migration**: persistence with decay; future net migration central tendency converges to zero; full uncertainty intervals.\n4. **Aggregation**: 100000 simulated trajectories per country; aggregate to obtain global + regional intervals.\n5. **Implementation**: open-source R packages **bayesTFR**, **bayesLife**, **bayesPop**, **bayesMig** maintained by Ševčíková at UW.\n\n**Outputs from WPP 2024**:\n- Probabilistic 95% intervals for population, TFR, $e_0$, age structure, dependency ratios, growth rate.\n- World population in 2100: 95% interval ~9.0-11.6 B around median 10.1 B.\n- Probability world population peaks before 2100: ~80%.\n- Probability of negative growth by 2100: ~75%.\n\n**Wilson + Bell** (Tom Wilson + Martin Bell) *Population Studies* + *Demographic Research* — explicit uncertainty in **subnational** projections; methods for stochastic forecasting of small areas where Bayesian hierarchical pooling is harder. Wilson's *Australian Population Studies* + work on Indigenous + small-area projections.\n\n**Critiques of long-horizon projection**:\n- **Heuveline** (2017) + de Beer + others: 80-100-year horizons hide enormous structural uncertainty about technology, climate, geopolitics, policy regimes. Point estimates inappropriate; probabilistic intervals communicate width but may still underestimate **structural** uncertainty.\n- **Tempo distortion**: period TFR can lag cohort TFR by 0.1-0.3 over decades; can bias projection.\n- **Migration**: the largest source of uncertainty for individual countries; persistence-with-decay assumptions arbitrary.\n- **Disasters + shocks**: pandemics (COVID), wars, climate extremes not in baseline models.\n- **Past forecast errors**: 1970s UN projections expected ~7 B by 2000 — close. 1950 UN projections for 2000 were ~3.5 B vs actual ~6.1 B — underestimate. Recent projections for sub-Saharan Africa have been repeatedly revised upward as fertility decline lagged expectations.\n\n**Sensitivity decomposition**:\n- A 0.3 difference in long-run TFR translates to ~2 B in world population at 2100.\n- A 5-year difference in $e_0$ in 2100 translates to ~150 M.\n- Migration is small at global level (zero-sum across countries) but huge for individual receiving countries.\n\nDespite limits, probabilistic CCM is the empirical + methodological state of the art."
+    },
+    {
+      "kind": "text",
+      "title": "Subnational + small-area projection: Hamilton-Perry + IPUMS",
+      "body": "**Subnational projection** is critical for planning (schools, hospitals, infrastructure, housing) + has different methods because:\n- Population sizes are smaller → more random variation.\n- Migration dominates (inter-area moves are large fraction of change).\n- Vital registration sometimes incomplete at small-area level.\n- Boundaries shift over time.\n\n**Cohort-component for subnational areas**:\n- Same machinery as national CCM but with **net internal migration** added (often as net rate or by age-specific schedule).\n- Inputs from census + vital registration.\n- Issues: small-number variance; rounding; closure errors.\n\n**Hamilton-Perry method** (C. Horace Hamilton + Josef Perry *Social Forces* 1962): a parsimonious alternative for areas with limited data:\n- Use **cohort change ratios (CCRs)** between census years: $\\mathrm{CCR}_x = \\mathrm{Pop}_{x+10, t+10} / \\mathrm{Pop}_{x, t}$.\n- Apply CCRs to current population to project forward; CCRs implicitly absorb mortality + net migration.\n- For births: use **child-woman ratio** $\\mathrm{Pop}_{0-9, t+10} / \\mathrm{Pop}_{15-49 \\text{ women}, t+10}$, projected forward.\n- Advantages: no need for vital rates; uses only census tabulations.\n- Disadvantages: ignores changes in fertility / mortality / migration trends; assumes structural continuity; struggles with rapid change or unusual demographic events.\n\n**Used by**: many US state demographers, county-level projections, Australian Bureau of Statistics, planning offices in LMICs with limited registration.\n\n**Modified Hamilton-Perry**:\n- Smoothed CCRs across cohorts.\n- Constrained to higher-level totals (e.g., state to national).\n- Combined with fertility / mortality projections.\n\n**Tom Wilson** (Charles Darwin University + ANU): leading methodologist for small-area + Indigenous + stochastic projection. Wilson + Bell + Charles-Edwards *Australian Population Studies*; Wilson 2013 *Population Studies* on small-area uncertainty.\n\n**Small-area microsimulation** (lesson 8):\n- **MicSim** (Zinn) R package for cohort microsimulation.\n- **SOCSIM** (Berkeley) for kinship + family microsimulation.\n- **Pop-IPF** (iterative proportional fitting) for synthetic population construction from census tabulations.\n\n**IPUMS** (Minnesota Population Center, Steven Ruggles + Matthew Sobek):\n- **IPUMS International**: integrated census microdata from 100+ countries.\n- **IPUMS USA**: harmonized US census + ACS microdata 1850-present.\n- **IPUMS DHS, IPUMS-CPS, IPUMS Time Use, IPUMS Health Surveys**.\n- The single most-used source for demographic microdata.\n- Enables flexible cross-national + historical projection inputs.\n\n**Critique of long-horizon point estimates**:\n- Bongaarts (2009): demographic forecasts beyond ~30 years contain 'irreducible uncertainty' that probabilistic intervals quantify but do not eliminate.\n- Lee (1998): the relevant question for 100-year horizons is not 'what will happen' but 'what are the consequences of plausible scenarios for current policy'.\n- O'Neill + Balk + Brickman + Ezra (2001) *Population and Development Review*: 'A guide to global population projections' — surveys methodology + uncertainty.\n- **Practical guidance**: use probabilistic intervals (UN WPP medium + 95% range); update with each new round; don't extrapolate beyond ~30 years for sub-national; treat individual-country migration projections with extreme caution.\n\n**Open + reproducible**:\n- UN WPP + IIASA + Census methodology documents.\n- bayesTFR + bayesPop + bayesLife + bayesMig R packages.\n- Common Demographic Format + standardized inputs (UN DESA, MPIDR, HMD, HFD).\n\nLesson 7 develops social demography + family; lesson 8 develops the computational + AI frontier including agent-based + microsimulation + ML-augmented projection."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_proj_1",
+        "kind": "guided_derivation",
+        "question": "Project a population one period using a Leslie matrix",
+        "goal": "Given a 3-age-class population, apply a Leslie matrix to project forward one period + compare to stable-population predictions.",
+        "steps": [
+          {
+            "prompt": "Set up. Three age classes (0-19, 20-39, 40-59); only ages 20-39 reproduce ($F_1 = 1.0$ daughters per woman per period); survival $s_0 = 0.95$ (0-19 → 20-39); $s_1 = 0.92$ (20-39 → 40-59). Population at $t=0$: $(100, 100, 100)$. Write the Leslie matrix.",
+            "motivation": "Construct $L$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "L = [[0, 1.0, 0], [0.95, 0, 0], [0, 0.92, 0]]"
+              ]
+            },
+            "hints": [
+              "Fertility row + survival subdiagonal."
+            ],
+            "reveal": "$L = \\begin{pmatrix} 0 & 1.0 & 0 \\\\ 0.95 & 0 & 0 \\\\ 0 & 0.92 & 0 \\end{pmatrix}$. First row: age-specific fertility (only middle class reproduces). Subdiagonal: $s_0$, $s_1$. Open-ended last class (no class 4 to graduate to)."
+          },
+          {
+            "prompt": "Compute $\\mathbf{n}_1 = L \\mathbf{n}_0$.",
+            "motivation": "Matrix-vector multiply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(100, 95, 92)"
+              ]
+            },
+            "hints": [
+              "Row × column."
+            ],
+            "reveal": "Row 1: $0 \\times 100 + 1.0 \\times 100 + 0 \\times 100 = 100$ (new entrants to age 0-19, i.e., births surviving infancy this period). Row 2: $0.95 \\times 100 + 0 + 0 = 95$ (survivors of 0-19 cohort into 20-39). Row 3: $0 + 0.92 \\times 100 + 0 = 92$ (survivors of 20-39 → 40-59). $\\mathbf{n}_1 = (100, 95, 92)$. Total $= 287$ (down from 300)."
+          },
+          {
+            "prompt": "Compute $\\mathbf{n}_2 = L \\mathbf{n}_1$.",
+            "motivation": "Iterate one more period.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(95, 95, 87.4)"
+              ]
+            },
+            "hints": [
+              "Apply $L$ again."
+            ],
+            "reveal": "Row 1: $0 \\times 100 + 1.0 \\times 95 + 0 = 95$. Row 2: $0.95 \\times 100 = 95$. Row 3: $0.92 \\times 95 = 87.4$. $\\mathbf{n}_2 = (95, 95, 87.4)$. Total $\\approx 277$. Population is declining + the age distribution is shifting toward the older class — initially equal distribution was not stable."
+          },
+          {
+            "prompt": "What's the long-run behavior + how does the dominant eigenvalue tell us?",
+            "motivation": "Convergence to stable age distribution.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "the population converges to a stable age distribution given by the dominant eigenvector; the dominant eigenvalue lambda gives the per-period growth ratio; here lambda < 1 means decline"
+              ]
+            },
+            "hints": [
+              "Lotka."
+            ],
+            "reveal": "Lotka + Leslie: with constant $L$, the population vector converges (after transients) to a multiple of the dominant eigenvector of $L$ — the **stable age distribution**. The dominant eigenvalue $\\lambda$ is the per-period growth ratio: $\\lambda > 1$ growth, $\\lambda < 1$ decline, $\\lambda = 1$ stationary. Equivalent to NRR = $\\lambda$ for a one-sex model with reproductive ages identified. Here NRR = $F_1 \\times s_0 = 1.0 \\times 0.95 = 0.95 < 1$ → decline at ~5% per period. Each generation is ~5% smaller; long-run extinction at constant rates."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_proj_1",
+        "kind": "multiple_choice",
+        "question": "Why did the UN move from deterministic high / medium / low projection variants to a fully Bayesian probabilistic framework in 2014?",
+        "options": [
+          "Random.",
+          "The UN Population Division adopted **Bayesian probabilistic projection** (Raftery + Alkema + Gerland *Statistics + Public Policy* 2014; Ševčíková + Raftery; Alkema + Buettner + Heilig) for WPP 2014 + after because: (1) deterministic variants mix non-equivalent uncertainty across countries — the high variant for one country is not at the same percentile as the high variant for another; (2) deterministic variants cannot be aggregated (the sum of country high variants vastly overstates global high); (3) probabilistic projection produces explicit **95% intervals** with consistent percentile interpretation; (4) Bayesian hierarchical modeling lets sparse-data countries borrow strength from neighbors + global trends; (5) Bayesian updating naturally incorporates new data each WPP revision; (6) probabilistic outputs enable proper risk + scenario analysis for users (governments, planners). Implementation: open-source R packages **bayesTFR**, **bayesLife**, **bayesPop**, **bayesMig** developed by Ševčíková + collaborators at UW. Limitations remain: structural uncertainty (technology, climate, geopolitics, policy regimes) is *not* captured in the prior + intervals can be over-confident on multi-decade horizons.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "UN adopted Bayesian probabilistic projection (Raftery + Alkema + Gerland 2014) because deterministic variants mix uncertainty inconsistently, cannot aggregate, and don't deliver probabilistic intervals. Bayesian hierarchical modeling borrows strength across countries + updates with new data. Implemented in bayesTFR / bayesLife / bayesPop / bayesMig R packages. Still does not capture structural uncertainty (technology, climate, policy)."
+      },
+      "hints": [
+        "What's wrong with high/medium/low?",
+        "What does Bayesian buy?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "UN Bayesian probabilistic projection (Raftery + Alkema + Gerland 2014) gives consistent 95% intervals across countries + supports aggregation + updating; deterministic high/medium/low mixes non-equivalent percentiles + can't aggregate. Implemented in bayesTFR / bayesLife / bayesPop / bayesMig at UW. Doesn't capture structural uncertainty."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_proj_1",
+        "kind": "scenario",
+        "question": "Critiquing a 2100 population point estimate",
+        "prompt": "A policy brief says 'the world will have 10.4 billion people in 2086 + then begin to decline'. In ≤200 words, critique this single-number projection covering: (a) which **UN WPP revision** this matches + what the 2024 revision changed; (b) the meaning of the **medium variant** vs the **probabilistic 95% interval**; (c) sensitivity to **TFR**, $e_0$, and **net migration** assumptions (rough orders of magnitude in B at 2100); (d) what **structural uncertainty** (climate, geopolitics, technology, AI, policy) is *not* in the prior; (e) the practical implication for policy planning. Name two of the R packages (**bayesTFR**, **bayesLife**, **bayesPop**, **bayesMig**) you'd use to recompute alternative scenarios."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_proj_1",
+        "kind": "math_expression",
+        "question": "For a single-sex Leslie model with all reproduction in age class 1 ($F_1 = 1.5$) + survival $s_0 = 0.8$ from age 0 to age 1, compute NRR.",
+        "acceptedAnswers": [
+          "1.2",
+          "1.20",
+          "1.5*0.8"
+        ],
+        "hint": "NRR (in this simple model) is fertility × survival to reproductive ages: $F_1 \\times s_0 = 1.5 \\times 0.8 = 1.2$. Population grows ~20% per generation. NRR = 1 ↔ exact replacement; here NRR > 1 → growth. In a full Leslie + life table, NRR integrates ASFRs against female survivorship $\\ell_x$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_proj_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, explain how modern population projection works. Cover the cohort-component method (Whelpton 1928); the Leslie matrix (1945) + its eigenvalue / eigenvector connection to Lotka stable population; UN WPP medium variant + probabilistic projection (Raftery + Ševčíková 2014); Hamilton-Perry + Wilson-Bell for subnational; main sensitivities (TFR, $e_0$, migration); critique of long-horizon point estimates.",
+        "rubric": "Mentions: cohort-component method (Whelpton 1928): project survival + births + migration by age × sex × period. Leslie (1945) matrix $L$: fertility in first row, survival on subdiagonal; $\\mathbf{n}_{t+1} = L \\mathbf{n}_t$. Dominant eigenvalue $\\lambda$ = intrinsic growth ratio; dominant eigenvector = stable age distribution (Lotka). UN WPP medium 2024: ~10.3 B peak 2084 + 95% interval 9.0-11.6 B at 2100. Probabilistic projection (Raftery + Alkema + Gerland 2014; Ševčíková R packages bayesTFR / bayesLife / bayesPop / bayesMig). Hamilton-Perry CCR method for subnational with limited data; Wilson + Bell on small-area uncertainty. Sensitivities: 0.3 TFR ↔ 2 B at 2100; $e_0$ ↔ 150 M / 5 yr; migration small globally but huge nationally. Critique: structural uncertainty (technology, climate, geopolitics, policy) not in priors; long-horizon point estimates inappropriate. Concludes: probabilistic CCM is state of the art but humble about beyond-30-year horizons."
+      }
+    }
+  ]
+}

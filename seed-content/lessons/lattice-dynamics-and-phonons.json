@@ -1,0 +1,161 @@
+{
+  "slug": "lattice-dynamics-and-phonons",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Derive dispersion relations for acoustic and optical phonons.",
+      "Apply Debye and Einstein models for heat capacity.",
+      "Analyze phonon thermal conductivity, Umklapp scattering, and phonon engineering."
+    ],
+    "prereqs": [
+      "crystal-lattices-and-reciprocal-space"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The harmonic crystal: 1D chain and dispersion",
+      "body": "Atoms in a crystal vibrate around their equilibrium positions. Expanding the lattice potential to second order in displacements gives the **harmonic crystal** — a system of coupled oscillators whose normal modes are **phonons**. Phonons are to lattice vibrations what photons are to the EM field: bosonic quanta with frequency $\\omega_\\mathbf{q}(\\mathbf{k})$ and crystal momentum $\\hbar\\mathbf{k}$.\n\n**1D monatomic chain**: $N$ identical atoms of mass $m$, lattice constant $a$, connected by springs $K$. Equation of motion:\n\n$$m \\ddot u_n = K(u_{n+1} - 2u_n + u_{n-1}).$$\n\nAnsatz $u_n = u_0 e^{i(kna - \\omega t)}$ gives the dispersion\n\n$$\\omega(k) = 2\\sqrt{K/m} \\, |\\sin(ka/2)|.$$\n\n- Linear at small $k$: $\\omega \\approx \\sqrt{K/m}\\, a |k| = v_s |k|$ — sound waves with speed $v_s$.\n- Maximum $\\omega_{\\max} = 2\\sqrt{K/m}$ at the BZ boundary $k = \\pm\\pi/a$, where wave length is twice the lattice spacing.\n- Distinct $k$ values fit in the 1st BZ $(-\\pi/a, \\pi/a]$ — $N$ values for $N$ atoms.\n\n**1D diatomic chain** (two atoms per unit cell, masses $m_1 \\neq m_2$):\n\n$$\\omega_\\pm^2(k) = K\\left(\\frac{1}{m_1} + \\frac{1}{m_2}\\right) \\pm K\\sqrt{\\left(\\frac{1}{m_1} + \\frac{1}{m_2}\\right)^2 - \\frac{4 \\sin^2(ka/2)}{m_1 m_2}}.$$\n\n- **Acoustic branch** $\\omega_-$: vanishes at $k=0$ (sound waves; atoms in phase).\n- **Optical branch** $\\omega_+$: finite at $k=0$ (atoms in opposite-phase oscillation; the dipole couples to IR light when $m_1 \\neq m_2$ are differently charged — explains optical absorption in ionic crystals like NaCl, KBr).\n- **Restrahlen gap**: between the top of acoustic and bottom of optical branches; reflectivity peaks there — total reflection band in IR.\n\n**3D crystal with $p$ atoms per cell**: $3p$ phonon branches at each $\\mathbf{k}$. Three acoustic (LA + 2 TA), $3p-3$ optical (split into LO + TO branches by long-range Coulomb coupling — LO-TO splitting in polar crystals, given by Lyddane-Sachs-Teller relation $\\omega_{LO}^2/\\omega_{TO}^2 = \\varepsilon(0)/\\varepsilon(\\infty)$).\n\n**Quantization**: phonon Hamiltonian $H = \\sum_{\\mathbf{q},s} \\hbar\\omega_s(\\mathbf{q})(a^\\dagger_{\\mathbf{q},s} a_{\\mathbf{q},s} + 1/2)$. Phonons are bosons; thermally populated by Bose-Einstein distribution $n_\\mathbf{q} = [\\exp(\\hbar\\omega_\\mathbf{q}/k_B T) - 1]^{-1}$.\n\n**Measuring phonons**:\n- **Inelastic neutron scattering** (Brockhouse + Shull, Nobel 1994): triple-axis + time-of-flight; gold standard for dispersion across the full BZ.\n- **Inelastic X-ray scattering (IXS)**: synchrotron sources; meV resolution.\n- **Raman + IR spectroscopy**: zone-center modes (Γ point) only by momentum conservation.\n- **Brillouin scattering**: long-wavelength acoustic modes via visible photons."
+    },
+    {
+      "kind": "text",
+      "title": "Heat capacity: Einstein, Debye, and beyond",
+      "body": "Classical equipartition predicts $C_v = 3 N k_B$ (Dulong-Petit, 1819) — observed at high $T$ for most solids. But $C_v \\to 0$ as $T \\to 0$, in violation of the third law.\n\n**Einstein model (1907)** — first quantum theory of heat capacity. Treat each atom as a 3D harmonic oscillator with single frequency $\\omega_E$:\n\n$$C_v(T) = 3 N k_B \\left(\\frac{\\hbar\\omega_E}{k_B T}\\right)^2 \\frac{e^{\\hbar\\omega_E/k_B T}}{(e^{\\hbar\\omega_E/k_B T} - 1)^2}.$$\n\n- High $T$: $C_v \\to 3Nk_B$ (Dulong-Petit).\n- Low $T$: $C_v \\propto T^{-2} e^{-\\hbar\\omega_E/k_B T}$ — exponential decay. Captures the third-law trend but wrong functional form.\n\nEinstein's 1907 paper was the first major application of quantization beyond Planck + photoelectric effect — convinced many physicists that quantum theory had real consequences for matter, not just light.\n\n**Debye model (1912)**: assume a linear acoustic dispersion $\\omega = v_s |\\mathbf{q}|$ up to a cutoff Debye frequency $\\omega_D$ chosen to give $3N$ total modes. Define **Debye temperature** $\\Theta_D = \\hbar\\omega_D / k_B$ (typically 100-2000 K; diamond 2230 K, Pb 105 K, Si 645 K).\n\n$$C_v = 9 N k_B \\left(\\frac{T}{\\Theta_D}\\right)^3 \\int_0^{\\Theta_D/T} \\frac{x^4 e^x}{(e^x-1)^2} dx.$$\n\n- Low $T$: $C_v = (12\\pi^4/5) N k_B (T/\\Theta_D)^3$ — the famous **Debye $T^3$ law**. Excellent quantitative match for acoustic-dominated solids at $T \\ll \\Theta_D$.\n- High $T$: $C_v \\to 3Nk_B$.\n\n**Combined electronic + phononic at low $T$**: $C_v = \\gamma T + \\alpha T^3$. Plot $C_v/T$ vs $T^2$ — intercept gives $\\gamma$ (Sommerfeld coefficient → DOS at $E_F$), slope gives $\\Theta_D$. Standard solid-state characterization.\n\n**Beyond Einstein + Debye**:\n- Real phonon DOS $g(\\omega)$ has Van Hove singularities + optical modes; modern analyses use DFT-computed $g(\\omega)$.\n- **Born-von Karman boundary conditions** justify counting $N$ modes per branch.\n- **Quasi-harmonic approximation**: phonon frequencies depend weakly on lattice volume → thermal expansion via Grüneisen parameter $\\gamma_\\mathbf{q} = -\\partial \\ln\\omega_\\mathbf{q}/\\partial \\ln V$.\n- **Anharmonicity**: cubic + quartic terms in expansion → phonon-phonon scattering, thermal expansion, finite thermal conductivity, melting.\n- **Self-consistent phonon theory + SCAILD + SSCHA** for strongly anharmonic crystals (e.g., hydrides, perovskites).",
+      "viz": "phonon-dispersion",
+      "vizProps": {
+        "branches": ["acoustic", "optical"]
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Phonon transport, Umklapp, and phonon engineering",
+      "body": "Phonons carry heat in insulators + semiconductors (in metals, electrons dominate). **Boltzmann transport equation** (BTE) for the phonon distribution $n_\\mathbf{q}(t)$:\n\n$$\\frac{\\partial n_\\mathbf{q}}{\\partial t} + \\mathbf{v}_\\mathbf{q} \\cdot \\nabla n_\\mathbf{q} = \\left(\\frac{\\partial n_\\mathbf{q}}{\\partial t}\\right)_{coll}.$$\n\nIn the **relaxation-time approximation**, $(\\partial n/\\partial t)_{coll} = -(n - n_0)/\\tau_\\mathbf{q}$. Lattice thermal conductivity:\n\n$$\\kappa_L = \\frac{1}{3} \\sum_\\mathbf{q} c_\\mathbf{q} v_\\mathbf{q}^2 \\tau_\\mathbf{q}.$$\n\n**Scattering mechanisms** (Matthiessen's rule: $1/\\tau = \\sum_i 1/\\tau_i$):\n- **Boundary scattering**: limits $\\kappa$ at low $T$ when phonon wavelengths exceed sample size.\n- **Isotope + impurity (Rayleigh) scattering**: $\\tau^{-1} \\propto \\omega^4$ — important for high-frequency modes.\n- **Phonon-phonon (3-phonon) processes**: dominate at high $T$.\n  - **Normal (N) processes**: $\\mathbf{q}_1 + \\mathbf{q}_2 = \\mathbf{q}_3$. Conserve total crystal momentum; do not directly degrade heat current.\n  - **Umklapp (U) processes**: $\\mathbf{q}_1 + \\mathbf{q}_2 = \\mathbf{q}_3 + \\mathbf{G}$ (German for 'flip over'). The reciprocal-lattice vector $\\mathbf{G}$ reverses momentum direction — these are the processes that limit $\\kappa$ at high $T$.\n  - Peierls (1929) introduced Umklapp; explains why $\\kappa$ does not diverge in pure crystals.\n- **Electron-phonon**: relevant in metals + heavily-doped semiconductors.\n\n**Temperature dependence**:\n- $T \\ll \\Theta_D$: $\\kappa \\propto T^3$ (phonon density grows) up to boundary or impurity limit.\n- Around $T \\sim \\Theta_D/10$: $\\kappa$ peaks (often $10^3$ W/m·K in pure crystals — diamond 2200, Si pure ~1500 max).\n- $T \\gtrsim \\Theta_D$: $\\kappa \\propto 1/T$ (Umklapp-limited).\n\n**Materials extremes**:\n- **Diamond**: $\\kappa \\approx 2000$ W/m·K at 300 K (highest of any bulk material); light atoms, strong bonds → very high $\\Theta_D$ + sparse phonon population. Used as heat spreader for high-power electronics.\n- **Graphene + hexagonal BN**: $\\kappa > 2000$ W/m·K in-plane.\n- **Skutterudites + clathrates + half-Heusler**: 'phonon glass, electron crystal' — engineered low $\\kappa_L$ via rattler atoms in cages → high thermoelectric ZT.\n- **PbTe, Bi$_2$Te$_3$, SnSe, GeTe**: highly anharmonic; record thermoelectric performance (SnSe ZT ~3 along single crystal axis, Snyder + Zhao 2014).\n- **Aerogels + amorphous solids**: $\\kappa < 0.02$ W/m·K — insulation; phonons localized by disorder.\n\n**Phonon engineering** — control of heat at the nanoscale:\n- **Phononic crystals**: periodic structures with phonon band gaps; analogues of photonic crystals.\n- **Nanowires + superlattices**: SiGe superlattices reduce $\\kappa$ by phonon scattering at interfaces.\n- **Thermoelectrics (Seebeck + Peltier)**: power generation + cooling; $ZT = \\sigma S^2 T / \\kappa$ where $S$ is the Seebeck coefficient. Bi$_2$Te$_3$ commercial; modules in spacecraft RTGs (Voyager, Cassini, Mars rovers via Pu-238).\n- **Coherent phonon control**: ultrafast laser pulses excite specific modes; pump-probe spectroscopy resolves dynamics on fs scale.\n- **Polaritonics + phonon-polaritons**: hybrid phonon-photon modes for nanoscale IR.\n\n**Phonons in modern physics**:\n- Mediate **conventional (BCS) superconductivity** (next lesson).\n- Drive **structural phase transitions** (soft modes — Cochran 1959; ferroelectrics).\n- Limit **carrier mobility** in transistors (phonon-limited mobility in silicon, GaN).\n- Couple to electronic structure (electron-phonon coupling λ, Eliashberg theory) and to spin (magnon-phonon, magnetoelastic)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_phon_1",
+        "kind": "guided_derivation",
+        "question": "Derive the 1D monatomic chain dispersion.",
+        "goal": "Show that a chain of identical masses $m$ connected by springs $K$ has dispersion $\\omega(k) = 2\\sqrt{K/m}|\\sin(ka/2)|$.",
+        "steps": [
+          {
+            "prompt": "Write Newton's equation for atom $n$ in terms of its displacement $u_n$.",
+            "motivation": "Harmonic crystal equation of motion.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "m u_n_ddot = K(u_{n+1} - 2 u_n + u_{n-1})",
+                "m ü_n = K (u_{n+1} − 2u_n + u_{n−1})"
+              ]
+            },
+            "hints": [
+              "Springs $K$ to left + right neighbors give restoring forces depending on displacement differences."
+            ],
+            "reveal": "$m \\ddot u_n = K(u_{n+1} - u_n) - K(u_n - u_{n-1}) = K(u_{n+1} - 2 u_n + u_{n-1}).$"
+          },
+          {
+            "prompt": "Plug in plane-wave ansatz $u_n = u_0 e^{i(kna - \\omega t)}$ and simplify.",
+            "motivation": "Diagonalize via translational symmetry (Bloch on 1D).",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-m ω² = K(e^{ika} + e^{-ika} − 2) = -2K(1 - cos(ka))",
+                "ω² = (2K/m)(1 − cos(ka))"
+              ]
+            },
+            "hints": [
+              "Use $e^{ika} + e^{-ika} = 2\\cos(ka)$."
+            ],
+            "reveal": "Substituting gives $-m\\omega^2 = K(e^{ika} + e^{-ika} - 2) = 2K(\\cos ka - 1)$, so $\\omega^2 = (2K/m)(1 - \\cos ka)$."
+          },
+          {
+            "prompt": "Use the half-angle identity to simplify.",
+            "motivation": "Standard simplification.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1 - cos(ka) = 2 sin²(ka/2)",
+                "ω² = (4K/m) sin²(ka/2)"
+              ]
+            },
+            "hints": [
+              "$1 - \\cos\\theta = 2\\sin^2(\\theta/2)$."
+            ],
+            "reveal": "$\\omega^2 = (4K/m) \\sin^2(ka/2) \\Rightarrow \\omega(k) = 2\\sqrt{K/m}|\\sin(ka/2)|.$"
+          },
+          {
+            "prompt": "What is the long-wavelength sound speed and the maximum frequency at the BZ boundary?",
+            "motivation": "Limit checks.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "v_s = a*sqrt(K/m); ω_max = 2*sqrt(K/m)",
+                "sound speed a√(K/m), max ω = 2√(K/m) at k = π/a"
+              ]
+            },
+            "hints": [
+              "Taylor-expand $\\sin(ka/2)$ for small $k$; evaluate at $k = \\pi/a$."
+            ],
+            "reveal": "Small $k$: $\\omega \\approx (a\\sqrt{K/m}) |k| \\Rightarrow v_s = a\\sqrt{K/m}$. At $k = \\pi/a$ (BZ boundary): $|\\sin(\\pi/2)| = 1$ so $\\omega_{\\max} = 2\\sqrt{K/m}$ — sets the Debye-like cutoff."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_phon_1",
+        "kind": "multiple_choice",
+        "question": "Why does the Debye model's $T^3$ law work so well at low temperatures?",
+        "options": [
+          "Coincidence.",
+          "At low $T \\ll \\Theta_D$, only long-wavelength acoustic phonons ($\\hbar\\omega \\lesssim k_B T$) are thermally populated. These have linear dispersion $\\omega = v_s |\\mathbf{q}|$ — exactly what Debye assumed by construction — and their density of states is $g(\\omega) \\propto \\omega^2$ in 3D. Integrating $\\int_0^\\infty \\hbar\\omega\\, g(\\omega)\\, n_B(\\hbar\\omega/k_B T)\\, d\\omega$ gives an energy $\\propto T^4$ (analogous to Stefan-Boltzmann for photons) and so $C_v \\propto T^3$. The Debye cutoff is irrelevant at low $T$ since high-frequency modes are frozen out. The model only fails when optical modes, Van Hove singularities, or strong anharmonicity matter — at higher temperatures or for highly dispersive materials.",
+          "Because all materials are isotropic.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "At $T \\ll \\Theta_D$ only long-wavelength acoustic phonons are excited; linear dispersion + $g(\\omega) \\propto \\omega^2$ in 3D give energy $\\propto T^4$ and $C_v \\propto T^3$. The Debye cutoff doesn't matter — high-frequency modes are exponentially frozen. Optical modes, Van Hove, anharmonicity dominate only at higher $T$."
+      },
+      "hints": [
+        "Which phonons are thermally excited when $k_B T \\ll \\hbar\\omega_D$?",
+        "What is $g(\\omega)$ for linear dispersion in 3D?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Debye $T^3$ works at $T \\ll \\Theta_D$ because only long-wavelength acoustic phonons with linear dispersion are populated. $g(\\omega) \\propto \\omega^2$ in 3D + Bose statistics → energy $\\propto T^4$, $C_v \\propto T^3$. Cutoff irrelevant at low $T$; optical + anharmonic effects matter only at higher $T$."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_phon_1",
+        "kind": "scenario",
+        "question": "Engineering thermal conductivity",
+        "prompt": "You need a thermoelectric leg with low lattice thermal conductivity ($\\kappa_L < 1$ W/m·K) but maintained electron mobility. Discuss the strategies — nanostructuring, rattler atoms in cage compounds, isotope mass disorder, alloy scattering, anharmonic 'phonon glass' materials, low-dimensional confinement — and tradeoffs. Use the BTE picture and Matthiessen's rule to argue which scattering channels you exploit."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_phon_1",
+        "kind": "math_expression",
+        "question": "Write the long-wavelength sound speed for a 1D monatomic chain with mass $m$, lattice constant $a$, and spring constant $K$.",
+        "acceptedAnswers": [
+          "v_s = a*sqrt(K/m)",
+          "a sqrt(K/m)",
+          "$v_s = a\\sqrt{K/m}$"
+        ],
+        "hint": "Take the small-$k$ limit of $\\omega(k) = 2\\sqrt{K/m}|\\sin(ka/2)|$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_phon_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain what phonons are, why Debye/Einstein matter historically, and how Umklapp scattering limits thermal conductivity.",
+        "rubric": "Mentions: phonons = quantized lattice vibrations (bosonic normal modes of harmonic crystal); 3 acoustic + $3p-3$ optical branches in 3D with $p$ atoms per cell; acoustic vanishes at $\\Gamma$ (sound), optical finite; Einstein (1907) single oscillator frequency captured low-$T$ heat-capacity drop — early triumph of quantization; Debye (1912) linear acoustic dispersion + cutoff $\\omega_D$ → $T^3$ low-$T$ law; phonon-phonon Umklapp (Peierls 1929) involves a reciprocal-lattice vector $\\mathbf{G}$ that flips momentum, limiting $\\kappa$ at high $T$ to $\\propto 1/T$; normal processes conserve momentum; Matthiessen's rule combines scattering; phonon engineering (skutterudites, superlattices, rattlers, nanowires) lowers $\\kappa_L$ for thermoelectrics + thermal management; diamond has highest bulk $\\kappa$ ~ 2000 W/m·K."
+      }
+    }
+  ]
+}

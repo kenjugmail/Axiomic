@@ -1,0 +1,168 @@
+{
+  "slug": "distsys-foundations-and-models",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Define distributed systems + their canonical fallacies.",
+      "Classify failure + timing models.",
+      "Apply FLP + CAP + PACELC theoretical limits."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "What is a distributed system? Lamport, definitions, and the 8 fallacies",
+      "body": "**Leslie Lamport** (Turing 2013) famously defined a distributed system: 'A distributed system is one in which the failure of a computer you didn't even know existed can render your own computer unusable.' His foundational papers (1978 Time, Clocks; 1982 Byzantine Generals; 1998 Part-Time Parliament) underpin the entire field.\n\n**Working definition** (Tanenbaum + van Steen): a distributed system is a collection of autonomous computing elements that appears to its users as a single coherent system. Key properties:\n- **Multiple independent nodes** with no shared memory + no shared clock.\n- **Communicate via message passing** over an unreliable network.\n- **Concurrent execution** with partial failure modes.\n- **Goal**: transparency (access, location, migration, replication, concurrency, failure).\n\n**The 8 fallacies of distributed computing** (Peter Deutsch + James Gosling at Sun, 1994-1997) — assumptions that turn out to be wrong:\n1. **The network is reliable** — partitions, packet loss, hardware failure.\n2. **Latency is zero** — speed-of-light + queuing + serialization.\n3. **Bandwidth is infinite** — saturated links, congestion.\n4. **The network is secure** — adversaries, MITM, replay.\n5. **Topology doesn't change** — failures, scaling, migrations.\n6. **There is one administrator** — multi-tenant, multi-cloud, multi-org.\n7. **Transport cost is zero** — serialization, marshalling, TCP overhead.\n8. **The network is homogeneous** — heterogeneous hardware, OS, MTU, protocols.\n\n**Why we still build distributed systems** despite the pain:\n- **Scale beyond a single machine**: data + traffic exceed single-host capacity.\n- **Fault tolerance**: redundancy across nodes/AZs/regions.\n- **Geographic locality**: serve users from nearby datacenters.\n- **Specialization**: separation of concerns (storage vs compute vs cache).\n- **Cost**: commodity hardware + horizontal scaling beats vertical scaling.\n\n**Werner Vogels** (Amazon CTO) — 'everything fails all the time'; designing for failure is non-negotiable. **Pat Helland** ('Life beyond Distributed Transactions' 2007) — durable systems need to embrace the messiness of unreliable communication + immutable data + idempotency. **Jim Gray** (Turing 1998) — the 5-minute rule, transaction processing, and the foundational ACID/2PC papers.\n\n**Honorable building blocks** that distributed systems endlessly compose: RPC (Birrell + Nelson 1984), DNS, NTP, TCP, TLS, HTTP, gRPC, Kafka, ZooKeeper, etcd, S3, BGP, Anycast, CDNs. Every modern app touches all of them."
+    },
+    {
+      "kind": "text",
+      "title": "Failure models + timing assumptions",
+      "body": "**Failure models** classify what can go wrong. Picking the right one is a design choice with theoretical + practical consequences.\n\n**Crash-stop (fail-stop)**: a node either runs correctly or stops permanently. Cleanest model; most undergraduate distsys assume this. Real failures rarely fit this neatly.\n\n**Crash-recovery**: a node may crash + later restart with persistent state. Must distinguish before-crash + after-crash identity. Stable storage (disk, NVRAM) becomes critical. Most cloud systems live here.\n\n**Omission failures**: messages may be dropped (send-omission, receive-omission). TCP retransmission masks some at the transport layer; distributed protocols need timeouts + retries with idempotency.\n\n**Timing failures**: a process completes its work but too slowly or too quickly. Common in real-time systems + soft-real-time SLAs.\n\n**Byzantine failures** (Lamport, Shostak, Pease 1982): nodes may behave arbitrarily — including maliciously, sending different lies to different peers. Tolerating f Byzantine failures requires ≥ 3f+1 total replicas in synchronous + ≥ 3f+1 with cryptography in asynchronous (FLP-respecting) protocols. Used in blockchain + safety-critical avionics (SIFT, MAFT, FTMP).\n\n**Timing models** govern what we know about delays.\n\n**Synchronous**: known bounds on message delay + clock drift + process speed. Solvable problems are richest here, but real networks rarely satisfy this.\n\n**Asynchronous**: no bounds whatsoever. The most pessimistic + theoretically clean model. FLP impossibility lives here.\n\n**Partially synchronous** (Dwork, Lynch, Stockmeyer 1988): bounds exist but are unknown, OR known bounds hold only eventually. Models most real networks well. Practical consensus protocols (Paxos, Raft, PBFT) require partial synchrony for liveness; safety is preserved even under full asynchrony.\n\n**Process speed assumptions**:\n- **Synchronous processors**: known bounded execution time.\n- **Asynchronous processors**: arbitrary delays (GC pause, scheduling).\n\n**Real-world failure stats** (Bailis, Kingsbury 'Jepsen', Gunawi + USENIX studies):\n- Network partitions: minutes to hours, multiple per year per cloud region.\n- Disk failures: ~1-5%/yr per drive.\n- Memory: cosmic-ray bit flips, ECC catches most.\n- Clock skew: 10-100 ppm typical; rare jumps of seconds.\n- Cascading failures + grey failures (Huang et al. 2017) — node is partially alive, harder than crash-stop.\n\n**Designing for failure**: assume crash-recovery + omission + partial synchrony as the realistic baseline. Add Byzantine tolerance only when adversarial; the cost is high."
+    },
+    {
+      "kind": "text",
+      "title": "Theoretical limits: FLP, CAP, PACELC, and impossibility",
+      "body": "**FLP impossibility** (Fischer, Lynch, Paterson 1985, JACM): in an asynchronous system with even one crash failure, there is no deterministic algorithm that solves consensus in bounded time. The proof: an adversarial scheduler can always delay the 'deciding' message + force re-evaluation; bivalent states exist forever. Implications:\n- **Liveness vs safety tradeoff**: practical protocols sacrifice deterministic termination + use timeouts + randomization to make progress.\n- **Randomized consensus** (Ben-Or 1983) circumvents FLP probabilistically.\n- **Failure detectors** (Chandra-Toueg 1996) — ◇W is the weakest failure detector sufficient for consensus.\n\n**CAP theorem** (Eric Brewer 2000 PODC keynote; Gilbert + Lynch 2002 formal proof): given a network partition, a distributed system must choose between **Consistency** (linearizability) + **Availability** (every request gets a response). You cannot have C + A + P simultaneously when P (partition) occurs. Note: not 'pick 2 of 3' — P is unavoidable; pick C or A *during* a partition.\n\n**Common misreadings of CAP** (Brewer's '12 years later' 2012):\n- CAP's C = linearizability, not ACID's C.\n- A = every request returns non-error response — not just up.\n- The choice is per-operation, not per-system.\n- Modern systems use both modes (CP during partition, AP otherwise).\n\n**PACELC** (Daniel Abadi 2010): refines CAP. 'If Partition, choose A or C; **E**lse, choose **L**atency or **C**onsistency.' Even without partitions, you trade latency for consistency. Examples:\n- **DynamoDB**: PA/EL (eventual + low latency).\n- **Spanner**: PC/EC (linearizable + accept latency).\n- **Cassandra**: PA/EL (tunable).\n- **MongoDB**: PA/EC by default with primary-replica.\n\n**Other foundational impossibilities + bounds**:\n- **Two Generals' Problem** (Gray 1978; Akkoyunlu et al. 1975) — no fixed-message-count protocol can guarantee agreement over unreliable channels.\n- **Byzantine Generals** (Lamport, Shostak, Pease 1982): need 3f+1 nodes to tolerate f Byzantine; impossible with f ≥ N/3.\n- **CRDT consistency vs coordination** (Bailis et al. CAP/coordination-free) — many invariants are achievable without coordination.\n- **Coordination Avoidance** (Bailis 2014): characterize which invariants are I-confluent + coordination-free.\n- **Harvest + Yield** (Fox + Brewer 1999) — graceful degradation as an alternative to binary CAP choice.\n\n**The two-army view** (Pat Helland): if you cannot send a confirmed agreement, you ship promises + reconcile asynchronously. Embrace eventual consistency where possible; reach for linearizability only where business invariants demand it. **'Memories, Guesses, and Apologies'** (Helland 2007) — distributed business systems run on guesses + apologies, not on transactions.\n\n**Stonebraker's critique of NoSQL** (Stonebraker 2010, 'SQL Databases v. NoSQL Databases') — argued the eventual-consistency wave traded too much; later NewSQL (Spanner, CockroachDB) restored ACID + scale. The arc bends back toward strong consistency where it can be afforded."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ds_1",
+        "kind": "guided_derivation",
+        "question": "Apply FLP + CAP + PACELC to a payments service",
+        "goal": "You're designing a payments service across 3 AZs in 1 region. Network partitions sometimes isolate one AZ. Decide consistency vs availability tradeoffs.",
+        "steps": [
+          {
+            "prompt": "Can your service guarantee both linearizability + availability during a partition?",
+            "motivation": "Apply CAP.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "no; CAP forces a choice when P occurs"
+              ]
+            },
+            "hints": [
+              "Brewer 2000."
+            ],
+            "reveal": "No. CAP (Brewer 2000; Gilbert-Lynch 2002): under partition you must pick C or A. For payments, double-spend is unacceptable → choose **C (linearizability)** + accept temporary unavailability on the isolated AZ side. The partition is rare + brief; loss of revenue < loss from fraud + reconciliation cost."
+          },
+          {
+            "prompt": "FLP says consensus can't terminate deterministically under asynchrony + 1 crash. How do you make progress?",
+            "motivation": "FLP workaround.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "timeouts + leader election + partial synchrony; protocols give up termination on safety"
+              ]
+            },
+            "hints": [
+              "Practical Paxos/Raft assume partial synchrony."
+            ],
+            "reveal": "FLP (Fischer-Lynch-Paterson 1985): no deterministic async consensus tolerating 1 crash. Workaround: assume **partial synchrony** (Dwork-Lynch-Stockmeyer 1988) — timeouts trigger leader re-election, randomized backoff, retry. Safety (no two leaders commit conflicting values) is preserved even under full asynchrony; **liveness** depends on the network eventually stabilizing. Raft + Paxos + PBFT all follow this pattern."
+          },
+          {
+            "prompt": "Even without partitions, what does PACELC say you still trade?",
+            "motivation": "PACELC.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "latency vs consistency; stronger consistency costs round-trips"
+              ]
+            },
+            "hints": [
+              "Abadi 2010."
+            ],
+            "reveal": "PACELC (Abadi 2010): **E**lse (no partition), choose **L** or **C** — latency vs consistency. Strong consistency requires coordination (quorums, leader confirmation), costing round-trips. A payments system that needs linearizability picks **PC/EC**: accept higher tail latency to guarantee no double-spend. Spanner-style designs run TrueTime + Paxos quorums + commit-wait — slower than DynamoDB but linearizable globally."
+          },
+          {
+            "prompt": "Which fallacies of distributed computing did you implicitly bet against?",
+            "motivation": "Deutsch fallacies.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "network reliable; latency zero; topology stable; bandwidth infinite — all false"
+              ]
+            },
+            "hints": [
+              "Deutsch + Gosling 1994-97."
+            ],
+            "reveal": "All 8 fallacies (Deutsch + Gosling at Sun): network reliable (no — partitions); latency zero (no — speed of light, queuing); bandwidth infinite (no — saturation); secure (no — adversaries); topology stable (no — failures + autoscale); one admin (no — multi-tenant); transport cost zero (no — serialization); homogeneous (no — heterogeneity). A payments system must instrument for all: retries with idempotency, end-to-end TLS, observability, multi-AZ failover, capacity planning, version-tolerant protocols."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ds_1",
+        "kind": "multiple_choice",
+        "question": "Why is the CAP theorem widely misunderstood as 'pick 2 of 3'?",
+        "options": [
+          "It really is pick-2-of-3.",
+          "Network partitions (P) are unavoidable in any real distributed system, so the actual choice is between **C and A only when P occurs**. CAP (Brewer 2000; Gilbert-Lynch 2002) states linearizable consistency + availability are jointly unattainable *during* a partition. Outside partitions, both are achievable. Brewer himself revisited this in 2012 ('CAP Twelve Years Later') urging treating the choice as per-operation + dynamic. PACELC (Abadi 2010) refines this: even without partitions, you trade latency for consistency. Real systems mix modes — Spanner is PC/EC, Dynamo PA/EL, Cassandra tunable. The 'pick 2' shorthand misleads beginners into thinking a system can choose 'CA' (impossible if P exists).",
+          "Brewer was wrong.",
+          "It only applies to NoSQL."
+        ],
+        "correctIndex": 1,
+        "explanation": "Partitions are unavoidable in real networks. The choice is C or A **during** P. Brewer's 2012 retrospective + PACELC (Abadi) clarify: even without partitions, latency vs consistency trades remain. Real systems mix modes per operation."
+      },
+      "hints": [
+        "What is unavoidable?",
+        "What is the choice really between?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "CAP applies during partitions: pick C or A. Outside partitions, both achievable. PACELC (Abadi 2010) adds: even without P, trade L for C. Real systems mix modes — Spanner PC/EC, Dynamo PA/EL."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ds_1",
+        "kind": "scenario",
+        "question": "Production scenario: a multi-region database shows split-brain after a 30s partition between regions. Two writers accepted conflicting balances. What model was implicitly assumed + violated?",
+        "options": [
+          "Crash-stop + synchronous; instead the system was crash-recovery + partially synchronous, so leader election timed out + a stale primary kept accepting writes.",
+          "Byzantine; the system was honest.",
+          "Synchronous; reality was perfectly synchronous.",
+          "There is no model."
+        ],
+        "correctIndex": 0,
+        "explanation": "The design assumed crash-stop + synchronous (clean failover within bounded time). Reality is crash-recovery + partially synchronous (Dwork-Lynch-Stockmeyer 1988): timeouts cannot reliably distinguish slow from crashed. A stale leader continued accepting writes after a new one was elected → split-brain. Fixes: fencing tokens (Kleppmann), lease + epoch numbers, quorum-based leader election with bounded skew, STONITH for the old leader. Raft + Paxos handle this via term/ballot monotonicity."
+      },
+      "hints": [
+        "Synchronous vs partially synchronous.",
+        "What allows a stale leader to keep going?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Crash-stop + synchronous was assumed; reality is crash-recovery + partially synchronous. Stale leader keeps writing → split-brain. Fix with fencing tokens, leases + epochs, quorum elections, STONITH."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ds_1",
+        "kind": "math_expression",
+        "question": "For Byzantine fault tolerance with f faulty nodes, what is the minimum number of total nodes N?",
+        "acceptedAnswers": [
+          "N = 3f + 1",
+          "3f+1",
+          "3f + 1"
+        ],
+        "hints": [
+          "Lamport-Shostak-Pease 1982.",
+          "Need to outvote Byzantine plus tolerate honest minority."
+        ],
+        "explanation": "Lamport-Shostak-Pease (1982) Byzantine Generals: N ≥ 3f + 1 for synchronous Byzantine agreement without cryptography. Intuition: you need an honest majority (≥ 2f+1) among any subset of N-f responsive nodes. PBFT (Castro-Liskov 1999) inherits this 3f+1. With cryptographic signatures + partial synchrony, the bound remains 3f+1 (Dwork-Lynch-Stockmeyer). For crash-only consensus (Paxos/Raft) the bound relaxes to 2f+1."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ds_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why FLP + CAP + PACELC don't kill distributed computing — they shape it.",
+        "rubric": "Mentions: FLP (Fischer-Lynch-Paterson 1985) proves no deterministic async consensus tolerating 1 crash — circumvented by partial synchrony (Dwork-Lynch-Stockmeyer 1988), timeouts, randomization (Ben-Or). Paxos (Lamport 1998) + Raft (Ongaro-Ousterhout 2014) + PBFT (Castro-Liskov 1999) preserve safety always + provide liveness when the network stabilizes. CAP (Brewer 2000; Gilbert-Lynch 2002) forces C-vs-A choice during partitions; Brewer's 2012 retrospective + PACELC (Abadi 2010) refine to per-operation + latency-vs-consistency. Real systems mix modes: Spanner PC/EC, Dynamo PA/EL, Cassandra tunable. These results clarify *what* is achievable + drive principled engineering: weaken consistency where allowed (CRDTs, eventual, causal); pay for strong consistency where invariants require it. Far from limiting, they form the foundation that lets us build resilient, scalable systems — Werner Vogels: 'everything fails all the time.'"
+      }
+    }
+  ]
+}

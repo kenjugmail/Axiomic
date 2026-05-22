@@ -56,6 +56,29 @@
       "kind": "text",
       "title": "What's next",
       "body": "The KV cache is the practical optimization that makes autoregressive generation efficient. Without it, generating long outputs would be O(N²) work per output token; with it, it's O(N).\n\nThe cache memory cost is the dominant constraint at long context — leading to GQA, PagedAttention, and tools like vLLM that manage it carefully.\n\nNext: [[scaling-laws]] — how loss, parameters, and tokens trade off, and what that means for picking the right model size.\n\nKey takeaways:\n- Cache K and V vectors for every token; reuse across generation steps\n- Q is computed fresh per step; K and V are append-only\n- Cache memory is linear in context length × layers × heads — often dominates\n- GQA and PagedAttention are the most important optimizations on top of basic caching"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_kvcache_1",
+        "kind": "math_expression",
+        "question": "The KV-cache size in bytes is $2 \\times n_{layers} \\times n_{heads} \\times d_{head} \\times \\text{seq} \\times \\text{batch} \\times \\text{bytes}$. For a model with $n_{layers}=32$, $n_{heads}=32$, $d_{head}=128$, a sequence length of $2048$, batch size $1$, in fp16 (2 bytes per value), compute the cache size in gigabytes (use $1\\,\\text{GB} = 2^{30}$ bytes). Give the answer to two decimals.",
+        "acceptedAnswers": [
+          "2",
+          "2.00",
+          "2 GB"
+        ],
+        "hint": "Multiply: $2 \\times 32 \\times 32 \\times 128 \\times 2048 \\times 1 \\times 2 = 2{,}147{,}483{,}648$ bytes $= 2^{31}$ bytes $= 2$ GB. This is per-request memory just for the cache — and it grows linearly with sequence length and batch size."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_kvcache_1",
+        "kind": "scenario",
+        "question": "Reducing inference memory for long-context serving",
+        "prompt": "Your team must serve a 70B model at 32K context to many concurrent users, but the KV cache alone overflows GPU memory long before you hit your target batch size. Explain how each of the following levers changes the cache-size formula and what it costs you: switching from multi-head attention to grouped-query attention with 8 KV heads, quantizing the cache from fp16 to int8, and adopting PagedAttention-style paging. Recommend a combination and justify the quality/throughput tradeoffs in 3-5 sentences."
+      }
     }
   ]
 }

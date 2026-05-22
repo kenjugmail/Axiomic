@@ -1,0 +1,142 @@
+{
+  "slug": "the-accounting-cycle",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Walk through all eight steps of the accounting cycle from source documents to the post-closing trial balance.",
+      "Prepare adjusting journal entries for accruals, deferrals, and straight-line depreciation.",
+      "Explain why closing entries reset temporary accounts and what a post-closing trial balance contains."
+    ],
+    "prereqs": ["the-financial-statements"]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Source documents, journals, and posting to the ledger",
+      "body": "The **accounting cycle** is the standardised sequence of steps that converts raw financial events into polished financial statements, then resets the system for the next period. Every business — from a sole proprietorship to **Amazon** — follows some version of this cycle. In small firms, a bookkeeper may complete it manually; in large corporations, **Enterprise Resource Planning (ERP)** systems like **SAP S/4HANA** or **Oracle NetSuite** automate the early steps while accountants focus on adjustments and review.\n\nThe cycle has **eight steps**, and this lesson covers all of them.\n\n**Step 1 — Source Documents.** Every accounting entry must be traceable to an original document that provides evidence of the transaction. These **source documents** include: purchase invoices (received from suppliers), sales invoices (issued to customers), cash receipts, bank statements, payroll records, and contracts. The source document is the audit trail — without it, an entry cannot be verified. The **Sarbanes-Oxley Act of 2002 (SOX)** requires public companies to maintain records that would support an independent audit, making source-document retention a legal obligation.\n\n**Step 2 — The Journal (Book of Original Entry).** After a source document is reviewed, the transaction is recorded chronologically in the **journal**. This is called a **journal entry**. Each entry shows the date, the accounts affected, whether each account is debited or credited, and a brief description (the **narration**). The general journal handles non-routine entries; **special journals** — the sales journal, purchases journal, cash receipts journal, and cash disbursements journal — handle high-volume routine transactions. Luca Pacioli's *Summa de arithmetica* (1494) described the journal as the *giornale* and specified that entries must record the date, the name of the accounts, and the amounts.\n\n**Step 3 — Posting to the General Ledger.** After journaling, each entry is **posted** to the corresponding account in the **general ledger** — the master collection of all T-accounts. Posting simply means transferring the debit and credit amounts from the journal to the correct T-account pages. The general ledger is the source of truth for every account balance. In manual systems, a bookkeeper physically transfers each line; in software, posting is automatic upon saving the journal entry.\n\n**Step 4 — The Unadjusted Trial Balance.** Once all transactions for the period have been journaled and posted, the accountant lists all account balances in a two-column worksheet: debit balances on the left, credit balances on the right. If total debits equal total credits, the ledger is *in balance* — the trial balance **proves** that debits equal credits across all accounts. Note: a balanced trial balance does not guarantee the entries are *correct* — it only guarantees they are *balanced*. Errors of omission (a transaction never recorded), compensating errors, and misclassifications (posting to the wrong account) will not be caught by the trial balance."
+    },
+    {
+      "kind": "text",
+      "title": "Adjusting entries — the heart of accrual accounting",
+      "body": "After the unadjusted trial balance is prepared, the accountant makes **adjusting entries** — corrections to ensure that revenues are recorded when earned and expenses when incurred, regardless of when cash moves. This is the application of the **accrual basis of accounting** and the **matching principle**. Adjusting entries are one of the most intellectually demanding steps in the cycle, and they fall into four categories:\n\n**1. Accrued Revenues.** Revenue earned but not yet billed or collected. A law firm that completed work in December but won't invoice until January must **accrue** the revenue in December.\n- Journal Entry: Debit *Accounts Receivable* / Credit *Service Revenue*.\n\n**2. Accrued Expenses (Accrued Liabilities).** Expenses incurred but not yet paid or recorded. Wages earned by employees in the last week of December but not paid until January must be accrued on December 31.\n- Journal Entry: Debit *Wages Expense* / Credit *Wages Payable*.\n\n**3. Deferred Revenues (Unearned Revenue).** Cash received before the service is delivered. A software company that receives a 12-month subscription fee upfront has a *liability* — the obligation to provide service — until the service is actually delivered month by month.\n- Initial entry: Debit *Cash* / Credit *Deferred Revenue* (liability).\n- Monthly adjustment: Debit *Deferred Revenue* / Credit *Service Revenue* (1/12 per month).\n\n**4. Prepaid Expenses (Deferred Charges).** Cash paid before the benefit is received — the mirror image of deferred revenue. A company that pays 12 months of insurance premium in January records it as a prepaid asset and recognises 1/12 as expense each month.\n- Initial entry: Debit *Prepaid Insurance* / Credit *Cash*.\n- Monthly adjustment: Debit *Insurance Expense* / Credit *Prepaid Insurance*.\n\n**5. Depreciation.** Long-lived tangible assets (buildings, machinery, vehicles) provide economic benefit over multiple periods. Their cost must be allocated — **depreciated** — systematically over their **useful life**. The simplest method is **straight-line depreciation**, defined in **ASC 360** (US GAAP) and **IAS 16** (IFRS):\n\n$$\\text{Annual Depreciation} = \\frac{\\text{Cost} - \\text{Residual Value}}{\\text{Useful Life (years)}}$$\n\nFor example, a delivery truck costing $50,000 with a $5,000 residual value and a 5-year life: $\\frac{50{,}000 - 5{,}000}{5} = \\$9{,}000$ per year.\n- Adjusting Entry: Debit *Depreciation Expense* / Credit *Accumulated Depreciation* (a contra-asset account that carries a credit balance and offsets the asset's cost on the balance sheet).\n\nAccumulated Depreciation is a **contra-asset account** — it has a normal credit balance, unlike regular asset accounts. The **book value (carrying value)** of the asset = Cost − Accumulated Depreciation. This appears on the balance sheet and declines over time.\n\nAfter all adjusting entries are posted, the accountant prepares the **Adjusted Trial Balance** — Step 5 — which again proves debits equal credits, now including all accruals and deferrals. This is the trial balance used to draft the financial statements."
+    },
+    {
+      "kind": "text",
+      "title": "Financial statements, closing entries, and the post-closing trial balance",
+      "body": "With the adjusted trial balance in hand, the accountant proceeds to the final steps of the cycle.\n\n**Step 6 — Preparing the Financial Statements.** The adjusted trial balance feeds directly into the four financial statements:\n- **Income Statement**: assembled from all **temporary accounts** — Revenue and Expense accounts — that measure activity for the *current period only*.\n- **Statement of Changes in Equity**: shows how retained earnings and other equity components moved during the period.\n- **Balance Sheet**: assembled from all **permanent accounts** (real accounts) — Assets, Liabilities, and Equity — which carry forward from period to period.\n- **Statement of Cash Flows**: typically prepared separately using the direct or indirect method, reconciling net income to cash.\n\nThe hierarchy is firm: the income statement must be completed before the balance sheet, because net income must be known before retained earnings can be updated.\n\n**Step 7 — Closing Entries.** Temporary accounts (Revenues, Expenses, and Dividends/Drawings) must be **zeroed out** at the end of each period so they start the next period fresh. This is called **closing** the books. Closing entries transfer the temporary account balances into **Retained Earnings** (a permanent account).\n\nThe standard sequence:\n1. Debit each **Revenue** account (closes revenue balances to zero); Credit **Income Summary**.\n2. Debit **Income Summary**; Credit each **Expense** account (closes expense balances to zero).\n3. Debit **Income Summary** (its net balance = net income or net loss); Credit **Retained Earnings**.\n4. Debit **Retained Earnings**; Credit **Dividends Declared** (closes dividends to zero).\n\n**Income Summary** is a temporary clearing account used only during closing; it exists in no standard financial statement.\n\nAfter closing entries, **Retained Earnings** reflects the cumulative profit kept in the business since founding. This is the permanent record of all past profitability net of dividends.\n\n**Step 8 — Post-Closing Trial Balance.** A final trial balance is prepared after closing entries to verify that the ledger is still in balance. Critically, this trial balance should contain **only permanent accounts** — Assets, Liabilities, and Equity (including the updated Retained Earnings). All temporary accounts should show a zero balance. If any revenue or expense account still shows a balance, a closing entry was missed or incorrectly recorded.\n\nThe post-closing trial balance is the starting point for the *next* accounting period — it becomes the \"beginning balances\" in the next cycle.\n\n**The full cycle summarised:**\n1. Source Documents → 2. Journal Entries → 3. Post to Ledger → 4. Unadjusted Trial Balance → 5. Adjusting Entries + Adjusted Trial Balance → 6. Financial Statements → 7. Closing Entries → 8. Post-Closing Trial Balance.\n\nIn practice, many firms use a **worksheet** (a multi-column spreadsheet) to move from Step 4 through Step 6 in one document, a technique widely taught in courses using textbooks like **Weygandt, Kimmel, and Kieso's** *Financial Accounting* (now in its 11th edition) and **Warren, Reeve, and Duchac's** *Accounting* (26th edition) — two of the most widely adopted US accounting textbooks. ERP systems like **SAP** and **Oracle** automate Steps 2–5 but still require accountants to review and authorise adjusting entries, especially for estimates like depreciation and accruals."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cycle_1",
+        "kind": "multiple_choice",
+        "question": "A company pays $24,000 for a 12-month insurance policy on July 1. By December 31 (six months later), what adjusting entry is required, and what is the balance in Prepaid Insurance after the adjustment?",
+        "options": [
+          "Debit Insurance Expense $12,000; Credit Prepaid Insurance $12,000; ending Prepaid balance = $12,000. This is the correct adjusting entry. When the $24,000 premium was paid on July 1, the entire amount was debited to Prepaid Insurance (an asset — future economic benefit). By December 31, six months of the 12-month policy have been *used up*. The expired cost is $24,000 × 6/12 = $12,000. This amount must be moved from the asset account (Prepaid Insurance) to the expense account (Insurance Expense) via an adjusting entry. After the entry: Insurance Expense has been charged $12,000 for the period; Prepaid Insurance retains $12,000, representing the unexpired benefit covering January 1 through June 30 of the following year. This is a *deferred expense* (prepaid expense) adjustment — the classic case of cash paid before the expense is incurred.",
+          "Debit Prepaid Insurance $24,000; Credit Cash $24,000; no adjusting entry needed at year-end.",
+          "Debit Insurance Expense $24,000; Credit Prepaid Insurance $24,000; ending Prepaid balance = $0.",
+          "Debit Cash $12,000; Credit Insurance Expense $12,000; ending Prepaid balance = $12,000."
+        ],
+        "correctIndex": 0,
+        "explanation": "Six months of a $24,000 annual policy = $12,000 expense recognised in the period. Debit Insurance Expense $12,000 (increasing an expense account) and Credit Prepaid Insurance $12,000 (decreasing an asset account). After this adjustment, Prepaid Insurance shows $12,000 on the balance sheet — the future economic benefit remaining. Expensing the full $24,000 would overstate expenses and understate assets. Making no adjustment would understate expenses and overstate assets — violating the matching principle and GAAP."
+      },
+      "hints": [
+        "Prepaid expenses expire as time passes. How many months have passed out of 12?",
+        "Adjusting entry: move the *expired* portion from the asset account to the expense account."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Monthly insurance cost = $24,000 / 12 = $2,000/month. Six months elapsed (July–December) = $2,000 × 6 = $12,000 expired. Adjusting entry: Debit Insurance Expense $12,000 / Credit Prepaid Insurance $12,000. Remaining Prepaid Insurance = $24,000 − $12,000 = $12,000. This complies with the matching principle — the expense is recognised in the period the economic benefit was consumed."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_cycle_1",
+        "kind": "math_expression",
+        "question": "A machine costs $85,000, has a residual (salvage) value of $10,000, and a useful life of 5 years. Using straight-line depreciation, what is the **annual depreciation expense**? Use the formula: Annual Depreciation = (Cost − Residual Value) / Useful Life.",
+        "acceptedAnswers": [
+          "15000",
+          "$15,000",
+          "15,000"
+        ],
+        "hint": "Annual Depreciation = ($85,000 − $10,000) / 5 = $75,000 / 5 = $15,000."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cycle_1",
+        "kind": "guided_derivation",
+        "question": "Prepare closing entries for a simple company",
+        "goal": "At December 31, after adjusting entries, the adjusted trial balance shows: Service Revenue $80,000 (credit); Wages Expense $30,000 (debit); Rent Expense $12,000 (debit); Depreciation Expense $8,000 (debit); Dividends Declared $5,000 (debit); Retained Earnings beginning balance $40,000. Prepare closing entries and compute ending Retained Earnings.",
+        "steps": [
+          {
+            "prompt": "Close Revenue to Income Summary. What is the journal entry?",
+            "motivation": "Revenues have credit balances; to close them, debit them to zero.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Debit Service Revenue $80,000; Credit Income Summary $80,000"
+              ]
+            },
+            "hints": [
+              "Revenue accounts have normal credit balances. To zero them out, debit them."
+            ],
+            "reveal": "Closing Entry 1: Debit Service Revenue $80,000 / Credit Income Summary $80,000. Service Revenue is now zeroed. Income Summary has a credit balance of $80,000 — representing total revenue."
+          },
+          {
+            "prompt": "Close all three Expense accounts to Income Summary. What is the combined entry?",
+            "motivation": "Expenses have debit balances; to close them, credit them to zero.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Debit Income Summary $50,000; Credit Wages Expense $30,000; Credit Rent Expense $12,000; Credit Depreciation Expense $8,000"
+              ]
+            },
+            "hints": [
+              "Total expenses = $30,000 + $12,000 + $8,000 = $50,000."
+            ],
+            "reveal": "Closing Entry 2: Debit Income Summary $50,000 / Credit Wages Expense $30,000 / Credit Rent Expense $12,000 / Credit Depreciation Expense $8,000. All three expense accounts are now zeroed. Income Summary's net balance = $80,000 − $50,000 = $30,000 credit — this is net income."
+          },
+          {
+            "prompt": "Close Income Summary (net income) to Retained Earnings.",
+            "motivation": "Net income flows from Income Summary to the permanent Retained Earnings account.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Debit Income Summary $30,000; Credit Retained Earnings $30,000"
+              ]
+            },
+            "hints": [
+              "Income Summary has a $30,000 credit balance (= net income). Debit it to zero; credit Retained Earnings."
+            ],
+            "reveal": "Closing Entry 3: Debit Income Summary $30,000 / Credit Retained Earnings $30,000. Income Summary is now zeroed. Retained Earnings increases by the net income amount."
+          },
+          {
+            "prompt": "Close Dividends Declared to Retained Earnings. Then calculate ending Retained Earnings.",
+            "motivation": "Dividends reduce Retained Earnings; after closing, compute the final balance.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Debit Retained Earnings $5,000; Credit Dividends Declared $5,000; Ending Retained Earnings = $65,000"
+              ]
+            },
+            "hints": [
+              "Ending RE = Beginning RE + Net Income − Dividends = $40,000 + $30,000 − $5,000."
+            ],
+            "reveal": "Closing Entry 4: Debit Retained Earnings $5,000 / Credit Dividends Declared $5,000. Ending Retained Earnings = $40,000 + $30,000 − $5,000 = **$65,000**. This permanent balance will appear on the post-closing trial balance and on the balance sheet."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cycle_1",
+        "kind": "explain_back",
+        "prompt": "In ≤150 words, explain what adjusting entries are, why they are necessary, and give one concrete example of each of the two most common types (accrued expense and deferred revenue). Mention the matching principle and accrual accounting.",
+        "rubric": "Should explain that adjusting entries are made at period-end to ensure revenues are recorded when earned and expenses when incurred (accrual accounting / matching principle). Should contrast with cash-basis accounting (which only records when cash moves). Accrued expense example: wages earned by employees but not yet paid — Debit Wages Expense / Credit Wages Payable. Deferred revenue example: a customer pays upfront for a 12-month subscription — at inception, credit Deferred Revenue (liability); each month, debit Deferred Revenue / Credit Service Revenue as the service is delivered. Should note that without adjusting entries, financial statements would misstate both the income statement (wrong period for revenues/expenses) and the balance sheet (missing liabilities or overstated assets). Bonus: mention that ASC 606 / IFRS 15 governs when revenue can be recognised."
+      }
+    }
+  ]
+}

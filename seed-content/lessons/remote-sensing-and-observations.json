@@ -1,0 +1,161 @@
+{
+  "slug": "remote-sensing-and-observations",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Survey satellite altimetry + ICESat-2 + CryoSat-2.",
+      "Explain GRACE / GRACE-FO gravimetry of mass loss.",
+      "Reason about InSAR ice velocity + radar/optical imagery."
+    ],
+    "prereqs": [
+      "glacier-and-ice-sheet-dynamics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Satellite altimetry: measuring ice-sheet topography + thinning",
+      "body": "Satellite altimetry measures the height of the ice-sheet surface from space — repeated passes reveal thinning + thickening. The cornerstone of cryospheric mass-balance monitoring since 1991.\n\n**Radar altimeters** (Ku-band ~13.6 GHz; some Ka-band ~35 GHz):\n- **ERS-1 + ERS-2** (ESA, 1991-2011): pioneering polar altimetry; ~5 m vertical precision.\n- **ENVISAT** (ESA, 2002-2012): RA-2 instrument; expanded to ~3 m.\n- **CryoSat-2** (ESA, 2010-present): designed specifically for cryosphere. Synthetic Aperture Radar Interferometric (SARIn) mode for ice-sheet margins; gives ~10-100 m horizontal × ~0.5 m vertical precision. Polar orbit at 92° inclination (covers up to 88°N + 88°S). Wingham + Shepherd PI lineage.\n- **Sentinel-3 / SRAL** (ESA, 2016+): high-revisit ice + sea coverage.\n- **AltiKa** (CNES + ISRO, 2013+): Ka-band; smaller footprint.\n\n**Laser altimeters**:\n- **ICESat (Ice, Cloud, and land Elevation Satellite)** (NASA, 2003-2009): GLAS 1064 nm laser; ~70-m footprint; ~15 cm vertical precision. Pioneering high-precision laser ice altimetry.\n- **Operation IceBridge** (NASA, 2009-2019): airborne campaign to bridge ICESat gap; ATM + LVIS lasers; gravity, magnetics, radar sounding. ~300 flights from Greenland + Antarctica.\n- **ICESat-2** (NASA, 2018+): ATLAS instrument; six 532-nm laser beams; ~14-m footprint; ~3-cm vertical precision per pass; ~13-cm long-term. Major leap. Revolutionary for ice-sheet, sea-ice freeboard, vegetation canopy + bathymetry.\n\n**Mass-balance methodology**:\n- Surface elevation change → thickness change (assuming firn-density correction).\n- Firn-densification models (FDM) — Helsen + Ligtenberg + Brils + IMAU — separate ice + firn signal.\n- Integrating dh/dt over basin → volume + mass loss.\n- **IMBIE (Ice sheet Mass Balance Inter-comparison Exercise)** (Shepherd et al. 2018 + 2020 Nature): synthesizes altimetry + GRACE + input-output methods. Greenland lost ~3900 Gt 1992-2018; Antarctica ~2700 Gt 1992-2017.\n\n**Coverage limitations**: radar altimeters struggle on steep margins (lose lock, off-pointing); laser limited by clouds (~70% data coverage). Polar orbits don't cover ±2° around poles. SARIn + DEM-driven processing extend coverage.\n\n**Frontier**: CryoSat-3 (planned, 2025+); ICESat-2 extension; CRISTAL (Copernicus polar mission planning, ~2028) Ka + Ku-band; combinations with Sentinel-1 + 2 SAR for hybrid altimetry-imaging products."
+    },
+    {
+      "kind": "text",
+      "title": "GRACE + GRACE-FO: weighing ice from gravity",
+      "body": "**GRACE (Gravity Recovery + Climate Experiment)** (NASA-DLR, 2002-2017) + **GRACE-FO (Follow-On)** (2018+): twin-satellite pairs measure Earth's gravity-field variations from precise inter-satellite K-band ranging. ~50 km inter-satellite separation. The first space mission designed to measure mass redistribution rather than topography.\n\n**Concept**: as the lead satellite passes over a mass concentration (e.g., Greenland Ice Sheet), it accelerates slightly + the inter-satellite distance changes. Monthly mass-anomaly fields → ice loss, groundwater changes, ocean mass.\n\n**Spatial resolution**: ~300-400 km (mascon solutions). Temporal: monthly.\n\n**Mass-balance results** (Wahr + Velicogna + Tapley; updated to GRACE-FO by Loomis, Luthcke, Velicogna, IMBIE community):\n- Greenland mass loss: **~280 ± 30 Gt/yr** average 2002-2023; accelerated 2002-2012 (linear; ~250 Gt/yr) to 2012-2020 (~285 Gt/yr).\n- Antarctica mass loss: **~150 ± 50 Gt/yr** 2002-2023; dominated by WAIS (Pine Island, Thwaites, Crosson, Dotson basins).\n- Greenland + Antarctica together: ~430 Gt/yr ≈ ~1.2 mm/yr SLE contribution.\n- Includes signals from peripheral glaciers (Greenland coast, Antarctic Peninsula).\n\n**Advantages**:\n- Measures *total* mass change (ice + firn + snow + meltwater + bedrock) without assumptions about firn density.\n- Synoptic continental scale.\n- Complementary to altimetry (which measures topography) + InSAR (which measures velocity).\n- Long, consistent time series.\n\n**Limitations**:\n- Coarse spatial resolution (~300 km).\n- Must separate **Glacial Isostatic Adjustment (GIA)** signal — solid-earth response to historical ice unloading — from current ice mass change. GIA models (ICE-6G, ANU-ICE, Whitehouse) ~10-30 Gt/yr uncertainty.\n- Hydrological signals (groundwater, lakes) bleed into mass solutions in non-polar regions.\n- Gap 2017-2018 between GRACE end + GRACE-FO start.\n\n**Synergistic use**:\n- IMBIE community combines GRACE + altimetry + input-output (InSAR velocity-based) methods.\n- Convergence on consistent mass loss makes the result very confident — among the most certain numbers in IPCC AR6.\n- WG1 AR6 Ch. 9 + 11 reports cite IMBIE 2020 directly.\n\n**Future**:\n- GRACE-FO operational; aging.\n- **NGGM (Next Generation Gravity Mission)** + **MAGIC (Mass-change And Geosciences International Constellation)**: ESA + NASA joint planning for ~2028+ launch.\n- Cold-atom interferometric ranging promises ~10× sensitivity.\n- Improved GIA via geodetic + GPS networks (POLENET, ANGEL)."
+    },
+    {
+      "kind": "text",
+      "title": "InSAR ice velocity + ITS_LIVE + airborne geophysics",
+      "body": "**InSAR (Interferometric Synthetic Aperture Radar)** measures ice surface velocity from radar-image pairs. Among the most informative datasets in glaciology.\n\n**Principle**: phase difference between two SAR images of the same scene, taken days-weeks apart, encodes ground motion at sub-cm precision (along the radar line-of-sight). For ice, motion is m/day to m/yr scale; speckle-tracking + offset-tracking complement phase methods.\n\n**Missions**:\n- **ERS-1 + ERS-2** (ESA, 1991-2011): tandem InSAR for ice velocity demonstration (Joughin + Rignot 1995-2000s).\n- **RADARSAT-1 + 2** (CSA, 1995+): C-band; key for Antarctica + Greenland fast-flow mapping.\n- **ALOS PALSAR** (JAXA, 2006-2011): L-band; better through snow.\n- **TerraSAR-X / TanDEM-X** (DLR, 2007+): X-band; high resolution; bistatic DEM.\n- **Sentinel-1 a/b/c/d** (ESA Copernicus, 2014+): C-band; routinely repeated 6-12 day; FREE + open. Revolutionized continent-wide velocity mapping.\n- **NISAR (NASA-ISRO)** (launch 2024-2025): dual L+S band; high-precision dedicated ice + earthquake mission.\n\n**Continent-wide velocity products**:\n- **MEaSUREs Antarctic + Greenland ice-velocity maps** (Rignot + Mouginot + Scheuchl + Joughin; NASA NSIDC): annual + multi-yr composites; <100 m/yr precision in slow interior; m/yr precision in fast streams.\n- **ITS_LIVE (Inter-Mission Time Series of Land Ice Velocity + Elevation)** (NASA Gardner + Fahnestock + Scambos; JPL + NSIDC): unified multi-sensor velocity time series 1985-present; ~120 m grid; pan-glacier global.\n- **ENVEO PROMICE** (Greenland operational velocity); **AntSAR**.\n\n**Key applications**:\n- **Grounding-line mapping**: tidal flexure detected in phase → grounding-line position (Rignot 1996+).\n- **Ice-shelf velocity + thinning**: dynamic discharge calculations.\n- **Ice streams + outlet glaciers** acceleration trends (Pine Island + Thwaites + Jakobshavn + Petermann).\n- **Catchment-integrated flux**: combined with thickness gives flux → mass-balance input-output method.\n- **Iceberg + glacier-front retreat detection**.\n\n**Optical imagery + photogrammetry**:\n- **Landsat (1972+) + Sentinel-2 (2015+)**: visible-NIR; mapping glacier margins, snow lines, lake formation. RGI + GLIMS regional glacier inventories.\n- **PlanetScope (Planet Labs, 2014+)**: ~3 m resolution; daily revisit.\n- **WorldView + Pleiades + DigitalGlobe**: ~50 cm; commercial; high-precision DEMs.\n- **ArcticDEM + REMA**: continent-wide high-resolution DEMs from stereo WorldView (Polar Geospatial Center, ~$10M NSF investment).\n\n**Operation IceBridge + airborne geophysics**:\n- **Operation IceBridge** (NASA, 2009-2019; followed by AGAP, Robe; UK BAS; Italian, German equivalents): airborne campaigns bridging ICESat (2009) to ICESat-2 (2018) gap.\n- Multiple instruments per flight: ATM + LVIS laser altimetry, MCoRDS radar ice-thickness sounding, BedMachine bedrock topography compilation (Morlighem 2017+), gravity, magnetics.\n- **BedMachine** (Morlighem; widely used): subglacial bed topography for Antarctica + Greenland; revealed Thwaites + PIG bedrock geometry critical for MISI assessments.\n- **CReSIS + IceBridge data** in NSIDC: foundation for modern ice-sheet modeling.\n\n**Other observational platforms**:\n- **MOSAiC 2019-2020**: drifting Arctic + sea-ice physics observatory.\n- **ITGC 2018-2024**: International Thwaites Glacier Collaboration field + ship + UAV.\n- **Icefin** + **Ran** AUVs under Thwaites + PIG ice shelves.\n- **GPS + GNSS** networks (POLENET, GNET): bedrock motion + ice-flow + GIA constraints.\n- **InSAR + GPS for grounding-line dynamics**.\n\n**Data + access**:\n- NASA NSIDC (Boulder), NASA EarthData, ESA Copernicus Open Access Hub, USGS LP-DAAC, Polar Geospatial Center.\n- ITS_LIVE, BedMachine, IMBIE — open + downloadable, Google Earth Engine + AWS Open Data.\n- Major: tens of TB to PB-scale datasets accelerating ML applications."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_obs_1",
+        "kind": "guided_derivation",
+        "question": "From GRACE Greenland mass-loss rate, compute sea-level contribution",
+        "goal": "GRACE/-FO 2002-2023 average: Greenland ~280 Gt/yr mass loss. Earth's ocean surface ~3.6×10¹⁴ m². Compute SLR contribution + interpret.",
+        "steps": [
+          {
+            "prompt": "Convert Gt/yr to kg/yr.",
+            "motivation": "SI.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2.8×10¹⁴ kg/yr",
+                "2.8e14",
+                "280 × 10¹² kg"
+              ]
+            },
+            "hints": [
+              "1 Gt = 10¹² kg."
+            ],
+            "reveal": "280 Gt/yr × 10¹² kg/Gt = 2.8×10¹⁴ kg/yr meltwater equivalent."
+          },
+          {
+            "prompt": "Volume (m³/yr)? ρ_water ≈ 1000 kg/m³.",
+            "motivation": "Mass to volume.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2.8×10¹¹ m³/yr",
+                "2.8e11",
+                "280 km³/yr"
+              ]
+            },
+            "hints": [
+              "Divide by 1000 kg/m³."
+            ],
+            "reveal": "V = 2.8×10¹⁴ / 1000 = 2.8×10¹¹ m³/yr = 280 km³/yr."
+          },
+          {
+            "prompt": "SLR contribution (mm/yr)? Distribute over ocean area.",
+            "motivation": "V / A.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~0.78 mm/yr",
+                "0.78",
+                "~0.8 mm/yr"
+              ]
+            },
+            "hints": [
+              "2.8×10¹¹ / 3.6×10¹⁴ = 7.8×10⁻⁴ m = 0.78 mm."
+            ],
+            "reveal": "ΔSL = 2.8×10¹¹ / 3.6×10¹⁴ = 7.8×10⁻⁴ m/yr ≈ 0.78 mm/yr. Greenland alone contributes ~22% of total SLR (~3.6 mm/yr). Combined with Antarctica (~0.4 mm/yr) + glaciers (~0.7 mm/yr): cryosphere ~40% of SLR."
+          },
+          {
+            "prompt": "If Greenland mass loss doubles by 2050, what's the new contribution?",
+            "motivation": "Project.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~1.6 mm/yr",
+                "double, ~1.6 mm/yr",
+                "0.78 × 2 = 1.56 mm/yr"
+              ]
+            },
+            "hints": [
+              "Linear scaling."
+            ],
+            "reveal": "Doubled to ~1.6 mm/yr Greenland alone. Combined with similar doubling elsewhere (likely), total SLR could exceed 5-7 mm/yr by mid-century — implying meters by 2100 + by 2150 cascading impact zones. AR6 'likely' range Greenland 2100 SSP5-8.5: 6-14 cm; high-end ~30 cm; deep-uncertainty tail higher."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_obs_1",
+        "kind": "multiple_choice",
+        "question": "Why is the IMBIE (Ice-sheet Mass Balance Inter-comparison Exercise) approach — combining altimetry, GRACE + input-output — considered the gold standard for cryosphere monitoring?",
+        "options": [
+          "Random.",
+          "Three independent techniques agree, dramatically increasing confidence: (1) **altimetry** (CryoSat-2 + ICESat-2 + Operation IceBridge) measures surface-elevation change → volume → mass with firn-correction; (2) **GRACE / GRACE-FO** measures total gravity-field change directly → mass change without firn assumption; (3) **input-output** (atmospheric snow flux from regional climate models — RACMO, MAR — minus iceberg-discharge flux from InSAR velocity × ice thickness) gives mass budget. Each method has different biases (altimetry needs firn correction; GRACE needs GIA correction; input-output relies on velocity + thickness uncertainty). Convergence on ~280 Gt/yr (Greenland) + ~150 Gt/yr (Antarctica) over 2002-2020 across all three increases confidence dramatically; IMBIE 2020 (Shepherd et al.) provides AR6 + IPCC consensus values. Authors include Shepherd, Mouginot, Rignot, Velicogna, Joughin, Smith, Sasgen, Khan, Wouters + many — the community converged.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "IMBIE combines altimetry (CryoSat, ICESat) + GRACE/-FO + input-output. Different biases — when all three agree (~280 Gt/yr Greenland, 150 Gt/yr Antarctica 2002-2020), confidence increases dramatically. Shepherd + Mouginot + Rignot + Velicogna + Joughin + community converged on these as IPCC AR6 consensus."
+      },
+      "hints": [
+        "What's measured by each?",
+        "What's the benefit of three methods?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "IMBIE: altimetry (CryoSat + ICESat-2 + IceBridge) + GRACE/-FO + input-output (InSAR + climate models). Independent methods, different biases, convergence on ~280 Gt/yr Greenland + 150 Gt/yr Antarctica 2002-2020. IMBIE 2020 (Shepherd et al.) IPCC AR6 consensus."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_obs_1",
+        "kind": "scenario",
+        "question": "Designing the next cryosphere mission",
+        "prompt": "ESA + NASA + DLR + JAXA are scoping a 2030s cryosphere mission. You're on the science definition team. Walk through which observational gaps remain (sub-ice topography, ice-shelf cavity dynamics, fine-resolution velocity, sub-daily melt + drainage, sea-ice thickness, Antarctic interior), which sensor combinations could fill them (next-gen radar + laser altimetry, polar SAR constellations, SWOT-style interferometers, sub-glacial geophysics) + tradeoffs."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_obs_1",
+        "kind": "math_expression",
+        "question": "Total cryosphere SLR contribution = Greenland ~0.78 + Antarctica ~0.42 + glaciers ~0.70 (mm/yr). What's the cumulative + what fraction of total SLR (~3.6 mm/yr)?",
+        "acceptedAnswers": [
+          "~1.9 mm/yr; ~53%",
+          "1.9 / 3.6 ≈ 53%",
+          "~1.9 mm/yr; about half"
+        ],
+        "hint": "0.78 + 0.42 + 0.70 = 1.9; / 3.6 = 0.53."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_obs_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why satellite + airborne remote sensing transformed cryospheric science + which observations matter most for forecasting future ice loss.",
+        "rubric": "Mentions: pre-satellite era cryosphere monitoring was sparse — stake networks, ground-based theodolites, limited aerial photogrammetry. Satellite era (1972 Landsat, 1991 ERS-1) revolutionized: (1) altimetry — ICESat-2 + CryoSat-2 — measures dh/dt of full ice sheets; (2) GRACE/-FO weighs mass directly; (3) InSAR (Sentinel-1, MEaSUREs, ITS_LIVE) maps surface velocity + grounding-line motion at km resolution; (4) optical (Landsat, Sentinel-2) tracks margins + lakes + supraglacial features; (5) Operation IceBridge + BedMachine (Morlighem) reveal subglacial bed topography needed for MISI assessments. IMBIE community (Shepherd, Joughin, Rignot, Velicogna, Mouginot) synthesizes for AR6 consensus. Most important for forecasting: bed topography + ocean-cavity dynamics + ice-shelf health + sliding-law constraints — all dependent on observational fidelity. Frontier: NISAR, CRISTAL, NGGM, autonomous AUVs (Icefin, Ran). Concludes: forecasting future SLR depends entirely on observational continuity + extension."
+      }
+    }
+  ]
+}

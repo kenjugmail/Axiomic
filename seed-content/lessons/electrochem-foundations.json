@@ -1,0 +1,155 @@
+{
+  "slug": "electrochem-foundations",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Trace electrochemistry from Galvani + Volta + Faraday.",
+      "Apply ΔG = -nFE + Nernst equation to predict cell behavior.",
+      "Use cell notation + half-cells + standard reduction potentials."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Origins: Galvani, Volta, Faraday",
+      "body": "**Luigi Galvani (1791)** observed that frog legs twitched when touched by two different metals — he called the effect 'animal electricity', believing the tissue itself was the source. His De Viribus Electricitatis in Motu Musculari Commentarius (Bologna 1791) launched the field.\n\n**Alessandro Volta (1800)** disagreed — argued the metals + electrolyte were the source. His **voltaic pile** (1800) stacked disks of Zn + Cu separated by brine-soaked cloth — the first sustained electrochemical battery. Letter to Royal Society 20 March 1800. Volt unit (V) named in his honor; tension électromotrice → EMF. Resolved the Galvani-Volta controversy in Volta's favor: electricity arises from metal-metal-electrolyte junctions, not biological tissue (though Galvani was right that nerves use electrical signaling — see Hodgkin-Huxley a century+ later).\n\n**Michael Faraday (1834)** systematized electrolysis and gave us the language we still use — *anode*, *cathode*, *electrode*, *electrolyte*, *ion* (terms coined with William Whewell). His **two laws of electrolysis**:\n1. Mass deposited at an electrode ∝ charge passed: m = (M/nF)·Q where Q = It.\n2. For the same charge, masses deposited ∝ equivalent weights.\n\n**Faraday's constant**: F = 96485.33212... C/mol — the charge of one mole of electrons (N_A · e). Foundational.\n\n**Daniell cell (1836)**: John Frederic Daniell at King's College London — Zn|ZnSO₄ || CuSO₄|Cu — first practical, reliable, long-lived galvanic cell. Powered Victorian telegraphs.\n\n**Nernst (1889)** — Walther Nernst gave us the concentration-dependence equation (Nobel Chemistry 1920). Tafel (1905) — Julius Tafel found the empirical log-current relation for overpotential. Butler (1924) + Volmer (1930) — Butler-Volmer combined thermodynamics + kinetics. Marcus (1956 onward) — Rudolph Marcus's quantum-mechanical electron-transfer theory (Nobel Chemistry 1992). Bockris + Bard + Faulkner — the textbook authors (Bockris's Modern Electrochemistry; Bard + Faulkner's Electrochemical Methods, the bible).\n\nElectrochemistry now spans batteries (Li-ion, Pb-acid, flow), corrosion, sensors, fuel cells, electrolysis (Cl₂, H₂, Al), electroplating, neuroscience (nerve impulses), and the planetary energy transition."
+    },
+    {
+      "kind": "text",
+      "title": "Thermodynamics: ΔG, EMF, and Nernst",
+      "body": "**Electrochemical cell** converts chemical free energy to electrical work (galvanic) or vice versa (electrolytic).\n\n**Key relation**: for n electrons transferred in a reversible cell at potential E:\n\n  ΔG = -nFE\n\nwhere F = 96485 C/mol. Sign: if ΔG < 0 (spontaneous), E > 0 (galvanic). Standard state: ΔG° = -nFE°.\n\n**Why** — electrical work done by the cell on the surroundings is w_elec = -nFE; at constant T, P, reversible: w_elec_max = ΔG. The minus sign accounts for sign conventions.\n\n**Nernst equation** — gives cell potential at arbitrary activities (concentrations):\n\n  E = E° - (RT/nF)·ln Q\n\n  where Q = activity quotient (products/reactants for the cell reaction as written).\n\nAt 25 °C: (RT/F)·ln 10 ≈ 0.05916 V ≈ 59.2 mV/decade.\n\n  E = E° - (0.05916/n)·log₁₀ Q  (volts, 25 °C)\n\n**Single-electrode (half-cell) form**: for Ox + ne⁻ ⇌ Red,\n\n  E = E° - (RT/nF)·ln(a_Red/a_Ox)\n\n**Activity vs concentration**: activity a_i = γ_i · c_i / c°, where γ_i is the activity coefficient (→1 at infinite dilution; <1 in concentrated electrolytes due to Debye-Hückel ion-ion screening). In dilute aqueous, often a ≈ c/(1 M). For solids + pure liquids a = 1. For gases a = f/p° ≈ P/p° (1 bar) for ideal gas.\n\n**Reference electrodes** — define an absolute potential scale by fixing one electrode.\n- **SHE (Standard Hydrogen Electrode)**: 2H⁺(a=1) + 2e⁻ ⇌ H₂(1 bar). E° = 0 V by definition. Pt black + H₂ bubbling — fragile, used as primary reference.\n- **Ag/AgCl (in saturated KCl)**: +0.197 V vs SHE at 25 °C. Robust + common.\n- **SCE (Saturated Calomel Electrode)**: Hg|Hg₂Cl₂|saturated KCl. +0.241 V vs SHE. Toxic Hg — being phased out.\n- **RHE (Reversible Hydrogen Electrode)**: in the same electrolyte as the working cell; useful in pH-varied systems because it shifts with pH (-59 mV/pH unit).\n\n**Standard reduction potentials** (vs SHE, 25 °C, 1 M, 1 bar):\n- F₂ + 2e⁻ → 2F⁻: +2.87 V (strongest common oxidizer).\n- O₂ + 4H⁺ + 4e⁻ → 2H₂O: +1.23 V.\n- Cu²⁺ + 2e⁻ → Cu: +0.34 V.\n- 2H⁺ + 2e⁻ → H₂: 0.00 V (SHE).\n- Zn²⁺ + 2e⁻ → Zn: -0.76 V.\n- Li⁺ + e⁻ → Li: -3.04 V (most negative — why Li-ion gets such high cell voltages).\n\n**Cell EMF**: E_cell = E_cathode - E_anode. Both written as reductions; reverse the sign for whichever runs as oxidation. Spontaneous when E_cell > 0."
+    },
+    {
+      "kind": "text",
+      "title": "Half-cells + cell notation + worked example",
+      "body": "**Cell notation** (IUPAC):\n\n  anode | anode electrolyte || cathode electrolyte | cathode\n\nSingle | = phase boundary; || = salt bridge or porous separator (eliminates junction potential).\n\n**Daniell cell**:  Zn(s) | Zn²⁺(1 M) || Cu²⁺(1 M) | Cu(s)\n\n- Anode (oxidation): Zn → Zn²⁺ + 2e⁻; E° = +0.76 V (sign flipped).\n- Cathode (reduction): Cu²⁺ + 2e⁻ → Cu; E° = +0.34 V.\n- E°_cell = +0.34 - (-0.76) = +1.10 V.\n- ΔG° = -nFE° = -(2)(96485)(1.10) = -212.3 kJ/mol — spontaneous.\n\n**Worked Nernst example**:\n\nA Daniell cell with [Zn²⁺] = 0.10 M, [Cu²⁺] = 0.010 M at 25 °C.\n\n  Q = [Zn²⁺]/[Cu²⁺] = 0.10/0.010 = 10.\n  E = E° - (0.05916/2)·log(10) = 1.10 - 0.02958·1 = 1.07 V.\n\nLowering the cathode-side [Cu²⁺] reduced E slightly — pushes Le Chatelier toward reverse reaction.\n\n**Concentration cell**: same electrodes, different activities — driven purely by activity gradient. E.g., glass pH electrode reports E ∝ pH via H⁺ activity difference across the glass membrane.\n\n**Salt bridge** — eliminates large junction potentials by using a salt with nearly equal cation + anion mobilities (KCl, KNO₃; t₊ ≈ t₋ ≈ 0.5). Without it, the diffusion of unequal-mobility ions creates an extra Donnan/diffusion potential that contaminates E_cell.\n\n**pH electrode** — practical Nernstian device: E = E° - 0.05916·pH at 25 °C. Slope close to ideal in well-calibrated electrodes; deviations from 59.2 mV/decade signal aging or contamination of the glass membrane.\n\n**Why Li gives high voltages** — Li⁺/Li at -3.04 V is the most negative practical reduction potential. Pair with a +4 V cathode → ~4 V cell. F₂ (+2.87 V) is more oxidizing but unusable in practical cells. Volumetric/gravimetric energy is amplified by Li's low atomic weight (6.94 g/mol).\n\n**Reference shift** — convert between scales by adding the reference offset. E_SHE = E_AgAgCl + 0.197 V; E_SHE = E_SCE + 0.241 V. Always state your reference when reporting electrochemical data — a number alone is ambiguous."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ec_nernst",
+        "kind": "guided_derivation",
+        "question": "Derive the Nernst equation from ΔG = ΔG° + RT ln Q",
+        "goal": "Show that for a reversible cell with n electrons, the Nernst equation E = E° - (RT/nF)·ln Q follows from substituting ΔG = -nFE into ΔG = ΔG° + RT ln Q.",
+        "steps": [
+          {
+            "prompt": "Start with the standard thermodynamic relation for ΔG away from standard state. Write it for reaction quotient Q.",
+            "motivation": "General chemistry.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ΔG = ΔG° + RT ln Q",
+                "dG = dG0 + RT ln Q"
+              ]
+            },
+            "hints": [
+              "Standard relation at constant T, P."
+            ],
+            "reveal": "ΔG = ΔG° + RT·ln Q. At standard state Q = 1, ln Q = 0, ΔG = ΔG°."
+          },
+          {
+            "prompt": "Substitute the electrochemical relations ΔG = -nFE and ΔG° = -nFE°.",
+            "motivation": "Link thermodynamics to potential.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-nFE = -nFE° + RT ln Q"
+              ]
+            },
+            "hints": [
+              "Just substitute."
+            ],
+            "reveal": "-nFE = -nFE° + RT·ln Q."
+          },
+          {
+            "prompt": "Divide through by -nF to isolate E.",
+            "motivation": "Solve for E.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E = E° - (RT/nF) ln Q"
+              ]
+            },
+            "hints": [
+              "Watch the sign change."
+            ],
+            "reveal": "E = E° - (RT/nF)·ln Q — the Nernst equation."
+          },
+          {
+            "prompt": "At 25 °C convert ln to log₁₀ and plug in R, T, F.",
+            "motivation": "Practical form.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E = E° - (0.05916/n) log₁₀ Q",
+                "59.2 mV/decade"
+              ]
+            },
+            "hints": [
+              "(RT/F)·ln 10 at 298.15 K.",
+              "ln 10 ≈ 2.303."
+            ],
+            "reveal": "(RT/F)·ln 10 = (8.314)(298.15)(2.303)/96485 ≈ 0.05916 V. So E = E° - (0.05916/n)·log₁₀ Q. The famous 59.2 mV per decade of Q per electron — drives pH electrodes, ion-selective electrodes, concentration cells."
+          }
+        ],
+        "finalResult": "$$\\boxed{E = E^{\\circ} - \\frac{RT}{nF} \\ln Q = E^{\\circ} - \\frac{0.05916}{n} \\log_{10} Q \\text{ V at 25 °C}}$$"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ec_who_pile",
+        "kind": "multiple_choice",
+        "question": "Who built the first practical electrochemical battery and when?",
+        "options": [
+          "Faraday in 1834.",
+          "Alessandro Volta in 1800 — the voltaic pile (stack of Zn + Cu disks separated by brine-soaked cloth) was the first sustained source of electric current. Settled the Galvani-Volta controversy in Volta's favor: electricity arises from metal-electrolyte junctions, not biological tissue. Letter to the Royal Society 20 March 1800. The volt is named for him.",
+          "Galvani in 1791.",
+          "Daniell in 1836."
+        ],
+        "correctIndex": 1,
+        "explanation": "Volta's pile (1800) was the first sustained electrochemical battery. Galvani (1791) observed frog-leg twitches but attributed them to 'animal electricity'. Faraday (1834) systematized electrolysis decades later. Daniell (1836) built a more reliable, longer-lived cell."
+      },
+      "hints": [
+        "Stacked Zn and Cu disks with brine cloth."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Volta (1800), voltaic pile."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ec_potential_shift",
+        "kind": "scenario",
+        "question": "Reference electrode conversion",
+        "prompt": "A researcher reports an oxidation peak at +0.45 V vs Ag/AgCl (saturated KCl). What's the value vs SHE, and why must references always be stated?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ec_daniell",
+        "kind": "math_expression",
+        "question": "A Daniell cell has [Zn²⁺] = 1.0 M and [Cu²⁺] = 0.10 M at 25 °C. Compute E (volts) to 3 decimals. E° = 1.10 V, n = 2.",
+        "acceptedAnswers": [
+          "1.071",
+          "1.07",
+          "1.0704",
+          "1.0708"
+        ],
+        "hint": "Q = [Zn²⁺]/[Cu²⁺] = 10. E = 1.10 - (0.05916/2)·log(10)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ec_foundations",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how ΔG = -nFE links chemical thermodynamics to electrochemistry + how the Nernst equation extends it to non-standard conditions.",
+        "rubric": "Mentions: ΔG is the Gibbs free-energy change; -nFE is the maximum reversible electrical work (n = moles e⁻, F = 96485 C/mol). Sign convention: spontaneous reactions have ΔG < 0 ⇔ E > 0. Standard-state relation: ΔG° = -nFE°. The Nernst equation E = E° - (RT/nF)·ln Q extends to arbitrary activities via the general thermodynamic relation ΔG = ΔG° + RT ln Q. At 25 °C it becomes E = E° - (0.05916/n)·log₁₀ Q — 59.2 mV per decade per electron. Powers pH electrodes, ion-selective electrodes, concentration cells, and the entire framework of equilibrium electrochemistry. Faraday's constant F = N_A·e = 96485 C/mol bridges atomic-scale charge to macroscopic measurement."
+      }
+    }
+  ]
+}

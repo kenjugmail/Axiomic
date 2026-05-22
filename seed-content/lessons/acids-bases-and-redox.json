@@ -1,0 +1,159 @@
+{
+  "slug": "acids-bases-and-redox",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Distinguish Brønsted-Lowry from Lewis acid-base theories and apply HSAB.",
+      "Compute redox potentials, Nernst equation values, and read Latimer/Frost/Pourbaix diagrams.",
+      "Connect electrochemistry to galvanic + electrolytic cells + standard reference electrodes."
+    ],
+    "prereqs": [
+      "inorganic-foundations-and-periodicity"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Acid-base theories: Brønsted-Lowry, Lewis, HSAB",
+      "body": "**Arrhenius (1884)**: acid = H⁺ donor in water; base = OH⁻ donor in water. Limited to aqueous; can't describe NH₃ as a base in any solvent without water.\n\n**Brønsted-Lowry (1923, independently by Brønsted + Lowry)**: acid = **proton donor**; base = **proton acceptor**. Reactions are proton transfers: $HA + B \\rightleftharpoons A^- + BH^+$. Each acid has a **conjugate base** and vice versa.\n- Strong acids: K_a → ∞; pK_a < 0 (HCl ~-7, H₂SO₄ ~-3, HClO₄ ~-10).\n- Weak acids: 0 < pK_a < 14 (CH₃COOH 4.76, HF 3.17, H₂CO₃ 6.35).\n- **Leveling effect**: in water, all acids stronger than H₃O⁺ appear equally strong (level off at pK_a ≈ -1.74). Differentiate strong acids using less basic solvents (CH₃COOH, anhydrous HF).\n- **Auto-ionization of water**: K_w = [H⁺][OH⁻] = 10⁻¹⁴ at 25°C; pH + pOH = 14.\n- **Buffers**: weak acid + conjugate base; pH = pK_a + log([A⁻]/[HA]) (Henderson-Hasselbalch).\n\n**Lewis (1923)**: acid = **electron-pair acceptor**; base = **electron-pair donor**. Broader: includes reactions without proton transfer. BF₃ + NH₃ → F₃B-NH₃ (Lewis acid + base; no proton moves). Coordination chemistry is entirely Lewis acid-base — the metal center accepts ligand lone pairs.\n\n**Pearson's HSAB (Hard-Soft Acid-Base, 1963)**: classifies Lewis acids + bases by polarizability.\n- **Hard acids**: small, high charge, low polarizability — H⁺, Li⁺, Na⁺, Mg²⁺, Al³⁺, Ti⁴⁺, Cr³⁺, Fe³⁺, lanthanides.\n- **Soft acids**: large, low charge, high polarizability — Cu⁺, Ag⁺, Au⁺, Hg²⁺, Pd²⁺, Pt²⁺, Cd²⁺, organometallic d⁰⁻⁴.\n- **Hard bases**: small, electronegative, hard to polarize — F⁻, OH⁻, O²⁻, NH₃, RO⁻, CO₃²⁻, NO₃⁻, RNH₂.\n- **Soft bases**: large, polarizable — I⁻, RS⁻, S²⁻, CN⁻, CO, PR₃, alkenes, H⁻, RSe⁻.\n- **Borderline**: Fe²⁺, Co²⁺, Ni²⁺, Cu²⁺, Zn²⁺, Pb²⁺ acids; Br⁻, N₃⁻, NO₂⁻, pyridine bases.\n\n**Principle**: hard prefers hard, soft prefers soft. Predicts stability: Hg(II) + I⁻ stable (soft-soft); Hg(II) + F⁻ unstable (soft-hard). Explains why Au + Pt + Hg + Ag are 'thiophilic' (sulfur-binding) — relevant to enzyme inhibition + Au catalysis + Hg toxicity (binds cysteine thiols). Mineralogy: Au + Ag concentrate as sulfides (soft + soft); rare-earth + Mg + Ca as oxides/carbonates (hard + hard).\n\n**Frontier molecular orbital basis**: HSAB matches the energetic match between HOMO of base + LUMO of acid. Hard-hard interactions ionic + charge-controlled; soft-soft interactions covalent + orbital-controlled (Klopman 1968)."
+    },
+    {
+      "kind": "text",
+      "title": "Redox potentials, Nernst, Latimer + Frost + Pourbaix",
+      "body": "**Standard electrode potential E°**: for a half-reaction at standard conditions (1 M, 1 bar, 25°C) referenced to the **standard hydrogen electrode** (SHE: 2H⁺ + 2e⁻ → H₂, E° = 0 V).\n\n**Sign convention** (IUPAC): all half-cells written as reductions. $\\text{Cu}^{2+} + 2e^- \\to \\text{Cu}$ E° = +0.34 V; $\\text{Zn}^{2+} + 2e^- \\to \\text{Zn}$ E° = -0.76 V. Positive E° = strong oxidizer; negative E° = strong reducer.\n\n**Cell potential**: $E^\\circ_{cell} = E^\\circ_{cathode} - E^\\circ_{anode}$. Zn|Zn²⁺||Cu²⁺|Cu: E° = +0.34 - (-0.76) = +1.10 V. Daniell cell (1836).\n\n**Spontaneity**: $\\Delta G^\\circ = -nFE^\\circ_{cell}$. F = 96485 C/mol = Faraday constant. E° > 0 ⇔ spontaneous galvanic reaction.\n\n**Nernst equation** (non-standard concentrations + T):\n\n$$E = E^\\circ - \\frac{RT}{nF} \\ln Q$$\n\nAt 25°C: $E = E^\\circ - (0.0592/n) \\log Q$. Q = reaction quotient. Used for: concentration cells, pH electrodes, ISEs (ion-selective), every electrochemical sensor.\n\n**pH electrode**: glass membrane responds to H⁺; voltage proportional to pH via Nernst. Standard tool in every lab.\n\n**Frost diagram** (oxidation-state vs. nE°): plot $nE^\\circ$ (in volts, electron-equivalents) versus oxidation state n. Slope of line connecting two states = E°. Steepest descent → spontaneous. Concave-up species are **stable**; concave-down species are **unstable** to disproportionation. Reading a Frost diagram for Mn in acid/base shows: MnO₄⁻ (+7) is strong oxidizer; Mn(IV) MnO₂ stable; Mn²⁺ very stable; Mn(III) disproportionates → Mn(II) + Mn(IV).\n\n**Latimer diagram**: linear chain of species at successive oxidation states with E° on the connecting arrows. Compact representation of redox chemistry of a single element. Read by adding weighted E° values.\n\n**Pourbaix diagram** (E vs. pH at 25°C): regions of thermodynamic stability for each species of an element across the (E, pH) plane. Boundaries are half-reactions. Used in: corrosion (Fe Pourbaix shows passive Fe₂O₃ region at high pH + high E — explains why iron rusts in neutral/acidic but not alkaline; pH > 9.5 protects); electroplating; battery design; geochemistry (uranium Pourbaix predicts UO₂²⁺ mobility); water-splitting (need E above O₂/H₂O at given pH).\n\n**Special features**:\n- **Disproportionation**: 2A → A_lower + A_higher; happens when E°(higher/middle) < E°(middle/lower). 2Cu⁺ → Cu + Cu²⁺ in water (E°(Cu²⁺/Cu⁺) = +0.16, E°(Cu⁺/Cu) = +0.52; net +0.36 V).\n- **Comproportionation**: reverse.\n- **Latimer/Frost** quickly identify these."
+    },
+    {
+      "kind": "text",
+      "title": "Electrochemistry: galvanic, electrolytic, hydrogen + ranking",
+      "body": "**Galvanic / voltaic cell**: spontaneous redox produces electrical work. Anode = oxidation (negative terminal in galvanic); cathode = reduction (positive). Salt bridge / membrane separates half-cells + maintains charge balance.\n- **Daniell cell** (1836): Zn|ZnSO₄||CuSO₄|Cu, 1.10 V. First reliable battery.\n- **Leclanché / dry cells**: Zn-MnO₂, 1.5 V.\n- **Lead-acid** (1859): Pb|PbSO₄|H₂SO₄|PbO₂|Pb, 2.04 V/cell (12 V battery = 6 cells). Cars use them globally.\n- **Lithium-ion** (Goodenough + Yoshino + Whittingham, Nobel 2019): Li intercalation in LiCoO₂ cathode + graphite anode, 3.7 V. Reshapes consumer electronics + EVs.\n- **Fuel cells**: PEM (Pt-catalyzed H₂/O₂), SOFC (high-T oxide).\n\n**Electrolytic cell**: external power source drives non-spontaneous reaction. Anode positive, cathode negative (opposite convention to galvanic). Industrial: Hall-Héroult (Al from Al₂O₃ in cryolite, ~5 V); chlor-alkali (NaCl → Cl₂ + NaOH); electroplating; electrolysis of water (H₂ from green energy).\n\n**Faraday's laws of electrolysis** (1834):\n1. Mass deposited ∝ charge passed.\n2. Mass deposited / equivalent weight = same per charge across reactions.\n\n$$ m = (Q/F) \\cdot (M/n) $$\n\nFoundation for electrochemistry measurements + coulometric titrations.\n\n**Reference electrodes** (alternatives to SHE which is awkward in practice):\n- **SHE**: gas + Pt black; E° = 0 by definition; bulky + finicky.\n- **Saturated calomel electrode (SCE)**: Hg|Hg₂Cl₂|sat. KCl; E = +0.241 V vs SHE.\n- **Ag/AgCl**: Ag|AgCl|sat. KCl; E = +0.197 V vs SHE; most common in modern instruments.\n- All measurements convert to SHE via subtracting the reference potential.\n\n**Activity series of metals** (ranked by E°(M^n+/M)):\n- Most reducing (negative E°): Li (-3.04), Cs, K, Ca, Na, Mg, Al, Zn, Cr, Fe, Cd, Co, Ni, Sn, Pb.\n- H₂ (0.00) — splits the series.\n- Less reducing (positive E°): Cu (+0.34), Ag (+0.80), Hg, Pt, Au (+1.50).\n\n**Practical applications**:\n- Metals above H displace H₂ from acids (Zn + HCl → ZnCl₂ + H₂); metals below cannot.\n- Sacrificial anodes: Zn or Mg attached to steel hulls — corrodes preferentially, protects steel.\n- Cathodic protection of pipelines + bridges.\n- Refining (Cu electrorefining; Ni from sulfides).\n- Corrosion: Fe rust = electrochemical cell with O₂ as cathode, Fe as anode; humid + salt accelerate. **Galvanic corrosion**: dissimilar metals in contact corrode at the less-noble one. **Inhibitors**: zinc galvanizing, chromate (legacy), organic coatings.\n\n**Overpotential**: extra voltage above thermodynamic E° needed for actual electrolysis due to slow kinetics. Tafel equation: $\\eta = a + b \\log j$. Electrocatalysts (Pt for HER; IrO₂ for OER; transition-metal MOFs + sulfides + nitrides being researched) lower overpotential — key for green H₂ production efficiency."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ic_nernst",
+        "kind": "guided_derivation",
+        "question": "Apply the Nernst equation to a concentration cell",
+        "goal": "Compute the EMF of a Cu concentration cell at 25°C with [Cu²⁺]_cathode = 1.0 M and [Cu²⁺]_anode = 0.001 M.",
+        "steps": [
+          {
+            "prompt": "Both half-cells are Cu²⁺ + 2e⁻ → Cu, so E°_cell = 0 V. Why isn't the actual E zero?",
+            "motivation": "Concentration cells use ΔG_mix.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "concentration gradient drives net reaction; Nernst gives nonzero E"
+              ]
+            },
+            "hints": [
+              "Q ≠ 1 when concentrations differ.",
+              "Nernst includes ln Q term."
+            ],
+            "reveal": "Both half-reactions are identical → E°_cell = 0. But ΔG_mix < 0 when concentrations differ, so reduction happens at the higher-concentration side + oxidation at the lower-concentration side. Net cell reaction: Cu²⁺(1 M, cathode) → Cu²⁺(0.001 M, anode). The thermodynamic driving force is the entropy of mixing → Nernst gives nonzero E."
+          },
+          {
+            "prompt": "Write Q for the net cell reaction.",
+            "motivation": "Q is the reaction quotient at non-standard conditions.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Q = [Cu²⁺]_anode / [Cu²⁺]_cathode = 0.001 / 1.0 = 0.001"
+              ]
+            },
+            "hints": [
+              "Reactants on cathode side, products on anode side.",
+              "Q = products / reactants."
+            ],
+            "reveal": "Net: Cu²⁺(cathode, 1.0 M) → Cu²⁺(anode, 0.001 M). $Q = [Cu^{2+}]_{anode} / [Cu^{2+}]_{cathode} = 10^{-3}$."
+          },
+          {
+            "prompt": "Apply Nernst: $E = E^\\circ - (0.0592/n) \\log Q$ with n=2.",
+            "motivation": "Plug in values.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E = 0 - (0.0592/2) log(0.001) = -0.0296 * (-3) = 0.089 V"
+              ]
+            },
+            "hints": [
+              "log(0.001) = -3.",
+              "n = 2 (Cu²⁺/Cu)."
+            ],
+            "reveal": "$E = 0 - (0.0592/2) \\log(10^{-3}) = -0.0296 \\times (-3) = +0.089$ V. The cell produces ~89 mV from concentration difference alone."
+          },
+          {
+            "prompt": "What practical applications use concentration cells?",
+            "motivation": "Sensors and biology.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "pH electrodes, ion-selective electrodes, biological membrane potentials"
+              ]
+            },
+            "hints": [
+              "How do pH meters work?",
+              "What about neurons?"
+            ],
+            "reveal": "**pH electrodes**: H⁺ concentration cell with glass membrane; Nernst → ~59 mV per pH unit at 25°C. **Ion-selective electrodes (ISEs)**: same principle for K⁺, Na⁺, Ca²⁺, F⁻, NO₃⁻. **Membrane potentials**: cell biology — Na⁺/K⁺ gradients across membranes generate the resting potential (~-70 mV) via Nernst-Goldman; action potentials in neurons. **Corrosion**: differential aeration cells (where O₂ access differs) drive pitting corrosion. **Batteries**: any rechargeable battery operates partly on concentration-cell EMF as it depletes."
+          }
+        ],
+        "finalResult": "$$\\boxed{E = -\\frac{0.0592}{n}\\log\\left(\\frac{[\\text{anode}]}{[\\text{cathode}]}\\right)}$$ 1000× concentration ratio → ~89 mV. Same physics underlies pH electrodes (∼59 mV/pH unit), ISEs, cell membrane potentials (Goldman-Hodgkin-Katz extension), and corrosion. Nernst (1889 Nobel 1920) is the workhorse of every quantitative electrochemistry calculation."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ic_hsab",
+        "kind": "multiple_choice",
+        "question": "Why does Au react with KCN solutions (forming Au(CN)₂⁻) but not with HCl or HNO₃ alone, requiring aqua regia (HNO₃ + HCl) for dissolution?",
+        "options": [
+          "Random.",
+          "**Hard-Soft Acid-Base (HSAB) + chelation + oxidation chemistry**. Au is a **soft** Lewis acid; CN⁻ is a **soft** base → strong soft-soft stabilization in Au(CN)₂⁻ (linear, Pearson). The cyanide complex shifts E°(Au+/Au) from +1.5 V (neutral) to ~-0.6 V — making it accessible to dissolved O₂ as oxidant. Aqua regia (HNO₃ + 3 HCl) works differently: HNO₃ oxidizes Au⁰ → Au³⁺; the Cl⁻ from HCl is a **borderline-soft** base that stabilizes Au³⁺ as AuCl₄⁻ (square planar). Each component alone (HCl no oxidizer; HNO₃ no soft base) fails. **Cyanide leaching** (since 1887): the industrial method for ~80% of gold mining — soft Au + soft CN⁻ + atmospheric O₂. Major environmental concerns + alternatives (thiosulfate leaching, bioleaching) being developed.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Au is soft → soft CN⁻ stabilizes Au(I) as linear Au(CN)₂⁻, shifts E° to negative, enabling O₂ oxidation. Aqua regia: HNO₃ oxidizes Au + Cl⁻ stabilizes Au(III) as AuCl₄⁻. HSAB (Pearson 1963) + complexation thermodynamics + redox combine in this classic example."
+      },
+      "hints": [
+        "Why does soft CN⁻ bind Au so well?",
+        "Look at the E° shift due to complexation."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Au(I) is soft Lewis acid; CN⁻ is soft Lewis base; Au(CN)₂⁻ very stable (10²⁸ formation constant). Stabilization shifts E°(Au/Au(I)) from +1.5 to ~-0.6 V → dissolved O₂ becomes a sufficient oxidizer. Aqua regia: HNO₃ oxidizes, Cl⁻ stabilizes Au(III) as AuCl₄⁻. HSAB + redox coupling."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ic_pourbaix",
+        "kind": "scenario",
+        "question": "Iron Pourbaix diagram for corrosion engineering",
+        "prompt": "A civil engineer is selecting steel for a structure submerged in seawater (pH ~8.1, oxygenated, [Cl⁻] high). Using a simplified Fe Pourbaix diagram (Fe stable at low E; Fe²⁺ at low pH, intermediate E; Fe₂O₃ + Fe₃O₄ passive at higher pH + moderate E; HFeO₂⁻ at very high pH), how do you predict corrosion behavior? What mitigations (sacrificial anodes, cathodic protection, painting) apply, and which sectors of the Pourbaix diagram does each technique exploit?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ic_cell",
+        "kind": "math_expression",
+        "question": "A galvanic cell uses Zn²⁺/Zn (E° = -0.76 V) and Cu²⁺/Cu (E° = +0.34 V). With [Zn²⁺] = 0.1 M and [Cu²⁺] = 1.0 M at 25°C, compute E_cell in volts to 3 decimals.",
+        "acceptedAnswers": [
+          "1.130",
+          "1.13",
+          "1.13 V",
+          "1.13V"
+        ],
+        "hint": "E°_cell = 0.34 - (-0.76) = 1.10 V. Q = [Zn²⁺]/[Cu²⁺] = 0.1/1.0 = 0.1. n = 2. E = 1.10 - (0.0592/2)log(0.1) = 1.10 + 0.0296 = 1.130 V."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ic_redox",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how the Nernst equation, Latimer diagrams, Frost diagrams, and Pourbaix diagrams together provide a complete thermodynamic picture of redox chemistry, with one concrete application of each.",
+        "rubric": "Mentions: Nernst equation links E to concentration/activity at fixed pH — used for sensors (pH electrode 59 mV/pH); Latimer diagrams compactly show E° between adjacent oxidation states of an element — read by adding/weighting (identify disproportionation); Frost diagrams plot nE° vs. n — slope = E°, concave-up species stable, concave-down disproportionate (Mn analysis); Pourbaix diagrams (E vs. pH) show thermodynamic stability fields across redox + acid-base space — used for corrosion engineering (Fe rusts in neutral/acidic, passivates in alkaline; cathodic protection lowers E below Fe stability boundary). Together they let chemists predict reactivity, design batteries + sensors, prevent corrosion, plan industrial electrolysis. Conclude: the Pourbaix diagram is the most comprehensive — it unifies the others into a 2D phase diagram of electrochemistry."
+      }
+    }
+  ]
+}

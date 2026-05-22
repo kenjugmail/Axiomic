@@ -1,0 +1,154 @@
+{
+  "slug": "circuits-and-systems",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Trace canonical microcircuits.",
+      "Map V1 + hippocampus.",
+      "Compare cerebellum/basal ganglia."
+    ],
+    "prereqs": [
+      "plasticity-and-learning",
+      "neural-coding-and-representations"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Canonical cortical microcircuit",
+      "body": "**Mammalian neocortex** is a ~2-4 mm thick sheet of ~16 billion neurons (humans) organized in **six layers** (Brodmann 1909 cytoarchitecture; Vogt + Vogt). Despite vast functional diversity (V1, A1, M1, PFC), the local microcircuit is **remarkably stereotyped** — a powerful organizing principle.\n\n**The six layers**:\n- **Layer 1 (molecular)**: sparse neurons; dense apical dendrites + horizontal axons (Cajal-Retzius cells; Reelin-expressing).\n- **Layer 2/3** (supragranular): small + medium pyramidal cells; intra- + intercortical projections; columnar + horizontal corticocortical connections.\n- **Layer 4 (granular)**: spiny stellate cells; primary thalamic input recipient (from VPL/VPM, LGN, MGN). Thick in primary sensory areas (V1 stripe of Gennari); thin in motor cortex (\"agranular\").\n- **Layer 5 (infragranular)**: large pyramidal cells; subcortical projections to striatum, brainstem, spinal cord. Includes the famous Betz cells of motor cortex.\n- **Layer 6**: corticothalamic feedback to thalamus + corticocortical.\n\n**Douglas + Martin canonical microcircuit (1991)**: synthesized cat V1 anatomy + physiology into a recurring six-layer module:\n- Thalamus → L4 spiny stellates → L2/3 pyramidals → L5/6 pyramidals → subcortical + thalamus feedback.\n- L2/3 + L5 send horizontal connections to neighboring columns.\n- All layers contain GABAergic interneurons (PV/SST/VIP) sculpting + gating.\n- This canonical loop is largely conserved across primary sensory + motor + association cortex — a 'cortical algorithm' applied to different input modalities.\n\n**Mountcastle's columnar organization (1957)**: in cat S1, neurons within a vertical column (~300 µm wide) share receptive field + modality preference. Generalized as the **cortical column hypothesis** — modular computation units. **Hubel + Wiesel** extended in V1 (orientation columns + ocular dominance columns; Nobel 1981). **Barrel cortex** in rodent S1: one barrel per whisker — the gold standard.\n\n**Thalamocortical loops**: thalamus is the gateway. **Specific** (relay) nuclei project topographically to L4 of primary sensory + motor cortex; **non-specific** (intralaminar, midline) target broadly. Thalamic reticular nucleus (TRN, all GABAergic) gates sensory transmission + drives sleep spindles (12-14 Hz). Sherman + Guillery's higher-order thalamus (pulvinar, MD) hypothesis: thalamus is essential to cortico-cortical communication, not just sensory relay.\n\n**Inhibitory interneuron diversity** (~10-20% of cortical neurons; vast molecular + morphological variety):\n- **Parvalbumin (PV+)** fast-spiking basket + chandelier cells: perisomatic + axo-axonic inhibition; drive gamma oscillations + control spike timing. Highest temporal precision.\n- **Somatostatin (SST+)** Martinotti cells: target distal apical dendrites; control dendritic computation + nonlinear integration; gate top-down feedback.\n- **VIP+** (vasoactive intestinal peptide): target other interneurons (SST + PV) → disinhibition; modulated by neuromodulators (ACh, NE); attention + reward signal injection.\n- **5HT3aR+** (non-VIP): superficial cortex; varied roles.\n\n**Cell-type taxonomy** (Allen Brain Atlas single-cell RNA-seq; Tasic + Zeng 2018): ~100+ transcriptomically distinct cortical cell types per area. Patch-seq couples electrophysiology + morphology + transcriptomics.\n\n**Markram + Blue Brain / Human Brain Project**: from 2005, attempted bottom-up reconstruction + simulation of cortical microcircuit. Rat somatosensory cortex digital 'reconstruction' (Markram et al. 2015 *Cell*); ~31,000 neurons + ~37 million synapses with biological cell types + connectivity. Controversial: scientific reach vs grand-claim management. Spawned NEURON, NEST, Brian simulators.\n\n**Allen Brain Observatory** (Seattle, 2016+): industrial-scale 2-photon calcium imaging + Neuropixels recordings + connectomics + transcriptomics; open data."
+    },
+    {
+      "kind": "text",
+      "title": "V1 + hippocampus: the model systems",
+      "body": "**Visual cortex (V1)** — historically the most-studied cortical area; the workbench for understanding cortical computation.\n\n**Hubel + Wiesel** (1959-1980s; Nobel 1981 with Sperry split-brain): recorded extracellularly from cat + macaque V1.\n- **Simple cells**: orientation-tuned receptive fields with spatial separation of ON + OFF subregions; respond best to oriented bars at specific position + phase.\n- **Complex cells**: orientation-tuned + phase-invariant (respond to bar anywhere in RF); built from simple cells via spatial pooling (Hubel-Wiesel hierarchical model).\n- **Hypercomplex / end-stopped**: respond to limited-length bars.\n- **Orientation columns** + **ocular dominance columns** organized into a 'pinwheel' map (optical imaging of intrinsic signal; Bonhoeffer + Grinvald 1991).\n- **Critical period plasticity**: monocular deprivation during developmental window shrinks deprived eye's ocular dominance columns; foundational study of experience-dependent development. CREB, BDNF, PV interneuron maturation, perineuronal nets all regulate critical period (Hensch).\n- **Ventral stream** (V1 → V2 → V4 → IT): object + face recognition (Ungerleider + Mishkin 1982 'what' pathway).\n- **Dorsal stream** (V1 → MT → MST → parietal): spatial location + motion + action ('where/how' pathway).\n- **Face area FFA** (Kanwisher 1997): specialized fusiform area; debate over modular vs distributed.\n- **Modern computational match**: Yamins + DiCarlo 2014 showed deep CNNs trained on ImageNet quantitatively predict V4 + IT activity → Brain-Score benchmark (Schrimpf).\n\n**Hippocampus** — the spatial + episodic memory machine:\n\n**Anatomy** — the trisynaptic loop (Cajal):\n- **Entorhinal cortex (EC)** → perforant path → **dentate gyrus (DG)** granule cells (synapse 1).\n- **DG** → mossy fibers → **CA3** pyramidals (synapse 2; few + powerful; 'detonator' synapses).\n- **CA3** → Schaffer collaterals → **CA1** pyramidals (synapse 3).\n- **CA1** → subiculum → EC (the loop closes).\n- Plus direct EC L3 → CA1 (temporoammonic path) + CA3 recurrent collaterals (autoassociative network).\n\n**Marr (1971)**: theoretical paper proposing CA3 as an autoassociative memory + DG as pattern separator + CA1 as decoder — strikingly prescient.\n\n**Pattern separation + completion**:\n- **Pattern separation** (DG): similar inputs mapped to maximally distinct outputs (sparse granule cell coding; ~1-2% active at any time). Distinguishes similar episodes.\n- **Pattern completion** (CA3 recurrent network): partial cue retrieves full memory via attractor dynamics. Hopfield network biology.\n\n**Place + grid cells** (covered in coding lesson; O'Keefe + Mosers 2014 Nobel) live in HC + EC.\n\n**HM + Brenda Milner**: established HC essential for new declarative memory formation; spared procedural + working memory. Most-studied patient in neuroscience.\n\n**Adult neurogenesis**: DG granule cells generated lifelong from neural stem cells in subgranular zone (Altman 1965; Gould; Frisén). Functional role debated (pattern separation? mood?); declines with age + stress.\n\n**Hippocampus + schizophrenia / Alzheimer's / PTSD / depression**: HC volume reduced; LTP impaired; therapy targets.\n\n**Theta + gamma rhythms**: navigation + memory encoding (Buzsáki *Rhythms of the Brain*). Sharp-wave ripples during sleep replay episodes (Wilson + McNaughton 1994).\n\n**Engram cells** (Tonegawa, Josselyn, Silva): tagged + optogenetically reactivated to recall memory; physical substrate of memory.\n\n**Modern frontier**: Neuropixels HC recordings in freely moving mice (Sleep + Reward replay); brain-wide engram mapping; closed-loop SWR manipulation; iPSC HC organoids; Tolman-Eichenbaum machine (Whittington 2020) unifies HC representations with relational reasoning + transformers."
+    },
+    {
+      "kind": "text",
+      "title": "Cerebellum + basal ganglia: parallel learning systems",
+      "body": "**Cerebellum** — the 'little brain' — contains more neurons than the rest of the brain combined (~70 billion granule cells), all in a highly stereotyped 3-layer cortex draped over deep nuclei.\n\n**Anatomy**:\n- **Molecular layer**: parallel fibers (granule cell axons running 5-7 mm transverse), Purkinje cell dendrites (massive 2D arbor receiving ~100,000-200,000 PF inputs), molecular interneurons (stellate, basket — GABA).\n- **Purkinje cell layer**: monolayer of PCs — the sole output of cerebellar cortex; GABAergic projection to deep nuclei.\n- **Granular layer**: granule cells (smallest + most numerous neuron in brain); Golgi cells (GABAergic interneuron); mossy fiber rosettes form glomeruli.\n- **Deep cerebellar nuclei** (dentate, interposed, fastigial): excitatory output; receive PC inhibition; project to thalamus + brainstem.\n- **Climbing fibers** (CFs) from **inferior olive (IO)**: 1:1 with PC; each PC innervated by ONE CF that wraps ~250 contacts around proximal dendrite; CF firing evokes **complex spike** (~10 Hz) — rare but unmistakable; carries error/teaching signal.\n- **Mossy fibers**: from pontine nuclei, spinal cord, vestibular — broad excitation of granule cells → PFs → PCs.\n\n**Marr (1969) - Albus (1971) - Ito (1972) cerebellar theory**: cerebellum as a supervised pattern recognition machine.\n- MF/granule cell layer = combinatorial expansion (~50 billion granule cells encode ~hundreds of MF inputs sparsely).\n- PF → PC synapse = adaptive weights (learned via LTD).\n- CF = teaching signal (error/instruction).\n- PC complex spike = adjusts adjacent PF weights via heterosynaptic LTD (Ito 1982 confirmed).\n- This is the biological perceptron — the algorithm Rosenblatt 1958 invented for AI, found in vertebrate brain.\n\n**Motor learning examples**: vestibulo-ocular reflex (VOR) gain adaptation; eyeblink conditioning (Thompson lab classic); saccade adaptation; reaching reach-error correction. Drugs/lesions impair these.\n\n**Beyond motor**: cerebellum projects to PFC + thus contributes to cognition + emotion (Schmahmann CCAS — cognitive-affective syndrome). Cerebellar autism + schizophrenia links.\n\n**Basal ganglia (BG)** — a set of subcortical nuclei central to action selection, motor learning, habit + reward:\n\n**Components**:\n- **Striatum** (caudate + putamen + ventral striatum/NAc): primary input. Medium spiny neurons (MSNs; ~95%); GABAergic; receive cortex + thalamus + DA from SNc/VTA.\n- **Globus pallidus external (GPe) + internal (GPi)**: GABAergic; GPi = main output (inhibits thalamus tonically).\n- **Subthalamic nucleus (STN)**: glutamatergic.\n- **Substantia nigra pars compacta (SNc)**: dopaminergic, projects to dorsal striatum.\n- **Substantia nigra pars reticulata (SNr)**: GABAergic output (analog of GPi for limbic + oculomotor).\n- **Ventral tegmental area (VTA)**: dopaminergic to NAc + PFC + amygdala.\n\n**Three pathways** (Albin + Young + Penney 1989; DeLong):\n- **Direct (D1 MSNs)**: cortex → D1 MSNs → GPi/SNr (inhibit) → disinhibit thalamus → promote action.\n- **Indirect (D2 MSNs)**: cortex → D2 MSNs → GPe → STN → GPi (excite) → inhibit thalamus → suppress competing actions.\n- **Hyperdirect (cortex → STN → GPi)**: rapid global stop signal.\n- DA from SNc: D1 excites direct pathway + D2 inhibits indirect → both Go-promoting.\n\n**Dopamine + reward prediction error**:\n- **Schultz, Dayan + Montague 1997 Science**: DA neurons fire as δ = r - V(s) = TD error → reinforce direct-pathway weights (LTP at corticostriatal synapses), depress indirect.\n- Foundation of reinforcement learning in brain.\n- **Distributional RL** in DA neurons (Dabney + Kurth-Nelson 2020 Nature DeepMind/Harvard): different DA neurons encode different quantiles — DistRL implemented in midbrain.\n\n**Parkinson's disease**:\n- Loss of SNc DA neurons (>50% before motor symptoms); Lewy body α-synuclein pathology (Braak staging).\n- L-DOPA dopamine precursor replacement (Carlsson, Hornykiewicz Nobel 2000).\n- **Deep brain stimulation (DBS)** of STN or GPi (Benabid + Pollak 1987 Grenoble): high-frequency stim (~130 Hz); revolutionary for advanced PD; ~200k implanted worldwide; mechanism likely informational lesion + jamming of pathological beta oscillations.\n- LRRK2 + GBA + SNCA + PARK genetics.\n\n**Huntington's disease**: CAG expansion in HTT gene; mutant huntingtin; degeneration of indirect-pathway MSNs first → chorea (hyperkinesis); later cognitive + psychiatric. Tetrabenazine + experimental gene-silencing.\n\n**Tourette syndrome, OCD, dystonia**: BG circuit disorders; DBS therapy frontier.\n\n**Addiction**: hijacking of mesolimbic DA RL; D1 MSNs in NAc encode incentive salience (Berridge + Robinson) + habit (dorsolateral striatum takes over from goal-directed dorsomedial; Everitt + Robbins)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_circ_1",
+        "kind": "guided_derivation",
+        "question": "Walk through the cerebellar Marr-Albus-Ito model",
+        "goal": "Given mossy-fiber inputs (m vector) + climbing fiber error signal δ, derive how Purkinje cell output P changes after training.",
+        "steps": [
+          {
+            "prompt": "Step 1: Granule-layer combinatorial expansion.",
+            "motivation": "Why so many granule cells?",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "MF activity m (low-dim) is expanded to sparse high-dim granule code g via Golgi inhibition + thresholding"
+              ]
+            },
+            "hints": [
+              "Curse-of-dimensionality + linear separability."
+            ],
+            "reveal": "MF activity m ∈ R^M (~10² inputs) is mapped to granule activity g ∈ R^G (~10⁹ granule cells), sparsified by Golgi inhibition + threshold so only a few % active per input pattern. Sparse high-dim codes are linearly separable (Cover 1965). Marr's insight: combinatorial expansion + sparsification enables a downstream perceptron (Purkinje) to learn arbitrary input-output mappings."
+          },
+          {
+            "prompt": "Step 2: Purkinje cell readout.",
+            "motivation": "Linear sum of PF inputs.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "P = Σ w_i g_i (linear sum across PF inputs, then thresholded/spiked)"
+              ]
+            },
+            "hints": [
+              "PC has ~200,000 PF inputs each with its own weight w_i."
+            ],
+            "reveal": "Each Purkinje cell receives ~200,000 parallel-fiber inputs g_i with synaptic weights w_i. Output P = Σ_i w_i g_i + intrinsic dynamics. Adjusting w_i changes the PC's response to input patterns — the readout."
+          },
+          {
+            "prompt": "Step 3: Climbing-fiber teaching signal.",
+            "motivation": "Supervised error injection.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "CF evokes complex spike + Ca²⁺ transient in PC → triggers LTD at coactive PF synapses"
+              ]
+            },
+            "hints": [
+              "Ito 1982 showed LTD at PF→PC depends on CF activation."
+            ],
+            "reveal": "CF from inferior olive carries motor/predictive error δ — fires when actual outcome ≠ predicted. CF complex spike floods PC dendrite with Ca²⁺ via Cav P/Q-type + opens mGluR1 → PKC. Coincident PF activity (within ~100 ms) + CF-Ca²⁺ triggers **LTD** at those specific PF→PC synapses: w_i → w_i - η·g_i·δ — exactly perceptron/delta-rule gradient descent. Ito 1982 experimental confirmation. Newer evidence also for LTP at PF→PC + plasticity at MF→DCN."
+          },
+          {
+            "prompt": "Step 4: Why this implements supervised learning.",
+            "motivation": "Map to delta rule / perceptron.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "After training, PC output reproduces target; CF rate decreases as error shrinks"
+              ]
+            },
+            "hints": [
+              "Learning rule shape matches gradient descent."
+            ],
+            "reveal": "Repeated training trials with δ-driven LTD → weights converge so PC output cancels predicted disturbance → CF rate falls (error eliminated). This is the **biological perceptron** — what Rosenblatt 1958 invented for AI, vertebrates do for motor learning. Vestibulo-ocular reflex gain adaptation, eyeblink conditioning, saccade adaptation, reach adaptation are textbook demonstrations. Modern: cerebellar contribution to cognition + reward + autism (Schmahmann CCAS)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_circ_1",
+        "kind": "multiple_choice",
+        "question": "Why is deep brain stimulation (DBS) of the subthalamic nucleus so effective for Parkinson's disease?",
+        "options": [
+          "Wrong.",
+          "DBS (Benabid + Pollak 1987 Grenoble) delivers high-frequency (~130 Hz) electrical pulses via an implanted electrode in STN or GPi. In Parkinson's, SNc dopaminergic loss disinhibits indirect-pathway MSNs, leading to excessive STN excitation of GPi → over-inhibition of thalamus → bradykinesia + rigidity. Pathological beta oscillations (~13-30 Hz) in BG-thalamic-cortical loop correlate with motor symptoms. STN-DBS disrupts these pathological rhythms — functioning as a reversible 'informational lesion' or signal-jammer — restoring near-normal motor function in advanced PD, often with dramatic dose reductions of L-DOPA + relief from on-off fluctuations + dyskinesia. ~200,000 patients worldwide. Closed-loop adaptive DBS (sensing beta + delivering stim only when needed) is the next frontier. Also approved for essential tremor, dystonia, OCD, Tourette; investigational for depression, anorexia, Alzheimer's. A triumph of circuit-level neuroscience translated to clinical impact.",
+          "Wrong.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "DBS (Benabid + Pollak 1987 Grenoble) of STN or GPi at ~130 Hz disrupts pathological beta oscillations + acts as reversible 'informational lesion' restoring motor function in advanced PD. ~200k patients worldwide. Closed-loop adaptive DBS is next frontier. Also for essential tremor, dystonia, OCD; investigational for depression. A triumph of circuit neuroscience translated to clinical impact."
+      },
+      "hints": [
+        "What does DBS do to BG oscillations?",
+        "Why high frequency?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "DBS (Benabid + Pollak 1987) of STN/GPi at ~130 Hz disrupts pathological beta oscillations in BG-thalamic-cortical loops + functions as reversible 'informational lesion'/signal-jammer. Restores motor function in advanced PD. ~200,000 patients worldwide. Closed-loop adaptive DBS next frontier. Also approved for essential tremor, dystonia, OCD, Tourette; investigational for depression. Triumph of circuit-level neuroscience translated to clinical use."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_circ_1",
+        "kind": "scenario",
+        "question": "You are designing a closed-loop neurostimulation system for a patient with treatment-resistant depression.",
+        "prompt": "Choose a brain target (subgenual cingulate Cg25, NAc, MFB, or VC/VS) + justify based on circuit anatomy (default-mode network, reward circuit, hedonic processing). What biomarkers would you sense (theta-gamma coupling, beta, individual symptom-correlated signatures Mayberg + Riva-Posse personalized maps)? What stim parameters + safety considerations? Discuss the failure of the BROADEN + RECLAIM RCTs + the recent success of personalized adaptive DBS (Scangos 2021 Nat Med single case)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_circ_1",
+        "kind": "math_expression",
+        "question": "Write the cerebellar LTD weight-update rule for parallel-fiber→Purkinje synapse i with PF activity g_i and CF-driven error signal δ, learning rate η.",
+        "acceptedAnswers": [
+          "Δw_i = -η g_i δ",
+          "w_i(t+1) = w_i(t) - η * g_i * δ",
+          "Δw = -η · g · δ"
+        ],
+        "hint": "Delta rule with negative sign because CF drives LTD."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_circ_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why the cerebellar microcircuit is considered the most beautiful piece of neuroscience.",
+        "rubric": "Mentions: Cajal's golgi-stained drawings (Nobel 1906) revealed the stereotyped 3-layer architecture: granule cells (most numerous, ~70 billion), Purkinje cells (massive 2D dendritic arbor, sole cortical output, GABAergic to deep nuclei), climbing fibers from inferior olive (1:1 with PC, complex spike as error signal), mossy fibers (broad sparse expansion via granule layer). Marr (1969) + Albus (1971) + Ito (1972) theoretical model: combinatorial expansion + sparsification (granule code) + linear readout (PC) + supervised LTD at PF→PC driven by CF teaching signal → biological perceptron (Rosenblatt 1958 algorithm in vertebrate brain). Ito 1982 experimentally confirmed PF-PC LTD. Implements motor learning (VOR adaptation, eyeblink conditioning, saccade adaptation, reach adaptation) + recent extension to cognition + emotion (Schmahmann CCAS). The match between anatomy, theory, plasticity, and behavior — across decades — makes cerebellum the cleanest worked-example of a circuit-algorithm-function story in neuroscience."
+      }
+    }
+  ]
+}

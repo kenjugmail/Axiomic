@@ -1,0 +1,153 @@
+{
+  "slug": "modern-frontier-urban-planning",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Survey data + computational urban science — Batty, Bettencourt scaling, Lazer-Watts CSS.",
+      "Master participatory + smart planning — Arnstein, GIS, CityGML, AI assistants.",
+      "Synthesize future — AVs, drones, climate migration, planetary urbanization, LLM-augmented planning, Harvey."
+    ],
+    "prereqs": [
+      "transportation-and-mobility",
+      "housing-and-affordability",
+      "equity-environment-and-resilience"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Data + computational urban science: Batty, Bettencourt scaling, GPS + cell-phone mobility, Lazer + Watts",
+      "body": "**Computational urban science** — modeling, simulating, and learning from data about cities — has transformed urban planning research + (slowly) practice. The field sits at the intersection of geography (lesson 1), economics (lesson 4), complexity science, and machine learning.\n\n**Michael Batty — *The New Science of Cities* (2013) + foundational work**:\n- **Batty (UCL CASA, Centre for Advanced Spatial Analysis, founded 1995)**: dean of contemporary computational urbanism.\n- *Cities and Complexity* (2005) — cities as complex adaptive systems modeled with cellular automata + agent-based + fractal + network methods.\n- *The New Science of Cities* (2013) — flows + networks displace places as primary unit; cities understood as interactions + flows rather than fixed forms.\n- *Inventing Future Cities* (2018) — methodology + future-of-the-discipline survey.\n- *Methods*: cellular automata (Tobler 1979; Couclelis), agent-based modeling (Sugarscape; UrbanSim, Waddell 2002), spatial-interaction models (gravity + Wilson 1970), network analysis (street + transit + flow networks).\n- *CASA outputs*: simulation tools, visualization, training a generation of computational urban scientists.\n\n**Luís Bettencourt — scaling laws of cities**:\n- **Bettencourt + West + Lobo + Helbing + Kühnert + Strumsky 2007 *PNAS*** 'Growth, innovation, scaling, and the pace of life in cities' — landmark paper.\n- *Empirical regularity*: many urban indicators scale as power laws with city population $N$: $Y = Y_0 N^\\beta$.\n- **Superlinear scaling ($\\beta > 1$)** of socioeconomic outputs: GDP, wages, patents, R&D, crime, AIDS cases — *bigger cities are disproportionately more productive (and more troubled)*. Typical $\\beta \\approx 1.1-1.2$.\n- **Sublinear scaling ($\\beta < 1$)** of infrastructure: road length, gas-station count, water-pipe length — *bigger cities have economies of scale in infrastructure*. Typical $\\beta \\approx 0.85$.\n- **Linear scaling ($\\beta \\approx 1$)** of individual goods (jobs, housing, water consumption).\n- *Theoretical model* (Bettencourt 2013 *Science*): integration of social + infrastructure + spatial constraints — cities are networks of interactions; superlinear socioeconomic + sublinear infrastructural scaling emerges from network geometry + mixing rates.\n- *Bettencourt — Introduction to Urban Science* (2021 MIT Press)**: textbook synthesis.\n- *Implications*: there are quantitative laws about cities, not just narrative; planning + policy should respect or harness scaling; scaling alone does not explain *which* cities thrive (the residual matters).\n\n**Mobility data — GPS + cell-phone + transit-card**:\n- *Cell-phone CDRs (Call Detail Records)*: aggregate movement patterns; Marta González + Albert-László Barabási 2008 *Nature* 'Understanding individual human mobility patterns' — humans have highly predictable trajectories.\n- *GPS traces* (smartphone, vehicle telematics, ride-share, navigation apps); StreetLight Data, Replica, Cuebiq commercial platforms.\n- *Transit smart-card data* (London Oyster, Tokyo Suica, Singapore EZ-Link) → origin-destination flows.\n- *Application*: travel-demand modeling (lesson 3 + travel-demand forecasting), real-time congestion + transit, COVID-era mobility-and-disease studies (Apple, Google mobility reports), evacuation + emergency response.\n- *Privacy* (lesson 6 Zuboff): mobility data is highly re-identifiable; anonymization is fragile (de Montjoye et al. 2013 *Scientific Reports*).\n\n**David Lazer + Duncan Watts + computational social science (CSS)**:\n- **Lazer + Pentland + Adamic + Aral + Barabási + Brewer + Christakis + Contractor + Fowler + Gutmann + Jebara + King + Macy + Roy + Van Alstyne 2009 *Science*** 'Computational social science' — manifesto for the new field.\n- *Methods*: large-scale digital trace data + network science + machine learning + agent-based models + natural experiments.\n- *Watts (Microsoft → Penn)* — *Six Degrees* (2003), *Everything is Obvious Once You Know the Answer* (2011) — networks + collective behavior.\n- *Application to cities*: housing search (Boeing 2018), evictions (Desmond), segregation dynamics, gentrification, mobility, social-influence + spreading processes.\n\n**Other computational frontier**:\n- **Urban informatics + sensing**: NYU CUSP (founded 2013, Steve Koonin); USC + Boston Area Research Initiative + Sidewalk Labs (lesson 6).\n- **Satellite + remote sensing**: GHSL (Joint Research Centre), MapBiomas, urban-expansion atlases (Angel + Blei + Civco + Parent + Shlomo). Atlas of Urban Expansion (Angel et al.).\n- **OpenStreetMap + crowdsourced geospatial**: foundational data layer; Daylight Map.\n- **Machine learning + cities**: building-footprint extraction (Microsoft + Google global datasets); land-use classification; image-based urban-perception (Hidalgo + Salesses + Schechtner *Place Pulse* 2013); flood + risk modeling.\n- **Causal-inference + cities**: synthetic-control methods (Abadie); spatial regression discontinuity; Greenaway-McGrevy + Phillips on Auckland (lesson 5).\n\nComputational urban science complements (does not replace) ethnography (Jacobs, lesson 1) + theory (Alonso + Glaeser, lesson 4) + critical theory (Harvey, below). The best urban scholarship combines."
+    },
+    {
+      "kind": "text",
+      "title": "Participatory + smart planning: Arnstein's ladder, GIS, 3D city models, CityGML, crowdsourced planning, AI city assistants",
+      "body": "**Participatory planning** — engaging residents in decisions that affect them — is a normative + practical foundation of legitimate urban governance. Smart-city + data tools have transformed both how participation is enabled + how planning agencies operate.\n\n**Sherry Arnstein — *A Ladder of Citizen Participation* (1969 *JAIP*)**:\n- **Sherry R. Arnstein (1930-1997)** — federal urban-renewal administrator + planning scholar. Her 1969 *Journal of the American Institute of Planners* article is the foundational text on participation typology.\n- **The Ladder** (8 rungs, bottom to top):\n  - **Non-participation**: (1) Manipulation, (2) Therapy.\n  - **Tokenism**: (3) Informing, (4) Consultation, (5) Placation.\n  - **Citizen power**: (6) Partnership, (7) Delegated power, (8) Citizen control.\n- *Insight*: 'participation' in planning practice often stops at *informing* or *consultation* — citizens hear about decisions but lack power to change them. Real participation requires partnership + delegated power.\n- *Lasting influence*: every contemporary participation framework (IAP2 Spectrum, Fung's Direct Democracy, urban-policy participation indices) descends from Arnstein. Cf. Fung's *Empowered Participation* (2004) on participatory budgeting + planning.\n- *Critique + extension*: ladder is unidimensional; participation can be high-quality at lower rungs (well-designed consultation can be more legitimate than poorly-designed delegation). Iris Marion Young's *Inclusion and Democracy* (2000) extends.\n\n**GIS — Geographic Information Systems**:\n- **Roger Tomlinson** (Canada Geographic Information System, 1962-) — the *father of GIS*; built the first computerized geographic-information system.\n- **ESRI (Jack Dangermond, 1969-)** — ArcGIS dominant commercial platform.\n- *Open-source*: QGIS (2002-), PostGIS (spatial database), GeoPandas (Python), R-spatial, sf, leaflet.\n- *Modern uses*: zoning (lesson 2 + GIS-based parcel data), transportation modeling, environmental + flood mapping, demographic + equity analysis, plan production + visualization.\n- *Participatory GIS (PGIS)* — residents map assets + concerns; community-based participatory research; Maptionnaire, Mappily, Streetmix.\n\n**3D city models + CityGML**:\n- **CityGML (Open Geospatial Consortium, 2008)** — open international standard for 3D city models. Hierarchy of *Levels of Detail* (LOD 0-4): footprints → block massing → roof shapes → architectural detail → interior.\n- *Big-three commercial*: ESRI CityEngine, Bentley OpenCities, Autodesk InfraWorks.\n- *Digital-twin platforms* (lesson 6): Singapore Virtual Singapore, Helsinki 3D+, Zurich, Boston BPDA.\n- *Applications*: solar + shadow + view-shed analysis; flood + storm-surge modeling; visualization for participation; thermal-comfort + microclimate; emergency-response simulation.\n\n**Crowdsourced planning**:\n- **OpenStreetMap (Steve Coast 2004-)** — community-mapped global street + building network; >9M registered editors. Critical infrastructure for Mapbox + many city + humanitarian projects (HOTOSM Humanitarian OSM Team).\n- *Civic-tech + planning*: Code for America brigades; mySidewalk; Streetmix (crowd-design of street cross-sections, Code for America 2013-); Mapillary (street imagery).\n- *Participatory-budgeting platforms*: Decidim (Barcelona 2017-, open source; ~400 city + organization adoptions globally); Consul (Madrid 2015-); Your Priorities (Iceland Citizens Foundation).\n- *311 + citizen-reporting*: NYC 311, SF 311 — open complaint data → analysis of service inequities (O'Brien *The Urban Commons* 2018).\n\n**AI + LLM city assistants** (lesson 8 frontier):\n- *Plan + permit chatbots*: city websites integrating LLMs for permit + zoning + service questions. Boston Mass-Transit Q+A; SF DBI permit-status; NYC ACCESS.\n- *Land-use + zoning analysis*: code-interpretation, parcel-level feasibility, what-can-I-build assistants. Startups: Sidewalk Labs spin-offs, Replica, ZenCity (govtech sentiment-analytics).\n- *Plan summarization + translation*: making 500-page plans accessible to residents; multilingual + plain-language output.\n- *Engagement analysis*: clustering + summarizing comments from large public-comment volumes; bias + sentiment detection.\n- *Drafting + scenario generation*: LLM + GIS + simulation pipelines that draft + visualize zoning + transportation scenarios. Field is early.\n- *Caveats* (Zuboff lesson 6 + EJ lesson 7): equity-in-AI, transparency, who owns the model + data, who can audit, accountability for errors. AI augmenting planners ≠ AI replacing democratic process.\n\n**The participatory + smart synthesis**:\n- High-quality participation (Arnstein partnership + above) plus high-quality data + visualization (3D models, OSM, decidim) plus AI assistance (drafting + summarization + scenario) — used responsibly — can scale + deepen the planning process.\n- Risk: smart-city + AI tools used to *substitute* for participation, not to deepen it (Sidewalk Toronto lesson 6).\n- *Open civic platforms* (Decidim, OpenStreetMap, QGIS, Streetmix) preserve democratic governance better than proprietary tech-co platforms.\n\nLesson 1's modernist top-down master-plan + Jacobs's counter-empirical observation; lesson 6's smart-city debates; this slide's participatory + computational synthesis — together describe the contemporary planning practice."
+    },
+    {
+      "kind": "text",
+      "title": "Future: AVs, drones, climate migration, planetary urbanization (Brenner), LLM-augmented planning, Harvey's right to the city",
+      "body": "**The frontier** combines several converging forces: automation in mobility + delivery; climate-driven migration + adaptation; planetary urbanization; computational + AI-augmented planning; and a re-energized critical-theory tradition asking who the city is for.\n\n**Autonomous vehicles (AVs) — urban implications**:\n- Status (2025): Waymo ~150k weekly robotaxi trips in SF + Phoenix + LA + Austin; Cruise paused 2023; Apollo Go expanding in China; Tesla L2; trucking pilots (Aurora, Kodiak).\n- *Potential urban effects*:\n  - **Safety**: ~95% of crashes have human-error component; mature AVs could reduce dramatically — but mixed evidence + initial-deployment incidents.\n  - **Capacity**: cooperative driving could raise lane capacity 50-100%.\n  - **Parking**: less needed if cars travel constantly; lots can be repurposed (housing? open space?).\n  - **Mode shift**: cheap robotaxis could compete with transit + walking (negative — induced VMT) or feed transit (positive — first/last mile).\n  - **Equity**: who has access? Pricing + accessibility (wheelchair-equipped AVs) matter.\n  - **Employment**: ~5M U.S. trucking + ride-share drivers face displacement.\n- *Planning response*: Heinz College + UC ITS + ITDP scenarios; congestion pricing + curb management as AVs proliferate.\n\n**Drone delivery + air mobility**:\n- *Drone delivery*: Wing (Alphabet), Zipline, Amazon Prime Air; medical + e-commerce; FAA Part 135 + Part 137. Operational in pilots (Logan UT, Christiansburg VA, Australia + UK + Rwanda).\n- *eVTOL / UAM (Urban Air Mobility)*: Joby, Archer, Wisk, EHang; vertiports in Manhattan + LAX + Paris + Dubai. Realistic timeline ~2030 for limited operations.\n- *Planning + airspace*: low-altitude airspace governance; vertiport siting; noise + privacy + safety.\n- *Equity + nuisance*: drone delivery raises noise + privacy + visual concerns in low-density neighborhoods.\n\n**Climate-driven migration**:\n- *Internal migration*: U.S. + global migration toward less-climate-exposed areas (away from Florida + Phoenix? toward Great Lakes + Pacific Northwest?). Empirical signal still weak; Hsu + Bidlingmaier + Wang + Hesselman *Migration + Climate* literature emerging.\n- *International migration*: Sub-Saharan Africa, MENA, South Asia, Central America — climate-displacement components in larger migration flows.\n- *Receiving-city planning*: housing supply, services, integration — heavy-load cities (Houston post-Maria PR migration; Anchorage; Boise + Austin tech-migration) provide stress tests.\n- *Managed retreat* (lesson 7) as one form of climate migration; planned + assisted, not panicked.\n\n**Neil Brenner — planetary urbanization**:\n- **Brenner (Harvard GSD then U Chicago) + Christian Schmid (ETH Zürich)** — *Implosions/Explosions: Towards a Study of Planetary Urbanization* (2014); Brenner *Critique of Urbanization* (2017).\n- *Argument*: urbanization is no longer about discrete cities. The whole planet is urbanized — including extractive hinterlands (rare-earth mines, palm-oil plantations, data-center cooling reservoirs), logistical corridors (Suez, Panama, container-port complexes), energy + agricultural landscapes, oceans + atmosphere. Cities + non-cities are co-produced.\n- *Methodological move*: rejects the city-vs-countryside dichotomy; analyzes *concentrated*, *extended*, and *differential* urbanization.\n- *Lineage*: Lefebvre's *La révolution urbaine* (1970) on the *urban society*; Henri Lefebvre being the deepest 20th-c. theorist of urbanization.\n- *Critique + uptake*: contested (Robinson; Walker) but increasingly central to global + comparative urban scholarship.\n\n**LLM-augmented planning** (extension of slide 2):\n- Code interpretation + plan drafting + comment summarization + scenario generation.\n- Risk: LLM hallucination on facts (parcel-level zoning, code provisions); equity-in-AI; transparency + auditability.\n- Promise: scaling planner capacity (~⅓-½ of planning work is information processing + drafting); deeper community engagement (translation, summarization, accessibility).\n- *Emerging tools*: Replica, Sidewalk Labs spin-offs, ZenCity, niche LLM + GIS integrations. Field is < 5 years old.\n- *Governance*: NYC Algorithmic Management + Policy Officer; Barcelona Decidim; EU AI Act provisions; OMB M-24-10 (US federal AI use).\n\n**Critical theory — David Harvey + right to the city**:\n- **David Harvey (1935-, CUNY)** — Marxist geographer; *Social Justice and the City* (1973), *The Urbanization of Capital* (1985), *Spaces of Capital* (2001), *Rebel Cities* (2012).\n- *Right to the city* — recovering + extending Lefebvre (1968 *Le droit à la ville*): not just access to existing urban resources but the *collective right to remake the city + to participate in its production*.\n- *Capital + the city*: capital accumulation requires constant urbanization (housing, infrastructure, suburbanization, gentrification); cities are sites of capital absorption + crisis (the 2008 financial crisis was deeply urban — housing-finance-derivatives).\n- *Critique of smart-city + creative-class urbanism* (lessons 6 + 7 + Florida critique): claims of *good urbanism* often serve capital + wealthy residents + displace working-class + minority residents.\n- *Rebel Cities* (2012) on Occupy + Arab Spring + anti-austerity movements — urban revolts as right-to-city claims.\n- *Successor scholars*: Tom Slater (*Shaking Up the City* 2021), Loretta Lees, Jamie Peck, Ananya Roy (postcolonial urbanism), Neil Smith (gentrification critique), Edward Soja (postmodern geography).\n\n**Synthesis — the contemporary planner's task**:\n- Combine empirical + computational tools (Batty, Bettencourt, Lazer, mobility data) with traditional planning craft (Jacobs, Calthorpe, Moreno).\n- Build legitimate participation (Arnstein partnership + Decidim + community engagement).\n- Center equity + climate-justice (Bullard + Rothstein + Klinenberg + Justice40, lesson 7).\n- Use AI + smart tools to scale + augment, not to substitute for democratic process.\n- Engage critically — *right to the city* + planetary urbanization frame the political-economy stakes.\n\n**Where the discipline goes**:\n- Climate adaptation + just transition as core planning, not specialist subfield.\n- Housing supply + affordability reform as a national + transnational agenda (lesson 5).\n- 15-minute city + TOD + Complete Streets as the form-side default.\n- Computational + AI tools standardizing across planning shops.\n- Critical theory + EJ scholarship pushing back against tech-utopian or capital-driven framings.\n- Cities as the central site of 21st-c. politics, climate, and human flourishing.\n\nThe path from Hippodamus's grid through Howard's Garden City + Le Corbusier + Jacobs + Calthorpe + Bullard + Moreno + Glaeser + Brenner ends — provisionally — here: a discipline becoming more empirical, more computational, more equity-centered, and more politically self-conscious, all at once."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_front_1",
+        "kind": "guided_derivation",
+        "question": "Apply Bettencourt's urban-scaling laws to compare two metros",
+        "goal": "Use $Y = Y_0 N^\\beta$ to predict + interpret differences between cities of different sizes.",
+        "steps": [
+          {
+            "prompt": "What is the urban-scaling relationship + what are the typical exponents for socioeconomic vs infrastructure outputs?",
+            "motivation": "Setup.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Y = Y0 * N^beta where socioeconomic outputs (GDP, wages, patents, R&D, crime) scale superlinearly with beta ≈ 1.1-1.2, infrastructure (road length, gas-station count) scales sublinearly with beta ≈ 0.85, individual goods (housing, water consumption) scale roughly linearly"
+              ]
+            },
+            "hints": [
+              "Superlinear, sublinear, linear."
+            ],
+            "reveal": "Bettencourt + West + Lobo + Helbing + Kühnert + Strumsky 2007 *PNAS*: $Y = Y_0 N^\\beta$ where $N$ is metro population. Socioeconomic outputs (GDP, wages, patents, AIDS, crime) scale superlinearly $\\beta \\approx 1.1-1.2$; infrastructure (road length, pipe length, gas stations) scales sublinearly $\\beta \\approx 0.85$; individual goods (housing units, jobs, water consumption) ~linear. The patterns hold across countries + decades + many indicators."
+          },
+          {
+            "prompt": "Metro A has population 0.5M; Metro B has population 5M. Holding $Y_0$ + $\\beta$ fixed at $\\beta = 1.15$ for patents, predict the per-capita patent rate ratio (Metro B / Metro A).",
+            "motivation": "Per-capita calculation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(5/0.5)^(1.15-1) = 10^0.15 ≈ 1.41 — metro b has ~41 percent higher per-capita patent rate than metro a"
+              ]
+            },
+            "hints": [
+              "Per-capita Y/N scales as N^(β-1)."
+            ],
+            "reveal": "Per-capita $Y/N = Y_0 N^{\\beta-1}$. Metro B / Metro A per-capita = $(N_B/N_A)^{\\beta-1} = 10^{0.15} \\approx 1.41$. Metro B is predicted to have ~41% higher per-capita patent rate than Metro A. The same logic predicts higher wages, GDP per capita, + R&D — but also crime + disease incidence. Bigger cities are disproportionately more *intense*, in good ways and bad."
+          },
+          {
+            "prompt": "What's the infrastructure-side flip + planning implication?",
+            "motivation": "Sublinear infrastructure.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "with beta ~0.85 for infrastructure, per-capita pipe-length road-length etc. is (10)^-0.15 ≈ 0.71 — metro b needs ~29 percent less infrastructure per capita than metro a; bigger cities are more efficient on infrastructure"
+              ]
+            },
+            "hints": [
+              "Sublinear → economies of scale."
+            ],
+            "reveal": "For infrastructure $\\beta \\approx 0.85$, per-capita = $10^{-0.15} \\approx 0.71$. Metro B needs ~29% less road + pipe + station capacity per capita than Metro A. *Economies of scale* in infrastructure. Combined with superlinear socioeconomic outputs, bigger cities are *both* more productive *and* more infrastructure-efficient — the quantitative basis for Glaeser's *Triumph of the City* + the climate case for dense urbanism (lesson 7)."
+          },
+          {
+            "prompt": "How would Batty + Brenner + critical theory complicate this?",
+            "motivation": "Limits + critique.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "scaling laws are population averages and conceal within-city inequality, exclusion, and externalities; brenner's planetary urbanization argues the metro's productivity depends on hinterland resource flows not captured in n; bettencourt's laws describe outputs not who captures them — harvey's right-to-the-city question is who benefits from the productivity advantage"
+              ]
+            },
+            "hints": [
+              "Inequality + hinterland + distribution."
+            ],
+            "reveal": "Critiques: (1) scaling is a population average; conceals within-city inequality, displacement, exclusion (Bullard + Rothstein + Klinenberg, lesson 7). (2) Brenner's planetary urbanization: metro productivity depends on *hinterland* resource + labor flows that don't enter $N$. (3) Harvey's right-to-the-city: who *captures* the productivity advantage — capital, high-skill workers, longtime residents? (4) Batty + critical urban scholars: laws describe the existing system; not normative for what cities *should* be. Bettencourt himself emphasizes the residual — *which* cities thrive at given $N$ — matters more than the law itself."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_front_1",
+        "kind": "multiple_choice",
+        "question": "Why is Arnstein's 1969 *Ladder of Citizen Participation* still foundational for contemporary participatory planning?",
+        "options": [
+          "It made participation illegal.",
+          "Sherry Arnstein's 1969 *JAIP* article identified that 'participation' in U.S. planning practice often stopped at *informing* or *consultation* — citizens heard about decisions but lacked power to change them. Her 8-rung **Ladder** (Manipulation + Therapy = non-participation; Informing + Consultation + Placation = tokenism; Partnership + Delegated power + Citizen control = real citizen power) gave planners + advocates a precise vocabulary to assess whether engagement was *real* or *symbolic*. The framework remains foundational because: (1) symbolic participation persists everywhere in planning; (2) the typology is intuitive + portable across contexts; (3) modern frameworks (IAP2 Spectrum, Fung's *Direct Democracy*, Decidim, Justice40 community-engagement guidelines) descend from Arnstein. Combined with critical theory (Harvey *right to the city*) + computational tools (Decidim, OpenStreetMap), the ladder still defines the contemporary participation evaluation standard. Critique: unidimensional; Iris Marion Young (*Inclusion and Democracy* 2000) extends.",
+          "It required all planning to be top-down.",
+          "It applied only to architecture."
+        ],
+        "correctIndex": 1,
+        "explanation": "Arnstein's 1969 ladder distinguishes non-participation (manipulation, therapy) from tokenism (informing, consultation, placation) from real citizen power (partnership, delegated power, citizen control). Foundational because: symbolic participation persists everywhere; the typology is intuitive + portable; modern frameworks (IAP2, Fung, Decidim, Justice40) descend from it. Combined with Harvey + computational tools, still the contemporary participation standard. Critique: unidimensional; Iris Young extends."
+      },
+      "hints": [
+        "8 rungs.",
+        "Tokenism vs citizen power."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Arnstein (1969) 8-rung ladder: non-participation (1-2), tokenism (3-5), citizen power (6-8). Distinguishes symbolic engagement from real power. Foundational because symbolic participation persists, typology is portable, modern frameworks (IAP2, Decidim, Justice40) descend. Critique: unidimensional; Iris Young extends."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_front_1",
+        "kind": "scenario",
+        "question": "Synthesizing the path",
+        "prompt": "You are advising a city of 800k that is implementing a 30-year integrated plan covering: zoning reform (Minneapolis + SB 9 + form-based codes); housing affordability (Vienna + LIHTC + Housing First); transit + 15-minute city (Calthorpe + Moreno + Vision Zero); green infrastructure + climate adaptation (SUDS + Klinenberg + Justice40); smart-city + AI tooling (Decidim + LLM assistants but avoiding Sidewalk Toronto's mistakes); and is committed to Arnstein-partnership participation + Harvey's right-to-the-city framing. Draft a 10-line strategic agenda that integrates all six dimensions — naming the specific authors + cases driving each — and identifies the two biggest political-economy risks."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_front_1",
+        "kind": "math_expression",
+        "question": "Bettencourt's superlinear scaling for patents has $\\beta = 1.15$. If a metro doubles its population, by what factor does total patent output increase? Round to 2 decimals.",
+        "acceptedAnswers": [
+          "2.22"
+        ],
+        "hint": "$Y \\propto N^\\beta$; for doubling, factor = $2^{1.15}$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_front_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, explain why the contemporary urban-planning frontier requires combining computational urban science (Batty, Bettencourt), participatory tools (Arnstein, Decidim, GIS), AI augmentation (LLM assistants), and critical theory (Harvey's right to the city, Brenner's planetary urbanization).",
+        "rubric": "Mentions: Computational urban science (Batty *New Science of Cities* 2013; Bettencourt scaling laws 2007 *PNAS*; Lazer + Watts 2009 CSS manifesto) provides quantitative laws + simulation + mobility data — but is descriptive, not normative. Participatory tools (Arnstein 1969 ladder; Decidim Barcelona 2017; GIS + CityGML + 3D digital twins) build democratic legitimacy + integrate residents in decisions affecting them — but without quantitative + computational support cannot scale or assess equity. AI + LLM augmentation (early days; ZenCity, plan + permit assistants) can scale planner capacity but risks substituting for democratic process (Sidewalk Toronto warning, Zuboff *Surveillance Capitalism*). Critical theory (Harvey *Rebel Cities* 2012; Brenner planetary urbanization 2014) reminds the planner that cities are sites of capital + power + inequality; computation alone doesn't answer *for whom* the city is built. The integrated frontier — quantitative + participatory + AI-augmented + critically self-aware — is the discipline's 21st-century form. None of the four is optional."
+      }
+    }
+  ]
+}

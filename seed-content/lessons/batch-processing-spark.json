@@ -15,6 +15,8 @@
     {
       "kind": "text",
       "title": "Narrow vs wide transformations",
+      "viz": "dag-pipeline",
+      "vizProps": {},
       "body": "Spark (and any data-parallel system) processes data in partitions across many workers. Operations classify as:\n\n**Narrow** (no shuffle): each output partition depends on one input partition. `map`, `filter`, `select`. Local — embarrassingly parallel. Per-row cost only.\n\n**Wide** (shuffle): each output partition depends on multiple input partitions. `groupBy`, `join`, `distinct`. Requires all-to-all data movement across the network. Per-row cost + network cost + serialization.\n\nThe planner builds a DAG, identifies shuffle boundaries, and breaks execution into *stages* — each stage is a run of narrow operations followed by a shuffle. A 5-stage job involves 4 shuffles.\n\n**Why shuffles are expensive**: serialize each row, write to disk on the sending side, transfer over network, deserialize on the receiving side. At terabyte scale, the shuffle phase dominates runtime. Spark's whole performance story is 'minimize shuffles'."
     },
     {

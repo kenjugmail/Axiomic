@@ -1,0 +1,102 @@
+{
+  "slug": "failure-fatigue-and-creep",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish ductile from brittle fracture and apply Griffith crack theory.",
+      "Interpret S-N curves and the ductile-brittle transition in fatigue and impact.",
+      "Analyze high-temperature creep and use the Larson-Miller parameter for life prediction."
+    ],
+    "prereqs": [
+      "mechanical-properties-and-strengthening"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Fracture: ductile, brittle, and the Griffith criterion",
+      "body": "Materials fail by **fracture**, the separation of a body into pieces under stress. Two limiting modes are distinguished. **Ductile fracture** is preceded by substantial plastic deformation; it consumes large energy, proceeds slowly, and gives ample warning through necking. Its microscopic signature is a **cup-and-cone** surface formed by the nucleation, growth, and coalescence of **microvoids** around inclusions, producing **dimples** visible by scanning electron microscopy. **Brittle fracture**, by contrast, occurs with little plastic deformation, propagates rapidly (sometimes near the speed of sound), and gives almost no warning. Its surfaces are flat and may show **cleavage** facets (transgranular, following crystallographic planes), **chevron** markings pointing back to the origin, or **intergranular** separation along weakened grain boundaries.\n\nThe theoretical strength of a perfect crystal, based on breaking atomic bonds, is about $E/10$ — yet real materials fail at one hundredth to one thousandth of this. The resolution came from **Alan Arnold Griffith**, who in **1920** studied the fracture of glass and proposed that pre-existing **cracks** act as severe stress concentrators. By balancing the elastic strain energy released as a crack grows against the surface energy needed to create new crack faces, Griffith derived the critical stress for a crack of half-length $a$ to propagate:\n\n$$\\sigma_f = \\sqrt{\\frac{2E\\gamma_s}{\\pi a}}$$\n\nwhere $\\gamma_s$ is the surface energy per unit area. The key insight is that strength scales as $a^{-1/2}$: larger flaws give lower fracture stress. **George Rankine Irwin** extended Griffith's energy approach to metals in the 1950s by adding the plastic-work term and defining the **stress intensity factor** $K = Y\\sigma\\sqrt{\\pi a}$ and the **fracture toughness $K_{IC}$**, the material's resistance to crack propagation in plane strain. Fracture occurs when $K$ reaches $K_{IC}$. This founded the discipline of **linear elastic fracture mechanics (LEFM)**. The stress at a sharp crack tip was characterized by **Charles Inglis** (1913), whose elliptical-hole solution showed the stress concentration rising as the tip radius shrinks. Together, Inglis, Griffith, and Irwin explain why apparently sound structures can fail catastrophically from small, undetected flaws — a lesson learned tragically in the brittle fractures of the welded **Liberty ships** during the Second World War."
+    },
+    {
+      "kind": "text",
+      "title": "Fatigue, S-N curves, and the ductile-brittle transition",
+      "body": "Most engineering components fail not under a single overload but under **fatigue**: progressive, localized damage from **cyclic loading** at stresses well below the static yield strength. Fatigue accounts for the great majority of in-service mechanical failures. The phenomenon was first studied systematically by **August Wohler** (often anglicized Woehler), a German railway engineer who, in the 1850s and 1860s, investigated repeated failures of railway axles and established the foundational concept now bearing his name: the **Wohler curve** or **S-N curve**, plotting cyclic stress amplitude $S$ against the number of cycles to failure $N$ (on a logarithmic scale).\n\nFatigue proceeds in three stages: **crack initiation**, usually at a surface stress concentration or **persistent slip band**; **crack propagation**, in which the crack advances a small increment each cycle, leaving characteristic **striations** and macroscopic **beach marks**; and final **fast fracture** when the remaining ligament can no longer carry the load. The propagation rate obeys the **Paris law**, $da/dN = C(\\Delta K)^m$, formulated by **Paul Paris** in the early 1960s, relating crack-growth rate to the cyclic stress-intensity range $\\Delta K$.\n\nThe shape of the S-N curve reveals a critical distinction. Many **ferrous alloys and titanium** exhibit a true **fatigue limit** (endurance limit): below a threshold stress amplitude, the material survives essentially infinite cycles. Most **non-ferrous metals** such as **aluminium** show no such limit; their S-N curve continues to fall, and engineers instead quote a **fatigue strength** at a specified large number of cycles (often $10^7$). Fatigue life is strongly degraded by surface roughness, corrosion (**corrosion fatigue**), and tensile mean stress, and improved by compressive residual stresses from **shot peening**.\n\nA related embrittlement phenomenon is the **ductile-brittle transition temperature (DBTT)**. **Body-centered-cubic** metals and steels are tough and ductile at high temperature but become brittle below a transition temperature, because the lattice friction resisting dislocation motion rises steeply as temperature falls. The transition is measured by the **Charpy V-notch impact test** (and the related **Izod** test), which records the energy absorbed in fracturing a notched bar struck by a swinging pendulum. **FCC** metals such as aluminium, copper, and austenitic stainless steel show no sharp transition and remain tough at cryogenic temperatures. The DBTT was central to the **Liberty ship** failures, where welded BCC steel hulls cracked catastrophically in cold North Atlantic waters, and remains a primary design constraint for pipelines, pressure vessels, and Arctic structures."
+    },
+    {
+      "kind": "text",
+      "title": "High-temperature creep and the Larson-Miller parameter",
+      "body": "At high temperatures — conventionally above about **0.4 times the absolute melting temperature $T_m$** — metals deform slowly and permanently under constant load even *below* the yield strength. This time-dependent deformation is **creep**, the limiting failure mode for jet-engine turbine blades, power-plant boilers, and any component operating hot under sustained stress.\n\nA **creep curve** (strain versus time at constant stress and temperature) shows three stages. **Primary (transient) creep** has a decreasing strain rate as the material work-hardens. **Secondary (steady-state) creep** is the longest and most important stage, with a constant **minimum creep rate** $\\dot{\\varepsilon}_s$ where hardening and recovery balance. **Tertiary creep** shows an accelerating rate as internal damage — voids and cracks, especially at grain boundaries — accumulates, ending in **creep rupture**. The steady-state rate follows a power-law (the **Norton-Bailey law**) with an **Arrhenius** temperature dependence:\n\n$$\\dot{\\varepsilon}_s = A\\,\\sigma^n \\exp\\!\\left(-\\frac{Q_c}{RT}\\right)$$\n\nwhere $n$ is the **stress exponent** (around 3 to 8 for dislocation-climb creep, near 1 for diffusional **Nabarro-Herring** and **Coble** creep), $Q_c$ is the activation energy for creep (usually close to that for self-diffusion), and $R$ is the gas constant. Distinct mechanisms dominate in different regimes, mapped onto **Ashby deformation-mechanism maps** developed by **Michael Ashby**: dislocation glide and climb at high stress, Nabarro-Herring (lattice) diffusional creep and Coble (grain-boundary) diffusional creep at low stress, and grain-boundary sliding.\n\nBecause creep tests to rupture can take years, engineers use **time-temperature parameters** to extrapolate short, high-temperature tests to long service lives. The most widely used is the **Larson-Miller parameter (LMP)**, introduced by **Frank Larson** and **James Miller** in 1952:\n\n$$\\text{LMP} = T\\,(C + \\log t_r)$$\n\nwhere $T$ is the absolute temperature, $t_r$ the time to rupture (in hours), and $C$ a material constant (often about 20 for steels). The central idea is that a given LMP value corresponds to a fixed stress for rupture: high temperature for a short time is equivalent, in damage terms, to lower temperature for a long time. By plotting stress against LMP, a single master curve lets designers predict, say, the 100,000-hour rupture life of a turbine alloy from accelerated tests of a few hundred hours. Creep resistance is engineered by raising the melting point, coarsening or eliminating grain boundaries (hence **directionally solidified** and **single-crystal** turbine blades pioneered by **Pratt & Whitney** and others), and adding solutes and the ordered **gamma-prime** precipitates of nickel **superalloys** that resist dislocation climb. Companion parameters include the **Sherby-Dorn** and **Manson-Haferd** parameters, but the Larson-Miller approach remains the workhorse of high-temperature design."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ff_griffith",
+        "kind": "math_expression",
+        "question": "Using the Griffith equation sigma_f = sqrt(2*E*gamma_s/(pi*a)), if a glass plate (E = 70 GPa, gamma_s = 0.5 J/m^2) contains a surface crack of half-length a = 1 micrometer (1e-6 m), estimate the fracture stress in MPa. Round to the nearest 10 MPa. (Numerator 2*E*gamma_s = 7e10; divide by pi*a = pi*1e-6.)",
+        "acceptedAnswers": [
+          "150",
+          "150 MPa",
+          "~150",
+          "149"
+        ],
+        "hint": "2*E*gamma_s = 2*70e9*0.5 = 7e10. pi*a = 3.1416e-6. Ratio = 2.228e16. sqrt = 1.49e8 Pa = 149 MPa, about 150 MPa."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ff_fatiguelimit",
+        "kind": "multiple_choice",
+        "question": "Which statement correctly contrasts the fatigue behavior of steels and aluminium alloys?",
+        "options": [
+          "Both steels and aluminium show a true fatigue (endurance) limit below which life is infinite.",
+          "Steels often show a true fatigue limit, whereas aluminium alloys generally do not and require a fatigue strength quoted at a finite cycle count.",
+          "Aluminium has a fatigue limit but steels do not.",
+          "Neither material can fail by fatigue below its yield strength."
+        ],
+        "correctIndex": 1,
+        "explanation": "Many ferrous alloys (and titanium) exhibit a true fatigue limit: below a threshold stress amplitude, the S-N curve flattens and life becomes effectively infinite. Most non-ferrous metals, notably aluminium alloys, show no such plateau; their S-N curve keeps descending, so designers specify a fatigue strength at a chosen large cycle count such as 10^7. Fatigue routinely occurs at stresses below the yield strength, ruling out option D."
+      },
+      "hints": [
+        "Think about which class of metals shows a flat plateau on the S-N curve.",
+        "Aluminium's S-N curve keeps falling without leveling off."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Steels (and Ti) commonly display a genuine fatigue limit where the S-N curve becomes horizontal; below that amplitude they survive indefinitely. Aluminium alloys lack this plateau, so a fatigue strength is quoted at a specified N (e.g. 10^7 cycles). Hence option B. Fatigue characteristically occurs below the static yield strength, so option D is false."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ff_liberty",
+        "kind": "scenario",
+        "question": "Diagnosing the Liberty ship brittle fractures",
+        "prompt": "During the Second World War, a number of all-welded Liberty ships fractured suddenly, some splitting in two while moored in cold harbors, despite the steel meeting its tensile specification. Using the concepts of the ductile-brittle transition temperature in BCC steels, Griffith/Irwin fracture mechanics with stress concentration at flaws, and the role of welded (rather than riveted) construction in allowing cracks to run uninterrupted, explain why these failures occurred preferentially in cold water and how modern steel selection (lower DBTT, controlled composition, toughness testing by Charpy) prevents them."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ff_lmp",
+        "kind": "math_expression",
+        "question": "Using the Larson-Miller parameter LMP = T(C + log t_r) with C = 20, T in kelvin, and t_r in hours, compute the LMP for a turbine alloy tested at T = 1000 K that ruptures at t_r = 100 hours. (log 100 = 2.)",
+        "acceptedAnswers": [
+          "22000",
+          "22000 ",
+          "2.2e4",
+          "22,000"
+        ],
+        "hint": "log(100) = 2, so LMP = 1000*(20 + 2) = 1000*22 = 22000."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ff_creep",
+        "kind": "scenario",
+        "question": "Predicting turbine-blade life with Larson-Miller",
+        "prompt": "A jet-engine manufacturer must guarantee 30,000 hours of service life for a nickel-superalloy turbine blade at its operating temperature and stress, but cannot wait years to test it. Explain how short-duration, higher-temperature creep-rupture tests can be combined through the Larson-Miller parameter to extrapolate the long-life rupture stress, what assumption underlies treating high-temperature/short-time and lower-temperature/long-time conditions as equivalent, and why single-crystal blades with no grain boundaries dramatically outperform conventional polycrystalline blades in creep."
+      }
+    }
+  ]
+}

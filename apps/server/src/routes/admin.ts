@@ -20,7 +20,9 @@ import {
   getDb,
   jobLeases,
   jobRuns,
+  lessonQualitySnapshots,
   masteryNodes,
+  masteryPaths,
   newsArticles,
   researchPapers,
   users,
@@ -44,6 +46,7 @@ import {
   approveClaimRequest,
   rejectClaimRequest,
 } from "../lib/authorClaim";
+import { scoreLessonContent, type ScorableLesson } from "../lib/lessonQuality";
 import type { Env } from "../env";
 
 export const adminRouter = new Hono<Env>();
@@ -98,6 +101,145 @@ adminRouter.get("/rate-limits", requireAdmin, async (c) => {
   }
   entries.sort((a, b) => b.rejected - a.rejected);
   return c.json({ entries: entries.slice(0, 50) });
+});
+
+// Lesson quality dashboard. Scores every lesson-kind node against the
+// same rubric as `bun run audit:lessons` (shared scoreLessonContent),
+// reading lessonData straight from the DB. Sorted worst-first so the
+// most-improvable lessons surface at the top; each row deep-links into
+// the lesson editor on the client.
+adminRouter.get("/lesson-quality", requireAdmin, async (c) => {
+  const db = getDb();
+  const rows = db
+    .select({
+      nodeSlug: masteryNodes.slug,
+      title: masteryNodes.title,
+      level: masteryNodes.level,
+      lessonData: masteryNodes.lessonData,
+      pathSlug: masteryPaths.slug,
+      pathTitle: masteryPaths.title,
+    })
+    .from(masteryNodes)
+    .innerJoin(masteryPaths, eq(masteryNodes.pathId, masteryPaths.id))
+    .where(eq(masteryNodes.nodeKind, "lesson"))
+    .all();
+
+  const lessons = rows.map((r) => {
+    const base = {
+      nodeSlug: r.nodeSlug,
+      pathSlug: r.pathSlug,
+      pathTitle: r.pathTitle,
+      title: r.title,
+      level: r.level,
+    };
+    if (!r.lessonData) {
+      return {
+        ...base,
+        slideCount: 0,
+        textSlideCount: 0,
+        questionSubkindCount: 0,
+        totalBodyWords: 0,
+        nameDropCount: 0,
+        hasViz: false,
+        composite: 0,
+        flags: ["NO_LESSON_DATA"],
+      };
+    }
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(r.lessonData);
+    } catch {
+      return {
+        ...base,
+        slideCount: 0,
+        textSlideCount: 0,
+        questionSubkindCount: 0,
+        totalBodyWords: 0,
+        nameDropCount: 0,
+        hasViz: false,
+        composite: 0,
+        flags: ["INVALID_JSON"],
+      };
+    }
+    return { ...base, ...scoreLessonContent(parsed as ScorableLesson) };
+  });
+
+  // Composite delta vs the most recent quality snapshot (if any). The
+  // snapshot is captured by `bun run snapshot:quality`, which scores the
+  // same DB lesson data, so deltas are exact. delta is null when a lesson
+  // wasn't present in the last snapshot (e.g. a brand-new lesson).
+  const latestRunRow = db
+    .select({ runAt: lessonQualitySnapshots.runAt })
+    .from(lessonQualitySnapshots)
+    .orderBy(desc(lessonQualitySnapshots.runAt))
+    .limit(1)
+    .all();
+  const lastSnapshotAt = latestRunRow[0]?.runAt ?? null;
+  const snapMap = new Map<string, number>();
+  if (lastSnapshotAt) {
+    const snaps = db
+      .select({
+        nodeSlug: lessonQualitySnapshots.nodeSlug,
+        composite: lessonQualitySnapshots.composite,
+      })
+      .from(lessonQualitySnapshots)
+      .where(eq(lessonQualitySnapshots.runAt, lastSnapshotAt))
+      .all();
+    for (const s of snaps) snapMap.set(s.nodeSlug, s.composite);
+  }
+
+  const lessonsWithDelta = lessons.map((l) => ({
+    ...l,
+    delta: snapMap.has(l.nodeSlug)
+      ? l.composite - (snapMap.get(l.nodeSlug) as number)
+      : null,
+  }));
+  lessonsWithDelta.sort((a, b) => a.composite - b.composite);
+
+  // Summary stats over lessons that actually have content.
+  const scored = lessonsWithDelta.filter(
+    (l) => !l.flags.includes("NO_LESSON_DATA"),
+  );
+  const n = scored.length;
+  const sortedComposites = scored
+    .map((l) => l.composite)
+    .sort((a, b) => a - b);
+  const avg = n
+    ? Math.round(sortedComposites.reduce((s, x) => s + x, 0) / n)
+    : 0;
+  const median = n ? sortedComposites[Math.floor(n / 2)] : 0;
+  const flaggedCount = scored.filter((l) => l.flags.length > 0).length;
+
+  return c.json({
+    lessons: lessonsWithDelta,
+    summary: {
+      total: lessonsWithDelta.length,
+      scored: n,
+      missing: lessonsWithDelta.length - n,
+      avg,
+      median,
+      flaggedCount,
+      lastSnapshotAt,
+    },
+  });
+});
+
+// Corpus-level quality trend: one point per snapshot batch (grouped by
+// runAt), for the dashboard sparkline. Captured by the daily
+// capture_quality_snapshot job or `bun run snapshot:quality`.
+adminRouter.get("/lesson-quality/history", requireAdmin, async (c) => {
+  const db = getDb();
+  const snapshots = db
+    .select({
+      runAt: lessonQualitySnapshots.runAt,
+      count: sql<number>`count(*)`,
+      avg: sql<number>`round(avg(${lessonQualitySnapshots.composite}))`,
+    })
+    .from(lessonQualitySnapshots)
+    .groupBy(lessonQualitySnapshots.runAt)
+    .orderBy(lessonQualitySnapshots.runAt)
+    .all();
+  return c.json({ snapshots });
 });
 
 // --- Sprint 52: Content proposal queue ------------------------------

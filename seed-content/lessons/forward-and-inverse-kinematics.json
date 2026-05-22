@@ -1,0 +1,162 @@
+{
+  "slug": "forward-and-inverse-kinematics",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Set up Denavit-Hartenberg parameters for a serial arm.",
+      "Compose homogeneous transforms to compute end-effector pose.",
+      "Use the Jacobian for velocity, singularities, and inverse kinematics."
+    ],
+    "prereqs": [
+      "robotics-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Denavit-Hartenberg, homogeneous transforms, and the forward map",
+      "body": "**Kinematics** treats motion without forces. **Forward kinematics (FK)**: given joint angles θ = (θ₁, ..., θₙ), compute end-effector pose T = (position, orientation). **Inverse kinematics (IK)**: given a desired T, solve for θ.\n\nFK is the easy direction (one function evaluation). IK is hard (multiple solutions, possibly none, possibly infinitely many).\n\n**Homogeneous transformation matrix** — the central object:\n$$T = \\begin{bmatrix} R & p \\\\ 0 & 1 \\end{bmatrix} \\in SE(3)$$\nwhere R ∈ SO(3) is a 3×3 rotation matrix (R Rᵀ = I, det R = +1) and p ∈ ℝ³ is the translation. Composition is matrix multiplication: T₀² = T₀¹ T₁². Homogeneous coordinates extend points to (x, y, z, 1) so that translation becomes linear.\n\n**Denavit-Hartenberg (DH) parameters (Jacques Denavit + Richard Hartenberg, 1955)**: a canonical four-parameter convention for placing coordinate frames on a serial chain. For each link i:\n- **aᵢ** (link length): distance along x̂ᵢ from ẑᵢ to ẑᵢ₊₁.\n- **αᵢ** (link twist): angle about x̂ᵢ from ẑᵢ to ẑᵢ₊₁.\n- **dᵢ** (link offset): distance along ẑᵢ from x̂ᵢ₋₁ to x̂ᵢ.\n- **θᵢ** (joint angle): angle about ẑᵢ from x̂ᵢ₋₁ to x̂ᵢ.\n\nFor a revolute joint θᵢ varies; for prismatic, dᵢ varies. The link transform is:\n$$T_{i-1}^i = R_z(\\theta_i) \\cdot \\text{Trans}_z(d_i) \\cdot \\text{Trans}_x(a_i) \\cdot R_x(\\alpha_i)$$\n\nThe full FK is the product:\n$$T_0^n(\\theta) = T_0^1(\\theta_1) \\, T_1^2(\\theta_2) \\, \\cdots \\, T_{n-1}^n(\\theta_n)$$\n\nThere are two DH conventions — *classical* (above, frame i fixed to link i with z along joint i+1) and *modified DH* (Craig 1986; frame i with z along joint i). Most modern textbooks (Craig, Spong, Lynch-Park) use modified; ROS URDF uses an explicit transform per joint that subsumes DH.\n\n**Product-of-exponentials (PoE, Brockett 1984)**: alternative formulation using twists ξ ∈ se(3) and matrix exponentials:\n$$T(\\theta) = e^{\\hat{\\xi}_1 \\theta_1} e^{\\hat{\\xi}_2 \\theta_2} \\cdots e^{\\hat{\\xi}_n \\theta_n} M$$\nwith M the zero-configuration pose. Used in the modern Lynch-Park textbook because it doesn't require attaching frames to each link — only choose a base + reference pose.\n\n**Rotation representations** (each with tradeoffs):\n- Rotation matrix R: 9 parameters, 6 constraints; unique; gimbal-free; standard for computation.\n- Euler angles (roll-pitch-yaw, ZYX, ZYZ, ...): 3 parameters; intuitive; gimbal lock at singularities.\n- Axis-angle (ω̂, θ): 4 parameters; closest to exponential coordinates.\n- Quaternion q = (w, x, y, z): 4 parameters, 1 constraint (|q|=1); smooth; no gimbal lock; used in graphics, control, ROS tf2.\n- Modified Rodrigues parameters, exponential coordinates ωθ ∈ ℝ³: 3-parameter, minimal.\n\n**Try it**: the visualization below lets you drag joint angles and watch the end-effector trace through the workspace."
+    },
+    {
+      "kind": "text",
+      "title": "Interactive: forward kinematics of a 3R arm",
+      "body": "Drag the joint sliders to see how (θ₁, θ₂, θ₃) map to end-effector position. This is a planar 3R arm with link lengths (1, 1, 0.7). Notice:\n\n- **Multiple joint configurations** can produce the same end-effector pose (\"elbow up\" vs \"elbow down\" — IK has multiple solutions).\n- The **reachable workspace** is an annulus: outer radius L₁+L₂+L₃ = 2.7, inner radius depends on joint limits and self-collision.\n- At the **outer boundary** the arm is fully extended — small task-space motions require huge joint changes (singularity).\n- Try setting θ₂ = 0: the arm is straight. Differential motion at the tip requires the wrist to swing dramatically — this is the **boundary singularity**.\n\nThe transform composition under the hood is exactly:\n$$T_0^3(\\theta) = T_0^1(\\theta_1) T_1^2(\\theta_2) T_2^3(\\theta_3)$$\nWith each Tᵢ₋₁ⁱ a rotation by θᵢ followed by translation along link length Lᵢ.\n\nThis is the simplest non-trivial robot. Real arms (Kuka, Franka, Universal Robots UR5/UR10, ABB) have 6 or 7 revolutes in 3D and the same logic generalizes — just bigger matrices.",
+      "viz": "forward-kinematics-arm",
+      "vizProps": {
+        "joints": 3,
+        "linkLengths": [1, 1, 0.7]
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Jacobian, singularities, manipulability, inverse kinematics",
+      "body": "**Jacobian** J(θ): the linear map from joint velocities to end-effector velocities.\n$$\\dot{x} = J(\\theta) \\dot{\\theta} \\quad ; \\quad J \\in \\mathbb{R}^{6 \\times n}$$\nThe top three rows give linear velocity v ∈ ℝ³; the bottom three give angular velocity ω ∈ ℝ³. Two flavors:\n- **Geometric Jacobian**: rows correspond to physical twist coordinates (most common).\n- **Analytical Jacobian**: derivative of a minimal parameterization (Euler-angle rates); has artificial singularities at gimbal lock.\n\n**Computing J**: column i of the geometric Jacobian for a revolute joint is (ẑᵢ × (pₙ - pᵢ), ẑᵢ); for a prismatic joint it is (ẑᵢ, 0). Closed form via DH/PoE.\n\n**Static force transpose**: the Jacobian transpose maps end-effector wrenches to joint torques: τ = Jᵀ F. This is the principle of virtual work; foundational for impedance control + force feedback.\n\n**Singularities**: configurations where J loses rank — the end-effector cannot move in some direction without infinite joint velocity.\n- **Boundary singularity**: arm fully extended (workspace boundary).\n- **Internal singularity**: e.g., wrist singularity when two joint axes align (PUMA: joints 4 and 6 collinear when θ₅ = 0).\n- Detected by det J = 0 (for square J) or smallest singular value of J approaching 0.\n- Cause IK to fail, generate large torques, motion-planning failures.\n\n**Manipulability ellipsoid (Yoshikawa 1985)**: visualize J Jᵀ as an ellipsoid; principal axes = singular vectors, lengths = singular values. **Manipulability index** w = √det(J Jᵀ). w → 0 at singularities. Used for posture optimization in redundant arms.\n\n**Inverse kinematics — analytical**:\n- **Pieper's principle (Donald Pieper, Stanford, 1968)**: if three consecutive joint axes intersect at a point (e.g., a spherical wrist), closed-form IK exists. Most industrial arms (PUMA, Stäubli, Kuka classical) satisfy this.\n- **Up to 8 solutions** for a 6R arm with spherical wrist (shoulder left/right, elbow up/down, wrist flip).\n- Closed-form is fast (microseconds) + exact + lets you choose among solutions deterministically.\n- IKFast (Diankov) and analytic solvers ship with MoveIt.\n\n**Inverse kinematics — numerical**:\n- **Newton-Raphson**: iterate θₖ₊₁ = θₖ + J⁺(x_target - x(θₖ)). Local convergence near a solution.\n- **Damped least squares (DLS, Levenberg-Marquardt)** — Nakamura + Hanafusa 1986; Wampler 1986:\n  $$\\Delta\\theta = J^T (J J^T + \\lambda^2 I)^{-1} \\Delta x$$\n  Damping λ regularizes near singularities; trades accuracy for stability.\n- **Pseudoinverse** J⁺ = Jᵀ(J Jᵀ)⁻¹ (when J full row rank) — Moore-Penrose inverse; minimum-norm joint motion.\n- **Optimization-based**: minimize ||x(θ) - x_target||² + regularizers over θ; SQP, gradient descent. TRAC-IK (Beeson + Ames 2015) combines Newton + SQP.\n- **Learning-based**: neural-network IK for redundancy resolution + style imitation (recent).\n\n**Redundancy resolution** (n > task DOF):\n- Null-space projection: θ̇ = J⁺ ẋ + (I - J⁺J) q̇₀, where q̇₀ is a secondary-task gradient (manipulability, joint centering, obstacle avoidance).\n- Khatib's **task-priority** framework: stack tasks, each in null space of higher ones. **Operational-space control (OSC)** uses this for whole-body humanoid control.\n\nThis machinery generalizes to mobile manipulators, parallel mechanisms, soft robots (with infinite-dimensional configuration), and humanoids (floating-base + contact constraints). Software: KDL, Pinocchio (INRIA — Carpentier et al.), Drake, ROS MoveIt, IKFast."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_kin_2r",
+        "kind": "guided_derivation",
+        "question": "Derive forward + inverse kinematics for a planar 2R arm",
+        "goal": "Two revolute joints in a plane, link lengths L₁ and L₂. Given (θ₁, θ₂), find end-effector (x, y). Then solve the inverse.",
+        "steps": [
+          {
+            "prompt": "Write the forward kinematics (x, y) as functions of θ₁, θ₂.",
+            "motivation": "Geometry.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "x = L1 cos θ1 + L2 cos(θ1 + θ2); y = L1 sin θ1 + L2 sin(θ1 + θ2)",
+                "x = L1 cos(θ1) + L2 cos(θ1+θ2), y = L1 sin(θ1) + L2 sin(θ1+θ2)"
+              ]
+            },
+            "hints": [
+              "Sum of two vectors: first link in θ₁ direction, second link in (θ₁+θ₂) direction."
+            ],
+            "reveal": "x = L₁ cos θ₁ + L₂ cos(θ₁+θ₂); y = L₁ sin θ₁ + L₂ sin(θ₁+θ₂). Direct sum of two link displacements."
+          },
+          {
+            "prompt": "For IK, first solve for θ₂. Use the identity x² + y² = L₁² + L₂² + 2 L₁ L₂ cos θ₂.",
+            "motivation": "Eliminate θ₁ via Pythagoras.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "cos θ2 = (x² + y² − L1² − L2²) / (2 L1 L2)",
+                "θ2 = ±acos((x²+y²-L1²-L2²)/(2 L1 L2))"
+              ]
+            },
+            "hints": [
+              "Squaring + summing the FK equations eliminates θ₁."
+            ],
+            "reveal": "cos θ₂ = (x² + y² − L₁² − L₂²) / (2 L₁ L₂). Two solutions: θ₂ = ±acos(...) (elbow up + elbow down). No real solution if |cos θ₂| > 1 → target out of reach."
+          },
+          {
+            "prompt": "Now solve for θ₁ given θ₂.",
+            "motivation": "Two-equation linear system.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "θ1 = atan2(y, x) − atan2(L2 sin θ2, L1 + L2 cos θ2)",
+                "θ1 = atan2(y,x) - atan2(L2 sinθ2, L1 + L2 cosθ2)"
+              ]
+            },
+            "hints": [
+              "θ₁ = atan2(y, x) − atan2(L₂ sin θ₂, L₁ + L₂ cos θ₂)."
+            ],
+            "reveal": "θ₁ = atan2(y, x) − atan2(L₂ sin θ₂, L₁ + L₂ cos θ₂). The first term aims the arm at the target; the second subtracts the offset due to bending at the elbow. Use atan2 to handle all four quadrants."
+          },
+          {
+            "prompt": "When is the IK undefined or singular?",
+            "motivation": "Boundary.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "out of reach when sqrt(x²+y²) > L1+L2 or < |L1-L2|; singular when θ2 = 0 or π"
+              ]
+            },
+            "hints": [
+              "Workspace + boundary."
+            ],
+            "reveal": "Out of reach (no solution): √(x²+y²) > L₁+L₂ or < |L₁−L₂|. Boundary singularity: θ₂ = 0 (fully extended) or π (folded); Jacobian rank-deficient; small task-space motion → large joint changes."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\theta_2 = \\pm\\arccos\\left(\\frac{x^2+y^2-L_1^2-L_2^2}{2L_1 L_2}\\right);\\; \\theta_1 = \\operatorname{atan2}(y,x) - \\operatorname{atan2}(L_2 \\sin\\theta_2, L_1+L_2 \\cos\\theta_2)}$$ The planar 2R is the simplest non-trivial IK and exhibits all the qualitative phenomena: multiple solutions, unreachable regions, boundary singularities. Pieper showed that any 6R arm with a spherical wrist admits an analogous closed-form IK; this is why classical industrial arms are designed that way."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_kin_singularity",
+        "kind": "multiple_choice",
+        "question": "Why does damped least squares (Nakamura + Hanafusa 1986; Wampler 1986) outperform the plain pseudoinverse for IK near singularities?",
+        "options": [
+          "Random.",
+          "Near a singularity, smallest singular value of J → 0; pseudoinverse J⁺ = Jᵀ(JJᵀ)⁻¹ blows up → arbitrarily large joint velocities. DLS replaces (JJᵀ)⁻¹ with (JJᵀ + λ²I)⁻¹: the damping λ² lower-bounds the smallest eigenvalue, so joint velocities stay finite. Tradeoff: tracking error grows as λ increases, but the controller stays stable + executable on hardware. Standard in MoveIt, OpenRAVE, modern IK solvers.",
+          "Magic.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Pseudoinverse diverges at singularities; damped least squares regularizes via (JJᵀ + λ²I)⁻¹, trading tracking accuracy for boundedness. This is the workhorse numerical IK approach since the mid-1980s."
+      },
+      "hints": [
+        "Conditioning near a singularity.",
+        "Levenberg-Marquardt style damping."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Plain pseudoinverse fails at singularities because (JJᵀ)⁻¹ becomes ill-conditioned. DLS adds λ²I inside the inverse: bounded velocities at cost of tracking accuracy. Choose λ as function of smallest singular value (variable damping) or constant. Standard since Nakamura-Hanafusa + Wampler (1986)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_kin_redundancy",
+        "kind": "scenario",
+        "question": "Using 7-DOF redundancy",
+        "prompt": "A surgeon's robot has a 7-DOF arm and a 6-DOF task (knot tying near a patient's chest with cameras + retractors crowding the workspace). Explain how null-space (redundancy) resolution lets you pick joint configurations that (a) avoid colliding with the cameras, (b) stay far from joint limits, and (c) maximize manipulability — all simultaneously, using a task-priority stack à la Khatib."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_kin_jac",
+        "kind": "math_expression",
+        "question": "Planar 2R arm with L₁ = L₂ = 1. At θ₁ = π/2, θ₂ = 0, what is the determinant of the 2×2 Jacobian (relating joint to Cartesian velocity)?",
+        "acceptedAnswers": [
+          "0",
+          "zero",
+          "det = 0"
+        ],
+        "hint": "θ₂ = 0 is fully extended — boundary singularity."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_kin",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain the relationship between forward kinematics, inverse kinematics, the Jacobian, singularities, and manipulability — and why redundancy is a feature.",
+        "rubric": "Mentions FK as a function θ → T (cheap, deterministic); IK as the inverse (multiple solutions, possibly none, expensive); the Jacobian J = ∂x/∂θ (linear approximation of FK; maps joint velocities to end-effector velocities); singularities as configurations where rank(J) drops (end-effector can't move in some direction without infinite joint velocity; boundary + internal types); manipulability w = √det(JJᵀ) as a scalar measure of distance from singularity; redundancy (n_joints > n_task) creating a null space that allows secondary objectives (obstacle avoidance, manipulability, joint-limit avoidance) while still satisfying the primary task — via Khatib's operational-space / task-priority framework. Notes Pieper's principle for analytic IK + DLS (Nakamura/Hanafusa, Wampler) for numerical IK."
+      }
+    }
+  ]
+}

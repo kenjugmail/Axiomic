@@ -70,6 +70,142 @@ mastery.get("/paths", async (c) => {
   return c.json({ paths });
 });
 
+// Forward-looking dashboard at /learn-next: in-progress paths, a
+// recommended next node (prereqs satisfied + not yet completed),
+// weakest concepts (quiz score < 70%), and recently-added paths.
+// Requires authentication; returns empty arrays anonymous.
+mastery.get("/dashboard", requireAuth, async (c) => {
+  const session = await getSessionUser(c);
+  if (!session) return c.json({ inProgressPaths: [], recommendedNext: [], weakestConcepts: [], newPaths: [] });
+  const db = getDb();
+  const userId = session.id;
+
+  // In-progress paths: completed-count >= 1 AND completed-count < total
+  const completionRows = db
+    .select({
+      pathSlug: masteryPaths.slug,
+      pathTitle: masteryPaths.title,
+      total: sql<number>`COUNT(${masteryNodes.id})`,
+      completed: sql<number>`SUM(CASE WHEN ${userProgress.completed} = 1 AND ${userProgress.userId} = ${userId} THEN 1 ELSE 0 END)`,
+    })
+    .from(masteryPaths)
+    .innerJoin(masteryNodes, eq(masteryNodes.pathId, masteryPaths.id))
+    .leftJoin(
+      userProgress,
+      and(eq(userProgress.nodeId, masteryNodes.id), eq(userProgress.userId, userId)),
+    )
+    .groupBy(masteryPaths.slug)
+    .all();
+  const inProgressPaths = completionRows
+    .map((r) => ({ pathSlug: r.pathSlug, pathTitle: r.pathTitle, total: Number(r.total), completed: Number(r.completed) }))
+    .filter((r) => r.completed > 0 && r.completed < r.total)
+    .sort((a, b) => b.completed / b.total - a.completed / a.total)
+    .slice(0, 6);
+
+  // Recommended next: nodes where all prereqs are completed but the node
+  // isn't. Walk the user's completed-node set + pick the highest-order
+  // node per path whose prereq set ⊆ completed set.
+  const completedRows = db
+    .select({ nodeId: userProgress.nodeId })
+    .from(userProgress)
+    .where(and(eq(userProgress.userId, userId), eq(userProgress.completed, true)))
+    .all();
+  const completedSet = new Set(completedRows.map((r) => r.nodeId));
+  const candidates = db
+    .select({
+      nodeId: masteryNodes.id,
+      nodeSlug: masteryNodes.slug,
+      nodeTitle: masteryNodes.title,
+      nodeDescription: masteryNodes.description,
+      nodeOrder: masteryNodes.order,
+      prereqs: masteryNodes.prerequisiteNodeIds,
+      pathSlug: masteryPaths.slug,
+      pathTitle: masteryPaths.title,
+    })
+    .from(masteryNodes)
+    .innerJoin(masteryPaths, eq(masteryNodes.pathId, masteryPaths.id))
+    .all();
+  const recommendedNext = candidates
+    .filter((n) => !completedSet.has(n.nodeId))
+    .filter((n) => {
+      try {
+        const ids = JSON.parse(n.prereqs ?? "[]") as string[];
+        return ids.every((id) => completedSet.has(id));
+      } catch {
+        return false;
+      }
+    })
+    .filter((n) => inProgressPaths.some((p) => p.pathSlug === n.pathSlug) || completedSet.size === 0)
+    .sort((a, b) => b.nodeOrder - a.nodeOrder)
+    .slice(0, 5)
+    .map((n) => ({
+      pathSlug: n.pathSlug,
+      pathTitle: n.pathTitle,
+      nodeSlug: n.nodeSlug,
+      nodeTitle: n.nodeTitle,
+      nodeDescription: n.nodeDescription,
+    }));
+
+  // Weakest concepts: nodes with quiz score below 70%
+  const weakRows = db
+    .select({
+      nodeId: userProgress.nodeId,
+      nodeSlug: masteryNodes.slug,
+      nodeTitle: masteryNodes.title,
+      pathSlug: masteryPaths.slug,
+      pathTitle: masteryPaths.title,
+      quizScore: userProgress.quizScore,
+    })
+    .from(userProgress)
+    .innerJoin(masteryNodes, eq(userProgress.nodeId, masteryNodes.id))
+    .innerJoin(masteryPaths, eq(masteryNodes.pathId, masteryPaths.id))
+    .where(and(eq(userProgress.userId, userId), sql`${userProgress.quizScore} < 0.7`))
+    .all();
+  const weakestConcepts = weakRows
+    .filter((r) => r.quizScore !== null)
+    .sort((a, b) => (a.quizScore ?? 1) - (b.quizScore ?? 1))
+    .slice(0, 5);
+
+  // Recently-added paths — pick last 10 in insertion order
+  const newPaths = db.select().from(masteryPaths).orderBy(desc(masteryPaths.createdAt)).limit(10).all();
+
+  return c.json({ inProgressPaths, recommendedNext, weakestConcepts, newPaths });
+});
+
+// Per-user path completion summary. For each path returns the user's
+// completed-node count + total. Returns empty arrays for anonymous
+// viewers. Used by /discover, /paths, and the progress dashboard to
+// render completion% chips on path cards without N+1 queries.
+mastery.get("/paths-completion", async (c) => {
+  const session = await getSessionUser(c);
+  if (!session) return c.json({ completion: [] });
+  const db = getDb();
+  // One aggregate query: for each path, count nodes total + count
+  // (node × this user's completed progress) where applicable.
+  const rows = db
+    .select({
+      pathSlug: masteryPaths.slug,
+      total: sql<number>`COUNT(${masteryNodes.id})`,
+      completed: sql<number>`SUM(CASE WHEN ${userProgress.completed} = 1 AND ${userProgress.userId} = ${session.id} THEN 1 ELSE 0 END)`,
+    })
+    .from(masteryPaths)
+    .innerJoin(masteryNodes, eq(masteryNodes.pathId, masteryPaths.id))
+    .leftJoin(
+      userProgress,
+      and(eq(userProgress.nodeId, masteryNodes.id), eq(userProgress.userId, session.id)),
+    )
+    .groupBy(masteryPaths.slug)
+    .all();
+  return c.json({
+    completion: rows.map((r) => ({
+      pathSlug: r.pathSlug,
+      total: Number(r.total ?? 0),
+      completed: Number(r.completed ?? 0),
+      fraction: Number(r.total ?? 0) > 0 ? Number(r.completed ?? 0) / Number(r.total) : 0,
+    })),
+  });
+});
+
 // Get mastery path with nodes and progress
 mastery.get("/paths/:slug", async (c) => {
   const slug = c.req.param("slug");

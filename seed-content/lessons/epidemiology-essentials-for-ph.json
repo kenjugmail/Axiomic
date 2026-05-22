@@ -1,0 +1,174 @@
+{
+  "slug": "epidemiology-essentials-for-ph",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Compute + interpret incidence, prevalence, RR, OR, AR, NNT, DALYs, QALYs.",
+      "Choose among observational + experimental designs + reason about Bradford Hill criteria.",
+      "Diagnose selection + information + confounding bias using DAGs + screening metrics."
+    ],
+    "prereqs": [
+      "public-health-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Measures: incidence to DALYs",
+      "body": "Epidemiology builds intuition from a handful of measures used everywhere from a press briefing to the Global Burden of Disease.\n\n**Incidence vs prevalence**:\n- **Incidence rate** = new cases / person-time at risk. Captures *risk*. Units: per 100,000 PY.\n- **Cumulative incidence (attack rate)** = new cases / population at risk over a defined period. Unitless. Often used for outbreaks.\n- **Prevalence** = existing cases / population at a point in time. Captures *burden*.\n- Steady-state relation: prevalence ≈ incidence × duration. Chronic + long-duration disease → prevalence ≫ annual incidence. Acute + short → reverse.\n\n**Risk + odds**:\n- **Risk** = P(disease | exposure) = cases / at-risk. Bounded [0,1].\n- **Odds** = P / (1-P). Used in case-control studies + logistic regression.\n- **Relative risk (RR)** = P_exposed / P_unexposed. RR > 1: exposure increases risk. Smoking → lung cancer: RR ≈ 20.\n- **Odds ratio (OR)** = (a·d)/(b·c) from 2×2 table. Approximates RR when disease is rare (<10%). Estimable in case-control designs where RR isn't directly available.\n- **Attributable risk (AR)** = P_exposed - P_unexposed. Absolute risk difference; the count that drives population-level impact.\n- **Population attributable fraction (PAF)** = p·(RR-1)/(1+p·(RR-1)), where p = exposure prevalence. Fraction of cases attributable to exposure if causal.\n- **Number needed to treat (NNT)** = 1 / AR_reduction. Patients to treat to prevent one outcome. **NNH** = number needed to harm.\n\n**DALYs + QALYs**:\n- **DALY (disability-adjusted life year)** = YLL (years of life lost from premature death) + YLD (years lived with disability). 1 DALY = 1 healthy year lost. Population-level burden metric.\n- **QALY (quality-adjusted life year)** = years lived weighted by health utility 0-1. Patient-level cost-effectiveness metric.\n- **Global Burden of Disease (GBD)** — Christopher Murray + Alan Lopez (1990s WHO; now IHME Seattle 2007+). Quantifies DALYs by disease + region + sex + age + year. Foundational for global priority-setting; recent estimates: ~2.5 billion DALYs/yr globally; leading causes: ischemic heart disease, stroke, COPD, lower respiratory infections, neonatal disorders. Updated yearly (GBD 2024).\n\n**Sensitivity + specificity + predictive value**:\n- **Sensitivity** = TP / (TP + FN). Fraction of true cases detected.\n- **Specificity** = TN / (TN + FP). Fraction of non-cases correctly excluded.\n- **PPV** = TP / (TP + FP). Probability of disease given positive test — depends on prevalence!\n- **NPV** = TN / (TN + FN).\n- **Likelihood ratios**: LR+ = sens/(1-spec); LR- = (1-sens)/spec. Bayesian update.\n- **ROC curve**: TPR vs FPR across thresholds; AUC = discrimination."
+    },
+    {
+      "kind": "text",
+      "title": "Study designs: from cohorts to RCTs to ecological",
+      "body": "Choice of design constrains the inferences you can make.\n\n**Observational designs**:\n- **Cohort study** — define exposed + unexposed at baseline + follow forward in time. Direct estimation of RR + AR. Examples: Framingham Heart Study (1948+; CHD risk factors), Nurses' Health Study (1976+ Walter Willett), British Doctors Study (Doll + Hill 1951 → smoking + lung cancer), UK Biobank (2006-2010, 500k participants). Pros: temporal sequence; cons: long, expensive, loss to follow-up.\n- **Case-control study** — start with cases + matched controls + look backward at exposure. Estimates OR ≈ RR for rare disease. Doll + Hill's original 1950 BMJ smoking-lung cancer paper was case-control. Pros: fast, cheap, good for rare diseases; cons: recall + selection bias.\n- **Cross-sectional** — snapshot of exposure + outcome at one time. Estimates prevalence + association but not causal direction. NHANES is the canonical example.\n- **Ecological** — unit of analysis is the group (country, county). Aggregate data. Subject to the **ecological fallacy** (group-level associations need not hold at individual level). Used for hypothesis generation; rarely sufficient for causal inference. Classic: Snow's Southwark vs Lambeth comparison; modern: country-level fluoride + IQ correlations.\n\n**Experimental designs**:\n- **Randomized controlled trial (RCT)** — random allocation removes confounding in expectation. The gold standard for causal inference. James Lind's 1747 scurvy trial is often called the first; the streptomycin trial (Hill 1948) introduced the modern formulation. RCTs in PH: salt + BP (DASH trial); folic acid + NTDs (Wald MRC 1991); RTS,S malaria vaccine (Phase 3 in Africa).\n- **Cluster RCT** — randomize villages, schools, clinics. Used when intervention can't be individually allocated (sanitation, vaccination campaigns, health-system reforms). Requires adjustment for intraclass correlation. Example: the Bangladesh WASH Benefits trial (Luby 2018).\n- **Stepped-wedge** — all clusters eventually receive intervention; rollout is staggered. Useful when an intervention is going to be implemented anyway (vaccine rollout). Brown + Lilford (2006); MRC Hussey + Hughes (2007).\n- **Hawthorne effect** — observation alone changes behavior; pseudo-effect in occupational + behavioral intervention studies (Western Electric 1924-1932). Means blinding + masked assessment matter.\n\n**Bradford Hill criteria for causation** (Hill 1965):\n- **Strength**: large effect size.\n- **Consistency**: replicated across populations + designs.\n- **Specificity**: exposure → specific outcome (less reliable in modern era).\n- **Temporality**: exposure precedes outcome (the only essential criterion).\n- **Biological gradient (dose-response)**: more exposure → more risk.\n- **Plausibility**: mechanistic biological story.\n- **Coherence**: doesn't conflict with known facts.\n- **Experiment**: intervention reduces outcome.\n- **Analogy**: similar exposures → similar outcomes.\n\nHill emphasized they are *viewpoints*, not checklist. Modern epidemiology supplements them with **counterfactual + potential-outcomes** framework (Neyman-Rubin), **target trials** (Hernán + Robins), + **DAGs** (Pearl)."
+    },
+    {
+      "kind": "text",
+      "title": "Biases + DAGs + screening: avoiding wrong conclusions",
+      "body": "**Bias** = systematic deviation of estimate from truth. Three families:\n\n**1. Selection bias** — who enters the study or remains in it differs from the target population in ways that distort estimates.\n- **Berkson's bias** (1946): hospital-based case-control studies inflate associations because hospitalized controls aren't representative.\n- **Healthy-worker effect**: employed populations are healthier than general population.\n- **Loss to follow-up**: differential drop-out.\n- **Self-selection**: volunteers differ from non-volunteers.\n- **Collider bias** (when conditioning on a common effect creates a spurious association — see DAGs).\n\n**2. Information bias** — measurement error in exposure or outcome.\n- **Recall bias**: cases remember exposure differently than controls. Classic case-control problem.\n- **Interviewer bias**: knowledge of case-status affects probing.\n- **Misclassification**: non-differential (typically biases toward null) vs differential (any direction).\n- **Reporting bias**: stigma + social desirability around alcohol, sex, drug use.\n\n**3. Confounding** — a third variable Z is associated with exposure X + (independently of X) causes outcome Y. Spurious association. Classic: coffee → heart disease confounded by smoking.\n\n**Controlling confounding**:\n- Design: randomization (RCT), restriction (study only one age group), matching (in case-control).\n- Analysis: stratification (Mantel-Haenszel), regression adjustment, propensity scores (Rosenbaum + Rubin 1983), instrumental variables, Mendelian randomization (Davey Smith), difference-in-differences, regression discontinuity.\n\n**Directed Acyclic Graphs (DAGs)** — **Judea Pearl** (1988+; 'Causality' 2000; Turing Award 2011) + **Miguel Hernán + James Robins** ('Causal Inference: What If' 2020). Nodes = variables; arrows = direct causal effects. Diagnose the structure of bias:\n- **Confounder**: common cause of X + Y. Adjust for it.\n- **Mediator**: on the path X → M → Y. Do *not* adjust for it if estimating total effect; do adjust if estimating direct effect.\n- **Collider**: common effect of X + Y. Do *not* adjust for it (conditioning opens a spurious path). The Berkson paradox is a collider example.\n\n**Sensitivity + specificity in screening (Wilson + Jungner principles 1968 WHO)**:\nClassic 10 criteria for evaluating a screening programme — disease is important + has detectable preclinical phase, treatment exists + is more effective if early, test is valid + acceptable, cost-effective. Operating point on ROC curve trades off TP + FP. **Lead-time bias** (early detection adds apparent survival without altering death date), **length-time bias** (slow-growing tumors over-represented in screened populations), **overdiagnosis** (detection of disease that wouldn't cause harm) — major issues for breast (Bleyer + Welch 2012) + prostate (PLCO + ERSPC) + thyroid cancer screening.\n\n**ROC + AUC**: plot TPR (sensitivity) vs FPR (1-specificity) across thresholds; AUC = probability that a random positive case scores higher than a random negative. AUC = 0.5 is random; 1.0 is perfect.\n\n**Reverse causation, immortal time bias, regression to the mean** are additional pitfalls. Modern PH epidemiology relies on DAGs + the target-trial framework + sensitivity analyses (E-values, Cornfield, Vanderweele) to avoid drawing causal conclusions from observational data prematurely."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_epi_1",
+        "kind": "guided_derivation",
+        "question": "Compute RR, OR, AR, NNT for a hypertension trial",
+        "goal": "In a trial, 1000 adults receive intensive BP control + 1000 receive standard. Over 5 yr, 40 strokes occur in intensive vs 80 in standard. Walk through RR, OR, AR, NNT.",
+        "steps": [
+          {
+            "prompt": "Compute the risk in each arm.",
+            "motivation": "Cases / N.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "intensive 0.04 standard 0.08"
+              ]
+            },
+            "hints": [
+              "Cases / 1000."
+            ],
+            "reveal": "P(stroke | intensive) = 40/1000 = 0.04 = 4%. P(stroke | standard) = 80/1000 = 0.08 = 8%."
+          },
+          {
+            "prompt": "Compute the relative risk RR (intensive vs standard).",
+            "motivation": "Risk ratio.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.5",
+                "RR = 0.5",
+                "1/2"
+              ]
+            },
+            "hints": [
+              "0.04 / 0.08."
+            ],
+            "reveal": "RR = 0.04/0.08 = 0.5. Intensive treatment halves stroke risk. Relative risk reduction (RRR) = 1 - RR = 0.5 = 50%."
+          },
+          {
+            "prompt": "Compute the odds ratio OR.",
+            "motivation": "(a·d)/(b·c).",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "0.479",
+                "≈0.48",
+                "(40·920)/(80·960)"
+              ]
+            },
+            "hints": [
+              "Build the 2×2 table."
+            ],
+            "reveal": "Intensive: 40 cases, 960 non. Standard: 80 cases, 920 non. OR = (40·920)/(80·960) = 36800/76800 ≈ 0.479. Close to RR = 0.5 because outcome (8%) is borderline rare. For rarer outcomes, OR converges to RR."
+          },
+          {
+            "prompt": "Compute attributable risk (AR) + relative-risk reduction (RRR).",
+            "motivation": "Absolute + relative effects.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "AR 0.04 RRR 0.5"
+              ]
+            },
+            "hints": [
+              "Risk diff = 0.08 - 0.04."
+            ],
+            "reveal": "AR = 0.08 - 0.04 = 0.04 (absolute risk reduction = 4 percentage points). RRR = 1 - RR = 0.5 = 50%. Absolute risk reduction (ARR) often understates the impact when baseline is low, + overstates impact when baseline is high. Always report both."
+          },
+          {
+            "prompt": "Number needed to treat (NNT)?",
+            "motivation": "1 / ARR.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "25",
+                "NNT = 25",
+                "1/0.04"
+              ]
+            },
+            "hints": [
+              "1 / 0.04 over 5 yr."
+            ],
+            "reveal": "NNT = 1/ARR = 1/0.04 = 25 over 5 years. Treat 25 adults intensively for 5 yr to prevent one stroke. Compare to LDL-lowering NNTs (~50-100 over 5 yr for primary prevention with statins), aspirin primary prevention (~250-1000), GLP-1 (NNT ~10-15 for MACE in T2DM). NNT contextualizes effect size + cost-effectiveness, especially relative to harms (NNH). For shared decision-making, NNT communicates better than RR."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_epi_1",
+        "kind": "multiple_choice",
+        "question": "A case-control study finds that patients with a rare cancer report higher use of mouthwash than controls (OR = 1.8). Headlines: 'Mouthwash causes cancer.' What's the most likely flaw?",
+        "options": [
+          "OR cannot exceed 1.0 by definition.",
+          "Recall bias + uncontrolled confounding (smoking + alcohol) + potential reverse causation (mouthwash use higher in heavier drinkers + smokers). The 1.8 OR may reflect confounding by the true risk factors. Without DAG-guided adjustment + replication in a cohort + Bradford Hill consideration, causation is premature.",
+          "Case-control studies cannot estimate any association.",
+          "OR = 1.8 is statistically impossible."
+        ],
+        "correctIndex": 1,
+        "explanation": "**Recall bias** — cases (with cancer diagnosis) may scrutinize past exposures more carefully than controls; differential reporting inflates OR. **Confounding** — mouthwash use correlates with smoking, alcohol, oral hygiene, SES; without adjustment, OR captures all of these. **Reverse causation** — early disease symptoms (oral lesions, bad breath) may *increase* mouthwash use, so the temporal arrow is unclear. Mouthwash's alcohol content has been studied for oral cancer; current evidence is mixed + small effect at best, with cohort + Mendelian randomization studies failing to confirm strong causation. The right response is DAG-based adjustment, cohort replication, biological plausibility (alcohol → mucosa → cancer is plausible), + Bradford Hill viewpoints — not a headline. **Hernán + Robins** target-trial framework: emulate what RCT you would run + ask what assumptions it requires."
+      },
+      "hints": [
+        "Cases may report exposure differently than controls.",
+        "What confounds mouthwash use?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Case-control studies suffer recall bias (cases scrutinize past more); confounding by smoking + alcohol + SES; potential reverse causation. OR of 1.8 is modest + plausibly explained by confounding. Use DAG + target-trial framework + cohort replication before claiming causation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_epi_1",
+        "kind": "scenario",
+        "question": "Designing an epidemiological study of e-cigarettes + adolescent respiratory disease",
+        "prompt": "Adolescent vaping prevalence has risen sharply. Concern: vaping leads to chronic bronchitic symptoms + may be a gateway to smoking. Discuss: (a) what study designs you would use (cross-sectional surveillance like Youth Tobacco Survey, longitudinal cohort like PATH, case-control on EVALI cases, instrumental variables using state policy as instrument); (b) major biases (selection — voluntary cohorts; recall — self-reported use; reverse causation — symptomatic teens may quit; confounding by mental health, peer effects, parental smoking); (c) DAG you would draw + which variables to adjust for vs not; (d) how Bradford Hill criteria would apply (temporality, dose-response, biological plausibility, experiment via animal models); (e) what *population-level* outcomes (DALYs, hospitalizations, transitions to combustible smoking) you would track + over what horizon; (f) policy implications (flavored e-cig ban Massachusetts 2019, age 21 'Tobacco-21' federal 2019, taxation) + how the evidence base supports or limits regulatory action."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_epi_1",
+        "kind": "math_expression",
+        "question": "In a cohort of 100,000 person-years, 600 cases of disease occur. The exposed group (40% of person-time) has incidence 9 per 1,000 PY; unexposed has 4 per 1,000 PY. What's the population attributable fraction (PAF) assuming causality? Round to two decimals.",
+        "acceptedAnswers": [
+          "0.36",
+          "36%",
+          "0.357",
+          "PAF ≈ 0.36"
+        ],
+        "hint": "PAF = p(RR-1)/(1+p(RR-1)) with p=0.4 + RR=9/4=2.25; PAF = 0.4·1.25/(1+0.4·1.25) = 0.5/1.5 = 0.333. Or check: total incidence rate = 0.4·9 + 0.6·4 = 6.0 per 1000 PY; if RR were 1, rate would be 4 per 1000 PY; PAF = (6-4)/6 = 0.333. With either calculation ≈ 0.33-0.36."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_epi_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how Bradford Hill's criteria, DAGs (Pearl), and the counterfactual / target-trial framework (Hernán + Robins) complement each other when reasoning about causation from observational data.",
+        "rubric": "Mentions: Bradford Hill (1965) — nine viewpoints (strength, consistency, temporality, dose-response, biological plausibility, coherence, specificity, experiment, analogy) — heuristics, not checklist; DAGs (Pearl) — graphical encoding of assumed causal structure; let you identify confounders to adjust for, mediators to leave alone, colliders to avoid conditioning on; counterfactual / potential-outcomes framework (Neyman-Rubin; Hernán-Robins target trial) — define the causal effect precisely (Y(1) - Y(0)) + specify the RCT you would emulate. Together: Hill criteria are domain heuristics; DAGs make assumptions visible; target trial defines the causal estimand + assumptions. Conclude: combining all three reduces the risk of misinterpreting observational associations as causation + supports replicable, transparent causal claims."
+      }
+    }
+  ]
+}

@@ -1,0 +1,174 @@
+{
+  "slug": "replication-and-quorums",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Compare single-leader, multi-leader, leaderless, chain replication.",
+      "Apply quorum systems with R+W>N.",
+      "Use gossip protocols + anti-entropy."
+    ],
+    "prereqs": [
+      "consensus-paxos-and-raft"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Replication strategies: single-leader, multi-leader, leaderless, chain, primary-backup",
+      "body": "**Replication** keeps copies of data on multiple nodes for availability + durability + read scaling. The architecture choice has profound consequences for consistency, latency, + failure handling.\n\n**Single-leader (primary-secondary, master-replica)**: one leader handles all writes + replicates to followers. Reads optionally served from followers.\n- **Synchronous replication**: leader waits for follower ack before responding. Strong durability; cost: latency + availability hits if follower slow.\n- **Asynchronous**: leader replies immediately; followers catch up. Risk: data loss on leader failure.\n- **Semi-synchronous**: leader waits for at least one follower (MySQL semi-sync, PostgreSQL `synchronous_commit`).\n- **Use cases**: PostgreSQL primary + read replicas; MySQL replication; MongoDB replica sets; SQL Server Always On.\n- **Failover**: needs leader election or manual promotion. Consensus (Raft/Paxos) automates safely.\n\n**Multi-leader (active-active)**: multiple leaders accept writes; replicate asynchronously between them. Conflict resolution needed.\n- **Use cases**: geo-distributed writes (different regions own different data subsets); multi-datacenter active-active.\n- **Conflict resolution**: LWW, vector-version multi-value, CRDTs (Redis Active-Active, Couchbase XDCR), application-level (e.g., 'sum the counters').\n- **CouchDB**, **Bucardo for Postgres**, **PostgreSQL BDR**, **Cassandra (loosely)**, **DynamoDB Global Tables**.\n\n**Leaderless (Dynamo-style)**: any replica accepts any write; quorum + anti-entropy bring replicas into agreement.\n- **DynamoDB**, **Cassandra**, **Riak**, **ScyllaDB**, **Voldemort**.\n- Configurable consistency via N (replicas), R (read quorum), W (write quorum).\n- Read repair + anti-entropy + hinted handoff (next slides).\n\n**Chain replication** (van Renesse + Schneider 2004, 'Chain Replication for Supporting High Throughput + Availability'): replicas form a chain; writes flow head → tail; head publishes after tail acks; tail serves reads.\n- **Throughput**: better than primary-backup since writes pipeline through chain.\n- **Linearizable**: tail-only reads see committed values.\n- **Variants**: CRAQ (Chain Replication with Apportioned Queries, Terrace + Freedman 2009) allows reads at any replica via versions.\n- **Use cases**: Microsoft Azure storage, Facebook's Tectonic, FAWN, HyperDex, CockroachDB's `READ COMMITTED` tier.\n\n**Primary-Backup** (Budhiraja et al. 1993): classical model; primary serves clients + backups passively. Similar to single-leader but without log + state machine replication formalism.\n\n**Erasure coding for replication** (Reed-Solomon, LRC, Tornado codes): instead of N copies, store k data + m parity shards; tolerate up to m failures with k+m/k storage overhead.\n- Used in Ceph, HDFS, Backblaze, S3 (under the hood), Pelican, Tahoe-LAFS.\n- Trade compute for storage efficiency; less ideal for hot data due to repair cost.\n\n**Geo-replication**:\n- **Active-active**: multi-leader / CRDT (Cassandra, Cosmos DB, DynamoDB Global Tables).\n- **Active-passive**: primary in one region; standby in another; promotion on disaster.\n- **Synchronous geo**: Spanner-style with TrueTime + commit-wait; high latency but linearizable globally.\n- **Latency vs durability tradeoff** governed by PACELC."
+    },
+    {
+      "kind": "text",
+      "title": "Quorum systems: R + W > N, Dynamo style, read repair, anti-entropy, hinted handoff",
+      "body": "**Quorum systems** (David Gifford 1979, 'Weighted Voting for Replicated Data', SOSP): if every two quorums intersect, you can guarantee at least one replica in every read quorum has the latest write. The simplest form: with N replicas, read quorum R + write quorum W satisfying **R + W > N** guarantees overlap.\n\n**Dynamo (Amazon 2007 SOSP, DeCandia et al.)**: leaderless quorums + sloppy quorums + vector clocks + Merkle anti-entropy + consistent hashing. Inspired Cassandra, Riak, Voldemort, ScyllaDB. Werner Vogels-led; introduced 'eventually consistent' to mainstream.\n\n**Parameters** (tunable per request in Cassandra/DynamoDB):\n- **N (replication factor)**: total replicas per key.\n- **W (write quorum)**: number of replicas that must ack a write.\n- **R (read quorum)**: number of replicas contacted on read.\n\n**Common settings (N=3)**:\n- **R=1, W=1**: high availability, weak consistency.\n- **R=2, W=2**: 'quorum' Cassandra default — R+W=4 > 3, linearizability-ish (still subject to LWW conflicts).\n- **R=1, W=3**: fast reads, slow writes; durable.\n- **R=3, W=1**: fast writes, slow reads.\n- **R=N or W=N**: 'ALL' — no failure tolerance.\n\n**Linearizability vs quorum**: R+W>N ensures **last-writer-wins** correctness only with synchronized wall-clock timestamps; concurrent writes still need vector clocks or CRDTs. True linearizability for reads requires a 'read repair on quorum + version-vector reconciliation' or a consensus path (Cassandra's lightweight transactions use Paxos).\n\n**Sloppy quorums** (Dynamo): if some 'home' replicas unreachable, write to any healthy replicas + later **hinted handoff** moves the data to the proper home. Trades stricter quorum guarantees for higher availability.\n\n**Anti-entropy** processes:\n- **Read repair**: on a read, compare versions across the R replicas; sync stale ones in background.\n- **Hinted handoff**: temporary holders forward data to proper homes when reachable.\n- **Merkle tree** sync (Dynamo + Cassandra repair): nodes compare hierarchical hashes of key ranges; only exchange diverging branches. Efficient bulk reconciliation.\n- **Active anti-entropy** (Riak AAE, Cassandra repair): scheduled or triggered Merkle sweeps.\n\n**Quorum failure modes**:\n- **Sloppy quorum + missing handoff** → stale reads.\n- **Concurrent writes with LWW** → silent data loss; vector clocks expose conflicts.\n- **Wall-clock skew** → wrong LWW resolution; HLC helps.\n- **Phi accrual failure detector** (Hayashibara et al. 2004) — used by Cassandra to mark nodes down + trigger handoff.\n\n**Witness replicas + flexible quorums** (Howard 2016 'Flexible Paxos'): asymmetric quorum sizes for write vs read paths, as long as quorums intersect. Useful for WAN deployments with low-cost witnesses for tiebreaks.\n\n**Witness votes** (Spanner, CockroachDB): light-weight nodes that participate only in elections, reducing storage + WAN traffic.\n\n**Spanner-style** vs **Dynamo-style**:\n- Spanner: synchronous Paxos quorums + TrueTime → linearizable, slower.\n- Dynamo: async + tunable quorums → eventually consistent, fast.\n- Choose per workload: invariants + latency budget."
+    },
+    {
+      "kind": "text",
+      "title": "Gossip + epidemic protocols: SWIM, anti-entropy, Plumtree",
+      "body": "**Gossip protocols** (epidemic protocols) spread information through random peer exchanges, like a virus. Originated in Demers et al. 1987 (Xerox PARC, 'Epidemic Algorithms for Replicated Database Maintenance') — a foundational paper.\n\n**Gossip styles**:\n- **Push**: send to random peer; peer accepts new info.\n- **Pull**: ask random peer for updates.\n- **Push-pull**: exchange in both directions; fastest convergence (O(log N) rounds).\n- **Anti-entropy** (slow but reliable): periodic full-state reconciliation.\n- **Rumor mongering** (fast but probabilistic): forward novel updates only until 'k' peers already have them.\n\n**Properties**:\n- Scales to thousands of nodes.\n- Robust to failure: no single point.\n- Probabilistic guarantees; eventual convergence.\n- Constant per-node bandwidth.\n- Latency O(log N) to disseminate.\n\n**SWIM (Scalable Weakly-consistent Infection-style Membership)** (Das, Gupta, Motivala 2002 DSN): industry-standard failure-detection + membership protocol. Components:\n- **Failure detection**: each node periodically pings random peers; if no ack, asks k indirect probers to ping that peer; declares dead if all fail. Bounds detection time + false-positive rate.\n- **Membership dissemination**: piggyback membership updates on ping/ack messages.\n- **Suspicion mechanism** (Lifeguard, Dadgar 2018): mark suspect before dead; reduces false positives in noisy networks.\n- Used by **HashiCorp Serf** + **Consul**, **Akka cluster (variant)**, **Memberlist**, **Uber Ringpop**.\n\n**Other gossip-driven protocols**:\n- **Phi accrual failure detector** (Hayashibara 2004): continuous suspicion level instead of binary. Cassandra default.\n- **Plumtree (Push Plus Lazy Push Trees, Leitão-Pereira-Rodrigues 2007)**: hybrid spanning-tree gossip; efficient broadcast; rebuilds tree on failure via lazy push backup.\n- **HyParView** (Leitão 2007): peer-sampling service maintaining partial views.\n- **Astrolabe** (van Renesse 2003): hierarchical gossip aggregation.\n\n**Cassandra's gossip**:\n- Each node gossips to 1-3 peers every second.\n- Carries Heartbeat counter + per-application state map (load, schema version, ring topology).\n- Combines with **Snitch** (datacenter / rack topology) + **Phi accrual** failure detection.\n- Provides eventually consistent cluster view in seconds for clusters of 1000s of nodes.\n\n**Consul / Serf**:\n- SWIM-based membership with Lifeguard suspicion.\n- Consul layers Raft + service catalog + KV on top.\n- Used at scale by Cloudflare, Stripe, HashiCorp customers.\n\n**Use cases for gossip**:\n- **Membership + failure detection** at scale.\n- **Configuration propagation** (eventually consistent).\n- **Service discovery** (Consul, Eureka, Memberlist).\n- **Anti-entropy in Dynamo-style stores**.\n- **CRDT propagation** in P2P apps.\n- **Decentralized monitoring**.\n\n**Tradeoffs**:\n- Bandwidth proportional to gossip period + payload.\n- Tail latency depends on log N rounds.\n- Probabilistic — small chance of arbitrarily late delivery; reconcile via anti-entropy.\n- Hard to enforce ordering — pair with logical clocks or CRDTs.\n\n**Modern variants**: BLE + Bluetooth mesh gossip; CRDT-based P2P apps (Hypercore, Holepunch, Earthstar); BitTorrent-style mesh exchange; libp2p pubsub (gossipsub used in Ethereum, Filecoin)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_repl_1",
+        "kind": "guided_derivation",
+        "question": "Tune Cassandra quorums for a payment ledger",
+        "goal": "You run Cassandra with N=3. Pick R + W settings for: (a) a high-throughput counter; (b) a payment ledger requiring strong reads; (c) bulk analytics reads. Justify with R+W > N.",
+        "steps": [
+          {
+            "prompt": "(a) High-throughput counter: low latency, OK with slight inconsistency.",
+            "motivation": "Optimize latency.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "R=1, W=1 (ONE/ONE); eventual consistency",
+                "R=1 W=1"
+              ]
+            },
+            "hints": [
+              "Lowest quorum."
+            ],
+            "reveal": "**R=1, W=1**. Single replica suffices for write + read. R+W=2 < N=3 → eventual consistency only. OK for counters using a CRDT-like merge or Cassandra Counter type (the latter has caveats but acceptable for analytics counters). Pair with read repair + anti-entropy to converge."
+          },
+          {
+            "prompt": "(b) Payment ledger requiring strong reads: pick R + W.",
+            "motivation": "Quorum intersection.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "R=2, W=2 (QUORUM); R+W=4 > N=3 → reads see latest committed write",
+                "R=2 W=2"
+              ]
+            },
+            "hints": [
+              "Gifford 1979: R+W>N."
+            ],
+            "reveal": "**R=2, W=2 (QUORUM)**. R+W = 4 > 3 = N → any read quorum intersects any write quorum, so at least one replica in the read set has the latest write. Combined with vector clocks or HLC, gets near-linearizable reads. For truly strict serializability use Cassandra's **lightweight transactions (LWT)** which run Paxos under the hood. Even better: a different store like Spanner/CockroachDB if invariants are strong."
+          },
+          {
+            "prompt": "(c) Bulk analytics: throughput over consistency.",
+            "motivation": "Read-heavy + tolerant.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "R=1, W=3 (or ANY/ALL): fast reads from any replica; durable writes; eventual consistency acceptable",
+                "R=1 W=3"
+              ]
+            },
+            "hints": [
+              "Bulk reads tolerate staleness."
+            ],
+            "reveal": "**R=1, W=3 (ONE / ALL)** or **R=1, W=2** depending on durability needs. Analytics tolerates seconds of staleness; reads at ONE are fast + balanced across replicas. W=3 ensures all replicas have the data so reads always hit a current replica eventually. Or use a snapshot/export to a separate OLAP store (Snowflake, ClickHouse) for true analytics workloads."
+          },
+          {
+            "prompt": "What anti-entropy mechanisms support these choices?",
+            "motivation": "Convergence in the background.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "read repair + hinted handoff + Merkle-tree-based repair"
+              ]
+            },
+            "hints": [
+              "Dynamo paper mechanisms."
+            ],
+            "reveal": "**Read repair** on every read at sufficient consistency level; **hinted handoff** for temporary outages; scheduled **Merkle-tree repair** (`nodetool repair`) for divergence. Configure correctly to avoid 'silent data loss' from missed handoff + ensure repair completes within gc_grace_seconds to avoid resurrected deletes (zombie data)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_repl_1",
+        "kind": "multiple_choice",
+        "question": "Why does Cassandra use SWIM-style gossip + phi accrual failure detection instead of Raft for membership?",
+        "options": [
+          "Random.",
+          "Cassandra's design (inspired by Dynamo, Amazon 2007) targets **horizontal scale to thousands of nodes** + **AP availability** in the CAP sense. Raft (Ongaro 2014) needs a leader + quorum per group — practical for small clusters (3-7 nodes per Raft group) but doesn't scale to a single Raft group of thousands. **Gossip protocols** (Demers 1987; SWIM, Das 2002) spread membership info in O(log N) rounds with constant per-node bandwidth + no leader. **Phi accrual** (Hayashibara 2004) gives a continuous suspicion level instead of binary detection — better for noisy WANs + tunable false-positive rate. The combination matches Cassandra's leaderless quorum-based replication: every node is symmetric; the gossip layer is just for cluster-state awareness, not consensus. For per-key linearizability Cassandra layers Paxos (LWT) on top — that's where consensus enters.",
+          "Raft doesn't work.",
+          "Cassandra is wrong."
+        ],
+        "correctIndex": 1,
+        "explanation": "Gossip (Demers 1987; SWIM 2002) scales to thousands of nodes in O(log N) per node; Raft scales per-group only. Phi accrual (Hayashibara 2004) gives tunable continuous suspicion. Cassandra is leaderless + symmetric; consensus only enters via LWT (Paxos)."
+      },
+      "hints": [
+        "Scale + leaderless.",
+        "What does gossip give?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Gossip (SWIM, phi accrual) scales to thousands without a leader. Cassandra is symmetric + leaderless; Raft is per-group. LWT brings Paxos when needed."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_repl_1",
+        "kind": "scenario",
+        "question": "Production: Dynamo-style store experiences a 'lost write' after an AZ failure. Reads return the old value even though clients confirmed writes. Likely cause + fix?",
+        "options": [
+          "Sloppy quorum accepted writes on temporary holders; hinted handoff was missed/dropped before failure → home replicas never received the write. Fix: ensure Merkle anti-entropy completes regularly; harden hinted-handoff durability; use stricter quorum (R+W > N) instead of sloppy quorum for critical data.",
+          "It's fine.",
+          "Disk fault only.",
+          "Random."
+        ],
+        "correctIndex": 0,
+        "explanation": "Sloppy quorum (Dynamo) + lost hinted handoff is a classic cause of 'lost' writes. Fix: rely on Merkle-based active anti-entropy (Cassandra `nodetool repair`, Riak AAE) running on schedule; use strict quorum + read repair; monitor hint queue; consider stronger writes (W=ALL) for critical data; or move critical data to a consensus-based store (Spanner, CockroachDB, etcd). Jepsen has reported similar issues across Cassandra, Riak, MongoDB."
+      },
+      "hints": [
+        "Sloppy quorum + hinted handoff.",
+        "What if handoff is lost?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Sloppy quorum + lost hinted handoff = lost write. Fix: active anti-entropy (Merkle), strict quorum, monitor hints, or use a consensus-based store for critical data."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_repl_1",
+        "kind": "math_expression",
+        "question": "For Dynamo-style replication with N=5, what is the minimum value of R + W to guarantee quorum overlap?",
+        "acceptedAnswers": [
+          "6",
+          "R + W = N + 1",
+          "5 + 1",
+          "N+1"
+        ],
+        "hints": [
+          "Gifford 1979.",
+          "R + W > N means R + W ≥ N + 1."
+        ],
+        "explanation": "Gifford's quorum condition (1979): R + W > N guarantees every read quorum + write quorum intersect — so at least one read replica has the latest write. Minimum integer value: R + W = N + 1 = 6. Common choices for N=5: R=3, W=3 (balanced quorum); R=1, W=5 (durable writes, fast reads, no failure tolerance on writes); R=5, W=1 (vice versa). Pair with vector clocks/HLC + read repair to handle concurrent writes correctly."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_repl_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why production systems mix replication strategies (single-leader, leaderless, chain, gossip) instead of using one for everything.",
+        "rubric": "Mentions: every replication strategy trades different things. **Single-leader** (Postgres, MongoDB) is simple, linearizable when synchronous, with failover via consensus (Raft); good for transactional cores. **Leaderless Dynamo-style** (Cassandra, DynamoDB) scales horizontally + offers tunable consistency via R+W quorums (Gifford 1979); great for write-heavy + AP workloads; use vector clocks + read repair + hinted handoff + Merkle anti-entropy. **Chain replication** (van Renesse-Schneider 2004; CRAQ) gives high throughput + linearizability at the tail; powers Azure storage. **Multi-leader / CRDT** for geo-active-active. **Gossip** (Demers 1987; SWIM Das 2002; phi accrual Hayashibara 2004) for membership + service discovery, complementing strong-consistency cores. Werner Vogels: pick the right tool per service; Pat Helland: embrace immutability + idempotency. Modern stacks layer all of these: gossip for membership, Raft for catalog, leaderless for hot data, chain for blob storage."
+      }
+    }
+  ]
+}

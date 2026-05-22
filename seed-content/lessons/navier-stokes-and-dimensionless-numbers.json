@@ -1,0 +1,152 @@
+{
+  "slug": "navier-stokes-and-dimensionless-numbers",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Derive the Navier-Stokes equation.",
+      "Use dimensionless numbers.",
+      "Apply similitude + scaling."
+    ],
+    "prereqs": [
+      "fluid-foundations-and-kinematics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The Navier-Stokes equation",
+      "body": "Starting from Cauchy's momentum equation ρ D**v**/Dt = ∇ · σ + ρ**g**, with σ = −pI + τ, we need a **constitutive relation** linking the viscous stress τ to the deformation rate.\n\n**Stokes's postulates** (1845): a Newtonian fluid is (i) isotropic, (ii) at rest gives σ = −pI, (iii) τ depends linearly on velocity gradients. The most general form satisfying these (for incompressible flow) is\n\n  τ = 2μS = μ(∇**v** + ∇**v**ᵀ)\n\nwhere S is the strain-rate tensor.\n\nSubstituting + using ∇ · **v** = 0 yields the **incompressible Navier-Stokes equation**:\n\n  ρ(∂**v**/∂t + (**v**·∇)**v**) = −∇p + μ ∇²**v** + ρ**g**\n\nor in dimensionless form (next page) with the Reynolds number.\n\nThe terms:\n- **ρ ∂**v**/∂t** — local inertia.\n- **ρ(**v**·∇)**v**** — convective inertia (nonlinear).\n- **−∇p** — pressure-gradient force (acts as Lagrange multiplier enforcing ∇·**v** = 0 for incompressible flow).\n- **μ ∇²**v**** — viscous diffusion of momentum.\n- **ρ**g**** — body force (gravity, electromagnetic).\n\n**Compressible NS** retains ∇·**v** ≠ 0 and adds a bulk-viscosity term (μ_b − 2μ/3)∇(∇·**v**):\n\n  ρ D**v**/Dt = −∇p + ∇·[μ(∇**v** + ∇**v**ᵀ) + (μ_b − 2μ/3)(∇·**v**)I] + ρ**g**\n\ncoupled with continuity + energy + equation of state.\n\n**Pressure** plays a unique role:\n- In **incompressible** flow, p is not a thermodynamic variable but a mathematical Lagrange multiplier — its value at each instant is whatever makes ∇·**v** = 0. Globally determined by a Poisson equation ∇²p = −ρ ∇·((**v**·∇)**v**).\n- In **compressible** flow, p comes from the equation of state p = ρRT (ideal gas) or general p(ρ, e).\n\n**No-slip boundary condition**: **v** = **v**_wall on solid surfaces. Inflow/outflow + free-surface BCs round out the system.\n\n**Existence + smoothness**: in 2D, smooth global solutions exist for any smooth initial data (Leray 1934 + Hopf 1951). In 3D, **Leray-Hopf weak solutions** exist but uniqueness + smoothness are open — the **Clay Millennium Prize** ($1M) problem. Recent results (Tao, Hou) suggest possible finite-time blow-up scenarios in idealized settings.\n\n**Newton + Navier + Stokes + Euler**: a 200-year intellectual lineage culminating in PDEs that still resist analytical mastery."
+    },
+    {
+      "kind": "text",
+      "title": "Dimensionless numbers — the language of fluid mechanics",
+      "body": "Non-dimensionalizing NS introduces **dimensionless numbers** that classify flow regimes. They are the fluid mechanic's primary diagnostic + intuition tool.\n\n**Reynolds number** Re = ρUL/μ = UL/ν.\nRatio of inertial to viscous forces. Re ≪ 1: viscous-dominated (Stokes flow, swimming bacteria, glaciers). Re ~ 1-1000: laminar with viscous structure. Re > ~2300 (pipe) or ~5·10⁵ (flat plate): turbulent transition. Modern aircraft ~10⁷; whales ~10⁸; planetary boundary layers ~10⁹. **Reynolds** (1883) demonstrated transition experimentally; ν has units m²/s — a 'momentum diffusivity' analogous to thermal diffusivity.\n\n**Mach number** M = U/c.\nRatio of flow speed to sound speed. M < 0.3: effectively incompressible. M > 0.8: transonic + shocks. M = 1: sonic. M > 1: supersonic. M > 5: hypersonic + chemistry-coupled. Named after **Ernst Mach** (1838-1916).\n\n**Froude number** Fr = U/√(gL).\nRatio of inertial to gravitational forces. Open-channel flow + ship hydrodynamics + atmospheric stably-stratified flows. Fr < 1 subcritical (rivers downstream of weirs); Fr > 1 supercritical (rapids, hydraulic jumps). **William Froude** designed ship-model towing tests in 1870s.\n\n**Weber number** We = ρU²L/σ.\nRatio of inertia to surface tension. Droplet breakup (We > ~12), atomization, inkjet printing, biological surfaces.\n\n**Péclet number** Pe = UL/α = Re·Pr.\nRatio of convective to diffusive heat transport. Pe ≫ 1: convection dominates (thermal plumes, large-scale stirring); Pe ≪ 1: diffusion (microreactors).\n\n**Prandtl number** Pr = ν/α = μc_p/k.\nMomentum vs thermal diffusivity. Air Pr ≈ 0.71; water Pr ≈ 7; oils Pr ~ 10²-10³; liquid metals Pr ~ 0.01. Determines relative boundary-layer thicknesses.\n\n**Schmidt number** Sc = ν/D.\nMomentum vs mass diffusivity. Analog of Prandtl for chemical species. Liquids Sc ~ 1000; gases Sc ~ 1.\n\n**Strouhal number** St = fL/U.\nDimensionless vortex-shedding frequency (Bénard-Kármán wakes). St ≈ 0.2 for Re ≈ 100-10⁵ around a cylinder.\n\nOther important groups:\n- **Knudsen** Kn = λ/L (covered last lesson).\n- **Bond number** Bo = ρgL²/σ — gravity vs surface tension.\n- **Rayleigh number** Ra = gβΔTL³/(να) — natural convection.\n- **Capillary number** Ca = μU/σ.\n- **Eckert** Ec = U²/(c_p ΔT) — kinetic vs thermal energy.\n- **Womersley** α = R√(ω/ν) — pulsatile flow (cardiovascular)."
+    },
+    {
+      "kind": "text",
+      "title": "Non-dimensionalization, scaling + dynamic similarity",
+      "body": "**Non-dimensionalizing** Navier-Stokes reveals the only governing parameter for incompressible isothermal flow is Re. Let U, L, ρ, μ be the characteristic scales + define\n\n  **v*** = **v**/U,  **x*** = **x**/L,  t* = tU/L,  p* = (p − p_∞)/(ρU²)\n\nSubstituting into NS:\n\n  ∂**v***/∂t* + (**v***·∇*)**v*** = −∇*p* + (1/Re) ∇*²**v***\n\nThe only parameter left is Re. So two flows with the same geometry + same Re are **dynamically similar** — their dimensionless flow fields are identical. This is the foundation of **wind-tunnel testing**: scale-model F1 cars + aircraft + ship hulls at matched Re give predictive data without full-scale prototypes.\n\n**Scaling arguments**:\n- **High Re**: viscous term (1/Re)∇²**v** → 0 — recovers **Euler equation** (inviscid). Valid in bulk flow, fails near walls (boundary layers).\n- **Low Re**: drop inertia ⇒ **Stokes equation** ∇p = μ ∇²**v** (linear, time-reversible). Microswimmers, glaciers, lava.\n- **Long L, slow U, large ΔT**: buoyancy-driven (Rayleigh-Bénard convection); Ra is the parameter.\n- **Small L, high σ**: capillary regime; We, Ca, Bo dominate.\n\n**Similitude requirements**: matching all relevant dimensionless numbers between model + prototype. Often impossible — can't simultaneously match Re + Fr + We at small scale. Engineers prioritize the dominant group:\n- **Aerodynamics**: match Re (and M for compressible).\n- **Naval hydrodynamics**: match Fr (Re distorted, corrected by Froude's method).\n- **Free-surface + waves**: match Fr + We.\n- **Combustion**: match Re + Da (Damköhler) + Le (Lewis).\n\n**Boundary-layer scaling** (Prandtl 1904) — δ/L ~ 1/√Re. Thin viscous layer near walls; outside δ flow is essentially inviscid. We'll revisit in 'Viscous + boundary layer' lesson.\n\n**Buckingham Π theorem** formalizes dimensional analysis: a physical relation among n variables with k fundamental dimensions can be expressed as a relation among n − k dimensionless Π groups. Tells you *how many* dimensionless parameters to expect, but not their physical content.\n\n**G.I. Taylor** mastered scaling arguments (Trinity tests, atom-bomb yield from declassified photo, drop dynamics, atmospheric dispersion). **Lord Rayleigh**, **Buckingham**, **Bridgman** systematized dimensional analysis. **Saffman, Batchelor, Lighthill** continued the tradition with vortex dynamics + aeroacoustics. Scaling is the fluid mechanic's first weapon before any computation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fluid_ns_1",
+        "kind": "guided_derivation",
+        "question": "Non-dimensionalize the Navier-Stokes equation",
+        "goal": "Starting from ρ(∂**v**/∂t + (**v**·∇)**v**) = −∇p + μ∇²**v**, choose scales U, L, ρ, T_c = L/U, P_c = ρU² and derive the dimensionless form revealing Re.",
+        "steps": [
+          {
+            "prompt": "Define dimensionless variables.",
+            "motivation": "Choice of scales.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "v* = v/U, x* = x/L, t* = tU/L, p* = (p − p∞)/(ρU²)"
+              ]
+            },
+            "hints": [
+              "Time scale is L/U, pressure scale ρU²."
+            ],
+            "reveal": "Scales: **v*** = **v**/U, **x*** = **x**/L, t* = t/(L/U), p* = (p − p_∞)/(ρU²). The time scale L/U is the convective time; the pressure scale ρU² is the dynamic pressure. These are the canonical convective scales for incompressible flow."
+          },
+          {
+            "prompt": "Substitute + factor.",
+            "motivation": "Algebraic manipulation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(ρU²/L)(∂v*/∂t* + (v*·∇*)v*) = −(ρU²/L)∇*p* + (μU/L²)∇*²v*"
+              ]
+            },
+            "hints": [
+              "Chain rule for derivatives."
+            ],
+            "reveal": "Time derivative: ∂**v**/∂t = (U/(L/U)) ∂**v***/∂t* = (U²/L) ∂**v***/∂t*. Gradient: ∇ = (1/L)∇*. Substitute: ρ(U²/L)∂**v***/∂t* + ρ(U²/L)(**v***·∇*)**v*** = −(ρU²/L)∇*p* + (μU/L²)∇*²**v***."
+          },
+          {
+            "prompt": "Divide by the inertial coefficient ρU²/L.",
+            "motivation": "Isolate dimensionless parameter.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "∂v*/∂t* + (v*·∇*)v* = −∇*p* + (μ/(ρUL)) ∇*²v*"
+              ]
+            },
+            "hints": [
+              "What's left in front of viscous term?"
+            ],
+            "reveal": "Dividing: ∂**v***/∂t* + (**v***·∇*)**v*** = −∇*p* + (μ/(ρUL)) ∇*²**v***. The coefficient μ/(ρUL) = 1/Re."
+          },
+          {
+            "prompt": "Identify the Reynolds number + interpret.",
+            "motivation": "Final form.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "∂v*/∂t* + (v*·∇*)v* = −∇*p* + (1/Re) ∇*²v*, Re = ρUL/μ"
+              ]
+            },
+            "hints": [
+              "Single parameter governs incompressible flow."
+            ],
+            "reveal": "Final dimensionless NS: ∂**v***/∂t* + (**v***·∇*)**v*** = −∇*p* + (1/Re) ∇*²**v***, with **Re = ρUL/μ = UL/ν**. Re is the only parameter for incompressible isothermal Newtonian flow over a given geometry — dynamic similarity follows. As Re → ∞ recovers Euler; as Re → 0 recovers Stokes."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fluid_ns_1",
+        "kind": "multiple_choice",
+        "question": "Why does the Reynolds number alone govern incompressible isothermal flow over a given geometry?",
+        "options": [
+          "Random.",
+          "Non-dimensionalizing the incompressible Navier-Stokes equation with convective scales (U, L, ρU², L/U) reduces the equation to ∂**v***/∂t* + (**v***·∇*)**v*** = −∇*p* + (1/Re) ∇*²**v***, where the only remaining parameter is Re = ρUL/μ. So two flows over the same geometry + with the same boundary conditions + matched Re yield identical dimensionless flow fields (**dynamic similarity**). This is why scaled wind-tunnel + towing-tank experiments work — F1 cars, aircraft, ships, biomedical devices — and why CFD validation often uses canonical Re-matched benchmarks. Other dimensionless numbers (M, Fr, We, Pr) appear only when additional physics enters (compressibility, gravity-free surfaces, surface tension, heat).",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Non-dimensionalized incompressible Navier-Stokes leaves Re as the only parameter. Matched Re + geometry + BCs ⇒ dynamic similarity. Foundation of wind-tunnel testing, model-scale experiments + CFD benchmarking. Additional physics introduce M, Fr, We, Pr, etc."
+      },
+      "hints": [
+        "What's left after non-dimensionalizing NS?",
+        "Why do wind-tunnel models work?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Non-dimensionalizing incompressible NS yields ∂v*/∂t* + (v*·∇*)v* = −∇*p* + (1/Re)∇*²v* with Re the lone parameter. Matched geometry + Re ⇒ dynamic similarity. Scale-model experiments (wind tunnels, towing tanks) rely on this. Additional physics adds M, Fr, We, Pr, etc."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fluid_ns_1",
+        "kind": "scenario",
+        "question": "Wind-tunnel scaling for an aircraft wing",
+        "prompt": "Full-scale aircraft wing chord 3 m flies at 250 m/s through air (ν ≈ 1.5·10⁻⁵). You have a 1/10 scale wind-tunnel model. Compute the full-scale Reynolds number, then determine the wind-tunnel speed needed for dynamic similarity. What practical issues arise (compressibility, surface roughness, transition tripping) + how do engineers mitigate them?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fluid_ns_1",
+        "kind": "math_expression",
+        "question": "Write the Reynolds number in terms of density ρ, velocity U, length L, dynamic viscosity μ.",
+        "acceptedAnswers": [
+          "Re = ρUL/μ",
+          "Re = UL/ν"
+        ],
+        "hint": "Inertia/viscous force ratio."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fluid_ns_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why dimensionless numbers are central to fluid mechanics.",
+        "rubric": "Mentions: non-dimensionalizing the governing equations collapses the parameter space — the incompressible Navier-Stokes equation has only one parameter (Reynolds) after non-dimensionalization. Two flows over the same geometry with matched dimensionless numbers (Re, M, Fr, We, Pr, etc.) are **dynamically similar** + share dimensionless flow fields. Foundation of wind-tunnel + towing-tank + CFD-benchmark testing. Each number reveals which physics dominates: Re — viscous vs inertial; M — compressibility; Fr — gravity; We — surface tension; Pr — thermal diffusivity; Pe — convective vs diffusive transport. The **Buckingham Π theorem** formalizes dimensional analysis: n variables in k dimensions ⇒ n − k Π groups. **G.I. Taylor** + Rayleigh + Bridgman built this discipline. Concludes: dimensionless reasoning is the fluid mechanic's first weapon — fast, robust, gives physical intuition before any calculation, and is essential for designing experiments, interpreting CFD, and validating theory."
+      }
+    }
+  ]
+}

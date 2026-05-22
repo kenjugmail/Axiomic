@@ -1,0 +1,155 @@
+{
+  "slug": "elliptic-curves-and-pairings",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "State the elliptic curve group law over finite fields and the discrete logarithm problem.",
+      "Distinguish curves used in practice (secp256k1, Curve25519, BLS12-381, alt_bn128) by purpose.",
+      "Explain bilinear pairings (Weil, Tate, optimal ate) and their use in BLS, KZG, and Groth16."
+    ],
+    "prereqs": [
+      "zk-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Elliptic curves over finite fields: group law, DLP hardness",
+      "body": "An **elliptic curve** over a field F is the set of (x, y) satisfying a Weierstrass equation:\n\ny² = x³ + ax + b   (with discriminant Δ = -16(4a³ + 27b²) ≠ 0 to avoid singularities)\n\nplus a 'point at infinity' O. Over F_p (prime field) or F_{2^m} (binary field), the points form an **abelian group** under a geometric **chord-and-tangent** addition law:\n\n- **Adding P + Q** (P ≠ Q): draw line through P, Q; it meets the curve at a third point R; reflect across x-axis to get P + Q.\n- **Doubling 2P**: draw tangent at P; meets curve at R; reflect.\n- **O** is identity; -P = (x, -y).\n\nExplicitly, P = (x₁, y₁), Q = (x₂, y₂):\n- λ = (y₂ - y₁)/(x₂ - x₁) (or (3x₁² + a)/(2y₁) for doubling)\n- x₃ = λ² - x₁ - x₂\n- y₃ = λ(x₁ - x₃) - y₁\n\n**Scalar multiplication**: kP = P + P + ... + P (k times). Implemented via **double-and-add** (O(log k) doublings + additions) or windowed/Montgomery/NAF methods for side-channel resistance.\n\n**Discrete Logarithm Problem (ECDLP)**: given P, Q = kP, find k. Hardest known algorithms:\n- **Pollard's rho**: O(√n) where n = group order. For 256-bit curves, ~2^128 operations — practically infeasible.\n- **Pohlig-Hellman**: works only if n has small factors → choose **prime-order** subgroups (cofactor ≤ 8).\n- **MOV/Frey-Rück**: reduce ECDLP to F_q^k* DLP if **embedding degree** k is small; defeats supersingular curves at low k.\n- **Index calculus**: ineffective for general elliptic curves (key reason EC beats RSA at smaller keys).\n\n**Why EC over multiplicative groups?** 256-bit EC ≈ 3072-bit RSA in security — 12× smaller keys. Fast scalar multiplication, small signatures, used in TLS, SSH, Bitcoin, Ethereum, Signal, Tor."
+    },
+    {
+      "kind": "text",
+      "title": "Named curves: secp256k1, Curve25519, BLS12-381, alt_bn128, Edwards, Montgomery",
+      "body": "**secp256k1** (SECG; Koblitz curve): y² = x³ + 7 over F_p with p = 2^256 - 2^32 - 977. Order n ~ 2^256. Used in **Bitcoin** (ECDSA + Schnorr Taproot) and **Ethereum** (ECDSA). 'k' = Koblitz; endomorphism (multiplication by complex root of unity) enables 50% speedup via GLV decomposition.\n\n**Curve25519** (Bernstein 2005): y² = x³ + 486662x² + x (Montgomery form) over F_p with p = 2^255 - 19. Order = 8 · prime. Designed for **fast + safe Diffie-Hellman**: simple Montgomery ladder, constant-time, resists side-channels. Twisted Edwards form **Ed25519** used for signatures (EdDSA — Bernstein, Duif, Lange, Schwabe, Yang 2011). Default in modern TLS, SSH, Signal, Tor.\n\n**BLS12-381** (Bowe + Barreto-Lynn-Scott; 2017): pairing-friendly curve with embedding degree k = 12, base field of ~381 bits, ~128-bit security. The workhorse of **modern cryptography**: Ethereum 2.0 BLS signatures, Filecoin, Zcash Sapling, Chia, many SNARK systems (Halo2, Groth16 variants). Has two groups G₁ (E(F_p)) + G₂ (E(F_p^2)) + a target group G_T = μ_r ⊂ F_p^12*.\n\n**alt_bn128 (BN254 / Barreto-Naehrig)**: pairing-friendly, ~254-bit base field. Used in **Ethereum 1.0 precompiles** (Groth16 verification via EIP-196/197/1108). Security degraded from ~128 to ~100 bits after improved exTNFS attacks (Kim-Barbulescu 2016); BLS12-381 is preferred for new deployments.\n\n**Edwards + Montgomery forms**: birationally equivalent to short Weierstrass but with **complete addition formulas** (no exception cases) + faster arithmetic. Edwards: x² + y² = 1 + d·x²y²; Montgomery: By² = x³ + Ax² + x. Ed25519 + Curve25519 are these forms of the same underlying curve.\n\n**Embedding degree k**: smallest k with r | (p^k - 1), where r = group order. Pairing exists in F_{p^k}. **Small k** (2-50) = pairing-friendly. **Generic random curves** have huge k (~r) → no efficient pairing → MOV-attack-safe.\n\n**Trade-off**: pairing-friendly curves enable powerful protocols (BLS, KZG, Groth16) at the cost of weaker DLP security per bit (DLP in F_{p^k} is easier than in F_p)."
+    },
+    {
+      "kind": "text",
+      "title": "Bilinear pairings: Weil, Tate, optimal ate → BLS, KZG, Groth16",
+      "body": "A **bilinear pairing** is a map e: G₁ × G₂ → G_T (three cyclic groups of prime order r) with:\n\n1. **Bilinearity**: e(aP, bQ) = e(P, Q)^(ab) for scalars a, b.\n2. **Non-degeneracy**: e(g₁, g₂) ≠ 1 for generators g₁, g₂.\n3. **Efficient computation**.\n\nThis is mind-bending: pairings let us 'move' scalar multiplications between groups, enabling protocols impossible in plain DLP.\n\n**Weil pairing** (Weil 1940s, applied to crypto by Miller 1986; published in 2004): the original construction via divisors. Symmetric: G₁ = G₂.\n\n**Tate pairing** (more efficient): asymmetric (G₁ ≠ G₂), uses Miller's algorithm. Foundation of most modern pairing implementations.\n\n**Optimal ate pairing** (Vercauteren 2008): the most efficient practical variant. Used in libraries like blst, arkworks, mcl. Computation is ~2-5 ms per pairing on commodity CPUs.\n\n**Applications**:\n\n**(1) BLS signatures** (Boneh-Lynn-Shacham 2001): given keypair (x, X = g₂^x), signing message M means computing σ = H(M)^x ∈ G₁ (hash to curve in G₁, scalar mult by x). Verification: e(σ, g₂) = e(H(M), X). **Key feature: aggregation** — signatures + keys add componentwise. Sign 1000 messages → sum signatures → one ~48-byte aggregate; verify with 2 pairings. Used in Ethereum 2.0 (one signature per slot aggregates ~1M validators), Chia, Filecoin, threshold signatures.\n\n**(2) KZG commitments** (Kate-Zaverucha-Goldberg 2010): polynomial commitments using pairings. Commit to polynomial p(X) via [p(τ)]₁ where τ is a secret 'toxic' value from a trusted setup. Prove p(z) = y by sending the witness π = [(p(X) - y)/(X - z)]₁; verify via pairing equation. **Proof size: 1 group element** regardless of polynomial degree. Foundation of **PLONK, Marlin, Sonic**, EIP-4844 'blob' transactions in Ethereum.\n\n**(3) Groth16** (Jens Groth 2016): the most succinct preprocessing SNARK — proof = **3 group elements** (~200 bytes), verification = 3 pairings (~1-5 ms). Requires per-circuit trusted setup. Powered Zcash Sapling (2018), Tornado Cash, Filecoin proof-of-replication. Mary Maller + Groth refined to **Groth-Sahai** + variants.\n\n**Trusted setup ceremonies**: pairing-based SNARKs need 'toxic waste' (the secret τ); if leaked, fake proofs become possible. Powers of Tau ceremonies (Zcash, Filecoin, Ethereum KZG) crowdsource trust: thousands of participants each contribute randomness; security holds if at least one was honest + deleted their share.\n\n**Beyond pairings**: STARKs, FRI, Bulletproofs avoid pairings (transparent setup, post-quantum considerations). But pairings remain dominant where short proofs matter (Groth16, KZG-based PLONK, BLS aggregation)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_zk_pairing_bls",
+        "kind": "guided_derivation",
+        "question": "Derive BLS signature verification via the pairing equation",
+        "goal": "Given keypair (x, X = g₂^x), signature σ = H(M)^x, derive the verification equation e(σ, g₂) = e(H(M), X).",
+        "steps": [
+          {
+            "prompt": "Write σ in terms of x + the hashed message H(M).",
+            "motivation": "Identify the witness.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "σ = H(M)^x in G1"
+              ]
+            },
+            "hints": [
+              "Signing = scalar mult on hashed message."
+            ],
+            "reveal": "Signer's secret key is x; public key is X = g₂^x. To sign M, hash M to a point H(M) ∈ G₁ + compute σ = H(M)^x ∈ G₁ (scalar multiplication)."
+          },
+          {
+            "prompt": "Compute e(σ, g₂) using bilinearity.",
+            "motivation": "Apply bilinearity.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "e(σ, g2) = e(H(M)^x, g2) = e(H(M), g2)^x"
+              ]
+            },
+            "hints": [
+              "e(aP, Q) = e(P, Q)^a."
+            ],
+            "reveal": "e(σ, g₂) = e(H(M)^x, g₂) = e(H(M), g₂)^x by bilinearity."
+          },
+          {
+            "prompt": "Compute e(H(M), X) similarly.",
+            "motivation": "Use X = g₂^x.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "e(H(M), X) = e(H(M), g2^x) = e(H(M), g2)^x"
+              ]
+            },
+            "hints": [
+              "Bilinearity moves x to exponent."
+            ],
+            "reveal": "e(H(M), X) = e(H(M), g₂^x) = e(H(M), g₂)^x. Identical to e(σ, g₂)."
+          },
+          {
+            "prompt": "Why is aggregation 'free'?",
+            "motivation": "Sum of signatures.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "σ_agg = sum of σ_i; verify e(σ_agg, g2) = product of e(H(M_i), X_i)"
+              ]
+            },
+            "hints": [
+              "Add signatures; pairings distribute."
+            ],
+            "reveal": "σ_agg = Σ σ_i = Σ H(M_i)^x_i ∈ G₁ — adds in one group operation per signer. Verification: e(σ_agg, g₂) = Π e(H(M_i), X_i). Requires n+1 pairings to verify n signatures (vs n × verifications without aggregation). Used in Ethereum 2.0: 1M validators → 1 aggregate signature per slot."
+          }
+        ],
+        "finalResult": "BLS verification: e(σ, g₂) = e(H(M), X). Aggregation: σ_agg = Σ σ_i ∈ G₁. Used in Ethereum 2.0, Chia, Filecoin, threshold signatures. Bilinearity is the magic — turns scalar multiplications into target-group exponentiations."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_zk_pairing_friendly",
+        "kind": "multiple_choice",
+        "question": "Why is BLS12-381 (vs random elliptic curves) suitable for SNARKs and BLS signatures?",
+        "options": [
+          "It is faster to hash to.",
+          "It is a pairing-friendly curve with small embedding degree (k = 12), enabling efficient bilinear pairings e: G₁ × G₂ → G_T — required for BLS signatures, KZG commitments, and Groth16 SNARKs.",
+          "It is post-quantum secure.",
+          "It uses only 128-bit base fields."
+        ],
+        "correctIndex": 1,
+        "explanation": "BLS12-381 (Barreto-Lynn-Scott; Bowe 2017) has embedding degree k = 12 — small enough that the pairing e: G₁ × G₂ → G_T ⊂ F_{p^12}* is efficiently computable, but large enough to keep DLP in F_{p^12}* hard (~128-bit security). Random curves have embedding degrees on the order of r → no efficient pairing exists. Pairing-friendliness is essential for BLS signatures, KZG polynomial commitments, and pairing-based SNARKs (Groth16, PLONK)."
+      },
+      "hints": [
+        "Embedding degree determines pairing feasibility.",
+        "Random curves do not have pairings."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "BLS12-381 is pairing-friendly (embedding degree 12). Pairings e: G₁ × G₂ → G_T enable BLS aggregation, KZG commitments, Groth16 SNARKs. Random curves have huge embedding degree → no efficient pairing. Trade-off: pairing-friendly curves have weaker DLP-per-bit but enable protocols impossible in plain DLP."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_zk_curves_selection",
+        "kind": "scenario",
+        "question": "Choose curves for an application",
+        "prompt": "You are designing (a) a Bitcoin-compatible wallet, (b) an Ethereum 2.0 validator client signing slot attestations, (c) a SNARK rollup. Which named curves (secp256k1, Curve25519/Ed25519, BLS12-381, alt_bn128) for each, and why?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_zk_dlp_security",
+        "kind": "math_expression",
+        "question": "Pollard's rho attack on ECDLP in a group of prime order n takes how many operations (in big-O)?",
+        "acceptedAnswers": [
+          "O(sqrt(n))",
+          "O(n^(1/2))",
+          "sqrt(n)",
+          "O(√n)"
+        ],
+        "hint": "Birthday-paradox-style collision search."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "eb_zk_curves",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how bilinear pairings on elliptic curves enable BLS signatures, KZG polynomial commitments, and Groth16 SNARKs — and why pairing-friendly curves like BLS12-381 are necessary.",
+        "rubric": "Mentions: elliptic curves over F_p form abelian groups under chord-and-tangent law; DLP hardness ≈ O(√n) via Pollard rho. Bilinear pairing e: G₁ × G₂ → G_T satisfies e(aP, bQ) = e(P, Q)^ab. Enables: BLS signatures (verify e(σ, g₂) = e(H(M), X)) with key/signature aggregation; KZG commits to polynomials with 1-element opening proofs (Kate-Zaverucha-Goldberg 2010); Groth16 (Jens Groth 2016) SNARKs with 3-group-element proofs verified via 3 pairings. Requires curves with small embedding degree (BLS12-381 has k=12, alt_bn128 k=12). Random curves have k ≈ n → no efficient pairing. Pairing-friendliness trades DLP-per-bit for protocol richness."
+      }
+    }
+  ]
+}

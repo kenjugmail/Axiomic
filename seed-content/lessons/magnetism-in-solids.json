@@ -1,0 +1,157 @@
+{
+  "slug": "magnetism-in-solids",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish diamagnetism, paramagnetism, and Pauli paramagnetism.",
+      "Analyze Heisenberg and Ising models for cooperative magnetism.",
+      "Survey spintronics, GMR, and topological magnetism."
+    ],
+    "prereqs": [
+      "free-electron-and-band-theory"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Atomic and free-electron magnetism",
+      "body": "Magnetism in solids comes from electron orbital + spin angular momentum and their coupling. The phenomenology spans nine orders of magnitude in susceptibility, from diamagnets ($\\chi \\sim -10^{-5}$) to ferromagnets ($\\chi \\to \\infty$ below $T_c$).\n\n**Diamagnetism**: induced response of closed-shell electrons opposing an applied field. Larmor result (1897):\n\n$$\\chi_{\\text{dia}} = -\\frac{n e^2}{6 m_e} \\langle r^2 \\rangle.$$\n\nUniversal + small + negative. Origin: Lenz's law applied to the orbital currents. Strong in noble gases, organics, water ($\\chi \\sim -10^{-5}$), bismuth (largest natural diamagnet). Superconductors are perfect diamagnets ($\\chi = -1$, Meissner effect — see superconductivity lesson).\n\n**Curie (Langevin) paramagnetism**: free local moments aligned by $\\mathbf{B}$, randomized by $T$. For spin $J$ in field $B$:\n\n$$M = N g_J \\mu_B J\\, \\mathcal{B}_J(g_J \\mu_B J B/k_B T), \\qquad \\chi_{\\text{Curie}} = \\frac{N g_J^2 \\mu_B^2 J(J+1)}{3 k_B T} \\equiv \\frac{C}{T}.$$\n\nThe **Curie law** $\\chi = C/T$ is the signature of independent local moments. Pure paramagnets include Gd³⁺ (J=7/2), Dy³⁺, free radicals.\n\n**Hund's rules** for free-ion ground-state quantum numbers:\n1. Maximum total spin $S$.\n2. Maximum $L$ consistent with rule 1.\n3. $J = |L-S|$ for less-than-half-filled shell, $J = L+S$ for more.\n\nRare earths (4f) follow Hund's rules well; transition metals (3d) usually have quenched $L$ (crystal-field effects), so $g_J \\to g_S \\approx 2$ and $M \\sim g_S \\mu_B S$.\n\n**Pauli paramagnetism**: in a metal, only electrons within $k_B T$ of $E_F$ respond. The result, after a textbook computation:\n\n$$\\chi_{\\text{Pauli}} = \\mu_0 \\mu_B^2 g(E_F)$$\n\n— temperature-independent (to leading order) + proportional to the DOS at $E_F$. Reveals metallic vs insulating character.\n\n**Landau diamagnetism**: complementary metallic contribution from orbital motion of free electrons:\n\n$$\\chi_{\\text{Landau}} = -\\frac{1}{3} \\chi_{\\text{Pauli}}$$\n\nin the free-electron limit. Combines with Pauli + band corrections; in bismuth, Landau diamagnetism dominates owing to small effective mass.\n\n**Van Vleck paramagnetism**: second-order admixture of excited states; temperature-independent positive contribution; important in transition-metal compounds.\n\n**Diamagnetic levitation**: water, biological matter, even frogs (Geim's frog 2000 Ig Nobel — same Geim who later won the 2010 Nobel for graphene) levitate in strong gradient fields. Diamagnetism is universal but weak — needs ~10-20 T to overcome gravity."
+    },
+    {
+      "kind": "text",
+      "title": "Exchange, Heisenberg model, and ordered magnetism",
+      "body": "Magnetism in solids is **cooperative** — atomic moments interact strongly via the **exchange interaction**, a purely quantum-mechanical consequence of Pauli antisymmetry + Coulomb repulsion (no classical analogue at room-temperature energy scales).\n\n**Origin**: for two electrons on neighboring sites, the spatial part of the wave function is symmetric for singlet (antiparallel spins) + antisymmetric for triplet (parallel). Coulomb repulsion favors whichever has lower probability where the electrons coincide. The energy splitting is the **exchange integral** $J$.\n\n**Heisenberg model** (Werner Heisenberg + Paul Dirac 1926-28):\n\n$$\\mathcal{H} = -\\sum_{\\langle ij\\rangle} J_{ij}\\, \\mathbf{S}_i \\cdot \\mathbf{S}_j - g\\mu_B \\mathbf{B}\\cdot \\sum_i \\mathbf{S}_i.$$\n\n- $J > 0$: ferromagnetic; aligns spins.\n- $J < 0$: antiferromagnetic; antiparallel order on bipartite lattices.\n- Anisotropic limits: **Ising** (uniaxial, only $S_i^z S_j^z$), **XY** (planar), **Heisenberg** (isotropic). Anisotropy comes from spin-orbit coupling + crystal field.\n\n**Mean-field theory** (Weiss 1907): replace neighbors by average field $\\langle S\\rangle$. Predicts a self-consistent $M(T)$ + a critical Curie temperature $T_c \\propto zJS(S+1)/3k_B$ where $z$ is coordination number. Above $T_c$: **Curie-Weiss law** $\\chi = C/(T - \\Theta_{CW})$. Mean-field is qualitatively right but wrong on critical exponents.\n\n**Ising model** (Ernst Ising 1925; Lars Onsager 1944 exact 2D solution): paradigm for phase transitions + universality. 2D Ising on a square lattice $T_c = J / (k_B \\ln(1+\\sqrt{2}))$ with $\\beta = 1/8$ critical exponent. Inspired Wilson's renormalization group (1971, Nobel 1982).\n\n**Ferromagnets**: spontaneous magnetization $M$ below $T_c$. Domains (Weiss 1907; Bloch + Landau-Lifshitz domain walls 1935) minimize stray-field energy. Iron $T_c = 1043$ K, Ni 627 K, Co 1394 K, Gd 293 K, $\\text{CrI}_3$ ~45 K in monolayer (2D ferromagnet 2017).\n\n**Antiferromagnets** (Néel 1948, Nobel 1970): alternating sublattices with zero net $M$. Neutron diffraction reveals doubled magnetic unit cell. Mn, Cr, NiO, MnO, La$_2$CuO$_4$ (parent of cuprate superconductors).\n\n**Ferrimagnets**: two inequivalent sublattices with unequal moments → net $M$. Magnetite Fe₃O₄, garnets (YIG — yttrium iron garnet, used in microwave filters + magnonic devices).\n\n**Spin waves (magnons)**: Goldstone bosons of broken spin rotation; dispersion $\\omega \\propto k^2$ in 3D ferromagnets (Bloch 1930), $\\omega \\propto k$ in antiferromagnets. Heat capacity contribution $\\propto T^{3/2}$ for ferromagnets, $T^3$ for antiferromagnets. Measured by inelastic neutron scattering, FMR (ferromagnetic resonance), BLS (Brillouin light scattering).\n\n**Frustration + spin liquids**: triangular + kagome + pyrochlore lattices frustrate AFM order → ground-state degeneracy + emergent gauge fields. Spin ice (Dy₂Ti₂O₇), candidate quantum spin liquids (Herbertsmithite, Na$_4$Ir$_3$O$_8$, RuCl$_3$). Anderson (1973) proposed RVB → connection to high-$T_c$ superconductivity. Active frontier.\n\n**Itinerant ferromagnetism**: Fe, Co, Ni have ferromagnetism driven by Stoner criterion $I g(E_F) > 1$ — exchange splitting of bands. Density-functional theory + LDA+U + DMFT for quantitative band-magnetism."
+    },
+    {
+      "kind": "text",
+      "title": "Modern magnetism: GMR, spintronics, and topological magnets",
+      "body": "**Giant magnetoresistance (GMR)** — discovered independently by Albert Fert (Orsay) + Peter Grünberg (Jülich) in 1988; **Nobel Prize in Physics 2007** for 'discovery of giant magnetoresistance.' In layered ferromagnet/nonmagnet/ferromagnet structures (Fe/Cr/Fe), the resistance depends dramatically on relative magnetization alignment of the F layers:\n\n$$\\text{MR} = \\frac{R_{AP} - R_P}{R_P} \\sim 10\\%-80\\%.$$\n\nMechanism: spin-dependent scattering at interfaces + in bulk. Spin-up and spin-down electrons see different impurity potentials → in parallel (P) config, one channel has low resistance; in antiparallel (AP), both channels have high resistance.\n\n**Industrial impact**: IBM (Stuart Parkin) commercialized GMR read heads for hard disk drives in 1997. Within a decade, areal density grew ~1000× (60 Mb/in² → 100 Gb/in²+). HDDs went from ~1 GB to ~10 TB in ~25 years. Foundation of the cloud era.\n\n**Tunneling magnetoresistance (TMR)** — Julliere 1975, Moodera 1995, Yuasa-Parkin MgO barrier 2004: even larger MR (>600% at RT). MgO/CoFeB MTJs now dominate read heads + STT-MRAM.\n\n**Spintronics** — manipulating electron spin alongside (or instead of) charge:\n- **Datta-Das spin FET** (1990): inject spin-polarized current into 2DEG with Rashba spin-orbit, modulate by gate.\n- **Spin-transfer torque (STT)** (Slonczewski + Berger 1996): polarized current torque flips magnetization without external field. Used in STT-MRAM commercial since ~2016 (Everspin, GlobalFoundries, Samsung, TSMC).\n- **Spin-orbit torque (SOT)**: heavy-metal underlayer (Pt, W, Ta) injects spin Hall current → torque on adjacent F layer. Used in SOT-MRAM development. Spin Hall effect (Hirsch 1999; Kato 2004 experiment).\n- **Rashba + Dresselhaus spin-orbit coupling**: enable electrical spin manipulation.\n- **Anomalous + spin + topological Hall effects**: rich phenomenology.\n\n**Magnetic memory hierarchy 2025**:\n- STT-MRAM: replacing some SRAM/eFlash; non-volatile, fast (~ns), endurance >$10^{15}$.\n- MRAM in space (radiation-hard) + automotive + IoT.\n- Racetrack memory (Parkin proposal): domain-wall shift register; research.\n\n**Magnonics**: control + propagate magnons for logic, communication, computing. Magnon transistors, magnon-photon hybrids, neuromorphic spin-wave devices. YIG + permalloy + low-damping films.\n\n**Topological + skyrmionic magnets**:\n- **Skyrmions** (Mühlbauer 2009 MnSi; Yu 2010 Fe$_{0.5}$Co$_{0.5}$Si): topologically protected swirling spin textures, sizes 1-100 nm. Stabilized by Dzyaloshinskii-Moriya interaction (DMI) in non-centrosymmetric magnets or interfaces.\n- **Magnetic skyrmion racetrack** + neuromorphic + reservoir computing applications.\n- **Antiferromagnetic spintronics**: AFMs have THz dynamics + no stray fields → ultra-dense + ultra-fast memory. Mn$_2$Au, CuMnAs (Wadley 2016 electrical switching).\n- **Topological magnets**: Weyl semimetals with broken time-reversal (Co₃Sn₂S₂, Mn$_3$Sn), magnetic topological insulators (MnBi₂Te₄, Cr-doped Bi₂Se₃) → quantum anomalous Hall effect (Yu, Zhang, Xue 2013).\n- **2D ferromagnets** (CrI₃, Cr$_2$Ge$_2$Te$_6$, Fe$_3$GeTe$_2$) discovered 2017: monolayer + few-layer order; opens van der Waals magnonics + twisted moiré magnetism.\n\n**Quantum magnets**:\n- **Single-molecule magnets** (Mn₁₂-ac etc.): nanoscale quantum tunneling of magnetization.\n- **NV centers in diamond**: nanoscale magnetometry, quantum sensing, quantum information.\n- **Molecular spin qubits**: lanthanide complexes, vanadyl phthalocyanine.\n\n**Frontier physics**:\n- **Quantum spin liquids** (QSLs): zero magnetic order at $T=0$ due to frustration + quantum fluctuations; emergent fractionalized excitations (spinons, visons) + gauge fields. RuCl$_3$ candidate Kitaev QSL; Majorana proposals.\n- **Altermagnets** (Šmejkal-Sinova-Jungwirth 2022): zero net moment + spin-split bands; new class beyond ferro/antiferromagnet.\n- **Spin-photon-phonon-magnon hybrid systems**: cavity magnonics; quantum transduction."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mag_1",
+        "kind": "guided_derivation",
+        "question": "Derive Curie's law from a two-level system.",
+        "goal": "Show that an ensemble of spin-1/2 moments in field $B$ has susceptibility $\\chi = C/T$ with $C = N g^2 \\mu_B^2 / 4 k_B$ in the high-$T$ limit.",
+        "steps": [
+          {
+            "prompt": "Write the energies of $S_z = \\pm 1/2$ states in field $B$ along $\\hat z$.",
+            "motivation": "Zeeman splitting.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E_± = ∓(1/2) g μ_B B",
+                "Zeeman E = -μ·B with μ = g μ_B S_z"
+              ]
+            },
+            "hints": [
+              "$E = -\\boldsymbol\\mu \\cdot \\mathbf{B}$ with $\\mu_z = g\\mu_B S_z$."
+            ],
+            "reveal": "$E_{\\uparrow} = -\\frac{1}{2}g\\mu_B B$, $E_{\\downarrow} = +\\frac{1}{2}g\\mu_B B$ — Zeeman splitting $\\Delta = g\\mu_B B$."
+          },
+          {
+            "prompt": "Write the average magnetization $\\langle M\\rangle$ per spin using the Boltzmann distribution.",
+            "motivation": "Statistical mechanics.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "<M> = (g μ_B / 2) tanh(g μ_B B / 2 k_B T)",
+                "(1/2) g μ_B tanh(g μ_B B / 2 k_B T)"
+              ]
+            },
+            "hints": [
+              "Two-state Boltzmann: $\\langle M\\rangle = m \\tanh(\\beta m B)$ with $m = g\\mu_B/2$."
+            ],
+            "reveal": "$\\langle M\\rangle_{\\text{per spin}} = \\frac{g\\mu_B}{2} \\tanh\\left(\\frac{g\\mu_B B}{2 k_B T}\\right).$"
+          },
+          {
+            "prompt": "Take the high-temperature limit and identify $\\chi$.",
+            "motivation": "Expand $\\tanh x \\approx x$ for $x \\ll 1$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "χ = N g² μ_B² / (4 k_B T)",
+                "Curie constant C = N g² μ_B² / (4 k_B)"
+              ]
+            },
+            "hints": [
+              "$\\chi = \\partial M / \\partial B$ at small $B$."
+            ],
+            "reveal": "For $g\\mu_B B \\ll k_B T$, $\\tanh x \\approx x$. Then $M = N(g\\mu_B/2)^2 B/(k_B T)$ → $\\chi = M/B = N g^2 \\mu_B^2/(4 k_B T) = C/T$ with Curie constant $C = N g^2 \\mu_B^2/(4 k_B)$. For general $J$: $C = N g_J^2 \\mu_B^2 J(J+1)/(3 k_B)$."
+          },
+          {
+            "prompt": "Why does Curie-Weiss $\\chi = C/(T-\\Theta_{CW})$ replace pure Curie in interacting systems?",
+            "motivation": "Mean-field interaction.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "exchange interactions create an effective internal field proportional to M",
+                "neighbors contribute a Weiss molecular field"
+              ]
+            },
+            "hints": [
+              "$B_{\\text{eff}} = B + \\lambda M$ self-consistent."
+            ],
+            "reveal": "Weiss mean field: each spin sees $B_{\\text{eff}} = B + \\lambda M$ from neighbors. Self-consistent solution gives $\\chi = C/(T - \\Theta_{CW})$ with $\\Theta_{CW} = \\lambda C$. Sign of $\\Theta_{CW}$ + ratio to ordering temperature $T_c$ diagnoses ferro / antiferro / frustration: $\\Theta_{CW}/T_N \\gg 1$ signals strong frustration (spin liquid candidate)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mag_1",
+        "kind": "multiple_choice",
+        "question": "Why did the discovery of GMR (Fert + Grünberg 1988, Nobel 2007) trigger a revolution in data storage?",
+        "options": [
+          "Random.",
+          "GMR in Fe/Cr/Fe trilayers shows ~10-80% resistance change between parallel + antiparallel magnetic alignment — orders of magnitude larger than anisotropic magnetoresistance (AMR ~2%) previously used. Stuart Parkin's IBM team converted GMR into commercial spin-valve read heads (1997) that detect tiny stray fields from increasingly small magnetic bits on a disk. The much larger signal margin allowed bit size to shrink rapidly: areal density grew ~1000× in a decade, from 60 Mb/in² → 100 Gb/in²+, enabling the multi-terabyte hard drives + cloud datacenters that built the modern internet. Subsequent TMR (Moodera 1995, MgO barriers Yuasa/Parkin 2004) gave >600% MR and now also drives STT-MRAM commercial since ~2016. GMR is the canonical example of fundamental condensed-matter physics directly enabling a trillion-dollar industry within years.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "GMR (Fert + Grünberg 1988, Nobel 2007) gave 10-80% MR vs ~2% AMR. Parkin's IBM spin-valve read heads (1997) enabled ~1000× HDD areal-density growth → multi-TB drives + cloud era. TMR + STT-MRAM extended the spintronic device family. Canonical condensed-matter → industry pipeline."
+      },
+      "hints": [
+        "What MR signal did GMR offer vs prior AMR?",
+        "How did this affect HDD bit size + density?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "GMR (Fert + Grünberg 1988, Nobel 2007) showed 10-80% MR in Fe/Cr/Fe, vs ~2% AMR. Parkin's IBM spin-valve read heads (1997) → ~1000× HDD areal-density growth in a decade → terabyte drives + cloud. TMR + STT-MRAM extended spintronic devices. Fundamental discovery → industry within ~9 years."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mag_1",
+        "kind": "scenario",
+        "question": "Designing an STT-MRAM bit cell",
+        "prompt": "Design considerations for a perpendicular-anisotropy MgO-based STT-MRAM cell at the 22 nm node: tunnel barrier thickness vs TMR ratio + retention $\\Delta = K V/k_B T$, switching current density $J_c$ vs read disturb, write speed vs endurance, thermal stability (10-year retention requires $\\Delta > 60$). Discuss tradeoffs and how SOT-MRAM (3-terminal, current in heavy-metal underlayer) might relax some constraints. What materials systems would you consider (CoFeB/MgO/CoFeB, perpendicular Co/Pt multilayers, Heusler L2$_1$)?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mag_1",
+        "kind": "math_expression",
+        "question": "Write Curie's law for paramagnetic susceptibility in terms of the Curie constant $C$ and temperature.",
+        "acceptedAnswers": [
+          "chi = C / T",
+          "χ = C/T",
+          "$\\chi = C/T$"
+        ],
+        "hint": "Independent local moments aligned by field, randomized by thermal motion."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mag_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain the hierarchy of magnetism in solids — diamagnetism, paramagnetism, exchange-driven order — and how this culminated in modern spintronics.",
+        "rubric": "Should mention: diamagnetism (Larmor — universal, weak, negative, Lenz origin); Curie paramagnetism ($\\chi = C/T$ for free moments; Hund's rules for atomic moments); Pauli paramagnetism ($\\chi$ from $g(E_F)$ in metals); Landau diamagnetism; exchange interaction (Heisenberg-Dirac 1926-28) is quantum + Coulomb-driven; Heisenberg model $-J \\mathbf{S}\\cdot\\mathbf{S}$ with $J>0$ ferro, $J<0$ antiferro; mean-field Curie-Weiss $\\chi = C/(T-\\Theta_{CW})$; Néel antiferromagnetism (Nobel 1970); domains + magnons + spin waves; frustration + spin liquids; Stoner itinerant ferromagnetism; GMR (Fert-Grünberg 1988, Nobel 2007) → spin-valve read heads → ~1000× HDD density growth → cloud era; TMR + STT-MRAM commercial; SOT, skyrmions, AFM spintronics, 2D magnets, magnonics, topological magnets, altermagnets as the modern frontier."
+      }
+    }
+  ]
+}

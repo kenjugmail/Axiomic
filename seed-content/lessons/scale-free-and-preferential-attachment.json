@@ -1,0 +1,172 @@
+{
+  "slug": "scale-free-and-preferential-attachment",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Derive Barabási-Albert model.",
+      "Survey scale-free networks.",
+      "Engage criticisms of scale-free."
+    ],
+    "prereqs": [
+      "random-and-small-world-networks"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Barabási-Albert: scale-free networks via preferential attachment",
+      "body": "**Barabási-Albert model** (Albert-László Barabási + Réka Albert, *Science* 1999 *Emergence of scaling in random networks*): the first generative model producing heavy-tailed degree distributions. >40,000 citations; transformed network science.\n\n**Two key mechanisms** (BA's claim — both essential):\n1. **Growth**: networks grow over time by adding nodes one at a time (unlike static ER).\n2. **Preferential attachment**: each new node attaches m edges to existing nodes with probability Π(k_i) = k_i / Σ_j k_j proportional to existing degree. The rich get richer. Also known as cumulative advantage (de Solla Price 1976 citations) + the Matthew effect (Merton 1968 sociology) — Barabási + Albert formalized the mechanism + derived its degree distribution.\n\n**Derivation (continuum approximation)**: in the BA model, node i's degree k_i obeys dk_i/dt = m · k_i / (2m·t) = k_i / (2t). Solving: k_i(t) = m·(t/t_i)^(1/2) where t_i is the time node i entered. Inverting: P(k) ∝ k^(-3). Power-law exponent **γ = 3** in the basic BA model.\n\n**Power-law degree distribution P(k) ~ k^(-γ)**:\n- Heavy-tailed; no characteristic scale (hence 'scale-free'). Unlike Poisson, the second moment ⟨k²⟩ diverges for γ ≤ 3.\n- **Hubs**: a few nodes have orders-of-magnitude more connections than average. In a network of 10^6 nodes with γ ≈ 2.5, the most-connected hub has degree ~10^4 — 1000× the mean.\n- Identified visually as a **straight line on log-log plot**: log P(k) = -γ log k + const.\n\n**Empirical fitting**: naïve linear regression of binned log P(k) is biased (low-k bins overweighted; sparse tails). Use:\n- **Maximum likelihood** (Newman 2005 review, Clauset + Shalizi + Newman 2009 *Power-law distributions in empirical data*).\n- **Kolmogorov-Smirnov** to compare candidate distributions.\n- **Lower cutoff k_min**: power law usually holds only for k ≥ k_min.\n- **Likelihood ratio** vs alternatives (log-normal, exponential, stretched exponential, Weibull).\n- Clauset et al's `powerlaw` Python package is standard.\n\n**Why BA matters**: provided the first **mechanistic explanation** for heavy-tailed degree distributions observed in WWW (Albert + Barabási + Jeong 1999), citation networks (Price 1965; Redner 1998), the Internet (Faloutsos brothers 1999), metabolic networks (Jeong + Tombor + Albert + Oltvai + Barabási 2000), protein-protein interaction networks (Jeong + Mason + Barabási + Oltvai 2001), sexual contact networks (Liljeros + Edling + Amaral + Stanley + Aberg 2001), email + collaboration networks. Sparked a decade of 'scale-free everywhere' papers + applications across physics, biology + social science.",
+      "viz": "preferential-attachment",
+      "vizProps": {
+        "m": 3,
+        "steps": 100
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Scale-free universality + applications",
+      "body": "**Where scale-free (or heavy-tailed) degree distributions appear** — partial empirical catalog from the 2000-2010 boom:\n\n**Information networks**:\n- **World Wide Web** (Albert + Barabási + Jeong 1999): in-degree γ ≈ 2.1, out-degree γ ≈ 2.4 (page hyperlinks).\n- **Citation networks** (de Solla Price 1965; Redner 1998): γ ≈ 3 for highly-cited papers.\n- **Twitter follower graph, Wikipedia, Facebook**: heavy-tailed.\n\n**Infrastructure networks**:\n- **Internet at autonomous-system level** (Faloutsos brothers 1999): γ ≈ 2.1-2.3.\n- **Airline networks** (Guimerà + Mossa + Turtschi + Amaral 2005): heavy-tailed; major hubs (Atlanta, Chicago O'Hare, Heathrow) dominate.\n- **Power grids**: less heavy-tailed; closer to exponential (Watts-Strogatz noted this).\n\n**Biological networks**:\n- **Metabolic networks** (Jeong + Tombor + Albert + Oltvai + Barabási 2000): γ ≈ 2.2; ATP, NADH highly connected.\n- **Protein-protein interaction (PPI)** (Jeong + Mason + Barabási + Oltvai 2001): γ ≈ 2.5; hubs more essential to viability (centrality-lethality).\n- **Gene regulatory networks**: heavy-tailed out-degree (master regulators).\n- **Brain functional connectivity**: heavy-tailed (Eguíluz + Chialvo + Cecchi + Baliki + Apkarian 2005).\n\n**Social networks**:\n- **Sexual contact networks** (Liljeros + Edling + Amaral + Stanley + Aberg 2001 Nature): γ ≈ 2.5-3.5 — drives epidemic-threshold collapse in HIV/STD models.\n- **Movie actor collaboration, scientific co-authorship**: heavy-tailed.\n- **Email networks** (Ebel + Mielsch + Bornholdt 2002): heavy-tailed.\n\n**Why universality?** Multiple mechanisms produce power laws:\n- **Preferential attachment** (BA 1999).\n- **Yule-Simon process** (Yule 1925; Simon 1955): species speciation, city sizes.\n- **Optimization** (Carlson + Doyle highly-optimized tolerance, 1999).\n- **Multiplicative growth** with reset → log-normal often mistaken for power-law.\n- **Self-organized criticality** (Bak + Tang + Wiesenfeld 1987): sandpile avalanches.\n- **Fitness models** (Bianconi + Barabási 2001): nodes have intrinsic fitness η_i; attachment proportional to η_i · k_i. Explains how late-arriving Google overtook Yahoo.\n\n**Consequences of scale-free structure**:\n- **Ultra-small world**: ⟨d⟩ ~ log log n for γ < 3 (Cohen + Havlin 2003) — even tinier than ER's log n.\n- **Robustness to random failure** (Albert + Jeong + Barabási 2000): random node removal barely affects connectivity since most nodes are leaves. Internet survives random crashes.\n- **Fragility to targeted attack**: removing top hubs shatters the network. Same paper. Foundational for cyberattack + epidemic-control thinking.\n- **Vanishing epidemic threshold** (Pastor-Satorras + Vespignani 2001): on scale-free networks with γ ≤ 3, the epidemic threshold goes to zero — diseases always spread. Covered in spreading lesson.\n- **Synchronization, controllability, percolation thresholds** all behave anomalously on scale-free vs ER."
+    },
+    {
+      "kind": "text",
+      "title": "Criticisms + the more nuanced modern view",
+      "body": "**The scale-free hype overshot**. The 2000s claim that 'most real networks are scale-free' has been substantially walked back.\n\n**Broido + Clauset 2019 *Scale-free networks are rare* (Nature Communications)**: tested 927 real-world network datasets across domains. Using rigorous Clauset-Shalizi-Newman maximum-likelihood + likelihood-ratio tests vs log-normal, exponential, stretched-exponential alternatives. Found:\n- Only **~4% strongly scale-free** (passing strict tests).\n- ~52% had heavy-tailed distributions but were better fit by **log-normal** or other heavy-tailed alternatives.\n- Many networks previously claimed as scale-free fail rigorous testing.\n- Real network degree distributions are heterogeneous + heavy-tailed, but rarely pure power laws.\n\n**Statistical pitfalls** of the early scale-free literature:\n- **Log-log regression** is biased.\n- **Insufficient k_min cutoff** treatment.\n- **No likelihood-ratio comparison** vs alternative distributions.\n- **Small sample tails**: power-law evidence from a handful of points.\n- **Log-normal vs power-law** are statistically hard to distinguish at small n.\n- See Stumpf + Porter 2012 *Critical truths about power laws*; Clauset + Shalizi + Newman 2009.\n\n**Critical exchange**: Holme 2019, Barabási response 2019, Voitalov + van der Hoorn + van der Hofstad + Krioukov 2019 (claiming Broido + Clauset's test is overly strict). The community has settled around: heavy tails are universal; pure power laws are not.\n\n**Corrected + extended generative models**:\n- **Configuration model** (Bollobás 1980; Molloy + Reed 1995): generate random graph with prescribed degree sequence; standard null for hypothesis testing.\n- **Chung-Lu model** (Chung + Lu 2002): each edge (i,j) has probability proportional to w_i · w_j / Σ w_k where w_i is a prescribed expected degree. Produces target degree sequence.\n- **Fitness model** (Bianconi + Barabási 2001): nodes have intrinsic fitness η_i; attachment ∝ η_i · k_i. Predicts winner-take-all + late-comer dominance.\n- **Hyperbolic / hidden-variable models** (Krioukov + Papadopoulos + Kitsak + Vahdat + Boguñá 2010): embed network in hyperbolic space; explains both heavy tails + high clustering + community structure naturally.\n- **HRG (Hyperbolic Random Graph)**: tractable analytical models; navigable greedy routing matches Internet AS topology.\n- **PA variants**: nonlinear preferential attachment (BA + accelerating growth + initial attractiveness + aging); produces variable γ.\n\n**Modern position** (Newman, Clauset, Krioukov, Barabási all roughly agree):\n- Real-network degree distributions are **heterogeneous + often heavy-tailed**.\n- Pure power laws are **rarer than once claimed**.\n- The qualitative phenomena — robustness asymmetry, accelerated spreading, hub-driven dynamics — are robust to whether the distribution is exactly power-law or 'merely' heavy-tailed.\n- The **important quantity** is the variance / second moment ⟨k²⟩, which controls many dynamics regardless of distributional form.\n- **Don't over-interpret** a log-log plot; do rigorous Clauset-Shalizi-Newman testing.\n\nThis is a healthy example of a scientific community correcting an over-strong claim while preserving the genuine + revolutionary insights of Barabási-Albert."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ba_1",
+        "kind": "guided_derivation",
+        "question": "Derive BA degree exponent γ = 3",
+        "goal": "Use continuum approximation to derive P(k) ~ k^(-3) for the BA model.",
+        "steps": [
+          {
+            "prompt": "BA model: each new node adds m edges to existing nodes with probability Π(k_i) = k_i / Σ_j k_j. After t nodes added, Σ_j k_j ≈ ?",
+            "motivation": "Total degree = 2 × edges.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2mt"
+              ]
+            },
+            "hints": [
+              "Each new node adds m edges; t nodes added → m·t edges → 2m·t total degree."
+            ],
+            "reveal": "Σ_j k_j = 2mt (total degree = 2 × edges). Π(k_i) = k_i / (2mt)."
+          },
+          {
+            "prompt": "Continuum approximation: dk_i/dt = m · Π(k_i). Plug in.",
+            "motivation": "Rate of change of node i's degree.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "dk_i/dt = k_i / (2t)"
+              ]
+            },
+            "hints": [
+              "m · (k_i / (2mt)) = k_i / (2t)."
+            ],
+            "reveal": "dk_i/dt = m · k_i/(2mt) = k_i/(2t). Linear ODE."
+          },
+          {
+            "prompt": "Solve dk_i/dt = k_i/(2t) with initial k_i(t_i) = m where t_i = time node i was added.",
+            "motivation": "Separable ODE.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "k_i(t) = m (t/t_i)^(1/2)"
+              ]
+            },
+            "hints": [
+              "Separable: dk/k = dt/(2t); integrate."
+            ],
+            "reveal": "k_i(t) = m · (t/t_i)^(1/2). Older nodes (smaller t_i) accumulate more degree — the rich-get-richer dynamic."
+          },
+          {
+            "prompt": "From k_i(t) = m(t/t_i)^(1/2), what's P(k_i < k)? Use uniform distribution of t_i.",
+            "motivation": "CDF + chain rule.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "P(k_i < k) = 1 - m^2 t / (k^2 t) = 1 - m^2/k^2"
+              ]
+            },
+            "hints": [
+              "k_i < k iff t_i > m²t/k²; uniform t_i in [0, t]."
+            ],
+            "reveal": "P(k_i < k) = P(t_i > m²t/k²) = 1 - m²/k² (for k ≥ m). Differentiate to get density P(k) = d/dk[1 - m²/k²] = 2m²/k³. So **P(k) ~ k^(-3)** + γ = 3 for BA."
+          },
+          {
+            "prompt": "What's the master-equation method + does it give the same γ?",
+            "motivation": "Cross-check.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "yes; γ = 3 confirmed"
+              ]
+            },
+            "hints": [
+              "Krapivsky + Redner + Leyvraz 2000 master equation."
+            ],
+            "reveal": "Krapivsky + Redner + Leyvraz (2000) derived the rate equation for P(k, t); same γ = 3 result. **Generalizations**: linear preferential attachment with offset → γ ∈ (2, ∞); **fitness model** (Bianconi + Barabási 2001) → distributional γ. **Nonlinear PA** (Π ∝ k^α): α < 1 → stretched exponential; α > 1 → condensation (single super-hub); α = 1 → BA. Robust theoretical framework."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ba_1",
+        "kind": "multiple_choice",
+        "question": "Why has 'scale-free' been a contested claim about real networks?",
+        "options": [
+          "Random.",
+          "Broido + Clauset (2019 Nature Communications *Scale-free networks are rare*) tested 927 real network datasets using rigorous Clauset-Shalizi-Newman (2009) maximum-likelihood + likelihood-ratio against alternatives (log-normal, exponential, stretched exponential, Weibull). Found only ~4% strongly scale-free; ~52% heavy-tailed but better fit by log-normal or other. Statistical pitfalls of the early scale-free literature: biased log-log regression instead of MLE; insufficient lower-cutoff k_min treatment; no likelihood-ratio comparison; small-sample tails over-interpreted; log-normal hard to distinguish from power-law at moderate n. Voitalov + van der Hoorn + van der Hofstad + Krioukov 2019 + Barabási 2019 responded that the test is overly strict; community has converged on: heavy tails are nearly universal, pure power laws are rarer than once claimed, but **qualitative scale-free phenomena** (robustness asymmetry, vanishing epidemic threshold for γ ≤ 3, hub dominance, ultra-small world) are robust to whether the distribution is exactly power-law or 'merely' heavy-tailed — the key controlling quantity is ⟨k²⟩ / ⟨k⟩, which can be large without strict power-law form. A healthy example of scientific self-correction without abandoning genuine insights of Barabási-Albert. Modern toolkit: Clauset-Shalizi-Newman MLE + Voitalov et al.'s extensions + the `powerlaw` Python package.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Broido + Clauset (2019) tested 927 networks using rigorous Clauset-Shalizi-Newman MLE; only ~4% strongly scale-free; many fit better by log-normal. Pitfalls of early literature: biased log-log regression, weak lower-cutoff treatment, no likelihood-ratio comparison. Modern consensus: heavy tails universal, pure power laws rare, but ⟨k²⟩/⟨k⟩ controls dynamics (epidemic threshold, percolation, robustness) regardless. Scientific self-correction preserving BA's qualitative insights."
+      },
+      "hints": [
+        "Statistical rigor matters.",
+        "Distinguishing power-law from log-normal is hard."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Broido + Clauset (2019 Nature Communications) tested 927 datasets via Clauset-Shalizi-Newman MLE; only ~4% strongly scale-free. Most prior log-log regressions were biased; log-normal often fits as well. Modern consensus (Newman, Krioukov, Barabási): heavy tails universal, pure power laws rare; ⟨k²⟩/⟨k⟩ governs dynamics regardless. Use MLE + likelihood-ratio tests + powerlaw package. Self-correcting scientific community."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ba_1",
+        "kind": "scenario",
+        "question": "You have a real protein-protein interaction network (n ~ 10^4, m ~ 10^5). Naive log-log plot looks straight.",
+        "prompt": "Walk through a rigorous Clauset-Shalizi-Newman analysis: (a) estimate γ via MLE with x_min selection, (b) compute Kolmogorov-Smirnov goodness-of-fit, (c) compare via likelihood ratio against log-normal + stretched exponential. What would you report if γ ≈ 2.3 with p-value > 0.1 but log-normal fits equally well? What network properties (robustness, epidemic threshold, controllability) are sensitive to the exact distributional form vs only to ⟨k²⟩? Cite Broido-Clauset 2019."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ba_1",
+        "kind": "math_expression",
+        "question": "Write the Barabási-Albert preferential-attachment probability Π(k_i) that a new node attaches to existing node i with degree k_i (total degree = 2m·t).",
+        "acceptedAnswers": [
+          "Π(k_i) = k_i / Σ_j k_j",
+          "Π(k_i) = k_i / (2mt)",
+          "k_i / sum_j k_j"
+        ],
+        "hint": "Probability proportional to existing degree."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ba_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain the rise + nuanced fall of the scale-free paradigm.",
+        "rubric": "Mentions: Barabási + Albert (1999 Science) introduced growth + preferential attachment, deriving P(k) ~ k^(-3) — a mechanistic explanation for heavy-tailed degree distributions observed in WWW (Albert + Barabási + Jeong 1999), citations (Price 1965; Redner 1998), Internet (Faloutsos 1999), metabolism (Jeong + Oltvai), PPI, sexual contact (Liljeros 2001). Sparked claims of universal scale-free networks + driving phenomena: ultra-small-world ⟨d⟩ ~ log log n, robustness/fragility asymmetry (Albert-Jeong-Barabási 2000), vanishing epidemic threshold (Pastor-Satorras + Vespignani 2001). Broido + Clauset (2019) tested 927 datasets rigorously; only ~4% strongly scale-free; ~52% heavy-tailed but log-normal often fits. Modern consensus: heavy tails universal, pure power laws rare, but ⟨k²⟩/⟨k⟩ controls dynamics regardless. Extended models: configuration model, Chung-Lu, fitness (Bianconi-Barabási 2001), hidden-variable + hyperbolic (Krioukov 2010), nonlinear PA. Healthy scientific self-correction; BA's qualitative insights remain foundational."
+      }
+    }
+  ]
+}

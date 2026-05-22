@@ -1,0 +1,160 @@
+{
+  "slug": "adaptive-immunity-and-clonal-selection",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Explain T- and B-cell biology + thymic selection.",
+      "Describe V(D)J recombination + AID-driven somatic hypermutation.",
+      "Apply clonal selection theory to disease, vaccines, + therapeutics."
+    ],
+    "prereqs": [
+      "innate-immunity"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Clonal selection: the central organizing principle",
+      "body": "Adaptive immunity = antigen-specific, **clonally** selected, memory-forming. **Burnet's clonal selection theory** (1957; Nobel 1960) remains the central organizing principle:\n1. Each lymphocyte expresses a single, unique antigen receptor.\n2. The repertoire (~10¹¹ unique BCRs/TCRs) is generated **before** antigen encounter.\n3. Antigen **selects** clones whose receptors bind it; selected clones proliferate.\n4. Self-reactive clones are deleted (or otherwise silenced) during development.\n5. Memory cells persist long-term after antigen clearance.\n\nDrag the controls in the visualization to choose an antigen + watch matching clones (a small subset of the diverse repertoire) be selected + expanded — the same process that occurs in your lymph nodes minutes after every pathogen exposure.\n\n**Lymphocyte recirculation**: naïve T + B cells continuously recirculate through secondary lymphoid organs (LNs, spleen, MALT) seeking cognate antigen. A single naïve T cell may visit ~all body lymph nodes within ~3-4 weeks. Antigen + activated DCs concentrate in draining nodes via afferent lymphatics; rare cognate clones encounter their antigen here.\n\n**T-cell biology — overview**:\n- **αβ T cells** dominate (>95%); develop in thymus; recognize peptide–MHC.\n- **γδ T cells**: smaller subset; recognize phosphoantigens, lipid antigens, stress ligands; barrier surveillance.\n- **CD4⁺ T helper**: recognize peptide on **MHC class II** (presented by DCs, macrophages, B cells); secrete cytokines that polarize the response.\n  - **Th1**: IFNγ, T-bet master TF; intracellular pathogens (viruses, mycobacteria); macrophage activation.\n  - **Th2**: IL-4, IL-5, IL-13, GATA3; helminths, allergy, mucosal barrier; eosinophil + mast-cell engagement.\n  - **Th17**: IL-17, IL-22, RORγt; extracellular bacteria + fungi at mucosa; pathogenic in autoimmunity (psoriasis, IBD, RA).\n  - **Tfh** (follicular helper): IL-21, CXCR5⁺, BCL-6; germinal-center B-cell help.\n  - **Treg** (regulatory): FOXP3, IL-10, TGFβ; suppress excessive responses + maintain tolerance.\n- **CD8⁺ cytotoxic** (CTL): recognize peptide on **MHC class I** (all nucleated cells); kill via perforin + granzymes + Fas-FasL.\n\n**TCR structure**: αβ heterodimer with V (variable) + C (constant) domains; complementarity-determining regions (CDRs) contact the peptide–MHC. CD3 (γε + δε + ζζ) + co-receptors (CD4 or CD8) signal through ITAMs.\n\n**Thymic selection** — central tolerance:\n- **Positive selection** (cortex): double-positive (CD4⁺CD8⁺) thymocytes survive only if their TCR binds self-MHC with sufficient affinity (otherwise death by neglect). Lineage commitment based on MHC-I vs MHC-II recognition → single positive (CD4⁺ or CD8⁺).\n- **Negative selection** (medulla): thymocytes binding self-peptide–MHC too strongly are deleted (or diverted into Tregs). **AIRE** (autoimmune regulator) drives ectopic expression of tissue-specific antigens in medullary thymic epithelial cells (mTECs) — without it, organ-specific autoimmunity (APECED; multi-organ).\n\nThis curates a repertoire that recognizes foreign on self-MHC + avoids attacking self — Burnet's tolerance postulate operationalized at the cellular level."
+    },
+    {
+      "kind": "text",
+      "title": "B-cell biology + antibodies + germinal centers",
+      "body": "**B cells** are the antibody-producing branch of adaptive immunity. Develop in bone marrow; sequential checkpoints:\n- Pro-B → pre-B: heavy-chain V(D)J rearrangement (D-J first, then V-DJ); allelic exclusion via successful pre-BCR signaling.\n- Pre-B → immature B: light-chain VJ rearrangement (κ then λ).\n- Immature B → mature B: emigrate to periphery; receptor editing rescues some self-reactive cells; strongly self-reactive cells deleted or rendered anergic.\n\n**BCR = membrane-bound antibody** + Igα/Igβ signaling subunits (ITAMs). Binds antigen in **native conformation** (unlike TCR, which sees processed peptide on MHC).\n\n**B-cell activation modes**:\n- **T-dependent**: most protein antigens. B cell binds antigen → internalizes + processes → presents on MHC II → cognate Tfh cell (Th already primed by DC) provides CD40L + IL-21 → B cell undergoes proliferation, isotype switching, somatic hypermutation, plasma + memory differentiation.\n- **T-independent**: polysaccharide antigens (type 2; e.g., pneumococcal capsule) cross-link many BCRs → weaker, IgM-dominated, limited memory. Why pneumococcal *conjugate* vaccines (capsule + protein carrier) work in infants — convert to T-dependent.\n\n**Germinal center (GC) reaction** — the engine of high-affinity humoral immunity (Nussenzweig + Rajewsky):\n- Activated B cells migrate into B-cell follicles + form **germinal centers** within ~7 days of antigen exposure.\n- **Dark zone (centroblasts)**: rapid proliferation + **AID**-driven **somatic hypermutation** of V regions.\n- **Light zone (centrocytes)**: re-test mutated BCR against antigen displayed by follicular dendritic cells; only high-affinity mutants successfully internalize antigen + present to Tfh → receive survival signals (CD40L, IL-21).\n- **Iteration** (~tens of cycles): repeated mutation + selection → **affinity maturation** (Ka rises ~10²-10⁴-fold).\n- **Class switch recombination (CSR)**: AID also drives IgM → IgG/IgA/IgE switching at switch regions; cytokines + Tfh signals direct the isotype (IFNγ → IgG2a/IgG3 in mice; IL-4 → IgG1/IgE; TGFβ → IgA).\n- **Output**: long-lived **plasma cells** (bone-marrow homing, antibody factories) + **memory B cells** (re-call faster, higher-affinity response).\n\n**Klaus Rajewsky** pioneered conditional knockout mouse models for B-cell biology + GC dissection. **Michel Nussenzweig** advanced GC dynamics, AID biology, + HIV broadly-neutralizing antibody isolation (3BNC117, 10-1074 — clinical bNAb therapy).\n\n**Memory + long-lived plasma cells**:\n- **Long-lived plasma cells (LLPCs)**: occupy bone-marrow niches with stromal support (CXCL12, APRIL, BAFF) → decades of antibody secretion. Why measles antibody persists 60+ yrs.\n- **Memory B cells**: rapid recall — class-switched + affinity-matured; upon re-exposure expand, undergo additional GC reactions, generate further-affinity-matured plasma cells. Foundation of vaccination."
+    },
+    {
+      "kind": "text",
+      "title": "Clonal selection + diversity: V(D)J, RAG, AID, + the ~10¹¹ repertoire",
+      "body": "**The diversity problem**: a finite genome (~20,000 genes) must encode a receptor repertoire able to recognize **any** antigen — chemicals never encountered in evolution included. Solution: **somatic genome reorganization**.\n\n**V(D)J recombination (Tonegawa Nobel 1987)**: antibody (and TCR) genes are assembled from separate **V (Variable), D (Diversity), J (Joining)** gene segments during lymphocyte development. The germline contains arrays of each:\n- Heavy chain: ~50 V_H × ~25 D_H × ~6 J_H segments.\n- κ light: ~40 V_κ × ~5 J_κ.\n- λ light: ~30 V_λ × ~5 J_λ.\n- TCRβ: ~50 V_β × ~2 D_β × ~13 J_β. TCRα: ~50 V_α × ~60 J_α.\n\n**Recombination signal sequences (RSS)** flank each segment: heptamer–spacer (12 or 23 bp)–nonamer. The **12/23 rule**: recombination occurs between RSSs with differently-sized spacers, ensuring V-D, D-J, V-J joinings (not V-V).\n\n**RAG1 + RAG2 (Schatz + Baltimore, 1989)** — the **V(D)J recombinase**:\n- RAG1/2 complex recognizes RSS pairs, makes double-strand breaks at the heptamer–coding-segment junction.\n- Creates hairpinned coding ends + blunt signal ends.\n- **NHEJ** machinery (Artemis opens hairpins, Ku70/80, DNA-PKcs, XRCC4–LIG4) repairs the joins.\n- Imprecise repair adds **junctional diversity**: exonuclease nibbling + **P-nucleotides** (palindromic from hairpin opening) + **N-nucleotides** (TdT-added templated random nucleotides; expressed only in T-cell + B-cell heavy-chain rearrangement).\n\n**Diversity arithmetic**:\n- Combinatorial: ~50 × 25 × 6 × 40 × 5 ≈ 1.5 × 10⁶ heavy × light combinations.\n- Junctional: ~10²-10³ additional diversity at each VDJ junction → ~10⁹-10¹¹ unique BCRs.\n- T-cell receptor repertoire ~10⁸ unique TCRs (no further SHM).\n- Add **somatic hypermutation** in GCs (B cells only) → effective diversity even larger after antigen exposure.\n\n**AID (Activation-Induced Cytidine Deaminase) — Tasuku Honjo 2000**:\n- Deaminates C → U in single-stranded DNA at V regions + switch regions.\n- Uracil processed by UNG + MMR → mutations (point + insertions/deletions) at V → **somatic hypermutation**.\n- At switch regions → double-strand breaks + class switch recombination.\n- AID-deficiency (hyper-IgM syndrome type 2) → no CSR + no SHM → only low-affinity IgM responses.\n- Honjo's other Nobel work — PD-1 + cancer immunotherapy — covered in the cancer-immunotherapy lesson.\n\n**Repertoire-scale analysis** (modern): **Adaptive Immune Receptor Repertoire (AIRR)** sequencing samples millions of TCRs/BCRs from a person. Quantifies clonality, V-gene usage, CDR3 length, public clones, response signatures. Enables MRD detection (CAR-T trials, lymphoma), vaccine immunogenicity, autoimmune monitoring, organ-transplant tolerance scoring, COVID + flu repertoire dynamics. Adaptive Biotechnologies + Repertoire Genesis + 10x Immune Profiling are major platforms.\n\n**Implication**: each individual has a private repertoire shaped by germline V-gene usage, thymic + bone-marrow selection, + lifetime antigen exposure history. Two people exposed to the same virus mount overlapping but **non-identical** clonal responses. This explains why some individuals develop broadly neutralizing antibodies + others don't — a frontier question for HIV + universal influenza vaccines.",
+      "viz": "clonal-selection",
+      "vizProps": {
+        "antigen": "viral"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_adapt_1",
+        "kind": "guided_derivation",
+        "question": "Derive the affinity-maturation log-fold improvement in a germinal-center reaction",
+        "goal": "Estimate the affinity improvement (Ka_final / Ka_initial) attainable through ~20 cycles of GC-driven affinity maturation, given typical per-cycle selection of ~2-3 fold + AID mutation rates.",
+        "steps": [
+          {
+            "prompt": "Each GC cycle: B cells in the dark zone undergo ~6 divisions while AID introduces ~1 mutation per division per V region. Estimate mutations per V region per cycle.",
+            "motivation": "AID activity rate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~6 mutations per V region per cycle (1 per division × 6 divisions)",
+                "~5-6 mutations per cycle"
+              ]
+            },
+            "hints": [
+              "AID rate × divisions."
+            ],
+            "reveal": "AID introduces ~10⁻³ mutations per bp per generation in the V region (~300 bp); ~1 mutation per V region per division. ~6 divisions per cycle → ~5-6 mutations per cycle. After 20 cycles: ~100-120 mutations introduced (with selection — only beneficial fixed)."
+          },
+          {
+            "prompt": "Per cycle, light-zone selection by FDC + Tfh enriches for ~2-3 fold higher Ka mutants. After 20 cycles, what total improvement?",
+            "motivation": "Multiplicative selection.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2^20 = 1,048,576 (with 2-fold per cycle); 3^20 ≈ 3.5 × 10^9 (3-fold per cycle)",
+                "10^6 to 10^9"
+              ]
+            },
+            "hints": [
+              "Exponential per cycle."
+            ],
+            "reveal": "Theoretical maximum: 2²⁰ ≈ 10⁶ to 3²⁰ ≈ 10⁹.5. In practice, observed Ka improvements are ~10²-10⁴ fold over the full response — selection is imperfect (mutations may be neutral or deleterious; selection bottlenecks; clones lost). Still, GCs routinely achieve sub-nanomolar antibody affinities from initial ~μM germline BCRs."
+          },
+          {
+            "prompt": "Why is affinity maturation a key engineering target for HIV broadly neutralizing antibodies (bNAbs)?",
+            "motivation": "Translational connection.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "HIV bNAbs require unusually long SHM trajectories (50-100 mutations); the immunogen design must guide germline B cells through stepwise GC selection"
+              ]
+            },
+            "hints": [
+              "Long affinity-maturation pathways."
+            ],
+            "reveal": "HIV bNAbs (VRC01, 3BNC117, PG9, PG16, 10-1074) carry ~50-100 SHMs — extreme outliers. They require **germline-targeting immunogens** (Schief, Nussenzweig, Burton) that engage the unmutated germline BCR + then a series of boost antigens guiding clones through successive GC cycles to acquire the right mutations. This shotgun-engineering approach to vaccine design is now being tested clinically (HVTN-301, IAVI G001, BG505 mosaic) + represents the most sophisticated application of clonal-selection + GC biology to date."
+          },
+          {
+            "prompt": "How does this connect back to Burnet's 1957 theory?",
+            "motivation": "Closing the loop.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Burnet: pre-formed diverse repertoire + antigen-selection of clones + clonal expansion. AID + GC adds an *intra-clonal* selection layer that refines specificity by mutation + selection"
+              ]
+            },
+            "hints": [
+              "Burnet + Tonegawa + AID together."
+            ],
+            "reveal": "Burnet's clonal selection works on the germline-encoded repertoire. Tonegawa's V(D)J adds combinatorial + junctional diversity to that repertoire. Honjo's AID adds an **intra-clonal evolutionary mechanism** — Darwinian mutation + selection of B cells **within** the same animal during a response. The result is a system that can generate near-arbitrary specificity + affinity from finite germline material — exactly what Burnet's 1957 theory required + what GC biology has now operationalized at the molecular level."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_adapt_1",
+        "kind": "multiple_choice",
+        "question": "Why is thymic selection (positive + negative selection + AIRE) considered the single most important checkpoint in adaptive immunity?",
+        "options": [
+          "It generates the V(D)J repertoire.",
+          "Thymic selection determines **which TCRs leave the thymus**, shaping the entire functional T-cell repertoire for life. **Positive selection** (cortex) ensures TCRs can engage self-MHC (MHC restriction; Doherty + Zinkernagel Nobel 1996) — without it, T cells could never recognize peptide presented by host APCs. **Negative selection** (medulla) eliminates strongly self-reactive thymocytes — the foundation of central tolerance, predicted by Burnet (1957). **AIRE** (autoimmune regulator) drives medullary thymic epithelial cells to ectopically express tissue-specific antigens (insulin, thyroglobulin, retinal proteins) — without AIRE, organ-specific autoimmunity (APECED) develops. Treg lineage (FOXP3⁺) is partially specified in the thymus from intermediate-affinity self-reactive thymocytes (IPEX patients lack functional FOXP3 → fatal multi-organ autoimmunity). Thymic selection thus simultaneously **enables** MHC restriction + **prevents** autoimmunity — a dual function unique in immunology + the basis of all subsequent T-cell biology + tolerance therapeutics.",
+          "It produces antibodies.",
+          "It is unrelated to autoimmunity."
+        ],
+        "correctIndex": 1,
+        "explanation": "Thymic selection (positive + negative + AIRE) shapes the T-cell repertoire that leaves the thymus, enabling MHC restriction (Doherty-Zinkernagel) + preventing autoimmunity. AIRE drives tissue-antigen expression in mTECs — without it, APECED. Tregs partially specified here; IPEX (FOXP3) → fatal autoimmunity. Foundational checkpoint of central tolerance."
+      },
+      "hints": [
+        "Positive + negative selection + AIRE + Treg generation.",
+        "Why removing self-reactive T cells matters."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Thymic selection shapes the entire T-cell repertoire: positive selection enforces MHC restriction (Doherty-Zinkernagel); negative selection + AIRE prevent autoimmunity; Treg lineage partially specified here. APECED (AIRE) + IPEX (FOXP3) show what happens when central tolerance fails. Single most important checkpoint in adaptive immunity."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_adapt_1",
+        "kind": "scenario",
+        "question": "Engineering a vaccine that drives germinal centers + memory",
+        "prompt": "You design a protein subunit vaccine + want to maximize **affinity-matured, long-lived antibody responses**. (a) Why is a Tfh-engaging T-helper epitope (T-dependent activation) essential, + why do unconjugated polysaccharides fail in infants? (b) How would you choose an adjuvant (alum, MF59, AS01, CpG, MPL, mRNA-LNP) to drive a strong germinal-center reaction + long-lived plasma-cell compartment? (c) For an HIV vaccine targeting bNAb lineages, why is a single shot inadequate + how do **germline-targeting + sequential boost** strategies guide B-cell lineages through stepwise affinity maturation? Connect each design choice back to Burnet's clonal selection + Honjo's AID-driven somatic hypermutation."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_adapt_1",
+        "kind": "math_expression",
+        "question": "Write a simple probabilistic estimate for the probability that a randomly chosen naïve B-cell clone (in a repertoire of N = 10¹¹) binds a given epitope, assuming the per-clone probability is p = 10⁻⁶.",
+        "acceptedAnswers": [
+          "Number of binding clones ≈ N × p = 10^11 × 10^-6 = 10^5",
+          "~10^5 binding clones",
+          "10^5",
+          "N*p"
+        ],
+        "hint": "Expected count = N × p."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_adapt_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how clonal selection theory (Burnet 1957) is operationalized at the molecular + cellular level by V(D)J recombination, thymic selection, + germinal-center somatic hypermutation.",
+        "rubric": "Mentions: Burnet's clonal selection postulated diverse pre-formed receptors + antigen selection + clonal expansion + memory + self-tolerance. **Tonegawa's V(D)J recombination** (Nobel 1987; **Schatz + Baltimore** RAG1/2) generates the diverse pre-antigen repertoire (~10⁹-10¹¹) by combinatorial + junctional diversity of V, D, J segments. **Thymic + bone-marrow selection** (positive + negative; **AIRE**, **FOXP3** Treg) enforces self-tolerance. **Antigen encounter in lymph nodes** triggers clonal expansion; T-dependent B cells enter germinal centers where **Honjo's AID** drives **somatic hypermutation + class-switching** with FDC + Tfh selection (**Nussenzweig + Rajewsky**) — iterative affinity maturation. Survivors differentiate into long-lived plasma cells (decades of antibody) + memory cells. The full molecular pipeline turns Burnet's elegant 1957 theory into a Darwinian machine for receptor evolution in real time."
+      }
+    }
+  ]
+}

@@ -1,0 +1,156 @@
+{
+  "slug": "frontier-zkml-and-folding",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Define folding schemes (Nova, ProtoStar, SuperNova) and incrementally verifiable computation.",
+      "Survey zkML: EZKL, Modulus Labs, verifiable inference, costs, model commitments.",
+      "Survey frontier: universal zkVMs (RISC Zero, SP1, Jolt), hardware acceleration, post-quantum + MPC convergence."
+    ],
+    "prereqs": [
+      "zk-snarks-and-arithmetization",
+      "mpc-and-secret-sharing"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Folding schemes + recursive proofs: Nova, Halo, SuperNova, ProtoStar",
+      "body": "**Recursive proof composition** = prove that a previous ZK proof was valid, inside a new ZK proof. Enables: **incrementally verifiable computation (IVC)** — process unboundedly long computations with bounded-size verifier state.\n\n**The naive approach** (verify-inside-circuit) is expensive: SNARK verifier circuits are ~50k-1M constraints (pairing checks, MSM). Verifying recursively each step → quadratic blowup.\n\n**Halo (Bowe, Grigg, Hopwood 2019)** — first practical recursion **without trusted setup**, via **accumulation schemes**. Idea: instead of verifying each prior proof fully inside the next, *accumulate* unverified work into a running 'accumulator'; the final step verifies the accumulator once. Built on **Pasta** curves (Pallas + Vesta, a cycle of curves) for efficient curve switching. Powers **Zcash Orchard (2022)**.\n\n**Nova (Kothapalli, Setty, Tzialla 2021)** — *Recursive Zero-Knowledge Arguments from Folding Schemes*. Introduced **folding schemes**: combine two NP instances of the same type into a single, possibly relaxed, NP instance — without producing a proof. Repeated folding → 'fold n instances into 1' → produce a single SNARK at the end.\n\n**Nova design**:\n- **Relaxed R1CS**: R1CS extended with error vector + scaling factor → closed under folding (linear combination of two instances).\n- **Folding step**: prover sends commitment to cross-term; verifier samples random scalar r; both instances combine into r·instance₁ + (1-r)·instance₂.\n- **Per-step cost**: ~10× cheaper than full proof verification; constant size accumulator.\n- **End-of-chain**: produce one zkSNARK proving the final accumulator's validity.\n\n**Why Nova matters**: IVC at unprecedented scale. Prove a 1M-step computation as 1M folding steps (cheap) + 1 SNARK (expensive once). Prover time scales linearly; verifier scales constant.\n\n**SuperNova (Kothapalli, Setty 2022)** — extends Nova to **non-uniform IVC**: each step can run a different program (e.g., different opcodes). Enables prover for general zkVMs (RISC-V interpreter is a few hundred opcodes, each its own circuit).\n\n**ProtoStar (Bünz, Chen 2023)** — generalized folding for **arbitrary special-sound protocols** + **lookups**. Folds Plonkish circuits with custom gates + lookup tables (essential for hashes, ECC, range checks).\n\n**HyperNova (Kothapalli, Setty 2023)** — Nova for CCS (Customizable Constraint Systems, a generalization of R1CS + Plonkish + AIR).\n\n**Mova, Mangrove, NeutronNova, LatticeFold** (2024) — newer folding schemes targeting field-friendliness, post-quantum, GPU efficiency.\n\n**Production**: Nova in **Lurk** (Lurk Lab); SuperNova in **RISC Zero** v1.0 (2024); ProtoStar in research zkVMs. Folding-based provers are the **fastest known** for many workloads; expected to dominate post-2025."
+    },
+    {
+      "kind": "text",
+      "title": "zkML: EZKL, Modulus Labs, verifiable inference, costs, model commitments",
+      "body": "**zkML (zero-knowledge machine learning)** = prove statements about ML inference (or training) in ZK. Three main goals:\n\n**(1) Verifiable inference**: prove 'I ran model M on input x and got output y' without revealing M, x, or both. Useful for: oracle outputs (TruthMarket, Modulus), proof of computation for paid inference, AI auditing.\n\n**(2) Model commitments**: commit to a model (Merkle/KZG/Poseidon hash of weights). Later prove inferences came from that exact model. Useful for: model provenance, regulatory audit ('this AI used the approved model'), avoiding model swapping.\n\n**(3) Private input ML**: hide user input from the model + server (more naturally MPC/FHE-shaped, but ZK helps).\n\n**Frameworks**:\n\n- **EZKL (Cathie So, Daniel Kang et al. 2022+)** — convert ONNX → Halo2 circuits → ZK proofs of inference. Most-used zkML library. Supports CNNs, transformers (small), RNNs. Open source.\n- **Modulus Labs (2022+)** — early zkML pioneer. Built **Rocky Bot** (chess AI playing on-chain), **leela** demos. Focused on application-layer zkML.\n- **Giza (2023)** — Cairo-based zkML (compile PyTorch → Cairo → STARK). StarkNet-native.\n- **Risc0 zkML** — ML inference inside RISC-V zkVM. Slow but fully general.\n- **DDKang's zkml, Vanna, ZKML.io** — research frameworks.\n\n**Costs (2024 benchmarks, indicative)**:\n- **MNIST classifier (small CNN, ~10k params)**: ~1-10 seconds proving on commodity GPU.\n- **ResNet-50 (25M params)**: ~minutes-hours; ~GB memory.\n- **GPT-2-small (124M params, 1 token of inference)**: ~hours; not practical at frontier scale.\n- **GPT-4 (~1.8T params)**: completely infeasible today (would take centuries on current hardware).\n\n**Why so slow**: each multiplication / nonlinearity (ReLU, GELU, softmax) becomes 10s-100s of constraints. Quantization (int8, int16) helps — most zkML works on quantized models, with accuracy/proof-cost trade-off.\n\n**Active research**:\n- **Lookup-based ML proving**: replace nonlinearities with lookup tables (Lasso, Jolt) — 10-100× faster.\n- **Sumcheck-based provers (Spartan, Hyrax, Brakedown)**: fast prover for ML workloads.\n- **Custom precompiles**: GPU kernels for ML-relevant ops inside zkVM.\n- **Hardware acceleration**: Cysic, Ingonyama, Ulvetanna — FPGAs + ASICs targeting MSM + NTT for SNARK provers.\n\n**Applications**:\n- **AI oracle networks**: provide model outputs with proofs (verify pricing-model output for DeFi).\n- **Decentralized AI inference markets**: pay for inference; prove correct execution (Bittensor, Akash + zkML).\n- **AI safety + auditing**: prove model used was specific approved version; regulatory compliance.\n- **AI-generated content provenance**: prove a watermark, prove what model generated content (C2PA + zkML).\n- **Private medical AI**: prove diagnosis came from approved model on patient data, without revealing data.\n\n**Limitations**: at frontier-model scale (10B+ params), zkML is impractical. Active research narrows the gap, but full-frontier-inference proofs likely 5-10 years out without massive hardware breakthroughs."
+    },
+    {
+      "kind": "text",
+      "title": "Frontier: zkVMs, hardware acceleration, PQ-ZK, MPC × ZK convergence",
+      "body": "**Universal zkVMs** — prove arbitrary program execution as a STARK/SNARK:\n\n- **RISC Zero (2022+)** — RISC-V zkVM, STARK + Plonky2 + recursion. Run Rust/C/Go programs unmodified. Production: DeFi proofs, gaming, AI oracles. v1.0 (2024) ~50× faster than v0.x.\n- **SP1 (Succinct 2024)** — RISC-V zkVM with **Plonky3 + STARK** backend. Open source, aggressive optimization, parallelizable. Major adoption.\n- **Jolt (a16z crypto, Thaler et al. 2024)** — *Just One Lookup Table* — uses **lookup-singularity** (everything is a lookup via Lasso) instead of R1CS. Sometimes 10× faster than R1CS-based zkVMs for certain workloads.\n- **Cairo VM (StarkWare)** — Cairo-native zkVM; powers StarkNet.\n- **Nexus (2023+)** — folding-based zkVM combining SuperNova + Nova + ProtoStar.\n- **Lurk Lab** — Common-Lisp-flavored zkVM with first-class folding via Nova.\n- **Powdr (2023)** — modular zkVM framework.\n\n**Hardware acceleration**:\n\n- **GPUs** (CUDA): MSM + NTT speedups. Most modern provers GPU-first.\n- **FPGAs**: Cysic, Ulvetanna, ZPrize competitions. ~10× over GPU for specific ops.\n- **ASICs**: Cysic, Ingonyama building dedicated SNARK ASICs. ~100× targeted speedup. Late 2024-2025 deployments.\n- **Custom ML accelerators repurposed**: TPU + NPU for matrix ops in zkML.\n\n**Lattice-based + Post-Quantum ZK**:\n\nCurrent state: pairing-based SNARKs (Groth16, PLONK with KZG) are **not** post-quantum. STARKs (hash-based) **are** PQ. Bulletproofs (DLP-based) are **not** PQ.\n\n- **Lattice-based ZK**: Lattice-Bulletproofs, Lattice-Bullet (Esgin et al.), Plover (2024) — Module-LWE-based ZK with constant-size proofs and post-quantum security. Active research; not yet production.\n- **LatticeFold (2024)** — folding schemes over lattices.\n- **Greyhound (2024)** — concrete-efficient lattice ZK.\n- **MPC-in-the-head signatures** (Picnic, **MIRA, Mirath**, **NIST PQ Round 2 finalists 2025**): SNARK + MPC + hash → PQ signatures.\n\n**MPC × ZK × FHE convergence**:\n\n- **MPC-in-the-head (Ishai-Kushilevitz-Ostrovsky-Sahai 2007)** — simulate MPC mentally + commit; transforms MPC into ZK without interaction. Foundation of Picnic + post-quantum signatures.\n- **ZK over secret-shared data**: prove statements about data that you don't fully see (e.g., aggregate statistics without revealing inputs).\n- **FHE + ZK**: Zama's TFHE-rs + zk-friendly FHE for verifiable encrypted computation. **Verifiable FHE** (Boneh et al.; Atapoor-Beguinet 2024).\n- **End-to-end private compute**: collect encrypted data (FHE), train (MPC), audit (ZK) — pipelines combining all three.\n\n**Other frontiers**:\n\n- **Decentralized proving markets**: networks (Aligned, Succinct, Gevulot, Lagrange) match provers with proof jobs; users pay per proof.\n- **Universal aggregation layers**: AggLayer (Polygon), Aligned + Lagrange, Eigenlayer-based ZK coprocessors aggregate proofs across many rollups.\n- **ZK coprocessors**: Axiom, Lagrange, Brevis — let Ethereum smart contracts query historical state + run ZK proofs of off-chain computation.\n- **Verifiable AI training**: prove that a model was trained with a specific algorithm + data — Modulus Labs, EZKL, Giza pursuing.\n- **Real-time proving**: target <1s prover for arbitrary computation. Hardware + folding + parallelism getting there.\n\n**Trajectory**: by 2027-30, zkML inference may be ~100× cheaper; PQ-ZK production-ready; folding-based provers dominant; ZK coprocessors ubiquitous in Ethereum. ZK is moving from a specialized cryptographic tool to **a fundamental computing primitive** — verifiable compute as standard as HTTPS."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_zkml_folding_cost",
+        "kind": "guided_derivation",
+        "question": "Why is Nova folding cheaper than recursive SNARK verification?",
+        "goal": "Compare verifier-in-circuit cost for a 1M-step IVC computation: naive recursion vs Nova folding.",
+        "steps": [
+          {
+            "prompt": "Naive recursion: each step verifies the previous SNARK proof in-circuit. Cost per step?",
+            "motivation": "Recursive verifier circuit.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~50k to 1M constraints (verifier circuit) per step; expensive"
+              ]
+            },
+            "hints": [
+              "SNARK verifier is pairing-heavy."
+            ],
+            "reveal": "Naive recursion: each step proves 'previous proof was valid' inside a new SNARK. Verifier circuit ~50K-1M constraints (pairing checks + MSMs + Fiat-Shamir). For 1M steps: prover does 10^6 × ~10^5 = 10^11 constraint work — infeasible."
+          },
+          {
+            "prompt": "Nova folding: what is the per-step constraint cost?",
+            "motivation": "Folding overhead.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~10k constraints per step (folding overhead)"
+              ]
+            },
+            "hints": [
+              "Just commit to cross-term + verifier samples one scalar."
+            ],
+            "reveal": "Nova folding: per step ≈ commit to cross-term T + verifier samples random scalar r + fold instances. **~10k constraints** of folding work per step. No pairings, no full verification."
+          },
+          {
+            "prompt": "After folding all 1M instances, what is the final step?",
+            "motivation": "Termination.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "produce one SNARK proving the final accumulator instance is satisfied"
+              ]
+            },
+            "hints": [
+              "One expensive SNARK at the end."
+            ],
+            "reveal": "At end: one expensive SNARK (~10^5 constraints) proving the accumulator is satisfied — equivalent to one full SNARK verification. Total prover work: ~10^6 × 10^4 + 10^5 ≈ 10^10 constraint operations — **10× cheaper** than naive recursion + linearly amortized over steps."
+          },
+          {
+            "prompt": "Why is this 'incrementally verifiable computation'?",
+            "motivation": "IVC property.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "verifier state has constant size; can verify any length computation with same effort"
+              ]
+            },
+            "hints": [
+              "Bounded verifier state."
+            ],
+            "reveal": "IVC: each step extends a single, bounded accumulator. Verifier checks the final SNARK + the final accumulator: O(1) work + O(1) state regardless of computation length. Perfect for streaming computations: blockchain state machines (every block folds in), zkVM execution traces (every opcode folds in), zkML inference (every layer folds in)."
+          }
+        ],
+        "finalResult": "Nova folding: O(1) per-step accumulator update + 1 final SNARK. 10-100× faster than naive recursion for long computations. Foundation of next-gen zkVMs (RISC Zero, Nexus, Lurk)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_frontier_zkml_bottleneck",
+        "kind": "multiple_choice",
+        "question": "Why is zkML inference at frontier-model scale (GPT-4, 1.8T params) currently impractical?",
+        "options": [
+          "Models are too small.",
+          "Each multiplication + nonlinearity (ReLU, GELU, softmax) translates to 10s-100s of ZK constraints; large models have 10^12+ multiplications per inference, making proving cost orders of magnitude beyond commodity hardware. Quantization + lookup-based provers (Lasso, Jolt) + custom hardware (Cysic, Ingonyama) narrow but don't close the gap.",
+          "ZK proofs cannot represent floating-point arithmetic.",
+          "Models are private."
+        ],
+        "correctIndex": 1,
+        "explanation": "zkML cost scales linearly with model compute. Each multiplication = ~10 constraints in R1CS; each nonlinearity = lookup or polynomial approx (~100 constraints). Frontier models have ~10^12 multiplications per inference → 10^13+ constraints → days-to-years of prover time on commodity GPUs. Quantization (int8) + lookup-based provers (Lasso 100× speedup) + hardware (Cysic ASICs) help but ~5-10 years from frontier-scale practical zkML. Research frontier: custom precompiles, parallel folding, sumcheck-based provers (Spartan, Brakedown)."
+      },
+      "hints": [
+        "Constraint count × multiplication count → prover time.",
+        "Quantization + lookups help but not enough yet."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "zkML cost = #ops × #constraints/op. Frontier models have ~10^12 mults/inference → 10^13 constraints. Quantization + Lasso/Jolt lookups give 10-100× speedups; hardware (Cysic, Ingonyama ASICs) another 10-100×. Gap to frontier scale: ~5-10 years. Active research: lookup-singularity, sumcheck provers, custom precompiles, parallel folding."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_frontier_pqzk",
+        "kind": "scenario",
+        "question": "Post-quantum ZK migration",
+        "prompt": "Quantum computers threaten pairing-based SNARKs (Groth16, KZG-PLONK). A rollup must migrate to a post-quantum-secure proof system by 2030. Compare options: (1) STARK migration (FRI + hash-based), (2) lattice-based ZK (LatticeFold, Plover), (3) hybrid systems. Discuss security, performance, and migration risk."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_frontier_nova",
+        "kind": "math_expression",
+        "question": "Nova folding (Kothapalli-Setty-Tzialla 2021): given 1M IVC steps, what is the asymptotic prover work per step (in constraints)?",
+        "acceptedAnswers": [
+          "O(1)",
+          "constant",
+          "~10k constraints per step (constant)",
+          "constant per step"
+        ],
+        "hint": "Folding adds a constant overhead per step (independent of step depth)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "eb_frontier",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why folding schemes (Nova, ProtoStar, SuperNova) + universal zkVMs (RISC Zero, SP1, Jolt) represent a fundamental shift in ZK proving, and what the next decade looks like.",
+        "rubric": "Mentions: **Folding schemes** (Nova 2021 Kothapalli-Setty-Tzialla, ProtoStar 2023, SuperNova 2022, HyperNova 2023) enable **incrementally verifiable computation** — O(1) per-step accumulator + 1 final SNARK. 10-100× faster than naive recursion. Bowe's Halo (2019) pioneered no-trusted-setup recursion via accumulation. **Universal zkVMs** (RISC Zero, SP1, Jolt, Cairo, Nexus, Lurk) let arbitrary programs be proved. **Hardware acceleration** (Cysic, Ingonyama FPGAs/ASICs; ZPrize) targets 100× more. **PQ-ZK**: STARKs already PQ; lattice-based ZK (LatticeFold, Plover) emerging. **MPC × ZK × FHE convergence**: end-to-end private compute. **zkML**: EZKL, Modulus Labs, Giza — proving ML inference for AI oracles + auditing. Trajectory: by 2030, ZK becomes a fundamental computing primitive — verifiable compute as standard as HTTPS. Setty + Bowe key contributors."
+      }
+    }
+  ]
+}

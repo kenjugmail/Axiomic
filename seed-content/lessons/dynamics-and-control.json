@@ -1,0 +1,156 @@
+{
+  "slug": "dynamics-and-control",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Set up robot equations of motion via Newton-Euler and Euler-Lagrange.",
+      "Apply PID, computed torque, and feedback linearization.",
+      "Use MPC, adaptive, sliding, and operational-space control in modern robots."
+    ],
+    "prereqs": [
+      "forward-and-inverse-kinematics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Robot dynamics: Newton-Euler and Euler-Lagrange",
+      "body": "**Robot dynamics** = how joint torques cause motion. The standard form (manipulator equation):\n$$M(\\theta) \\ddot{\\theta} + C(\\theta, \\dot{\\theta}) \\dot{\\theta} + g(\\theta) = \\tau$$\nwhere\n- **M(θ) ∈ ℝⁿˣⁿ** is the symmetric positive-definite **mass (inertia) matrix**.\n- **C(θ, θ̇) θ̇** are the **Coriolis + centrifugal** terms (velocity-quadratic).\n- **g(θ)** is the **gravity vector**.\n- **τ ∈ ℝⁿ** are the joint torques. \n\nAdd τ_friction, τ_disturbance, τ_external = Jᵀ F_ext for completeness.\n\nThis arises from two equivalent derivations:\n\n**Newton-Euler (recursive)**: apply Newton's law for linear momentum + Euler's law for angular momentum to each link. Outward sweep (base → tip): kinematics (velocities, accelerations). Inward sweep (tip → base): forces + torques. O(n) complexity (Luh-Walker-Paul 1980); the standard fast algorithm. **Articulated body algorithm (Featherstone 1983)** is also O(n) and the modern workhorse in Pinocchio, Drake, RBDL.\n\n**Euler-Lagrange (energy-based)**: Lagrangian L = T − V where\n- T = ½ θ̇ᵀ M(θ) θ̇ (kinetic energy).\n- V = V(θ) (potential energy, mostly gravity).\nApply $\\frac{d}{dt}\\frac{\\partial L}{\\partial \\dot{\\theta}} - \\frac{\\partial L}{\\partial \\theta} = \\tau$. Gives the same M, C, g but illuminates structure: M from T's Hessian; C from Christoffel symbols of M.\n\n**Properties of the manipulator equation**:\n- M(θ) symmetric positive-definite.\n- **Skew-symmetry**: Ṁ − 2C is skew-symmetric (passivity property). Enables passivity-based control.\n- **Linearity in parameters**: τ = Y(θ, θ̇, θ̈) Φ where Φ is a vector of mass + inertia + length parameters and Y is the regressor — foundation of adaptive control.\n\n**Floating-base robots (humanoids, quadrupeds)**: configuration q ∈ SE(3) × Tⁿ. Equation becomes:\n$$M(q) \\dot{v} + h(q, v) = S^T \\tau + J_c^T \\lambda$$\nwith Sᵀ a selection (underactuated base), J_c contact Jacobian, λ contact wrenches. Solving for contact forces + accelerations is the **forward dynamics** problem; needed for simulation (MuJoCo, Drake, Isaac, Bullet, RaiSim).\n\n**Inverse dynamics** (given motion, find torques): cheap with Newton-Euler — used in **computed torque control**, trajectory feasibility checking, force prediction.\n\n**Forward dynamics** (given torques, find motion): needed in simulation. O(n) via articulated-body algorithm; O(n³) via direct M⁻¹.\n\n**Friction, backlash, motor dynamics, flexibility**: real robots deviate from rigid-body equations. Modeling these matters for force control + high-precision applications."
+    },
+    {
+      "kind": "text",
+      "title": "Classical control: PD, PID, computed torque, feedback linearization",
+      "body": "**Independent joint PD/PID**: simplest practical scheme. For each joint i:\n$$\\tau_i = K_{p,i}(\\theta_i^d - \\theta_i) + K_{d,i}(\\dot{\\theta}_i^d - \\dot{\\theta}_i) + K_{i,i}\\int e_i\\,dt$$\nGood for low-speed, gravity-compensated, or geared (high reduction) arms — gears decouple dynamics. ABB, Fanuc, Yaskawa industrial arms historically tuned PID per joint.\n\n**PD + gravity compensation**:\n$$\\tau = K_p e + K_d \\dot{e} + \\hat{g}(\\theta)$$\nProven asymptotically stable for set-point regulation (Takegaki + Arimoto 1981). Works without inverting M or C.\n\n**Computed torque (inverse dynamics control)**: cancel the nonlinearities.\n$$\\tau = M(\\theta)[\\ddot{\\theta}^d + K_p e + K_d \\dot{e}] + C(\\theta, \\dot{\\theta}) \\dot{\\theta} + g(\\theta)$$\nIf the model is perfect, the closed loop is linear: ë + K_d ė + K_p e = 0 — eigenvalues placed via gain selection. Standard in Drake, ROS control, KDL.\n\n**Feedback linearization**: more general version — find a coordinate change + control law that linearizes the system. For fully-actuated rigid robots, computed torque is exactly feedback linearization. For underactuated systems (Acrobot, cart-pole, biped), partial feedback linearization (Spong 1994) handles a subset of coordinates.\n\n**Impedance / admittance control (Hogan 1985)**: instead of tracking trajectories, render a desired mechanical impedance Z = M_d s² + B_d s + K_d at the end-effector:\n$$F = M_d \\ddot{\\tilde{x}} + B_d \\dot{\\tilde{x}} + K_d \\tilde{x}$$\nThe robot behaves like a virtual spring + damper + mass. Critical for **contact tasks** — assembly, polishing, human-robot interaction. Used in Franka Panda, Kuka iiwa, all collaborative arms. **Admittance** flips cause + effect: measure force → command motion (used when low-impedance actuators aren't available).\n\n**Compliance control**: blend stiffness, damping, force-tracking modes. **Hybrid position/force control (Raibert + Craig 1981)**: position in some directions, force in orthogonal directions.\n\n**Operational-space control (Khatib 1987)**: rather than control in joint space, control directly in task space:\n$$F = \\Lambda(\\theta) \\ddot{x}^d + \\mu(\\theta, \\dot{\\theta}) + p(\\theta)$$\nwith Λ = (J M⁻¹ Jᵀ)⁻¹ the operational-space inertia. **Khatib's framework** unifies task-priority control + null-space behavior + force control. Foundation of modern whole-body controllers."
+    },
+    {
+      "kind": "text",
+      "title": "Modern control: MPC, adaptive, sliding mode, learning + Boston Dynamics",
+      "body": "**Model predictive control (MPC)**: at each timestep, solve an optimization over a horizon (predict ~0.1-2 s), apply the first control, repeat. Standard form for robots:\n$$\\min_{u_{0:N}} \\sum_{k=0}^{N-1} \\ell(x_k, u_k) + \\ell_f(x_N) \\quad \\text{s.t.}\\; x_{k+1} = f(x_k, u_k),\\, g(x_k, u_k) \\le 0$$\n- **Linear MPC**: QP per step; convex; very fast (milliseconds).\n- **Nonlinear MPC**: SQP/iLQR/DDP per step; can handle full robot dynamics. Differential dynamic programming (Jacobson + Mayne 1970, Tassa + Mansard + Todorov 2014 iLQR-on-MPC) is the workhorse.\n- **Convex MPC for legged**: simplified centroidal dynamics + foot-placement variables; closed-form QP at 100-1000 Hz. Cheetah 3, Anymal, MIT Mini Cheetah all use convex MPC.\n- **Whole-body MPC (Boston Dynamics, RAI, ETH)**: full-body dynamics + contact, solved at 50-1000 Hz. Atlas's parkour and Spot's stair climbing run whole-body MPC under the hood.\n\n**Adaptive control**: online parameter estimation. **Slotine + Li (1987)**: passivity-based adaptive controller using linearity in parameters. Convergence guaranteed under persistent excitation. **L1 adaptive control** (Hovakimyan, Cao 2010) adds fast adaptation with bounded transients; used in aerospace. Modern variants combine with deep learning (meta-learning policies).\n\n**Sliding mode control (SMC)**: design a sliding manifold s(x) = 0; force trajectories onto it via discontinuous control. Robust to bounded disturbances + model error. Chattering is the standard pathology — mitigated by boundary-layer or higher-order sliding (super-twisting, Levant). Used in robust manipulator + UAV control.\n\n**Robust control (H∞, μ-synthesis)**: design controllers that guarantee performance for a family of uncertain plants. Heavy in aerospace; less common in robotics directly but informs gain selection.\n\n**Khatib operational-space framework**: as above — control directly in task space with priority + null-space. Combined with whole-body QP optimization (Sentis + Khatib 2005; Park + Khatib 2006; modern WBC = whole-body controller) in humanoids.\n\n**Learning-based control**:\n- **Reinforcement learning** policies for locomotion (Hwangbo et al. 2019 sim-to-real for Anymal; Lee et al. 2020 Nature; ETH legged) and manipulation. Often combined with model-based MPC as a safety substrate.\n- **Iterative learning control (ILC)**: improve tracking over repeated executions.\n- **Behavior cloning / diffusion policies (Chi 2023)**: learn end-to-end controllers from demonstrations.\n\n**Boston Dynamics whole-body MPC** runs full-body dynamics with contact at high rates on Atlas + Spot, generating dynamically feasible motions for parkour, dance, manipulation. This + careful low-level torque control + state estimation is the recipe behind their viral demos.\n\nClassical control (PID, computed torque) + modern optimization (MPC) + learning (RL, BC) compose the modern robot control stack — and the boundaries between them are increasingly blurred."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dyn_manipulator",
+        "kind": "guided_derivation",
+        "question": "Compute computed-torque control gains",
+        "goal": "A 1-DOF arm with manipulator equation J θ̈ + g sin θ = τ (where J is inertia + g is gravity loading). Use computed-torque control to achieve closed-loop 2nd-order linear response with natural frequency ω_n = 5 rad/s and damping ratio ζ = 1.",
+        "steps": [
+          {
+            "prompt": "Write the computed-torque control law that cancels nonlinearity.",
+            "motivation": "Inverse dynamics control.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "τ = J(θ̈_d + K_d ė + K_p e) + g sin θ",
+                "tau = J(theta_dd + Kd e_dot + Kp e) + g sin theta"
+              ]
+            },
+            "hints": [
+              "Cancel nonlinearity + apply linear feedback in error."
+            ],
+            "reveal": "τ = J(θ̈_d + K_d ė + K_p e) + g sin θ. Substituting back: J(ë + K_d ė + K_p e) = 0 since J > 0 → ë + K_d ė + K_p e = 0. Linear, decoupled, closed loop."
+          },
+          {
+            "prompt": "Match closed loop ë + K_d ė + K_p e = 0 to canonical 2nd-order ë + 2ζω_n ė + ω_n² e = 0.",
+            "motivation": "Match coefficients.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "K_p = ω_n² = 25, K_d = 2 ζ ω_n = 10",
+                "Kp = 25, Kd = 10"
+              ]
+            },
+            "hints": [
+              "ω_n = 5, ζ = 1."
+            ],
+            "reveal": "K_p = ω_n² = 25; K_d = 2ζω_n = 10. Critically damped — no overshoot, fastest non-oscillatory response. ζ = 1 chosen for hardware safety."
+          },
+          {
+            "prompt": "What happens if the model J or g is mis-estimated by 20%?",
+            "motivation": "Robustness.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "residual nonlinear terms remain; closed loop is no longer exactly linear; stability + performance degrade"
+              ]
+            },
+            "hints": [
+              "Cancellation imperfect."
+            ],
+            "reveal": "With Ĵ ≠ J and ĝ ≠ g, the residual J̃ ë + g̃ sinθ remains in the closed loop — perturbation that can degrade performance + stability margins. Remedies: adaptive control (estimate J + g online; Slotine-Li), robust control (overdamped gains; sliding mode), or learning (residual learning over a nominal model)."
+          },
+          {
+            "prompt": "Why does feedback linearization fail for underactuated robots like a cart-pole?",
+            "motivation": "Structural limitation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "underactuated; only 1 control input for 2 DOF; can't cancel all dynamics; need partial feedback linearization (Spong 1994) or trajectory optimization"
+              ]
+            },
+            "hints": [
+              "Fewer actuators than DOF."
+            ],
+            "reveal": "Cart-pole: 1 actuator (cart force) for 2 DOF (cart x, pole θ). Cannot fully cancel dynamics — only the actuated coordinate's. **Partial feedback linearization (Spong 1994)** handles a subset; combined with energy shaping or swing-up controllers (Astrom + Furuta). Modern approach: trajectory optimization (DDP, iLQR) + MPC. Foundational for biped/humanoid control (which is underactuated about the foot contact)."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\tau = J(\\ddot{\\theta}^d + K_d \\dot{e} + K_p e) + g\\sin\\theta;\\; K_p = 25,\\; K_d = 10}$$ Computed-torque exactly linearizes a fully-actuated rigid-body system. Real robots add gravity-compensation feedforward, friction compensation, low-level joint impedance, and (modern) MPC on top to handle constraints + contact."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dyn_impedance",
+        "kind": "multiple_choice",
+        "question": "Why is impedance control (Hogan 1985) preferred over position control for contact tasks like assembly or human-robot interaction?",
+        "options": [
+          "Random.",
+          "Impedance control renders the robot as a virtual spring + damper + mass at the end-effector: F = M_d ẍ + B_d ẋ + K_d x. Tunable stiffness + damping means controlled, predictable contact forces; safe handling of unexpected contacts; allows small position errors to dissipate as bounded forces instead of huge tracking errors driving torque saturation. Pure position control treats any contact as a tracking error → tries to push harder → unsafe + breaks parts. Impedance control is mandatory for collaborative robots (Franka Panda, Kuka iiwa, UR cobots), surgical robots, and any task with environmental contact.",
+          "Magic.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Impedance control (Hogan 1985) lets the robot behave like a programmable mechanical impedance. Crucial for safe contact, compliant assembly, and physical human-robot interaction. Position control fights contact; impedance control accommodates it."
+      },
+      "hints": [
+        "Contact + compliance.",
+        "Programmable spring + damper."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Impedance control = render virtual mass + damper + spring. Safe under contact; foundational for assembly, polishing, surgery, cobots. Hogan 1985. Modern collaborative arms (Franka, Kuka iiwa) ship with native impedance control."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_dyn_mpc",
+        "kind": "scenario",
+        "question": "Whole-body MPC on Atlas",
+        "prompt": "Boston Dynamics' Atlas performs parkour: jumps, vaults, backflips. Walk through what whole-body MPC means in this context — its objective, decision variables (joint torques + contact forces), constraints (friction cone, joint limits, dynamics), horizon length, solver, replan rate, and how it interacts with offline trajectory optimization and the low-level joint torque controller."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_dyn_mass",
+        "kind": "math_expression",
+        "question": "A planar 2R arm with point masses m₁ at end of link 1 and m₂ at end of link 2 (L₁ = L₂ = 1 m). What is M₁₁(θ) (the (1,1) entry of the mass matrix) when m₁ = m₂ = 1 kg and θ₂ = π/2?",
+        "acceptedAnswers": [
+          "2",
+          "2 kg m²",
+          "2.0"
+        ],
+        "hint": "M₁₁ = m₁ L₁² + m₂(L₁² + L₂² + 2 L₁ L₂ cos θ₂). With cos(π/2) = 0: 1 + 2 = 2."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dyn",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, summarize the modern robot control stack: from low-level joint torque control to whole-body MPC, naming the key methods + their roles.",
+        "rubric": "Mentions the manipulator equation M(θ)θ̈ + C(θ,θ̇)θ̇ + g(θ) = τ as the foundation; low-level joint control = PD/PID + feedforward gravity + friction compensation, often inside a current loop on the motor driver; computed torque / inverse dynamics control (Khatib operational-space, Spong) cancels nonlinearities to deliver decoupled linear behavior; impedance/admittance control (Hogan 1985) for contact tasks; mid-level trajectory tracking via iLQR/DDP or convex MPC (centroidal for quadrupeds, whole-body for humanoids — Boston Dynamics Atlas); high-level planners (motion + footstep + grasp planners); adaptive (Slotine-Li, L1) handles parameter drift; sliding mode for robust performance under bounded disturbances; RL policies (Hwangbo, Lee) increasingly used at multiple layers. Concludes that modern robotics blends classical model-based control with optimization (MPC) + learning, with classical methods as a safety substrate."
+      }
+    }
+  ]
+}

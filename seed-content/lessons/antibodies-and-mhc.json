@@ -1,0 +1,153 @@
+{
+  "slug": "antibodies-and-mhc",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Describe antibody structure, isotypes, + Fc effector functions.",
+      "Explain MHC class I + II antigen presentation + cross-presentation.",
+      "Survey antibody engineering: hybridomas, humanization, phage display, bispecifics."
+    ],
+    "prereqs": [
+      "adaptive-immunity-and-clonal-selection"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Antibody structure + isotypes + Fc effector functions",
+      "body": "**Immunoglobulin (Ig) structure**: Y-shaped heterotetramer of 2 heavy + 2 light chains, linked by disulfides.\n- **Fab arms**: each comprises V_H + V_L + C_H1 + C_L; the **variable** N-terminal domains form the antigen-binding site. **CDRs** (complementarity-determining regions; 3 per chain, 6 total) sit on β-sheet loops + contact antigen — CDR3 most diverse.\n- **Fc region**: C_H2 + C_H3 (γ, α, δ) or C_H2-C_H4 (μ, ε); confers **effector function** by binding **Fcγ receptors**, **complement C1q**, **FcRn**, etc.\n- **Hinge**: flexible linker between Fab + Fc (γ + α + δ); not in μ + ε.\n\n**Heavy-chain isotypes** (5 classes; further subdivided in some species):\n- **IgM** — primary response; secreted as **pentamer** + J chain; ~mM serum; activates classical complement (C1q binds clustered Fc); first BCR expressed.\n- **IgD** — co-expressed with IgM on naïve B cells as BCR; small serum amount; function debated (basophil priming).\n- **IgG** — most abundant serum Ig (~10 mg/mL); 4 subclasses (**γ1, γ2, γ3, γ4** in humans). Subclasses differ in: complement activation (γ1 + γ3 strong; γ2 weak; γ4 none), Fcγ-receptor binding (effector function), placental transfer (all four via FcRn, though γ4 less efficient), half-life (γ1, γ2, γ4 ~21 d; γ3 ~7 d). Many therapeutic antibodies use γ1 (effector); γ4 (less effector, e.g., pembrolizumab); engineered Fc-silent variants.\n- **IgA** — mucosal Ig; **dimer** with J chain + secretory component (transcytosed via pIgR); dominates secretions (gut, airway, breast milk; ~3-5 g/d in adults — more than any other antibody). Two subclasses IgA1, IgA2.\n- **IgE** — allergy + parasites; binds **FcεRI** on mast cells + basophils with extremely high affinity (~10¹⁰ M⁻¹) → cross-linking triggers degranulation (histamine, leukotrienes). Omalizumab (anti-IgE) treats severe allergic asthma + chronic urticaria.\n\n**Fc effector functions**:\n- **Neutralization**: Fab blocks pathogen (e.g., neutralizing antibodies against SARS-CoV-2 spike-ACE2 binding).\n- **Opsonization** (FcγRI + IIA on phagocytes): antibody coats pathogen → phagocyte uptake.\n- **ADCC (antibody-dependent cellular cytotoxicity)**: NK cells via **FcγRIIIA (CD16)** kill antibody-coated cells. Therapeutically central — rituximab, trastuzumab, daratumumab.\n- **ADCP (antibody-dependent cellular phagocytosis)**: macrophages.\n- **CDC (complement-dependent cytotoxicity)**: classical pathway → MAC.\n- **Inhibitory FcγRIIB**: ITIM-containing; dampens B cells, mast cells, basophils.\n- **FcRn** (neonatal Fc receptor): salvages IgG + albumin from lysosomal degradation in endothelial cells → ~21 d half-life of IgG. Foundation of Fc engineering (YTE, LS mutations extend half-life — e.g., nirsevimab for RSV; long-acting bNAbs).\n\nEngineered Fc variants (afucosylated for enhanced ADCC — **mogamulizumab, obinutuzumab, margetuximab**; LALA / LALA-PG silencing for checkpoint inhibitors not needing effector function) are now standard tools in therapeutic-antibody design."
+    },
+    {
+      "kind": "text",
+      "title": "MHC + antigen presentation: class I, class II, cross-presentation",
+      "body": "**Major histocompatibility complex (MHC)** = the human **HLA** locus on chromosome 6 (chr 17 in mouse) — the **most polymorphic region of the human genome** (thousands of alleles). Encodes peptide-presenting molecules that display intracellular protein fragments to T cells.\n\n**Doherty + Zinkernagel** (Nobel 1996) discovered **MHC restriction**: T cells recognize foreign peptide **only on self-MHC**. Explained transplant rejection + provided the framework for understanding cytotoxic T-cell recognition.\n\n**MHC class I** — present on **all nucleated cells + platelets** (not RBCs).\n- Structure: α heavy chain (3 domains) + β2-microglobulin; peptide-binding groove holds **8-10 aa** peptides, closed at both ends.\n- **Genes**: HLA-A, HLA-B, HLA-C (classical); HLA-E, F, G (non-classical, NK-engaging).\n- **Pathway** (endogenous antigen):\n  1. Cytosolic proteins degraded by **proteasome** (immunoproteasome induced by IFNγ).\n  2. Peptides transported into ER by **TAP** (TAP1 + TAP2; mutations → MHC-I-deficiency).\n  3. Peptide loaded onto nascent MHC-I in the **peptide-loading complex** (calnexin, ERp57, calreticulin, tapasin).\n  4. MHC-I/peptide complex traffics to plasma membrane.\n- **Recognition by CD8 T cells** (TCR + CD8 co-receptor binds α3 domain).\n- **Viral evasion**: many viruses inhibit TAP, retain MHC-I in ER, or downregulate it — sensed by NK cells (missing-self).\n\n**MHC class II** — present on **professional APCs** (DCs, macrophages, B cells; some activated T cells in humans; thymic epithelial cells).\n- Structure: α + β chains (each 2 domains); peptide-binding groove holds **13-25 aa** peptides, open at both ends.\n- **Genes**: HLA-DR, HLA-DQ, HLA-DP.\n- **Pathway** (exogenous antigen):\n  1. Antigen taken up by endocytosis or phagocytosis → endosomes → late endosomes (MIIC compartment).\n  2. Proteases (cathepsins) generate peptides.\n  3. Nascent MHC-II in ER associated with **invariant chain (Ii)** blocking the groove; Ii cleaved to **CLIP** by cathepsin S.\n  4. **HLA-DM** catalyzes peptide exchange — replaces CLIP with high-affinity antigenic peptide.\n  5. MHC-II/peptide complex traffics to surface.\n- **Recognition by CD4 T cells** (TCR + CD4 binds β2 domain).\n\n**Cross-presentation** — special DC capability (especially **cDC1**, XCR1⁺ Batf3-dependent): **exogenous** antigen presented on **MHC-I** to CD8 T cells. Routes: vacuolar (proteasome-independent) + cytosolic (antigen escapes endosome → proteasome → TAP). Essential for priming CD8 responses against viruses that don't infect APCs + against tumors. Foundation of cancer vaccine + checkpoint inhibitor responses.\n\n**Polymorphism + allelic restriction**:\n- ~6 HLA-I + 6 HLA-II loci per person (one from each parent at A, B, C, DR, DQ, DP).\n- Each allele binds a distinct peptide set (anchor residues at positions 2 + 9 for class I, etc.).\n- HLA-typing crucial for organ + bone-marrow transplantation, T-cell-receptor therapy, neoantigen prediction.\n- **HLA-disease associations**: HLA-B*27 + ankylosing spondylitis; HLA-B*57:01 + abacavir hypersensitivity; HLA-DR15 + multiple sclerosis; HLA-DQ2/DQ8 + celiac disease.\n\n**Neoantigen prediction** for cancer immunotherapy uses HLA-typing + binding-affinity prediction (NetMHCpan, MHCflurry) to identify tumor-mutation-derived peptides likely to be presented + elicit T-cell responses — central to personalized cancer vaccines (BioNTech, Moderna; Sahin + Ott)."
+    },
+    {
+      "kind": "text",
+      "title": "Antibody engineering: hybridomas, humanization, phage display, bispecifics",
+      "body": "**Therapeutic antibodies** are the highest-revenue drug class globally (~$200B/yr); >150 approved by 2024. Each generation built on a Nobel-winning technology.\n\n**Hybridomas (Georges Köhler + César Milstein 1975; Nobel 1984)**: fuse antigen-specific B cell (short-lived) with myeloma cell (immortal) → hybridoma producing **monoclonal antibody (mAb)**. First clinically useful product: **OKT3 (muromonab)** anti-CD3 for transplant rejection (1986). All early mAbs were murine → human anti-mouse antibody (HAMA) responses limited clinical use.\n\n**Chimerization + humanization** — reduce immunogenicity:\n- **Chimeric** (mouse V + human C): rituximab (anti-CD20, NHL, 1997 — first blockbuster mAb), infliximab (anti-TNF, RA + IBD), cetuximab (anti-EGFR).\n- **Humanized** (only CDRs from mouse grafted onto human framework): **John Adair + Greg Winter** developed CDR grafting in the late 1980s; trastuzumab (Herceptin, anti-HER2 — Genentech), bevacizumab (Avastin, anti-VEGF), omalizumab (anti-IgE), natalizumab (anti-α4 integrin).\n- **Fully human** — see phage display + transgenic mice below.\n\n**Phage display (Greg Winter + George Smith Nobel 2018)**:\n- Smith pioneered display of peptides on filamentous-phage coat protein pIII (1985).\n- Winter applied to antibody libraries — express V_H + V_L as **scFv** or **Fab** on phage surface (1990).\n- **Panning**: incubate phage library on immobilized antigen → wash → elute → amplify in *E. coli* → repeat → enrich for binders.\n- **Adalimumab (Humira)** — first fully human mAb approved (2002); discovered by phage display (Cambridge Antibody Technology / BASF / Abbott). Anti-TNF; >$200B cumulative sales; biggest-selling drug in history for many years.\n- **Modern libraries**: synthetic naïve + immune libraries; yeast display, mammalian display, ribosome display.\n\n**Transgenic mice** (XenoMouse, HuMAb mouse, OmniRat, AlivaMab) carry human Ig loci; immunization + standard hybridoma → fully human mAbs. Panitumumab, ipilimumab, nivolumab, denosumab. Acquired by Amgen, Regeneron, Bristol Myers Squibb.\n\n**Bispecific antibodies** — two different binding specificities in one molecule:\n- **Paul Carter** (Genentech) developed **knobs-into-holes** (1996) — point mutations in C_H3 force heterodimeric assembly of two different heavy chains.\n- **BiTEs (bispecific T-cell engagers)**: anti-CD3 × anti-tumor-antigen; redirect T-cell killing. **Blinatumomab** (anti-CD19 × CD3) for B-ALL (2014). Many follow (teclistamab, talquetamab, mosunetuzumab, glofitamab, elranatamab, epcoritamab).\n- **DuoBody, CrossMab, DART, Bi-Nanobody** platforms — multiple architectures.\n- **Trispecifics + multispecifics** emerging (Sanofi, Roche, Regeneron).\n\n**Antibody-drug conjugates (ADCs)** — mAb chemically linked to cytotoxin via cleavable linker. Trastuzumab emtansine (T-DM1), trastuzumab deruxtecan (T-DXd, ENHERTU — practice-changing in HER2-low breast cancer), brentuximab vedotin (Hodgkin lymphoma), sacituzumab govitecan (TROP2). Linker chemistry + payload selection + DAR (drug-antibody ratio) drive efficacy + safety.\n\n**Next-generation modalities**: ADCs, BiTEs, multispecifics, **immunocytokines**, **antibody-radionuclide conjugates** (Pluvicto, Lutathera), **nanobodies / VHH** (single-domain antibodies from camelid heavy-chain-only IgGs; caplacizumab, ozoralizumab), **DARPins, Affibodies**, **mRNA-encoded antibodies**, **in vivo CAR-engineering**. \n\nNow combined with AI: **AlphaFold-Multimer + AF3** for antibody-antigen complex prediction; **deep-learning antibody design** (RFantibody, EquiFold, IgFold, AbLang, ESM-IF); **language models** for repertoire analysis; **Bayesian + active-learning** campaigns. Antibody discovery is becoming a computational discipline."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ab_1",
+        "kind": "guided_derivation",
+        "question": "Derive why MHC class I + class II evolved to present different antigen sources",
+        "goal": "Reason from cell biology + immune function why MHC class I presents endogenous + class II presents exogenous antigen (with cross-presentation as a special case).",
+        "steps": [
+          {
+            "prompt": "What kind of pathogen primarily lives in the cytosol of an infected cell? What kind lives in extracellular space?",
+            "motivation": "Pathogen location dictates antigen access.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Viruses + some bacteria (Listeria, Rickettsia) replicate in cytosol; most bacteria + fungi + parasites are extracellular or in phagolysosomes"
+              ]
+            },
+            "hints": [
+              "Cytosolic vs vesicular/extracellular."
+            ],
+            "reveal": "**Cytosolic pathogens** (most viruses; *Listeria*, *Rickettsia*; some intracellular protozoa) produce proteins in the cytosol where the proteasome can sample them. **Vesicular/extracellular pathogens** (most bacteria + fungi + parasites; uptake by macrophages + DCs lands them in endolysosomes) are sampled by endosomal proteases."
+          },
+          {
+            "prompt": "Given MHC-I is expressed on **all nucleated cells**, why does it make sense to present cytosolic peptides via MHC-I?",
+            "motivation": "Sampling strategy.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Every cell can become virus-infected; presenting cytosolic peptides on MHC-I lets CD8 T cells kill any infected cell"
+              ]
+            },
+            "hints": [
+              "CD8 + cytotoxicity + universal expression."
+            ],
+            "reveal": "Any cell can be virus-infected; the immune system needs **universal surveillance**. MHC-I + proteasome + TAP sample the cytosolic proteome of every nucleated cell + display peptides to **CD8 cytotoxic T cells**, which kill infected cells. Hence MHC-I is on all nucleated cells (cells that don't have MHC-I — e.g., MHC-I-deficient — are killed by NK cells via missing-self; complementary surveillance)."
+          },
+          {
+            "prompt": "Why is MHC-II restricted to professional APCs + paired with CD4 help?",
+            "motivation": "Specialization.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "APCs sample extracellular antigen in endosomes + present on MHC-II to CD4 T cells that orchestrate the response (cytokine help, B-cell help)"
+              ]
+            },
+            "hints": [
+              "CD4 + helper + orchestration."
+            ],
+            "reveal": "DCs + macrophages + B cells specialize in **sampling extracellular antigens**; processing in endosomes + MHC-II loading lets CD4 T cells (helper) recognize the antigen + orchestrate the broader response — secrete cytokines that polarize the response (Th1/Th2/Th17/Tfh), license CTL killing, drive B-cell GC reactions. CD4 help is the **command + control layer**; MHC-II expression is restricted to cells that need to interact with that command layer."
+          },
+          {
+            "prompt": "Why is cross-presentation (exogenous antigen on MHC-I) essential despite breaking the simple rule?",
+            "motivation": "Special-case design.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Many pathogens (especially many viruses) don't infect DCs directly; the cDC1 subset must cross-present exogenous viral antigens on MHC-I to prime CD8 T cells. Same for tumor antigens"
+              ]
+            },
+            "hints": [
+              "Priming CD8 responses to non-DC-infecting pathogens."
+            ],
+            "reveal": "Many viruses (influenza of certain cells, hepatitis C, many tumors) + most cancers do not infect DCs. Without **cross-presentation** (cDC1 → MHC-I → CD8 priming) we could not mount CD8 responses against them. Cross-presentation is the bridge from exogenous antigen → MHC-I priming + is **the rate-limiting step in cancer immunotherapy** + most antiviral CD8 responses. Augmenting cross-presentation (TLR3/STING agonists, Batf3-DC therapies, cDC1-recruiting biologics) is an active frontier."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ab_1",
+        "kind": "multiple_choice",
+        "question": "Why was Greg Winter + George Smith's Nobel 2018 for phage display considered a Nobel-worthy advance in antibody engineering?",
+        "options": [
+          "It is unrelated to drug discovery.",
+          "Phage display (Smith 1985 — pIII peptide display; Winter 1990 — scFv + Fab libraries) provided the **first practical in vitro selection method** for antibodies, sidestepping animal immunization + hybridomas. Enabled: (1) Direct selection of fully human antibodies from large naïve libraries (~10¹⁰-10¹² variants); (2) **Adalimumab** (Humira) — first fully human therapeutic mAb (2002), highest-revenue drug in history for many years (>$200B cumulative); (3) Affinity maturation in vitro via mutagenized libraries; (4) Selection against targets immunization can't handle (toxic, conserved, membrane proteins, complex carbohydrates); (5) Foundation of multiple biotech platforms (Cambridge Antibody, MedImmune, BiBiTech, BiOptio, Adimab). Combined with **transgenic-mouse platforms** + **B-cell single-cell cloning** + now **AI-driven** discovery, antibody therapeutics have become the highest-revenue drug class globally. Phage display also enables peptide + scaffold display, propelling the entire field of directed protein evolution. Genuine paradigm shift in biotechnology + medicine.",
+          "It is only relevant to academic immunology.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Phage display (Smith 1985, Winter 1990; Nobel 2018) enabled fully human antibody selection in vitro from naïve libraries. Adalimumab (Humira) — first fully human mAb, biggest-selling drug ever. Foundation of multiple biotech platforms + propelled directed protein evolution. Paradigm shift in antibody discovery + therapeutics."
+      },
+      "hints": [
+        "What did phage display enable that hybridomas could not?",
+        "Adalimumab + fully human antibodies."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Phage display (Smith 1985 + Winter 1990; Nobel 2018) sidestepped animal immunization + enabled in vitro selection of fully human antibodies from naïve libraries (10¹⁰-10¹² variants). Adalimumab — first fully human mAb, biggest-selling drug ever. Foundation of biotech antibody platforms + directed protein evolution. Paradigm shift in therapeutics."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ab_1",
+        "kind": "scenario",
+        "question": "Designing a next-generation cancer-targeting bispecific",
+        "prompt": "Design a bispecific T-cell engager (BiTE-like) against a tumor antigen X expressed on 80% of malignant cells (but also on 10% of normal cells at lower density). (a) Which anti-CD3 affinity range balances T-cell activation vs systemic cytokine release (CRS)? (b) How does **Paul Carter's knobs-into-holes** strategy enable the heavy chains to pair correctly + why is silent Fc (LALA-PG) often used? (c) Why is MHC presentation of X-derived peptides on tumor cells irrelevant for BiTE activity (contrast with TCR therapy + CAR-T)? (d) What HLA-typing + neoantigen-prediction considerations apply if you instead wanted to develop a **TCR-mimic antibody** binding peptide-MHC complex (e.g., **Memorial Sloan Kettering** + Eureka-style approach)?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ab_1",
+        "kind": "math_expression",
+        "question": "Write the equilibrium-binding expression giving fractional occupancy θ of an antibody binding site as a function of free antigen [Ag], where K_D is the dissociation constant.",
+        "acceptedAnswers": [
+          "θ = [Ag] / (K_D + [Ag])",
+          "θ = [Ag]/(KD + [Ag])",
+          "θ = L/(Kd + L)"
+        ],
+        "hint": "Standard 1:1 binding isotherm."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ab_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how antibody engineering progressed from hybridomas (Köhler-Milstein 1984) through humanization (Adair, Winter) + phage display (Smith-Winter 2018) to today's bispecifics + ADCs.",
+        "rubric": "Mentions: **Köhler + Milstein** (Nobel 1984) created the first monoclonal antibodies via hybridoma fusion; OKT3 was the first therapeutic mAb but suffered from HAMA responses. **Chimerization + humanization** (Adair, Winter — CDR grafting late 1980s) reduced immunogenicity → rituximab + infliximab + trastuzumab. **Phage display** (Smith + Winter Nobel 2018) enabled fully human antibodies from in vitro selection → adalimumab. **Transgenic-mouse platforms** also generate fully human mAbs (ipilimumab, nivolumab). **Paul Carter's knobs-into-holes** enabled bispecifics → blinatumomab + teclistamab. **ADCs** (T-DM1, T-DXd, brentuximab vedotin) couple antibodies to cytotoxins. Modern era integrates **AI-driven design** (AlphaFold-Multimer, AF3, RFantibody, ESM-IF) + **language-model repertoire analysis** + structure-based engineering. Antibodies are now the dominant therapeutic modality (>$200B/yr; >150 approved) — each Nobel-winning advance enabling the next generation."
+      }
+    }
+  ]
+}

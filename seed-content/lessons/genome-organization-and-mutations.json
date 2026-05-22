@@ -1,0 +1,170 @@
+{
+  "slug": "genome-organization-and-mutations",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Describe the components of a eukaryotic genome.",
+      "Explain how chromatin organization regulates the genome.",
+      "Classify mutations and reason about mutational signatures."
+    ],
+    "prereqs": [
+      "molecular-genetics-dna-and-rna"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Genome composition: only ~2% codes for protein",
+      "body": "**Human genome**: ~3.2 × 10⁹ bp haploid, ~20000 protein-coding genes. The 'gene-centric' picture from Mendel is misleading — protein-coding sequence is the *minority*.\n\n**Coding sequence (~1-2%)**:\n- ~20000 protein-coding genes (Human Genome Project ~25000 estimate revised down).\n- Exons total ~1% of genome.\n- Average gene ~27 kb spanning, ~1300 bp protein-coding (median).\n\n**Introns (~25-30%)**:\n- Between exons of coding genes; transcribed but spliced out.\n- Median intron ~1500 bp; some massive (DMD has 79 exons + introns >200 kb, total gene 2.4 Mb).\n- Contain regulatory elements, alternative-splicing cues, miRNA host sites.\n\n**Regulatory regions (~5-10%)**:\n- Promoters: -1 to ~-500 bp upstream of TSS (TATA, Initiator, BRE, DPE motifs).\n- **Enhancers**: distal regulatory elements; can act over 100 kb+; bound by tissue-specific TFs; brought into 3D contact via chromatin looping (CTCF, cohesin).\n- **Silencers, insulators** (CTCF-bound).\n- **3D regulatory architecture**: TADs (topologically associating domains, Dixon + Ren 2012), loops (Rao + Aiden 2014), compartments A/B.\n- **CpG islands**: ~30000 in human genome; usually unmethylated, near gene promoters.\n\n**Repetitive elements (~50-55% of genome)** — the *dark matter*:\n- **LINEs** (Long INterspersed Elements; ~17%): L1 most active; ~6 kb full length; encode reverse transcriptase + endonuclease for retrotransposition.\n- **SINEs** (Short INterspersed Elements; ~13%): Alu (~300 bp; ~1.1 million copies in human) most abundant; use L1 machinery.\n- **LTR retrotransposons** (~8%): endogenous retroviruses (ERVs); ~8% of genome — more than coding!\n- **DNA transposons** (~3%): mostly fossils in humans; active in plants + flies.\n- **Satellite DNA**: tandem repeats. **Microsatellites** (1-6 bp repeats; STRs; CODIS forensics); **minisatellites** (10-100 bp); **centromeric** α-satellite (171 bp repeat in primates); **telomeric** TTAGGG.\n\n**Barbara McClintock** (1902-1992): discovered **transposable elements** in maize 1940s-50s — *jumping genes*. **Ds** + **Ac** elements cause chromosome breaks + variegated kernel color. Largely dismissed for decades — too radical (stable inheritance dogma). **Nobel Prize Physiology/Medicine 1983**, alone, at age 81 — among the most belated recognitions in science. McClintock's transposons rediscovered + generalized: now known active in all kingdoms; foundational for bacterial antibiotic resistance, V(D)J recombination machinery (RAG genes evolved from transposase), HIV integration, modern gene-therapy vectors (Sleeping Beauty, piggyBac), CRISPR delivery, immune evolution.\n\n**Pseudogenes, lncRNAs, miRNAs, snoRNAs**: ~20000 non-coding RNA genes; ~15000 pseudogenes. ~80% of genome is biochemically active (transcribed, bound by TFs, marked) per **ENCODE** consortium (Birney et al. 2012). Function of most non-coding regions still debated."
+    },
+    {
+      "kind": "text",
+      "title": "Chromatin, histones, and epigenetic marks",
+      "body": "Genome is not naked DNA — it's packaged into **chromatin**. 2 meters of DNA must fit in a 10 μm nucleus → ~7000-fold compaction.\n\n**Nucleosome** (Kornberg 1974; Olins + Olins): 147 bp DNA wrapped 1.7 turns around a **histone octamer** (2 × each of H2A, H2B, H3, H4). H1 linker histone binds linker DNA between nucleosomes.\n\n**Hierarchical compaction**:\n- 10 nm 'beads on a string' (nucleosomes).\n- 30 nm fiber (debated; solenoid or zigzag).\n- Loops + TADs (10⁵-10⁶ bp).\n- Chromosomes (10⁷-10⁸ bp).\n- A/B compartments (megabase-scale active/inactive territories).\n\n**Histone modifications** (the *histone code*):\n- **H3K4me1, H3K4me3** — active promoters/enhancers.\n- **H3K27ac** — active enhancers.\n- **H3K9me3, H3K27me3** — heterochromatin/repression (Polycomb).\n- **H3K36me3** — gene body, active transcription.\n- **Writers** (HMTs, HATs), **readers** (bromodomain, chromodomain), **erasers** (HDACs, demethylases).\n- **Allis + Jenuwein** histone code hypothesis 2000; Allis posthumous mentions.\n\n**DNA methylation**:\n- 5-methylcytosine (5mC) at **CpG dinucleotides** in mammals.\n- ~70-80% of CpGs methylated genome-wide.\n- **CpG islands** (~30000, 500-2000 bp, GC-rich): typically *unmethylated* near gene promoters; methylation → silencing.\n- **DNMTs** (writers): DNMT1 maintenance; DNMT3A/B de novo.\n- **TET** enzymes (erasers): oxidize 5mC → 5hmC → demethylation.\n- Methylation patterns reset in early embryo (epigenetic reprogramming).\n- **Imprinting**: parent-of-origin methylation → monoallelic expression (IGF2/H19, SNRPN/Prader-Willi-Angelman).\n- **X-inactivation**: random one-X silenced in females; mediated by XIST lncRNA + heterochromatin marks.\n\n**Chromatin accessibility**:\n- **DNase-seq, ATAC-seq, MNase-seq** — open chromatin.\n- **ChIP-seq** — TF + histone-mark locations.\n- **Hi-C, Micro-C** — 3D chromatin contacts; TADs, loops.\n- **CUT&RUN, CUT&Tag** — modern low-input alternatives.\n\n**ENCODE** (Encyclopedia of DNA Elements, NHGRI 2003-2012+): mapped ~80% of human genome as biochemically active. Modulating papers in *Nature* September 2012 issue. Generated reference functional annotations: cell-type-specific enhancers, TF binding sites, accessible chromatin, RNA expression. Roadmap Epigenomics complemented for tissues; 4D Nucleome for 3D dynamics.\n\n**Epigenetic disease + inheritance**:\n- ICF, Rett (MECP2), Rubinstein-Taybi (CBP), CHARGE (CHD7).\n- Cancer: aberrant DNA methylation; mutant chromatin modifiers (EZH2, DOT1L, KMT2A/MLL fusions in leukemia).\n- Transgenerational epigenetic inheritance: documented in plants + worms; controversial but plausible in mammals (Dutch Hunger Winter cohort, holocaust survivor offspring)."
+    },
+    {
+      "kind": "text",
+      "title": "Mutation types, repeat expansion, and signatures",
+      "body": "**Mutations**: heritable changes in DNA sequence. Range from single base to whole-chromosome rearrangements.\n\n**Point mutations / substitutions**:\n- **Transitions** (purine ↔ purine, pyrimidine ↔ pyrimidine; A↔G, C↔T): more common.\n- **Transversions** (purine ↔ pyrimidine).\n- **Synonymous** (silent): doesn't change protein.\n- **Missense**: changes amino acid (e.g., Glu6Val in HBB → sickle cell).\n- **Nonsense**: introduces stop codon → truncated/degraded protein (NMD).\n- **Splice-site mutations**: disrupt splicing → exon skipping, intron retention.\n- **Regulatory**: alter expression without changing protein.\n\n**Insertions + deletions (indels)**:\n- Small indels: 1-50 bp.\n- **Frameshifts** when length not divisible by 3 → typically nonsense/truncation.\n- In-frame indels: add/remove aa(s).\n- **Stop-loss**: removes stop → readthrough.\n\n**Structural variants (SVs)**: >50 bp.\n- **CNVs** (copy-number variants): deletions, duplications. Pediatric disease (e.g., 22q11.2 deletion → DiGeorge), schizophrenia risk, autism.\n- **Inversions**: hemophilia A (intron 22 inv of F8 gene).\n- **Translocations**: BCR-ABL (Philadelphia chr, CML), MYC-IGH (Burkitt's), EWS-FLI1 (Ewing's).\n- **Complex rearrangements**: chromoanagenesis (chromothripsis, chromoplexy) — many breaks + rejoinings in a single catastrophic event.\n\n**Aneuploidy**: chromosome-count changes.\n- Trisomy 21 (Down), 18 (Edwards), 13 (Patau).\n- Sex-chromosome: XXY (Klinefelter), XO (Turner), XYY, XXX.\n- ~5% of all conceptions; most aneuploidies embryonically lethal except for the above + viable trisomies.\n\n**Repeat expansion disorders**:\n- **Huntington's disease**: CAG triplet repeat in *HTT* exon 1. Normal <36; affected ≥40. Encodes polyglutamine tract → toxic gain-of-function. Anticipation: paternal transmission expands more (sperm slippage).\n- **Fragile X syndrome**: CGG repeat in *FMR1* 5'UTR. Normal <55; premutation 55-200; full mutation >200 → methylation + silencing of FMR1.\n- **Myotonic dystrophy** (DM1: CTG in *DMPK* 3'UTR; DM2: CCTG in *CNBP*).\n- **Spinocerebellar ataxias** (multiple CAG/other repeat expansions).\n- **ALS/FTD**: *C9ORF72* GGGGCC hexanucleotide expansion (most common genetic cause).\n- **Friedreich's ataxia**: GAA in *FXN* intron.\n- Mechanisms: polyQ aggregation, RNA gain-of-function (foci sequester splicing factors), repeat-associated non-AUG translation (RAN), epigenetic silencing.\n- Anticipation: repeats expand each generation → earlier onset, worse phenotype.\n\n**De novo mutations**: ~70 per generation in humans (Kong + Stefansson 2012); ~1.2 × 10⁻⁸ per bp per generation. Paternal age → ~2 extra mutations per year of father's age (sperm replicate more).\n\n**Mutational signatures**:\n- **Alexandrov + Stratton 2013-2020**: analyzed >20000 cancer genomes → identified ~80 single-base-substitution signatures (SBS). Each represents a process:\n  - SBS1: spontaneous deamination of 5mC at CpG (aging clock).\n  - SBS4: tobacco smoking — G→T transversions.\n  - SBS7a/b: UV — pyrimidine dimers → C→T.\n  - SBS3: BRCA1/2 deficient (HR failure).\n  - SBS6/15/20/26: mismatch-repair deficient (Lynch).\n  - SBS13/2: APOBEC.\n- **COSMIC database** catalogs signatures.\n- Indel signatures (ID1-18), DBS, copy number signatures.\n- Clinical use: signature → likely cause → targeted therapy (e.g., POLE-mutant → high TMB → immunotherapy responsive; HRD → PARPi).\n\n**Germline vs somatic**:\n- Germline mutations: inherited; in every cell of offspring.\n- Somatic mutations: accumulate during life; cancer + aging.\n- ~3 mutations per gamete per generation; ~10² mutations per somatic cell at birth → ~10⁵ in old age."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_gen_2",
+        "kind": "guided_derivation",
+        "question": "Classify a mutation and predict its consequence",
+        "goal": "A patient's *CFTR* gene has a 3-bp deletion at codon 508 (loss of phenylalanine, ΔF508). Classify + predict consequence.",
+        "steps": [
+          {
+            "prompt": "What type of mutation is this?",
+            "motivation": "Length + frame matter.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "in-frame 3-bp deletion; missense/indel; deletes one amino acid",
+                "in-frame indel"
+              ]
+            },
+            "hints": [
+              "Is 3 divisible by 3?"
+            ],
+            "reveal": "3-bp deletion is *in-frame* (3/3 = 1 codon removed). One amino acid (Phe at position 508) deleted; rest of protein in frame. Not a frameshift, not nonsense, not synonymous — an in-frame indel."
+          },
+          {
+            "prompt": "What protein-level consequence?",
+            "motivation": "Specific to CFTR biology.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "misfolded CFTR; ER-retained; degraded; no chloride channel at apical membrane",
+                "protein-folding defect"
+              ]
+            },
+            "hints": [
+              "CFTR is a chloride channel + Phe508 in NBD1."
+            ],
+            "reveal": "ΔF508 disrupts folding of nucleotide-binding domain 1 (NBD1) → misfolded CFTR retained in ER → ubiquitinated + degraded by proteasome → no functional chloride channel at apical epithelial membrane. Disease: cystic fibrosis (autosomal recessive; ~70% of CF alleles in northern Europeans). Phenotype: thick mucus → chronic lung infection, pancreatic insufficiency, infertility."
+          },
+          {
+            "prompt": "How does ΔF508 illustrate the difference between *protein-coding mutation* and *splice-site mutation*?",
+            "motivation": "Different mechanisms; ΔF508 is coding-region.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ΔF508 is coding deletion; splice-site mutations alter splicing motifs",
+                "different mechanism"
+              ]
+            },
+            "hints": [
+              "What region is affected?"
+            ],
+            "reveal": "ΔF508 = coding-region deletion → altered protein sequence (folding defect). Splice-site mutations affect 5'-GU or 3'-AG of introns or branch points → mis-spliced mRNA (exon skipping, intron retention, cryptic splice sites). Different molecular outcomes; different therapeutic strategies. Other *CFTR* mutations include G542X (nonsense → premature stop → NMD) + 1717-1G>A (splice site)."
+          },
+          {
+            "prompt": "How do modern CF correctors (e.g., Trikafta) address ΔF508?",
+            "motivation": "Modern precision medicine.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "small molecules stabilize folding + restore trafficking",
+                "correctors + potentiators rescue CFTR function"
+              ]
+            },
+            "hints": [
+              "What's wrong with ΔF508 protein?"
+            ],
+            "reveal": "**Trikafta** (elexacaftor + tezacaftor + ivacaftor, Vertex, FDA 2019): two **correctors** (elexa-, teza-) bind misfolded ΔF508 CFTR + stabilize folding → escape from ER → reach apical membrane. **Potentiator** (ivacaftor) increases channel open probability. Treats ~90% of CF patients. Game-changer for CF — life expectancy + lung function dramatically improved. Models precision medicine: variant-specific small-molecule rescue. Earlier: Kalydeco (ivacaftor alone) for G551D gating mutation (~5% patients), then Orkambi, Symdeko, now Trikafta."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_gen_2",
+        "kind": "multiple_choice",
+        "question": "A whole-genome sequence of a melanoma shows >200000 single-base substitutions, dominated by C→T transitions at pyrimidine dinucleotides. Best interpretation?",
+        "options": [
+          "Random.",
+          "**UV-induced mutational signature** (SBS7a/b in COSMIC catalog). UV radiation causes pyrimidine dimers (cyclobutane pyrimidine dimers, CPDs + 6-4 photoproducts), which when erroneously repaired produce characteristic **C→T transitions at TpC, CpC, and TpT pyrimidine dinucleotides**. Discovery + cataloging: Alexandrov, Stratton 2013-2020 analyzed >20000 cancer genomes → ~80 mutational signatures. Melanoma classically dominated by SBS7. Clinical implications: very high tumor mutation burden (TMB) → many neoantigens → strong response to checkpoint inhibitors (PD-1/PD-L1 blockade, e.g., pembrolizumab, nivolumab). Other signatures: SBS4 = smoking; SBS1 = aging (5mC deamination); SBS3 = BRCA1/2 deficient (HRD).",
+          "Random.",
+          "Sequencing artifact."
+        ],
+        "correctIndex": 1,
+        "explanation": "C→T at pyrimidine dinucleotides = classic UV signature (SBS7 in COSMIC). UV → pyrimidine dimers → C→T transitions. Alexandrov, Stratton 2013-2020 catalogued ~80 mutational signatures from >20000 cancer genomes. Melanoma typically high TMB → strong response to checkpoint inhibitors. Other signatures: SBS1 (aging, 5mC deamination at CpG), SBS4 (smoking, G→T transversions), SBS3 (BRCA-deficient HRD), SBS6/15 (MMR-deficient). COSMIC database catalogs."
+      },
+      "hints": [
+        "What environmental exposure causes pyrimidine dimers?",
+        "Think Alexandrov mutational signatures."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "C→T at pyrimidine dinucleotides = UV signature SBS7 (Alexandrov + Stratton 2013-2020 COSMIC catalog). UV → pyrimidine dimers → C→T transitions. Melanoma classic. High TMB → neoantigens → checkpoint inhibitor responsive. Other signatures: SBS1 aging, SBS4 smoking, SBS3 BRCA-deficient."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_gen_2",
+        "kind": "multiple_choice",
+        "question": "A father carries 38 CAG repeats in *HTT* (just below Huntington's threshold of 40, called intermediate). His daughter has 51 CAG repeats and presents symptoms at age 30. Most likely explanation?",
+        "options": [
+          "Random mutation.",
+          "**Repeat expansion via anticipation** — particularly with *paternal* transmission. The *HTT* CAG tract is unstable in the male germline (sperm-cell DNA polymerase slippage during repeat replication is biased toward expansion). The 38-repeat intermediate allele expanded across one generation to 51, crossing the disease threshold. Anticipation = earlier onset + worse phenotype with successive generations, characteristic of repeat-expansion disorders. *HTT* CAG expansion → polyQ tract → toxic gain-of-function aggregation in striatal neurons → chorea, cognitive decline, psychiatric symptoms. Paternal lineage of expansion much more pronounced than maternal. Other anticipation disorders: fragile X (CGG, maternal expansion bias), myotonic dystrophy (CTG), spinocerebellar ataxias.",
+          "Mendelian inheritance.",
+          "Mitochondrial."
+        ],
+        "correctIndex": 1,
+        "explanation": "CAG repeat expansion via anticipation — paternal *HTT* alleles in intermediate range (27-39) are unstable and prone to germline expansion across the 40 threshold. Daughter inherited expanded allele (51 repeats) → polyQ tract in huntingtin → toxic aggregation in striatal neurons → Huntington's disease at age 30. Anticipation also occurs in fragile X (CGG, often maternal), myotonic dystrophy (CTG/CCTG), SCAs (CAG), C9ORF72 (GGGGCC) ALS/FTD, Friedreich's (GAA). Mechanism: polymerase slippage during germline DNA replication."
+      },
+      "hints": [
+        "What is unstable about the 38-repeat allele?",
+        "Paternal vs maternal expansion."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Paternal *HTT* intermediate alleles (27-39 CAG) expand across generations due to germline polymerase slippage; 38 → 51 crosses 40-threshold for Huntington's. Anticipation = earlier onset + worse phenotype across generations. Mechanism: polyQ tract aggregation in striatal neurons. Repeat-expansion disorders class: HD (CAG, paternal expansion bias), fragile X (CGG, maternal), DM1/2 (CTG/CCTG), SCAs, C9ORF72."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_gen_3",
+        "kind": "math_expression",
+        "question": "Human genome ~3.2 × 10⁹ bp, ~20000 protein-coding genes, ~1% exonic. Average coding sequence length per gene (bp)?",
+        "acceptedAnswers": [
+          "~1600",
+          "1600",
+          "~1500"
+        ],
+        "hint": "0.01 × 3.2e9 / 20000 = 1600 bp coding per gene on average."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_gen_2",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how the genome is much more than its protein-coding genes, and what consequences this has for understanding disease.",
+        "rubric": "Mentions: only ~1-2% of human genome is protein-coding; ~25-30% introns; ~50-55% repetitive (LINEs 17%, SINEs 13%, LTR/ERV 8%, DNA transposons 3%, satellites); ~5-10% regulatory (promoters, enhancers, CTCF sites, TAD boundaries); ~10000 lncRNAs + ~2000 miRNAs + tRNAs/snoRNAs/snRNAs. Barbara McClintock (Nobel 1983) discovered transposable elements in maize 1940s-50s — initially dismissed. ENCODE 2012: ~80% biochemically active. Chromatin: nucleosomes + histone modifications (H3K4me3, H3K27me3, H3K27ac, H3K9me3) + DNA methylation (CpG islands) + 3D folding (TADs, loops) → context-dependent gene regulation. Consequences for disease: most GWAS hits are *non-coding* (regulatory variants altering enhancer activity / TF binding / 3D contacts); CNVs/SVs in non-coding regions cause syndromes (22q11.2 → DiGeorge); repeat expansions in UTRs/introns drive Huntington's, fragile X, myotonic dystrophy, C9ORF72 ALS/FTD; mutational signatures (Alexandrov, COSMIC) reveal etiologies of cancer (UV → SBS7 melanoma, smoking → SBS4 lung). The coding-centric view is profoundly incomplete; modern genetics is whole-genome + epigenome-aware."
+      }
+    }
+  ]
+}

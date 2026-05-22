@@ -1,0 +1,158 @@
+{
+  "slug": "fuel-cells-and-hydrogen",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Survey PEMFC/AFC/PAFC/MCFC/SOFC/DMFC characteristics.",
+      "Connect HER + OER kinetics to electrolysis + fuel-cell catalysis.",
+      "Map the green-H₂ economy + decarbonization routes."
+    ],
+    "prereqs": [
+      "electrode-kinetics-butler-volmer"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Fuel cell families",
+      "body": "**Fuel cell** = electrochemical engine; oxidizes fuel (usually H₂) at the anode + reduces O₂ at the cathode; continuous fuel supply (unlike a battery's closed system). Discovered by **William Grove (1839)** — the 'gas voltaic battery'. First space-grade use: Gemini + Apollo (Pratt & Whitney/UTC AFC).\n\nThe families differ by electrolyte + operating temperature:\n\n**PEMFC — Proton Exchange Membrane / Polymer Electrolyte (Nafion, DuPont 1962+)**\n- Solid polymer electrolyte (sulfonated tetrafluoroethylene); conducts H⁺.\n- 60-80 °C operation; fast startup; modular; high power density.\n- Anode: H₂ → 2H⁺ + 2e⁻ (HER reverse, Pt catalyst, fast).\n- Cathode: ½O₂ + 2H⁺ + 2e⁻ → H₂O (ORR, Pt/Pt-alloy catalyst, slow — biggest performance bottleneck).\n- ~50-60% efficiency; uses ~0.1-0.2 mg Pt/cm² loading on cathode (versus ~0.5+ historically; major cost driver).\n- Applications: Toyota Mirai (2014+), Hyundai Nexo, buses (Wrightbus, Hyundai), forklifts (Plug Power), backup power, drones.\n- Sensitivity to CO (catalyst poisoning; <10 ppm tolerance), needs humidified gas streams + water management.\n\n**AFC — Alkaline Fuel Cell**\n- KOH electrolyte (liquid or polymer anion-exchange).\n- 60-90 °C; non-Pt catalysts feasible (Ni, Ag, Mn oxides) — cheap.\n- Apollo + Space Shuttle used AFC for power + water on missions.\n- CO₂ intolerant (forms K₂CO₃, blocks membrane) — needs pure O₂ or scrubbed air.\n- Modern alkaline-membrane FC (AEMFC) — emerging; lower-cost commercial path.\n\n**PAFC — Phosphoric Acid**\n- 150-200 °C; phosphoric acid in SiC matrix.\n- Pt catalyst still needed; tolerates CO better than PEMFC (1-2% OK).\n- Stationary CHP (combined heat + power); UTC/Doosan 400 kW PureCell. Long lifetime (~80,000 h).\n\n**MCFC — Molten Carbonate**\n- 600-700 °C; (Li,K)₂CO₃ melt in LiAlO₂ matrix.\n- High temp → non-noble catalysts; tolerates CO + can run on natural gas via internal reforming.\n- High efficiency (45-50% electrical, 80%+ CHP); slow startup.\n- FuelCell Energy DFC (Direct FuelCell) products for utility-scale CHP + CO₂ capture (carbonate acts as a CO₂ shuttle — a unique CCS opportunity).\n\n**SOFC — Solid Oxide Fuel Cell**\n- 600-1000 °C; yttria-stabilized zirconia (YSZ) electrolyte conducts O²⁻.\n- High efficiency (~60% electrical, 85%+ CHP); fuel flexible (H₂, CH₄, CO, NH₃, hydrocarbons via internal reforming).\n- Slow startup, ceramic fragility, sealing challenges. Bloom Energy + Ceres Power leading.\n- LT-SOFC (intermediate-temp, 500-700 °C) reduces thermal stress.\n\n**DMFC — Direct Methanol Fuel Cell**\n- PEMFC variant; methanol fuel directly oxidized at anode.\n- Easier fuel logistics (liquid); but low power density, Pt-Ru anode catalyst, methanol crossover through Nafion.\n- Portable, niche military/marine.\n\n**Characteristics summary**:\n- PEMFC + AFC: low-T, mobile, fast.\n- PAFC + MCFC + SOFC: high-T, stationary, fuel-flexible, CHP.\n- Trade-off: low-T needs expensive Pt + pure H₂; high-T tolerates fuels but slow startup + materials challenges."
+    },
+    {
+      "kind": "text",
+      "title": "HER + OER catalysis — Pt + beyond",
+      "body": "Water-related reactions dominate fuel cells + electrolysis:\n\n**HER — Hydrogen Evolution Reaction** (cathode in electrolysis; reverse of FC anode):\n  2H⁺ + 2e⁻ → H₂ (acid); 2H₂O + 2e⁻ → H₂ + 2OH⁻ (alkaline)\n- Mechanism: Volmer (H⁺ + e⁻ + * → H*) → Heyrovský (H* + H⁺ + e⁻ → H₂) or Tafel (2H* → H₂). * = adsorption site.\n- **Sabatier optimum**: ΔG_H* ≈ 0 (binds H neither too weakly nor too strongly).\n- Pt sits near the apex of the volcano plot — why it's the gold-standard HER catalyst.\n- Alternatives (Pt-free): MoS₂ edges (active edge sites only), Mo₂C, Ni-Mo alloys, NiCoP/transition-metal phosphides + sulfides, FeP, CoP, single-atom Pt on N-doped C.\n\n**OER — Oxygen Evolution Reaction** (anode in electrolysis):\n  2H₂O → O₂ + 4H⁺ + 4e⁻ (acid; +1.23 V); 4OH⁻ → O₂ + 2H₂O + 4e⁻ (alkaline)\n- 4-electron, 4-proton, multiple intermediates (OH*, O*, OOH*) with **scaling relations** ΔG(OOH*) ≈ ΔG(OH*) + 3.2 eV (Rossmeisl, Nørskov). The 3.2 eV is fixed by chemistry → thermodynamic overpotential floor ~370 mV no matter how good your catalyst.\n- **Acid**: IrO₂ (most active + stable), RuO₂ (more active but dissolves). Ir is rare (3 t/yr global; bottleneck for PEM electrolysis scale-up).\n- **Alkaline**: NiFeOOH (Boettcher), NiFe layered double hydroxides (LDH), Co spinels, perovskites (Bao + Shao-Horn LaMnO₃ family). Cheap + scalable. Modern NiFe catalysts hit ~250 mV @ 10 mA/cm² overpotential.\n- **Single-atom catalysts (SAC)**: isolated metal atoms anchored on N-doped carbons — maximize atom economy + tune coordination.\n\n**ORR — Oxygen Reduction Reaction** (cathode in fuel cell — the kinetic bottleneck):\n  O₂ + 4H⁺ + 4e⁻ → 2H₂O (4-e pathway, desired)  vs.  O₂ + 2H⁺ + 2e⁻ → H₂O₂ (2-e pathway, less efficient + corrosive)\n- Sluggish kinetics — even on Pt, η ≈ 0.3-0.4 V at typical current densities. Half of a PEMFC's voltage loss.\n- Pt-alloys (Pt-Co, Pt-Ni, Pt-Ru, PtCu nanoframes) improve mass activity 5-10x by tuning d-band center (Nørskov).\n- Non-Pt: Fe-N₄ + Co-N₄ molecular-like sites in N-doped carbon (Atanassov, Dodelet); approaching Pt mass activity but durability still a gap.\n- Anion-exchange membrane FC (AEMFC) shifts ORR to alkaline → non-Pt catalysts viable. Catalyst cost reduction potentially 10x.\n\n**Volcano plots + descriptor theory** (Nørskov, Greeley, Jaramillo) — plot activity vs an adsorption-energy descriptor → Sabatier peak. Used to screen alloys + intermetallics computationally via DFT before synthesis. Modern campaigns combine DFT + active learning + autonomous synthesis (next lesson).\n\n**Beyond Pt**: a $50B+ market depends on Pt-alternative catalysts working at scale. The bottleneck for the H₂ economy.\n\n**Bockris** — John O'M. Bockris was a giant of mid-20th-century electrocatalysis + the hydrogen-economy concept; his textbooks (with Reddy + Khan) are still standard references for electrochemical kinetics, alongside **Bard + Faulkner**'s Electrochemical Methods."
+    },
+    {
+      "kind": "text",
+      "title": "Water electrolysis + the green-H₂ economy",
+      "body": "**Water electrolysis** = the electrolytic side: drive 2H₂O → 2H₂ + O₂ with electricity. E_eq = 1.23 V; practical cells operate at 1.7-2.0 V (overpotentials + ohmic losses).\n\n**Alkaline electrolysis (AEL)** — 100+ years old; ~30% KOH electrolyte; Ni-based electrodes; diaphragm separator. Mature, cheap (~$500-1000/kW); slow response; lower current density.\n\n**PEM electrolysis (PEMEL)** — Nafion + Pt cathode + IrO₂ anode. Higher current density (2-3 A/cm² vs 0.4 A/cm² alkaline); fast response (ideal for variable renewables); ~$1500/kW today, targeting $300/kW by 2030. Ir bottleneck pressing.\n\n**SOEC — Solid Oxide Electrolysis Cell**\n- High-T (700-900 °C); YSZ; ~85% efficiency (including thermal recovery from waste heat — coupled to nuclear or industrial heat).\n- Co-electrolysis: H₂O + CO₂ → syngas (H₂ + CO) → liquid fuels via Fischer-Tropsch.\n- Sunfire, Topsoe, Ceres scaling.\n\n**AEM electrolysis (AEMEL)** — emerging; cheap PGM-free catalysts; durability the gap.\n\n**The H₂ color palette** (industry shorthand):\n- **Grey**: from SMR (steam methane reforming, CH₄ + H₂O → CO + 3H₂) without CCS — ~10 kg CO₂/kg H₂.\n- **Blue**: SMR with CCS — ~2 kg CO₂/kg H₂.\n- **Turquoise**: methane pyrolysis (CH₄ → C(solid) + 2H₂) — no CO₂ if powered by renewables; Monolith, BASF.\n- **Pink**: electrolysis powered by nuclear.\n- **Green**: electrolysis powered by renewables — the goal. ~0 kg CO₂/kg H₂.\n- **White / Gold**: natural geologic H₂ (Mali discovery 2018, Pyrenees, Australia) — emerging frontier.\n\n**Green H₂ economy** — proposed roles:\n- **Steelmaking** — direct reduction of iron: Fe₂O₃ + 3H₂ → 2Fe + 3H₂O. Replaces coal-coke (BF/BOF route). HYBRIT (Sweden, SSAB + Vattenfall + LKAB), H2 Green Steel, ArcelorMittal — first commercial DRI-H₂ steel mills 2024-26. Could eliminate ~7% of global CO₂.\n- **Ammonia synthesis** — Haber-Bosch's H₂ feedstock currently from SMR; replacing with green H₂ greens fertilizer. Yara, CF Industries, big projects in MENA + Australia.\n- **Refining** — hydrocrackers + desulfurization.\n- **Long-distance heavy transport** — trucks (Hyzon, Nikola), trains (Alstom Coradia iLint, in service 2018 Germany), shipping (NH₃ + methanol carriers), aviation (Airbus ZEROe).\n- **Long-duration storage** — H₂ → underground caverns (salt domes, depleted gas fields) → power back via FC or turbine. Weeks-months storage where batteries can't compete on duration.\n- **Heat / industry** — high-T process heat where electrification is hard.\n\n**Challenges**:\n- **Cost**: green H₂ ~$5-10/kg vs grey ~$1.5-2/kg. DOE Hydrogen Shot targets $1/kg by 2030 (Hydrogen Hubs, IRA $3/kg PTC).\n- **Round-trip efficiency**: electrolysis 65% × storage 90% × FC 50% = ~30%. Direct electrification far better when feasible.\n- **Infrastructure**: H₂ pipelines, refueling stations, embrittlement of steels, leak detection.\n- **Safety**: invisible flame, wide flammability range (4-75% in air), buoyancy (rises fast — usually good).\n\n**Hindenburg (1937)** — the airship disaster shaped century-long public fear of H₂; modern analysis (Bain 1997, NASA Addison Bain) implicates the doped flammable canopy fabric (iron-oxide + aluminum doping — basically thermite!) more than H₂ per se. Safety engineering has moved far since.\n\n**Verdict**: H₂ is essential for *some* sectors (steel, fertilizer, shipping, aviation, long-duration storage) but not the all-purpose energy carrier of the future — electrification wins where it can. The realistic future: ~10-20% of final energy via H₂ + derivatives by 2050."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fc_efficiency",
+        "kind": "guided_derivation",
+        "question": "Compute thermodynamic efficiency of an H₂/O₂ fuel cell",
+        "goal": "Show that η_max = ΔG/ΔH for the cell reaction H₂ + ½O₂ → H₂O(l) at 25 °C gives ~83% — and explain why this is the Carnot-free upper bound.",
+        "steps": [
+          {
+            "prompt": "For H₂ + ½O₂ → H₂O(l): ΔH° = -286 kJ/mol (HHV), ΔG° = -237 kJ/mol. What's ΔG/ΔH?",
+            "motivation": "Efficiency ratio.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "237/286",
+                "0.83",
+                "~83%"
+              ]
+            },
+            "hints": [
+              "Divide."
+            ],
+            "reveal": "η_max = ΔG/ΔH = 237/286 = 0.829 ≈ 83%."
+          },
+          {
+            "prompt": "Compute E_eq using ΔG = -nFE with n = 2.",
+            "motivation": "Theoretical cell voltage.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1.23 V",
+                "1.229 V"
+              ]
+            },
+            "hints": [
+              "E = -ΔG/nF = 237000/(2·96485)."
+            ],
+            "reveal": "E_eq = 237000/(2·96485) = 1.229 V. The famous 1.23 V — the OER potential."
+          },
+          {
+            "prompt": "Why is this *better* than a Carnot heat engine? Compare to a steam turbine at T_hot = 800 K, T_cold = 300 K.",
+            "motivation": "FC vs Carnot.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Carnot = 1 - 300/800 = 0.625 = 62.5%",
+                "FC isn't a heat engine; not Carnot-limited"
+              ]
+            },
+            "hints": [
+              "Carnot efficiency formula."
+            ],
+            "reveal": "Carnot = 1 - T_c/T_h = 1 - 300/800 = 62.5%. FC at 83% > Carnot at this T pair. FC isn't a heat engine — it bypasses the entropy bottleneck by converting chemical → electrical directly. At elevated T, FC max efficiency falls (TΔS increases) so the advantage narrows but remains in favorable regimes."
+          },
+          {
+            "prompt": "In practice PEMFC achieve ~50-60% LHV (lower heating value, ΔH = -242 kJ/mol). Why the gap from 83%?",
+            "motivation": "Losses.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ORR overpotential ~0.3-0.4 V + ohmic + mass-transport losses",
+                "kinetics + ohmic + crossover"
+              ]
+            },
+            "hints": [
+              "Voltage at operating current vs equilibrium."
+            ],
+            "reveal": "Real cells operate at ~0.6-0.8 V vs 1.23 V equilibrium. ORR overpotential ~0.3-0.4 V (sluggish kinetics), membrane resistance ~0.05-0.1 V, mass transport at high current, gas crossover (H₂ → cathode, O₂ → anode). η_real = V_cell/V_thermo × η_max → ~0.7 × 0.83 ≈ 58%."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\eta_{max} = \\frac{\\Delta G}{\\Delta H} = \\frac{237}{286} \\approx 83\\%, \\quad E_{eq} = 1.229 \\text{ V}}$$\n\nFuel cells beat Carnot at low-to-moderate T because they're not heat engines. Practical PEMFC ~55%; ORR overpotential is the dominant loss."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fc_pem_temp",
+        "kind": "multiple_choice",
+        "question": "Why are PEMFCs limited to 60-80 °C operation?",
+        "options": [
+          "Pt melts.",
+          "The Nafion polymer membrane needs liquid water for proton conduction — sulfonate -SO₃H groups conduct H⁺ via a Grotthuss-like hopping mechanism through water-filled hydrophilic channels. Above ~90 °C at ambient pressure, water evaporates faster than it's produced, the membrane dries out, ionic conductivity collapses + the cell stops. High-temperature PEM (HT-PEM) variants use PBI doped with H₃PO₄ + can run to ~180 °C without liquid water; trade off conductivity + power density.",
+          "Pt poisons.",
+          "Polymer melts at 80 °C."
+        ],
+        "correctIndex": 1,
+        "explanation": "Nafion conducts H⁺ via hydrated sulfonate channels; needs liquid water. Drying out above 90 °C kills conductivity. HT-PEM uses PBI/H₃PO₄ to extend to 180 °C without water dependence — useful for waste-heat utilization + CO tolerance."
+      },
+      "hints": [
+        "What conducts H⁺ in Nafion?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Liquid water needed for proton conduction in Nafion; above 90 °C the membrane dries → conductivity drops. HT-PEM with PBI/H₃PO₄ avoids water dependence."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fc_color",
+        "kind": "scenario",
+        "question": "Green vs blue H₂ for a steel mill",
+        "prompt": "A European steelmaker is deciding between blue H₂ (SMR with CCS) and green H₂ (electrolysis with onsite wind) for a 1 Mt/yr DRI iron facility. What three factors should drive the decision?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fc_electrolyzer",
+        "kind": "math_expression",
+        "question": "An electrolyzer operates at cell voltage V_cell = 1.8 V. Theoretical V_eq = 1.48 V (thermoneutral, ΔH-basis). Compute the voltage efficiency η_V = V_eq/V_cell (use thermoneutral basis). Round to 2 decimals.",
+        "acceptedAnswers": [
+          "0.82",
+          "0.822",
+          "0.8222"
+        ],
+        "hint": "1.48/1.80 = ?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fc",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why ORR + OER kinetics are the bottlenecks of the H₂ economy + how Pt-alternative catalysts could change the cost picture.",
+        "rubric": "Mentions: ORR (cathode in FC) + OER (anode in electrolysis) are 4-electron multi-step reactions with high intrinsic overpotentials. ORR on Pt still ~0.3-0.4 V overpotential — eats half a PEMFC's voltage. OER thermodynamic floor ~370 mV due to ΔG(OOH*) - ΔG(OH*) ≈ 3.2 eV scaling relation. Catalysts: PEM uses Pt (ORR) + IrO₂ (OER acidic); Pt $30/g + Ir very scarce (3 t/yr). Alternatives: Pt-alloys (5-10x mass activity); Fe-N₄/Co-N₄ SACs; transition-metal phosphides + nitrides; NiFeOOH for alkaline OER. Alkaline (AFC + AEMFC + AEL) avoids PGMs entirely. Together with green-electricity costs falling, Pt-alternative catalysts could push green H₂ below $2/kg + unlock decarbonized steel, fertilizer, shipping, aviation. Bockris + Bard articulated this 50 years ago — now happening."
+      }
+    }
+  ]
+}

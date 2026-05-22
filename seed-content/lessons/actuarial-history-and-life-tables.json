@@ -1,0 +1,100 @@
+{
+  "slug": "actuarial-history-and-life-tables",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intro",
+    "objectives": [
+      "Trace the origins of actuarial science from Graunt and Halley to the first life-office.",
+      "Read and compute from a standard life table using columns $l_x$, $d_x$, $q_x$, and $p_x$.",
+      "Identify the professional bodies (SOA, CAS, IFoA) that govern the actuarial credential today."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The birth of actuarial science — Graunt, Halley, and the Bills of Mortality",
+      "viz": "survival-curve",
+      "vizProps": {},
+      "body": "Actuarial science is the quantitative study of **risk, mortality, and the time value of money** — the mathematical foundation of insurance, pensions, and annuities. Its roots lie not in insurance offices but in seventeenth-century London's public health records.\n\n**John Graunt** (1620–1674), a haberdasher with no university training, published *Natural and Political Observations Made upon the Bills of Mortality* in **1662**. The Bills of Mortality were weekly parish registers of births and deaths compiled in London since 1603. Graunt was the first to treat them as statistical data: he constructed what is recognisably the first **life table** — a column of survivors from a hypothetical cohort of 100 births — and derived approximate mortality rates at each age. He also noticed systematic patterns (more male births than female, excess winter mortality, plague clustering) that presaged modern epidemiology. Graunt was elected a Fellow of the Royal Society on the personal recommendation of King Charles II.\n\n**Edmond Halley** (1656–1742) — of *Halley's Comet* fame — took Graunt's idea further and put it on a rigorous mathematical footing. In **1693** he published *An Estimate of the Degrees of the Mortality of Mankind, Drawn from Curious Tables of the Births and Funerals at the City of Breslaw* in the *Philosophical Transactions of the Royal Society*. Halley used five years of detailed birth and death data supplied by Caspar Neumann from the Silesian city of Breslau (now Wrocław). From these records he constructed a formal life table — the **Breslau Life Table** — tabulating $l_x$ (the number of survivors to exact age $x$) for ages 1 through 84 from a radix of $l_1 = 1000$. Crucially, Halley also calculated the **present value of a life annuity** at each age, using a discount rate of 6% per annum — arguably the first actuarial valuation in history.\n\n**The radix** is the starting cohort — typically $l_0 = 100{,}000$ in modern tables — against which all survival probabilities are measured. The life table curves shown in the visualisation above track $l_x$ (survivorship) and $q_x$ (the annual mortality rate) across age, using the structure Halley established in 1693.\n\nThe **Society of Actuaries (SOA)** and **Casualty Actuarial Society (CAS)** are the two primary North American professional bodies; the **Institute and Faculty of Actuaries (IFoA)** governs the profession in the United Kingdom. All three administer examination pathways leading to the fellowship credential — FSA, FCAS, or FIA respectively — that legally qualifies a person to sign actuarial opinions."
+    },
+    {
+      "kind": "text",
+      "title": "The first life office — Equitable Life, Dodson, and Richard Price",
+      "body": "The transition from academic life tables to commercial insurance required an institutional leap. That leap was made in London in the mid-eighteenth century by two remarkable figures.\n\n**James Dodson** (c.1705–1757) was a mathematician and Fellow of the Royal Society who had been repeatedly refused life insurance because of his age — the Amicable Society for a Perpetual Assurance Office (founded 1706) accepted only applicants below 45. Enraged, Dodson set about calculating the mathematically correct **level premium** — a constant annual payment calibrated from the life table and discounting — that would make a life insurance contract financially sound at any age. He wrote to the Board of Trade with a fully worked proposal for a mutual life office, but died before it could be chartered.\n\nDodson's work was taken up by **William Morgan** (1750–1833), who became actuary of the **Society for Equitable Assurances on Lives and Survivorships** — known as **Equitable Life** — from 1775 until 1830. The Society had been founded in **1762**, widely recognised as the **world's first mutual life insurer** and the institution that proved the actuarial approach viable at scale. Morgan used **Richard Price**'s **Northampton Table** (1771) as his mortality basis. **Richard Price** (1723–1791) — theologian, moral philosopher, and friend of Benjamin Franklin — compiled mortality data from the parish records of Northampton and published the resulting table in his *Observations on Reversionary Payments* (1771), the defining actuarial text of its era. Morgan and Price together established the **reserve** — the fund an insurer must hold to honour future obligations — as a calculable quantity rooted in the life table.\n\n**Lloyd's of London** — the insurance market that grew from Edward Lloyd's coffee-house in the 1680s — provided a parallel, market-based route for marine and property risk. Lloyd's was not a life insurer and did not use life tables; it operated on underwriting syndicates and individual judgment. But its growth alongside the Equitable illustrated the two poles of the insurance world: **market underwriting** (Lloyd's) versus **mutual, mathematically priced life cover** (Equitable).\n\nBy the early nineteenth century the actuarial profession had a recognized scientific identity. The **Institute of Actuaries** was founded in London in **1848**; the **Faculty of Actuaries in Scotland** in **1856** (the two merged in 2010 to form the IFoA). In the United States the **Actuarial Society of America** (1889) and the **American Institute of Actuaries** (1909) merged in 1949 to form the SOA. The **CAS** split from the SOA in 1914 to focus on property-casualty lines.\n\nThe **English Life Tables** (ELT), first compiled by William Farr from the 1841 census for the Registrar General, created an official national mortality basis. ELT series are still published (ELT 17 covers 2010–2012); analogous tables in the US include the **United States Life Tables** published by the National Center for Health Statistics and the SOA's **RP-2014 mortality table** for pension plans."
+    },
+    {
+      "kind": "text",
+      "title": "The life table — columns, notation, and core relationships",
+      "body": "A **life table** (also called a **mortality table**) is a tabulation of a hypothetical cohort tracked from birth (or some starting age) to extinction. Every life-table calculation in actuarial science is ultimately a manipulation of six fundamental columns.\n\n**Standard columns**:\n- $l_x$ — **number of survivors** to exact age $x$. The cohort starts at the **radix** $l_0$ (commonly $100{,}000$) and decreases monotonically to zero.\n- $d_x = l_x - l_{x+1}$ — **number of deaths** between exact ages $x$ and $x+1$.\n- $q_x = d_x / l_x$ — **annual probability of death** (mortality rate) for a life aged exactly $x$. Equivalently, $q_x = 1 - l_{x+1}/l_x$.\n- $p_x = 1 - q_x = l_{x+1}/l_x$ — **annual probability of survival** from age $x$ to age $x+1$.\n- $m_x$ — the **central death rate**, defined as $d_x / L_x$ where $L_x$ is the person-years lived between ages $x$ and $x+1$. Used in population studies and as input when constructing a table from observed data.\n- $e_x^\\circ$ — **complete expectation of life** at age $x$, the average total future lifetime. Computed as $e_x^\\circ = T_x / l_x$ where $T_x = \\sum_{k=0}^{\\infty} L_{x+k}$.\n\n**Multi-year survival** generalises easily. The probability that a life aged $x$ survives at least $n$ more years is:\n$$_np_x = \\frac{l_{x+n}}{l_x} = p_x \\cdot p_{x+1} \\cdots p_{x+n-1}$$\nand the probability of dying in the $n$-th year is:\n$$_n|q_x = \\frac{d_{x+n}}{l_x}$$\n\n**Select-and-ultimate tables** distinguish between **select lives** — those just underwritten and therefore known to be healthy — and **ultimate lives** — those whose selection effect has worn off. A select period of 2 years means $q_{[x]}$ (just selected) $< q_{[x-1]+1} < q_{x+2}$ (the ultimate rate). The **A2000 table** (IFoA) and the **RFV table** (SOA) are examples of select-and-ultimate tables used in UK and US valuation respectively.\n\n**Aggregate vs cohort tables**: a **period (aggregate) table** is built from one calendar year of data; a **cohort (generation) table** follows an actual birth cohort. The **Continuous Mortality Investigation (CMI)** — the IFoA's research arm — produces both types, along with the widely-used **CMI projection model** for mortality improvement.\n\n**Key identity**: $l_x = l_0 \\cdot {}_xp_0$. Every survivor count is the product of the radix and a chain of annual survival probabilities. This makes the life table a **discrete-time survival model** — a fact that connects directly to the continuous survival function $S(x)$ studied in the next lesson."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_hist_1",
+        "kind": "math_expression",
+        "question": "A life table has $l_{40} = 96{,}000$ and $l_{41} = 95{,}280$. Compute $q_{40}$, the probability of dying between exact ages 40 and 41. Give your answer to 4 decimal places.",
+        "acceptedAnswers": [
+          "0.0075",
+          "0.007500",
+          "7.5/1000",
+          "0.75%"
+        ],
+        "hint": "$q_{40} = d_{40} / l_{40}$ where $d_{40} = l_{40} - l_{41}$. Compute the death count first."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hist_1",
+        "kind": "multiple_choice",
+        "question": "Which publication is correctly identified as both the first rigorous life table AND the first calculation of the present value of a life annuity?",
+        "options": [
+          "John Graunt's *Natural and Political Observations upon the Bills of Mortality* (1662).",
+          "Edmond Halley's *An Estimate of the Degrees of the Mortality of Mankind, Drawn from Curious Tables of the Births and Funerals at the City of Breslaw* (1693), published in the *Philosophical Transactions of the Royal Society*.",
+          "Richard Price's *Observations on Reversionary Payments* (1771), which introduced the Northampton Table.",
+          "William Morgan's actuarial valuations for Equitable Life (1775–1830)."
+        ],
+        "correctIndex": 1,
+        "explanation": "Halley's 1693 Breslau paper was the breakthrough on two fronts simultaneously. First, it used Caspar Neumann's Breslau birth-and-death registers — five years of granular, age-specific data — to construct a proper life table ($l_x$ by single year of age from 1 to 84, radix $l_1 = 1000$). Second, Halley appended a table of annuity values at 6% interest for each age, making it the first published actuarial valuation. Graunt (1662) was the statistical pioneer who first treated mortality data scientifically and sketched a life table, but he did not compute annuity values. Price (1771) compiled the Northampton Table and wrote the seminal text on reversionary payments, but came 78 years after Halley. Morgan's valuations (from 1775) applied these tools institutionally. The correct answer is Halley 1693."
+      },
+      "hints": [
+        "Two achievements in one paper: life table AND annuity values.",
+        "Breslau data; published in *Philosophical Transactions*."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Edmond Halley published in 1693 in the *Philosophical Transactions of the Royal Society*. He used data from the Silesian city of Breslau supplied by Caspar Neumann, built the first properly age-graduated life table ($l_x$ for ages 1–84), and then — crucially — calculated the present value of a whole-life annuity at 6% for each starting age. That combination of mortality modelling and financial discounting is exactly what defines actuarial work. Graunt's 1662 Bills of Mortality was the statistical foundation, but lacked the discounting step."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_hist_1",
+        "kind": "scenario",
+        "question": "A pension trustee questions why the actuary is using a more recent mortality table",
+        "prompt": "A pension fund trustee says: 'We've been using the same mortality table for 15 years and the fund has always been solvent. Why does the actuary want to switch to the SOA's RP-2014 table and apply the CMI projection model? It'll only increase liabilities and make us look underfunded.' As the scheme actuary, explain — drawing on the history of life tables from Halley (1693) through the CMI — why mortality assumptions must be periodically updated, what the practical risk is of using an outdated table, and how the RP-2014 table and CMI projections address that risk."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hist_2",
+        "kind": "multiple_choice",
+        "question": "The 'radix' of a life table refers to which of the following?",
+        "options": [
+          "The highest age in the table, beyond which $l_x = 0$.",
+          "The initial cohort size $l_0$ (or $l_1$) from which all survivor counts are derived.",
+          "The central death rate $m_x$ at the modal age of death.",
+          "The discount rate used to convert $l_x$ into present-value annuity factors."
+        ],
+        "correctIndex": 1,
+        "explanation": "The radix is the starting number of lives in the hypothetical cohort — conventionally $l_0 = 100{,}000$ in modern tables (or $l_1 = 1000$ in Halley's 1693 Breslau table). All other $l_x$ values are fractions of the radix: $l_x = l_0 \\cdot {}_xp_0$. The terminal age (option A) is called $\\omega$; the central death rate (option C) is $m_x$; the discount rate (option D) is a separate interest-theory concept used when converting life-table probabilities into monetary values."
+      },
+      "hints": [
+        "It is a starting point, not an ending point.",
+        "Halley used 1000; modern tables use 100,000."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "The radix $l_0$ (or sometimes $l_1$) is simply the assumed size of the starting cohort. It is a convenient scaling constant — the absolute value doesn't matter, only the ratios $l_{x+n}/l_x = {}_np_x$. Halley chose $l_1 = 1000$ in 1693; most modern tables use $l_0 = 100{,}000$. All deaths $d_x$, probabilities $q_x$ and $p_x$, and expectations $e_x^\\circ$ are derived from ratios of $l_x$ values, making the radix a normalisation device rather than a real population count."
+    }
+  ]
+}

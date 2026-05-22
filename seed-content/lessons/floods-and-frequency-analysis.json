@@ -1,0 +1,137 @@
+{
+  "slug": "floods-and-frequency-analysis",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Perform flood-frequency analysis using extreme-value distributions such as the Gumbel distribution.",
+      "Interpret return period and annual exceedance probability, and correctly explain the '100-year flood'.",
+      "Describe flood routing through a channel reach using the Muskingum method."
+    ],
+    "prereqs": [
+      "streamflow-and-watershed-hydrology"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Flood-frequency analysis and the statistics of extremes",
+      "body": "Designing a bridge, a dam spillway, or a flood levee requires answering a probabilistic question: *how large a flood should the structure withstand?* There is no single 'largest possible' flood we can know in advance, so engineers use **flood-frequency analysis** — the statistical estimation of how often floods of a given magnitude occur. The discipline treats the annual peak discharge as a **random variable** and fits a probability distribution to a record of observed annual maxima.\n\nThe standard data series is the **annual maximum series (AMS)**: the single largest instantaneous discharge in each water year. (An alternative, the **partial-duration series** or **peaks-over-threshold**, keeps all peaks above a threshold and is preferred for short records.) Once we have, say, 50 annual peak flows, we treat them as independent samples from an underlying distribution and estimate its parameters.\n\nThe theoretical justification comes from **extreme-value theory**, founded by **Maurice Fréchet** (1927), **Ronald A. Fisher** and **Leonard Tippett** (1928), and unified by **Emil Julius Gumbel** (1891-1966) in his classic *Statistics of Extremes* (1958). The **Fisher–Tippett–Gnedenko theorem** establishes that the maximum of a large sample, suitably normalized, converges to one of three forms — the **Gumbel (Type I)**, **Fréchet (Type II)**, or **Weibull (Type III)** distributions — together generalized as the **Generalized Extreme Value (GEV)** distribution. For flood maxima, the **Gumbel distribution** is the most widely taught starting point. Its **cumulative distribution function** is:\n\n$$F(x) = \\exp\\!\\left[ -\\exp\\!\\left( -\\frac{x - \\mu}{\\beta} \\right) \\right]$$\n\nwhere $\\mu$ is the **location parameter** (mode) and $\\beta > 0$ is the **scale parameter**. The probability that the annual peak does *not* exceed $x$ is $F(x)$; the **exceedance probability** is $P(X > x) = 1 - F(x)$.\n\nDifferent countries standardize different distributions. The **United States**, following **Bulletin 17B** (1982) and its successor **Bulletin 17C** (2018, by the federal Subcommittee on Hydrology), fits the **log-Pearson Type III** distribution to the logarithms of annual peaks. The **United Kingdom** Flood Estimation Handbook uses the **Generalized Logistic** distribution. All approaches share the same goal: from a finite record, estimate the discharge associated with a chosen rarity, and quantify the uncertainty in that estimate. A short record (say, 20 years) gives a very uncertain estimate of a rare (say, 100-year) flood, and **regional frequency analysis** — pooling data from hydrologically similar gauged basins via methods such as **L-moments** (Hosking and Wallis, 1997) — is used to sharpen estimates, especially at ungauged sites."
+    },
+    {
+      "kind": "text",
+      "title": "Return period, exceedance probability, and the '100-year flood'",
+      "body": "The result of a frequency analysis is usually communicated through the **return period** (also called the **recurrence interval**) $T$. The return period of a flood of magnitude $x$ is the **average** number of years between events that equal or exceed $x$. It is the reciprocal of the **annual exceedance probability (AEP)**:\n\n$$T = \\frac{1}{P(X > x)}, \\qquad \\text{equivalently} \\qquad P(X > x) = \\frac{1}{T}.$$\n\nThus the famous **100-year flood** is the flood whose annual exceedance probability is $1/100 = 0.01$, or **1% per year**. This is the single most misunderstood concept in applied hydrology. The 100-year flood does **not** mean a flood that occurs exactly once every 100 years, nor does experiencing one mean you are 'safe' for the next 99 years. It means that in *any given year*, independent of history, there is a 1% chance of a flood that large or larger. Two 100-year floods can — and sometimes do — occur in consecutive years, or even in the same year.\n\nThe correct way to reason about the risk over a multi-year period uses the **binomial model**, assuming annual peaks are independent. The probability of *at least one* exceedance of the $T$-year flood during a project life of $n$ years is the **risk of failure**:\n\n$$R = 1 - \\left( 1 - \\frac{1}{T} \\right)^{n}.$$\n\nThe complement, the **reliability**, is $\\left(1 - 1/T\\right)^{n}$. The arithmetic is sobering. Over the 30-year life of a typical mortgage, the chance of experiencing at least one 100-year flood is $R = 1 - (0.99)^{30} \\approx 0.26$ — about a **26%** chance, not a negligible one. Over a 50-year structure life it rises to about 39%. This is why the phrase '100-year flood' is increasingly replaced in official communication by the unambiguous **'1%-annual-chance flood,'** the terminology now preferred by the **U.S. Federal Emergency Management Agency (FEMA)** for its **flood insurance rate maps**, on which the 1%-annual-chance floodplain defines the regulatory **Special Flood Hazard Area**.\n\nFor design, engineers select a return period appropriate to the consequences of failure: roadside culverts might be designed for the 10- or 25-year flood, urban storm drains for the 10-year, major bridges for the 100-year, and large dams for the **Probable Maximum Flood (PMF)** — an estimate of the largest flood physically possible from the Probable Maximum Precipitation over the basin. A further complication, increasingly urgent, is **non-stationarity**: classical frequency analysis assumes the statistical properties of floods are constant through time, but **climate change** and **land-use change** violate that assumption, shifting the distribution itself. The provocative 2008 *Science* paper by **Milly et al.**, titled *'Stationarity Is Dead'*, argued that hydrologic design must move beyond fixed historical distributions toward time-varying, climate-informed methods."
+    },
+    {
+      "kind": "text",
+      "title": "Flood routing and the Muskingum method",
+      "body": "Frequency analysis tells us *how big* a flood to expect at a site, but managing floods also requires knowing how a flood wave **moves and changes shape** as it travels downstream. As a flood propagates through a river reach, its peak typically **attenuates** (decreases in height) and **lags** (arrives later), because the channel and floodplain temporarily **store** water on the rising limb and release it on the falling limb. Predicting the outflow hydrograph at the downstream end of a reach from the inflow hydrograph at the upstream end is called **flood routing**.\n\nRouting methods fall into two families. **Hydraulic routing** solves the full **Saint-Venant equations** — the one-dimensional shallow-water equations of continuity and momentum derived by **Adhémar Jean Claude Barré de Saint-Venant** in **1871** — numerically, capturing the dynamics rigorously but at high computational and data cost. **Hydrologic routing** uses the simpler **storage–continuity** relationship and is the workhorse for practical design. The most widely used hydrologic channel-routing technique is the **Muskingum method**, developed by **G. T. McCarthy** for the **U.S. Army Corps of Engineers** during flood-control studies of the **Muskingum River basin** in Ohio in **1934-1935**.\n\nThe Muskingum method begins with the **continuity (storage) equation** for a reach:\n\n$$\\frac{dS}{dt} = I - O$$\n\nwhere $S$ is reach storage, $I$ is inflow, and $O$ is outflow. Its distinctive innovation is the **storage relationship**, which expresses reach storage as a weighted combination of inflow and outflow:\n\n$$S = K \\left[ X I + (1 - X) O \\right]$$\n\nHere $K$ is the **storage-time constant** (approximately the travel time of the flood wave through the reach, in hours) and $X$ is a dimensionless **weighting factor** between 0 and 0.5 that controls how much the storage depends on inflow versus outflow. The two limits are instructive: $X = 0$ gives **pure reservoir (level-pool) storage** (storage depends only on outflow, producing maximum attenuation), while $X = 0.5$ gives **pure translation** (the wave moves downstream unchanged, no attenuation). Natural river reaches typically fall in the range $X \\approx 0.2$ to $0.3$.\n\nCombining the storage relationship with the continuity equation and discretizing in time yields the practical **Muskingum routing equation**:\n\n$$O_{2} = C_{0} I_{2} + C_{1} I_{1} + C_{2} O_{1}$$\n\nwhere subscripts 1 and 2 denote the start and end of a time step, and the **routing coefficients** $C_0, C_1, C_2$ are functions of $K$, $X$, and the time step $\\Delta t$, constrained to sum to one: $C_0 + C_1 + C_2 = 1$. Marching this recursion forward step by step routes the entire inflow hydrograph through the reach. The parameters $K$ and $X$ are **calibrated** from observed inflow–outflow hydrograph pairs (graphically, the correct $X$ is the one that makes the storage-versus-weighted-flow loop collapse to a single line). A physically based extension, the **Muskingum–Cunge method** (Cunge, 1969), estimates $K$ and $X$ directly from channel hydraulic properties and the flood-wave celerity, linking the empirical method back to the diffusion-wave approximation of the Saint-Venant equations. Together, frequency analysis and flood routing equip the hydrologist to answer both halves of the flood-design question: how large, and how it travels."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hyd6_1",
+        "kind": "multiple_choice",
+        "question": "A river has a '100-year flood.' Which statement correctly interprets this term?",
+        "options": [
+          "A flood of this size occurs exactly once every 100 years, like clockwork.",
+          "After such a flood occurs, the area is safe from one for the next 99 years.",
+          "In any given year there is a 1% (1/100) chance of a flood of this size or larger, independent of past floods; two could occur in consecutive years.",
+          "It is the largest flood that is physically possible in the basin."
+        ],
+        "correctIndex": 2,
+        "explanation": "The 100-year flood is the flood with an annual exceedance probability of 1/100 = 1% per year. Each year carries that 1% chance independently of history, so the events are not evenly spaced and two can occur in back-to-back years. It is emphatically NOT a once-per-century clockwork event, NOT a guarantee of 99 safe years, and NOT the largest possible flood (that is the Probable Maximum Flood). Because the 'return period' phrasing misleads, FEMA now prefers '1%-annual-chance flood.'"
+      },
+      "hints": [
+        "Return period is the reciprocal of an annual probability.",
+        "1/100 means a 1% chance every single year, independent of the past."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "The 100-year flood has a 1% annual exceedance probability; each year is independent, so events are not evenly spaced and can cluster. The answer is C. The 'once every 100 years' and '99 safe years' readings are the classic misconceptions."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_hyd6_1",
+        "kind": "math_expression",
+        "question": "The annual exceedance probability is the reciprocal of the return period: P = 1/T. What is the annual exceedance probability (as a decimal) of the 50-year flood?",
+        "acceptedAnswers": [
+          "0.02",
+          "0.02 ",
+          "2%",
+          "1/50"
+        ],
+        "hint": "P = 1/T = 1/50 = 0.02 (i.e., a 2% chance each year)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_hyd6_2",
+        "kind": "math_expression",
+        "question": "The risk of at least one exceedance of the T-year flood over n years (independent annual peaks) is R = 1 - (1 - 1/T)^n. For the 100-year flood (T = 100) over a 30-year project life (n = 30), compute R to two decimal places. (Note (0.99)^30 ≈ 0.7397.)",
+        "acceptedAnswers": [
+          "0.26",
+          "0.26 ",
+          "26%",
+          "~0.26"
+        ],
+        "hint": "R = 1 - (1 - 1/100)^30 = 1 - (0.99)^30 = 1 - 0.7397 ≈ 0.26."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hyd6_2",
+        "kind": "multiple_choice",
+        "question": "In the Muskingum routing storage relationship S = K[XI + (1-X)O], what does the weighting factor X = 0 correspond to?",
+        "options": [
+          "Pure translation: the flood wave moves downstream unchanged, with no attenuation.",
+          "Pure reservoir (level-pool) storage: storage depends only on outflow, producing maximum attenuation of the peak.",
+          "A physically impossible negative storage.",
+          "The Saint-Venant momentum equation with no continuity term."
+        ],
+        "correctIndex": 1,
+        "explanation": "When X = 0, the storage relationship reduces to S = K·O, meaning storage depends only on outflow — exactly the behavior of a level-pool reservoir, which gives maximum attenuation of the flood peak. The other limit, X = 0.5, gives pure translation (the wave moves downstream unchanged). Natural river reaches lie in between, typically X ≈ 0.2-0.3. The factor X controls the balance between inflow and outflow in determining reach storage, and hence how much the peak is attenuated versus simply delayed."
+      },
+      "hints": [
+        "Set X = 0 in the equation and see what S depends on.",
+        "Storage depending only on outflow is reservoir-like (maximum attenuation)."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "With X = 0, S = K·O — storage depends only on outflow, the level-pool reservoir case with maximum attenuation. X = 0.5 is the opposite (pure translation). The answer is B."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_hyd6_1",
+        "kind": "scenario",
+        "question": "Designing a culvert and explaining flood risk to a community",
+        "prompt": "You are advising a town that wants to replace an undersized culvert under a road that washes out frequently. You have a 35-year record of annual peak discharges at a nearby gauge and fit a Gumbel distribution to estimate flood magnitudes for several return periods. Explain (a) how you would choose a design return period given that the road is a critical evacuation route, (b) how you would compute and communicate the chance the design flood is exceeded during the culvert's 50-year service life using R = 1 - (1 - 1/T)^n, and (c) why a residents' belief that 'we just had our 100-year flood, so we are safe for a century' is wrong. Finally, note one reason climate-driven non-stationarity (per Milly et al., 'Stationarity Is Dead') could make your Gumbel estimate from the historical record an underestimate of future risk."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hyd6_3",
+        "kind": "multiple_choice",
+        "question": "As a flood wave travels down a long river reach, the downstream outflow hydrograph typically has a lower, later peak than the upstream inflow hydrograph. What is the primary physical reason?",
+        "options": [
+          "Water evaporates rapidly from the moving flood wave, removing the peak.",
+          "The channel and floodplain temporarily store water on the rising limb and release it on the falling limb, attenuating and delaying the peak.",
+          "The return period of the flood increases as it moves downstream.",
+          "Darcy's law forces the peak to decay exponentially with distance."
+        ],
+        "correctIndex": 1,
+        "explanation": "Flood routing reflects temporary storage: as the flood rises, water spreads into the channel and floodplain, filling storage and holding back part of the flow; as the flood recedes, that stored water drains out. The net effect is to attenuate (lower) and lag (delay) the peak downstream. This storage–continuity behavior is exactly what the Muskingum method parameterizes through K (travel time) and X (the inflow/outflow weighting that controls attenuation). Evaporation is negligible over routing timescales, and Darcy's law governs groundwater, not channel flood waves."
+      },
+      "hints": [
+        "Think about where the water goes on the rising limb of the flood.",
+        "Temporary storage in the channel and floodplain attenuates and delays the peak."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Channel and floodplain storage holds back water on the rising limb and releases it on the falling limb, lowering and delaying the downstream peak — the basis of the Muskingum method. The answer is B."
+    }
+  ]
+}

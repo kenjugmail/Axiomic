@@ -61,6 +61,29 @@
       "kind": "text",
       "title": "What's next",
       "body": "You now know the modern transformer recipe. RoPE + RMSNorm + SwiGLU + GQA + decoder-only + causal mask is what every recent open LLM uses, with minor variations.\n\nThe next set of lessons covers what comes *after* pretraining: [[fine-tuning-lora]] (adapt a pretrained model to your data), [[rlhf]] (align with human preferences), and [[rag]] (use retrieval to ground generation in external knowledge).\n\nKey takeaways:\n- RoPE: relative-position via Q/K rotation; extrapolates to long context\n- GQA: shares K/V across head groups; shrinks the inference KV-cache\n- SwiGLU: gated FFN activation; consistently beats GELU\n- RMSNorm: drops the mean-subtraction from LayerNorm; matches at lower cost\n- These are the 2024-era defaults — every recent open model uses this combination"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_modernarch_1",
+        "kind": "math_expression",
+        "question": "A mixture-of-experts FFN layer has 8 experts but routes each token to only the top 2 (top-2-of-8). If each expert holds $E$ parameters, what fraction of the layer's total expert parameters is *active* per token? Give the fraction.",
+        "acceptedAnswers": [
+          "1/4",
+          "0.25",
+          "2/8"
+        ],
+        "hint": "Active experts / total experts $= 2/8 = 1/4$. So an 8-expert top-2 layer activates only 25% of its expert parameters per token — that gap between total and active parameters is exactly why MoE models are cheap to run relative to their parameter count."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_modernarch_1",
+        "kind": "scenario",
+        "question": "Selecting among MoE, GQA, and SSM architectures for a deployment",
+        "prompt": "You must choose an architecture for a model that will serve very long-context requests (100K+ tokens) at high throughput on a fixed GPU memory budget. Compare what each option buys you: a mixture-of-experts model (high total capacity but only the active experts run per token), grouped-query attention (shrinks the KV cache that dominates long-context memory), and a state-space-model / attention-free backbone (sub-quadratic sequence scaling but different quality tradeoffs). Explain which constraint dominates here and recommend a combination, justifying the memory-versus-quality tradeoffs in 3-5 sentences."
+      }
     }
   ]
 }

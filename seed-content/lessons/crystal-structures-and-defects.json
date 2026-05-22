@@ -1,0 +1,109 @@
+{
+  "slug": "crystal-structures-and-defects",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Describe the BCC, FCC, and HCP crystal lattices and compute their atomic packing factors.",
+      "Explain point defects, dislocations, and grain boundaries and their role in plastic deformation.",
+      "Relate slip systems, the Burgers vector, and dislocation theory to the strength of metals."
+    ],
+    "prereqs": [
+      "metallurgy-history-and-the-iron-carbon-diagram"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The crystal lattices of metals: BCC, FCC, HCP",
+      "body": "Almost all metals are **crystalline**: their atoms occupy the regularly repeating sites of a three-dimensional **lattice**. The pioneering X-ray diffraction work of **Max von Laue** (1912) and of **William Henry Bragg** and **William Lawrence Bragg** (the **Bragg law**, $n\\lambda = 2d\\sin\\theta$, 1913) made it possible to determine these structures experimentally. Three lattices dominate metallic crystals.\n\n- **Body-centered cubic (BCC)**: atoms at the eight corners of a cube plus one at the body center. Examples include **alpha-iron (ferrite)**, **chromium**, **tungsten**, **molybdenum**, and **vanadium**. A BCC cell contains $8 \\times \\tfrac{1}{8} + 1 = 2$ atoms. Atoms touch along the cube body diagonal, so $4r = a\\sqrt{3}$, where $r$ is the atomic radius and $a$ the lattice parameter.\n- **Face-centered cubic (FCC)**: atoms at the eight corners plus one at the center of each of the six faces. Examples include **gamma-iron (austenite)**, **aluminium**, **copper**, **nickel**, **silver**, and **gold**. An FCC cell contains $8 \\times \\tfrac{1}{8} + 6 \\times \\tfrac{1}{2} = 4$ atoms. Atoms touch along the face diagonal, so $4r = a\\sqrt{2}$.\n- **Hexagonal close-packed (HCP)**: a hexagonal cell with an interleaved layer of atoms. Examples include **magnesium**, **zinc**, **titanium** (its low-temperature alpha phase), **cobalt**, and **beryllium**. The ideal axial ratio is $c/a = \\sqrt{8/3} \\approx 1.633$.\n\nA central concept is the **coordination number** — the count of nearest neighbors. BCC has coordination number **8**; both FCC and HCP have coordination number **12**, the maximum possible for equal spheres. FCC and HCP are both **close-packed** structures: they differ only in stacking sequence. FCC stacks close-packed planes in an **ABCABC** pattern, while HCP uses **ABAB**. The German mathematician **Johannes Kepler** conjectured in **1611** that no arrangement of equal spheres exceeds the close-packed density, a result finally proved by **Thomas Hales** in 1998. Many metals are **polymorphic** (allotropic): iron itself is BCC ferrite below 912 degrees C, FCC austenite from 912 to 1394 degrees C, and BCC delta-iron above that. These transformations, which underlie all heat treatment of steel, exist precisely because the relative stability of these lattices changes with temperature."
+    },
+    {
+      "kind": "text",
+      "title": "Packing factor and interstitial sites",
+      "body": "How efficiently does a lattice fill space? The **atomic packing factor (APF)** is the fraction of the unit-cell volume occupied by atoms, modeled as hard spheres:\n\n$$\\text{APF} = \\frac{n \\cdot \\tfrac{4}{3}\\pi r^3}{a^3}$$\n\nwhere $n$ is the number of atoms per cell, $r$ the atomic radius, and $a$ the cube edge.\n\nFor **FCC**, $n = 4$ and $4r = a\\sqrt{2}$, so $a = 2r\\sqrt{2}$ and the APF works out to $\\pi/(3\\sqrt{2}) \\approx 0.74$. For **HCP**, the close-packed stacking gives the same value, **0.74** — the theoretical maximum for identical spheres, the **Kepler density**. For **BCC**, $n = 2$ and $4r = a\\sqrt{3}$, giving an APF of $\\pi\\sqrt{3}/8 \\approx 0.68$. The looser BCC packing has consequences: BCC iron is less dense than FCC iron, which is why steel actually *contracts* when ferrite transforms to austenite on heating, and *expands* on the reverse transformation.\n\nThe spaces between atoms — the **interstitial sites** — are crucial for alloying. There are two kinds:\n\n- **Octahedral sites**: surrounded by six atoms. In FCC iron the octahedral hole has a radius about **0.41 r**, large enough to accommodate carbon reasonably well.\n- **Tetrahedral sites**: surrounded by four atoms, and smaller, about **0.225 r**.\n\nThis geometry explains a deep fact of ferrous metallurgy: although FCC austenite is more densely packed overall, its individual interstitial holes are *larger* than those in the more open BCC ferrite, where the largest holes are squeezed and irregular. Consequently **austenite dissolves far more carbon** (up to 2.1 wt%) than ferrite (only 0.022 wt%). When austenite is cooled rapidly so that carbon cannot diffuse out, the trapped carbon distorts the BCC lattice into a strained **body-centered tetragonal** structure — this is **martensite**, the hard phase responsible for hardened steel. The **Goldschmidt radii** and **Hume-Rothery rules**, formulated by **William Hume-Rothery** in the 1920s and 1930s, further govern which atoms substitute on lattice sites versus occupy interstices, based on relative atomic size, valence, and electronegativity. Carbon and nitrogen, being small, are **interstitial solutes**; chromium, nickel, and manganese, being comparable in size to iron, are **substitutional solutes**."
+    },
+    {
+      "kind": "text",
+      "title": "Defects: vacancies, dislocations, and grain boundaries",
+      "body": "Real crystals are never perfect, and it is precisely their **defects** that govern strength, ductility, and diffusion. Defects are classified by dimensionality.\n\n**Point defects (zero-dimensional)** include **vacancies** (missing atoms), **self-interstitials**, and **substitutional** or **interstitial impurity atoms**. Vacancies exist in thermodynamic equilibrium because they raise entropy; their concentration follows an **Arrhenius** law, $n_v/N = \\exp(-Q_v/k_BT)$, where $Q_v$ is the vacancy formation energy and $k_B$ is **Boltzmann's constant**. Vacancies are the carriers of **substitutional diffusion** and underlie all annealing and homogenization.\n\n**Line defects (one-dimensional)** are **dislocations** — the single most important concept in the mechanics of metals. The theory was developed independently in **1934** by **Geoffrey Ingram Taylor**, by **Egon Orowan**, and by **Michael Polanyi**. They realized that crystals deform plastically not by sliding entire planes of atoms at once (which would require enormous stress), but by the propagation of a localized line defect, far more easily. There are two limiting types: the **edge dislocation** (an extra half-plane of atoms) and the **screw dislocation** (a helical ramp of atoms). Each is characterized by its **Burgers vector** $\\mathbf{b}$, defined by the closure failure of a circuit drawn around the dislocation line — the **Burgers circuit**, after **Jan Burgers**. The Burgers vector gives the magnitude and direction of the lattice displacement the dislocation carries. For an edge dislocation $\\mathbf{b}$ is perpendicular to the line; for a screw dislocation it is parallel.\n\nDislocations glide on specific **slip systems**, each a combination of a close-packed **slip plane** and a close-packed **slip direction**. FCC metals have **12 slip systems** ($\\{111\\}\\langle 110\\rangle$) and are highly ductile; BCC metals have many potential systems but higher lattice friction (the **Peierls-Nabarro stress**); HCP metals have few easy slip systems and are comparatively brittle. The stress needed to activate slip on a plane is given by **Schmid's law**: the resolved shear stress is $\\tau = \\sigma\\cos\\phi\\cos\\lambda$, where $\\phi$ and $\\lambda$ are the angles between the loading axis and the slip-plane normal and slip direction. Yielding begins when $\\tau$ reaches the **critical resolved shear stress**.\n\n**Planar defects (two-dimensional)** include **grain boundaries** — the interfaces between crystallites (grains) of differing orientation in a **polycrystal**. Grain boundaries impede dislocation motion, so finer grains give stronger metals (the **Hall-Petch** effect). Related planar defects include **twin boundaries** and **stacking faults**. Together this hierarchy of defects, from vacancies to grain boundaries, is the toolkit by which metallurgists engineer strength."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cs_apf",
+        "kind": "multiple_choice",
+        "question": "Which statement about atomic packing factors is correct?",
+        "options": [
+          "BCC has APF 0.74; FCC has APF 0.68.",
+          "FCC and HCP both have APF 0.74; BCC has APF 0.68.",
+          "All three structures have APF 0.74.",
+          "HCP has the lowest packing factor of the three."
+        ],
+        "correctIndex": 1,
+        "explanation": "FCC and HCP are both close-packed with the maximum APF of about 0.74 (the Kepler density), differing only in stacking sequence (ABCABC vs ABAB). BCC is less densely packed at about 0.68. This difference in density drives the volume change when iron transforms between ferrite and austenite."
+      },
+      "hints": [
+        "Close-packed structures share the same maximum density.",
+        "BCC has coordination number 8, lower than the 12 of FCC and HCP."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "FCC: APF = pi/(3*sqrt2) approx 0.74. HCP: same close-packed value 0.74. BCC: APF = pi*sqrt3/8 approx 0.68. Hence option B. The shared 0.74 reflects that FCC and HCP are both close-packed (coordination 12), differing only in stacking (ABCABC versus ABAB), while BCC (coordination 8) is more open."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_cs_bcc_apf",
+        "kind": "math_expression",
+        "question": "For a BCC metal, atoms touch along the body diagonal so 4r = a*sqrt(3), and there are 2 atoms per cell. Compute the atomic packing factor to two decimal places.",
+        "acceptedAnswers": [
+          "0.68",
+          "0.68 ",
+          "0.680",
+          "68%"
+        ],
+        "hint": "APF = [2 * (4/3) pi r^3] / a^3. Substitute a = 4r/sqrt(3). The result is pi*sqrt(3)/8 = 0.68."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_cs_dislocation",
+        "kind": "scenario",
+        "question": "Why metals are far weaker than perfect-crystal theory predicts",
+        "prompt": "If you calculate the shear stress needed to slide one entire plane of atoms over another in a perfect crystal, you get a value (roughly G/10, where G is the shear modulus) hundreds of times larger than the measured yield strength of real metals. Explain how the dislocation theory of Taylor, Orowan, and Polanyi (1934) resolves this discrepancy. In your reasoning, refer to the Burgers vector and to how a dislocation moves a step at a time rather than rigidly, and comment on what would happen to strength if a crystal could somehow be made dislocation-free."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cs_slip",
+        "kind": "multiple_choice",
+        "question": "Why are FCC metals such as copper and aluminium generally more ductile than HCP metals such as magnesium and zinc?",
+        "options": [
+          "FCC metals have a lower melting point.",
+          "FCC metals have 12 easy slip systems on close-packed planes, whereas HCP metals have few easily activated slip systems.",
+          "FCC metals contain no dislocations.",
+          "HCP metals have a higher atomic packing factor."
+        ],
+        "correctIndex": 1,
+        "explanation": "Ductility depends on the number of independent slip systems available for dislocation glide. FCC metals offer 12 slip systems of the {111}<110> type, satisfying the von Mises criterion of five independent systems for general plastic flow. HCP metals have few easily activated systems, so they are comparatively brittle. Both FCC and HCP have the same packing factor (0.74), so packing is not the cause."
+      },
+      "hints": [
+        "Ductility tracks the number of available slip systems, not density.",
+        "Both FCC and HCP are close-packed, so packing factor cannot be the distinguishing factor."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Plastic flow requires multiple independent slip systems (von Mises: five). FCC supplies 12 systems of the {111}<110> family, easily satisfying this, so FCC metals like Cu, Al, Ni are ductile. HCP metals have limited easy slip (basal plane dominant) and so are less ductile. Therefore option B. Packing factor is identical (0.74) for both, ruling out option D."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_cs_interstitial",
+        "kind": "scenario",
+        "question": "Why austenite dissolves more carbon than ferrite",
+        "prompt": "FCC austenite has a higher overall atomic packing factor (0.74) than BCC ferrite (0.68), yet austenite dissolves about 2.1 wt% carbon while ferrite dissolves only about 0.022 wt%. This seems paradoxical: how can the more densely packed structure hold more solute? Explain using the size and geometry of the octahedral interstitial sites in each lattice, and connect your answer to why rapidly quenching carbon-rich austenite produces the strained body-centered-tetragonal martensite phase."
+      }
+    }
+  ]
+}

@@ -1,0 +1,155 @@
+{
+  "slug": "natural-products-and-total-synthesis",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Survey major natural-product classes + biosynthetic origins.",
+      "Trace the canon of total synthesis from Woodward to Baran.",
+      "Connect asymmetric catalysis (Sharpless, Noyori, Knowles, List, MacMillan) to modern synthesis."
+    ],
+    "prereqs": [
+      "retrosynthesis-and-synthesis-planning"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Natural products: nature's chemical library",
+      "body": "**Natural products (NPs)** are secondary metabolites produced by organisms — bacteria, fungi, plants, marine invertebrates, insects. Not essential for life but used in chemical communication, defense, ecology. Evolutionary selection on millions of structures over billions of years has populated nature with chemical scaffolds humans cannot easily invent. Most drugs in clinical use are NPs or NP-derived (~50% of all small-molecule drugs).\n\n**Major NP classes** + biosynthetic origins:\n\n**Alkaloids** (N-containing; ~20000+ known)\n- Derived from amino acids (L-Tyr, L-Trp, L-Lys, L-Orn) + condensation with aldehydes/ketones.\n- **Tropane alkaloids**: cocaine, atropine, scopolamine (Solanaceae).\n- **Isoquinoline alkaloids**: morphine, codeine, papaverine, berberine.\n- **Indole alkaloids**: strychnine, reserpine, vinblastine, vincristine, ergot alkaloids, LSD, psilocybin, yohimbine.\n- **Quinoline**: quinine (antimalarial), camptothecin (anticancer).\n- **Purine alkaloids**: caffeine, theobromine, theophylline.\n- **Pyrrolizidine, quinolizidine, steroidal alkaloids**: dozens of subfamilies.\n\n**Terpenoids (isoprenoids)** (C5 isoprene units; ~80000+ known) — the largest NP class\n- Biosynthesis from IPP (isopentenyl pyrophosphate) + DMAPP via MEP or mevalonate pathway.\n- **Monoterpenes (C10)**: menthol, camphor, limonene, pinene, geraniol.\n- **Sesquiterpenes (C15)**: artemisinin (antimalarial), farnesol, humulene.\n- **Diterpenes (C20)**: taxol (paclitaxel, anticancer), gibberellins, retinoids, forskolin, ginkgolides.\n- **Triterpenes (C30)**: lanosterol → cholesterol → steroid hormones (testosterone, cortisol, estrogen).\n- **Tetraterpenes (C40)**: carotenoids (β-carotene, lycopene), xanthophylls.\n- **Polyterpenes**: natural rubber.\n\n**Polyketides** (acetate units via type I/II/III PKS megasynthases; ~10000+ known)\n- **Macrolide antibiotics**: erythromycin, azithromycin, clarithromycin.\n- **Tetracyclines, anthracyclines** (doxorubicin, daunorubicin).\n- **Statins**: lovastatin, simvastatin, atorvastatin.\n- **Polyethers**: monensin, ionomycin, brevetoxin, maitotoxin, palytoxin.\n- **Aflatoxins** + many other mycotoxins.\n\n**Peptides** + **non-ribosomal peptides (NRPs)** via NRPS megasynthases\n- **Penicillins, cephalosporins, β-lactams**.\n- **Vancomycin, daptomycin, bacitracin**.\n- **Cyclosporin A** (immunosuppressant).\n- **Bleomycin** (anticancer DNA cleaver).\n\n**Glycosides + glycoconjugates**\n- **Cardiac glycosides**: digoxin, ouabain (Na⁺/K⁺-ATPase inhibitors).\n- **Saponins, anthocyanins, salicin, amygdalin**.\n\n**Hybrid PK-NRP**:\n- **Rapamycin, FK506 (tacrolimus)** (immunosuppressants).\n- **Epothilones** (anticancer microtubule stabilizers).\n\n**Drug-discovery impact** (Newman + Cragg ongoing analysis): of 1881 small-molecule drugs approved 1981-2019, ~32% are direct NPs or unaltered, ~28% are NP-derivatives. Without natural products, modern pharmacy would be unrecognizable: penicillin, statins, opioids, antibiotics, anticancer drugs, anti-parasitics, immunosuppressants — all originated from NPs or their congeners.\n\n**Modern NP discovery**:\n- **Genome mining**: predict BGC (biosynthetic gene clusters) from microbial genomes; activate silent clusters. AntiSMASH algorithm.\n- **Untargeted metabolomics**: LC-MS/MS + molecular-networking + GNPS (Pieter Dorrestein, UCSD); links structures across organisms.\n- **Cryptic + uncultured organisms**: most microbial diversity unculturable; iChip + co-culture revives access. Lewis Lab — teixobactin (2015).\n- **Marine + extremophiles**: prolific new chemistry; deep-sea, polar, hot-springs sources.\n- **Synthetic biology**: heterologous expression of BGCs in tractable hosts (E. coli, yeast) to access cryptic NPs."
+    },
+    {
+      "kind": "text",
+      "title": "Classics of total synthesis: from strychnine to maitotoxin",
+      "body": "**Total synthesis** = constructing a NP from scratch via commercial starting materials. The supreme art of organic chemistry — combining strategy, methodology, stereochemistry, + endurance.\n\n**Strychnine (C₂₁H₂₂N₂O₂)** — the 'Mt. Everest of the early era':\n- Isolated 1818 from *Strychnos nux-vomica* by Pelletier + Caventou.\n- Structure determined 1946-1948 by Robert Robinson (Nobel 1947).\n- **Woodward 1954**: first total synthesis (28 steps, ~0.0001% yield) — the longest known synthesis at the time; demonstrated synthesis of any structure is possible.\n- **Magnus 1992**: indoline radical cyclization route.\n- **Overman 1995**: aza-Cope-Mannich approach; highly elegant.\n- **Vanderwal 2011**: Zincke aldehyde-based; >100x shorter than Woodward.\n- **Other syntheses by Stork, Kuehne, Rawal, Vollhardt, Mori, Reissig**. Each generation tested new methodology against this benchmark.\n\n**Vitamin B₁₂ (cobalamin)** — the moonshot:\n- Discovered 1948 (cure for pernicious anemia); structure solved 1956 by Dorothy Hodgkin (Nobel 1964) via X-ray.\n- **Woodward + Eschenmoser (1973)**: 11-year, 100-coworker collaboration between Harvard + ETH Zürich. Synthesized one of the most complex natural products ever made. ~70 published transformations. Triggered the **Woodward-Hoffmann rules** of orbital symmetry conservation (Woodward + Hoffmann 1965; Hoffmann + Fukui Nobel 1981) — explains pericyclic reactions in terms of HOMO/LUMO symmetry.\n\n**Stork's prostaglandins** (1976-1985): G. Stork at Columbia synthesized PGE₂, PGF₂α + their analogs via prostaglandin endoperoxide intermediates. Provided drug-like material for clinical study + established cis-Wittig olefination, iodolactonization, + many side-chain strategies.\n\n**Taxol (paclitaxel)** — race of the century:\n- Isolated 1971 from Pacific yew *Taxus brevifolia*; FDA-approved 1992 for ovarian + breast cancer; one of the most successful natural-product anticancer drugs.\n- **Holton 1994**: first total synthesis (Florida State); 40 steps. Patented the semi-synthesis from 10-deacetylbaccatin III (industrial route).\n- **Nicolaou 1994** (Scripps): independently, days later — different strategy.\n- **Wender, Mukaiyama, Kuwajima, Danishefsky** also reached taxol.\n- The race showed convergent + asymmetric methods + that 40-step syntheses are feasible — but also that semi-synthesis from a renewable plant intermediate is the only viable manufacturing route. Total synthesis as proof-of-concept; semi-synthesis for supply.\n\n**Brevetoxin B (Nicolaou 1995)** — marine ladder toxin:\n- Produced by red-tide dinoflagellate *Karenia brevis*; cause of neurotoxic shellfish poisoning.\n- 11 fused trans-trans-fused ether rings (5-8-membered).\n- Nicolaou + ~30 coworkers — used iterative ring closures + Yamamoto chemistry; ~80 stages.\n\n**Maitotoxin (ongoing race)**:\n- Largest non-polymeric natural product (MW 3422); 32 rings; the ultimate test piece.\n- Nicolaou + collaborators have completed major fragments (LMNO, BCDE rings) over 25 years.\n- Full synthesis remains unfinished — a generational challenge.\n\n**Palytoxin (Kishi 1994)**: 64 stereogenic centers; 8 olefin geometries. Kishi's tour de force.\n\n**Modern syntheses**:\n- **Phil Baran (Scripps; MacArthur 2013)**: 'ideal synthesis' philosophy — minimize step count, protecting groups, redox manipulations. Examples: ingenol (14 steps), ouabagenin (21 steps), thapsigargin, taxol-related, vinblastine simplifications, palau'amine (~50 steps where prior was 80+).\n- **Movassaghi, Reisman, Stoltz, MacMillan, Maulide, Jia-Rui Liu**: contemporary generation. Many emphasize C–H activation + photoredox to bypass classical protecting-group chemistry.\n- **DNA-encoded library (DEL)** + computational + AI-assisted exploration → industrial synthesis routes redesigned for atom economy + green chemistry.\n\n**Total synthesis serves three purposes**:\n1. **Structural confirmation** (historically): synthesis as the ultimate proof of proposed structure.\n2. **Methodology testing**: new reactions developed + validated in synthesis context.\n3. **Material supply + analog access**: for biology + medicinal chemistry exploration — though most clinical NPs are semi-synthesized or fermented.\n\nClassic total synthesis remains the doctoral training of choice for synthetic chemists in elite groups — the hardest practical curriculum in chemistry."
+    },
+    {
+      "kind": "text",
+      "title": "Asymmetric catalysis: the chemistry of single enantiomers",
+      "body": "**Asymmetric synthesis** = producing one enantiomer (or one diastereomer) selectively. Crucial because:\n- Biological systems are chiral (proteins, sugars, lipids → single hands).\n- Drug enantiomers can have radically different activities (thalidomide; many examples).\n- Single-enantiomer drugs are mandated by modern regulators.\n\n**Strategies**:\n1. **Chiral pool**: start from a natural enantiopure precursor (amino acid, sugar, terpene).\n2. **Chiral auxiliary**: temporarily attach an enantiopure group, do diastereoselective chemistry, remove. Evans oxazolidinones, menthol esters.\n3. **Stoichiometric chiral reagent**: e.g., Brown's IPC₂BCl chiral allylation; CBS reduction (Corey-Bakshi-Shibata).\n4. **Asymmetric catalysis**: catalytic amount of chiral catalyst transfers chirality to many substrates. The gold standard — high turnover, atom-economical.\n5. **Kinetic resolution + dynamic kinetic resolution (DKR)**: separate enantiomers by differential reaction rates.\n6. **Biocatalysis**: enzymes give exquisite selectivity. Frances Arnold (Nobel 2018) — directed evolution of enzymes.\n\n**The Nobel laureates of asymmetric catalysis**:\n\n**William Knowles (Monsanto) + Ryoji Noyori (Nagoya) + K. Barry Sharpless (Scripps) — Nobel Chemistry 2001**:\n- **Knowles**: discovered chiral phosphine-Rh catalysts for asymmetric hydrogenation; commercialized L-DOPA synthesis (1974) for Parkinson's via Rh-DiPAMP-catalyzed asymmetric hydrogenation — the first industrial use of asymmetric catalysis.\n- **Noyori**: BINAP-Ru catalysts for hydrogenation of ketones + olefins; massively applied (menthol, naproxen, l-DOPA, antibiotics). BINAP is an atropisomeric C₂-symmetric biaryl phosphine — a landmark ligand. Noyori second-generation Ru-BINAP/diamine catalysts achieve >99% ee with TONs in the millions.\n- **Sharpless**: \n  - **Sharpless asymmetric epoxidation** (1980): Ti(OiPr)₄ + (+)- or (-)-DET + tBuOOH on allylic alcohols → enantioenriched epoxides. The first generally useful asymmetric synthesis.\n  - **Sharpless asymmetric dihydroxylation (AD)** (1988): OsO₄ + (DHQD)₂PHAL or (DHQ)₂PHAL → cis-1,2-diols with high ee. Industrial use.\n  - **Sharpless aminohydroxylation (AA)**.\n  - **Click chemistry** (next slide) — second Nobel 2022 (with Meldal + Bertozzi).\n\n**Benjamin List (Max Planck Mülheim) + David MacMillan (Princeton) — Nobel Chemistry 2021** for **asymmetric organocatalysis** — catalysis by small chiral organic molecules (not metals, not enzymes):\n- **List 2000**: L-proline (a $1/g amino acid) catalyzes intermolecular aldol with >90% ee — the foundational paper of enamine catalysis. Proline forms enamine with one ketone; aldol with the aldehyde; hydrolyzes to release. Mimics class-I aldolase enzymes.\n- **MacMillan 2000**: chiral imidazolidinone (now 'MacMillan catalyst') activates α,β-unsaturated aldehydes via iminium catalysis → asymmetric Diels-Alder + Friedel-Crafts + Mukaiyama. Coined the term 'organocatalysis'.\n- Together founded the **third pillar** of asymmetric catalysis (after enzymes + organometallics).\n- Practical advantages: no metals (cheap, environmentally friendly, no metal residues in pharmaceuticals), simple operation, modular catalyst design. Now generates ~10,000 publications/year.\n- Specific modes: enamine, iminium, SOMO, hydrogen-bonding (Brønsted acid catalysis with chiral phosphoric acid; Akiyama, Terada), N-heterocyclic carbene (NHC, Bode), Lewis base (Denmark), phase-transfer (cinchona).\n\n**Other asymmetric catalysis pioneers**:\n- **Henri Kagan (Orsay)**: chiral DIOP ligand (1971); foundational.\n- **Eric Jacobsen (Harvard)**: salen catalysts for asymmetric epoxidation + Henry/Mannich/aza-Michael; (salen)Cr/Co for hydrolytic kinetic resolution of epoxides — industrial use.\n- **Brian Stoltz**: PHOX ligands; asymmetric Tsuji-Trost.\n- **Manfred Reetz, Andreas Pfaltz, Tehshik Yoon, Karen Hultzsch** + many more.\n\n**Biocatalysis**:\n- **Frances Arnold (Caltech) — Nobel Chemistry 2018**: directed evolution of enzymes — iterative mutagenesis + screening for desired catalytic function. Applied to: enzymatic C–H activation, non-natural amino acids, carbene + nitrene insertions, drug intermediates. Codexis, Arzeda, others commercialize evolved enzymes. Pfizer + Merck routinely use evolved transaminases + ketoreductases for chiral amine + alcohol drug intermediates.\n- **Pikuls + Bornscheuer + Reetz + Hartl + Withers** — biocatalysis methodology.\n\nModern complex-molecule synthesis routinely deploys asymmetric catalysis as part of the standard toolkit — chiral hydrogenation, dihydroxylation, epoxidation, allylation, aldol, Diels-Alder, all achievable with predictable ee from well-validated catalyst systems."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_natural_woodward",
+        "kind": "guided_derivation",
+        "question": "Analyze the strategic logic of Woodward-Eschenmoser's B₁₂ synthesis",
+        "goal": "Vitamin B₁₂ contains a corrin ring (4 pyrrole-like rings joined by 3 methine bridges + 1 direct bond), a central Co(III), nucleotide loop, + multiple stereocenters. Walk through the strategic decisions.",
+        "steps": [
+          {
+            "prompt": "Why was B₁₂ chosen as a target?",
+            "motivation": "Strategic justification.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "structural complexity, medical importance, methodology proving ground"
+              ]
+            },
+            "hints": [
+              "What was at stake scientifically + medically?"
+            ],
+            "reveal": "B₁₂ was the most complex natural product proposed by 1965: 100+ atoms, 9 stereocenters, unique corrin ring, organometallic Co–C bond. Medically critical (pernicious anemia). Synthesizing it would prove that ANY structure is achievable + would generate methodology lasting decades. Woodward (Harvard) + Eschenmoser (ETH) joined forces — perhaps the largest single-target collaboration in chemistry history."
+          },
+          {
+            "prompt": "What's the corrin ring challenge?",
+            "motivation": "Key strategic obstacle.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "direct C-C bond between rings A and D; non-symmetric tetrapyrrole"
+              ]
+            },
+            "hints": [
+              "Unlike porphyrins, corrin has a direct A–D bond (no methine bridge).",
+              "Asymmetric tetrapyrrole requires controlled connectivity."
+            ],
+            "reveal": "Corrin is an asymmetric tetrapyrrole — three methine bridges + one direct A–D C–C bond. Unlike porphyrins, it cannot be made by simple symmetric condensation. Each ring + each connection must be installed with controlled stereo + regiochemistry. The A–D direct bond was the synthetic bottleneck."
+          },
+          {
+            "prompt": "What strategy resolved the A–D bond?",
+            "motivation": "Methodology innovation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "photochemical electrocyclic ring closure (Woodward-Hoffmann allowed)"
+              ]
+            },
+            "hints": [
+              "A controlled photochemical reaction.",
+              "Woodward-Hoffmann predicts stereo outcome."
+            ],
+            "reveal": "**Photochemical A–D cyclization**: built a 18-atom secocorrin precursor with a hexatriene-like sub-structure; irradiated at 254 nm → photoelectrocyclic conrotatory ring closure (Woodward-Hoffmann predicts the photochemical 6π conrotatory pathway gives the desired stereochemistry). This was a pivotal use of WH rules — invented by Woodward + Hoffmann in 1965 specifically to rationalize observations from this very synthesis! Hoffmann + Fukui Nobel 1981 grew partly out of this work."
+          },
+          {
+            "prompt": "What did the synthesis teach the field?",
+            "motivation": "Legacy.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Woodward-Hoffmann rules; methodology blueprint; trained 100+ Ph.D. chemists; defined late-20th-century synthesis"
+              ]
+            },
+            "hints": [
+              "What persistent ideas + careers emerged?"
+            ],
+            "reveal": "Legacy of B₁₂: (1) **Woodward-Hoffmann orbital-symmetry rules** — universal pericyclic reaction theory; (2) modular convergent fragment assembly; (3) chiral auxiliary + stereocontrol methodology; (4) hundreds of new transformations developed along the way; (5) trained ~100 Ph.D.-equivalent + postdoctoral chemists who populated the next generation; (6) demonstrated that 70-stage syntheses are tractable; (7) inspired the era of complex natural product synthesis through ~2000. Cited as the most influential total synthesis ever undertaken."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Total synthesis as scientific catalyst}}$$ B₁₂ wasn't just a target — it was a proving ground that generated the Woodward-Hoffmann rules, trained dozens of leaders, + defined how complex synthesis is done. Modern targets (palytoxin, brevetoxin, maitotoxin) continue the tradition. Total synthesis is at once art, methodology testbed, + training discipline."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_natural_organocat",
+        "kind": "multiple_choice",
+        "question": "Why did the Nobel Committee award the 2021 Chemistry Prize to List + MacMillan for organocatalysis?",
+        "options": [
+          "Random.",
+          "List + MacMillan (Nobel Chemistry 2021) independently founded asymmetric organocatalysis circa 2000 — small chiral organic molecules (proline, imidazolidinones) catalyzing enantioselective transformations. This established a third pillar of asymmetric catalysis alongside biocatalysis + organometallic catalysis. Practical advantages: no metals (cheap, environmentally benign, no residues in pharmaceutical products), modular catalyst design, simple operation (no inert atmosphere, no rare metal). Five distinct activation modes (enamine, iminium, SOMO, hydrogen-bonding/Brønsted acid, NHC) have spawned 10,000+ publications/year. Industrial applications + use in total synthesis grew rapidly. Recognized as one of the most impactful additions to the synthetic chemist's toolkit since the 1960s.",
+          "Random.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Organocatalysis: small chiral organic molecules (no metals) catalyze enantioselective transformations. List (proline aldol, 2000) + MacMillan (imidazolidinone Diels-Alder, 2000) launched the field. Five activation modes emerged. Industrial + academic adoption was explosive. The 2021 Nobel recognized a third pillar of asymmetric catalysis (after metals + enzymes)."
+      },
+      "hints": [
+        "What's the third pillar of asymmetric catalysis?",
+        "Metal-free advantages?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "List + MacMillan founded asymmetric organocatalysis (~2000); small chiral organic molecules catalyze enantioselective reactions. Five activation modes; major industrial adoption; cheap, green, simple. Nobel 2021 recognized the third pillar of asymmetric catalysis."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_natural_route",
+        "kind": "scenario",
+        "question": "Choosing a route to a chiral drug intermediate",
+        "prompt": "You need 10 kg of a single enantiomer of a β-hydroxy ester intermediate (>99% ee) for a Phase I clinical trial. Three options: (A) Noyori asymmetric hydrogenation with Ru-BINAP catalyst (TOF ~10000 h⁻¹); (B) ketoreductase biocatalysis with an evolved enzyme (98% ee, ~50 g/L productivity); (C) Sharpless asymmetric dihydroxylation followed by oxidation. Compare on yield, cost, scalability, + environmental impact."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_natural_ee",
+        "kind": "math_expression",
+        "question": "A reaction produces 92 mol of R-enantiomer + 8 mol of S-enantiomer. What is the ee (enantiomeric excess) in %?",
+        "acceptedAnswers": [
+          "84",
+          "84%"
+        ],
+        "hint": "ee = (R − S)/(R + S) × 100 = (92 − 8)/100 = 84%."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_natural",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why natural-product total synthesis remains central to organic chemistry training despite modern alternatives.",
+        "rubric": "Mentions: total synthesis provides (1) structural confirmation historically; (2) methodology testing — new reactions invented + validated in the crucible of complex targets; (3) training — graduate students learn strategy, stereocontrol, planning, + perseverance; (4) drug-discovery access — analogs of NPs (taxol, vinblastine, halichondrin/eribulin); (5) cultural identity — the canon (Woodward strychnine + B₁₂, Stork prostaglandins, Nicolaou taxol + brevetoxin, Kishi palytoxin, Baran ouabagenin/ingenol) defines what synthesis can do. Modern alternatives (biosynthesis, biocatalysis, semi-synthesis, fermentation) supply most NP-derived clinical drugs. But the pedagogical + scientific value of total synthesis as proving ground remains — it's where new chemistry is born + where chemists train their hands + minds. The trajectory from Woodward to Baran shows how the discipline evolves while preserving its core ambition: make any structure on demand."
+      }
+    }
+  ]
+}

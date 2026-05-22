@@ -1,0 +1,158 @@
+{
+  "slug": "correlated-electrons-and-frontier",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Analyze strongly-correlated electron systems via the Hubbard model and DMFT.",
+      "Survey heavy fermions, quantum criticality, and spin liquids.",
+      "Explore the modern frontier: magic-angle graphene, AI for materials, quantum simulators."
+    ],
+    "prereqs": [
+      "superconductivity",
+      "topological-phases-and-quantum-hall"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Strong correlations: Hubbard, Mott, DMFT",
+      "body": "Band theory + Bloch's theorem (free-electron-and-band-theory lesson) assume a single-particle picture: electrons fill bands one at a time, weakly screened by the others. **Strongly correlated electron systems** break this assumption — electron-electron Coulomb repulsion is comparable to or larger than the kinetic bandwidth, and many of the most interesting phenomena in solids emerge: Mott insulators, high-$T_c$ superconductivity, heavy fermions, quantum spin liquids, colossal magnetoresistance, multiferroics.\n\n**The Hubbard model** (John Hubbard + Martin Gutzwiller + Junjiro Kanamori 1963) — minimal tight-binding Hamiltonian with on-site Coulomb repulsion:\n\n$$\\mathcal{H} = -t \\sum_{\\langle ij\\rangle, \\sigma} (c^\\dagger_{i\\sigma} c_{j\\sigma} + \\text{h.c.}) + U \\sum_i n_{i\\uparrow} n_{i\\downarrow}.$$\n\n- $t$: nearest-neighbor hopping (~ bandwidth $W = 2zt$).\n- $U$: on-site Coulomb energy when two electrons share a site.\n- $U/t$ controls correlation strength.\n\n**Mott insulator** (Sir Nevill Mott 1949, Nobel 1977): when $U \\gg W$ and the band is half-filled ($n=1$ per site), every electron wants to localize to avoid the double-occupancy cost $U$. Result: insulating state despite a partially-filled band — **band theory fails dramatically**.\n\n- **Mott-Hubbard splitting**: single band splits into lower + upper Hubbard bands separated by $U$.\n- **Magnetic exchange** $J = 4t^2/U$ (Anderson 1959 superexchange): virtual hops on the half-filled lattice favor antiparallel spins → antiferromagnetic order at low $T$.\n- Examples: NiO, MnO, CoO (transition-metal monoxides — band theory predicts metallic, experiment shows insulating); V$_2$O$_3$ (classic Mott metal-insulator transition vs $T$ + pressure + doping; Imada-Fujimori-Tokura 1998 review).\n\n**Doping a Mott insulator**:\n- Hole-doped cuprates: AFM at half filling → pseudogap → high-$T_c$ superconductivity → strange metal → overdoped Fermi liquid. Phase diagram traversed by varying carrier density.\n- The cuprate phase diagram is the canonical example + still unsolved after 40 years.\n- $t$-$J$ model (Zhang + Rice 1988): effective low-energy theory at low doping.\n\n**Dynamical Mean Field Theory (DMFT)** — Antoine Georges + Gabriel Kotliar 1992 (with extensions by Werner Krauth, Marcelo Rozenberg, others):\n- Maps the lattice Hubbard problem onto a single-impurity Anderson model self-consistently embedded in a self-consistent bath.\n- Captures local quantum fluctuations exactly; treats correlations dynamically (frequency-dependent self-energy).\n- Reproduces Mott transition (Brinkman-Rice quasiparticle weight $Z \\to 0$), heavy-fermion mass enhancement, finite-temperature MIT.\n- **DFT+DMFT** combinations (Anisimov + Kotliar + Lichtenstein 1997) for realistic materials with both itinerant + correlated bands; standard for actinides, transition-metal oxides, heavy-fermion compounds.\n- **Cluster DMFT (DCA, CDMFT)** for non-local correlations (cuprate $d$-wave pairing).\n- Numerical impurity solvers: continuous-time quantum Monte Carlo (CT-QMC; Werner-Millis-Comanac 2006), exact diagonalization, NRG, tensor networks.\n\n**Other numerical approaches**:\n- **DMRG** (White 1992): exact ground states of 1D + ladder systems; very accurate for 2D narrow systems.\n- **Quantum Monte Carlo** (auxiliary-field, AFQMC; constrained-path; diagrammatic): controlled for fermions only in special cases (no sign problem at half-filling on bipartite lattices).\n- **Tensor networks** (PEPS, MERA): 2D ground states with controlled entanglement.\n- **Neural-network quantum states** (Carleo + Troyer 2017): ML wavefunction ansatze; competitive with state-of-art for spin systems.\n- **Variational + Gutzwiller + slave-particle methods** (slave-boson, slave-spin, parton constructions)."
+    },
+    {
+      "kind": "text",
+      "title": "Heavy fermions, quantum criticality, and spin liquids",
+      "body": "**Heavy-fermion compounds** — intermetallics with localized $f$-electrons (Ce, Yb, U, Pu) hybridizing weakly with itinerant $s$, $p$, $d$ bands. Below a coherence temperature $T_K$ (the Kondo temperature), the local moments form a singlet with conduction electrons → coherent Fermi liquid of heavy quasiparticles.\n\n**Phil Anderson 1961**: Anderson impurity model — single magnetic impurity in a metal; the foundation of Kondo physics.\n\n**Kondo problem** — Jun Kondo 1964: dilute magnetic impurities cause $\\log T$ resistivity minimum in metals. The Kondo singlet forms below $T_K = D e^{-1/2J\\rho}$ where $D$ is bandwidth + $\\rho$ density of states. Solved exactly by Wilson's renormalization group (1975) — built RG into condensed matter, Nobel 1982 for Wilson.\n\n**Heavy-fermion materials**:\n- **CeAl$_3$, CeCu$_2$Si$_2$, CeCoIn$_5$, YbRh$_2$Si$_2$, URu$_2$Si$_2$, UBe$_{13}$, UPt$_3$**: effective masses 100-1000 $m_e$.\n- **Unconventional superconductivity**: CeCu$_2$Si$_2$ (Steglich 1979) was the first known unconventional SC, before high-$T_c$ cuprates. CeCoIn$_5$ at $T_c = 2.3$ K, $d$-wave.\n- **Hidden order** in URu$_2$Si$_2$ at $T_0 = 17.5$ K — 35+ year mystery; no consensus on the order parameter.\n- **UTe$_2$** (Ran 2019): possible spin-triplet, possibly topological SC; intense recent interest.\n\n**Anderson's More Is Different (1972 Science)** — landmark essay arguing that condensed-matter physics is fundamental + not reducible to particle physics; emergent phenomena (broken symmetries, phase transitions, topological order) need their own concepts. Foundation of modern emergence philosophy.\n\n**Anderson localization** (1958 Nobel 1977): single-particle states in strongly disordered systems become exponentially localized → metal-insulator transition without interactions. Scaling theory (Abrahams-Anderson-Licciardello-Ramakrishnan 1979) shows all states localized in 2D for any disorder (modulo spin-orbit). Many-body localization (MBL — Basko-Aleiner-Altshuler 2006) extends to interactions; quasi-experiments + numerics; controversial whether asymptotically stable in 2D.\n\n**Quantum critical points (QCPs)** — phase transitions tuned not by temperature but by pressure, doping, field at $T \\to 0$. Order parameter fluctuates over all scales; thermodynamics + transport show non-Fermi-liquid behavior.\n\n- **Hertz-Millis theory** (1976, 1993): Gaussian theory of magnetic QCPs; specific-heat $\\gamma \\sim \\ln(T_0/T)$ for 3D AFM QCP.\n- **Kondo-breakdown QCPs**: in heavy fermions, local moments may decouple from conduction electrons at the QCP, giving 'small-to-large Fermi surface' jump.\n- **Linear-in-$T$ resistivity** (strange metal) near QCPs: planckian dissipation $\\tau \\sim \\hbar/k_B T$ (Sachdev + others); observed in cuprates, twisted bilayer graphene, heavy fermions.\n- **Holographic + SYK models**: Sachdev-Ye-Kitaev (SYK) model (Sachdev-Ye 1993, Kitaev 2015) is a tractable model of strange-metal behavior + chaos at the bound $\\lambda_L = 2\\pi k_B T/\\hbar$; deep connection to black hole physics + AdS/CFT.\n\n**Quantum spin liquids (QSLs)**:\n- Frustrated magnets that fail to order even at $T = 0$ — quantum fluctuations win.\n- Topological order; fractionalized excitations (spinons, visons, Majoranas); emergent gauge fields.\n- **Anderson 1973**: Resonating Valence Bond (RVB) — proposed for triangular lattice; revived 1987 as cuprate-SC mechanism.\n- **Kitaev honeycomb model** (2006): exactly soluble; Majorana spinons + $\\mathbb{Z}_2$ gauge field. Candidate material α-RuCl$_3$ shows half-integer thermal Hall (Kasahara + Matsuda 2018; recent debate).\n- **Herbertsmithite** ZnCu$_3$(OH)$_6$Cl$_2$: kagome QSL candidate; Helton + Han + Lee 2007+.\n- **Na$_4$Ir$_3$O$_8$, dmit triangles, κ-(BEDT-TTF) organics, YbMgGaO$_4$**: other QSL candidates.\n- **Quantum simulators** with Rydberg arrays (Lukin lab 2021 — toric code on a square lattice) + cold atoms now realize QSL phases in controlled settings."
+    },
+    {
+      "kind": "text",
+      "title": "Modern frontier: magic-angle graphene, AI for materials, quantum simulators",
+      "body": "**Magic-angle twisted bilayer graphene (MATBG)** — Yuan Cao + Pablo Jarillo-Herrero, MIT, 2018: two graphene layers rotated by **1.05° ± 0.1°** (the first magic angle predicted by Bistritzer + MacDonald 2011) form a moiré superlattice of ~13 nm. The interlayer coupling generates **flat bands** at the Fermi level with bandwidth ~5-10 meV — comparable to typical Coulomb scales $U \\sim 25$ meV. Result: a tunable strongly-correlated electron system.\n\n**MATBG phenomenology**:\n- **Correlated insulators** at integer fillings $\\nu = \\pm 2, \\pm 3$ of the flat band.\n- **Superconducting domes** (max $T_c \\sim 1.7$ K — small absolute but $T_c/T_F$ is among the largest known).\n- **Quantum anomalous Hall + orbital ferromagnetism** at $\\nu = +3$.\n- **Fractional Chern insulators** without external magnetic field (Park et al. 2023, Lu et al. 2024) in twisted MoTe$_2$ + rhombohedral graphene multilayers — fractional QHE-like physics in zero field.\n- **Non-trivial topology** of the flat bands (fragile + atomic limit + topology).\n\n**Why magic?** At 1.05°, hybridization between Dirac cones from the two layers + the moiré potential makes velocity at K, K′ vanish + bands maximally flat. Bistritzer-MacDonald model (continuum Dirac in moiré potential) gives the magic angles.\n\n**Family of moiré platforms**:\n- **Twisted trilayer + multilayer graphene**.\n- **ABC-stacked rhombohedral graphene** (3, 4, 5 layers) + h-BN moiré.\n- **Twisted bilayer TMDs** (MoTe$_2$, WSe$_2$): tunable triangular-lattice Hubbard model; QSL candidates.\n- **Twisted bilayer cuprates** (Zhao + Naud 2021): twisted Bi-2212 → time-reversal-breaking SC.\n\n**Twisting as a Hamiltonian-engineering knob**: turn dial → change interaction-to-bandwidth ratio → traverse phase diagram. Field expanded from MATBG (2018) to >100 platforms by 2025.\n\n**AI for materials**:\n- **GNoME (Graph Networks for Materials Exploration)** — Merchant + Cubuk + Hautier, DeepMind 2023 Nature: GNN-based prediction of stable inorganic crystals; **2.2 million** new stable structures discovered, 380000 entered the Materials Project. Active-learning loop with DFT relaxation.\n- **Materials Project** (Persson + Ceder 2011-): now ~150000+ DFT-computed materials; foundation for property screening (battery cathodes, photocatalysts, thermoelectrics, topological materials).\n- **AFLOW, OQMD, NOMAD, JARVIS** databases: complementary; millions of computed properties.\n- **MACE, NequIP, Allegro, CHGNet, MatterSim** — equivariant graph neural-network interatomic potentials at near-DFT accuracy, $10^3$-$10^6$× faster. Enable molecular dynamics of 10⁵-10⁸ atoms, alloy phase diagrams, defect calculations.\n- **AlphaFold-style transformers for materials** — diffusion-based generative models (CDVAE, MatterGen by Microsoft 2024) propose new compositions + structures conditioned on target properties.\n- **Autonomous labs (A-Lab) at LBNL** (Szymanski + Ceder 2023): closed-loop synthesis + characterization driven by ML predictions; achieved 41/58 target syntheses in 17 days, demonstrating end-to-end materials discovery automation.\n\n**Quantum simulators of correlated matter**:\n- **Ultracold atoms** in optical lattices realize Hubbard model directly — fermion quantum-gas microscopes (Greiner + Bloch + Ketterle) image individual sites + correlations. Antiferromagnetic correlations observed; doping → pseudogap-like physics.\n- **Rydberg atom arrays** (Lukin, Browaeys): programmable spin chains + 2D lattices; observed quantum spin liquid phases (Lukin 2021, Browaeys 2023), $\\mathbb{Z}_2$ topological order.\n- **Trapped ion + superconducting qubit arrays**: simulate spin Hamiltonians + lattice gauge theories.\n- **Quantum digital simulators** (IBM, Google, Quantinuum, IQM, IonQ): increasingly compete with classical simulation for specific Hamiltonians.\n- **Photonic + polariton lattices**: bosonic strongly-correlated phases.\n\n**Emerging directions (2025)**:\n- **Kagome metals** (CsV$_3$Sb$_5$, FeGe, RbV$_3$Sb$_5$): CDW + SC + nontrivial topology + chiral phases.\n- **Altermagnets** (Šmejkal-Sinova-Jungwirth 2022): new symmetry class beyond ferro + antiferromagnet, with spin-split bands + no net moment.\n- **Higher-order + fragile topology**: corner + hinge modes.\n- **Non-Hermitian topological systems**: gain/loss; PT symmetry; new bulk-boundary correspondences.\n- **Driven + Floquet correlated systems**: light-induced superconductivity (Mitrano + Cavalleri 2016 K$_3$C$_{60}$, claims in YBCO + cuprates).\n- **Quantum geometry of bands** (Bouhon + Bzdušek + Aris Alexandradinata): beyond Berry curvature; quantum metric controls superfluid stiffness in flat bands.\n- **Charge + spin + orbital orders in 2D + moiré**.\n\n**The unification**: solid-state physics has become a discipline that unites quantum field theory, geometry + topology, statistical mechanics, materials chemistry, and now machine learning + autonomous experimentation. The Hubbard model that started as a toy minimal model has become a touchstone for cuprates, twisted bilayer graphene, cold atoms, and quantum simulators alike — testing the proposition that 'more is different' (Anderson 1972) means new physics emerges at every scale where electrons can find new ways to organize themselves."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_corr_1",
+        "kind": "guided_derivation",
+        "question": "Derive the AFM superexchange of the half-filled Hubbard model at large $U/t$.",
+        "goal": "Show that the half-filled single-band Hubbard model with $U \\gg t$ maps onto a Heisenberg antiferromagnet with $J = 4t^2/U$.",
+        "steps": [
+          {
+            "prompt": "What is the ground-state manifold at $U/t \\to \\infty$ for half filling? Why is it degenerate?",
+            "motivation": "Identify the manifold of singly-occupied configurations.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "one electron per site, spin direction free; 2^N-fold degenerate",
+                "all singly-occupied configurations with arbitrary spin"
+              ]
+            },
+            "hints": [
+              "Double occupation costs $U$; at half filling each site has exactly one electron."
+            ],
+            "reveal": "In the $U/t \\to \\infty$ limit + half filling, double occupation is forbidden → one electron per site. The spin on each site is unconstrained → $2^N$-fold degenerate ground manifold. Spin dynamics emerge from second-order perturbation in $t/U$."
+          },
+          {
+            "prompt": "Why does virtual double occupation prefer antiparallel neighboring spins?",
+            "motivation": "Pauli + hopping logic.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "parallel spins cannot virtually hop due to Pauli; antiparallel can",
+                "only antiparallel pairs participate in virtual processes"
+              ]
+            },
+            "hints": [
+              "Pauli forbids two electrons of the same spin on one site."
+            ],
+            "reveal": "Two parallel spins on neighboring sites cannot virtually share one site (Pauli exclusion forbids $|\\uparrow\\uparrow\\rangle$ on a single site). Antiparallel neighbors can: electron from site $i$ hops to site $j$, doubly-occupying $j$ at energy cost $U$, then hops back. This second-order virtual process lowers the energy of antiparallel configurations relative to parallel."
+          },
+          {
+            "prompt": "Compute the second-order energy correction per bond using perturbation theory.",
+            "motivation": "Standard 2nd-order PT.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ΔE ~ -2t²/U for an antiparallel bond",
+                "energy lowered by 2 × t²/U via two virtual processes"
+              ]
+            },
+            "hints": [
+              "$\\Delta E = -|t|^2/U$ for each direction of virtual hop; sum the two."
+            ],
+            "reveal": "Second-order: $\\Delta E = \\sum_m |\\langle m | H_t | g\\rangle|^2 / (E_g - E_m)$. For an antiparallel bond, two virtual hops (i→j + j→i), each with matrix element $t$ and intermediate energy $U$ → $\\Delta E_{AP} = -2t^2/U$. Parallel bonds get zero correction."
+          },
+          {
+            "prompt": "Recast as a Heisenberg coupling.",
+            "motivation": "Effective spin Hamiltonian.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "H_eff = J Σ S_i · S_j with J = 4t²/U",
+                "Heisenberg AFM with J = 4t²/U"
+              ]
+            },
+            "hints": [
+              "For spin-1/2: $\\mathbf{S}_i\\cdot\\mathbf{S}_j = -3/4$ (singlet), $+1/4$ (triplet)."
+            ],
+            "reveal": "The energy difference between AP-singlet and parallel-triplet states is $-2t^2/U - 0 = -2t^2/U$. The operator $\\mathbf{S}_i \\cdot \\mathbf{S}_j$ gives $-3/4 - (+1/4) = -1$ between singlet + triplet. So $H_{\\text{eff}} = J\\sum_{\\langle ij\\rangle} \\mathbf{S}_i \\cdot \\mathbf{S}_j$ with $J = +4t^2/U > 0$ (AFM). This is the **Anderson superexchange** (1959). For cuprates: $t \\sim 0.4$ eV, $U \\sim 8$ eV → $J \\sim 130$ meV ≈ 1500 K, consistent with neutron measurements of the parent-compound AFM in La$_2$CuO$_4$."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_corr_1",
+        "kind": "multiple_choice",
+        "question": "Why has the Hubbard model remained the canonical workhorse of strongly-correlated electron physics for ~60 years?",
+        "options": [
+          "Random.",
+          "The Hubbard model (Hubbard + Gutzwiller + Kanamori 1963) is the minimal lattice model in which kinetic energy ($t$) and on-site Coulomb repulsion ($U$) compete on equal footing. By tuning $U/t$ + filling, it produces a remarkable zoo of phases: free-electron metal ($U \\to 0$); Mott insulator at half filling ($U \\gg t$, Mott Nobel 1977); antiferromagnetism via superexchange $J = 4t^2/U$ (Anderson 1959); pseudogap + strange-metal + cuprate-like $d$-wave SC away from half filling (Bednorz-Müller Nobel 1987 + 40-year unsolved problem); heavy-fermion + Kondo physics in the multi-orbital Anderson lattice; ferromagnetism in $t$-$J$ + Stoner limits; charge + bond + spin density waves; quantum spin liquids; non-Fermi-liquid behavior at quantum critical points. It is also the model realized directly in cold-atom optical lattices + in moiré superlattices (magic-angle twisted bilayer graphene). DMFT + cluster extensions, DMRG + tensor networks, AFQMC + neural-network states all target it. The Hubbard model is, in Anderson's spirit, 'more is different' codified — the minimal Hamiltonian whose phase diagram is still being mapped 60 years on.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Hubbard model (1963) = minimal lattice model with $t$ vs $U$ competition. Tuning produces metal, Mott insulator (Mott 1977 Nobel), AFM via $J=4t^2/U$ superexchange (Anderson 1959), pseudogap + strange-metal + cuprate $d$-wave SC, heavy fermions, QSLs, NFL at QCPs. Realized in cold atoms + moiré bilayers. Standard target of DMFT, DMRG, tensor networks, AFQMC, NN states."
+      },
+      "hints": [
+        "What phases live in its phase diagram?",
+        "What modern realizations does it have?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Hubbard model (1963) — minimal $t$-vs-$U$ lattice Hamiltonian. Tuning gives metal, Mott insulator (Mott Nobel 1977), AFM via superexchange (Anderson 1959), pseudogap + strange-metal + cuprate $d$-wave SC, heavy fermions, QSLs, NFL at QCPs. Cold-atom optical lattices + moiré bilayers realize it directly. DMFT + DMRG + tensor networks + AFQMC + neural-network states target it. Sixty-year unsolved phase diagram."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_corr_1",
+        "kind": "scenario",
+        "question": "Closing the loop on materials discovery",
+        "prompt": "You are leading a Materials Project + GNoME-style program targeting a new topological + correlated material — say, a kagome-lattice metal that hosts a quantum-anomalous-Hall phase + a flat band. Walk through the workflow: (1) GNN-based structure generation + screening, (2) DFT + DFT+DMFT refinement, (3) topological invariant computation, (4) ML-potential MD for stability, (5) hand-off to autonomous synthesis (A-Lab style), (6) ARPES + STM + transport characterization. What goes wrong, where, and how do you choose what to fund?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_corr_1",
+        "kind": "math_expression",
+        "question": "Write the antiferromagnetic superexchange coupling at half filling in the large-$U$ Hubbard model.",
+        "acceptedAnswers": [
+          "J = 4*t^2 / U",
+          "$J = 4t^2/U$",
+          "4t²/U"
+        ],
+        "hint": "Second-order virtual hopping over Mott gap $U$ between antiparallel neighbors. Anderson 1959 superexchange."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_corr_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain the frontier of solid-state physics: strong correlations, magic-angle moiré, AI for materials, and quantum simulators.",
+        "rubric": "Should mention: strong correlations break band theory; Hubbard model (1963) + Mott insulators (Mott Nobel 1977); superexchange $J = 4t^2/U$ (Anderson 1959); heavy fermions + Kondo + quantum criticality + strange metal + Hertz-Millis + SYK + planckian dissipation; Anderson's 'More Is Different' (1972) as emergence manifesto; DMFT (Georges-Kotliar 1992) + cluster DMFT + DMRG + tensor networks + AFQMC + neural-network states; quantum spin liquids (Anderson 1973 RVB, Kitaev honeycomb, herbertsmithite, RuCl$_3$); magic-angle twisted bilayer graphene (Cao + Jarillo-Herrero 2018, Bistritzer-MacDonald 2011) + flat bands + correlated insulators + SC + fractional Chern insulators; moiré TMD QSL platforms; AI for materials (GNoME 2023 DeepMind 2.2M structures, Materials Project, MACE/NequIP/CHGNet/MatterSim, MatterGen 2024, A-Lab autonomous synthesis); cold-atom + Rydberg + qubit quantum simulators of correlated matter (Lukin 2021 topological order); kagome metals, altermagnets, higher-order topology, light-induced SC; unification of QFT + topology + statmech + materials + ML; 60-year-old Hubbard phase diagram still unsolved."
+      }
+    }
+  ]
+}

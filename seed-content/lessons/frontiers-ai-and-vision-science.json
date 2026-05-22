@@ -1,0 +1,137 @@
+{
+  "slug": "frontiers-ai-and-vision-science",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Explain how AI fundus-screening systems detect diabetic retinopathy and how their performance is measured.",
+      "Describe retinal gene therapy, retinal implants, and adaptive optics as emerging vision-restoration and imaging technologies.",
+      "Discuss teleoptometry and the global myopia epidemic as system-level challenges in eye care."
+    ],
+    "prereqs": [
+      "ocular-disease-and-diagnosis"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Artificial intelligence in retinal screening",
+      "body": "The retina is the most accessible part of the central nervous system, and the explosion of **deep learning** has made automated retinal image analysis one of the first real successes of clinical AI. The central use case is **diabetic retinopathy (DR) screening**: a vast, asymptomatic, screening-amenable disease that produces image features (microaneurysms, haemorrhages, exudates, neovascularisation) a neural network can learn.\n\nThe technical workhorse is the **convolutional neural network (CNN)**, descended from **Yann LeCun**'s early networks and supercharged by the **ImageNet** breakthroughs of the 2010s (e.g. **AlexNet**, 2012). In a landmark **2016** *JAMA* paper, a team from **Google** led by **Varun Gulshan** trained a CNN on roughly 128,000 fundus photographs graded by ophthalmologists and achieved sensitivity and specificity for referable DR comparable to expert graders. The first system to gain **autonomous** regulatory clearance was **IDx-DR** (now **LumineticsCore**), developed by **Michael Abràmoff**, which in **2018** received **FDA** authorisation to make a screening decision **without a physician interpreting the image** — a regulatory milestone for autonomous AI in medicine. Other systems include **EyeArt** and Google/Verily's **ARDA**.\n\nThese systems are judged by the standard tools of diagnostic-test evaluation. **Sensitivity** (true-positive rate) and **specificity** (true-negative rate) trade off along the **receiver operating characteristic (ROC) curve**, summarised by the **area under the curve (AUC)**. For a screening test we usually prioritise **high sensitivity** so that few sight-threatening cases are missed, accepting more false positives (lower **positive predictive value**) that a specialist then adjudicates. A subtle but vital point is the role of **disease prevalence**: by **Bayes' theorem**, the same sensitivity and specificity yield very different positive predictive values in a low-prevalence screening population than in a high-risk clinic, which is why a 95%-specific test can still produce many false alarms when screening millions.\n\nThe frontier is moving beyond DR. CNNs now grade **age-related macular degeneration** and **glaucoma** from fundus photos and OCT, and **oculomics** research shows the retina can predict **cardiovascular risk**, **anaemia**, **chronic kidney disease**, and even **chronological age** and **sex** from a fundus image alone — a striking 2018 result from the Google group. The same caveats recur across all of it: models can fail on **out-of-distribution** images, can encode **dataset bias** across cameras and populations, and demand prospective validation. Used well, however, AI extends the reach of a limited specialist workforce to populations that would otherwise never be screened."
+    },
+    {
+      "kind": "text",
+      "title": "Restoring sight — gene therapy, retinal implants, and adaptive optics",
+      "body": "Where screening prevents blindness, a parallel frontier tries to **restore** vision in eyes already damaged — and to **image** the living retina at the resolution of single cells.\n\n**Retinal gene therapy** scored a historic first with **Luxturna** (**voretigene neparvovec**), which in **2017** became the first **FDA-approved gene therapy for an inherited disease** in the United States. It treats **biallelic RPE65-mediated inherited retinal dystrophy** — a form of **Leber congenital amaurosis** and retinitis pigmentosa — by delivering a working copy of the **RPE65** gene (essential to the **visual cycle** that regenerates 11-cis-retinal) using an **adeno-associated virus (AAV2)** vector injected under the retina. Patients gain measurable improvements in navigating dim environments. Many further trials target genes such as **RPGR** (X-linked RP), **CHM** (choroideremia), and the most common **Leber hereditary optic neuropathy** mutation, while **optogenetic** approaches insert light-sensitive proteins (e.g. **channelrhodopsin**) into surviving retinal cells to make them directly photosensitive — an approach that produced partial vision in a blind patient in a 2021 report.\n\n**Retinal implants** — the **bionic eye** — bypass dead photoreceptors by electrically stimulating the surviving inner retina. The pioneering **Argus II** (Second Sight), approved in the US in **2013**, used an external camera and a 60-electrode **epiretinal** array to give patients with end-stage retinitis pigmentosa crude phosphene-based vision. The German **Alpha-AMS** used a **subretinal** photodiode array. These first-generation devices delivered low-resolution percepts; current research (e.g. the **PRIMA** subretinal chip) pursues higher electrode density, and **cortical visual prostheses** that stimulate the visual cortex directly aim to bypass the eye altogether.\n\n**Adaptive optics (AO)** addresses imaging rather than treatment. Borrowed from **astronomy**, where it was developed (notably by **Horace Babcock**, who proposed it in 1953) to cancel atmospheric turbulence, AO uses a **wavefront sensor** (typically a **Hartmann–Shack** sensor) and a **deformable mirror** to measure and correct the eye's own optical aberrations in real time. **David Williams** and colleagues first applied AO to the living human eye in the late 1990s, achieving the first images of the **cone photoreceptor mosaic** *in vivo*. Combined with **scanning laser ophthalmoscopy** (**AO-SLO**) and **OCT** (**AO-OCT**), adaptive optics now resolves individual photoreceptors, retinal pigment epithelial cells, and even the flow of single blood cells in capillaries — opening a window onto the earliest cellular changes of disease long before they affect vision, and providing the microscopic outcome measures that gene-therapy and implant trials increasingly rely upon."
+    },
+    {
+      "kind": "text",
+      "title": "Teleoptometry and the global myopia epidemic",
+      "body": "Technology is reshaping not only diagnosis and treatment but the **delivery** of eye care and the **epidemiology** of refractive error itself — two system-level forces that will define the profession's coming decades.\n\n**Teleoptometry** (and teleophthalmology) uses telecommunications to deliver eye care at a distance, a trend accelerated by the **COVID-19 pandemic**. Several models coexist. **Store-and-forward** screening captures **fundus photographs** or **OCT** at a primary-care site or pharmacy and transmits them to a remote grader or an AI system — the dominant model for **diabetic retinopathy** programmes, including those built around **IDx-DR** and **EyeArt**. **Live, synchronous** examinations let a remote optometrist drive instruments and converse with the patient. **Remote refraction** and **online vision tests** estimate refractive error for low-risk adults, expanding access while raising regulatory and scope-of-practice questions, since a refraction is not a substitute for a comprehensive eye-health examination. The promise is reach — bringing screening to rural and underserved populations and to the roughly **1 billion people** the **World Health Organization (WHO)** estimates have a **preventable or unaddressed** vision impairment, the central message of its **World Report on Vision (2019)**.\n\nThe other defining force is the **global myopia epidemic**. Prevalence has risen sharply over recent decades, especially in **East Asia**, where studies report myopia in **80–90%** of young adults in cities such as **Seoul**, **Singapore**, and parts of **China** and **Taiwan**. A widely cited 2016 analysis by **Brien Holden** and colleagues projected that **half the world's population — about 5 billion people — could be myopic by 2050**, with roughly **1 billion** in the **high-myopia** category. The drivers are thought to be a mix of **intensive near work**, **education pressure**, and crucially **reduced time outdoors**, with bright outdoor light (and retinal **dopamine**) implicated as protective; genetics sets susceptibility but cannot explain a change this fast.\n\nThe public-health concern is not the inconvenience of glasses but **pathological high myopia** ($\\le -6.00\\,\\text{D}$ or axial length $> 26\\,\\text{mm}$), which raises lifelong risk of **myopic maculopathy**, **retinal detachment**, **glaucoma**, and early **cataract**, and is now a leading cause of irreversible vision loss in several countries. This is why the **myopia-control** interventions of the previous lesson — **low-dose atropine**, **orthokeratology**, **dual-focus contact lenses** such as **MiSight**, **defocus-incorporated spectacles (DIMS)**, and **time outdoors** — have become a global research and policy priority. The trajectory of twenty-first-century optometry is the convergence of these threads: **AI-extended screening**, **gene and cell therapies** for what was once untreatable blindness, **cellular-resolution imaging** with adaptive optics, **telehealth-extended access**, and a coordinated public-health response to a worldwide refractive shift."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fro_1",
+        "kind": "multiple_choice",
+        "question": "What was historically significant about the IDx-DR system's 2018 FDA authorisation?",
+        "options": [
+          "It was the first gene therapy approved for an inherited retinal disease.",
+          "It was the first autonomous AI system cleared to make a diabetic retinopathy screening decision without a physician interpreting the image.",
+          "It was the first retinal implant to restore vision in retinitis pigmentosa.",
+          "It was the first adaptive-optics system to image individual cone photoreceptors."
+        ],
+        "correctIndex": 1,
+        "explanation": "IDx-DR (developed by Michael Abràmoff, later LumineticsCore) received FDA authorisation in 2018 as the first autonomous AI diagnostic system — it could output a diabetic retinopathy screening result on its own, without a clinician reviewing the fundus images. The first gene therapy for an inherited retinal disease was Luxturna, 2017 (option A). The first widely used retinal implant was the Argus II, approved 2013 (option C). Adaptive-optics imaging of cones was pioneered by David Williams in the late 1990s (option D). Only option B describes IDx-DR's milestone."
+      },
+      "hints": [
+        "The milestone is about autonomy: AI deciding without a doctor reading the image.",
+        "It concerns diabetic retinopathy screening, not therapy or implants."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "IDx-DR's 2018 FDA authorisation made it the first autonomous AI system permitted to deliver a diabetic retinopathy screening decision without a physician interpreting the image — a regulatory first for autonomous diagnostic AI. Luxturna (2017) was the gene-therapy first, Argus II (2013) the implant first, and Williams (late 1990s) the adaptive-optics cone-imaging first. Hence option B."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fro_1",
+        "kind": "math_expression",
+        "question": "An AI diabetic-retinopathy screen has a sensitivity of $0.90$. In a screening of 2000 patients of whom 100 truly have referable disease, how many true cases will the screen detect (true positives), assuming sensitivity applies exactly?",
+        "acceptedAnswers": [
+          "90",
+          "90 cases",
+          "90 patients"
+        ],
+        "hint": "True positives = sensitivity × number with disease = 0.90 × 100."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fro_2",
+        "kind": "multiple_choice",
+        "question": "Luxturna (voretigene neparvovec) treats inherited retinal dystrophy by which mechanism?",
+        "options": [
+          "An epiretinal electrode array that electrically stimulates surviving ganglion cells.",
+          "An AAV2 viral vector that delivers a functional copy of the RPE65 gene to restore the visual cycle.",
+          "A deformable mirror that corrects the eye's wavefront aberrations.",
+          "A low-dose atropine drop that slows axial elongation."
+        ],
+        "correctIndex": 1,
+        "explanation": "Luxturna uses an adeno-associated virus serotype 2 (AAV2) vector, injected subretinally, to deliver a working copy of the RPE65 gene to retinal pigment epithelial cells. RPE65 encodes an enzyme essential to the visual (retinoid) cycle that regenerates 11-cis-retinal, so restoring it improves photoreceptor function in patients with biallelic RPE65 mutations. An electrode array describes a retinal implant such as Argus II (option A); a deformable mirror is adaptive optics (option C); and atropine is a myopia-control drug (option D) — none of which is gene therapy."
+      },
+      "hints": [
+        "It is a gene therapy delivered by a viral vector.",
+        "The replaced gene, RPE65, is part of the visual cycle that regenerates 11-cis-retinal."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Luxturna delivers a functional RPE65 gene via an AAV2 vector injected under the retina, restoring an enzyme in the visual cycle and improving vision in patients with biallelic RPE65-mediated dystrophy. That is option B; the others describe an implant, adaptive optics, and a myopia-control drug."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fro_2",
+        "kind": "math_expression",
+        "question": "The Holden et al. 2016 projection estimates about 5 billion myopes out of a projected world population of about 10 billion by 2050. Express the projected myopia prevalence as a percentage.",
+        "acceptedAnswers": [
+          "50",
+          "50%",
+          "50 percent",
+          "about 50%",
+          "50.0"
+        ],
+        "hint": "Prevalence = 5 billion / 10 billion × 100."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fro_1",
+        "kind": "scenario",
+        "question": "Designing an AI-assisted diabetic retinopathy screening programme for a rural region",
+        "prompt": "A regional health authority wants to use fundus cameras at rural clinics plus an autonomous AI grader (like IDx-DR) to screen for diabetic retinopathy, because there are too few ophthalmologists. As the consulting optometrist, explain how store-and-forward teleoptometry plus AI would extend specialist reach, why you would tune the system for high sensitivity rather than high specificity, how disease prevalence in the screened population affects the positive predictive value (invoke Bayes' theorem), and what referral pathway and quality-assurance safeguards (image quality, out-of-distribution failures, periodic specialist audit) you would build in to keep the programme safe."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fro_3",
+        "kind": "multiple_choice",
+        "question": "Adaptive optics, when applied to retinal imaging, achieves which capability — and where did the underlying technique originate?",
+        "options": [
+          "It electrically stimulates the cortex to create phosphenes; it originated in cochlear-implant research.",
+          "It uses a wavefront sensor and a deformable mirror to correct the eye's aberrations and image individual cone photoreceptors in vivo; the technique originated in astronomy.",
+          "It delivers genes to photoreceptors using a viral vector; it originated in oncology.",
+          "It measures intraocular pressure by applanation; it originated in tonometry research."
+        ],
+        "correctIndex": 1,
+        "explanation": "Adaptive optics was developed in astronomy (proposed by Horace Babcock in 1953) to cancel the blurring of atmospheric turbulence using a wavefront sensor and a deformable mirror. Applied to the eye by David Williams and colleagues in the late 1990s, the same approach corrects the eye's own aberrations in real time and resolves individual cone photoreceptors in the living retina, and combines with SLO and OCT for cellular-resolution imaging. The other options describe cortical prostheses, gene therapy, and tonometry — unrelated to adaptive optics."
+      },
+      "hints": [
+        "Think of how telescopes overcome a turbulent atmosphere.",
+        "A deformable mirror plus a wavefront sensor lets you see single cones."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Adaptive optics originated in astronomy (Babcock, 1953) to correct atmospheric turbulence with a wavefront sensor and deformable mirror. Williams and colleagues brought it to the eye in the late 1990s, correcting ocular aberrations to image individual cone photoreceptors in vivo, now extended via AO-SLO and AO-OCT. That is option B."
+    }
+  ]
+}

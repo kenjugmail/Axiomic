@@ -1,0 +1,169 @@
+{
+  "slug": "modern-frontier-demography",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Analyze population aging + pension systems + elder care across HIC regimes.",
+      "Apply computational demography — agent-based models, microsimulation, ML-augmented projection.",
+      "Survey digital-trace + LLM-augmented + ethical frontier (Cesare; Reich + Tilcsik)."
+    ],
+    "prereqs": [
+      "population-projection",
+      "social-demography-and-family"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Aging populations + pensions + elder care",
+      "body": "Population aging is the dominant demographic feature of the 21st century. By 2050 (UN WPP 2024 medium), share 65+ globally will rise from 10.3% (2024) to 16.7%; share 80+ from 2.1% to 4.6%. In the HICs that are furthest along the transition, the policy + social implications are most acute.\n\n**The aging-society fiscal triangle**:\n- **Old-age dependency ratio (OADR)** = population 65+ / population 15-64.\n- **Total dependency ratio (TDR)** = (0-14 + 65+) / 15-64.\n- **Prospective OADR** (Sanderson + Scherbov *Nature* 2008) = population with remaining life expectancy < 15 yr / population with $e_x \\geq 15$. Corrects for rising healthy life expectancy.\n\nOADR in 2024 (UN WPP):\n- Japan: 53 (highest globally).\n- Italy: 39.\n- Germany: 38.\n- US: 28.\n- China: 21 (rising rapidly).\n- India: 11.\n- Nigeria: 5.\n\nProjected OADR in 2050:\n- Korea: 79.\n- Japan: 71.\n- Italy: 71.\n- Spain: 70.\n- US: 41.\n- China: 47.\n- Sub-Saharan Africa: ~7-10.\n\n**Pension systems** — three regime types:\n\n**Pay-As-You-Go (PAYG)** — defined-benefit:\n- Current workers' contributions pay current pensioners' benefits.\n- Most countries' core pillar (US Social Security, UK State Pension, German GRV, French régime général).\n- Vulnerable to demographic shifts: rising OADR ↔ rising contribution rates or falling benefits.\n- Projected fiscal stress in HICs through 2050.\n\n**Funded** — defined-contribution:\n- Contributions invested in capital markets; pensions paid from accumulated assets.\n- US 401(k), Chilean AFP (since 1981 Piñera reform), Australian superannuation.\n- Demographics-resilient if investment returns hold; vulnerable to asset-market shocks + longevity risk.\n\n**Sweden NDC (Notional Defined Contribution)** — hybrid:\n- 1999 reform: contributions are notionally credited to individual accounts with notional interest rate tied to wage growth; pensions calculated at retirement using life expectancy at that age + a 'brake' mechanism if system asset-liability balance deteriorates.\n- Demographics-resilient by design — built-in adjustment to longevity.\n- Adopted (variants) by Italy 1995, Poland 1999, Latvia 1996, Norway 2011.\n- Considered the **gold standard** for demographically sustainable PAYG pension reform.\n\n**Retirement age**:\n- Statutory ages rising in most HICs: US Social Security full age now 67 (from 65); UK rising to 67-68; France 64 (after 2023 reform).\n- Sanderson-Scherbov 'prospective age' suggests retirement at remaining $e_x = 15$ instead of fixed age 65; would shift retirement to ~70-72 in HICs.\n- Healthy life expectancy gains support later retirement; class + occupation differentials create equity concerns (manual workers age less well).\n\n**Elder care + long-term care**:\n- Japan: 2000 introduction of universal long-term care insurance (Kaigo Hoken); ~6% of GDP on elder care.\n- Germany: 1995 Pflegeversicherung (long-term care insurance).\n- US: Medicaid covers ~60% of nursing-home days; ~$400 B / yr on long-term care.\n- Northern Europe: tax-financed universal home + institutional care.\n- South Asia + Sub-Saharan Africa: largely family-based; under stress from urbanization + female labor-force participation.\n\n**Japan elder care + robotics**:\n- Robotic care assistants (PARO seal, Pepper, Lifting robots); LDP + METI policy supports robotics adoption.\n- Migration of care workers (EPA agreements with Philippines, Indonesia, Vietnam).\n- Multi-generational + community-based care (Chiiki Hokatsu Care System).\n\n**Italy fertility crisis + welfare regime**:\n- TFR 1.21 (2023); below-replacement since 1977; lowest-low since 1992.\n- Welfare-state regime: 'familistic' (Esping-Andersen) — depends on extended family for care, contradicting low fertility.\n- Pension system pre-1995: very generous, very expensive; 1995 + 2011 reforms moved toward NDC + raised retirement.\n- Depopulation of southern + rural regions; ghost villages; school + hospital closures.\n- North-South contrast: northern Italy at OECD average; southern Italy demographically + economically distinct.\n\n**Korean elder-care + below-replacement crisis**:\n- TFR 0.78 (2022); aging + family-based care colliding with shrinking workforce.\n- Long-term care insurance (Noin Jangki Yoyang Bohum) since 2008.\n- High elderly poverty rate (~40%, highest in OECD); pension coverage thin for older cohorts.\n\n**Sub-Saharan Africa exception**:\n- Still pre-aging; share 65+ in 2050 projected only ~5%.\n- But absolute numbers of elderly will rise as the youth bulge ages.\n- Pension coverage typically <20% formal sector; family-based care + community elders' associations dominate."
+    },
+    {
+      "kind": "text",
+      "title": "Computational demography: agent-based + microsimulation + ML",
+      "body": "**Computational demography** = applying simulation, agent-based modeling, machine learning, and microsimulation to demographic processes. The field has grown rapidly since the 2010s, complementing (not replacing) classical statistical + life-table methods.\n\n**Agent-based models (ABMs)**:\n- **Francesco Billari + Alexia Prskawetz** (eds., *Agent-Based Computational Demography* 2003): foundational survey of ABM in demography.\n- ABMs simulate populations of agents with rules for decisions (marriage, childbearing, migration, mortality) + simulate emergent population-level dynamics.\n- Strengths: heterogeneity, feedback, network effects, social interaction, sub-population diversity — all hard to capture in equation-based CCM.\n- **Key applications**:\n  - **Marriage market models** (Todd; Hills + Todd) — partner search + matching.\n  - **Fertility-decision models** (Billari + Aparicio Diaz + Fent + Prskawetz 2007 *Population Studies* 'The wedding ring' — sociology of fertility transitions).\n  - **HIV-transmission + sexual-network models** (Morris; Eaton).\n  - **Migration network models** (Klabunde + Willekens).\n  - **Pension + retirement micro-decisions**.\n- **Limitations**: validation hard; parameter choices subjective; sensitive to micro-rules.\n\n**Yang Yang + cohort analysis + APC**:\n- **Yang Yang + Kenneth Land** *Age-Period-Cohort Analysis: New Models, Methods, and Empirical Applications* (2013) — methodological synthesis of age-period-cohort modeling (identifiability problem; Intrinsic Estimator; hierarchical APC).\n- Applied to mortality, depression, smoking, obesity trends in US + global cohorts.\n- Frontier of distinguishing age effects (biological), period effects (historical shocks), cohort effects (generation-specific exposures).\n\n**Microsimulation**:\n- **MicSim** (Sabine Zinn 2014 *Demographic Research*; R package): cohort microsimulation for European demographic projections; handles continuous-time multi-state transitions.\n- **DYNASIM** (Urban Institute): US retirement / pension dynamic microsimulation.\n- **SOCSIM** (Eugene Hammel + Ken Wachter Berkeley): kinship + family microsimulation — generates simulated populations with kin networks under specified vital-rate schedules. Used by Margolis + Verdery (2017) for kinlessness projections.\n- **MORTSIM, KINMATRIX, IIASA MIC-MAC**.\n- **Microsimulation strengths**: explicit individual histories; can compute kin networks, intergenerational mobility, life-course outcomes; trace through policy reforms.\n- **Microsimulation limits**: data-hungry (need transition rates); validation across multiple distributions; computational cost.\n\n**Machine learning in demography**:\n- **Wang + Chi + many co-authors** — applying ML for fertility + mortality prediction; Bayesian + tree-based methods; complement Lee-Carter + Bayesian hierarchical models.\n- **Mortality forecasting**: deep learning + neural networks for $e_0$ prediction (Richman + Wüthrich 2021 *European Actuarial Journal*; Perla et al.); CNN + LSTM models capture nonlinear age-time interactions.\n- **Fertility prediction**: ML for cohort fertility from sequence of life-course events (Bijak + collaborators); social-media + LinkedIn signal as covariates.\n- **Migration prediction**: KNOMAD + IOM partnerships with ML for short-term forecast; SatelliteML for population redistribution.\n- **Cause-of-death attribution**: ML on verbal autopsy + medical records (GBD).\n- **Causal ML**: emerging applications of double-ML, causal forests for treatment-effect estimation in demographic interventions.\n\n**Population-grid + small-area + spatial demography**:\n- WorldPop, LandScan, GHS-POP: ~100m-1km gridded population estimates from satellite imagery + census disaggregation.\n- Used for emergency response (UNHCR, IOM), epidemic modeling (lesson 4 cross-reference), climate-displacement projection.\n- Stevens + Tatem (WorldPop) — multi-source ML population mapping.\n\n**The reproducibility + open-science turn**:\n- bayesTFR / bayesLife / bayesPop / bayesMig (UN + UW).\n- demogR, MortalityLaws, HMDHFDplus, DemoTools.\n- Open data: HMD, HFD, DHS, IPUMS, UN WPP, World Bank.\n- Demographic Research (open-access journal); MPIDR rOpenSci tools.\n\n**Computational demography conferences + groups**:\n- IUSSP Computational Social Science panel.\n- PAA Computational Demography sessions.\n- Wittgenstein Centre + IIASA conferences.\n- MPIDR Laboratory of Digital + Computational Demography."
+    },
+    {
+      "kind": "text",
+      "title": "Digital trace + AI + ethics: Cesare + Bail + LLM + Reich-Tilcsik",
+      "body": "**Digital-trace demography** = using digital-platform data + computational social science to measure + model demographic processes. The field has emerged since ~2010 with growing influence.\n\n**Nina Cesare + Hedwig Lee + Tyler McCormick + Emilio Zagheni** *Demography* (2018) 'Promises and pitfalls of using digital traces for demographic research' — foundational survey:\n- Digital traces (Twitter / X, Facebook, LinkedIn, mobile phones, search) sample non-randomly — biases on age, gender, education, urbanity, country, platform popularity.\n- Strengths: real-time signal; large $N$; near-comprehensive in some domains.\n- Use cases: migration estimation (LinkedIn, Facebook ad-targeting); fertility intentions (search trends); mortality nowcasting (excess-mortality on social media); event detection.\n- **Pew Research Center** + computational social science methods.\n\n**Migration estimation via digital trace**:\n- **Zagheni + Weber + Gummadi** *PNAS* (2017) — Facebook 'people from country X living in country Y' as nowcast / migration estimate; correlates well with official stocks but with platform-specific bias.\n- **LinkedIn** — high-skill migration corridors (State et al.; Kapoor + Schaffner; LinkedIn Economic Graph).\n- **Hawelka + Sitko-Tippet + Garcia-Herranz** — Twitter geolocation for mobility.\n- **Mobile CDR** — Bengtsson + Wesolowski + others for internal displacement after disasters (Haiti 2010 earthquake; Nepal 2015).\n\n**Cesare + Goldman + DeBruyne + Smith + Henning + Zagheni** *PNAS* (2020) on digital-trace + complementary survey-data integration.\n\n**Chris Bail** *Breaking the Social Media Prism* (2021) — political polarization on social media; mostly a sociology contribution but with relevance for measuring political + demographic attitudes at scale. Bail's **Polarization Lab** at Duke.\n\n**Digital + computational social science in demography**:\n- Salganik *Bit by Bit* (2018) — primer on computational social science methods.\n- Lazer + Pentland + Adamic + Aral + Barabási + Brewer + Christakis + Contractor + Fowler + Gutmann + Jebara + King + Macy + Roy + Van Alstyne *Science* (2009) 'Computational social science' — manifesto.\n- DellaPosta + Edelmann + others — networked social science.\n\n**Demography + AI / LLM**:\n- **LLM-augmented projection**: emerging work on using language models for scenario generation (qualitative narratives translated into quantitative projection variants); literature synthesis at scale.\n- **Synthetic agents in ABM**: LLMs as cognitive backends for agent-based simulations (Park et al. *Generative Agents* 2023; Argyle et al. 2023; Horton).\n- **LLM-augmented survey methodology**: AI-assisted coding; synthetic respondents (controversial — Bail + Hofman).\n- **Causal inference at scale**: foundation models for demographic counterfactual reasoning.\n- **Mortality prediction**: foundation models on EHR + claims + biomarkers (Singh; Wang); biological-age estimation.\n- **AI-driven medical longevity research** (cross-reference lesson 4): aging-clock methylation models; Yamanaka-factor reprogramming + Altos / Calico; AlphaFold for drug discovery (cross-reference Axiomic structure path).\n\n**Future of demography**:\n- **Demographic + computational integration**: standard projection + ABM + microsimulation + ML in one workflow.\n- **Real-time demography**: digital-trace + administrative-register nowcasting.\n- **Multi-state + multi-dimensional**: education-by-age + health-status-by-age + kinship + occupation as standard dimensions of projection (Lutz + KC IIASA, López-Otín hallmarks in lesson 4).\n- **Climate + demographic integrated modeling**: IPCC SSPs already include population scenarios; Earth System Model + demographic coupling emerging.\n- **AI for demographic discovery**: pattern discovery in digital traces; LLM-augmented literature synthesis (this lesson itself uses such tools).\n\n**Ethics of demographic surveillance** — central frontier:\n- **Rob Reich + András Tilcsik + others** — sociology + policy of algorithmic + AI ethics; demographic data is heavily implicated.\n- **Algorithmic + AI ethics intersections with demography**:\n  - Differential privacy + Census disclosure avoidance (US 2020 Census privacy-budget controversy — JASA papers 2020-2022).\n  - Migration surveillance + biometric border control + facial recognition.\n  - Predictive policing + child-welfare predictive analytics + welfare-eligibility algorithms (Eubanks *Automating Inequality* 2018).\n  - Digital-trace data sourced without consent.\n  - LLM-generated synthetic respondents replacing real-world surveys (validity + ethics concerns).\n  - Foundation models trained on demographic data; bias propagation; auditing (cross-reference Bail; O'Neil; Buolamwini).\n- **GDPR + similar**: data protection regimes limit some digital-trace research in Europe.\n- **Indigenous data sovereignty** (CARE principles; Te Mana Raraunga): demographic data from Indigenous populations subject to additional norms.\n\n**Tilcsik** + organizational + algorithmic-bias research touches demographic measurement (hiring algorithms, university admissions, criminal-justice risk scores).\n\n**Open questions on the frontier**:\n- Will probabilistic projection retain primacy or will LLM-augmented scenario generation supplant it?\n- Can digital traces be combined with classical surveys to nowcast migration, fertility, mortality with usable accuracy?\n- How will geroscience interventions (rapamycin, senolytics, reprogramming) reshape mortality projections?\n- Will sub-Saharan Africa's fertility decline accelerate or stall?\n- How will climate displacement redistribute populations + can demography produce credible scenarios?\n- What is the ethical settlement for demographic-surveillance + AI-mediated policy?\n\nThe field stands at the intersection of classical statistical demography (life tables, Lotka, CCM, Lee-Carter, Bongaarts) + computational + AI methods + emerging policy + ethical concerns — a vibrant + consequential intellectual frontier."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_front_1",
+        "kind": "guided_derivation",
+        "question": "Design a Sweden-NDC-style pension reform for an aging country",
+        "goal": "Apply NDC principles to design a demographically sustainable pension system for a country with OADR rising from 30 to 60 over 30 years.",
+        "steps": [
+          {
+            "prompt": "Start with the demographic constraint. If contribution rate $c$, average wage $w$, OADR rising from 30 to 60, replacement rate $r$ (pension / wage), the PAYG balance gives $c \\times \\mathrm{employed} \\times w = r \\times \\mathrm{retired} \\times w$. Solve for the relation between $c$, $r$ + OADR.",
+            "motivation": "PAYG arithmetic.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "c = r * OADR / 100 (approximately, treating OADR as percent of 15-64 population)"
+              ]
+            },
+            "hints": [
+              "Workers' contributions equal pensioners' benefits."
+            ],
+            "reveal": "$c \\cdot N_{\\rm worker} \\cdot w = r \\cdot N_{\\rm pensioner} \\cdot w$. With OADR = $N_{\\rm pensioner} / N_{\\rm worker} \\times 100$: $c \\approx r \\times \\mathrm{OADR} / 100$. If OADR = 30 + $r = 0.5$ (50% replacement): $c = 15\\%$ contribution rate sustainable. If OADR rises to 60 + $r$ held at 0.5: $c$ doubles to 30\\% — politically very difficult. NDC's core innovation: adjust *automatically* rather than via political crisis."
+          },
+          {
+            "prompt": "What's the NDC mechanism for handling rising longevity at retirement?",
+            "motivation": "Longevity-adjusted annuity.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "at retirement, accumulated notional capital is divided by life expectancy at retirement age; longer life expectancy automatically lowers monthly pension"
+              ]
+            },
+            "hints": [
+              "Annuity formula."
+            ],
+            "reveal": "At retirement, each individual's notional capital $K$ is converted to a pension annuity by dividing by life expectancy at retirement age + adjustment factor: $\\mathrm{Pension} \\approx K / e_{65}^*$. As $e_{65}$ rises (Vaupel-Oeppen trajectory), monthly pension automatically falls or the worker can defer retirement to accumulate more $K$. This is **demographically self-balancing** — no political reform needed. Sweden's 1999 NDC encodes this; Italy (1995) + Poland (1999) + Latvia (1996) + Norway (2011) followed similar designs."
+          },
+          {
+            "prompt": "What about cohort + dependency-ratio shocks?",
+            "motivation": "Automatic balance brake.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "an automatic balance mechanism (brake) reduces notional-account interest rate or pension indexation if system asset-liability ratio falls below threshold"
+              ]
+            },
+            "hints": [
+              "Brake mechanism."
+            ],
+            "reveal": "Sweden's NDC has an **automatic balance mechanism** (broms / brake): if assets-to-liabilities ratio falls below 1.0, the notional interest credited to accounts is reduced — effectively scaling down all accumulated rights proportionally until balance restored. Activated in 2010, 2011, 2014 due to financial crisis + demographic shocks. Distributes adjustment across all cohorts rather than concentrating on retirees. Distinguishes NDC from pure PAYG (which requires legislative cuts) + pure funded (which requires capital-market gains)."
+          },
+          {
+            "prompt": "What's the equity critique + how does NDC respond?",
+            "motivation": "Class + occupation differentials.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "NDC links benefits to lifetime contributions; manual workers + low-income individuals with shorter life expectancy may be disadvantaged; minimum guarantee pension and survivor benefits address some equity"
+              ]
+            },
+            "hints": [
+              "Life expectancy differentials."
+            ],
+            "reveal": "Equity critique: NDC ties pensions to contributions + uses *average* $e_{65}$. But low-income + manual workers have shorter life expectancy (Chetty et al. 2016 *JAMA* US 10-15 yr gap; similar in Sweden ~4-5 yr by education) → they receive proportionally less. Sweden addresses partially via (a) minimum guarantee pension floor; (b) longer-than-average contribution period for those with manual work; (c) flexible retirement age. McDonald + family-policy literature notes pension reform alone insufficient — must combine with elder-care, healthcare equity, and family policy (this lesson's intro)."
+          },
+          {
+            "prompt": "What computational demography tools support NDC reform design?",
+            "motivation": "Microsimulation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "microsimulation (MicSim, DYNASIM), Bayesian probabilistic projection (bayesPop), agent-based models for retirement decisions"
+              ]
+            },
+            "hints": [
+              "Computational demography lesson 8."
+            ],
+            "reveal": "Tools: (1) **microsimulation** (MicSim Zinn; DYNASIM Urban Institute) — explicit individual histories with retirement + pension + earnings trajectories; (2) **probabilistic projection** (bayesPop, Raftery-Ševčíková) — feeds demographic uncertainty into pension scenarios; (3) **agent-based models** (Billari-Prskawetz) — retirement-age decisions under behavioral heuristics; (4) **ML-augmented mortality forecasting** (Lee-Carter + neural extensions; Richman-Wüthrich) — input to NDC's $e_{65}$ adjustment. Modern pension policy increasingly co-designed with computational-demographic modeling."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_front_1",
+        "kind": "multiple_choice",
+        "question": "Why have **digital-trace data sources** (Facebook, LinkedIn, Twitter / X, mobile CDRs) become important complements to classical demographic measurement?",
+        "options": [
+          "Random.",
+          "Digital traces (Cesare + Lee + McCormick + Zagheni *Demography* 2018; Zagheni + Weber + Gummadi *PNAS* 2017; Bail; Salganik *Bit by Bit* 2018) complement classical demographic measurement by providing: (1) **near-real-time signal** — Facebook 'people from country X living in country Y' can nowcast migration months ahead of UN DESA stock updates; mobile CDRs detected post-earthquake mobility within days (Haiti 2010, Nepal 2015); (2) **massive $N$** — billions of users; (3) **fine spatial + temporal resolution**; (4) **events + flows not in administrative records** — undocumented + circular migration, internal displacement; (5) **attitudinal proxies** — search trends + posts for fertility intentions, migration aspirations, health behaviors. Limits + biases: (a) platform-non-random samples (LinkedIn skews high-skill; Twitter skews young + urban + male); (b) demographic-misattribution + name + location-inference errors; (c) consent + privacy concerns; (d) platform-policy + API changes can break time series. Best used as *complement* to surveys + registers, with calibration + bias correction — not as standalone replacement. The frontier is integration of digital traces with classical survey + register data into a single calibrated inference (multilevel models, Bayesian fusion).",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Digital traces (Cesare et al. 2018; Zagheni et al. 2017; Salganik 2018) complement classical data via real-time signal, massive $N$, fine resolution, events not in registers, attitudinal proxies. Biases: platform-non-random samples, inference errors, consent + privacy, API changes. Used as complement to surveys + registers via calibration + bias correction + multilevel models."
+      },
+      "hints": [
+        "What's the strength?",
+        "What's the bias problem?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Digital-trace strengths: real-time signal, massive $N$, fine resolution, events not in registers. Biases: platform-non-random (LinkedIn high-skill, Twitter young/urban), inference errors, consent. Use as calibrated complement to classical surveys + registers, not replacement."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_front_1",
+        "kind": "scenario",
+        "question": "Designing an AI + LLM-augmented projection workflow",
+        "prompt": "Your team is building a 2025-2075 projection for a mid-sized HIC. You have access to (a) UN WPP probabilistic projection bayesPop + bayesTFR + bayesLife + bayesMig; (b) microsimulation (MicSim, DYNASIM); (c) agent-based modeling (Billari-Prskawetz wedding-ring style); (d) ML fertility / mortality models (Richman-Wüthrich neural Lee-Carter; Wang-Chi); (e) digital-trace data (Cesare; LinkedIn / Facebook); (f) LLM-augmented scenario generation. In ≤220 words, design an integrated workflow covering: (a) how each tool plugs into the projection; (b) two **ethical** concerns (Reich + Tilcsik; differential privacy; consent in digital traces); (c) one **validation** strategy (out-of-sample backtesting, comparison with WPP, sensitivity analyses); (d) the **structural uncertainty** the workflow does *not* eliminate (climate, geopolitics, AI-driven longevity); (e) one cross-reference to the **geroscience hallmarks** (López-Otín) that could affect mortality. Note which tool you'd use if asked for a 'best single point estimate' for 2075 population."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_front_1",
+        "kind": "math_expression",
+        "question": "A pension system has OADR rising from 25 to 60 over 40 years. If replacement rate $r = 0.4$ is held constant, what contribution rate $c$ is needed at OADR = 60 to balance the PAYG system?",
+        "acceptedAnswers": [
+          "0.24",
+          "24%",
+          "0.4*0.6",
+          "0.4*60/100"
+        ],
+        "hint": "PAYG balance: $c \\approx r \\times \\mathrm{OADR} / 100 = 0.4 \\times 60 / 100 = 0.24 = 24\\%$. Such a rate is politically + economically very difficult — labor-cost increase, lower take-home wages, work disincentive. Sweden's NDC + retirement-age adjustment + minimum-guarantee design distributes the burden across cohorts + automatically adjusts to $e_{65}$, easing political friction."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_front_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, explain the modern frontier of demography. Cover (a) aging populations + pensions (Sweden NDC, Japan elder care, Italy familistic regime, Korea crisis); (b) computational demography (Billari-Prskawetz ABM, MicSim + DYNASIM microsimulation, Yang Yang APC, ML fertility / mortality Wang-Chi, Lee-Carter neural extensions Richman-Wüthrich); (c) digital trace + AI (Cesare + Zagheni Facebook / LinkedIn / Twitter / mobile CDRs; Bail polarization; LLM-augmented projection); (d) ethics (Reich + Tilcsik algorithmic + demographic surveillance; differential privacy; CARE; Indigenous data sovereignty); (e) the field's open questions.",
+        "rubric": "Mentions: aging — OADR rising globally; Sweden NDC pension reform (1999) as gold standard with automatic-balance brake + life-expectancy-adjusted annuity; Japan elder care + Kaigo Hoken 2000 + robotics + migration; Italy familistic regime + lowest-low TFR 1.21; Korea TFR 0.78 + elder poverty. Computational: agent-based models (Billari-Prskawetz *Agent-Based Computational Demography* 2003 + wedding-ring fertility models); microsimulation (MicSim Zinn, DYNASIM, SOCSIM); Yang Yang APC modeling; ML (Richman-Wüthrich neural Lee-Carter; Wang + Chi). Digital trace: Cesare-Lee-McCormick-Zagheni 2018; Zagheni-Weber-Gummadi Facebook migration; LinkedIn high-skill; mobile CDRs for displacement; Bail Polarization Lab; LLM-augmented synthetic agents (Park *Generative Agents* 2023). Ethics: Reich + Tilcsik on algorithmic ethics + demographic surveillance; differential privacy + 2020 US Census controversy; Indigenous data sovereignty CARE. Open questions: probabilistic projection vs LLM scenarios; sub-Saharan Africa fertility; climate displacement; geroscience interventions (López-Otín hallmarks). Concludes: demography integrates classical (Lotka, Lee-Carter, CCM, Bongaarts) + computational + AI + ethical frontiers."
+      }
+    }
+  ]
+}

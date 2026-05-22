@@ -3,12 +3,12 @@
     {
       "kind": "text",
       "title": "A distribution is a budget",
-      "body": "A discrete probability distribution over a set of outcomes assigns a non-negative weight to each outcome, with all the weights summing to 1. Think of it as a *budget* of probability — total exactly 1 — that you allocate however you like across the options.\n\nAny ML classifier ends in a distribution: a 1000-way image classifier emits a 1000-element vector that sums to 1; a language model emits a vocab-sized vector that sums to 1. The shape of that distribution — sharp or flat, calibrated or overconfident — *is* the model's prediction."
+      "body": "A discrete probability distribution over a set of outcomes assigns a non-negative weight to each outcome, with all the weights summing to 1. Think of it as a *budget* of probability — total exactly 1 — that you allocate however you like across the options. These two rules (non-negativity, and total mass 1, plus countable additivity) are precisely the **axioms of probability** that **Andrey Kolmogorov** set down in his 1933 monograph, which put the whole subject on rigorous measure-theoretic footing. The measure-theoretic groundwork itself leans on the work of **Émile Borel** on which sets can even be assigned a probability.\n\nAny ML classifier ends in a distribution: a 1000-way image classifier emits a 1000-element vector that sums to 1; a language model emits a vocab-sized vector that sums to 1. The shape of that distribution — sharp or flat, calibrated or overconfident — *is* the model's prediction."
     },
     {
       "kind": "text",
       "title": "Worked example: spam filtering",
-      "body": "Naive Bayes (the classical spam filter): treat each word as conditionally independent given spam/ham labels.\n\n$P(\\text{spam} \\mid \\text{words}) \\propto P(\\text{spam}) \\cdot \\prod_i P(w_i \\mid \\text{spam}).$\n\nTrain by counting word frequencies in spam vs ham emails. Classify a new email by comparing the unnormalized posteriors and picking the larger.\n\nNaive Bayes is the simplest application of Bayes' rule that works on real data — it underlies the spam filters of the 2000s and is still surprisingly competitive on bag-of-words text classification."
+      "body": "Naive Bayes (the classical spam filter): treat each word as conditionally independent given spam/ham labels.\n\n$P(\\text{spam} \\mid \\text{words}) \\propto P(\\text{spam}) \\cdot \\prod_i P(w_i \\mid \\text{spam}).$\n\nTrain by counting word frequencies in spam vs ham emails. Classify a new email by comparing the unnormalized posteriors and picking the larger. To keep an unseen word from zeroing out the whole product, you add a pseudo-count — *Laplace smoothing*, after **Pierre-Simon Laplace**, who in fact did far more to develop the inverse-probability method than its namesake **Thomas Bayes** ever published.\n\nNaive Bayes is the simplest application of **Bayes' theorem** that works on real data — it underlies the spam filters of the 2000s and is still surprisingly competitive on bag-of-words text classification."
     },
     {
       "kind": "question",
@@ -74,7 +74,7 @@
     {
       "kind": "text",
       "title": "Softmax produces distributions",
-      "body": "The standard recipe for turning unconstrained model outputs (logits) into a distribution is **softmax**:\n\n$$p_i = \\frac{e^{z_i / T}}{\\sum_j e^{z_j / T}}$$\n\nThe temperature $T$ controls sharpness:\n\n- $T \\to 0$: distribution collapses to a one-hot at the largest logit\n- $T = 1$: standard softmax\n- $T \\to \\infty$: distribution flattens toward uniform $1/N$\n\nThe slider above lets you sweep $T$ and watch the bars rearrange. Notice that the *ranking* of the bars never changes — only how concentrated the mass is on the top option.",
+      "body": "The standard recipe for turning unconstrained model outputs (logits) into a distribution is **softmax**:\n\n$$p_i = \\frac{e^{z_i / T}}{\\sum_j e^{z_j / T}}$$\n\nThe temperature $T$ controls sharpness:\n\n- $T \\to 0$: distribution collapses to a one-hot at the largest logit\n- $T = 1$: standard softmax\n- $T \\to \\infty$: distribution flattens toward uniform $1/N$\n\nThe slider above lets you sweep $T$ and watch the bars rearrange. Notice that the *ranking* of the bars never changes — only how concentrated the mass is on the top option. The denominator's logarithm, the log-sum-exp, is a convex function, so the gap between the expected logit and the softmax normalizer is governed by **Jensen's inequality** (after **Johan Jensen**), the same convexity result that justifies the evidence lower bound used to train variational models.",
       "viz": "softmax-temperature",
       "vizProps": {
         "value": 1
@@ -100,6 +100,11 @@
       "kind": "text",
       "title": "Bayes' rule, the engine of inference",
       "body": "Given a model class with parameters $\\theta$ and observed data $D$:\n\n$$P(\\theta \\mid D) = \\frac{P(D \\mid \\theta)\\,P(\\theta)}{P(D)}$$\n\nIn words: *posterior ∝ likelihood × prior*. Every Bayesian inference, every diagnostic-test calculation, the form of cross-entropy loss, even the way RAG systems weight retrieved evidence — all flow from this one identity.\n\nThe denominator $P(D)$ is the normalizing constant that makes the posterior sum to 1. Often you can ignore it (you only need ratios), which is why so much of probabilistic ML is *up to a constant*."
+    },
+    {
+      "kind": "text",
+      "title": "Why averages converge: laws and limits",
+      "body": "Two families of theorems explain why training on more data works at all.\n\n**The law of large numbers.** Average enough independent samples and the mean converges to the true expectation. **Jacob Bernoulli** proved the first version (the weak law) for coin flips in his *Ars Conjectandi*. The cleanest modern proofs go through tail bounds: **Markov's inequality** (after **Andrey Markov**) bounds how much mass a non-negative random variable can put far from zero, and squaring it gives **Chebyshev's inequality** (after **Pafnuty Chebyshev**), which directly forces the sample mean to concentrate. The strongest form — almost-sure convergence — is **Kolmogorov's strong law of large numbers**.\n\n**The central limit theorem.** Sums of many independent effects don't just converge to their mean; their fluctuations take a universal bell shape. **Abraham de Moivre** found this for coin flips, **Pierre-Simon Laplace** generalized it (the de Moivre–Laplace theorem), and the limiting curve is the normal distribution associated with **Carl Friedrich Gauss**. The general statement for i.i.d. variables with finite variance is the **Lindeberg–Lévy central limit theorem**, after **Jarl Waldemar Lindeberg** and **Paul Lévy**. When events are instead rare-but-numerous, the relevant limit is the distribution named for **Siméon Denis Poisson**. Together these results are why mini-batch gradient estimates, Monte-Carlo evaluation, and confidence intervals all behave predictably as sample size grows."
     },
     {
       "kind": "question",

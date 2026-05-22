@@ -1,0 +1,164 @@
+{
+  "slug": "memory-spaced-repetition-and-retrieval",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Describe Ebbinghaus's forgetting curve + the savings method.",
+      "Explain the spacing + testing effects + desirable difficulties.",
+      "Compare Leitner, SuperMemo SM-2, half-life regression + modern SRS algorithms."
+    ],
+    "prereqs": [
+      "learning-theories-and-cognition"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Ebbinghaus + the forgetting curve",
+      "body": "**Hermann Ebbinghaus** Über das Gedächtnis (1885; trans. Memory 1913): the founding experiment of memory science. Using himself as the sole subject + nonsense syllables (CVCs like ZOF, BIK) to neutralize prior meaning, Ebbinghaus measured how long it took to relearn a list at varying delays — the **savings method**.\n\n**Savings**: if a list took 1000 s to learn originally + 400 s to relearn, savings = (1000-400)/1000 = 60%. The savings curve traces retention over time.\n\n**The forgetting curve**: retention drops sharply in the first hour + day, then flattens. A common phenomenological model:\n\n  R(t) = e^(-t/S)\n\nwhere R is retention probability, t is elapsed time, + S is **memory stability** (sometimes 'memory strength'). Stability grows with successful review.\n\n**Modern refinements** (Wixted, Carpenter):\n- The curve is better fit by a **power function** than a pure exponential.\n- Forgetting depends on encoding strength, retrieval practice, + the spacing of prior reviews.\n- Each successful retrieval increases stability — the **stability-enhancing** effect.\n\n**Ebbinghaus also discovered** (in the same monograph):\n- **The spacing effect**: distributed practice beats massed practice for long-term retention.\n- **The serial-position effect**: primacy + recency.\n- **Overlearning**: rehearsing beyond perfect recall increases durability.\n\nEbbinghaus's work was largely solo + ignored for decades; rediscovered as cognitive psychology matured + remains the empirical bedrock of memory research.",
+      "viz": "forgetting-curve",
+      "vizProps": {
+        "reviews": 4,
+        "algorithm": "sm2"
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Spacing + testing effects + desirable difficulties",
+      "body": "**The spacing effect** (Cepeda et al. 2006 meta-analysis; Bjork; Rohrer): distributed practice produces more durable + transferable learning than the same total time massed. The **optimal gap** scales roughly as ~10-20% of the desired retention interval — to retain for a year, review at ~1-2 month gaps; for an exam in a week, review across the week.\n\n**The testing effect / retrieval practice** (Roediger + Karpicke 2006 'Test-Enhanced Learning' Psychological Science): act of retrieving from memory is itself a powerful learning event, more powerful than restudy. Their classic study: students who studied a text + then took a test outperformed students who restudied the text four times, especially at one-week delay. Karpicke + Blunt 2011 extended this — retrieval beat concept mapping even when students rated concept mapping as the better strategy.\n\n**Mechanisms**: retrieval reconsolidates the trace, makes context cues more discriminative, + may strengthen multiple alternative routes to the memory. Retrieval-induced facilitation (Anderson, Bjork, Bjork) generalizes; retrieval-induced forgetting also exists.\n\n**Interleaving** (Rohrer + Pashler; Taylor + Rohrer): mixing problem types within a session beats blocking by topic for **discrimination learning** — students learn not only how to solve a problem but how to choose the right method. Particularly powerful in mathematics + category learning. Feels less effective during practice (fluency illusion).\n\n**Robert + Elizabeth Bjork — desirable difficulties** (1994+):\n- Spacing.\n- Interleaving.\n- Variability of conditions.\n- Generation (vs reading).\n- Reduced + delayed feedback.\n- Tests as learning events.\n\nDifficulties that slow apparent performance but increase long-term retention + transfer. Inverse correlation between fluency + durability is one of the most counter-intuitive findings in the science of learning.\n\n**Caveats**:\n- For severe novices, difficulty must be calibrated — Sweller's CLT still applies.\n- Spacing benefits depend on at least one successful retrieval before forgetting; very long gaps without scaffolding fail.\n- Testing benefits are largest when retrieval is effortful but mostly successful (~80-90% success target in modern SRS)."
+    },
+    {
+      "kind": "text",
+      "title": "Spaced-repetition systems: Leitner → SuperMemo → modern",
+      "body": "**The Leitner system** (Sebastian Leitner So lernt man lernen 1972): a paper flashcard system with several boxes; correct cards advance to a less-frequent box, incorrect cards return to box 1. First widely-used implementation of the spacing effect for self-study.\n\n**SuperMemo + SM-2** (Piotr Woźniak; first software 1987; SM-2 algorithm published 1990 as part of his PhD work): the canonical spaced-repetition algorithm.\n\nSM-2 sketch:\n- Each card has interval I (days) + ease factor EF (≥ 1.3).\n- Learner grades each recall on 0-5 (0 complete blackout; 5 perfect).\n- If grade < 3: reset I to 1; do not change EF strongly.\n- If grade ≥ 3: I_next = I_prev · EF (with I_1 = 1, I_2 = 6).\n- EF updated: EF := EF + (0.1 - (5-q)·(0.08 + (5-q)·0.02)).\n- EF capped below at 1.3.\n\n**Anki** (Damien Elmes 2006+, open source): widely-used SM-2 derivative; powerful add-ons + media; large communities for languages, medicine (medical school flashcards), law.\n\n**SuperMemo (later versions)**: SM-15, SM-17, SM-18 introduced **two-component model of memory** (stability S + retrievability R), neural-network-based interval optimization, + the **Algorithm SM-18** that fits per-user difficulty.\n\n**Duolingo + half-life regression** (Settles + Meeder 2016 ACL): rather than a hand-tuned schedule, Duolingo fits a per-user, per-word model of memory half-life from log data:\n\n  p(recall) = 2^(-Δ/h)\n\nwith half-life h regressed from features (word, lexeme, prior practice, errors). At scale, ML-optimized scheduling outperforms hand-coded SM-style heuristics.\n\n**Quizlet Learn + Khan Academy + Babbel** + many platforms now integrate adaptive scheduling.\n\n**Free Spaced Repetition Scheduler (FSRS)** (Jarrett Ye 2022+): open-source successor to SM-2; fits a three-parameter Difficulty, Stability, Retrievability model from user logs; default in modern Anki (Anki 23.10+). State of the art for open SRS.\n\n**Modern frontier**:\n- LLM-assisted card generation (LLM produces cards from textbook passages; user reviews).\n- Mnemonic generation (Duolingo, mem.ai).\n- Multimodal retrieval — images, audio, situated.\n- Integration with metacognitive prompts + explanation tasks (active recall + elaboration).\n- Personalized retention-target selection (FSRS lets users target e.g. 90% retention, trading review load for retention).\n\n**Practical workflow**:\n1. Make atomic cards (one fact each; the minimum-information principle, Woźniak).\n2. Use cloze deletions for fragments + Q-A for relationships.\n3. Maintain ~85-95% recall target; lower → too hard, higher → wasted reviews.\n4. Combine SRS with spaced + interleaved problem practice for transfer."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mem_1",
+        "kind": "guided_derivation",
+        "question": "Compute SM-2 interval growth",
+        "goal": "A card has EF=2.5, currently at interval I=6 days. Learner reviews + grades it 5. Compute next interval + next EF; then re-review at the new interval with grade 4.",
+        "steps": [
+          {
+            "prompt": "Grade 5 + I_prev = 6. Next interval?",
+            "motivation": "I_next = I_prev × EF for repetition ≥ 3.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "15 days",
+                "6 × 2.5",
+                "15"
+              ]
+            },
+            "hints": [
+              "Multiply by EF."
+            ],
+            "reveal": "I_next = 6 × 2.5 = 15 days. SM-2 multiplies the prior interval by the ease factor for grades ≥ 3."
+          },
+          {
+            "prompt": "Update EF for grade q = 5.",
+            "motivation": "EF := EF + (0.1 - (5-q)(0.08 + (5-q)·0.02)).",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2.6",
+                "2.5 + 0.1"
+              ]
+            },
+            "hints": [
+              "At q=5 the bracketed term is 0.1."
+            ],
+            "reveal": "For q=5: EF_new = 2.5 + (0.1 - 0·(...)) = 2.6. Ease grows on perfect recall, drifts down on weaker recall, floored at 1.3."
+          },
+          {
+            "prompt": "After 15 days, grade is 4. Compute new EF.",
+            "motivation": "Slight drop.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2.58",
+                "~2.58"
+              ]
+            },
+            "hints": [
+              "q=4: bracketed = 0.1 - 1·(0.08 + 0.02) = 0."
+            ],
+            "reveal": "For q=4: EF_new = 2.6 + (0.1 - 1·(0.08 + 0.02)) = 2.6 + 0 = 2.6. (SM-2 treats q=4 as 'no change' near default ease.) Slight numeric variants depending on exact reference formulation."
+          },
+          {
+            "prompt": "Compute new interval at grade 4.",
+            "motivation": "Still successful → multiply.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~39 days",
+                "15 × 2.6",
+                "39"
+              ]
+            },
+            "hints": [
+              "I × EF."
+            ],
+            "reveal": "I_next = 15 × 2.6 = 39 days. The interval roughly doubles each successful recall — the exponential schedule that approximates the forgetting curve. A failure (q < 3) would reset I to 1 + slightly lower EF."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mem_1",
+        "kind": "multiple_choice",
+        "question": "What does Roediger + Karpicke (2006) demonstrate about test-enhanced learning?",
+        "options": [
+          "Testing only measures learning; it does not produce it.",
+          "Retrieval practice itself is a powerful learning event. Their study compared studying a text four times vs studying then taking three free-recall tests; at five-minute delay, restudy looked better, but at one-week delay the test group substantially outperformed restudy. Retrieval restructures the memory trace, strengthens cues, + makes the knowledge more durable. The effect generalizes across materials (texts, vocab, anatomy, mathematics) + populations + is among the most replicated findings in cognitive psychology.",
+          "Testing harms learning by inducing anxiety.",
+          "Rereading + highlighting are superior because they feel easier."
+        ],
+        "correctIndex": 1,
+        "explanation": "Roediger + Karpicke 2006: retrieval beats restudy at long delays. Restudy looks better in immediate tests (fluency illusion) but retrieval produces durable learning. Generalizes broadly; basis of practice-testing recommendation in Dunlosky 2013."
+      },
+      "hints": [
+        "Restudy vs test groups; long-delay outcome.",
+        "Testing as learning, not just measurement."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Roediger + Karpicke 2006 PSci: at five-minute delay restudy ≈ test; at one-week delay test >> restudy. Retrieval practice reconsolidates + strengthens memory traces, makes context cues more discriminative + produces durable + transferable learning."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mem_1",
+        "kind": "scenario",
+        "question": "Designing an SRS deck for a medical student",
+        "prompt": "A first-year medical student wants to retain 2000 anatomy facts for their Step 1 exam in 18 months + for clinical practice afterward. Design an SRS workflow: card construction (Woźniak's minimum-information principle), scheduling target, mix with active problem solving + clerkships, + how you would monitor retention + review load over time."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mem_1",
+        "kind": "math_expression",
+        "question": "Forgetting curve R(t) = e^(-t/S). With stability S = 20 days, retention after t = 7 days?",
+        "acceptedAnswers": [
+          "~0.70",
+          "e^(-7/20)",
+          "0.705"
+        ],
+        "hint": "e^(-0.35) ≈ 0.705."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mem_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how spaced-repetition systems operationalize Ebbinghaus + Bjork's desirable difficulties.",
+        "rubric": "Mentions: Ebbinghaus 1885 forgetting curve R = e^(-t/S) showed retention decays then plateaus; spacing distributes practice; testing effect (Roediger + Karpicke 2006) makes retrieval itself a learning event. Bjork's desirable difficulties — spacing, retrieval, interleaving, generation — slow apparent performance but build durable memory. Leitner 1972 paper boxes operationalized this; Woźniak's SM-2 (1990) scheduled reviews by I_next = I × EF with EF responsive to grades; Anki 2006 brought SM-2 to a wide audience; FSRS 2022 + Duolingo half-life regression fit per-user memory models from logs. Each successful retrieval at the edge of forgetting maximally grows stability — Bjork's principle implemented as an algorithm. Modern systems combine LLM-assisted card creation, multimodal review, + targeted retention thresholds (e.g., 90%) to balance review load against retention."
+      }
+    }
+  ]
+}

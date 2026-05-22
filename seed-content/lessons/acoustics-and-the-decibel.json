@@ -1,0 +1,113 @@
+{
+  "slug": "acoustics-and-the-decibel",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish sound pressure from sound intensity and relate both to the decibel.",
+      "Compute sound levels using the logarithmic dB formula with the 20 micropascal reference.",
+      "Explain frequency, pitch, the audible range, and the Fletcher-Munson phon scale."
+    ],
+    "prereqs": [
+      "audiology-history-and-the-audiogram"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Sound pressure and sound intensity",
+      "body": "Sound is a **longitudinal pressure wave**: regions of compression and rarefaction propagating through air at about **343 m/s** at 20 degrees Celsius. To quantify a sound we measure two related but distinct physical quantities, and confusing them is a classic source of error.\n\n**Sound pressure** ($p$) is the local deviation of air pressure from the static atmospheric value, measured in **pascals (Pa)**, where one pascal is one newton per square meter. It is what a microphone diaphragm and your **tympanic membrane** actually respond to. The faintest sound a healthy young human can detect corresponds to a pressure fluctuation of only about **20 micropascals (20 uPa)** — roughly a billionth of atmospheric pressure. The threshold of pain sits near **20 Pa**, a factor of one million larger.\n\n**Sound intensity** ($I$) is the acoustic power flowing through a unit area, measured in **watts per square meter**. For a plane wave in a medium of density $\\rho$ and sound speed $c$, intensity relates to pressure by\n\n$$I = \\frac{p^2}{\\rho c}$$\n\nwhere $\\rho c$ is the **specific acoustic impedance** of the medium (about 415 rayls for air). The crucial consequence is that **intensity is proportional to the square of pressure**. Double the pressure and you quadruple the intensity. This squared relationship is exactly why the decibel formulas for pressure and for intensity differ by a factor of two, as we will see.\n\nThe range of pressures the ear handles is staggering. From the **20 uPa** threshold to the **20 Pa** pain limit is a ratio of **one million to one** in pressure, or **one trillion to one** in intensity. No linear scale can display such a span legibly on a graph or a meter. Evolution solved the dynamic-range problem by making the ear respond roughly **logarithmically** to intensity — a halving of perceived loudness corresponds to a fixed *ratio* of intensities, not a fixed difference. This same logic motivates the decibel. The work tracing back to **Ernst Weber** and **Gustav Fechner** in the 19th century (the **Weber-Fechner law**, that perceived magnitude grows with the logarithm of the stimulus) is the psychophysical ancestor of the decibel scale used throughout acoustics and audiology today."
+    },
+    {
+      "kind": "text",
+      "title": "The decibel as a logarithmic ratio",
+      "body": "The **decibel (dB)** is not a unit of sound in the way the meter is a unit of length. It is a **logarithmic ratio** between a measured quantity and a fixed reference. The name honors **Alexander Graham Bell**: one **bel** is a factor of ten in power, and a decibel is one tenth of a bel. Decibels were developed at **Bell Telephone Laboratories** to express transmission gains and losses compactly.\n\nFor **power or intensity** the definition is\n\n$$L_I = 10\\log_{10}\\!\\left(\\frac{I}{I_0}\\right)\\ \\text{dB}$$\n\nwith the reference intensity $I_0 = 10^{-12}\\ \\text{W/m}^2$. For **sound pressure**, because intensity goes as pressure squared, the factor of 10 becomes a factor of 20:\n\n$$L_p = 20\\log_{10}\\!\\left(\\frac{p}{p_0}\\right)\\ \\text{dB}$$\n\nwith the reference pressure $p_0 = 20\\ \\mu\\text{Pa}$. This is **sound pressure level (dB SPL)**, the most common acoustic measure. The two formulas agree numerically because $20\\log_{10}(p/p_0) = 10\\log_{10}(p^2/p_0^2)$ and $p^2 \\propto I$.\n\nThree benchmark calculations make the scale intuitive. At threshold, $p = 20\\ \\mu\\text{Pa} = p_0$, so $L_p = 20\\log_{10}(1) = 0$ dB SPL. At the pain threshold, $p = 20$ Pa, a factor of one million above reference, so $L_p = 20\\log_{10}(10^6) = 20 \\times 6 = 120$ dB SPL. A normal conversation at one meter is about **60 dB SPL**, meaning the pressure is $10^{60/20} = 10^3 = 1000$ times the reference.\n\nTwo rules of thumb follow directly from the logarithm. **A doubling of pressure adds about 6 dB** because $20\\log_{10}(2) \\approx 6.02$. **A doubling of intensity (power) adds about 3 dB** because $10\\log_{10}(2) \\approx 3.01$. So two identical incoherent noise sources together are 3 dB louder than one, not twice as loud. Because dB is a ratio, you cannot add decibels arithmetically: combining 60 dB and 60 dB gives 63 dB, not 120 dB. You must convert back to intensity, sum the intensities, then re-take the logarithm. Audiologists meet several reference scales — **dB SPL** (physical, 20 uPa), **dB HL** (clinical, normal threshold), and **dB SL (Sensation Level)** (above an individual's own threshold) — and must always know which reference is in play."
+    },
+    {
+      "kind": "text",
+      "title": "Frequency, pitch, and the equal-loudness contours",
+      "body": "**Frequency** is the number of pressure cycles per second, measured in **hertz (Hz)** after **Heinrich Hertz**. The healthy young human **audible range** runs from roughly **20 Hz to 20 kHz**. Below 20 Hz lies **infrasound** (felt more than heard); above 20 kHz lies **ultrasound** (audible to dogs, bats, and dolphins but not to us). Within the audible band the ear is not uniformly sensitive: it is most acute between about **2 and 5 kHz**, an evolutionary tuning that coincides with the frequencies carrying the most speech information and is reinforced by the quarter-wavelength resonance of the **ear canal** near 3 kHz.\n\n**Pitch** is the *perceptual* correlate of frequency, just as loudness is the perceptual correlate of intensity. Pitch is largely logarithmic: each doubling of frequency is heard as one **octave**, so 220, 440, and 880 Hz are successive octaves of the musical note A. But pitch is not purely physical; it depends weakly on level and on spectral context, and the brain can hear a **missing fundamental** pitch even when that frequency is absent from the signal.\n\nThe most important psychoacoustic fact for acoustics is captured by the **equal-loudness contours** of **Harvey Fletcher** and **Wilden Munson (1933)**, later refined into the international standard **ISO 226**. Each contour connects the sound pressure levels at different frequencies that a listener judges **equally loud**. The loudness label on each contour is the **phon**: by definition, the phon value of a tone equals its dB SPL **at 1000 Hz**. So a 40-phon contour passes through 40 dB SPL at 1 kHz, but it dips well below that around 3-4 kHz (where the ear is sensitive, so less pressure is needed) and rises steeply at 100 Hz (where you need far more pressure for the same loudness). The contours bunch together at high levels, which is why a poorly balanced sound seems bass-deficient when played quietly but balanced when played loud, the basis of the *loudness* button on old stereos.\n\nA related scale, the **sone**, makes loudness ratios linear: **1 sone is defined as 40 phons**, and each doubling of perceived loudness doubles the sone value (so 50 phons is about 2 sones). Together the **decibel**, the **phon**, and the **sone** form a ladder from raw physics to perception: dB SPL measures pressure, phons fold in the frequency dependence revealed by Fletcher and Munson, and sones express how many times louder one sound seems than another. An audiologist must move fluidly among all three, plus the clinical **dB HL** scale, to interpret what a patient actually experiences."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_db_1",
+        "kind": "math_expression",
+        "question": "A sound has a pressure of **2 Pa**. Using $L_p = 20\\log_{10}(p/p_0)$ with $p_0 = 20\\ \\mu\\text{Pa}$, compute the sound pressure level in dB SPL. (Hint: $2\\ \\text{Pa} / 20\\ \\mu\\text{Pa} = 10^5$.)",
+        "acceptedAnswers": [
+          "100",
+          "100 dB",
+          "100 dB SPL"
+        ],
+        "hint": "The ratio p/p0 equals 2 / 0.00002 = 100000 = 10^5, and 20 times the log of 10^5 is 20 times 5."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_db_1",
+        "kind": "multiple_choice",
+        "question": "Why does the decibel formula use a factor of **20** for pressure but a factor of **10** for intensity?",
+        "options": [
+          "Because pressure is measured in pascals and intensity in watts, and the units differ by a factor of two.",
+          "Because intensity is proportional to the **square** of pressure, so $10\\log_{10}(p^2/p_0^2) = 20\\log_{10}(p/p_0)$; the squaring pulls a factor of 2 out of the logarithm.",
+          "Because the human ear is twice as sensitive to pressure as to intensity.",
+          "Because pressure decibels are measured in bels and intensity decibels in decibels."
+        ],
+        "correctIndex": 1,
+        "explanation": "Intensity scales as the square of pressure ($I \\propto p^2$). Substituting into the intensity formula, $10\\log_{10}(I/I_0) = 10\\log_{10}(p^2/p_0^2) = 10 \\times 2 \\times \\log_{10}(p/p_0) = 20\\log_{10}(p/p_0)$. The factor of 20 is simply the factor of 10 for power with the exponent 2 brought down by the logarithm rule."
+      },
+      "hints": [
+        "Recall the relationship I is proportional to p squared.",
+        "Use the logarithm rule log(x^2) = 2 log(x)."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Because $I \\propto p^2$, the intensity-based level $10\\log_{10}(I/I_0)$ becomes $10\\log_{10}(p^2/p_0^2)$. The log of a square equals twice the log, so this is $10 \\times 2 \\times \\log_{10}(p/p_0) = 20\\log_{10}(p/p_0)$. The 20 is the 10 for power times the exponent 2."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_db_2",
+        "kind": "math_expression",
+        "question": "Two **incoherent** machines each produce 70 dB SPL at a worker's position. What is the **combined** level in dB? (Doubling the intensity adds about 3 dB.)",
+        "acceptedAnswers": [
+          "73",
+          "73 dB",
+          "73 dB SPL"
+        ],
+        "hint": "Equal incoherent sources add in intensity; doubling intensity adds 10 log10(2) which is about 3 dB to the 70 dB level."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_db_1",
+        "kind": "scenario",
+        "question": "Explaining a quiet-music complaint with equal-loudness contours.",
+        "prompt": "A customer says that when they turn their music down low, the bass disappears and everything sounds thin, but at a high volume the balance returns. Using the Fletcher-Munson equal-loudness contours and the phon concept, explain why low frequencies seem to vanish at low playback levels, and why this is a property of human hearing rather than a fault in the speakers."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_db_2",
+        "kind": "multiple_choice",
+        "question": "On the **phon** scale, what is true of a tone described as **40 phons**?",
+        "options": [
+          "It has a sound pressure level of 40 dB SPL at every frequency.",
+          "It is judged equally loud as a 1000 Hz tone at 40 dB SPL, even though its actual dB SPL differs across frequency along the equal-loudness contour.",
+          "It corresponds to 40 watts per square meter of intensity.",
+          "It is exactly twice as loud as a 20 phon tone."
+        ],
+        "correctIndex": 1,
+        "explanation": "The phon is anchored at 1000 Hz: a tone of N phons is, by definition, as loud as an N dB SPL tone at 1 kHz. Along a single equal-loudness contour the physical dB SPL varies with frequency (lower near 3-4 kHz, higher at the extremes), but the perceived loudness is constant. Doubling loudness uses the sone scale, not a halving of phons."
+      },
+      "hints": [
+        "The phon scale is defined by reference to 1000 Hz.",
+        "Equal phons means equal perceived loudness, not equal physical pressure."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "A 40-phon tone is one perceived to be as loud as a 40 dB SPL tone at 1000 Hz. Across frequency its true SPL follows the equal-loudness contour, dipping where the ear is most sensitive and rising at the extremes, but the loudness sensation stays fixed. Loudness ratios (twice as loud) are handled by the sone scale, where 40 phons equals 1 sone."
+    }
+  ]
+}

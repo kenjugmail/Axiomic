@@ -16,6 +16,8 @@
     {
       "kind": "text",
       "title": "Core Web Vitals, the production metrics",
+      "viz": "render-pipeline",
+      "vizProps": {},
       "body": "Google's Core Web Vitals (CWV) — the three metrics that matter for both UX + SEO:\n\n1. **LCP (Largest Contentful Paint)**: time to render the largest visible element. Target: ≤ 2.5s. Driven by: server response, render-blocking resources, image load time.\n2. **FID/INP (First Input Delay → Interaction to Next Paint)**: time from user interaction to visual response. Target: ≤ 200ms INP. Driven by: main-thread blocking, JS execution time, layout work after interaction.\n3. **CLS (Cumulative Layout Shift)**: how much content moves around after initial render. Target: ≤ 0.1. Driven by: late-loading images without dimensions, fonts swapping, ad insertions.\n\nGoogle uses these in search ranking signals + reports them via PageSpeed Insights, CrUX (Chrome User Experience Report — real-user data), Search Console.\n\nProduction tracking: instrument via the `web-vitals` library; report to your analytics. Watch p75 across real users, not lab numbers."
     },
     {

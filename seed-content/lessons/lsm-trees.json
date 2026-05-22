@@ -15,6 +15,8 @@
     {
       "kind": "text",
       "title": "LSM write path, in one paragraph",
+      "viz": "btree-vs-lsm",
+      "vizProps": {},
       "body": "Write path:\n1. **WAL** (write-ahead log): durably append to a log on disk. Survives crashes.\n2. **Memtable**: in-memory sorted structure (skiplist or balanced tree). Writes go here first.\n3. **Flush**: when memtable fills (typically ~64MB), it's flushed to an **SSTable** (Sorted String Table) — immutable, sorted file on disk.\n4. **Compaction**: background process merges multiple SSTables into one, removing overwritten/deleted entries.\n\nReads must check the memtable + every SSTable that might contain the key. **Bloom filters** on each SSTable filter out negatives quickly (probabilistic 'definitely not in this file' check).\n\nThe whole stack converts random writes into sequential ones — sequential SSDs are 10× faster than random."
     },
     {

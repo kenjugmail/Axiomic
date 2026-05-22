@@ -1,0 +1,114 @@
+{
+  "slug": "nuclear-medicine-and-pet",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Explain radiotracers, radioactive decay, and the meaning of half-life.",
+      "Describe the gamma camera, SPECT, and PET coincidence detection of 511 keV photons.",
+      "Explain how hybrid PET-CT combines functional and anatomic imaging."
+    ],
+    "prereqs": [
+      "computed-tomography"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Radiotracers, decay, and half-life",
+      "body": "Unlike X-ray, CT, ultrasound, and MRI, which probe **anatomy and structure**, **nuclear medicine** images **physiology and function** by introducing a tiny quantity of a **radioactive tracer** (a **radiopharmaceutical**) into the body and detecting the radiation it emits from within. The concept, that a radioactive substance behaves chemically like its stable counterpart and can be followed through the body, originated with **George de Hevesy**, who won the **1943 Nobel Prize in Chemistry** for developing the **radioactive tracer** method. A radiopharmaceutical pairs a **radionuclide** (the radiation source) with a **carrier molecule** that targets a physiological process, for example a phosphonate that binds bone or a glucose analogue taken up by metabolically active cells.\n\nThe dominant single-photon tracer is **technetium-99m (Tc-99m)**, a metastable isotope that emits a convenient **140 keV gamma ray**, has a short **6-hour half-life**, and is eluted on demand from a **molybdenum-99/technetium-99m generator** (the 'moly cow'). Tc-99m labels a vast range of agents for bone, cardiac perfusion, renal, thyroid, and lung studies. The dominant positron tracer is **fluorine-18 fluorodeoxyglucose (FDG)**, a glucose analogue in which an F-18 atom replaces a hydroxyl group; FDG is taken up by glucose-avid cells, phosphorylated, and trapped, so that hypermetabolic tissue, most importantly many cancers, but also infection and inflammation, accumulates the tracer. F-18 has a roughly **110-minute half-life** and is produced in a **cyclotron**.\n\nAll of this rests on the physics of **radioactive decay**, which is a random, first-order process. The number of radioactive nuclei $N$ decreases exponentially:\n\n$$N(t) = N_0\\, e^{-\\lambda t}$$\n\nwhere $\\lambda$ is the **decay constant**. The **half-life** $T_{1/2}$, the time for half the nuclei to decay, relates to it by:\n\n$$T_{1/2} = \\frac{\\ln 2}{\\lambda} \\approx \\frac{0.693}{\\lambda}$$\n\nActivity is measured in **becquerel (Bq)**, one disintegration per second, named for **Henri Becquerel**, or in the older unit the **curie (Ci)**, named for **Marie and Pierre Curie** (1 Ci equals $3.7\\times 10^{10}$ Bq). The short half-lives of clinical isotopes are a deliberate compromise: long enough to synthesize, inject, and image, but short enough to limit the patient's radiation dose, an ALARA consideration intrinsic to tracer selection. Because the **physical half-life** combines with the **biological half-life** (the rate at which the body excretes the tracer) into an **effective half-life**, dosimetry in nuclear medicine is a careful quantitative discipline."
+    },
+    {
+      "kind": "text",
+      "title": "The gamma camera, SPECT, and PET",
+      "body": "Single-photon imaging is performed with the **gamma camera** (the **Anger camera**), invented by **Hal Anger** at the **Lawrence Berkeley Laboratory** in 1957. Its components form a precise chain: a **lead collimator** with fine parallel holes admits only gamma rays travelling nearly perpendicular to the detector, rejecting obliquely directed photons so that position information is preserved; behind it a large **sodium iodide scintillation crystal** (NaI doped with thallium) converts each absorbed gamma into a flash of visible light; an array of **photomultiplier tubes (PMTs)** detects the flash, and **Anger logic** computes the position of each scintillation from the relative PMT signals, building up an image one photon at a time. A **planar** image is a two-dimensional projection, like a nuclear-medicine radiograph.\n\nRotating the gamma camera around the patient and reconstructing tomographically, using the same filtered back-projection or iterative algorithms as CT, yields **single-photon emission computed tomography (SPECT)**, giving cross-sectional functional images, widely used for myocardial perfusion, bone, and brain studies.\n\n**Positron emission tomography (PET)** uses a fundamentally different and elegant detection principle. A positron-emitting nuclide like **F-18** releases a **positron** (a positive electron), which travels a short distance, slows, and then **annihilates** with an ordinary electron. Mass converts to energy following **Einstein's $E = mc^2$**, producing **two 511 keV gamma photons** that fly off in almost exactly **opposite directions** (180 degrees apart), conserving momentum. The energy 511 keV is precisely the rest-mass energy of the electron (and of the positron). A PET scanner surrounds the patient with a full **ring of detectors** and uses **coincidence detection**: only when two detectors register 511 keV photons within a few nanoseconds of each other is an event accepted and assigned to the **line of response** joining the two detectors. This **electronic collimation** is far more efficient than the lead collimator of a gamma camera, giving PET superior sensitivity and resolution. Reconstruction of millions of these lines of response yields a three-dimensional map of tracer concentration, often quantified as the **standardized uptake value (SUV)** to grade metabolic activity. Modern detectors use dense, fast scintillators such as **bismuth germanate (BGO)** or **lutetium oxyorthosilicate (LSO/LYSO)**, and **time-of-flight (TOF) PET** measures the tiny difference in arrival times of the two photons to localize the annihilation along the line of response, improving image quality. PET's exquisite sensitivity to picomolar tracer concentrations makes it the premier tool for cancer staging, neurology (including amyloid and tau imaging in dementia), and cardiology."
+    },
+    {
+      "kind": "text",
+      "title": "Hybrid PET-CT and the value of fusion",
+      "body": "The great limitation of pure functional imaging is **poor anatomic localization**: a PET scan may show an intense focus of FDG uptake, signalling abnormal metabolism, but the blurry functional image alone cannot say precisely which lymph node, vertebra, or organ the focus lies in. The solution, pioneered by **David Townsend** and **Ronald Nutt** around the year **2000**, was the **hybrid PET-CT scanner**, which combines a PET ring and a CT scanner in a single gantry so that a patient is imaged by both in one session without moving. The two datasets are inherently co-registered, and the functional PET image is **fused** onto the high-resolution anatomic CT image, typically displayed as colored hotspots overlaid on grey-scale anatomy. *Time* magazine named the PET-CT scanner the medical invention of the year in 2000, and within a decade nearly all clinical PET systems sold were hybrids. The same fusion concept extends to **SPECT-CT** and to **PET-MRI**, which pairs PET's metabolic sensitivity with MRI's superior soft-tissue contrast and absence of additional ionizing radiation.\n\nThe CT component of PET-CT serves two purposes beyond anatomic mapping. First, it provides the precise **localization** that turns an ambiguous hot spot into an actionable diagnosis, dramatically improving accuracy in **cancer staging**, where distinguishing a metabolically active malignant node from physiologic uptake depends on knowing exactly where the activity is. Second, the CT data are used for **attenuation correction**: because the 511 keV photons are themselves attenuated as they traverse the body (more so from deep structures), an uncorrected PET image underestimates activity in the center of the patient; the CT scan provides a map of tissue attenuation that the reconstruction uses to quantitatively correct the PET data, one of the practical reasons CT and PET pair so naturally.\n\nThese advantages come at the cost of **combined radiation dose**, since the patient receives both the injected tracer's internal dose and the CT's external dose, so ALARA again governs practice, low-dose CT protocols are often used purely for localization and attenuation correction, and the examination must be justified against its substantial diagnostic benefit. Looking ahead, the field is moving toward **theranostics**, in which a diagnostic tracer and a therapeutic radionuclide target the same molecule, for example imaging neuroendocrine tumors or prostate cancer with a gallium-68 (Ga-68) labeled agent and then treating with the same targeting molecule carrying a beta- or alpha-emitter such as lutetium-177 (Lu-177) or actinium-225. PET-CT and its hybrid siblings thus exemplify the central trend of modern imaging: combining complementary physical principles, functional tracer uptake and anatomic attenuation, into a single, more powerful examination."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_nm_1",
+        "kind": "multiple_choice",
+        "question": "In PET, why are the two annihilation photons each 511 keV and emitted in nearly opposite directions, and how does the scanner exploit this?",
+        "options": [
+          "They are 511 keV by coincidence; the scanner ignores their direction.",
+          "A positron annihilates with an electron, converting their combined rest mass to energy (E = mc^2) as two 511 keV photons traveling about 180 degrees apart to conserve momentum; the scanner uses coincidence detection to assign each event to the line joining the two detectors.",
+          "They are produced by the lead collimator splitting a single gamma ray into two.",
+          "They are 140 keV photons emitted in the same direction and detected sequentially."
+        ],
+        "correctIndex": 1,
+        "explanation": "When a positron meets an electron, both rest masses (511 keV each) convert to electromagnetic energy as two photons of 511 keV. Conservation of momentum sends them nearly back-to-back (180 degrees apart). PET detectors arranged in a ring register the pair in coincidence (within nanoseconds) and assign the event to the line of response between them, providing efficient electronic collimation."
+      },
+      "hints": [
+        "511 keV equals the rest-mass energy of an electron (and positron).",
+        "Momentum conservation forces the photons back-to-back."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "A positron from F-18 annihilates with a nearby electron. Their combined rest-mass energy (about 0.511 MeV each, from E = mc^2) is released as two photons. To conserve the near-zero net momentum, the photons travel in nearly opposite directions. A ring of detectors records both within a short coincidence window and places the annihilation on the line of response between them, the basis of PET's electronic collimation. Option B is correct."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_nm_2",
+        "kind": "multiple_choice",
+        "question": "What is the role of the lead collimator in a gamma camera (and why does PET not need one)?",
+        "options": [
+          "It amplifies the gamma rays before they reach the crystal.",
+          "It admits only gamma rays traveling nearly perpendicular to the detector, rejecting obliquely directed photons so that position can be inferred; PET instead uses coincidence detection (electronic collimation), so it needs no lead collimator.",
+          "It converts gamma rays into 511 keV photons.",
+          "It is unnecessary because the scintillation crystal already determines direction."
+        ],
+        "correctIndex": 1,
+        "explanation": "A single gamma ray gives no inherent direction information, so the gamma camera uses a lead collimator that only lets through photons traveling perpendicular to the detector face, preserving spatial mapping at the cost of sensitivity. PET detects two back-to-back photons in coincidence, which defines the line of response electronically, so PET achieves collimation without lead, gaining sensitivity."
+      },
+      "hints": [
+        "A single photon has no direction tag; how do you recover it?",
+        "PET's two-photon coincidence replaces the need for a physical collimator."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "In single-photon imaging, one detected gamma carries no built-in direction. The lead collimator passes only near-perpendicular photons, so the detection position maps to a known projection direction, but most photons are absorbed, lowering sensitivity. PET exploits the two simultaneous, oppositely directed 511 keV photons: detecting both in a coincidence window defines their shared line of response without any physical collimator, which is why PET is more sensitive. Option B is correct."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_nm_1",
+        "kind": "math_expression",
+        "question": "Tc-99m has a half-life of 6 hours. If a sample starts with an activity of 800 MBq, compute its activity in MBq after 18 hours (three half-lives) using A = A0 * (1/2)^(t/T_half).",
+        "acceptedAnswers": [
+          "100",
+          "100 MBq",
+          "800*(1/2)^3"
+        ],
+        "hint": "18 hours is three half-lives, so multiply by (1/2)^3 = 1/8: 800/8."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_nm_2",
+        "kind": "math_expression",
+        "question": "F-18 has a half-life of about 110 minutes. Using lambda = ln(2)/T_half, compute the decay constant in units of per minute. Give the value to four decimal places (per minute).",
+        "acceptedAnswers": [
+          "0.0063",
+          "0.693/110",
+          "0.00630",
+          "0.006301"
+        ],
+        "hint": "lambda = 0.693 / 110 minutes."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_nm_1",
+        "kind": "scenario",
+        "question": "An FDG PET-CT shows an intense focus of uptake, but the team debates whether it is malignant or physiologic.",
+        "prompt": "A patient with suspected lymphoma undergoes FDG PET-CT, and the scan shows a single intense focus of uptake near the gastroesophageal junction. The oncology team asks whether this represents tumor. As the radiologist, explain how the fused CT component helps you localize and characterize the focus, why attenuation correction matters for quantifying SUV, and what physiologic causes of FDG uptake could mimic malignancy at this site. Reason through how you would use the hybrid data and any further steps to reach a confident interpretation."
+      }
+    }
+  ]
+}

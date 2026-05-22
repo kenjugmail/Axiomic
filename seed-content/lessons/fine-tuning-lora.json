@@ -56,6 +56,29 @@
       "kind": "text",
       "title": "What's next",
       "body": "Fine-tuning is how you take a generic pretrained model and adapt it to your task, your domain, your customer's data. LoRA + QLoRA have made it cheap enough to do on a single GPU.\n\nThe next conceptual layer is [[rlhf]] — preference fine-tuning, where the model learns from human feedback rather than supervised demonstrations. After that, [[rag]] — using retrieval at inference time to ground the model in external knowledge instead of (or in addition to) baking it into weights.\n\nKey takeaways:\n- Fine-tuning is a spectrum, not just LoRA\n- LoRA: train a low-rank update, keep the base frozen\n- QLoRA: int4-quantize the frozen base + LoRA on top — tiny memory footprint\n- Higher LoRA rank doesn't always help; r=16-64 is the typical sweet spot\n- Multi-adapter composition is a useful trick but not a guarantee"
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_loralora_1",
+        "kind": "math_expression",
+        "question": "A LoRA adapter on a weight matrix replaces a full update with $B A$, where $B \\in \\mathbb{R}^{d_{out}\\times r}$ and $A \\in \\mathbb{R}^{r\\times d_{in}}$, giving $r\\,(d_{in}+d_{out})$ trainable parameters. For a square projection with $d_{in}=d_{out}=4096$ and rank $r=8$, compute the number of trainable LoRA parameters for this matrix.",
+        "acceptedAnswers": [
+          "65536",
+          "8*(4096+4096)",
+          "65,536"
+        ],
+        "hint": "Trainable params $= r\\,(d_{in}+d_{out}) = 8\\times(4096+4096) = 8\\times 8192 = 65{,}536$. Compare to full fine-tuning of the same matrix: $4096\\times4096 = 16{,}777{,}216$ parameters — roughly a 256x reduction."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_loralora_1",
+        "kind": "scenario",
+        "question": "Choosing LoRA rank vs full fine-tuning under constraints",
+        "prompt": "You must adapt a 13B base model to a customer's domain on a single 24GB GPU, and you expect to host dozens of per-customer variants that should be hot-swappable at serving time. Explain why full fine-tuning is likely infeasible here, how QLoRA (int4-quantized frozen base plus LoRA adapters) changes the memory math, and how you would pick the LoRA rank given that quality gains tend to saturate past r=16-64. Address the serving-side benefit of keeping base and adapter separate, and justify a concrete rank choice in 3-5 sentences."
+      }
     }
   ]
 }

@@ -15,6 +15,8 @@
     {
       "kind": "text",
       "title": "Why distributed tracing exists",
+      "viz": "trace-waterfall",
+      "vizProps": {},
       "body": "A user-facing request fans out across 20+ services. The user sees 5s latency. Where did the time go? Logs alone can't tell you (no single service has the full picture). Metrics alone can't tell you (which specific user/request was slow?). Need to *correlate* the request across services.\n\n**Distributed tracing**: each request gets a unique **trace_id** propagated through every downstream call. Each service produces **spans** (timed operations) tagged with the trace_id. A collector aggregates spans across services into a tree: the request's call graph + timing on each branch.\n\nA trace reveals:\n- Which service spent the most time.\n- Whether downstream calls happened serially or in parallel (and whether they could have been parallelized).\n- Where retries happened, where errors propagated, where timeouts caught.\n\nViewers: Jaeger (open source), Tempo (Grafana), AWS X-Ray, Datadog APM, Honeycomb, Lightstep. Most production systems instrument with **OpenTelemetry** (the open-standard SDK + protocol) and route to whichever viewer the org pays for.\n\nWithout tracing, debugging cross-service latency is a multi-hour archaeology project. With tracing, it's a 10-second look at the trace viewer."
     },
     {

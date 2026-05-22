@@ -49,6 +49,7 @@ import type {
   RunnableArtifactsResponse,
   ReproductionsResponse,
   ConceptPreview,
+  ConceptSearchResponse,
   CoachContext,
   CoachSuggestionsResponse,
   CreateResearchPaperRequest,
@@ -418,6 +419,8 @@ export const api = {
   },
   mastery: {
     getPaths: () => request<MasteryPathsResponse>("/mastery/paths"),
+    getPathsCompletion: () =>
+      request<{ completion: Array<{ pathSlug: string; total: number; completed: number; fraction: number }> }>("/mastery/paths-completion"),
     getPath: (slug: string) =>
       request<MasteryPathResponse>(`/mastery/paths/${slug}`),
     markComplete: (nodeId: string) =>
@@ -1090,6 +1093,10 @@ export const api = {
   concepts: {
     preview: (slug: string) =>
       request<ConceptPreview>(`/concepts/${slug}/preview`),
+    search: (q: string, limit = 80) => {
+      const sp = new URLSearchParams({ q, limit: String(limit) });
+      return request<ConceptSearchResponse>(`/concepts/search?${sp.toString()}`);
+    },
   },
   research: {
     list: (params?: { tag?: string; format?: string }) => {

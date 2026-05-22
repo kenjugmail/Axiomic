@@ -1,0 +1,156 @@
+{
+  "slug": "modern-frontier-forensic-science",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Understand investigative genetic genealogy (IGG) — Golden State Killer 2018, GEDmatch, and the post-2018 forensic frontier.",
+      "Recognize cognitive bias (Dror) and the NAS 2009 + PCAST 2016 + FRE 702 (2023) reform trajectory.",
+      "Survey AI in forensics (image, audio, bloodstain ML, probabilistic genotyping) and the Innocence-Project + Brady-disclosure reform landscape."
+    ],
+    "prereqs": [
+      "dna-and-biological-evidence",
+      "fingerprints-and-pattern-evidence",
+      "forensic-pathology-and-time-of-death"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Investigative genetic genealogy: from GEDmatch to the Golden State Killer",
+      "body": "**Investigative genetic genealogy (IGG)** is the most transformative new forensic technique of the 21st century — combining dense-SNP arrays + public genealogy databases + manual family-tree construction to identify suspects who would never appear in CODIS.\n\n**The breakthrough: Joseph James DeAngelo + the Golden State Killer (April 24 2018)**:\n- The **Golden State Killer** (also EAR / Original Night Stalker / Visalia Ransacker) committed >120 burglaries, ~50 rapes, + ≥13 murders across California from ~1974-1986. Unsolved for over three decades despite massive investigative effort + DNA evidence from victims.\n- **Paul Holes** (Contra Costa cold-case investigator) + **Steve Kramer** (FBI) + genealogist **Barbara Rae-Venter** worked the cold-case DNA.\n- Approach: a DNA profile from a 1980 crime scene was converted to a **dense-SNP profile** (~700,000 SNPs vs. ~20 STR loci in CODIS); uploaded to **GEDmatch** (a public-genealogy comparison site used by adoptees + genealogy hobbyists); produced matches to several third-fourth cousin-level individuals. Genealogist built family trees outward from these matches; converged on Joseph James DeAngelo (a former police officer fired for shoplifting in 1979). Surveillance of DeAngelo's discarded items (a tissue + a car-door handle) provided a confirmatory DNA sample that matched the crime-scene profile.\n- DeAngelo arrested April 24 2018; pleaded guilty 2020; sentenced to consecutive life terms.\n\n**The technical foundation**:\n- **CODIS STR loci** (20 loci, ~22 alleles): give per-individual identification but cannot identify *relatives* beyond first-degree.\n- **Dense-SNP arrays** (~700k SNPs covering the genome): identify long shared-segment runs (centimorgans / IBD = identity-by-descent), which scale with kinship — 3-4 cousins share ~50-150 cM in common. This is the foundation of consumer genealogy (23andMe, AncestryDNA, MyHeritage, FamilyTreeDNA).\n- **Genealogy database scale**: as consumer genealogy participation grew (>30M users by 2024 across major services), the probability of finding a *meaningful relative match* for almost any US individual rose to nearly 100% — even if the target has never been tested.\n- **Public-vs.-private databases**: **GEDmatch** + **FamilyTreeDNA** historically permitted law-enforcement access (with terms-of-service consent); **23andMe + AncestryDNA** do not. GEDmatch's policy evolved (opt-in for law-enforcement matching, 2019) restricting case workflows.\n\n**Post-Golden-State-Killer wave**:\n- **300+ violent crime cases solved** via IGG by 2024 (cold homicides, sexual assaults, Doe identifications).\n- **Major cases**: Bear Brook murders (NH, 2019); Buckskin Girl (OH, 2018); William Earl Talbott II (WA murder 1987, IGG ID 2018, first IGG-led trial conviction 2019); Identity of multiple unidentified-remains John + Jane Does.\n- **Disaster victim ID**: 9/11, plane crashes, mass-casualty events.\n- **Reuniting families** in adoption + missing-persons contexts.\n\n**Policy + ethics**:\n- **Consent + privacy**: relatives of the target — who never consented to law-enforcement use — provide the matching information.\n- **Database TOS**: GEDmatch + FTDNA both modified TOS post-2018; opt-in restrictions in some cases.\n- **DOJ interim policy (2019, updated 2020)**: limits IGG to serious violent crimes after CODIS + other investigative leads exhausted; consent for confirmatory DNA collection; supervised by senior officials.\n- **State variation + judicial review**: a few cases have generated Fourth Amendment challenges (familial database access; third-party-doctrine implications); no Supreme Court ruling yet."
+    },
+    {
+      "kind": "text",
+      "title": "Cognitive bias, NAS 2009, PCAST 2016, FRE 702 (2023): the reform trajectory",
+      "body": "**The empirical critique of forensic science** that began with the Innocence Project's DNA exonerations has reshaped the field across two decades.\n\n**Itiel Dror (UCL + Cognitive Consultants International)**: cognitive scientist whose ~2006+ research demonstrated that fingerprint, DNA mixture, bite-mark, handwriting, hair, firearms examiners — when presented the *same* evidence with *different* contextual cues — frequently reach *different* conclusions. **Dror et al. 2006 *Forensic Science International*** showed FBI fingerprint examiners changed conclusions on prints they had previously identified when told 'this was the Madrid-bombing print' (referring to Brandon Mayfield).\n\n**Dror's framework**: the **hierarchy of expert performance** + 'taxonomy of seven biases':\n1. **Confirmation bias** (the dominant bias in pattern comparison).\n2. **Contextual bias** (case knowledge influences perception).\n3. **Selection bias** (which features to compare).\n4. **Anchoring bias** (the initial conclusion 'anchors' subsequent judgment).\n5. **Outcome bias** (knowing the case outcome biases the analysis).\n6. **Conformity bias** (matching colleague conclusions).\n7. **Need-determination bias** (motivated reasoning).\n\n**Context management**: the practical response. Analysts see only the information needed for their task; case context (suspect, motive, theory) is withheld. **Linear sequential unmasking** (LSU): analyze the evidence first, then receive context only if needed for interpretation. ENFSI 2015 + many forensic labs now formalize context management.\n\n**The NAS 2009 report — *Strengthening Forensic Science in the United States: A Path Forward***:\n- Commissioned by Congress; National Academy of Sciences.\n- Conclusion: most pattern-evidence disciplines (bite marks, microscopic hair, microscopic firearms + tool-marks, footwear pattern matching, even some fingerprint analyses) **lacked the empirical foundation Daubert demands**. Single-source DNA STR + nuclear pathology + toxicology were considered robust.\n- Recommended: federal standards body, accreditation, certification, error-rate research, sequestration of crime labs from law-enforcement administration.\n- Outcome: led to creation of **NIST OSAC (Organization of Scientific Area Committees, 2014)** + the National Commission on Forensic Science (NCFS, 2013-2017, since disbanded) + ongoing federal research funding via NIJ + NIST.\n\n**The PCAST 2016 report — *Forensic Science in Criminal Courts: Ensuring Scientific Validity of Feature-Comparison Methods***:\n- Commissioned by President Obama; President's Council of Advisors on Science + Technology.\n- Applied Daubert's reliability criteria + empirical-validity criteria.\n- Conclusions:\n  - **Single-source DNA**: foundationally valid + validated for application.\n  - **Complex / low-template DNA mixtures**: needs further validation (probabilistic genotyping helps but requires transparency).\n  - **Latent fingerprint**: foundationally valid (Ulery 2011 Black Box study) but **error rates ~0.1% FP** — examiners must report uncertainty.\n  - **Firearm + tool-mark**: foundational validity questionable; further error-rate research needed (Ames I + II since 2014).\n  - **Footwear pattern matching, microscopic hair comparison, complex bite-mark analysis**: not foundationally valid — should not be admitted as evidence.\n- Recommendation: judges should hold pretrial Daubert hearings for forensic methods; testimony should include quantified error rates + likelihood-ratio framing.\n\n**FRE 702 amendment (2023)**: Federal Rules of Evidence Rule 702 (governing expert testimony) was substantially amended December 2023. Now requires the **proponent to demonstrate by a preponderance of the evidence** that the expert's methods + facts + application meet reliability standards. *Strengthens gatekeeping* — judges must actively evaluate reliability, not defer to general acceptance.\n\n**Brady disclosure** (Brady v. Maryland 1963): prosecutors must disclose exculpatory + impeachment evidence. *Forensic Brady issues* — analyst misconduct, lab error, contradictory test results, methodology failures, prior unreliability findings — must be disclosed. Recurring scandals (Houston PD lab 2003-2014; FBI Hair Review 2015; NYPD ME DNA mistakes; Massachusetts Annie Dookhan drug-lab scandal 2012; San Francisco crime lab DNA mishandling) drive policy reform."
+    },
+    {
+      "kind": "text",
+      "title": "AI in forensics, bloodstain ML, Innocence Project at 375+",
+      "body": "**Machine learning + AI** are reshaping forensic science across multiple disciplines. Some applications are mature + validated; others are experimental + contested.\n\n**Probabilistic genotyping** (STRmix, TrueAllele, EuroForMix, LRmix Studio): the most mature ML / probabilistic-modeling deployment in forensic DNA. Explicitly models allele drop-out, drop-in, stutter, mixture proportions; produces locus-by-locus + combined likelihood ratios. PCAST 2016 considered these tools valuable but flagged the need for transparency + open-source validation. STRmix + TrueAllele have been validated by NIST + multiple labs.\n\n**Investigative genetic genealogy software**: GEDmatch's tree-building tools + genealogist workflows are semi-automated; emerging companies (Othram, Parabon, DNA Solves) provide ML-assisted candidate-list generation + tree reconstruction.\n\n**Facial recognition (FR)** in law enforcement:\n- Companies: Clearview AI, Vigilant Solutions, NEC, Idemia.\n- Used by ~600+ US LE agencies (2024).\n- **Persistent demographic biases** (NIST FRVT 2019 + ongoing): higher error rates on women, darker skin, Asian + Black faces (Buolamwini + Gebru 'Gender Shades' 2018; NIST testing).\n- Wrongful arrests via false FR matches (Robert Williams Detroit 2020; Nijeer Parks NJ 2019; Porcha Woodruff Detroit 2023). Now a Brady + Innocence Project concern.\n- Many cities + states have moved to ban or restrict FR use by LE (San Francisco 2019; Portland 2020; Massachusetts conditions).\n\n**Bloodstain pattern analysis (BPA)** + **ML augmentation**: BPA infers events (angle of impact, height, mechanism) from bloodstain geometry. Foundational physics is well-understood; but interpretation has historically been examiner-dependent. **Machine-learning classifiers** trained on bloodstain images (impact, gravitational, transfer, projected, swipe, expirated) are emerging — both for objective classification + for cognitive-bias control. Reproducibility studies (Taylor et al. 2017+) found high inter-examiner variability — fueling NAS 2009 critique. Modern + emerging ML approaches aim to objectify interpretation.\n\n**Forensic image + video analysis**:\n- Image enhancement (super-resolution, denoising) — well-validated, courtroom-accepted.\n- Photogrammetry + 3D reconstruction from 2D images (FARO Scene + court-grade tools).\n- **Deepfake detection** — emerging adversarial challenge. Forensic + ML detection of synthesis artifacts.\n- Automatic license plate recognition (ALPR) — widely deployed; well-validated.\n- Gait + body-shape recognition — emerging, contested.\n\n**Forensic audio analysis**:\n- Speaker recognition / voice identification — historically pattern-comparison + spectrogram; modern ML approaches (Nuance Forensics, BATVOX); validation contested (NAS critique).\n- Audio enhancement + denoising — well-accepted.\n- Gunshot detection (ShotSpotter) — controversial; multiple wrongful arrests + Brady disclosure issues.\n\n**Digital forensics + AI**:\n- Email + chat analysis at scale; ML clustering + topic modeling.\n- Memory + disk forensics (Volatility, FTK, Magnet AXIOM).\n- Mobile device extraction (Cellebrite UFED, GrayKey iPhone unlock).\n- ML-assisted CSAM detection (PhotoDNA, NetClean) — large-scale + sensitive.\n\n**Innocence Project at 375+ DNA exonerations** (as of 2024):\n- **>375 post-conviction DNA exonerations** across US states.\n- **21 wrongful death-row exonerations**.\n- **Average wrongful incarceration ~14 years**.\n- **Real perpetrators identified** in >170 cases — often subsequent crimes.\n- **National Registry of Exonerations** at University of Michigan Law tracks 3,500+ exonerations (DNA + non-DNA) since 1989.\n- **Forensic misconduct or invalid science** contributed to ~52% of wrongful convictions in Innocence Project cases.\n- **Conviction Integrity Units (CIUs)** in major prosecutor offices (Brooklyn, Dallas, Harris County TX, etc.) now reinvestigate suspect convictions.\n- **Compensation statutes** in ~40 US states (varying amounts; federal: $50k/year of wrongful imprisonment + $100k if death-row).\n\n**The forensic-science frontier** is the integration of: DNA at all scales (CODIS + dense-SNP + epigenetics + microbiome) + AI-augmented pattern comparison with transparent uncertainty + cognitive-bias control + open-source probabilistic methods + the Innocence-Project / Brady-disclosure feedback loop driving continuous reform. The discipline that began in Locard's attic in 1910 is now an empirical, accountable, statistically rigorous science — still finding the people responsible while protecting the innocent."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_front_igg",
+        "kind": "guided_derivation",
+        "question": "Walk through the investigative genetic genealogy workflow",
+        "goal": "A cold-case homicide from 1985 has yielded a sufficient DNA profile from victim's clothing. Standard CODIS database searches have not produced a match. IGG is being considered. Walk through the workflow + the policy / ethical guardrails.",
+        "steps": [
+          {
+            "prompt": "What DNA technology is required + why does CODIS not suffice?",
+            "motivation": "CODIS STR vs. dense-SNP arrays.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "convert evidence to dense-SNP array profile (~700k SNPs) because CODIS STR cannot identify relatives beyond first-degree"
+              ]
+            },
+            "hints": [
+              "What distinguishes IGG genotyping from CODIS?"
+            ],
+            "reveal": "**Convert evidence to a dense-SNP profile** (~700,000 SNPs via Illumina array, or whole-genome sequencing followed by SNP imputation). CODIS uses only ~20 STR loci — sufficient for direct identification when the perpetrator is in CODIS, but the loci are too few to detect long shared genome segments (IBD) characteristic of 3rd-4th cousins. Dense-SNP arrays detect IBD segments down to ~6-10 cM, which corresponds to 3rd-4th cousin relatedness — the resolution needed to seed an IGG investigation. The conversion requires sufficient DNA quality + quantity (typically nanogram-scale + reasonable quality)."
+          },
+          {
+            "prompt": "Where do you search + what do you get back?",
+            "motivation": "GEDmatch + FamilyTreeDNA (opt-in for LE).",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "GEDmatch (opt-in users) + FamilyTreeDNA; returns ranked relative matches by shared cM"
+              ]
+            },
+            "hints": [
+              "Public-genealogy databases with LE opt-in."
+            ],
+            "reveal": "Upload to **GEDmatch** (post-2019 opt-in for LE matching) + **FamilyTreeDNA** (LE program). Each returns a **ranked list of matched users** by total shared cM — typically tens-hundreds of matches at 3rd-4th cousin level (~50-150 cM) + dozens at closer relatives if the perpetrator's family is well-represented in the database. The richer the database participation in the target's ancestral population, the better the resolution. **23andMe + AncestryDNA do NOT permit LE access**; their data is excluded."
+          },
+          {
+            "prompt": "How does the genealogist convert matches into a suspect?",
+            "motivation": "Tree-building + triangulation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "build family trees backward from matches to common ancestors; triangulate via multiple matches to a recent ancestor; descendants of that ancestor are candidates"
+              ]
+            },
+            "hints": [
+              "Identify common ancestors of multiple matches."
+            ],
+            "reveal": "**Genealogy tree-building**: Take 2-5 strongest matches (each a real person whose family tree is known via genealogy records — census, birth / death / marriage, obituaries, newspaper archives, Ancestry trees). Build each match's tree backward 4-6 generations. **Triangulate**: find a *common ancestor couple* shared by multiple matches; that ancestor's descendants over the next 4-6 generations are the candidate pool. Narrow by sex (X / Y inheritance), age (must have been alive + adult in 1985), geography (must have been plausibly in the crime location). The pool often narrows to 1-10 candidates — then surveillance + DNA confirmation."
+          },
+          {
+            "prompt": "What confirmatory step + what policy / ethical guardrails apply?",
+            "motivation": "Surveillance + DOJ 2019 policy + Fourth Amendment considerations.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "covert collection of discarded DNA (cup, cigarette, tissue) → match against crime-scene profile; DOJ 2019 IGG policy + serious violent crimes only + senior oversight"
+              ]
+            },
+            "hints": [
+              "Discarded DNA + DOJ interim policy."
+            ],
+            "reveal": "**Confirmatory**: surveillance + covert collection of the candidate's **discarded DNA** (cigarette butt, cup, tissue, mailbox handle) — under the *third-party doctrine* discarded material has no Fourth-Amendment privacy expectation. The discarded sample is processed for the **20-locus CODIS STR profile** + compared to the crime-scene profile; a match closes the loop. **DOJ 2019 IGG interim policy** (updated 2020) restricts IGG: (1) only for serious violent crimes + unidentified human remains; (2) CODIS + traditional investigative leads must be exhausted; (3) senior LE approval required; (4) defense + prosecutor disclosure of IGG methodology. Confirmatory testing is required before arrest. Fourth Amendment + state-law privacy challenges continue to develop."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_front_pcast",
+        "kind": "multiple_choice",
+        "question": "Which best summarizes the PCAST 2016 report's findings for pattern-evidence disciplines?",
+        "options": [
+          "PCAST recommended all forensic methods be banned.",
+          "PCAST 2016 (President's Council of Advisors on Science + Technology) applied Daubert + empirical-validity criteria. Found: single-source DNA STR foundationally valid + ready for application; complex / low-template DNA mixtures need further validation (probabilistic genotyping like STRmix helps); latent fingerprint comparison foundationally valid (per Ulery 2011 Black Box ~0.1% FP) but with quantified error rates required in testimony; firearm + tool-mark comparison foundational validity is questionable (further error-rate research needed — Ames I + II since 2014); footwear pattern matching, microscopic hair comparison, complex bite-mark analysis are NOT foundationally valid + should not be admitted. Recommended quantified error rates + likelihood-ratio framing + pretrial Daubert hearings. Reinforced by NAS 2009 + the FRE 702 (2023) amendment.",
+          "PCAST applied only to civil cases.",
+          "PCAST is a private organization."
+        ],
+        "correctIndex": 1,
+        "explanation": "PCAST 2016 applied Daubert + empirical-validity criteria. Single-source DNA: foundationally valid. Complex DNA mixtures: need validation (probabilistic genotyping helps). Fingerprints: foundationally valid with quantified error rates (Ulery 2011). Firearms / tool-marks: questionable, need further error-rate research. Footwear, microscopic hair, complex bite marks: not foundationally valid, should not be admitted. Recommended quantified error rates + likelihood-ratio framing + pretrial Daubert hearings."
+      },
+      "hints": [
+        "Discipline-by-discipline validity assessment.",
+        "Which methods were rejected?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "PCAST 2016 applied Daubert + empirical-validity criteria. Single-source DNA + fingerprint: foundationally valid with quantified error rates. Complex DNA mixtures + firearms: needs further validation. Footwear, microscopic hair, complex bite marks: NOT foundationally valid, should not be admitted. Recommended quantified error rates + likelihood-ratio framing + pretrial Daubert hearings. Reinforced by NAS 2009 + the FRE 702 (2023) amendment."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_front_brady",
+        "kind": "scenario",
+        "question": "Brady disclosure + AI facial recognition",
+        "prompt": "A defendant was identified via facial recognition + arrested. Post-arrest, defense counsel learns: (1) FR vendor's testing showed elevated error rates on the defendant's demographic group; (2) the FR match was overridden by a witness ID; (3) two prior wrongful-arrest cases in the same jurisdiction used the same FR system. What is the prosecution's Brady obligation? How does this interact with NAS 2009 + PCAST 2016 + FRE 702 (2023) gatekeeping? How might the Innocence Project frame this case for systemic reform?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_front_exoner",
+        "kind": "math_expression",
+        "question": "If the Innocence Project has produced 375 post-conviction DNA exonerations with an average wrongful incarceration of 14 years, what is the approximate total person-years of wrongful imprisonment? (Round to nearest 100.)",
+        "acceptedAnswers": [
+          "5250",
+          "5200",
+          "5300",
+          "5000"
+        ],
+        "hint": "$375 \\times 14 = 5250$ person-years."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_front",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how investigative genetic genealogy (Golden State Killer 2018), cognitive-bias research (Dror), NAS 2009 + PCAST 2016 + FRE 702 (2023), and the Innocence Project together define the modern forensic frontier.",
+        "rubric": "Mentions: IGG — dense-SNP arrays + public-genealogy databases (GEDmatch, FamilyTreeDNA) + genealogist tree-building — broke open Golden State Killer (DeAngelo April 2018) + has solved 300+ cases since; DOJ 2019 interim policy + privacy / Fourth-Amendment guardrails. Itiel Dror's cognitive-bias research transformed pattern-comparison methodology via context management + blind verification. NAS 2009 + PCAST 2016 evaluated pattern-evidence disciplines against Daubert + empirical validity — single-source DNA + fingerprint robust; complex DNA mixtures + firearms need further validation; footwear / microscopic hair / complex bite marks not foundationally valid. FRE 702 (2023) strengthens gatekeeping (preponderance of evidence). The Innocence Project (>375 DNA exonerations; ~52% involved invalid forensic science) drives systemic reform — Conviction Integrity Units, Brady disclosure, compensation statutes. AI in forensics (probabilistic genotyping, facial recognition critique, bloodstain ML) is the next frontier — with cognitive-bias control + empirical validation requirements built in. The modern forensic enterprise is empirical, accountable, statistically rigorous + reform-driven — far from Locard's 1910 attic."
+      }
+    }
+  ]
+}

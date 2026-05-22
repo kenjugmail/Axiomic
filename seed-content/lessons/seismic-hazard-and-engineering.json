@@ -1,0 +1,116 @@
+{
+  "slug": "seismic-hazard-and-engineering",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Explain probabilistic seismic hazard analysis (PSHA) and ground-motion prediction equations.",
+      "Relate response spectra and resonance to building damage and to seismic codes.",
+      "Describe liquefaction and the principles of earthquake early warning (ShakeAlert)."
+    ],
+    "prereqs": [
+      "magnitude-intensity-and-energy",
+      "seismometry-and-networks"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Probabilistic seismic hazard analysis and ground-motion models",
+      "body": "Engineers cannot design for the single \"worst\" earthquake, because both its size and its location are uncertain. The standard framework, **probabilistic seismic hazard analysis (PSHA)**, formalized by **C. Allin Cornell (1968)** and developed with **Luis Esteva**, instead estimates the **probability that a given level of ground motion will be exceeded at a site within a given time**. It combines three ingredients:\n\n- **Sources**: where earthquakes occur (mapped faults and area zones) and how often, using the **Gutenberg–Richter** frequency–magnitude law to set rates for each magnitude.\n- **Ground-motion model**: how strongly the ground shakes at the site for a given magnitude and distance.\n- **Probability integration**: summing over all magnitudes and distances, weighted by their rates.\n\nThe core result is the **hazard curve**, giving the **annual rate of exceedance** $\\lambda(y)$ of a ground-motion level $y$ (for example, peak ground acceleration). For a process treated as **Poissonian**, the probability of at least one exceedance in time $t$ is\n\n$$P(\\text{exceedance in } t) = 1 - e^{-\\lambda(y)\\,t}.$$\n\nDesign levels are quoted as a **return period** $T_R = 1/\\lambda$. The familiar building-code value of **10% probability of exceedance in 50 years** corresponds to a return period of about **475 years** (since $-50/\\ln(0.90) \\approx 475$); critical facilities use 2% in 50 years (about 2475 years). **Deaggregation** then identifies which magnitude–distance pairs dominate the hazard at a chosen level, defining a **design earthquake**.\n\nThe ground-motion ingredient is a **ground-motion prediction equation (GMPE)**, also called a **ground-motion model (GMM)**. A GMPE predicts a shaking measure — peak ground acceleration (PGA), peak ground velocity, or spectral acceleration at a given period — as a function of **magnitude $M$**, **distance $R$**, **site condition** (often the shear-wave velocity in the top 30 m, $V_{S30}$), and **faulting style**. Schematically,\n\n$$\\ln(Y) = f(M) - g(\\ln R) + h(\\text{site}) + \\varepsilon,$$\n\nwith $f$ increasing in magnitude, the **geometric-spreading** term $g$ decreasing with distance, a site term, and a random residual $\\varepsilon$ whose **standard deviation (sigma)** is itself a major contributor to computed hazard. Modern GMPEs come from large collaborative datasets such as the **NGA-West2** project. The U.S. embodiment of all this is the **USGS National Seismic Hazard Model**, which produces the hazard maps underlying building codes nationwide."
+    },
+    {
+      "kind": "text",
+      "title": "Response spectra, resonance, and structural damage",
+      "body": "Why do some buildings collapse while neighbors stand? Much of the answer is **resonance**. A structure has natural **modes of vibration**, each with a **natural period**. The fundamental period of a building is approximated in codes by\n\n$$T \\approx 0.1\\,N \\ \\text{seconds},$$\n\nwhere $N$ is the number of storeys — so a 10-storey building has a fundamental period near $1$ second. When the **dominant period of ground shaking** coincides with a building's natural period, the response is amplified dramatically and damage soars. The catastrophic collapse of mid-rise buildings in the **1985 Mexico City** earthquake is the canonical example: soft lake-bed clays amplified ground motion at periods near $2$ seconds, matching the natural period of 6-to-15-storey buildings, which resonated and failed while shorter and taller structures fared better.\n\nThe engineer's central tool is the **response spectrum**, introduced by **Maurice Biot** in the 1930s and championed by **George W. Housner**. It is computed by subjecting a family of **single-degree-of-freedom oscillators**, each with a different natural period $T$ and a damping ratio (conventionally **5%**), to a recorded ground-motion **accelerogram**, and plotting the **peak response** (acceleration, velocity, or displacement) versus $T$. The resulting curve tells a designer, at a glance, how hard a structure of any given period would be shaken by that ground motion. The peak pseudo-acceleration $S_a(T)$ at the structure's period, multiplied by its mass, gives the design **base shear** force. Spectra also reveal site effects: soft soils push the spectral peak to longer periods, explaining the Mexico City disaster.\n\nThese ideas are encoded in **seismic design codes**. In the United States the lineage runs from the **Uniform Building Code (UBC)** through the modern **International Building Code (IBC)** and **ASCE 7**, all drawing **design response spectra** from USGS hazard maps. The governing philosophy is **capacity design / ductility**: rather than make a building rigid enough to resist the full elastic force (often impossible and uneconomical), engineers detail it to **deform inelastically without collapsing**, dissipating energy through controlled yielding in chosen elements. Pioneering work by **John Blume**, **Nathan Newmark**, and **Emilio Rosenblueth** established the response-spectrum and ductility-based design that remains standard. Additional protection comes from **base isolation** (decoupling a building from the ground on flexible bearings, which *lengthens* its period away from the resonant range) and **tuned mass dampers** and **viscous dampers** that bleed off vibrational energy. The thread connecting all of these is matching — or deliberately mismatching — periods to control resonance."
+    },
+    {
+      "kind": "text",
+      "title": "Liquefaction and earthquake early warning",
+      "body": "Strong shaking endangers structures not only by inertia but by **changing the ground itself**. The most dramatic such phenomenon is **soil liquefaction**. In saturated, loose, granular soils (sands and silts below the water table), the rapid cyclic shear of an earthquake makes the grains tend to compact. Because water cannot drain away in the few seconds available (an **undrained** condition), the **pore-water pressure** rises sharply. When the pore pressure approaches the total confining stress, the **effective stress** — the grain-to-grain contact stress that gives soil its strength — drops toward zero, following **Karl von Terzaghi's** principle\n\n$$\\sigma' = \\sigma - u,$$\n\nwhere $\\sigma$ is total stress, $u$ is pore pressure, and $\\sigma'$ is effective stress. With $\\sigma' \\to 0$ the soil temporarily behaves like a heavy liquid: buildings tilt or sink, buried tanks float upward, and **sand boils** erupt at the surface. The **1964 Niigata (Japan)** earthquake, where apartment blocks toppled intact onto their sides, and the same year's **Alaska** earthquake are the classic case histories; liquefaction also devastated parts of **Christchurch, New Zealand (2010–2011)**. Engineers mitigate it by densifying soils, improving drainage, or founding structures on deep piles below the liquefiable layer.\n\nThe second frontier is **earthquake early warning (EEW)** — not prediction (which remains scientifically infeasible) but a race against the waves. The key physics is that **electromagnetic signals (data) travel at the speed of light, far faster than seismic waves**, and that the fast, low-amplitude **P wave arrives seconds before the destructive S and surface waves**. A dense network detects the P wave near the epicenter, rapidly estimates the location and magnitude, and broadcasts an alert to areas that have not yet been struck. The available **warning time** grows with distance from the source: regions far away may get tens of seconds — enough to slow trains, stop elevators at the nearest floor, halt surgeries, and trigger \"drop, cover, and hold on.\"\n\nReal systems include Japan's nationwide warning run by the **Japan Meteorological Agency (JMA)**, Mexico's **SASMEX**, and the U.S. West Coast's **ShakeAlert**, operated by the **USGS** with university partners and delivered through phone alerts and the **Wireless Emergency Alerts** system. The inherent limitation is the **blind zone** directly around the epicenter, where strong shaking arrives before any alert can — the very place that shakes hardest. EEW is thus the operational payoff of everything earlier in this path: dense real-time networks, rapid location and magnitude, and ground-motion models, all harnessed to buy a few life-saving seconds."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_haz_1",
+        "kind": "multiple_choice",
+        "question": "In **probabilistic seismic hazard analysis (PSHA)**, what does a **hazard curve** show?",
+        "options": [
+          "The exact magnitude of the next earthquake at the site.",
+          "The annual rate (or probability) of exceeding each level of ground motion at a site, integrated over all contributing magnitudes and distances.",
+          "The depth of every fault near the site.",
+          "The cost of retrofitting a building."
+        ],
+        "correctIndex": 1,
+        "explanation": "A hazard curve plots a ground-motion level (e.g., PGA) against its annual rate of exceedance $\\lambda(y)$, obtained by integrating contributions from all sources (with Gutenberg–Richter rates) and all magnitude–distance pairs through a ground-motion model. Design levels are read off as return periods $T_R = 1/\\lambda$; '10% in 50 years' corresponds to about a 475-year return period. PSHA does not predict the next event's magnitude."
+      },
+      "hints": [
+        "PSHA is about probabilities of exceedance, not a single deterministic event.",
+        "What is plotted on each axis of a hazard curve?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "PSHA (Cornell, 1968) integrates over where and how often earthquakes occur (sources with Gutenberg–Richter rates) and how strongly they shake the site (a ground-motion model) to produce a hazard curve: ground-motion level versus its annual rate of exceedance $\\lambda(y)$. Treating occurrence as Poissonian, the probability of exceedance in time $t$ is $1 - e^{-\\lambda t}$, and design levels are quoted as return periods $T_R = 1/\\lambda$ (e.g., 10% in 50 years $\\approx$ 475 years). It is explicitly probabilistic and does not forecast the next earthquake's size."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_haz_1",
+        "kind": "math_expression",
+        "question": "A design level has a 10% probability of exceedance in 50 years. Treating occurrence as Poissonian, the return period is $T_R = -t/\\ln(1-p) = -50/\\ln(0.90)$. Compute $T_R$ in years (nearest 5 years).",
+        "acceptedAnswers": [
+          "475",
+          "~475",
+          "475 years",
+          "474",
+          "474.6"
+        ],
+        "hint": "$\\ln(0.90) \\approx -0.1054$; divide $-50$ by that."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_haz_2",
+        "kind": "multiple_choice",
+        "question": "Why did 6-to-15-storey buildings suffer disproportionate collapse in the **1985 Mexico City** earthquake?",
+        "options": [
+          "They were built without any steel reinforcement.",
+          "Soft lake-bed soils amplified ground motion at periods near 2 seconds, which matched the natural periods of mid-rise buildings ($T \\approx 0.1N$), driving resonance and large amplified response.",
+          "They were closest to the epicenter, which was directly beneath the city.",
+          "Taller buildings always collapse before shorter ones."
+        ],
+        "correctIndex": 1,
+        "explanation": "The fundamental period of a building is roughly $T \\approx 0.1N$ seconds for $N$ storeys, so 6–15 storey buildings have periods near 1–1.5 s, and the lake-bed clays of Mexico City amplified shaking at periods near 2 s. The match drove resonance, amplifying the response of mid-rise buildings far above what the epicentral distance (hundreds of km away) would otherwise produce, while very short and very tall structures, with different periods, fared better."
+      },
+      "hints": [
+        "Estimate the buildings' natural period from $T \\approx 0.1N$.",
+        "What period did the soft soil amplify, and does it match?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "A building's fundamental period is approximately $T \\approx 0.1N$ s for $N$ storeys, so mid-rise (6–15 storey) buildings have periods near 1–1.5 s. The soft lake-bed clays beneath Mexico City strongly amplified ground motion at periods around 2 s. Because the soil's amplified period overlapped the mid-rise buildings' natural periods, those buildings resonated and experienced greatly amplified response, leading to collapse — even though the epicenter was hundreds of kilometres away. Stiff low-rise and flexible high-rise structures, with periods off the amplified band, were far less affected. This is the textbook lesson on site amplification plus resonance."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_haz_1",
+        "kind": "scenario",
+        "question": "How earthquake early warning buys time.",
+        "prompt": "A magnitude 7 earthquake ruptures on a fault 90 km from a major city served by ShakeAlert. Sensors near the epicenter detect the P wave almost immediately, and the system estimates the location and magnitude within a few seconds. Explain why the city can receive a warning before strong shaking arrives, using the facts that data travel at the speed of light while seismic waves travel at a few km/s and that the P wave outruns the damaging S and surface waves. Then explain what a 'blind zone' is and why the area right at the epicenter gets little or no useful warning."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_haz_2",
+        "kind": "math_expression",
+        "question": "Using Terzaghi's principle $\\sigma' = \\sigma - u$, a saturated sand layer has total vertical stress $\\sigma = 100$ kPa. During shaking the pore-water pressure rises to $u = 100$ kPa. What is the effective stress $\\sigma'$ (kPa), and hence the soil's shear strength state?",
+        "acceptedAnswers": [
+          "0",
+          "0 kPa",
+          "zero"
+        ],
+        "hint": "Subtract: $100 - 100$. When $\\sigma' \\to 0$ the soil loses strength (liquefies)."
+      }
+    }
+  ]
+}

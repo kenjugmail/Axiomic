@@ -1,0 +1,170 @@
+{
+  "slug": "streaming-and-event-systems",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Understand the log abstraction + Kafka + Pulsar + Kinesis.",
+      "Reason about stream processing + watermarks + exactly-once.",
+      "Apply CDC + outbox + saga + CQRS + event sourcing."
+    ],
+    "prereqs": [
+      "replication-and-quorums"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The log: Kafka, Pulsar, Kinesis, Redpanda",
+      "body": "**The Log** (Jay Kreps 2014, LinkedIn → Confluent, 'The Log: What every software engineer should know about real-time data's unifying abstraction'): an append-only, totally-ordered, durable record of events is the single most important abstraction in modern data systems. Logs unify replication, recovery, integration, change data capture, audit, + event-driven design. Inspired by database WALs (Gray + Reuter), Replicated State Machines (Schneider 1990), + the early Bayou + ISIS systems.\n\n**Apache Kafka** (Kreps, Narkhede, Rao 2011 LinkedIn → Apache → Confluent): distributed commit log + pub/sub messaging. Concepts:\n- **Topic**: stream of records, partitioned for parallelism.\n- **Partition**: append-only ordered log; one writer (leader) + N replicas.\n- **Producer**: appends records to a partition (via key-hash or round-robin).\n- **Consumer / consumer group**: parallel readers with cursor (offset).\n- **Broker**: server hosting partitions.\n- **ZooKeeper → KRaft (Kafka Raft)**: cluster metadata (since Kafka 3.x).\n- **Retention**: time-based (e.g., 7 days) or size-based; **log compaction** keeps latest value per key forever.\n- **Replication**: leader-based per partition with **in-sync replicas (ISR)** — followers in sync with leader for that partition.\n- **Exactly-once**: idempotent producers + transactional API (Kafka transactions across partitions).\n- **Scale**: trillions of events/day at LinkedIn, Netflix, Uber, Spotify, Airbnb.\n\n**Apache Pulsar** (Yahoo 2016 → Apache → StreamNative): geo-replicated pub/sub. Key differences from Kafka:\n- **Segmented log** stored in **Apache BookKeeper** — separates compute (brokers) from storage (bookies), enabling elastic scaling + per-segment placement.\n- **Multi-tenancy + namespaces** built in.\n- **Geo-replication** at protocol level.\n- **Queue + stream + work-queue** semantics in one product.\n\n**AWS Kinesis** (Streams + Firehose): managed Kafka-like service on AWS. Shards = partitions; provisioned or on-demand. Tight integration with Lambda + S3 + Redshift.\n\n**Redpanda** (Vectorized, 2019+): Kafka-compatible C++ broker (no JVM, no ZooKeeper from day 1, uses Raft for replication). Single binary, low tail latency, hardware-aware.\n\n**Google Pub/Sub** + **Azure Event Hubs** + **NATS JetStream** + **Apache RocketMQ** — additional players in the same space.\n\n**Why a log instead of a queue?**\n- Multiple consumers can replay from any offset (queues consume-and-discard).\n- Log is the source of truth; consumer state is just an offset.\n- Materialized views, derived stores, CDC sinks all consume the same log.\n- Kreps's vision: 'the log is the new database'.\n\n**Total order per partition**, partial order across partitions. Choose partition key carefully — typically domain key (user_id, account_id) to keep related events ordered + processable in parallel.\n\n**Performance tricks**: sequential writes to disk, zero-copy `sendfile`, page cache, batching, compression (gzip, snappy, lz4, zstd). Kafka can sustain millions of msg/sec per broker."
+    },
+    {
+      "kind": "text",
+      "title": "Stream processing: Flink, Spark Streaming, ksqlDB, Materialize, watermarks, exactly-once",
+      "body": "**Stream processing** transforms + aggregates event streams continuously, in contrast to batch processing.\n\n**Apache Flink** (Carbone, Katsifodimos, Markl, Tzoumas et al. 2015 from DataArtisans → Ververica): true streaming-first. Key features:\n- **Dataflow** model with stateful operators.\n- **Event-time** semantics + **watermarks** (next slide).\n- **Exactly-once** state via Chandy-Lamport asynchronous distributed snapshots (Asynchronous Barrier Snapshotting) + RocksDB state backend.\n- **Savepoints** + state versioning.\n- Used at Alibaba (largest deployment, trillions events/day), Uber, Netflix, Stripe, ING.\n\n**Apache Spark Streaming + Structured Streaming**: micro-batch streaming on Spark. Lower-latency in 'continuous processing' mode (still experimental). DataFrame API on top of streams. Easier transition from batch.\n\n**ksqlDB** (Confluent): SQL on Kafka streams + tables; built on Kafka Streams library.\n\n**Kafka Streams**: lightweight stream-processing library running inside your application, no separate cluster. Java/Scala.\n\n**Materialize / RisingWave**: streaming SQL with materialized views over event streams; differential dataflow (Naiad-derived, McSherry et al.). Provide incrementally maintained SQL views with strong consistency.\n\n**Apache Beam** (Google's Cloud Dataflow → open): unified batch + streaming programming model. Runners include Flink, Spark, Dataflow.\n\n**Time semantics + watermarks** (Akidau et al. 2015 Google MillWheel + Dataflow VLDB):\n- **Event time**: when the event occurred at the source.\n- **Processing time**: when it's seen by the system (subject to network delays, retries).\n- **Ingestion time**: when it arrives at the pipeline.\n- **Watermarks** estimate 'we've probably seen all events up to time T' — drive window triggers + late-data handling.\n- Late events: drop, late-arriving (re-trigger window), or side-output.\n- **Windows**: tumbling (fixed non-overlap), sliding, session (gap-based), global.\n\n**Exactly-once semantics**:\n- **At-most-once**: simple, lossy.\n- **At-least-once**: simple, requires idempotent consumers.\n- **Exactly-once**: requires transactional sinks + checkpointing or two-phase commit (Flink TwoPhaseCommitSinkFunction, Kafka transactions).\n- 'Exactly-once' is really 'exactly-once effects' — the system retries internally but external effects appear once. Idempotency keys + transactional outboxes help.\n\n**State backends + checkpointing**:\n- **Flink**: RocksDB state + asynchronous checkpoints to S3/HDFS via barriers (Chandy-Lamport).\n- **Spark**: RDD lineage + checkpointing.\n- **Kafka Streams**: local RocksDB + changelog topics.\n\n**Tail latency** in streaming: end-to-end p99 ranges from 10s of ms (Flink continuous) to seconds (Spark micro-batch). Choose based on SLA.\n\n**Production patterns**:\n- **Real-time analytics dashboards** (Flink + Druid/ClickHouse).\n- **Fraud detection** (Flink + ML model serving).\n- **Personalization + recommendation** (Kafka + Flink + feature stores).\n- **Real-time ETL** (Debezium → Kafka → Flink → data lake).\n- **Anomaly detection** (Kafka + ksqlDB / Flink).\n\n**Lambda → Kappa architecture** (Kreps 2014): instead of separate batch + streaming pipelines (Lambda, Marz 2011), use the log as single source of truth + reprocess by replay (Kappa). Simplifies operations; underpins modern data platforms."
+    },
+    {
+      "kind": "text",
+      "title": "Event-driven architecture: CDC, outbox, saga, CQRS, event sourcing",
+      "body": "**Event-driven architecture (EDA)**: systems communicate primarily via asynchronous events on streams rather than synchronous calls. Decouples producers + consumers, enables independent scaling + evolution.\n\n**Change Data Capture (CDC)**: emit a stream of row-level changes from a source database. Two approaches:\n- **Log-based CDC**: tail the database WAL (Postgres logical decoding, MySQL binlog, MongoDB oplog, SQL Server CDC). High-fidelity, low overhead. **Debezium** (Red Hat → Apache) is the leading open-source connector; emits to Kafka.\n- **Query-based CDC**: poll updated_at timestamps. Lossy + creates load.\n\n**The Outbox Pattern** (Helland, then popularized in microservices literature): write to your DB + an outbox table in the same transaction; a separate process reads the outbox + publishes to Kafka. Solves the dual-write problem (DB + queue can't be atomic without 2PC) + guarantees at-least-once delivery to the event stream. Debezium reads the outbox table directly.\n\n**Transactional dual writes** without outbox are an anti-pattern (Kleppmann, Helland) — leads to lost events on crash between DB commit + queue publish.\n\n**Saga pattern** (Garcia-Molina + Salem 1987, sagas as long-running transactions): a long business transaction modeled as a sequence of local transactions, each with a compensating action. Two coordination styles:\n- **Choreography**: each service reacts to events; no central coordinator.\n- **Orchestration**: a central saga orchestrator (Temporal, Camunda, AWS Step Functions, Cadence) drives the sequence + handles compensations.\n- Trade-offs: orchestration is easier to reason about + monitor; choreography is more decoupled.\n\n**CQRS (Command Query Responsibility Segregation)** (Greg Young 2010): separate write model (commands) from read model (queries). Commands change state + publish events; queries hit denormalized read models built from events. Pairs well with event sourcing.\n\n**Event Sourcing** (Fowler, Young): store the sequence of events as the source of truth + derive current state by replay. Benefits: audit, temporal queries, replay/repair, time-travel debugging. Costs: schema evolution of events, snapshots for performance, GDPR right-to-be-forgotten complications. Used in trading systems, accounting, healthcare.\n\n**Event-Carried State Transfer (ECST)** vs **event notification**: events can either carry full state (large but self-contained) or just an ID (small but consumers must query). Common: hybrid — event carries enough for typical consumers, ID for others to fetch.\n\n**Distributed transactions + 2PC alternatives**: Helland's 'Life Beyond Distributed Transactions' (2007) + Brewer's CAP + Pat Helland's 'Memories, Guesses, and Apologies' (2007) — embrace immutability + idempotency + apologies; build durable systems around events not RPC chains.\n\n**Idempotency keys**: every external command carries a unique key; the receiver dedupes within a TTL. Critical for at-least-once delivery + retries (Stripe popularized).\n\n**Event store implementations**: EventStoreDB (Greg Young), Axon Framework, Marten on Postgres, Kafka + KTable, plain log on Cassandra/DynamoDB.\n\n**Examples**:\n- **Netflix Keystone** (Kafka + Flink + S3) — telemetry + experimentation.\n- **Uber's pricing + matching** — event-driven.\n- **LinkedIn's data ecosystem** — Kafka-centric (Kreps's vision realized).\n- **Stripe + Square payments** — sagas + outbox + idempotency.\n- **Confluent's data mesh** — federated streaming.\n\n**Pitfalls**:\n- **Schema evolution**: use Avro + schema registry; never break consumers.\n- **Replay storms**: rebuilding read models from a long log can swamp downstream — plan compactions + snapshots.\n- **Ordering across topics**: only per-partition order is guaranteed; design partition keys around aggregates.\n- **GDPR / right-to-be-forgotten**: encrypt PII per user + drop key on deletion ('crypto-shredding').\n- **Debugging async flows**: distributed tracing (OpenTelemetry) + saga ID propagation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_strm_1",
+        "kind": "guided_derivation",
+        "question": "Design an event-driven order pipeline",
+        "goal": "An e-commerce system: order placed → payment authorized → inventory reserved → shipping arranged → notification sent. Design with Kafka + Flink + CDC + saga.",
+        "steps": [
+          {
+            "prompt": "How do we get an order from the OLTP database into the event stream reliably?",
+            "motivation": "Avoid dual-write.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "outbox pattern: write order + outbox row in one DB transaction; Debezium tails outbox to Kafka"
+              ]
+            },
+            "hints": [
+              "Helland + Debezium."
+            ],
+            "reveal": "**Outbox pattern**: in the same DB transaction, write to `orders` + `outbox` tables. **Debezium** tails the Postgres WAL or outbox table → Kafka topic. This avoids the dual-write anti-pattern (Helland, Kleppmann) + gives at-least-once delivery semantics with the DB as source of truth."
+          },
+          {
+            "prompt": "What pattern coordinates payment + inventory + shipping?",
+            "motivation": "Long-running business transaction.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "saga pattern (Garcia-Molina + Salem 1987) with orchestrator (Temporal/Camunda) or choreography"
+              ]
+            },
+            "hints": [
+              "Compensating actions."
+            ],
+            "reveal": "**Saga** (Garcia-Molina-Salem 1987). Choose orchestration (Temporal, AWS Step Functions, Camunda) for visibility + control or choreography (each service reacts to events) for decoupling. Each step has a **compensating action**: failed shipping → release inventory + refund payment. Carry a **saga_id** + **idempotency_key** through every step."
+          },
+          {
+            "prompt": "How does stream processing fit in (e.g., real-time dashboard of order rates)?",
+            "motivation": "Flink window over event-time.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Flink with event-time windows + watermarks + RocksDB state + exactly-once checkpointing"
+              ]
+            },
+            "hints": [
+              "Akidau watermarks."
+            ],
+            "reveal": "**Flink job** reads the Kafka `orders` topic; uses **event-time** windows (Akidau et al. 2015) + **watermarks** to handle out-of-order events; computes per-region order rate every minute. **Exactly-once** sink to a dashboard backing store (Elasticsearch, ClickHouse) via Flink's TwoPhaseCommitSinkFunction or Kafka transactions. State stored in RocksDB + checkpointed to S3 via Chandy-Lamport asynchronous snapshots."
+          },
+          {
+            "prompt": "What about GDPR-style deletion of an old customer's events?",
+            "motivation": "Right-to-be-forgotten.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "crypto-shredding: encrypt PII per user; drop the key on deletion request"
+              ]
+            },
+            "hints": [
+              "Encrypt PII; drop key."
+            ],
+            "reveal": "**Crypto-shredding**: encrypt PII fields in events with a per-user data-encryption key (DEK); store DEKs in a key-vault. On GDPR deletion request, delete the DEK — events remain in the log (immutable) but are unreadable. Standard pattern in event-sourced systems where you cannot rewrite the log. Combine with key-versioning + audit."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_strm_1",
+        "kind": "multiple_choice",
+        "question": "Why did Jay Kreps call the log 'the unifying abstraction' of data systems?",
+        "options": [
+          "Random.",
+          "Kreps (2014 'The Log') unified database replication, change data capture, recovery, integration, event-driven design, + stream processing under one model: an **append-only totally-ordered durable log**. Internally, every database has a write-ahead log; replicating that log gives replication (Schneider 1990 state-machine replication). Exposing it externally gives CDC (Debezium); reading it as a stream gives event-driven architecture; computing on it gives stream processing (Flink, ksqlDB, Materialize); replaying it gives event sourcing + recovery. Kafka turned the internal log into a platform-level primitive — letting many systems integrate via the log instead of N×M connectors. Kreps's vision (LinkedIn → Confluent) drove the streaming-first data architecture (Kappa) replacing the older Lambda batch+streaming dichotomy (Marz 2011). Pulsar, Kinesis, Redpanda extend the same idea.",
+          "Logs are old.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Kreps (2014) showed an append-only ordered durable log unifies replication, CDC, recovery, integration, event-driven systems, + stream processing. Kafka exposed this as platform primitive. Replaces N×M connectors with a single stream. Kappa replaces Lambda (Marz 2011)."
+      },
+      "hints": [
+        "What does a log unify?",
+        "Kappa vs Lambda."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Logs unify replication (Schneider 1990) + CDC + recovery + integration + event sourcing + stream processing. Kreps (2014) + Kafka turned this into platform primitive. Kappa replaces Lambda."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_strm_1",
+        "kind": "scenario",
+        "question": "Production: a microservice writes to its DB then publishes a Kafka event. A crash between the two leaves the DB updated but no event. Best fix?",
+        "options": [
+          "Adopt the **transactional outbox** pattern: write business row + outbox row in one DB transaction; CDC (Debezium) tails the outbox into Kafka. Eliminates dual-write inconsistency; guarantees at-least-once delivery anchored on the DB transaction.",
+          "Two-phase commit across DB + Kafka.",
+          "Retry harder.",
+          "Random."
+        ],
+        "correctIndex": 0,
+        "explanation": "The **dual-write problem** (Helland, Kleppmann): you cannot atomically update two systems without 2PC, which is fragile + slow across heterogeneous systems. **Outbox pattern** colocates the event with the DB transaction; **Debezium** or a polling process publishes it to Kafka asynchronously, retrying until success. Consumers must be **idempotent** (idempotency keys + dedupe) since outbox guarantees at-least-once. Standard pattern at Stripe, Shopify, Square, Netflix."
+      },
+      "hints": [
+        "Avoid dual-write.",
+        "Outbox + CDC."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Use transactional outbox: DB transaction writes row + outbox; Debezium publishes outbox to Kafka. Consumers idempotent. Replaces fragile 2PC across DB + queue."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_strm_1",
+        "kind": "math_expression",
+        "question": "A Flink job has 32 parallel tasks + reads from a Kafka topic with 64 partitions. How many partitions does each task read (assuming even assignment)?",
+        "acceptedAnswers": [
+          "2",
+          "64 / 32",
+          "64/32"
+        ],
+        "hints": [
+          "Partitions / tasks.",
+          "Even division."
+        ],
+        "explanation": "Each Flink task reads partitions / tasks = 64 / 32 = **2** partitions. Best practice: choose partition count ≥ max expected parallelism so jobs can scale up without re-partitioning. Kafka allows multiple consumers in a group up to one per partition; extra consumers stay idle. For a 32-task Flink job reading 64 partitions, each task gets exactly 2 partitions; raising parallelism to 64 makes each task read 1; raising further leaves some tasks idle unless partition count is also increased."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_strm_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how the log abstraction + CDC + outbox + saga together compose a modern event-driven architecture.",
+        "rubric": "Mentions: **Log** (Kreps 2014) is the append-only ordered durable record — implemented by Kafka, Pulsar, Kinesis, Redpanda. **CDC** (Debezium) tails database WAL → emits row-change events to the log, integrating OLTP with downstream consumers. **Outbox pattern** (Helland-derived) avoids the dual-write anti-pattern by writing business row + outbox row in one DB transaction; Debezium publishes outbox to Kafka with at-least-once guarantees. **Saga** (Garcia-Molina-Salem 1987) coordinates long-running multi-service business transactions via local transactions + compensating actions; choreography or orchestration (Temporal, Step Functions). **Stream processors** (Flink, ksqlDB, Materialize) compute over the log with event-time + watermarks (Akidau 2015) + exactly-once (Chandy-Lamport snapshots) for analytics + ML features. **CQRS + event sourcing** (Young) separate write + read models. **Idempotency keys** make at-least-once safe. Together: a Kappa-style architecture (replaces Lambda, Marz 2011) where the log is the source of truth + everything else is a derived view."
+      }
+    }
+  ]
+}

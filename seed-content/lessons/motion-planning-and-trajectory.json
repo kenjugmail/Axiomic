@@ -1,0 +1,154 @@
+{
+  "slug": "motion-planning-and-trajectory",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Reason in configuration space with C-obstacles and Minkowski sums.",
+      "Apply sampling-based planners: PRM, RRT, RRT*, BIT*, RRT-Connect.",
+      "Smooth trajectories via STOMP, CHOMP, TrajOpt, iLQR/DDP and integrate with MPC."
+    ],
+    "prereqs": [
+      "robotics-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Configuration space, obstacles, and the planning problem",
+      "body": "**Motion planning**: find a continuous path from a start configuration q_start to a goal q_goal that avoids obstacles and respects constraints.\n\n**Configuration space C (Lozano-Pérez 1979; Latombe textbook 1991)**: the set of all valid robot configurations.\n- A planar mobile robot has C ⊂ ℝ² (or ℝ² × S¹ with heading).\n- A 6-DOF arm has C ⊂ ℝ⁶ or T⁶ (six joint angles).\n- A floating-base humanoid has C ⊂ SE(3) × ℝⁿ — high-dimensional.\n- Tomás **Lozano-Pérez (MIT)** introduced this formulation; Jean-Claude **Latombe (Stanford)** + Steven **LaValle (UIUC)** wrote the foundational textbooks.\n\n**C-obstacles**: the projection of workspace obstacles into configuration space. A robot configuration q is in collision iff its physical footprint intersects an obstacle.\n\n**Minkowski sum**: for a translating-only mobile robot R and obstacle O, the C-obstacle is the **Minkowski sum** C_O = O ⊕ (−R) = {o − r : o ∈ O, r ∈ R}. The robot at q is in collision iff q ∈ C_O. For 2D polygonal robot + obstacles this can be computed exactly. For arms it's intractable analytically — we use collision-detection libraries (FCL, Bullet, libccd, Drake) and **discretize** the planning over C via sampling.\n\n**Planning problem**: find a continuous path γ: [0,1] → C_free with γ(0) = q_start, γ(1) = q_goal.\n\n**Complexity**:\n- **Piano mover's problem**: provably PSPACE-hard in number of DOF (Reif 1979; Canny 1988). The general planning problem cannot be solved in polynomial time in the worst case.\n- For polynomial constraints + bounded DOF, Canny's algorithm (1988) solved it in single-exponential time — the first complete algorithm. Impractical but theoretically important.\n- This motivated **sampling-based planners**: trade completeness for tractability.\n\n**Discrete planning on graphs**: when the problem reduces to a graph (grid, road network), use **A*** (Hart-Nilsson-Raphael 1968, born from Shakey) with admissible heuristic; **Dijkstra**, **D\\* / D-Lite (Stentz 1994; Koenig + Likhachev 2005)** for replanning. Used for mobile robots on occupancy grids + visibility graphs.\n\n**Cell decomposition** (Latombe textbook): split C into cells (exact polygonal, approximate quadtree). Plan on the dual graph. Works in 2D-3D; doesn't scale.\n\n**Potential fields (Khatib 1986)**: attractive potential to goal + repulsive from obstacles. Gradient descent in C. Elegant — but classic problem of **local minima**. Reactive, fast, used in collision avoidance layers but not as a complete planner."
+    },
+    {
+      "kind": "text",
+      "title": "Sampling-based planning: PRM, RRT, RRT*, BIT*",
+      "body": "The sampling-based revolution (1990s) made high-DOF planning practical by exchanging completeness for **probabilistic completeness** (probability of success → 1 as samples → ∞).\n\n**Probabilistic Roadmap (PRM)** — **Lydia Kavraki + Petr Švestka + Latombe + Overmars (1996)**:\n- **Learning phase (offline)**: sample N random configurations; collision-check; connect nearby samples with collision-free local paths → roadmap graph.\n- **Query phase (online)**: connect q_start, q_goal to roadmap; run A* / Dijkstra.\n- Probabilistically complete; **multi-query** (one roadmap, many starts/goals); good for static environments.\n- **PRM\\*** (Karaman + Frazzoli 2011): asymptotically optimal variant.\n- **Visibility PRM, Gaussian PRM, OBPRM** — sampling heuristics for narrow passages (the classic challenge).\n\n**Rapidly-exploring Random Tree (RRT)** — **Steven LaValle (UIUC) 1998**:\n- Single-query: grow a tree from q_start.\n- Repeat: sample q_rand in C; find nearest tree node q_near; extend toward q_rand by step Δ; check collision; add if free.\n- Bias toward unexplored regions (Voronoi bias). Probabilistically complete.\n- **RRT-Connect / RRT-Connect-Greedy (Kuffner + LaValle 2000)**: grow two trees from start + goal; swap; greedy connection. Fast in practice — workhorse of OMPL + MoveIt.\n- **RRT\\*** (Karaman + Frazzoli 2011): rewire neighbors within radius; asymptotically optimal. As samples → ∞, cost → optimal.\n- **Informed RRT\\*** (Gammell + Srinivasa + Barfoot 2014): once a path is found, sample inside the prolate hyperspheroid that could improve it. Dramatic speedup.\n- **BIT\\* (Batch Informed Trees, Gammell 2015)**: heuristic-guided batches; combines RRT* + A*. State-of-the-art for many domains.\n- **AIT\\*, ABIT\\* (Strub + Gammell 2020)**: adaptive heuristic; further speedup.\n\n**KPIECE (Şucan + Kavraki 2009)**: kinodynamic planner that discretizes the projected state space + grows tree with cell-based selection bias. Standard for systems with dynamics (cars, drones).\n\n**SST (Stable Sparse Tree, Li + Bekris 2016)**: asymptotically (near-)optimal kinodynamic planner without steering function.\n\n**Multi-query vs single-query**:\n- PRM family: build roadmap once, query many times (mobile robots in known maps).\n- RRT family: per-query trees (manipulation, changing scenes).\n\n**OMPL (Open Motion Planning Library, Şucan + Moll + Kavraki 2012, Rice University)**: open-source framework collecting all major sampling planners. Integrated into ROS MoveIt — the standard manipulation planning library.\n\n**Constrained planning**: when planning on manifolds (closed kinematic chains, contact constraints, task-space constraints). Tangent-bundle RRT, CBiRRT (Berenson 2009), projection-based methods.\n\n**Search-based planning**: SBPL (Likhachev) lattice planners with motion primitives for ground vehicles; ARA*, AD*, Anytime D*."
+    },
+    {
+      "kind": "text",
+      "title": "Trajectory optimization: STOMP, CHOMP, TrajOpt, iLQR/DDP, and MPC",
+      "body": "Sampling-based planners give paths — often jerky, suboptimal. **Trajectory optimization** formulates planning as nonlinear optimization over a parameterized trajectory.\n\n**Setup**: trajectory ξ = (q_0, q_1, ..., q_T) (waypoints) or ξ(t) (continuous; B-spline, polynomial). Cost J(ξ) = smoothness + obstacle penalty + task cost. Optimize via gradient descent, Newton, or sampling.\n\n**CHOMP (Covariant Hamiltonian Optimization for Motion Planning) — Ratliff + Zucker + Stilman + Bagnell + Atkeson 2009**:\n- Functional gradient descent in trajectory space.\n- **Covariant gradient**: smoothness metric in the gradient itself; updates that preserve smoothness.\n- Obstacle cost from precomputed signed-distance field (SDF).\n- Often gets stuck in local minima; sensitive to initial trajectory.\n\n**STOMP (Stochastic Trajectory Optimization for Motion Planning) — Kalakrishnan + Schaal 2011**:\n- Sample noisy trajectories around current; weight by cost; update.\n- Gradient-free → handles non-differentiable costs (binary collision).\n- Standard in MoveIt alongside CHOMP.\n\n**TrajOpt (Schulman + Ho + Abbeel 2014, UC Berkeley)**:\n- Sequential quadratic programming (SQP) over discrete trajectory.\n- Constraints as penalties with continuous-collision-checking; convex sub-problems.\n- Highly effective for high-DOF arms; the basis of many modern systems.\n- John Schulman went on to OpenAI (PPO, ChatGPT).\n\n**iLQR / DDP — Differential Dynamic Programming (Jacobson + Mayne 1970; iLQR Todorov + Li 2005)**:\n- For dynamic systems with smooth dynamics + cost.\n- Bellman recursion linearized around current trajectory; iteratively improves.\n- O(N) in horizon; fast on hardware; used in MuJoCo, Drake, Crocoddyl.\n- The workhorse for legged + manipulation trajectory optimization. Underlies Boston Dynamics whole-body MPC.\n\n**Collocation methods (DIRCOL, DIRTRAN, SNOPT/IPOPT-based)**: parameterize trajectory + dynamics as nonlinear program; standard NLP solvers. Used in legged robotics + aerospace.\n\n**Contact-implicit trajectory optimization (Posa + Tedrake 2014)**: optimize through contact without specifying contact sequence — joint position + force + complementarity constraints.\n\n**Collision avoidance**:\n- **Signed distance field (SDF)** — precomputed; cheap gradient.\n- **GJK + EPA (Gilbert-Johnson-Keerthi; Expanding Polytope Algorithm)** — exact closest-point between convex bodies.\n- **Continuous collision detection**: avoid tunneling through thin obstacles.\n\n**Dynamic windows + reactive layers**:\n- **DWA (Fox-Burgard-Thrun 1997)**: dynamic window approach for mobile-robot local planning.\n- **TEB (Timed Elastic Band) + DWB**: ROS Navigation Stack local planners.\n- **VFH, ORCA, RVO** for multi-agent collision avoidance.\n\n**MPC integration**: trajectory optimization run online at 10-1000 Hz; replan each cycle, apply first action.\n- **Convex MPC** for legged robots (Cheetah 3, Mini Cheetah, Anymal).\n- **Whole-body MPC** (Boston Dynamics Atlas, RAI/ETH, Toyota Research).\n- **Differentiable MPC** + learning-based cost functions for adaptation.\n\n**Modern stacks** combine:\n1. Global sampling-based planner (RRT-Connect, BIT*) for coarse path.\n2. Trajectory optimization (TrajOpt, CHOMP) to smooth + add dynamics.\n3. MPC + low-level controller for execution + replanning.\n\nSoftware: OMPL (sampling), Drake (TrajOpt + iLQR), MoveIt (manipulation), Crocoddyl (legged trajopt), Aikido, ROS Navigation Stack."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_plan_rrt",
+        "kind": "guided_derivation",
+        "question": "Analyze RRT convergence",
+        "goal": "Why does RRT (LaValle 1998) explore C-space efficiently? Why is RRT* (Karaman + Frazzoli 2011) asymptotically optimal but RRT not?",
+        "steps": [
+          {
+            "prompt": "RRT's exploration property — Voronoi bias?",
+            "motivation": "Why does it cover space.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "uniform sampling biases extensions toward large Voronoi regions (unexplored areas), so tree grows toward frontier"
+              ]
+            },
+            "hints": [
+              "Where do random samples land?"
+            ],
+            "reveal": "Sample q_rand uniformly in C. Nearest node q_near is most likely to be a node with a large Voronoi cell — i.e., a frontier node. Extension grows the tree toward the unexplored region. This intrinsic Voronoi bias is why RRT explores rapidly + uniformly. It is **probabilistically complete**: probability of finding a feasible path → 1 as samples → ∞."
+          },
+          {
+            "prompt": "RRT finds *a* feasible path. Why is it not *optimal*?",
+            "motivation": "Greedy extension.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "RRT extends each new node from a single parent (nearest); no rewiring; path through tree is rarely shortest"
+              ]
+            },
+            "hints": [
+              "Single parent per node."
+            ],
+            "reveal": "RRT attaches each new node to its nearest tree node — a greedy choice. The path through the tree from root to any node is therefore the result of these greedy choices, generally far from optimal. Cost converges to a sub-optimal value (Karaman + Frazzoli proved this gap can be arbitrarily large)."
+          },
+          {
+            "prompt": "RRT*'s fix?",
+            "motivation": "Rewiring.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "find all neighbors within shrinking radius; choose parent giving lowest cost; rewire neighbors through new node if it shortens their cost"
+              ]
+            },
+            "hints": [
+              "Local rewiring."
+            ],
+            "reveal": "RRT* picks the parent that minimizes cost-to-come (not just nearest); after adding the node, checks all neighbors within a shrinking radius γ(log n / n)^(1/d) and rewires any whose cost would decrease via the new node. As n → ∞, the tree converges to the optimal one. **Asymptotically optimal + probabilistically complete**."
+          },
+          {
+            "prompt": "Informed RRT*'s further speedup?",
+            "motivation": "Sample shaping.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "once a path is found, only sample inside the prolate hyperspheroid (ellipsoid) that could yield a better path"
+              ]
+            },
+            "hints": [
+              "Sample in the heuristic envelope."
+            ],
+            "reveal": "Informed RRT* (Gammell + Srinivasa + Barfoot 2014): once cost c_best is found, the only configurations that could improve it lie inside the prolate hyperspheroid {q : ||q - q_start|| + ||q - q_goal|| ≤ c_best}. Sample only there. Dramatic speedup as c_best tightens. **BIT\\*** further generalizes this with batched heuristic search."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{RRT: probabilistically complete; RRT*: + asymptotically optimal via rewiring; Informed RRT*/BIT*: + heuristic sampling}}$$ LaValle + Kavraki + Karaman + Frazzoli + Gammell built the modern sampling-based planning pipeline. RRT-Connect + BIT* are the OMPL workhorses underlying MoveIt manipulation planning."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_plan_chomp",
+        "kind": "multiple_choice",
+        "question": "Why use trajectory optimization (CHOMP, STOMP, TrajOpt) downstream of a sampling-based planner like RRT-Connect?",
+        "options": [
+          "Random.",
+          "Sampling-based planners (RRT, RRT-Connect, BIT*) find a feasible path quickly but the path is often jerky, sub-optimal, and dynamics-agnostic. Trajectory optimization (CHOMP — Ratliff/Bagnell 2009; STOMP — Kalakrishnan/Schaal 2011; TrajOpt — Schulman/Abbeel 2014) takes that initial path as a warm start and refines it: smoothness, distance from obstacles (via SDF gradients), torque limits, time-optimality. The combination is the standard pipeline: sampling for global coverage + optimization for local refinement. iLQR/DDP go further by including full system dynamics. MPC layers run optimization continuously online for closed-loop replanning.",
+          "Magic.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Sampling = global coverage; optimization = local refinement. CHOMP/STOMP/TrajOpt smooth + add cost terms. iLQR/DDP add dynamics. MPC adds online replanning. The full stack is sampling → opt → MPC."
+      },
+      "hints": [
+        "Initial path quality.",
+        "Refining with gradients."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Sampling gives feasible but rough; optimization smooths + adds physics; MPC runs online. CHOMP (Ratliff/Bagnell), STOMP (Kalakrishnan/Schaal), TrajOpt (Schulman/Abbeel). iLQR/DDP for dynamics. Standard modern stack."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_plan_drone",
+        "kind": "scenario",
+        "question": "Drone obstacle course planning",
+        "prompt": "A quadrotor must autonomously fly through a series of windows + gates at high speed (15 m/s). Walk through a planning stack: global sampling planner (RRT* or BIT*) for path through the obstacle field; trajectory optimization (polynomial trajectory, minimum-snap à la Mellinger-Kumar 2011, or iLQR) with quadrotor dynamics + thrust + tilt constraints; MPC at 100-200 Hz for execution + disturbance rejection. Why is polynomial minimum-snap a natural trajectory parameterization for differentially-flat systems like a quadrotor?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_plan_minkowski",
+        "kind": "math_expression",
+        "question": "A circular mobile robot of radius r and a square obstacle of side s. What is the C-obstacle shape (in workspace) for the translating-only robot?",
+        "acceptedAnswers": [
+          "square of side s with rounded (radius-r) corners",
+          "rounded square of side s+2r (radius r corners)",
+          "Minkowski sum of square and disk: square inflated by r"
+        ],
+        "hint": "Minkowski sum of square + disk = square inflated by r with rounded corners."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_plan",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, summarize modern motion planning: from C-space and Minkowski sums to sampling planners, trajectory optimization, and MPC.",
+        "rubric": "Mentions configuration space C (Lozano-Pérez, Latombe, LaValle) and C-obstacles via Minkowski sum; that piano-mover's problem is PSPACE-hard (Reif/Canny); that sampling-based planners (PRM Kavraki 1996, RRT LaValle 1998, RRT-Connect Kuffner+LaValle, RRT* + Informed RRT* + BIT* by Karaman/Frazzoli/Gammell) made high-DOF planning practical; the difference between probabilistically complete (RRT) and asymptotically optimal (RRT*); trajectory optimization (CHOMP Ratliff/Bagnell, STOMP Kalakrishnan/Schaal, TrajOpt Schulman/Abbeel, iLQR/DDP) for smoothing + dynamics; MPC for online replanning; and the modern pipeline of global sample + local optimize + online MPC implemented in OMPL/MoveIt, Drake, Crocoddyl, and the proprietary stacks behind Boston Dynamics, Skydio, and self-driving cars."
+      }
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "slug": "navigation-and-airspace",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Explain the principles of pilotage, dead reckoning, and the wind triangle for cross-country navigation.",
+      "Identify ground-based and satellite navaids — VOR, NDB, DME, ILS, GPS/RNAV/WAAS — and describe what each provides.",
+      "Classify ICAO/US airspace classes A through G and state the equipment and weather minima for each."
+    ],
+    "prereqs": [
+      "flight-instruments-and-the-six-pack"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Finding your way: pilotage, dead reckoning, and the wind triangle",
+      "body": "Before electronics, pilots navigated by **pilotage** — comparing landmarks on a paper **sectional chart** (1:500,000 scale, published by the FAA's **Aeronautical Information Services**) to what they saw out the window: rivers, railroads, towns, reservoirs, distinctive terrain. Pilotage is still taught first because it never fails silently; the ground is its own ground truth.\n\n**Dead reckoning** extends pilotage into the invisible. You know your **true airspeed (TAS)**, your intended **true course (TC)**, and the forecast **wind** (direction + speed from winds-aloft forecasts, product FA or FB in the US system). The **wind triangle** — a vector diagram solved geometrically on a **flight computer (E6-B)** or digitally — combines these three vectors to give two results:\n1. **True heading (TH)**: the direction the nose must point to track the desired course.\n2. **Ground speed (GS)**: the actual speed over the ground, which determines fuel burn and ETA.\n\nThe wind correction angle (WCA) is the difference between TH and TC. A direct headwind reduces GS below TAS; a direct tailwind increases it; a crosswind demands a crab angle. The formula for WCA (small angles) is:\n$$WCA \\approx \\frac{W_\\perp}{TAS}\\times 57.3°$$\nwhere $W_\\perp$ is the crosswind component.\n\n**Magnetic variation** (also called *declination*) is the angular difference between **True North** and **Magnetic North**, caused by the offset between Earth's geographic and magnetic poles. It ranges from near 0° in parts of the Mississippi valley to more than 20°E along the Pacific Northwest coast. Isogonic lines on sectional charts (labeled, e.g., \"11°W\") mark equal variation. The mnemonic: **East is least, West is best** — subtract East variation and add West variation when converting true headings to magnetic.\n\n**Compass deviation** is a further correction caused by the aircraft's own ferrous metal and electrical fields acting on the magnetic compass. Each aircraft carries a **compass deviation card** (posted near the compass) that provides measured corrections for specific headings. A typical card might read: FOR 0° STEER 002°, FOR 90° STEER 088°.\n\nThe full conversion chain: TC → apply variation → Magnetic Course (MC) → apply deviation → Compass Course (CC). On the E6-B, a pilot converts True Airspeed from indicated airspeed using pressure altitude and temperature (the flight computer's circular slide-rule face), then solves the wind triangle on the vector face to find TH and GS. The same steps underlie every modern flight-planning tool, from **ForeFlight** to the avionics software of a **Boeing 737**."
+    },
+    {
+      "kind": "text",
+      "title": "Ground-based navaids: VOR, NDB, DME, and the ILS",
+      "body": "The postwar era produced a family of **ground-based radio navigation aids (navaids)** that defined IFR flying for sixty years. Most remain in service, though GPS has reduced their primacy.\n\n**VOR — VHF Omnidirectional Range** (108.0–117.95 MHz). Introduced in the US in the 1950s; became the **ICAO-standard** short-/medium-range navaid. A VOR transmits 360 radials, each identified by its magnetic bearing FROM the station. The aircraft's **Course Deviation Indicator (CDI)** or **HSI (Horizontal Situation Indicator)** displays whether the aircraft is left or right of the selected radial and whether it is flying TO or FROM the station. The **Federal Airway** system (Victor airways below 18,000 ft MSL; Jet routes above) is based on VOR-to-VOR routing. A **VORTAC** collocates a VOR with a military **TACAN**, providing bearing and distance.\n\n**NDB — Non-Directional Beacon** (190–535 kHz, low/medium frequency). Older than VOR; still common internationally. The onboard **ADF (Automatic Direction Finder)** points a needle toward the station; the pilot derives bearing by combining ADF reading with aircraft heading. NDB approaches are non-precision and susceptible to thunderstorm interference (static deflection) and coastal refraction. Many have been decommissioned in the US under FAA's **navaid consolidation program** (post-2000).\n\n**DME — Distance Measuring Equipment** (962–1213 MHz, UHF). Paired with VOR or ILS. The aircraft's DME interrogator sends a pulse; the ground transponder replies; the round-trip delay gives **slant-range distance** in nautical miles. Combined VOR+DME (or VORTAC) enables **fix-making** without a second navaid: one radial + one distance uniquely identifies a point.\n\n**ILS — Instrument Landing System** — the standard precision approach aid. Two components:\n1. **Localizer** (LOC, 108.1–111.95 MHz, odd tenths): a narrow beam aligned with the runway centerline, typically ±2.5° full-scale deflection; provides lateral guidance.\n2. **Glide Slope** (GS, 329.15–335.00 MHz, paired with localizer): a UHF beam angled upward at approximately **3°** above horizontal; provides vertical guidance to the runway threshold. The standard ILS glide path brings the aircraft from about 1,400 ft AGL at the FAF to the **Decision Height (DH)** — typically 200 ft AGL for a CAT I ILS — where the pilot must see the runway environment or execute a **Missed Approach**.\n\nILS categories: **CAT I** (DH 200 ft, RVR 1800 ft), **CAT II** (DH 100 ft, RVR 1200 ft), **CAT IIIa/b/c** (autoland, down to DH 0 and RVR 0 for CAT IIIc). **ORD (Chicago O'Hare)**, **LHR (London Heathrow)**, and **AMS (Amsterdam Schiphol)** all hold CAT III ILS certifications.\n\n**GPS, RNAV, and WAAS**. The **Global Positioning System (GPS)** — operated by the US Air Force's 2nd Space Operations Squadron at **Schriever SFB, Colorado** — uses a constellation of at least 24 satellites in medium Earth orbit (~20,200 km). Civilian L1 signal (1575.42 MHz); accuracy typically ±3 m horizontally without augmentation. **WAAS (Wide Area Augmentation System)**, FAA-operated since 2003, uses a network of ground reference stations and geostationary satellites to provide differential corrections, improving accuracy to ±1 m and providing integrity monitoring. WAAS enables **LPV (Localizer Performance with Vertical guidance)** approaches with decision altitudes as low as **200 ft AGL** — precision-approach equivalents without an ILS. **RNAV (Area Navigation)** is the overarching concept: using GPS (or VOR/DME) the aircraft can define waypoints anywhere, not just over a ground station. **RNP (Required Navigation Performance)** adds integrity monitoring; **RNP AR** (Authorization Required) enables curved approaches to airports like **RNAV (RNP) Z Rwy 19R** at Queenstown, New Zealand."
+    },
+    {
+      "kind": "text",
+      "title": "Airspace classification, sectional charts, and ATC clearances",
+      "body": "**ICAO** (the International Civil Aviation Organization, established by the **Convention on International Civil Aviation — Chicago Convention, 1944**) defines seven airspace classes: **A, B, C, D, E, F, G**. The US adopted ICAO classes in **September 1993**, replacing the older alphabet (TCA, ARSA, etc.).\n\n**Class A**: 18,000 ft MSL to FL600. All operations IFR; ATC clearance required; two-way radio and Mode C transponder mandatory. No VMC exemption.\n\n**Class B**: Surrounds the busiest airports (top 30 in the US: **LAX, ATL, ORD, JFK**, etc.). Solid blue on sectional charts; custom shape like an upside-down wedding cake from the surface to 10,000 ft MSL. ATC clearance required for all aircraft, VFR or IFR. Two-way radio, transponder with altitude reporting, and (post-2020) **ADS-B Out** required.\n\n**Class C**: Surrounds busy airports with an operating control tower and radar approach control (e.g., **BDL, TUS, SAT**). Two concentric cylinders: inner 5 nm radius to 4,000 ft AGL, outer 10 nm radius from 1,200 ft AGL. Requires two-way radio contact and Mode C; ATC clearance not required but separation services provided.\n\n**Class D**: Surrounds airports with an operating control tower but no radar approach control. Typically 4 nm radius to 2,500 ft AGL. Two-way radio contact required; no transponder mandate (though ADS-B Out required below 10,000 ft in surface areas after 2020).\n\n**Class E**: Controlled airspace not classified as A, B, C, or D. Includes the **Federal Airways** (1,200 ft AGL to 18,000 ft MSL along Victor airways), transition areas around many airports, and the airspace from 14,500 ft MSL to 18,000 ft MSL nationwide. IFR flights receive ATC separation; VFR flights do not need a clearance but must meet weather minima (3 sm visibility, 500 ft below / 1,000 ft above / 2,000 ft horizontal from clouds).\n\n**Class G** (Uncontrolled): Below Class E floors — typically below 700 ft AGL near airports, below 1,200 ft AGL elsewhere. No ATC separation; VFR weather minima are more relaxed (1 sm visibility and clear of clouds during day below 1,200 ft AGL).\n\n**Class F** is defined by ICAO but not used in the US; some countries (e.g., Canada) use it for advisory airspace.\n\n**Sectional charts** show terrain (contour lines, spot elevations, Maximum Elevation Figures **MEFs** in each quadrant), obstructions (towers, antennas — marked with heights MSL and AGL), navaids (VOR compass roses, NDB symbols), airspace (color-coded boundaries), airports (blue = towered, magenta = non-towered), and a wealth of legend data. **Terminal Area Charts (TACs)** cover Class B airspace at 1:250,000. Both are published on a 56-day **AIRAC (Aeronautical Information Regulation and Control)** cycle.\n\n**Flight plans and ATC clearances**: A VFR flight plan (filed with an FSS — **Flight Service Station**) is not a clearance; it is a SAR document. An **IFR flight plan** triggers a route clearance from ATC. The **CRAFT** mnemonic decodes a clearance: **C**learance limit, **R**oute, **A**ltitude, **F**requency (initial departure), **T**ransponder code (squawk). A typical clearance: *\"Cessna 7128 Tango, cleared to Boston Logan as filed, climb and maintain 8,000, expect FL180 ten minutes after departure, departure frequency 124.7, squawk 0345.\"* The pilot reads back every element. This loop — clearance, readback, correction if needed — is the foundation of the **ICAO Annex 10** radiotelephony standard and a key layer of collision avoidance in controlled airspace."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_nav_1",
+        "kind": "math_expression",
+        "question": "A pilot plans a leg of 135 nm at a True Airspeed of 120 knots. The winds aloft are 270° at 30 knots and the true course is 360° (due north). The crosswind component is 30 knots (full 90° crosswind). Using the small-angle WCA formula $WCA \\approx (W_{\\perp} / TAS) \\times 57.3°$, what is the wind correction angle in degrees? Round to the nearest whole degree.",
+        "acceptedAnswers": [
+          "14",
+          "14°",
+          "14 degrees"
+        ],
+        "hint": "Plug in: WCA = (30 / 120) × 57.3. The headwind/tailwind component is 0 because wind is 90° to track. Ground speed = sqrt(120²−30²) ≈ 116 kt."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_nav_1",
+        "kind": "multiple_choice",
+        "question": "A pilot flying VFR intercepts a VOR and the CDI centers with the OBS set to 090° and a FROM flag showing. What does this mean?",
+        "options": [
+          "The aircraft is on the 090° radial inbound to the VOR.",
+          "The aircraft is on the 090° radial outbound from the VOR — the aircraft is due east of the station and flying eastward (or is anywhere along the 090° radial). A VOR radial is always identified by its magnetic bearing FROM the station. The FROM flag confirms the navigation receiver is measuring the bearing FROM the station; the centered CDI confirms the aircraft is on that radial. If the pilot were to fly westbound (toward the station), the flag would switch to TO. This is a critical distinction: the radial number (090°) never changes — it always describes the bearing from the station — but the TO/FROM flag tells the pilot whether following the CDI will take the aircraft toward or away from the VOR. Confusing TO/FROM indications has contributed to numerous controlled-flight-toward-terrain events and is a primary VOR proficiency test item on the FAA Instrument Rating Practical Test Standards (PTS/ACS).",
+          "The aircraft is northwest of the VOR.",
+          "The CDI indicates a full-scale deflection to the right."
+        ],
+        "correctIndex": 1,
+        "explanation": "VOR radials are magnetic bearings FROM the station. The 090° radial runs due east of the VOR. A FROM flag + centered CDI means the aircraft is somewhere on that radial. The pilot must use position awareness (DME, cross-radial, GPS) to know exactly where along the radial."
+      },
+      "hints": [
+        "Radials are always FROM the station.",
+        "What does the FROM flag confirm?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "A VOR radial is defined as the magnetic bearing FROM the station. Radial 090 runs eastward from the VOR. The CDI centered with FROM flag means the aircraft is on that line. The pilot cannot determine from the VOR alone how far along the radial they are — DME or a cross-fix is needed."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_nav_1",
+        "kind": "scenario",
+        "question": "Lost comm in Class C airspace",
+        "prompt": "You are a student pilot flying a Cessna 172 under VFR in Class C airspace near Sacramento Executive Airport (SAC). Your radio fails. Describe: (1) what Class C airspace requirements you were supposed to meet on entry, (2) what the FAA recommends you do when communications are lost in VFR conditions (see FAR 91.185 and the AIM), and (3) what transponder action, if any, is appropriate. Reference at least two specific airspace rules."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_nav_2",
+        "kind": "multiple_choice",
+        "question": "Which statement about WAAS-enabled GPS approaches is correct?",
+        "options": [
+          "WAAS approaches require an ILS localizer antenna on the ground.",
+          "WAAS LPV approaches can provide decision altitudes as low as 200 ft AGL — equivalent to a CAT I ILS precision approach — using satellite geometry and ground-based differential corrections broadcast via geostationary satellites, with no ground-based glide slope transmitter required. The FAA's WAAS has been operational since 2003 and by 2024 the number of LPV approach procedures in the US exceeded the total number of ILS procedures, dramatically expanding precision-approach access to runways and airports that could never economically justify an ILS installation. WAAS integrity monitoring (RAIM — Receiver Autonomous Integrity Monitoring, plus WAAS SBAS integrity) provides real-time alerts if satellite geometry is insufficient, meeting the fail-safe requirement for approach guidance. The geostationary WAAS satellites also broadcast the corrections on the same L1 frequency as GPS, so no additional aircraft hardware channel is needed beyond a WAAS-certified GPS receiver.",
+          "WAAS is only available above 10,000 ft MSL.",
+          "WAAS LPV approaches use the ILS glide slope frequency band for vertical guidance."
+        ],
+        "correctIndex": 1,
+        "explanation": "WAAS LPV is a satellite-based precision-approach equivalent. It needs no ground ILS hardware; the vertical guidance comes from GPS geometry corrected by the WAAS network. By 2024, LPV procedures outnumbered ILS procedures in the US."
+      },
+      "hints": [
+        "Think about what hardware is on the ground.",
+        "LPV stands for Localizer Performance with Vertical guidance."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "WAAS uses a network of ~38 US ground reference stations, master stations (at Leesburg, VA and Oroville, CA), and two geostationary satellites (Inmarsat/SES) to broadcast differential corrections. The aircraft GPS receiver applies these in real time, achieving ~1 m accuracy and providing integrity for approach operations down to 200 ft DH."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_nav_1",
+        "kind": "explain_back",
+        "prompt": "In 150 words or fewer, explain the full navigation chain from a pilot's planned True Course to the Compass Course they actually fly, naming all correction steps. Then state in one sentence what a VOR radial is and how a CDI indicates position relative to it.",
+        "rubric": "Should include: True Course → apply magnetic variation (East is least, West is best, citing isogonic lines on sectional charts) → Magnetic Course → apply compass deviation (from the deviation card in the aircraft) → Compass Course. Must name all three: TC, MC, CC. Should correctly define a VOR radial as the magnetic bearing FROM the station. Should state that a centered CDI indicates the aircraft is on the selected radial, and that TO/FROM flag indicates whether flying toward or away from the station. Bonus for mentioning the E6-B flight computer or that variation is measured on sectional charts with isogonic lines."
+      }
+    }
+  ]
+}

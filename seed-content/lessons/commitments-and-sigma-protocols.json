@@ -1,0 +1,155 @@
+{
+  "slug": "commitments-and-sigma-protocols",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Define commitment schemes with binding and hiding properties.",
+      "Trace Schnorr's Σ-protocol: commit, challenge, response, with special soundness and HVZK.",
+      "Apply the Fiat-Shamir heuristic to produce non-interactive proofs in the random-oracle model."
+    ],
+    "prereqs": [
+      "zk-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Commitment schemes: binding + hiding + homomorphic",
+      "body": "A **commitment scheme** is a two-phase protocol: Alice publishes a **commitment** c = Commit(m, r) (binding her to message m using randomness r), then later **opens** by revealing (m, r). Think 'cryptographic envelope': Alice cannot change m after committing, but Bob cannot read m before opening.\n\n**Two security properties** (often in tension):\n\n- **Binding**: Alice cannot find (m, r) ≠ (m', r') with Commit(m, r) = Commit(m', r'). Either *computationally binding* (binding for PPT) or *perfectly binding* (information-theoretically unique m given c).\n- **Hiding**: c reveals nothing about m. Either *computationally hiding* (PRG-strong) or *perfectly hiding* (c is independent of m).\n\n**Impossibility result**: a commitment cannot be **both perfectly binding + perfectly hiding** (information-theoretically). Designers pick: hash-based commitments are perfectly binding + computationally hiding; Pedersen commitments are perfectly hiding + computationally binding.\n\n**Hash-based commitments**: c = H(m || r) where H is a collision-resistant hash (e.g., SHA-256, Keccak). Trivially perfectly binding (no collisions exist if r has enough entropy); hiding under random-oracle assumption. Used everywhere (Merkle trees, blockchain blocks, Git commits).\n\n**Pedersen commitments (1991)**: in a group G = ⟨g⟩ of prime order p with generator h (where dlog of h w.r.t. g is unknown), c = g^m · h^r. **Perfectly hiding** (c is uniformly random in G for any m, since r is uniform); **computationally binding** under DLP hardness. Crucially **additively homomorphic**: Commit(m₁, r₁) · Commit(m₂, r₂) = Commit(m₁ + m₂, r₁ + r₂). This homomorphism is the cryptographic engine behind Bulletproofs, confidential transactions (Monero), Mimblewimble, and many SNARK constructions.\n\n**Vector commitments + polynomial commitments** (KZG, FRI, IPA) generalize: commit to a vector or polynomial, later open at chosen indices/points. Foundation of modern SNARKs."
+    },
+    {
+      "kind": "text",
+      "title": "Σ-protocols: Schnorr identification + special soundness + HVZK",
+      "body": "A **Σ-protocol (Sigma-protocol)** is a three-message public-coin interactive proof:\n\n1. **Commit**: prover sends commitment a (often randomized).\n2. **Challenge**: verifier sends random c (sampled from challenge space).\n3. **Response**: prover sends z; verifier checks (a, c, z) against statement x.\n\n**Schnorr's identification protocol (1989)** — the canonical Σ-protocol — proves knowledge of discrete log: given public y = g^x ∈ G, prove knowledge of x without revealing it.\n\n- **Commit**: prover picks random r ∈ Z_p, sends a = g^r.\n- **Challenge**: verifier sends random c ∈ Z_p.\n- **Response**: prover sends z = r + c · x mod p.\n- **Verify**: check g^z = a · y^c.\n\n**Correctness**: g^z = g^(r + cx) = g^r · g^(cx) = a · y^c. \n\n**Special soundness**: given two accepting transcripts (a, c₁, z₁) + (a, c₂, z₂) with **same commitment but different challenges** (c₁ ≠ c₂), an extractor recovers x = (z₁ - z₂)/(c₁ - c₂) mod p. This is **proof of knowledge** — the prover must 'know' x; a malicious prover cannot pass two challenges without it.\n\n**Honest-Verifier Zero-Knowledge (HVZK)**: simulator (without knowing x) picks z + c randomly, then sets a = g^z · y^(-c). Transcript (a, c, z) is identically distributed to a real one. Works against **honest** verifiers (who sample c uniformly).\n\n**Generic Σ-protocol structure** is universal:\n- **Chaum-Pedersen** (equality of discrete logs): prove log_g(y₁) = log_h(y₂).\n- **OR-proofs (Cramer-Damgård-Schoenmakers 1994)**: prove statement A ∨ B without revealing which.\n- **AND-proofs**: trivial parallel composition.\n- **Range proofs**: prove m ∈ [0, 2^n) (foundation of confidential transactions).\n\n**Why Σ-protocols matter**: they are the **lego bricks** of practical ZK — composable, fast, and convertible into signatures or NIZK via Fiat-Shamir. Schnorr signatures (now in Bitcoin Taproot via BIP-340), Ed25519, EdDSA all descend from Schnorr's 1989 Σ-protocol."
+    },
+    {
+      "kind": "text",
+      "title": "Fiat-Shamir heuristic → non-interactive proofs in the ROM",
+      "body": "**Fiat + Shamir (1986)**: convert any **public-coin** interactive protocol into a **non-interactive** one by replacing the verifier's random challenge with a hash of the transcript so far:\n\nFor Schnorr, prover sends a = g^r, computes c = H(g, y, a), then z = r + c·x. The proof is (a, z) (or (c, z)). Verifier recomputes c = H(g, y, a) + checks g^z = a · y^c.\n\nThis transforms Schnorr's identification into the **Schnorr signature** scheme: signing message M means proving knowledge of secret x with c = H(g, y, a, M).\n\n**Why it works**: in the **Random Oracle Model (ROM)**, H is treated as an idealized truly-random function. The hash 'simulates' an honest verifier sampling a fresh challenge after seeing a. The prover cannot rewind H, so cannot grind challenges adversarially. ROM security implies practical security when H is instantiated with a good hash (SHA-3, BLAKE3) — though ROM has limitations (Canetti-Goldreich-Halevi 2004 showed schemes secure in ROM but insecure under any concrete hash).\n\n**Transcript hashing — what to include**: this is **critical**.\n\n- Include **public parameters**, **statement**, **all prior prover messages**.\n- Include **domain separation tags** to prevent cross-protocol attacks.\n- Use **strong** hashes (collision-resistant, indifferentiable from RO).\n\n**Frozen Heart attacks (2022)** — production ZK implementations (PlonK, Bulletproofs, Spartan) had soundness failures because Fiat-Shamir hashes omitted critical inputs (public statement, commitment values), allowing attackers to forge proofs. Lesson: always **commit to the full context**.\n\n**Beyond signatures**: Fiat-Shamir is the workhorse of modern SNARK/STARK design.\n\n- **NIZK via FS**: any public-coin interactive argument becomes NIZK.\n- **Schnorr signatures + Ed25519 + BLS** descend from Σ-protocols + FS.\n- **Bulletproofs + PlonK + Halo + STARKs**: each is a public-coin protocol made non-interactive by hashing.\n- **MPC-in-the-head + Picnic**: post-quantum signatures via Σ + FS.\n\n**Strong vs weak FS**: 'strong' FS hashes statement + commitments + protocol identifier; 'weak' FS omits some context + has been the source of every Frozen Heart bug. Modern formal-verification tools (e.g., easycrypt) check FS instantiations rigorously."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_zk_special_soundness",
+        "kind": "guided_derivation",
+        "question": "Extract the witness via special soundness in Schnorr",
+        "goal": "Given two accepting transcripts (a, c₁, z₁) + (a, c₂, z₂) on the same commitment a, recover x with y = g^x.",
+        "steps": [
+          {
+            "prompt": "What equation does each accepting transcript satisfy?",
+            "motivation": "Set up verification equations.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "g^z1 = a y^c1 and g^z2 = a y^c2"
+              ]
+            },
+            "hints": [
+              "Verifier checks g^z = a · y^c."
+            ],
+            "reveal": "Each transcript satisfies g^z_i = a · y^c_i. So g^z₁ = a · y^c₁ and g^z₂ = a · y^c₂."
+          },
+          {
+            "prompt": "Divide the two equations to eliminate a.",
+            "motivation": "Cancel the commitment.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "g^(z1 - z2) = y^(c1 - c2)"
+              ]
+            },
+            "hints": [
+              "Take the ratio."
+            ],
+            "reveal": "g^z₁ / g^z₂ = (a · y^c₁) / (a · y^c₂) gives g^(z₁ - z₂) = y^(c₁ - c₂)."
+          },
+          {
+            "prompt": "Solve for x.",
+            "motivation": "Witness extraction.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "x = (z1 - z2) / (c1 - c2) mod p"
+              ]
+            },
+            "hints": [
+              "y = g^x means take dlog."
+            ],
+            "reveal": "Since y = g^x, g^(z₁ - z₂) = g^(x(c₁ - c₂)) ⟹ z₁ - z₂ = x(c₁ - c₂) mod p ⟹ x = (z₁ - z₂)/(c₁ - c₂) mod p. Inverse exists iff c₁ ≠ c₂. This is the **knowledge extractor**: any prover succeeding on two distinct challenges with the same commitment must 'know' x."
+          },
+          {
+            "prompt": "Why does this not contradict zero-knowledge?",
+            "motivation": "Distinguish extractor from real verifier.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "extractor uses two transcripts on same commitment a; real verifier only sees one"
+              ]
+            },
+            "hints": [
+              "Real V interacts once; extractor rewinds."
+            ],
+            "reveal": "In a real protocol run V sees one transcript — and as we showed via the simulator, learns nothing. The extractor is a hypothetical machine that **rewinds** the prover to extract two transcripts; the real verifier cannot. So Schnorr is both **zero-knowledge** (one transcript leaks nothing) and **proof of knowledge** (two transcripts extract x)."
+          }
+        ],
+        "finalResult": "Schnorr's protocol satisfies special soundness: any prover succeeding on two distinct challenges on the same commitment a knows x. Combined with HVZK, it is a textbook Σ-protocol — and the template for thousands of modern ZK constructions."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_zk_pedersen_property",
+        "kind": "multiple_choice",
+        "question": "Which property uniquely characterizes the Pedersen commitment scheme c = g^m · h^r?",
+        "options": [
+          "Perfectly binding and computationally hiding.",
+          "Perfectly hiding and computationally binding, with additive homomorphism Commit(m₁, r₁) · Commit(m₂, r₂) = Commit(m₁ + m₂, r₁ + r₂).",
+          "Hash-based and quantum-secure.",
+          "Symmetric-key encryption with authentication."
+        ],
+        "correctIndex": 1,
+        "explanation": "Pedersen (1991) commitment c = g^m · h^r is **perfectly hiding** (c is uniform in G for any m since r is uniform; information-theoretically no info about m), **computationally binding** under DLP hardness (a collision would yield log_g(h)), and **additively homomorphic** (multiplying commitments adds messages + randomness). The homomorphism enables Bulletproofs range proofs, confidential transactions in Monero, and many SNARK constructions."
+      },
+      "hints": [
+        "Hiding vs binding trade-off.",
+        "Homomorphism is the killer feature."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Pedersen commitments c = g^m · h^r are perfectly hiding (r uniform → c uniform), computationally binding under DLP hardness, and additively homomorphic. Used in Bulletproofs + confidential transactions + range proofs + privacy-preserving DeFi."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_zk_schnorr_signature",
+        "kind": "scenario",
+        "question": "Schnorr signatures in Bitcoin Taproot",
+        "prompt": "Bitcoin BIP-340 (Taproot 2021) replaces ECDSA with Schnorr signatures for some script types. Explain (1) how Schnorr signatures derive from the Schnorr Σ-protocol via Fiat-Shamir, (2) why they enable key aggregation (MuSig2) + scriptless scripts, and (3) what threat models the Fiat-Shamir hash must defend against."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_zk_schnorr_check",
+        "kind": "math_expression",
+        "question": "Schnorr verification equation: prover sends (a, z) with challenge c. What equation does V check (in terms of g, y, a, c, z)?",
+        "acceptedAnswers": [
+          "g^z = a * y^c",
+          "g^z = a y^c",
+          "g^z == a · y^c",
+          "g^z = a y^c mod p"
+        ],
+        "hint": "Substitute z = r + cx and use y = g^x."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "eb_zk_sigma",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how a Σ-protocol + a commitment scheme + Fiat-Shamir compose into a practical non-interactive zero-knowledge identification or signature scheme.",
+        "rubric": "Mentions: Σ-protocol = commit-challenge-response (3-message public-coin). Schnorr 1989 is the canonical example, proving knowledge of discrete log. Commitment schemes (Pedersen, hash-based) underlie 'commit' message + provide binding/hiding properties. Special soundness + HVZK = both proof of knowledge + zero-knowledge. Fiat-Shamir (1986) replaces V's random challenge with a hash of (statement, prior messages) — moving to ROM but making the protocol non-interactive. The result: Schnorr signatures (BIP-340 Bitcoin Taproot, Ed25519, EdDSA), anonymous credentials, and the building blocks of modern SNARKs. Must hash full context (Frozen Heart 2022 lesson)."
+      }
+    }
+  ]
+}

@@ -1,0 +1,155 @@
+{
+  "slug": "modern-frontier-paleontology",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Survey digital paleontology — CT scanning, 3D printing, virtual prep.",
+      "Outline molecular paleobiology — collagen, cell preservation, aDNA, paleoproteomics.",
+      "Reckon with AI, climate threats, and open-data futures in paleontology."
+    ],
+    "prereqs": [
+      "mass-extinctions-and-recoveries",
+      "vertebrate-fossil-record",
+      "paleoecology-and-biogeography"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Digital paleontology: CT, 3D printing, virtual prep",
+      "body": "Computed tomography (CT) + related digital methods have transformed paleontology from a discipline limited to what could be physically prepared to one that can examine fossils non-destructively at any scale.\n\n**Computed tomography (CT)** — X-ray cross-sectional imaging. Multiple technologies:\n- **Medical CT** — early adoption (1970s-80s) for large fossils; resolution ~0.5-1 mm; limited density discrimination.\n- **Industrial / micro-CT (μCT)** — higher resolution (~10-50 μm), higher X-ray energy + voxel density discrimination. Standard for small + medium fossils.\n- **Synchrotron μCT** — extremely high resolution (~1 μm) + monochromatic X-rays. ESRF (Grenoble), APS (Argonne), SLS (Switzerland), Diamond (UK). Used for examining specimens still in their crypts (teeth, eggs, fossil cells).\n- **Nano-CT** — submicron resolution for very small specimens.\n\n**What CT reveals**:\n- **Internal anatomy in articulated specimens still in matrix** — without destructive preparation.\n- **Cranial endocasts** — brain shape inferred from internal braincase morphology. Dinosaur (Witmer + Ridgely 2009), bird (Balanoff + Bever), mammal (Bertrand), hominin (Bruner) cognitive paleobiology.\n- **Inner ear anatomy** — semicircular canals reveal posture, locomotion, hearing range. Spoor + Walker for hominins; Witmer for dinosaurs.\n- **Tooth crypts** — teeth still developing in the jaw; dental development sequences (Smith + Kissel + Reid).\n- **Eggs in nests** — fossilized embryos preserved in eggshells (theropod oviraptorid eggs with embryos still inside — Norell + Clark 1995; recent Chinese dinosaur egg work).\n- **Soft-tissue traces** — vascular cavities, sinuses, eye sockets, lung impressions.\n\n**Influential figures + sites**:\n- **Larry Witmer** (Ohio U Witmer Lab; visualizationlab.com) — pioneered dinosaur cranial reconstruction via CT + EPB (Extant Phylogenetic Bracket). His + colleagues' work on T. rex sinuses, sauropod brains, ceratopsian nasal cavities is the modern standard.\n- **Stephan Lautenschlager** (Birmingham) — finite element analysis of dinosaur skulls; biomechanical modeling of feeding mechanics (theropod jaw stresses, herbivore tooth wear).\n- **John Cunningham** (Bristol) + **Phil Donoghue** — synchrotron tomography of Cambrian embryos + earliest animals; reveal cellular structure preserved in 600-Myr-old fossils.\n- **Donglei Chen** (Beijing IVPP) + **Ryan Felice** — pterosaur + bird cognitive paleobiology.\n- **Sigogneau-Russell** + **Bunopus** — small mammal teeth + dental CT.\n\n**3D printing + virtual prep**:\n- Once a specimen is CT'd + segmented (extracting individual bones from matrix in software — Avizo, Mimics, Dragonfly), the digital file can be 3D-printed at any scale.\n- **Applications**: replicas for museums + education; physical models for biomechanical testing; restoration of damaged specimens (combining mirror-image of preserved side with CT-derived missing side); 'virtual preparation' (extracting specimens that physical prep would damage); training students without risking fossils.\n- **Major 3D libraries**: MorphoSource (Duke, founded by Doug Boyer 2013), Sketchfab paleontology collections, AMNH archive, NHM London open archive. Open + free access is the standard.\n\n**Photogrammetry + LIDAR** — 3D surface scanning from photographs (Agisoft Metashape) or laser scanning. Used for trackway documentation (Lockley + Bates; Romilio); large bone surveys; rapid documentation in the field.\n\n**Geometric morphometrics** — quantitative shape analysis using landmark coordinates + Procrustes superimposition + PCA. Bookstein, Rohlf, Adams, Klingenberg developed the modern framework. Standard now for any morphological study. Used for ontogeny, phylogeny, biogeography, sexual dimorphism, allometry. Open source software (geomorph in R, MorphoJ).\n\n**Finite element analysis (FEA) + multibody dynamics (MBDA)** — engineering analysis of biological structures. Mesh the CT model, apply forces + boundary conditions, simulate stress + strain. Standard for dinosaur jaw FEA (Rayfield + Erickson; Bates + Falkingham; Therrien), running gait MBDA (Sellers + Hutchinson).\n\n**Cyber-paleontology** is now an established subdiscipline + an entry point for younger paleontologists with computational backgrounds. The combination of CT + segmentation + FEA + 3D printing means that a single articulated fossil can yield gigabytes of analyzable data + answer questions impossible from physical specimens alone."
+    },
+    {
+      "kind": "text",
+      "title": "Molecular paleobiology: collagen, cells, aDNA, paleoproteomics",
+      "body": "The 21st-c molecular revolution has extended paleontology into biomolecular dimensions previously thought lost to deep time.\n\n**Soft-tissue preservation + the Schweitzer breakthrough**:\n- **Mary Schweitzer** (NC State, formerly Montana State / Museum of the Rockies) — pioneered modern soft-tissue paleobiology. **Schweitzer et al. 2005** *Science* reported flexible, transparent, branching vascular-like structures + cell-like microstructures from a *T. rex* (MOR 1125) femur cortex after demineralization. The report was highly controversial — proposed alternatives included biofilm contamination, post-burial bacterial origin. But Schweitzer's group + collaborators (Cleland + Schroeter + Boatman + Wittmeyer) have continued to characterize the structures using antibody staining (anti-collagen, anti-osteocalcin, anti-actin), histochemistry, immunofluorescence, FTIR + Raman spectroscopy, + mass spectrometry — finding signals inconsistent with simple contamination.\n- **Asara + Schweitzer 2007** *Science* — used a tandem MS workflow to recover **7 collagen-I peptides** from the *T. rex* femur. Independent peptide sequencing aligned the peptides with phylogenetically informative residues — birds, reptiles, mammals; the peptides clustered with birds + crocodilians (consistent with the dinosaur EPB). Initially disputed (Pevzner + colleagues critiqued statistical thresholds); subsequent reanalyses (Bern 2009, Schroeter 2017) supported the original sequence assignments + extended the work to *Brachylophosaurus*, *Edmontosaurus*, *Triceratops*. Now broadly (though not unanimously) accepted.\n- **Sergio Bertazzo** + **Maidment** (2015 *Nature Communications*) — reported red blood cell-like + collagen-like structures in routinely preserved (not exceptional) Mesozoic specimens. Suggests molecular preservation may be more common than previously thought.\n- **Alida Bailleul** (Beijing IVPP, formerly Schweitzer lab) — 2020 *National Science Review*: reported **cellular + nuclear preservation in 75-Mya *Hypacrosaurus*** cartilage via histochemistry (PI + DAPI staining for DNA), supported by histology + transmission electron microscopy. The interpretation (deep-time DNA fragment preservation) is provocative + debated; multiple replication studies underway.\n\n**Ancient DNA (aDNA)**:\n- **Svante Pääbo** (Max Planck Leipzig; **Physiology or Medicine Nobel 2022**). Pääbo's career: 1980s mummy DNA (mostly contamination); 1997 first Neanderthal mtDNA; 2010 Neanderthal nuclear genome (low coverage); 2010 **Denisovan discovery** from a finger bone fragment in Denisova Cave (Siberia) — Reich + Krause + Pääbo identified an entire previously unknown hominin lineage *solely* from its DNA, before any morphological identification was possible. The Denisovan jaw from Xiahe (Tibet) was later morphologically identified via paleoproteomics (Chen 2019 *Nature*).\n- **David Reich** (Harvard), **Johannes Krause** (Max Planck Jena) — co-developed methods + populations approach. Major reconstructions: Yamnaya steppe migration into Europe ~5000 yr (Haak + Lazaridis 2015), Native American population history, ancient Asian + African population structures.\n- **Ludovic Orlando** (Toulouse / Copenhagen) — **2013 *Nature*** sequenced a **~700-kya horse** from Yukon permafrost — the oldest authentic mammalian genome at the time. Pushed aDNA timescale dramatically.\n- **Kjær 2022** *Nature* — environmental DNA from 2-Myr Greenland sediments — non-organism DNA from preserved sediment matrix; opens potentially much deeper aDNA windows but only for environmental DNA, not full genomes.\n- **Beth Shapiro** (UCSC) — *How to Clone a Mammoth* (2015); aDNA from mammoths + passenger pigeons + condors.\n- **Eske Willerslev** (Copenhagen) — environmental aDNA, ancient pathogen genomes.\n\n**aDNA limits**:\n- DNA degrades exponentially; even in cold + dry environments, the empirical half-life is ~150-500 yr for individual phosphodiester bonds. The maximum age for full genome recovery is ~1-2 Myr in optimal preservation (permafrost, cool dry caves).\n- Contamination is the chronic enemy; modern Pääbo / Reich / Krause / Orlando workflows include negative controls, library blanks, + bioinformatic filtering for damage patterns (5' C→T + 3' G→A substitutions diagnostic of aDNA).\n- aDNA from Mesozoic specimens has *not* been recovered (despite Schweitzer + Bailleul findings of cell-like structures + nucleus-positive staining, no Mesozoic DNA sequences have been confirmed).\n\n**Paleoproteomics**:\n- Proteins survive longer than DNA — peptide bonds + binding to mineral surfaces stabilize them. Collagen-I + amelogenin (enamel matrix protein) routinely recovered from Pleistocene specimens.\n- **Enrico Cappellini** (Copenhagen) — paleoproteomics workflow + major findings: 1.77-Myr Dmanisi (Georgia) early *Homo* enamel proteomes (Welker 2020 *Nature*); 1.9-Myr **rhinoceros enamel proteome** (Cappellini 2019 *Nature*) — the oldest hominoid-relevant biomolecular data. Established paleoproteomics as a routine field tool.\n- **Welker** + **Hublin** — *H. antecessor* paleoproteomics resolved its position in the *Homo* tree (Welker 2020 *Nature*).\n- Paleoproteomics fills a critical gap: deeper than aDNA but shallower than full skeletal morphology; gives phylogenetic + dietary + species-level information for specimens too old for aDNA.\n\nThe synergy of CT + soft-tissue molecular + aDNA + paleoproteomics has built a new layer of empirical paleobiology — letting us interrogate not just bones but the cells + molecules + genomes of ancient organisms. The field has shifted from *what* the organism looked like to *what it was, biochemically + genetically*."
+    },
+    {
+      "kind": "text",
+      "title": "AI, climate, open data: the future of paleontology",
+      "body": "**Machine learning + AI in paleontology**:\n- **Automated fossil identification + classification** — convolutional neural networks (CNNs) trained on labeled images. **Hsiang + Pearson 2019** *Methods in Ecology + Evolution* — CNN for foraminifera identification, comparable to expert taxonomist accuracy. Now widely deployed for foraminifera + ostracodes + nannofossils in micropaleontology, where high-throughput identification is essential. Gümbel-style 19th-c manual identification is being replaced.\n- **Automated trackway + bonebed mapping** — drone photogrammetry + segmentation networks.\n- **Phylogenetic + morphometric inference** — Bayesian + likelihood phylogeny with very large character matrices; ML methods for character optimization.\n- **Predictive locality mapping** — Anemone + colleagues, Emerson + colleagues use satellite + geological data + ML to predict where unstudied outcrops are likely to yield fossils. Field expeditions can now target Myr-old terrains efficiently.\n- **Computer vision for damaged-specimen restoration** — segmentation + completion of partial fossils via generative + neural-network methods.\n- **Large language models (LLMs)** — emerging tools for taxonomic description, manuscript drafting, + literature synthesis. GPT-4-class models can generate competent first-pass species descriptions when given measurements + photographs. The field is wrestling with attribution + correctness + ethics.\n- **Image-text models** — generating CT-derived endocasts + segmentations.\n\n**Climate change + field sites**:\n- **Permafrost thaw** is *exposing* extraordinary Pleistocene fossils in Siberia + Yukon: woolly mammoth Lyuba + Yuka, woolly rhinos, cave lion cubs, perfectly preserved Pleistocene wolves (Sergei Fedorov collection). Net positive in short term for paleontology.\n- **Erosion of fossil-bearing strata** in dry climates is accelerating, increasing exposure but also weathering fossils faster than they can be recovered.\n- **Sea-level rise + coastal erosion** is destroying coastal Mesozoic + Cenozoic outcrops (e.g., England's Lyme Regis, Australia's Eromanga Basin).\n- **Increasing wildfire frequency** damages outcrop + fossil sites.\n- **Access disruption** — climate-driven instability disrupts field seasons (Sahara, Andes, Antarctica).\n- **Funding + political pressure** — climate-change-denial in some governments has reduced funding for paleontology + geology.\n\nBalancing: paleontology is increasingly *urgent* — the deep-time perspective is critical for evidence-based climate policy + adaptive ecosystem management.\n\n**Open data + the Paleobiology Database**:\n- **John Alroy** (Macquarie + originally Santa Barbara) + colleagues founded the **Paleobiology Database (PBDB)** in 1998 (paleobiodb.org). Now contains >1.5M fossil occurrences globally, contributed by ~1000+ scientists. Open + curated; the de facto standard for macroecological + macroevolutionary analyses.\n- **Sampling standardization** — Alroy's **Shareholder Quorum Subsampling (SQS, 2010)** corrects for sampling bias in diversity curves. Implemented in PBDB analysis pipelines.\n- **MorphoSource** (Doug Boyer 2013) — open 3D model repository; >50,000 specimens.\n- **Open access + open data norms** — most major paleontology journals (Nature, Science, PNAS, *eLife*, PeerJ, *Paleobiology*) require data deposition. Field is at the forefront of open science.\n- **Citizen science** — Zooniverse projects (Foraminifera, Whale FM, Galaxy Zoo paleo equivalents), iDigBio, GBIF, AMNH FieldStation; engage publics + accelerate discovery.\n\n**Future directions** (selected):\n1. **Deeper-time molecular paleobiology** — pushing aDNA + paleoproteomics into pre-Pliocene specimens; resolving Mesozoic soft-tissue questions.\n2. **Functional + biomechanical paleobiology at scale** — FEA + MBDA libraries for hundreds of dinosaur + mammal species; population-level paleobiology.\n3. **AI-driven paleontology** — automated identification + dating + comparative analysis at planetary scale; LLM-assisted description + synthesis.\n4. **Climate response forecasting** — using past mass extinctions + recoveries as Holocene + Anthropocene calibration.\n5. **De-extinction biology** — Colossal's mammoth + thylacine projects + Pleistocene Park (Zimov) as empirical tests of paleo-ecosystem reconstruction.\n6. **Public engagement + science communication** — Cunningham + Brusatte + Naish + Lockwood + Pickrell are public-facing paleontologists who balance research with science writing + documentary work + outreach.\n7. **Indigenous + decolonized paleontology** — increasing engagement with indigenous communities (e.g., Lakota in South Dakota, Maori in New Zealand) where fossils are found; collaborative authorship + repatriation.\n\nPaleontology in 2026 is a discipline of unprecedented synthesis + opportunity. The CT scanner + the mass spectrometer + the genome sequencer + the supercomputer + the satellite have not replaced the hammer + the field notebook — but they have multiplied what each fossil can tell us. Earth's fossil record is finite + irreplaceable, but every fossil now yields more biology than ever before.\n\nThe **Paleontologist mastery path** has surveyed the field from William Smith's 1815 stratigraphic principles to 2026 molecular paleobiology — a sweep across 4.54 Gyr of Earth history, 540 Myr of complex animal life, + 200 years of scientific synthesis. The discipline is the deepest of historical sciences + the most direct interrogation we have of life's actual past."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_front_1",
+        "kind": "guided_derivation",
+        "question": "Interpret a paleoproteomics workflow",
+        "goal": "Reason through what paleoproteomics can + cannot recover from a 1.77-Myr Dmanisi hominin tooth.",
+        "steps": [
+          {
+            "prompt": "Cappellini 2019 + Welker 2020 used a Dmanisi hominin tooth + extracted enamel matrix proteins. Why enamel?",
+            "motivation": "Why enamel proteins survive.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Enamel hydroxyapatite traps + protects proteins; very mineralized + chemically stable"
+              ]
+            },
+            "hints": [
+              "What protects proteins long-term?"
+            ],
+            "reveal": "Enamel is the most heavily mineralized vertebrate tissue (>96% hydroxyapatite by weight). Proteins (amelogenin, ameloblastin, enamelin) are physically embedded in the mineral lattice + chemically protected from hydrolysis + microbial degradation. Empirically, enamel proteins survive far longer than dentin or bone proteins — > 1 Myr in good preservation conditions. Asia, Africa, + Europe Eocene through Pleistocene specimens routinely yield enamel proteomes. By contrast, DNA is essentially gone by ~1 Myr."
+          },
+          {
+            "prompt": "What kind of phylogenetic resolution does an enamel proteome give?",
+            "motivation": "Power of the data.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Genus + sometimes species; can distinguish hominin lineages"
+              ]
+            },
+            "hints": [
+              "Sequence comparison to extant relatives."
+            ],
+            "reveal": "Enamel proteomes (~30-100 peptides, hundreds of amino acids total) provide enough sequence variation to resolve to **family + genus + sometimes species** level when extant reference proteomes are available. Cappellini's 1.9-Myr rhino + Welker's 1.77-Myr Dmanisi *Homo* placed those specimens within known clades. Cappellini's 1.9-Myr rhino placed it as a sister to modern *Stephanorhinus*. Resolution at species level is harder but increasing as proteomic reference databases grow."
+          },
+          {
+            "prompt": "Can paleoproteomics resolve sex of the individual?",
+            "motivation": "What else?",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Yes — amelogenin X vs Y isoforms"
+              ]
+            },
+            "hints": [
+              "Amelogenin is sex-linked."
+            ],
+            "reveal": "Yes — **amelogenin** has separate X-chromosome (AMELX) + Y-chromosome (AMELY) isoforms with diagnostic peptide differences. **Stewart 2016** + others used AMELY detection in enamel proteomes to determine sex of Pleistocene + earlier human specimens with high reliability. Recently extended to Pliocene + Miocene hominoids. Useful when no DNA is available (most >1-Myr specimens)."
+          },
+          {
+            "prompt": "What kind of question remains beyond paleoproteomics reach?",
+            "motivation": "Limits.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Population-level variation, polygenic traits, neutral demographic history"
+              ]
+            },
+            "hints": [
+              "What only DNA can tell us."
+            ],
+            "reveal": "Beyond paleoproteomics' reach: (1) **polygenic + behavioral traits** — pigmentation, language, cognition — encoded by thousands of variants in non-coding DNA, invisible to protein sequences; (2) **population-level demographic history** — coalescent inference requires whole-genome variation; (3) **introgression + admixture** — requires extensive genome-wide variation. For these, you need aDNA — which is mostly limited to <1 Myr in practice. The paleoproteomics-aDNA combination gives complementary windows: aDNA for the recent (well-sampled, high-resolution), paleoproteomics for the deeper past (low-resolution, but covers Mio-Pliocene + Pleistocene)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_front_1",
+        "kind": "multiple_choice",
+        "question": "What is the **Paleobiology Database (PBDB)** + why is it central to modern paleontology?",
+        "options": [
+          "Random.",
+          "**John Alroy** (originally UCSB; now Macquarie) + colleagues founded the **Paleobiology Database (PBDB)** in 1998 (paleobiodb.org) — a community-curated open database now containing >1.5 million fossil occurrences globally. Built from primary literature + museum collections + new collections contributed by ~1000+ scientists. Each record includes taxon + locality + age + collection method. The PBDB is central because: (1) it enables **planet-scale macroevolutionary analysis** — diversity curves through deep time, origination + extinction rates, biogeographic shifts, recovery dynamics; (2) **sampling standardization** — **Alroy's Shareholder Quorum Subsampling (SQS, 2010)** corrects for variable sampling effort across time + space + previously biased diversity curves; (3) **reproducibility + open science** — analyses are reproducible because the database is open + versioned; (4) **education + research access** — paleontologists in any country can use data they couldn't otherwise access. The PBDB has been the source for many high-profile papers (Alroy 2008, 2010; Sepkoski's Genus Database is its ancestor; modern recovery + radiation studies; Anthropocene 6th-extinction analyses) + has set the standard for open data in the field. Complemented by **MorphoSource** (3D models — Boyer 2013) + **iDigBio** + **GBIF** for natural-history specimen records.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "PBDB (Alroy 1998+) — open community-curated database of >1.5M fossil occurrences. Enables planet-scale macroecology + macroevolution; Alroy's SQS sampling standardization corrects diversity curves; open + reproducible. Foundation of modern paleobiology + complemented by MorphoSource + iDigBio + GBIF."
+      },
+      "hints": [
+        "Who built it + when?",
+        "What does sampling standardization do?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "PBDB founded by John Alroy (1998+); >1.5M fossil occurrences. Enables global diversity + macroevolution analysis. Alroy's SQS (Shareholder Quorum Subsampling, 2010) corrects sampling bias. Open + community curated. Complemented by MorphoSource + iDigBio + GBIF. Standard for open paleontology data."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_front_1",
+        "kind": "scenario",
+        "question": "Designing a 2030 paleontology research program",
+        "prompt": "You're applying for a 5-year flagship grant proposing the future of paleontology in 2030. Sketch a comprehensive program that integrates the frontiers covered. Address: (1) **Digital pipeline** — how would you set up a CT-scanning + segmentation + FEA workflow (Witmer / Lautenschlager / Cunningham-style) for hundreds of specimens including damaged ones reconstructable via mirror + AI generative models?; (2) **Molecular work** — what specimens would you sample for paleoproteomics (Cappellini / Welker — Plio-Pleistocene + Miocene specimens) + aDNA (Pääbo / Reich / Krause / Orlando — Pleistocene + permafrost specimens) + soft-tissue paleobiology (Schweitzer / Asara / Bailleul — Mesozoic specimens)?; (3) **AI + ML** — how would you integrate Hsiang-Pearson-style CNN identification (foraminifera + nannos) with predictive locality mapping + LLM-assisted description?; (4) **Open data** — how would you commit to PBDB + MorphoSource deposition, code archiving, + indigenous + community collaboration on fossil sites?; (5) **Climate + field strategy** — how would you target field sites prioritized by climate-driven erosion + permafrost thaw, balanced with site protection ethics?; (6) **Big questions** — frame the entire program around 2-3 deep questions (climate-response analogs, extinction recovery dynamics, deep biological transitions like the fish-tetrapod transition, Cambrian Explosion biology, hominin demographic history) that motivate the methodological innovations. Cite the relevant 21st-c literature throughout."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_front_1",
+        "kind": "math_expression",
+        "question": "DNA decay follows exponential first-order kinetics. The empirical half-life of mitochondrial DNA in Pleistocene bone is ~500 yr per fragment-length bond. After how many half-lives would a starting concentration of 10⁶ copies be reduced to 1 copy? Compute log₂(10⁶) to the nearest integer.",
+        "acceptedAnswers": [
+          "20",
+          "20 half-lives",
+          "~20"
+        ],
+        "hint": "$10^6$ copies → 1 copy requires $\\log_2(10^6) = 6 \\log_2(10) \\approx 6 \\times 3.32 = 19.93 \\approx 20$ half-lives. At ~500 yr per half-life, $20 \\times 500 = 10{,}000$ yr to reach a single copy. This is why aDNA from Pleistocene specimens works (10-50 ka, ~20-100 half-lives, recoverable in good preservation) but is essentially impossible from Mesozoic specimens (66 Mya = ~132{,}000 half-lives — effectively zero remaining)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_front_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, summarize the modern frontier of paleontology — digital, molecular, AI + open data, climate-driven field changes.",
+        "rubric": "Mentions: **Digital paleontology** — CT (medical + μCT + synchrotron + nano-CT), 3D printing, virtual prep, geometric morphometrics, FEA + MBDA. **Witmer**, **Lautenschlager**, **Cunningham**, **Sigogneau-Russell**, **Bunopus** as key figures. **Molecular paleobiology** — **Schweitzer + Asara 2007** T. rex collagen, **Bertazzo** routine preservation, **Bailleul 2020** *Hypacrosaurus* nuclear staining. **aDNA**: **Pääbo Nobel 2022** + Neanderthal + Denisovan discovery; **Reich**, **Krause**, **Orlando** 700-kya horse; **Kjær** 2-Myr environmental aDNA. **Paleoproteomics**: **Cappellini** 1.77-Myr Dmanisi + 1.9-Myr rhino + **Welker** + amelogenin sex determination. **AI + ML**: **Hsiang + Pearson** foraminifera CNN, automated description, predictive locality mapping, LLM-assisted synthesis. **Climate threats** — permafrost (positive for Pleistocene), erosion, sea level (negative for Mesozoic). **Open data** — **Alroy's PBDB** >1.5M occurrences + SQS sampling correction; MorphoSource; iDigBio; GBIF. Concludes: paleontology synthesizes century of fieldwork with 21st-c computational + molecular tools to interrogate deep time with unprecedented resolution."
+      }
+    }
+  ]
+}

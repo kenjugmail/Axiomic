@@ -1,0 +1,152 @@
+{
+  "slug": "viscous-and-boundary-layer",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply Stokes flow + low-Re physics.",
+      "Derive boundary-layer scaling.",
+      "Understand separation + drag crisis."
+    ],
+    "prereqs": [
+      "navier-stokes-and-dimensionless-numbers"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Stokes flow — life at low Reynolds number",
+      "body": "In the limit **Re → 0** the inertial terms in Navier-Stokes drop out, leaving the linear **Stokes equation**:\n\n  ∇p = μ ∇²**v**,    ∇·**v** = 0\n\nNo time dependence (steady), no nonlinearity. Solvable analytically for many geometries, and superposition works.\n\n**Key consequences** of inertia-free flow:\n- **Time reversibility**: reverse boundary motion + flow exactly reverses (Taylor's famous demonstration with dyed glycerin between concentric cylinders — unmix by rotating back). G.I. Taylor's lecture film is a classic.\n- **Linearity**: superpose solutions. Stokeslets (point forces) tile arbitrary surfaces.\n- **Scallop theorem** (Purcell 1977): reciprocal motion produces zero net displacement at Re → 0. So **bacterial flagella + cilia must use nonreciprocal strokes** (corkscrews, asymmetric beats) to swim. Foundation of microbial biophysics.\n- **Drag scales linearly in U**: F = 6π μ a U for a sphere of radius a (**Stokes 1851**), vs F ∝ U² in turbulent flow. Used by Millikan in his oil-drop electron-charge experiment.\n- **Pressure equation**: ∇²p = 0 — pressure is harmonic.\n\n**Examples of Stokes flow**:\n- **Microswimmers**: E. coli, sperm, Chlamydomonas — Re ~ 10⁻⁴.\n- **Glaciers + lava + mantle convection** — viscosity huge, Re tiny despite size.\n- **Microfluidics** — small channels at moderate U give Re < 1.\n- **Sedimentation + filtration**.\n- **Polymer + colloidal suspensions**.\n- **Cells crawling on substrates**.\n\n**Hele-Shaw cell**: 2D Stokes flow between closely spaced parallel plates — surprisingly behaves as **potential flow** in plane, allowing easy visualization of streamlines. Used to model porous-media flow + Saffman-Taylor instability (viscous fingering).\n\n**Lubrication theory**: thin-gap Stokes flow, gives Reynolds equation for hydrodynamic bearings (Osborne Reynolds 1886) + tear-film mechanics + thin polymer coating. Foundation of tribology + biolubrication.\n\n**Saffman**, **Brenner**, **Happel**, **Kim & Karrila** built modern low-Re hydrodynamics. **Howard Brenner** especially extended Stokes flow with rotation, sedimentation + interfacial effects. **Edward M. Purcell** ('Life at low Reynolds number', 1977) made it accessible to physicists + biologists.\n\nReal-world contrasts: a swimming whale is Re ~ 10⁸; a swimming bacterium is Re ~ 10⁻⁴. **Twelve orders of magnitude** in the same fluid (water). Biology evolves entirely different strategies depending on which regime."
+    },
+    {
+      "kind": "text",
+      "title": "Prandtl boundary layer (1904) + Blasius + Von Kármán",
+      "body": "**Ludwig Prandtl's** 1904 Heidelberg lecture introduced the **boundary-layer concept** — perhaps the single most important idea in 20th-century fluid mechanics. It resolved d'Alembert's paradox + enabled engineering aerodynamics.\n\n**Premise**: at high Reynolds number, viscous effects are confined to a **thin layer of thickness δ ≪ L** near solid surfaces. Outside this layer, flow is essentially inviscid; inside, the no-slip condition + viscosity dominate.\n\n**Scaling**: balancing convective + viscous terms in the boundary layer\n\n  ρU(∂u/∂x) ~ μ(∂²u/∂y²)  ⇒  ρU²/L ~ μU/δ²  ⇒  δ/L ~ 1/√Re\n\nFor a flat plate Re_x = 10⁶ at x = 1 m gives δ ≈ 5 mm — thin but finite.\n\n**Prandtl's boundary-layer equations** (2D, steady, incompressible, zero-pressure gradient):\n\n  ∂u/∂x + ∂v/∂y = 0\n  u ∂u/∂x + v ∂u/∂y = U_e dU_e/dx + ν ∂²u/∂y²\n  ∂p/∂y = 0\n\nKey simplification: pressure is **impressed from the outer (inviscid) flow** + constant across the layer. Reduces Navier-Stokes (elliptic) to parabolic equations solvable by marching from leading edge downstream.\n\n**Blasius solution** (1908): self-similar solution for flat-plate laminar boundary layer (zero pressure gradient). Define η = y√(U/νx) + stream function ψ = √(νxU) f(η). Substituting yields the **Blasius ODE**:\n\n  f''' + ½ f f'' = 0\n\nwith f(0) = f'(0) = 0, f'(∞) = 1. Numerical solution gives wall shear-stress coefficient\n\n  C_f = τ_w/(½ρU²) = 0.664/√(Re_x)\n\nDrag on a flat plate of length L: C_D = 1.328/√(Re_L) (laminar). Skin-friction coefficient for **turbulent** boundary layer (1/7 power law): C_f ≈ 0.0592/Re_x^{0.2}, much higher than laminar.\n\n**Von Kármán momentum integral** (1921): integrate the boundary-layer momentum equation across the layer + obtain\n\n  dθ/dx + (2θ + δ*) (1/U_e) dU_e/dx = τ_w/(ρU_e²)\n\nwhere θ = momentum thickness, δ* = displacement thickness. Powerful approximate method using assumed velocity profile (Pohlhausen quartic, etc.); accurate engineering predictions before computers + still used in integral boundary-layer codes (XFOIL).\n\n**Falkner-Skan** family: self-similar boundary-layer solutions for wedge flow U_e = Ax^m with various pressure gradients — generalizes Blasius (m = 0).\n\n**Theodore von Kármán** (Caltech/JPL): student of Prandtl, extended boundary-layer + compressible-flow + supersonic-flow theory; mentor of generations of aerodynamicists; founding force of modern aerospace engineering. The **Kármán-Tsien correction**, **Kármán vortex street**, **Kármán-Pohlhausen integral**, **Kármán-Howarth equation** in turbulence all bear his name."
+    },
+    {
+      "kind": "text",
+      "title": "Separation, drag crisis, golf-ball dimples",
+      "body": "**Flow separation** occurs when the boundary layer cannot overcome an **adverse pressure gradient** (dp/dx > 0). At the separation point τ_w = 0; downstream, reverse flow develops + the layer detaches, forming a wake.\n\n**Why separation matters**:\n- **Pressure drag (form drag)** dominates total drag on bluff bodies (cylinders, cars, buildings).\n- **Stall** on airfoils — at high α the upper-surface boundary layer separates near the leading edge, lift collapses.\n- **Vortex shedding** — separated shear layers roll up into vortices (Kármán street behind cylinders + chimneys).\n- **Bluff-body wakes** — broad low-pressure region behind body produces large drag (Cd ~ 1 for a sphere or cylinder in laminar wake vs ~0.04 for a streamlined airfoil).\n\n**Boundary-layer transition + drag crisis**:\nA laminar boundary layer has low skin friction but separates early (low shear means little momentum near wall). A **turbulent boundary layer** has higher skin friction but resists separation because turbulent mixing brings high-momentum fluid down to the wall. Net effect on bluff bodies: **delayed separation + smaller wake + lower pressure drag**.\n\nFor a smooth sphere this transition occurs around Re = 3×10⁵ — the **drag crisis**: C_D drops from ~0.5 to ~0.1 as the boundary layer transitions. Eiffel + Prandtl both observed this in early 1900s wind-tunnel work.\n\n**Golf-ball dimples** exploit this. A smooth golf ball at typical flight speeds (Re ~ 10⁵) has a laminar separation point ~ 80° from the front + large wake. Dimples **trip the boundary layer to turbulence** at lower Re, delaying separation to ~ 120° + roughly **halving drag**. Flight distance roughly doubles. Designed empirically since the 1800s; understood since Prandtl.\n\n**Vortex generators on aircraft wings** — small fins that trip the boundary layer to delay separation at high α, improving stall margin. **Riblets** on swimsuits (the FINA-banned LZR Racer suit) reduced skin friction by ~5%, contributing to a wave of world records in 2008.\n\n**Strouhal number** St = fL/U characterizes vortex shedding frequency. For a circular cylinder St ≈ 0.2 over Re ~ 10²-10⁵ (Bénard-Kármán street). Famous engineering disasters: **Tacoma Narrows bridge** (1940) — aeroelastic flutter coupled to vortex shedding. Many tall chimneys + cooling towers + cables vibrate at their shedding frequency + must be damped (helical strakes, tuned mass dampers).\n\n**Active + passive flow control**:\n- **Suction / blowing** through wall.\n- **Plasma actuators** (DBD).\n- **Synthetic jets**.\n- **MEMS arrays** (still mostly research).\n- **Compliant surfaces** + dolphin-inspired skins.\n- **ML-driven flow control** — recent reinforcement-learning + adjoint methods for active control + drag reduction.\n\n**Marangoni boundary layers** (gradient-of-σ at free surface), **stratified boundary layers** (atmosphere + ocean), **rotating boundary layers** (Ekman, Stewartson) — all generalize Prandtl's idea to richer physics."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fluid_bl_1",
+        "kind": "guided_derivation",
+        "question": "Derive Prandtl boundary-layer scaling",
+        "goal": "Show δ/L ~ 1/√Re by balancing convective inertia with viscous diffusion across the boundary layer.",
+        "steps": [
+          {
+            "prompt": "Estimate the magnitude of convective inertia ρ u ∂u/∂x.",
+            "motivation": "Streamwise momentum advection.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~ ρ U²/L"
+              ]
+            },
+            "hints": [
+              "u ~ U over distance L."
+            ],
+            "reveal": "Velocity scales as U; streamwise variation length is L. So ρ u ∂u/∂x ~ ρ U × (U/L) = ρU²/L."
+          },
+          {
+            "prompt": "Estimate the magnitude of cross-stream viscous diffusion μ ∂²u/∂y².",
+            "motivation": "Viscous shear acts on the thin layer thickness δ.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~ μU/δ²"
+              ]
+            },
+            "hints": [
+              "u varies from 0 to U across δ in y."
+            ],
+            "reveal": "u varies from 0 at the wall to U at the edge over distance δ; so ∂u/∂y ~ U/δ + ∂²u/∂y² ~ U/δ². Hence μ ∂²u/∂y² ~ μU/δ²."
+          },
+          {
+            "prompt": "Balance the two scales for the boundary layer to exist.",
+            "motivation": "δ adjusts so inertia + viscosity are comparable inside the layer.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ρU²/L ~ μU/δ²"
+              ]
+            },
+            "hints": [
+              "Equality of leading-order terms in the layer."
+            ],
+            "reveal": "Inside the boundary layer convective + viscous terms are of the same order: ρU²/L ~ μU/δ². Cancel U: ρU/L ~ μ/δ²."
+          },
+          {
+            "prompt": "Solve for δ/L + interpret.",
+            "motivation": "Reynolds-number scaling.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "δ/L ~ 1/√Re"
+              ]
+            },
+            "hints": [
+              "Re = ρUL/μ."
+            ],
+            "reveal": "δ² ~ μL/(ρU) ⇒ δ/L ~ √(μ/(ρUL)) = 1/√Re. Confirmed by Blasius's exact similarity solution (numerical coefficient ~ 5 for 99% velocity edge). High-Re flow develops thin boundary layers; viscosity is asymptotically confined to a region of vanishing thickness yet remains crucial because of the no-slip condition. This is the heart of Prandtl's 1904 insight + the resolution of d'Alembert's paradox."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fluid_bl_1",
+        "kind": "multiple_choice",
+        "question": "Why do golf balls have dimples?",
+        "options": [
+          "Aesthetics.",
+          "Dimples **trip the boundary layer from laminar to turbulent** at flight Reynolds numbers (~10⁵). A turbulent boundary layer has greater near-wall momentum because of mixing — it resists adverse pressure gradients much better than a laminar layer. So separation is delayed from ~80° back to ~120° from the front of the ball + the **wake shrinks**. Pressure drag (form drag) dominates over skin friction for bluff bodies, so the net effect is **roughly halving the total drag** + roughly doubling the flight distance. This is the same physics as the **drag crisis** observed in smooth spheres around Re ~ 3·10⁵, but dimples induce it at much lower Re. Prandtl + Eiffel observed the smooth-sphere transition in early 1900s wind-tunnel work; golf-ball dimples are an empirical exploitation predating the theory.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Dimples trip the boundary layer to turbulence at Re ~ 10⁵. Turbulent BL has greater near-wall momentum + resists adverse pressure gradient → separation delayed → wake shrinks → form drag drops ~½. Same physics as smooth-sphere drag crisis (Eiffel + Prandtl ~1910)."
+      },
+      "hints": [
+        "What does turbulent BL do to separation?",
+        "Drag crisis."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Dimples trip the boundary layer turbulent at Re ~ 10⁵. Turbulent BL resists adverse pressure gradient → separation delayed from ~80° to ~120° → wake shrinks → pressure drag ~½. Same physics as the smooth-sphere drag crisis (Re ~ 3·10⁵) studied by Prandtl + Eiffel."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fluid_bl_1",
+        "kind": "scenario",
+        "question": "Boundary-layer transition on a wing",
+        "prompt": "An aircraft wing chord = 2 m flying at U = 100 m/s in sea-level air (ν ≈ 1.5·10⁻⁵). Compute Re_L. Where do you expect laminar-turbulent transition on the upper surface (Re_x,crit ≈ 5×10⁵)? Estimate laminar boundary-layer thickness at the transition point. Discuss why aircraft designers care about transition location + the role of transition tripping, leading-edge roughness + laminar-flow control (NLF, HLFC, LFC concepts)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fluid_bl_1",
+        "kind": "math_expression",
+        "question": "Write Stokes's drag formula for a sphere of radius a moving at velocity U through a fluid of viscosity μ.",
+        "acceptedAnswers": [
+          "F = 6π μ a U",
+          "F_drag = 6πμaU"
+        ],
+        "hint": "Linear in U; characteristic of Stokes (Re → 0) flow."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fluid_bl_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why Prandtl's boundary-layer theory was one of the great breakthroughs of 20th-century physics.",
+        "rubric": "Mentions: before Prandtl 1904 Heidelberg lecture, fluid mechanics split into two unreconciled branches — inviscid potential-flow theory (mathematically elegant, predicted lift, but also predicted zero drag — d'Alembert paradox) and engineering hydraulics (empirical, no theory). Prandtl's idea: viscous effects are confined to a thin layer of thickness δ/L ~ 1/√Re near solid boundaries; outside this layer flow is inviscid. Resolves d'Alembert paradox + makes aerodynamics computable. **Blasius** (1908) gave the first similarity solution; **von Kármán** + **Pohlhausen** developed the momentum-integral method; **Falkner-Skan** generalized to pressure gradients. The boundary-layer concept enabled aviation, naval engineering, turbomachinery + heat-exchanger design. Concludes: Prandtl unified pure + applied fluid mechanics, founded the Göttingen school, mentored a generation (von Kármán, Busemann, Görtler), and made every modern aircraft + ship calculation possible."
+      }
+    }
+  ]
+}

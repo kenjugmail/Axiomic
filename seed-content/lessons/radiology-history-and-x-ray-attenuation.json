@@ -1,0 +1,115 @@
+{
+  "slug": "radiology-history-and-x-ray-attenuation",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intro",
+    "objectives": [
+      "Trace the discovery of X-rays and the founding milestones of medical imaging.",
+      "Apply the Beer-Lambert law to compute attenuation of an X-ray beam.",
+      "Interpret Hounsfield units and the ALARA radiation-protection principle."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Röntgen, Curie, and the birth of radiology",
+      "viz": "xray-attenuation",
+      "vizProps": {},
+      "body": "On the evening of **8 November 1895**, the German physicist **Wilhelm Conrad Röntgen**, working at the **University of Würzburg**, noticed that a screen coated with **barium platinocyanide** glowed even when his **Crookes tube** was wrapped in opaque black cardboard. He had discovered an invisible, penetrating radiation he called **X-rays** ('X' for unknown). Within weeks he made the first medical radiograph, the famous image of his wife **Anna Bertha Ludwig's** hand showing her bones and wedding ring. For this Röntgen received the very **first Nobel Prize in Physics in 1901**, and he donated the prize money to his university and refused to patent the discovery so that all of humanity could benefit.\n\nThe technology spread with astonishing speed. By 1896 hospitals across **Europe** and **North America** were using X-rays to locate fractures and embedded bullets. **Marie Curie**, the Polish-French physicist who with **Pierre Curie** and **Henri Becquerel** had pioneered the study of radioactivity (a term she coined), recognized the wartime value of the new rays. During **World War I** she designed and equipped fleets of mobile radiography units, the famous **'petites Curies'**, and trained roughly 150 women operators; these vehicles brought X-ray diagnosis to wounded soldiers near the front and are credited with examining over a million casualties.\n\nThe next revolution arrived in the **1970s** with **computed tomography (CT)**. The British engineer **Sir Godfrey Hounsfield** at **EMI Laboratories** built the first clinical CT scanner (installed at **Atkinson Morley Hospital** in 1971), while the South-African-born physicist **Allan MacLeod Cormack** had independently worked out the mathematics of reconstructing cross-sections from projections. The two shared the **1979 Nobel Prize in Physiology or Medicine**. CT transformed radiology from a discipline of shadows on film into one of quantitative, three-dimensional digital data, and the density scale used in CT, the **Hounsfield unit**, still bears its inventor's name. Modern radiology rests on these foundations: the physics of penetrating radiation, the engineering of detectors, and the mathematics of image reconstruction."
+    },
+    {
+      "kind": "text",
+      "title": "The Beer-Lambert law of attenuation",
+      "body": "X-rays are **electromagnetic radiation** of very short wavelength (roughly $0.01$ to $10$ nanometres) and high energy (kiloelectronvolts). When a beam passes through tissue it is **attenuated**, meaning photons are removed from the beam by absorption and scattering. The fundamental relationship governing this is the **Beer-Lambert law** (named for **August Beer** and **Johann Heinrich Lambert**, with roots in **Pierre Bouguer's** earlier work on light extinction):\n\n$$I = I_0\\, e^{-\\mu x}$$\n\nHere $I_0$ is the incident beam intensity, $I$ is the intensity after passing through a thickness $x$ of material, and $\\mu$ is the **linear attenuation coefficient** (units of inverse length, e.g. $\\mathrm{cm}^{-1}$). The coefficient $\\mu$ captures how strongly a given material removes photons of a given energy. Key properties:\n\n- $\\mu$ **increases with the density** of the material and rises steeply with **atomic number** $Z$ at diagnostic energies, which is why **bone** (rich in calcium, $Z=20$) attenuates far more than **soft tissue** (mostly water and carbon).\n- $\\mu$ **decreases as photon energy increases**: higher-energy (more penetrating) beams have smaller $\\mu$, so a hardened beam passes through more easily.\n- Because density varies between samples, physicists often tabulate the **mass attenuation coefficient** $\\mu/\\rho$, which factors out density $\\rho$ so values can be compared across materials and states.\n\nA convenient measure derived from the law is the **half-value layer (HVL)**, the thickness that reduces intensity to one half. Setting $I/I_0 = 1/2$ gives:\n\n$$\\mathrm{HVL} = \\frac{\\ln 2}{\\mu} \\approx \\frac{0.693}{\\mu}$$\n\nFor a real polychromatic beam the law is an approximation because lower-energy photons are preferentially absorbed, an effect called **beam hardening** that shifts the spectrum toward higher mean energy as the beam penetrates. Nonetheless the exponential model is the workhorse of imaging physics. It explains image contrast: structures differ in brightness on a radiograph precisely because they have different products $\\mu x$. It also underlies CT, where the scanner measures the **logarithm** of attenuation along thousands of ray paths and a computer solves for the spatial distribution of $\\mu$ throughout the patient. Understanding this single exponential equation is the conceptual key to nearly all X-ray-based imaging."
+    },
+    {
+      "kind": "text",
+      "title": "Hounsfield units and the ALARA principle",
+      "body": "When CT reconstructs an image, the value in each picture element (**voxel**) is the local linear attenuation coefficient $\\mu$. To make these values universal and machine-independent, **Godfrey Hounsfield** defined a normalized scale, the **Hounsfield unit (HU)**, also called the **CT number**:\n\n$$\\mathrm{HU} = 1000 \\times \\frac{\\mu_{\\text{tissue}} - \\mu_{\\text{water}}}{\\mu_{\\text{water}}}$$\n\nBy construction **water = 0 HU** and **air = -1000 HU**. Typical reference values memorized by every radiologist include: **fat** around $-100$ to $-50$ HU, **soft tissue and muscle** around $+30$ to $+60$ HU, **fresh clotted blood** around $+60$ to $+90$ HU, and **dense cortical bone** plus $+700$ to over $+1000$ HU. Because the human eye can only distinguish a limited number of grey levels at once while CT data spans thousands of HU, images are displayed using **windowing**, a chosen **window level** (centre) and **window width** (range) that maps a slice of the HU scale to the full grey range, giving dedicated 'lung windows', 'bone windows', and 'soft-tissue windows'.\n\nAll of this diagnostic power comes at a cost: X-rays are **ionizing radiation** capable of damaging DNA and, at sufficient dose, of inducing cancer. The guiding ethic of radiation protection is **ALARA**, an acronym for **As Low As Reasonably Achievable**. Promoted by bodies such as the **International Commission on Radiological Protection (ICRP)** and the **National Council on Radiation Protection and Measurements (NCRP)**, ALARA holds that, given that no dose is assumed perfectly safe, exposures must be minimized consistent with obtaining the needed clinical information. In practice ALARA is implemented through the classic triad of **time, distance, and shielding** for occupational workers, and for patients through **dose-reduction techniques**: collimating the beam to the region of interest, using the lowest tube current and voltage that yields adequate images, employing modern iterative reconstruction, gonadal and thyroid shielding where appropriate, and rigorous **justification** so that every examination's benefit outweighs its risk. Pediatric imaging follows the **Image Gently** campaign and adult CT the **Image Wisely** campaign. The interplay between these two themes, extracting maximum information from attenuation while respecting that the probe itself carries risk, defines the professional judgement at the heart of radiology."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hist_1",
+        "kind": "multiple_choice",
+        "question": "Wilhelm Röntgen received the first Nobel Prize in Physics (1901) for discovering X-rays. Which of the following is also true of his discovery and conduct?",
+        "options": [
+          "He immediately patented the X-ray tube and licensed it exclusively to Siemens.",
+          "He observed a barium platinocyanide screen fluoresce near a shielded Crookes tube in 1895 and chose not to patent the discovery so all could benefit.",
+          "He discovered X-rays while studying radioactivity in uranium salts alongside Becquerel.",
+          "His first radiograph was of a human skull taken at the University of Munich."
+        ],
+        "correctIndex": 1,
+        "explanation": "Röntgen noticed a barium platinocyanide screen glowing while a Crookes tube was wrapped in black cardboard at Würzburg in 1895, and he famously declined to patent X-rays so that the world could use them freely. Radioactivity in uranium was Becquerel's separate later discovery, and Röntgen's first famous radiograph was of his wife's hand, not a skull."
+      },
+      "hints": [
+        "Think about Röntgen's well-known stance on commercializing the discovery.",
+        "Recall which detector screen glowed and what the first famous image showed."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Röntgen worked at the University of Würzburg, where in November 1895 he saw barium platinocyanide fluoresce despite the tube being shielded. He realized a new penetrating ray was responsible. He published promptly, took the famous radiograph of his wife Anna Bertha Ludwig's hand, and deliberately refused to patent the discovery, donating his Nobel money. Becquerel and the Curies later studied radioactivity, a distinct phenomenon. Hence option B is correct."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_hist_1",
+        "kind": "math_expression",
+        "question": "An X-ray beam of intensity I0 passes through 4 cm of a material whose linear attenuation coefficient is mu = 0.25 per cm. Using I = I0 * e^(-mu*x), compute the fraction I/I0 of the beam that emerges. Give the value as a decimal to two places.",
+        "acceptedAnswers": [
+          "0.37",
+          "0.368",
+          "e^-1",
+          "0.3679"
+        ],
+        "hint": "Compute the exponent mu*x first; here mu*x = 0.25 * 4 = 1, so I/I0 = e^(-1)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_hist_2",
+        "kind": "math_expression",
+        "question": "A material has linear attenuation coefficient mu = 0.10 per cm. Using HVL = ln(2)/mu, compute its half-value layer in centimetres to one decimal place.",
+        "acceptedAnswers": [
+          "6.9",
+          "6.93",
+          "ln(2)/0.1",
+          "6.931"
+        ],
+        "hint": "HVL = 0.693 / mu. Divide 0.693 by 0.10."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hist_2",
+        "kind": "multiple_choice",
+        "question": "On the Hounsfield unit scale used in CT, which set of assignments is correct by definition or convention?",
+        "options": [
+          "Water = -1000 HU and air = 0 HU.",
+          "Water = 0 HU and air = -1000 HU, with dense cortical bone strongly positive.",
+          "Water = +1000 HU and bone = 0 HU.",
+          "All tissues share the same HU because HU measures only density, not attenuation."
+        ],
+        "correctIndex": 1,
+        "explanation": "The Hounsfield scale is defined so that water is exactly 0 HU and air is -1000 HU. Dense cortical bone sits well above zero (often +700 to +1000 or more), while fat is mildly negative. The scale is a linear transform of the linear attenuation coefficient relative to water."
+      },
+      "hints": [
+        "Recall the two anchor points Hounsfield chose for his scale.",
+        "Bone attenuates strongly, so its HU is large and positive."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "The defining formula HU = 1000 * (mu_tissue - mu_water)/mu_water forces water to 0 by construction. Air, having almost no attenuation, comes out near -1000. Bone, being dense and high in calcium (high Z), gives large positive HU. Therefore the correct anchor pair is water = 0 and air = -1000, making option B correct."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_hist_1",
+        "kind": "scenario",
+        "question": "A 7-year-old needs imaging for suspected appendicitis, and the team is weighing CT versus ultrasound.",
+        "prompt": "You are the radiologist on call. A 7-year-old child presents with right-lower-quadrant pain and possible appendicitis. The emergency physician requests an abdominal CT. Using the ALARA principle and your knowledge of ionizing versus non-ionizing modalities, explain how you would respond: which modality you would recommend first and why, what dose-reduction steps you would insist upon if CT becomes necessary, and how you would justify the final decision to the referring physician and the family. Reference specific ALARA levers in your reasoning."
+      }
+    }
+  ]
+}

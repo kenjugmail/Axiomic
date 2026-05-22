@@ -1,0 +1,154 @@
+{
+  "slug": "diagnostics-and-experimental",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Choose probe vs Thomson.",
+      "Read spectroscopy.",
+      "Use neutron diagnostics."
+    ],
+    "prereqs": [
+      "plasma-waves-and-instabilities"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Langmuir probes + spectroscopy: workhorse diagnostics",
+      "body": "Plasma diagnostics extract n_e, n_i, T_e, T_i, B, E, v, f(v), impurity content, MHD activity, fast particles, turbulence, etc. — typically with **no perturbation** of the plasma. ITER's diagnostic suite has **>50 systems**; a modern tokamak has 30-60. Choice of technique depends on plasma parameters, accessibility, and the question.\n\n**Langmuir probe** (Irving Langmuir + Mott-Smith **1926**) — a biased conducting tip inserted into plasma; classic + still widely used:\n- **I-V characteristic**: sweep voltage V_p vs ground, record current I.\n- **Saturation regions**: ion saturation I_sat,i ≈ 0.5 n_e e c_s A (using Bohm sheath criterion); electron saturation harder due to expanding sheath.\n- **Electron temperature**: slope of ln(I) vs V in transition region gives T_e (assuming Maxwellian).\n- **Plasma potential V_p**: where I starts saturating.\n- **Density** from I_sat once T_e known.\n- **Limitations**: only edge/SOL (probe melts in hot core); perturbs sheath; assumes Maxwellian; sheath physics complex; hard to interpret in magnetic fields.\n- **Variants**: floating probe (no bias, gives V_float); emissive probe (electron-emitting → directly reads V_p); Mach probe (asymmetric, gives flow); RF-compensated probe; double + triple probes (avoid ground reference); ball-pen + Katsumata probe (separates I_sat,e + I_sat,i).\n\n**Optical / passive spectroscopy** — emission lines from plasma:\n- **Doppler broadening**: Δλ/λ = √(8 ln2 k_B T_i / (m c²)) → **T_i from line width**.\n- **Doppler shift**: bulk velocity along sightline.\n- **Stark broadening** (linear for H, quadratic for others; **Inglis-Teller limit**) → **n_e from line wings**.\n- **Zeeman splitting** → **B-field** measurement (especially edge B, motional Stark effect MSE for q-profile in core).\n- **Line intensity ratios** of same ion → **T_e** (via excitation rate coefficients from ADAS, OPEN-ADAS).\n- **Impurity content**: spectroscopy IDs lines of W, Mo, Fe, C, O contaminants — critical for ITER tungsten wall.\n- **Charge Exchange Recombination Spectroscopy (CXRS)**: injected neutral beam donates electron to impurity ion → emits visible line → Doppler gives T_i, n_imp, v_φ, v_θ — workhorse for core ion temperature + rotation.\n- **Active beam spectroscopy (BES)** for density-fluctuation imaging.\n- **VUV + XUV spectroscopy** for highly-ionized impurities in core.\n- **Bolometers**: total radiated power (used for divertor + power balance)."
+    },
+    {
+      "kind": "text",
+      "title": "Thomson scattering + interferometry + reflectometry",
+      "body": "**Thomson scattering** — laser scattered off **free electrons** (no atomic-physics dependence):\n- **Cross-section**: r_e² = (e²/(4πε₀ m_e c²))² ≈ 8×10⁻³⁰ m² — tiny; need high laser power (J-class pulses) + sensitive detection.\n- **Incoherent (k r_D ≫ 1)**: scattered spectrum is Maxwellian Doppler distribution → **T_e from spectral width, n_e from intensity** (absolute calibration).\n- **Coherent (k r_D ≪ 1)**: scattering off plasma waves (ion-acoustic, Langmuir) → ion + electron features in spectrum → T_e, T_i, drift v, fast-ion tail (collective Thomson, CTS — **ITER's fast-α diagnostic**).\n- **Implementations**: **multi-pulse, multi-channel TS** at JET, DIII-D, JT-60, W7-X — 100+ spatial points across profile.\n- **Beautiful feature**: minimally perturbing + model-independent → **gold-standard for n_e + T_e profiles**.\n- **Variants**: **LIDAR Thomson** (single backscatter, time-of-flight gives spatial profile from one laser pulse); **dual-laser polarimetric TS** (no plasma calibration); **far-IR TS** for low-T plasmas.\n\n**Interferometry** — refractive-index measurement gives line-integrated n_e:\n- **Index of refraction**: n = √(1 - ω_p²/ω²) ≈ 1 - n_e e²/(2ε₀ m_e ω²) for ω ≫ ω_p.\n- **Phase shift** across plasma → ∫n_e dℓ (line-integrated density).\n- **Implementations**: **CO₂ (10.6 μm) interferometer**, **HCN (337 μm) far-IR**, **mm-wave** at lower density; **toroidal interferometer + polarimeter (TIP)** at NIF.\n- **Limitations**: line-integrated only; needs inversion (Abel, or chord-grid + tomography) for local n_e.\n\n**Reflectometry** — probe wave at ω_p cutoff reflects from a layer; phase + Doppler → **n_e profile + fluctuations**:\n- **O-mode + X-mode** reflectometry standard on all tokamaks.\n- **Doppler backscattering (DBS)**: measures perpendicular flow at cutoff layer → **E×B rotation profiles + turbulence**.\n- **Fluctuation reflectometry**: density-fluctuation amplitude + correlation → turbulence diagnostics.\n\n**Polarimetry + MSE**:\n- **Faraday rotation** of polarized beam through magnetized plasma → ∫ n_e B_∥ dℓ → constrains B-profile.\n- **Motional Stark Effect (MSE)**: Stark splitting of injected neutral-beam emission lines from v × B Lorentz field gives **local pitch angle / q-profile** — crucial for tokamak equilibrium reconstruction (EFIT, IDE).\n- **Cotton-Mouton effect** complements Faraday rotation for B_⊥.\n\n**Electron Cyclotron Emission (ECE)**:\n- Optically thick plasma emits blackbody at ω = nω_ce (n=1,2,3 harmonics).\n- Frequency → radial position (via B(R)); intensity → local **T_e** with ~ms time resolution.\n- **ECE imaging** + 2D systems for MHD imaging (TEXTOR, KSTAR, DIII-D).\n\n**Bolometers** — measure total radiated power (line + bremsstrahlung + recombination); ITER has ~500 channels for tomographic reconstruction of radiated-power profile."
+    },
+    {
+      "kind": "text",
+      "title": "Neutron + fast-ion + ITER's diagnostic suite",
+      "body": "**Neutron diagnostics** — fusion reactions produce neutrons; reaction rate + spectrum diagnose ion physics:\n- **DT fusion** → 14.1 MeV neutron + 3.5 MeV α; **DD fusion** → 2.45 MeV neutron + 0.82 MeV ³He (or proton branch).\n- **Neutron yield Y_n** = fusion rate × volume × time; absolute calibrated with **activation foils** (Cu, In, Au, Nb).\n- **Doppler broadening of 14.1 MeV peak** → **T_i** (independent of optical diagnostics, no LOS issues).\n- **Magnetic Proton Recoil Spectrometer (MPR)** at JET — gold-standard for DT neutron spectroscopy; resolves alpha knock-on effects.\n- **Time-of-flight (TOF) spectrometers** + **liquid-scintillator spectrometers (NE-213, EJ-301)** at multiple sightlines.\n- **Diamond + CVD detectors** for ITER (radiation-hard, fast).\n- **Neutron cameras** with collimated sightlines → tomographic profile of fusion rate.\n\n**Fast-ion / energetic-particle diagnostics**:\n- **Neutral Particle Analyzer (NPA)**: charge-exchanged fast neutrals exit plasma → mass + energy spectrum → fast-ion distribution.\n- **FIDA (Fast-Ion D-Alpha)**: Doppler-shifted Balmer-α emission from CX'd fast ions; gives velocity-space-resolved fast-ion population.\n- **Collective Thomson Scattering (CTS)** with mm-wave gyrotrons (ASDEX, TEXTOR, ITER planned) → fast-α distribution.\n- **Lost-ion detectors**: scintillator + Faraday cup arrays measure escaping fast particles + pitch + energy.\n- **Gamma-ray spectroscopy**: ¹²C(α,γ) reactions from beryllium wall give MeV-α fingerprint.\n- **Alpha-particle diagnostics for ITER**: combined neutron + CTS + FIDA + gamma + lost-ion array — most challenging diagnostic suite ever assembled.\n\n**MHD + equilibrium diagnostics**:\n- **Magnetic pickup coils + flux loops** (B_dot probes, Mirnov coils): plasma current, position, MHD modes, ELMs, disruptions.\n- **Rogowski coils**: integrated current.\n- **Saddle loops**: low-mode-number MHD.\n- **Diamagnetic loop**: plasma pressure / β.\n- **Equilibrium reconstruction codes**: EFIT, IDE, V3FIT (stellarator) integrate all diagnostics to reconstruct ψ(R,Z), q(ψ), p(ψ), j(ψ).\n\n**ITER's 50+ diagnostic systems** organized by port plugs + bioshield-mounted; key challenges:\n- **Neutron flux** ~10¹⁸ n/m²/s (1000× JET) → degrades optics, electronics, windows; mirrors get sputtered.\n- **Activation** — components become radioactive; **remote-handling-only access**.\n- **Long pulses** (400-3000 s) require continuous monitoring + machine protection.\n- **First mirrors** (FMs) face plasma — must survive 10⁵ thermal cycles + erosion.\n- **In-vessel ICP test** — diagnostics tested in JET DTE2 for ITER readiness.\n\n**Diagnostics for ICF (NIF)**: completely different timescales (~ns) + ultrafast:\n- **DT neutron yield + Doppler** (5 spectrometers).\n- **X-ray imaging** of hot-spot + capsule self-emission (gated MCP, GXD).\n- **Penumbral X-ray imaging** for hot-spot shape.\n- **Bang-time** detectors.\n- **Knock-on deuteron + triton spectrometers** for ρR.\n- **ARIANE + DIM diagnostic instrument manipulators** for sample-recovery + activation.\n- **Streak cameras** for time-resolved hot-spot evolution."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_dia_1",
+        "kind": "guided_derivation",
+        "question": "Interpret an I-V Langmuir probe trace",
+        "goal": "Probe gives I_sat,i = 100 mA, slope d(ln I_e)/dV = 0.5 /V, area 1 mm². Extract T_e, n_e.",
+        "steps": [
+          {
+            "prompt": "From d(ln I_e)/dV = e/(k_B T_e), find T_e.",
+            "motivation": "Slope gives temperature.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "T_e = 2 eV"
+              ]
+            },
+            "hints": [
+              "T_e[eV] = 1/slope[/V]."
+            ],
+            "reveal": "d(ln I_e)/dV = e/(k_B T_e) → **T_e = 1/slope = 1/0.5 V = 2 V → T_e ≈ 2 eV**. Typical edge plasma."
+          },
+          {
+            "prompt": "Compute c_s for D⁺ at T_e = 2 eV.",
+            "motivation": "Bohm speed.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~9800 m/s",
+                "~10⁴ m/s"
+              ]
+            },
+            "hints": [
+              "c_s = √(k_B T_e/m_i) = √(2×1.6×10⁻¹⁹ / 3.34×10⁻²⁷)."
+            ],
+            "reveal": "c_s = √(2×1.6×10⁻¹⁹ / 3.34×10⁻²⁷) = √(9.6×10⁷) ≈ **9800 m/s ≈ 10⁴ m/s**. For deuterium at 2 eV."
+          },
+          {
+            "prompt": "Use I_sat,i = 0.5 e n_e c_s A → solve n_e.",
+            "motivation": "Density from ion-saturation current.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "n_e ~ 1.3×10¹⁹ m⁻³"
+              ]
+            },
+            "hints": [
+              "n_e = I_sat / (0.5 e c_s A). A = 10⁻⁶ m²."
+            ],
+            "reveal": "n_e = I_sat / (0.5 e c_s A) = 0.1 / (0.5 × 1.6×10⁻¹⁹ × 9800 × 10⁻⁶) ≈ 0.1 / (7.8×10⁻²¹) ≈ **1.3×10¹⁹ m⁻³**. Typical SOL density."
+          },
+          {
+            "prompt": "List two limitations of this measurement.",
+            "motivation": "Skeptical interpretation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "assumes Maxwellian; sheath model approximate; probe perturbs"
+              ]
+            },
+            "hints": [
+              "Why might T_e + n_e be wrong by 30-50%?"
+            ],
+            "reveal": "(1) **Assumes Maxwellian** — fast-electron tails distort slope (use Druyvesteyn second-derivative method instead). (2) **Sheath area expansion** at high voltages overestimates I_sat → 30% systematic; (3) **Magnetic-field correction** for B > 0.1 T reduces saturation current significantly (Stangeby + Chodura sheath modifications); (4) **Probe perturbation** alters local plasma; (5) **Floating-potential offsets** from secondary emission or asymmetric sheaths. Cross-check with Thomson scattering or reflectometry for absolute calibration. Modern probes use bipolar/Mach/emissive variants + RF compensation."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_dia_1",
+        "kind": "multiple_choice",
+        "question": "Why is Thomson scattering considered the gold-standard for n_e + T_e measurement?",
+        "options": [
+          "Random.",
+          "Thomson scattering — laser scattered off **free electrons** via the Thomson cross-section σ_T = (8π/3) r_e² ≈ 6.65×10⁻²⁹ m² — has key advantages: (1) **no atomic-physics dependence**, unlike spectroscopy that needs excitation cross-sections, populations + collisional-radiative models (ADAS); (2) **incoherent regime** (k r_D ≫ 1) gives scattered spectrum that is the **electron velocity distribution Doppler-shifted** → spectral width gives **T_e directly**, intensity gives **n_e absolute** (with good calibration); (3) **localized** — measurement point set by laser-collection optics intersection (no line-integration); (4) **near non-perturbing** — laser energy << plasma thermal energy; (5) **time-resolved** — multi-pulse YAG + Ti:Sa give kHz repetition. Implementations: JET LIDAR-TS, DIII-D multipulse, W7-X, ITER edge + core TS. **Limitation**: needs high laser energy (J-class), expensive optics, doesn't measure ions directly (use CTS for ion features). Gold-standard for **calibrating other diagnostics** + the **reference n_e + T_e measurement** in modern fusion devices.",
+          "Wrong.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Thomson scattering = laser off free electrons → spectral width gives T_e directly, intensity gives absolute n_e — no atomic-physics dependence, localized, near non-perturbing. Used to calibrate other diagnostics. Workhorse on JET, DIII-D, W7-X, ITER. Limitation: tiny cross-section requires J-class lasers + sensitive detection."
+      },
+      "hints": [
+        "What makes Thomson model-independent?",
+        "What does the spectrum look like?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Thomson scattering measures n_e + T_e directly from the laser scattered off free electrons. Spectrum is Doppler-broadened by electron velocities → width gives T_e; intensity gives absolute n_e. Has no atomic-physics dependence (unlike spectroscopy), is localized + near-non-perturbing, can be time-resolved. Gold-standard reference for n_e + T_e profiles; used to calibrate other diagnostics. Limitation: small cross-section needs J-class laser energy."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_dia_1",
+        "kind": "scenario",
+        "question": "Designing the ITER alpha-particle diagnostic",
+        "prompt": "ITER must measure 3.5 MeV alpha particles to verify alpha self-heating + identify fast-ion-driven Alfvén modes that could redistribute alphas. Discuss (a) why no single diagnostic suffices, (b) the role of Collective Thomson Scattering with mm-wave gyrotrons, (c) FIDA + gamma-ray + lost-ion detector complements, (d) why neutron emission tomography gives spatially-resolved fusion rate but not alpha distribution, (e) the radiation-environment + first-mirror challenges that make ITER diagnostics the most demanding ever built."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_dia_1",
+        "kind": "math_expression",
+        "question": "Write the electron-temperature slope from a Langmuir probe.",
+        "acceptedAnswers": [
+          "d(ln I_e)/dV = e/(k_B T_e)",
+          "T_e = 1/slope (in eV/V)",
+          "dlnI/dV = 1/T_e"
+        ],
+        "hint": "Logarithmic slope of electron current vs probe voltage."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_dia_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how plasma diagnostics combine to characterize a fusion plasma + why ITER needs 50+ systems.",
+        "rubric": "Mentions: plasma is opaque to direct measurement but emits + refracts + responds to probes in many channels. Langmuir probes give n_e + T_e at edge; spectroscopy (Doppler/Stark/Zeeman/CXRS) gives T_i, B, impurities, rotation; Thomson scattering = gold-standard model-independent n_e + T_e profiles; interferometry + reflectometry give line-integrated + profile density; MSE + polarimetry give q-profile; ECE gives T_e via blackbody at gyroharmonic; magnetic coils give MHD + equilibrium; neutron spectroscopy gives T_i + fusion rate; fast-ion diagnostics (NPA, FIDA, CTS, gamma, lost-ion) give alpha + NBI distribution; bolometers give radiated power. ITER's 50+ systems are necessary because (i) no single diagnostic covers all parameters; (ii) cross-validation builds confidence in Q=10 demonstration; (iii) machine protection + control needs real-time feedback; (iv) neutron flux + activation + remote-handling require redundancy + radiation-hard design. Concludes: integrated diagnostics + equilibrium reconstruction (EFIT/IDE) are the foundation of modern plasma physics + fusion engineering."
+      }
+    }
+  ]
+}

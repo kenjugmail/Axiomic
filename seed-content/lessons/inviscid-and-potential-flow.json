@@ -1,0 +1,152 @@
+{
+  "slug": "inviscid-and-potential-flow",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Derive Bernoulli + vorticity.",
+      "Use potential flow methods.",
+      "Explain d'Alembert paradox + lift."
+    ],
+    "prereqs": [
+      "navier-stokes-and-dimensionless-numbers"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Euler, Bernoulli, vorticity",
+      "body": "Set μ = 0 in Navier-Stokes ⇒ **Euler equations** for inviscid flow (Euler 1757 — predating the viscous theory by 90 years):\n\n  ρ D**v**/Dt = −∇p + ρ**g**\n\nplus continuity ∂ρ/∂t + ∇·(ρ**v**) = 0. Despite dropping a term, Euler retains the convective nonlinearity + remains hard. Valid in the **outer flow** away from boundary layers + at high Re.\n\n**Bernoulli equation** — integrate Euler along a streamline for steady, incompressible, inviscid flow with conservative body force:\n\n  p + ½ρv² + ρgz = const along streamline\n\nThree forms of energy per unit volume: pressure + kinetic + potential. For **irrotational** flow Bernoulli holds **everywhere**, not just along streamlines. Daniel Bernoulli (1738 Hydrodynamica) preceded Euler — historically the form was developed via energy reasoning before the PDE.\n\n**Applications**: Pitot tubes (airspeed = √(2Δp/ρ)), venturi flow meters, lift-and-drag estimates outside boundary layers, atomizers, water-jet cutters. Famously misapplied to airplane lift in popular textbooks (lift requires circulation + Kutta condition — see below).\n\n**Vorticity** ω = ∇ × **v**: twice the local angular rotation rate of a fluid element. Its dynamics follow the **vorticity equation** (curl of Navier-Stokes):\n\n  Dω/Dt = (ω·∇)**v** + ν ∇²ω + (∇ρ × ∇p)/ρ²\n\n- **(ω·∇)v** — **vortex stretching**, exclusive to 3D; intensifies vorticity when a vortex line is stretched (think tornado, bathtub vortex elongating). Source of turbulent energy cascade.\n- **ν∇²ω** — viscous diffusion of vorticity (zero in inviscid flow).\n- **Baroclinic term** (∇ρ × ∇p)/ρ² — vorticity generated when ∇ρ ⊁ ∇p (oceans, atmospheres).\n\n**Kelvin's circulation theorem** (Lord Kelvin 1869): in inviscid, barotropic flow with conservative body forces, the **circulation** Γ = ∮ **v** · d**l** around any material curve is conserved: dΓ/dt = 0. So vorticity cannot appear or disappear in such flow — must be present initially or imported via boundary layers/viscosity.\n\n**Helmholtz's vortex theorems** (1858): (1) vortex lines move with the fluid; (2) circulation is constant along a vortex tube; (3) vortex tubes cannot end in a fluid — must close on themselves or terminate on boundaries.\n\nThese theorems underlie smoke rings, tornado dynamics, trailing-vortex wakes of aircraft, oceanic mesoscale eddies. **Saffman**'s 'Vortex Dynamics' (1992) + **Batchelor** are canonical references."
+    },
+    {
+      "kind": "text",
+      "title": "Potential flow + Laplace + complex analysis",
+      "body": "If a flow is **irrotational** (ω = 0 everywhere) + **incompressible**, two huge simplifications occur:\n- Irrotational ⇒ ∃ scalar **velocity potential** φ with **v** = ∇φ.\n- Incompressible + above ⇒ ∇²φ = 0 — **Laplace's equation**.\n\nLaplace's equation is **linear**! Superposition applies. The full machinery of harmonic functions, separation of variables, Green's functions + complex analysis becomes available. Almost everything you learn in analysis suddenly applies to fluids.\n\n**Stream function** ψ (2D incompressible): u = ∂ψ/∂y, v = −∂ψ/∂x. Automatically satisfies continuity. For irrotational flow ψ also harmonic (∇²ψ = 0). Streamlines = curves of constant ψ.\n\n**Complex potential** F(z) = φ + iψ for 2D potential flow, with z = x + iy. F is analytic; dF/dz = u − iv (complex velocity). Famous **elementary flows**:\n- **Uniform stream**: F = Uz.\n- **Source / sink**: F = (m/(2π)) ln z; volume flow rate m.\n- **Vortex**: F = (−iΓ/(2π)) ln z; circulation Γ.\n- **Doublet** (source-sink limit): F = μ/z.\n- **Stagnation flow**: F = ½kz².\n\n**Superposition** of these solves problems analytically. Example — **flow past a cylinder of radius a** with uniform stream U + doublet:\n\n  F(z) = U(z + a²/z)\n\nFor a **lifting cylinder** add a vortex: F = U(z + a²/z) − (iΓ/(2π)) ln z. Computing the pressure via Bernoulli gives lift per unit span L' = ρUΓ — the **Kutta-Joukowski theorem**.\n\n**Conformal mapping** is the key analytical tool: an analytic function w = f(z) maps one 2D domain to another while preserving angles + Laplace's equation. If F is potential flow in the w-plane, F(f(z)) is potential flow in the z-plane.\n\n**Joukowski transformation** w = z + a²/z maps a circle in the z-plane to an airfoil shape in the w-plane (depending on circle's center + radius). Combined with the lifting-cylinder solution + Kutta condition, gives **closed-form airfoil lift**:\n\n  L' = ρU·Γ,   Γ = −π U c sin α   ⇒   C_L = 2π sin α ≈ 2π α (small α)\n\nThe linear lift-vs-angle-of-attack of thin airfoils + the 2π slope are classic results. Refined by **thin-airfoil theory** + **lifting-line theory** (Prandtl 1918).\n\n**Limitations**: potential flow assumes ω = 0 everywhere — no boundary layers, no separation, no wake, no drag (d'Alembert paradox). Yet it provides the leading-order pressure distribution + lift on streamlined bodies, the foundation for engineering aerodynamics + naval hydrodynamics. Modern **panel methods** (XFOIL, VSAERO) discretize potential flow + couple with boundary-layer corrections."
+    },
+    {
+      "kind": "text",
+      "title": "d'Alembert paradox + Joukowski + Kutta-Joukowski lift",
+      "body": "**d'Alembert's paradox** (1752): in steady, incompressible, irrotational flow with no separation, the drag on any closed body is **zero**. d'Alembert derived this from energy + momentum arguments long before viscosity was understood.\n\nResolution awaited **Prandtl** (1904): a thin **boundary layer** of viscous flow exists adjacent to the surface, even at infinite Re. It separates from the body at adverse-pressure-gradient regions, forming a wake. Pressure drag (form drag) + skin friction (viscous drag) emerge — the paradox is resolved by including any nonzero viscosity, however small. The boundary-layer thickness ~ 1/√Re, so the inviscid description is correct *outside* this layer.\n\n**Kutta condition** + **lift**: For a 2D airfoil at angle of attack α, the inviscid problem alone has infinitely many solutions (parameterized by circulation Γ). The **Kutta condition** (Wilhelm Kutta 1902 + Joukowski 1906) selects the unique physical solution: **the flow leaves the trailing edge smoothly** (no infinite velocity at the cusp). This determines Γ.\n\nKutta-Joukowski theorem: for any 2D body in uniform stream U with circulation Γ,\n\n  L' = ρU Γ  (per unit span)\n\nDrag is zero in the inviscid model (d'Alembert paradox). Real drag comes from boundary-layer skin friction + pressure drag from separation, both viscous in origin.\n\n**Joukowski airfoil**: conformal map w = z + a²/z applied to a circle whose center is offset gives an airfoil. The closed-form lift coefficient\n\n  C_L = 2π(1 + 0.77 t/c) sin(α + 2 ε/c)\n\nwhere t/c is thickness ratio + ε is camber. The 2π slope is **thin-airfoil theory's** universal result, confirmed experimentally for thin airfoils at low α before stall.\n\n**Prandtl's lifting-line theory** (1918) extends 2D airfoil theory to finite wings: trailing vorticity + downwash + induced drag\n\n  C_D,i = C_L² / (π AR e)\n\nwhere AR = b²/S is aspect ratio + e is span efficiency. **Why gliders have long thin wings** — induced drag scales with 1/AR.\n\n**Modern extensions**: panel methods (vortex-lattice, doublet panels) numerically solve potential flow over arbitrary 3D shapes; coupled with integral boundary-layer codes (XFOIL, MSES) give engineering-fidelity aerodynamic predictions in seconds — still used in early-stage aircraft design.\n\n**The dialectic**: potential flow gives **lift** (Kutta-Joukowski), but to get **drag** you must add viscosity (boundary layers, wake, separation). This complementarity defines classical aerodynamics. Pioneers: **Prandtl** (1875-1953, Göttingen — the father of modern aerodynamics + boundary-layer theory + lifting-line theory + finite-wing theory + a generation of students including **Theodore von Kármán**, **Adolf Busemann**, **Heinrich Görtler**), **Kutta**, **Joukowski**, **Lanchester**. Theodore von Kármán later carried the legacy to Caltech + JPL."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fluid_pot_1",
+        "kind": "guided_derivation",
+        "question": "Derive Bernoulli's equation along a streamline",
+        "goal": "Starting from Euler's equation for steady incompressible flow, derive p + ½ρv² + ρgz = const along a streamline.",
+        "steps": [
+          {
+            "prompt": "Write steady Euler for incompressible flow with gravity.",
+            "motivation": "Set ∂/∂t = 0.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ρ(v·∇)v = −∇p − ρg ẑ"
+              ]
+            },
+            "hints": [
+              "Steady ⇒ drop ∂/∂t."
+            ],
+            "reveal": "ρ(**v**·∇)**v** = −∇p + ρ**g**, with **g** = −g ẑ. For incompressible flow with gravity along −ẑ, the body-force potential is gz: ρ(**v**·∇)**v** = −∇p − ρg ∇z = −∇(p + ρgz)."
+          },
+          {
+            "prompt": "Use the identity (v·∇)v = ½ ∇(v²) − v × ω.",
+            "motivation": "Vector identity to integrate along streamline.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ρ ∇(½ v²) − ρ v × ω = −∇(p + ρgz)"
+              ]
+            },
+            "hints": [
+              "Standard vector identity for (v·∇)v."
+            ],
+            "reveal": "(**v**·∇)**v** = ∇(½v²) − **v** × (∇×**v**) = ∇(½v²) − **v** × ω. Substituting: ρ∇(½v²) − ρ(**v** × ω) = −∇(p + ρgz)."
+          },
+          {
+            "prompt": "Take the dot product with **v** + integrate along a streamline.",
+            "motivation": "Eliminate the v × ω term.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "v · ∇(½ρv² + p + ρgz) = 0"
+              ]
+            },
+            "hints": [
+              "v · (v × ω) = 0 identically."
+            ],
+            "reveal": "Dotting with **v**: ρ**v**·∇(½v²) − 0 = −**v**·∇(p + ρgz). Combining: **v**·∇(½ρv² + p + ρgz) = 0 — the Bernoulli quantity has zero directional derivative along **v** (the streamline direction)."
+          },
+          {
+            "prompt": "Conclude Bernoulli's equation along a streamline.",
+            "motivation": "Integrate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "p + ½ρv² + ρgz = const along streamline"
+              ]
+            },
+            "hints": [
+              "Zero directional derivative ⇒ constant along that direction."
+            ],
+            "reveal": "Since the directional derivative along **v** vanishes, **p + ½ρv² + ρgz = const along each streamline**. For irrotational flow (ω = 0 everywhere) the **v** × ω term vanishes identically, so Bernoulli holds **globally**, not just along streamlines. This is the celebrated stronger form."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fluid_pot_1",
+        "kind": "multiple_choice",
+        "question": "What is the d'Alembert paradox + how is it resolved?",
+        "options": [
+          "Random.",
+          "**d'Alembert's paradox** (1752): in steady, incompressible, irrotational, inviscid flow with no separation, the drag on any closed body is zero — apparently contradicting everyday experience. Resolved by **Prandtl** (1904): a thin viscous **boundary layer** exists adjacent to every solid surface, even at infinite Reynolds number. The layer thickness δ/L ~ 1/√Re shrinks but never vanishes. Inside the layer, the no-slip condition + viscosity decelerate the fluid; downstream of the body, adverse pressure gradient causes the layer to **separate**, forming a wake. The pressure pattern around the body becomes asymmetric, producing **pressure (form) drag**, while skin friction contributes the viscous drag. Both vanish only in the strict inviscid limit. d'Alembert was mathematically right; physics requires viscosity however small.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "d'Alembert paradox: inviscid potential flow predicts zero drag on closed bodies. Prandtl 1904 resolved it via boundary layers: thin viscous layer of thickness ~1/√Re separates downstream, producing form drag + skin friction. Drag is fundamentally a viscous phenomenon however small ν is."
+      },
+      "hints": [
+        "What's the prediction?",
+        "Who resolved it + how?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "d'Alembert (1752) showed steady inviscid irrotational flow with no separation predicts zero drag on closed bodies. Prandtl (1904) resolved via boundary layer: thin viscous layer ~1/√Re thick exists at any nonzero μ. Separation creates wake + asymmetric pressure → form drag + skin friction. Drag is a viscous phenomenon."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fluid_pot_1",
+        "kind": "scenario",
+        "question": "Designing a thin airfoil",
+        "prompt": "You're designing a thin airfoil for a small UAV cruising at low Mach + low angle of attack α = 4°. Use thin-airfoil theory (C_L = 2π α) to predict the lift coefficient + estimate lift per unit span at U = 30 m/s, chord = 0.3 m, sea-level air (ρ = 1.2). Then discuss what real-world effects (viscosity, thickness, finite span, stall) will modify this estimate + how Prandtl's lifting-line + boundary-layer theory address them."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fluid_pot_1",
+        "kind": "math_expression",
+        "question": "Write the Kutta-Joukowski theorem for lift per unit span on a 2D body in uniform stream U with circulation Γ.",
+        "acceptedAnswers": [
+          "L' = ρ U Γ",
+          "L = ρUΓ"
+        ],
+        "hint": "Lift per unit span = density × velocity × circulation."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fluid_pot_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why potential-flow theory + the Joukowski airfoil were so important to early aerodynamics.",
+        "rubric": "Mentions: assuming irrotational + incompressible flow reduces Navier-Stokes to Laplace's equation ∇²φ = 0 — linear, superposable + amenable to complex analysis + conformal mapping. **Joukowski transformation** w = z + a²/z maps circles to airfoil shapes; combined with the **Kutta condition** (smooth flow off the trailing edge) gives a closed-form lift formula L' = ρUΓ + the celebrated 2π lift-curve slope C_L = 2π α. Foundation of thin-airfoil theory, lifting-line theory (Prandtl 1918), induced drag C_D,i = C_L²/(πARe). Limitations: predicts zero drag (d'Alembert paradox) until coupled with boundary-layer theory. **Prandtl + Kutta + Joukowski + Lanchester** built aerodynamic engineering from these ideas. Concludes: potential flow gave engineers analytical handles on lift before computers + remains essential for fast early-stage design via panel methods (XFOIL etc.)."
+      }
+    }
+  ]
+}

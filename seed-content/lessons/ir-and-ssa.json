@@ -15,6 +15,8 @@
     {
       "kind": "text",
       "title": "Why an intermediate representation (IR)",
+      "viz": "control-flow-graph",
+      "vizProps": {},
       "body": "Direct AST → machine code conversion works but loses optimizations. **Every modern compiler** introduces an intermediate representation between front-end + back-end:\n\n- **LLVM IR**: SSA-form, target-independent, used by clang, rustc, Swift, Crystal, Pony, Julia, ZIG.\n- **Cranelift IR**: alternative to LLVM, used by wasmtime, rustc (debug mode), Bytecode Alliance.\n- **MLIR**: extensible IR family on top of LLVM, used by TensorFlow + many ML compilers.\n- **GCC's GIMPLE + RTL**: GCC's two-level IR system.\n- **V8's TurboFan IR**: graph-based SSA for JS.\n\nThe IR is the unit of optimization. It must be:\n- **Simple**: few node kinds (LLVM has ~60 instructions). Easy to write passes.\n- **Lossless w.r.t. semantics**: but lossy w.r.t. syntax. A `for` loop and a `while` loop look identical in IR.\n- **Analyzable**: explicit control flow, no surprises.\n\nThe canonical form for analysis is **SSA — Static Single Assignment form**. Modern IRs (LLVM IR, Cranelift, V8) are SSA from day one. Older ones (GCC's RTL, JVM bytecode) were not, and are awkwardly retrofitted."
     },
     {

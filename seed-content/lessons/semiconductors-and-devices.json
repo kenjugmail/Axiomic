@@ -1,0 +1,157 @@
+{
+  "slug": "semiconductors-and-devices",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Compute carrier statistics in doped semiconductors.",
+      "Analyze p-n junctions, BJTs, and MOSFETs from band-bending physics.",
+      "Survey optoelectronic + wide-bandgap + 2D-material devices."
+    ],
+    "prereqs": [
+      "free-electron-and-band-theory"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Doping, carrier statistics, and the Fermi level",
+      "body": "Semiconductors are insulators with band gaps small enough that thermal excitation, doping, or photons can produce useful carrier densities. Si dominates electronics; GaAs, InP, GaN, SiC dominate optoelectronics + power. The semiconductor industry is built on band engineering.\n\n**Intrinsic carrier density** in an undoped, perfect semiconductor:\n\n$$n_i = \\sqrt{N_c N_v}\\; e^{-E_g/2k_BT}$$\n\nwith effective DOS $N_c = 2(m_e^* k_B T/2\\pi\\hbar^2)^{3/2}$, similarly $N_v$ for holes. For Si at 300 K, $n_i \\approx 10^{10}$ cm$^{-3}$ — extremely small relative to the atomic density ~ $5 \\times 10^{22}$ cm$^{-3}$. Pure Si is essentially insulating.\n\n**Mass action law**: $np = n_i^2$ at thermal equilibrium, regardless of doping.\n\n**Doping**:\n- **Donor** (n-type): substituting Si by P, As, Sb adds one extra electron loosely bound by hydrogenic Coulomb attraction with effective dielectric constant $\\varepsilon_r \\sim 11.7$ + effective mass $m_e^* \\sim 0.26 m_e$ for Si. Binding energy $E_D \\sim 45$ meV — ionized at room temperature.\n- **Acceptor** (p-type): B, Al, Ga, In create holes; binding $\\sim 45$ meV for B in Si.\n- Modulation doping (Esaki + Tsu 1969; Dingle 1978) puts dopants in barrier layers + carriers in clean wells → ultra-high mobility 2DEGs in GaAs/AlGaAs (the platform for fractional quantum Hall).\n- **Compensation, deep levels (DX centers), self-compensation**: complicate p-doping in wide-gap materials (GaN, ZnO, diamond — long-standing materials challenge).\n\n**Fermi level**:\n- Intrinsic: $E_F$ near midgap (slight shift from $m_e^* \\neq m_h^*$).\n- n-type (heavy): $E_F$ near $E_c$ (conduction-band edge); degenerate if $E_F > E_c$.\n- p-type: $E_F$ near $E_v$.\n\n**Mobility + transport**:\n- Drift: $J = \\sigma E$ with $\\sigma = ne\\mu_e + pe\\mu_h$.\n- Si at 300 K: $\\mu_e \\approx 1400$, $\\mu_h \\approx 450$ cm²/V·s. GaAs $\\mu_e \\approx 8500$; InSb $\\mu_e \\approx 80000$.\n- Scattering: phonons (room-T limit), ionized impurities (low-T limit), surface roughness in MOSFETs, alloy disorder in ternaries.\n- Diffusion: $J = eD \\nabla n$; Einstein relation $D = (k_B T/e)\\mu$.\n- Hall measurement: sign + magnitude → carrier type + density.\n\n**Optical excitation + recombination**:\n- Direct gap: photon $\\hbar\\omega > E_g$ creates electron-hole pair vertically in $\\mathbf{k}$.\n- Indirect gap: phonon-assisted; weak absorption + radiative emission.\n- Recombination paths: radiative (LEDs, lasers), Auger (3-body, dominant at high carrier density — kills LED efficiency at high current), Shockley-Read-Hall (defect-mediated, dominant at low injection)."
+    },
+    {
+      "kind": "text",
+      "title": "p-n junctions, diodes, BJTs, and MOSFETs",
+      "body": "**p-n junction** — the building block of every semiconductor device. Joining p- and n-type Si causes carriers to diffuse + recombine, leaving ionized dopants → **depletion region** with electric field opposing further diffusion. At equilibrium, $E_F$ is flat across the junction; bands bend by built-in potential $V_{bi} = (k_B T/e) \\ln(N_A N_D/n_i^2) \\sim 0.7$ V for moderately doped Si.\n\n**Shockley diode equation** (William Shockley 1949):\n\n$$I = I_0 \\big(e^{eV/k_BT} - 1\\big).$$\n\n- Forward bias: barrier lowered; injected minority carriers diffuse + recombine → exponential current.\n- Reverse bias: small saturation current $I_0$ + breakdown above critical field (avalanche, Zener — used in voltage references, ESD protection).\n- $I_0$ depends on minority-carrier diffusion lengths + lifetimes.\n\n**Bipolar Junction Transistor (BJT)** (Bardeen + Brattain + Shockley 1947, Nobel 1956 — invention of the transistor; replaced vacuum tubes within a decade; foundation of modern electronics):\n- Two back-to-back junctions: npn or pnp.\n- Base region is thin compared to minority diffusion length → carriers injected from emitter cross to collector.\n- Current gain $\\beta = I_C/I_B \\sim 100-1000$.\n- Workhorse for analog + high-speed RF + power amplifiers; SiGe HBTs go to >100 GHz.\n\n**MOSFET (Metal-Oxide-Semiconductor Field-Effect Transistor)** — the dominant device of modern electronics (Atalla + Kahng 1959 at Bell Labs; >$10^{22}$ MOSFETs manufactured to date).\n- Gate over thin oxide (SiO₂ or high-κ HfO₂ in modern nodes) over Si channel.\n- Gate bias modulates surface carrier density (inversion layer) → controls current between source + drain.\n- **Threshold voltage** $V_T$: depends on doping, oxide thickness, work function.\n- **Subthreshold swing**: minimum $S = (k_B T/e)\\ln 10 \\approx 60$ mV/decade — fundamental thermal limit, motivates beyond-CMOS research (tunnel FETs, NCFETs, spin FETs).\n- **Scaling**: Dennard (1974) — voltage + size scale together. Moore's law (1965, 1975): transistors per chip doubled every ~18-24 months. From planar bulk → SOI → strained Si → FinFET (Hu 1999; manufactured by Intel 2011, TSMC + Samsung) → Gate-All-Around / nanosheet (Samsung 3nm 2022, TSMC 2nm 2025) → 2D-channel + monolithic 3D research.\n- Modern node: TSMC N3, N2 with EUV lithography; ~10$^{10}$ transistors per chip (Apple M3 Max ~92B); contact gate pitch ~45 nm; transistor density ~200 MTr/mm².\n\n**Power devices**:\n- IGBT (insulated-gate bipolar transistor): hybrid for ~kV / kA.\n- SiC + GaN power FETs: wide-gap → higher breakdown field + temperature + efficiency. Tesla Model 3 inverter switched to SiC MOSFETs (2017) — 5% range gain. EV chargers, datacenter PSUs, RF amps for 5G + 6G.\n\n**Memory**:\n- DRAM: 1T1C cell, refresh.\n- Flash (NAND + NOR): floating-gate (Kahng + Sze 1967) → 3D NAND (Samsung 2013; now >200 layers, V-NAND).\n- Emerging: MRAM, PCRAM, ReRAM, FeRAM.\n\n**Beyond silicon**: SiGe channels for strain + mobility; III-V channels (InGaAs) for n-MOSFETs; Ge for p-MOSFETs; 2D channels (MoS₂, WSe₂) as candidates for ultra-scaled gates."
+    },
+    {
+      "kind": "text",
+      "title": "Optoelectronics, wide-bandgap, and 2D materials",
+      "body": "**LEDs (light-emitting diodes)**:\n- Forward-biased p-n junction radiatively recombines injected carriers.\n- Direct-gap materials: AlGaInP for red/orange, InGaN for green/blue/UV. Red GaAsP (Holonyak 1962), blue InGaN (Akasaki + Amano + Nakamura, Nobel 2014).\n- White LEDs: blue InGaN + Ce:YAG phosphor. Now ~200 lm/W wall-plug → revolutionized lighting (10× efficiency of incandescent). Lighting accounts for ~6% of global electricity; LED transition is a major decarbonization win.\n\n**Laser diodes**:\n- Population inversion + optical resonator (Fabry-Pérot, DFB, DBR, VCSEL).\n- Threshold current $J_{th}$; above threshold, stimulated emission dominates.\n- Wavelengths: 405 nm (Blu-ray), 650 nm (DVD), 850/980/1310/1550 nm (telecom), 9.6 μm CO₂ (EUV plasma drive at ASML).\n- Quantum-well + quantum-dot active regions reduce threshold + improve gain.\n- VCSELs for iPhone Face ID, datacenter optics.\n\n**Photovoltaics**:\n- Si single-junction efficiency record 26.8% (LONGi 2023); Shockley-Queisser limit ~33% for single junction.\n- Multijunction GaInP/GaAs/Ge tandems: >47% under concentration (NREL); used in spacecraft + concentrator PV.\n- **Perovskite solar cells**: methylammonium lead halide (MAPbI₃) discovered Miyasaka 2009 → 26% efficiency by 2024; tandem with Si reaches >34% (Oxford PV 2024). Stability, lead toxicity, large-area manufacturing still challenges.\n- Organic + dye-sensitized + CIGS + CdTe + thin-film alternatives.\n\n**Wide-bandgap semiconductors**:\n- **GaN** ($E_g$ = 3.4 eV): blue LEDs, lasers, RF power, EVs, datacenters. The Nobel 2014 InGaN blue LED transformed lighting.\n- **SiC** ($E_g$ = 3.26 eV): power MOSFETs, Schottky diodes — replacing Si in EV inverters + onboard chargers.\n- **Ga₂O₃** ($E_g$ = 4.8 eV, ultrawide): emerging for ultra-high-voltage power.\n- **Diamond** ($E_g$ = 5.5 eV): research; doping remains hard.\n- **AlN, BN, β-Ga₂O₃**: deep-UV LEDs for disinfection, water purification.\n\n**III-V high-mobility + heterostructures**:\n- GaAs/AlGaAs 2DEGs: mobility >$10^7$ cm²/V·s; platform for FQHE experiments (Tsui, Stormer, Laughlin Nobel 1998), Aharonov-Bohm interferometry, anyonic statistics tests.\n- InAs/GaSb: 2D topological insulator candidate.\n- HEMT (high-electron-mobility transistor): GaN HEMTs in 5G base stations, satellite, military radar.\n\n**2D materials**:\n- **Graphene** (Geim + Novoselov 2004, Nobel 2010): zero-gap semimetal; Dirac cones at K + K'; very high mobility (>200000 cm²/V·s suspended at 4 K). No bandgap → poor switching but great RF + sensors.\n- **Transition-metal dichalcogenides (TMDs)** — MoS₂, WS₂, WSe₂, MoTe₂: monolayers are direct-gap semiconductors (1-2 eV); strong spin-valley coupling; excitons with huge binding ~500 meV; field-effect transistors with subthreshold ~60 mV/dec.\n- **Black phosphorus, h-BN, MXenes**.\n- **Van der Waals heterostructures**: stack any 2D materials; engineer band alignments, moiré superlattices, twisted bilayer graphene magic angle (Cao + Jarillo-Herrero 2018) → flat bands + superconductivity + correlated insulators.\n\n**Frontier**:\n- Spin-FETs + Datta-Das transistor.\n- Negative-capacitance FETs (Salahuddin 2008).\n- Tunnel FETs to beat 60 mV/dec.\n- Neuromorphic devices (memristors, PCM, ECRAM).\n- Cryo-CMOS for quantum-computer control.\n- 3D-monolithic CMOS integration.\n\n**Industry**: Semiconductor revenue ~$600B (2024). Foundries (TSMC, Samsung, Intel, SMIC); IDMs (Intel, Samsung); fabless (NVIDIA, AMD, Qualcomm, Apple, Broadcom); EDA (Cadence, Synopsys, Siemens EDA); equipment (ASML EUV monopoly, Applied Materials, Lam, KLA). AI accelerators (NVIDIA H100, B100, Google TPU, AWS Trainium) drove the 2023-25 boom."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sem_1",
+        "kind": "guided_derivation",
+        "question": "Derive the built-in potential of a p-n junction.",
+        "goal": "For a p-n junction with acceptor density $N_A$ on the p-side + donor density $N_D$ on the n-side, derive $V_{bi} = (k_B T/e) \\ln(N_A N_D/n_i^2)$.",
+        "steps": [
+          {
+            "prompt": "At equilibrium, what condition holds for the Fermi level across the junction?",
+            "motivation": "Equilibrium principle.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E_F constant across the junction",
+                "Fermi level is flat"
+              ]
+            },
+            "hints": [
+              "No net current → no electrochemical-potential gradient."
+            ],
+            "reveal": "At equilibrium, the Fermi level $E_F$ is constant throughout the junction — no electrochemical-potential gradient means no net diffusion or drift current."
+          },
+          {
+            "prompt": "Express the bulk electron density $n$ in terms of $E_F$ and the conduction band edge $E_c$ in the n-region, and similarly the hole density $p$ in the p-region in terms of the valence-band edge $E_v$.",
+            "motivation": "Non-degenerate (Boltzmann) statistics.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "n = N_c exp(-(E_c - E_F)/k_B T); p = N_v exp(-(E_F - E_v)/k_B T)",
+                "Boltzmann distribution for non-degenerate carriers"
+              ]
+            },
+            "hints": [
+              "Use the standard Boltzmann tails of the Fermi-Dirac distribution far from $E_F$."
+            ],
+            "reveal": "On the n-side: $n_n = N_c\\, e^{-(E_c^n - E_F)/k_BT} \\approx N_D$. On the p-side: $p_p = N_v\\, e^{-(E_F - E_v^p)/k_BT} \\approx N_A$."
+          },
+          {
+            "prompt": "Express the built-in potential as the band-edge shift between the two regions.",
+            "motivation": "Geometry of band bending.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "eV_bi = E_c^p - E_c^n",
+                "built-in potential equals the conduction band offset"
+              ]
+            },
+            "hints": [
+              "Bands bend by $eV_{bi}$ across the depletion region."
+            ],
+            "reveal": "Since $E_F$ is flat, the band edges shift by $eV_{bi}$ across the junction: $E_c^p - E_c^n = E_v^p - E_v^n = eV_{bi}$."
+          },
+          {
+            "prompt": "Combine using mass action $n_p p_p = n_n p_n = n_i^2$ to express $V_{bi}$.",
+            "motivation": "Algebra.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "V_bi = (k_B T / e) ln(N_A N_D / n_i^2)",
+                "$V_{bi} = (k_B T/e)\\ln(N_A N_D / n_i^2)$"
+              ]
+            },
+            "hints": [
+              "Take ratio $n_n / n_p$ where $n_p = n_i^2/N_A$."
+            ],
+            "reveal": "$n_n/n_p = N_D/(n_i^2/N_A) = N_A N_D/n_i^2$. But also $n_n/n_p = e^{eV_{bi}/k_BT}$ from Boltzmann + band bending. So $V_{bi} = (k_B T/e) \\ln(N_A N_D/n_i^2)$. For Si with $N_A = N_D = 10^{17}$ cm$^{-3}$ + $n_i = 10^{10}$ cm$^{-3}$ at 300 K, $V_{bi} \\approx 0.83$ V."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sem_1",
+        "kind": "multiple_choice",
+        "question": "Why was the InGaN blue LED (Akasaki, Amano, Nakamura — Nobel 2014) such a historic breakthrough?",
+        "options": [
+          "Random.",
+          "Efficient red + green LEDs existed since the 1960s-70s (Holonyak, AlGaInP), but blue/UV LEDs eluded researchers for ~30 years because no II-VI or III-V material with $E_g \\sim 3$ eV could be p-doped effectively + lattice-matched + epitaxially grown defect-free. Akasaki + Amano (Nagoya) pioneered GaN MOCVD growth on sapphire with low-T buffer + Mg activation; Nakamura (Nichia) commercialized the InGaN/GaN double-heterostructure blue LED in 1993. With blue LEDs in hand, white LEDs became possible (blue + phosphor or RGB mixing). Lighting (~6% of global electricity) shifted to LEDs with 5-10× the efficacy of incandescent + 2× of fluorescent — a major decarbonization. Also enabled Blu-ray, full-color displays, plant lighting, UV disinfection. The 2014 Nobel cited 'invention of efficient blue light-emitting diodes which has enabled bright and energy-saving white light sources.'",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Blue LEDs (Akasaki + Amano + Nakamura, Nobel 2014) ended a 30-year quest blocked by GaN growth + p-doping. Enabled white LEDs (blue + phosphor), revolutionized lighting (6% of global electricity, decarbonization), enabled Blu-ray, displays, UV disinfection."
+      },
+      "hints": [
+        "Why were red + green LEDs easy but blue hard?",
+        "What follow-on technologies needed blue?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Blue LEDs (Akasaki + Amano + Nakamura, Nobel 2014) solved a 30-year materials problem: epitaxial GaN growth on sapphire + p-type Mg activation. Enabled white LEDs (blue + phosphor) → lighting revolution (6% of global electricity, 5-10× efficacy gain). Also: Blu-ray, full-color displays, UV disinfection."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sem_1",
+        "kind": "scenario",
+        "question": "Designing a SiC EV inverter",
+        "prompt": "An EV traction inverter must switch 400-800 V DC at >100 kHz with low loss. Compare a 1200-V Si IGBT to a 1200-V SiC MOSFET on the relevant physics: critical breakdown field, on-resistance, switching loss, junction temperature limit, drive complexity, thermal management. Why did Tesla switch to SiC in 2017? What changes for next-generation 800 V SiC + GaN drivetrains?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sem_1",
+        "kind": "math_expression",
+        "question": "Write the Shockley diode equation for current $I$ in terms of saturation current $I_0$, applied voltage $V$, and thermal voltage $k_B T/e$.",
+        "acceptedAnswers": [
+          "I = I_0 * (exp(eV/(k_B T)) - 1)",
+          "I = I_0 (e^(eV/kT) − 1)",
+          "$I = I_0 (e^{eV/k_BT} - 1)$"
+        ],
+        "hint": "Shockley 1949; exponential injection above turn-on, saturation $-I_0$ in reverse."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sem_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how doping + p-n junctions + MOSFETs underpin modern microelectronics and why wide-bandgap + 2D materials matter for the next era.",
+        "rubric": "Mentions: doping (donors P/As, acceptors B/Al) shifts $E_F$, controls carrier density; mass action $np = n_i^2$; p-n junction band-bending + Shockley diode $I = I_0(e^{eV/kT}-1)$; BJT (Bardeen-Brattain-Shockley 1947, Nobel 1956) replaced vacuum tubes; MOSFET (Atalla-Kahng 1959) became dominant device after Dennard scaling + Moore's law (1965); modern nodes (FinFET → GAA nanosheet, 3 nm/2 nm, EUV); subthreshold limit 60 mV/dec drives beyond-CMOS research; SiC + GaN wide-gap for EV inverters + 5G + datacenters (Tesla switched to SiC 2017); InGaN blue LED (Nobel 2014) revolutionized lighting; perovskites for PV; 2D TMDs + graphene + twisted bilayer flat bands as future channels + correlated platforms; semiconductor industry ~$600B."
+      }
+    }
+  ]
+}

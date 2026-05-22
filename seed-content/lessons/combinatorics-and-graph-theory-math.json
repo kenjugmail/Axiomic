@@ -1,0 +1,142 @@
+{
+  "slug": "combinatorics-and-graph-theory-math",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Master enumeration: generating functions, binomials, Catalan, Stirling, partitions.",
+      "Understand Ramsey theory + extremal combinatorics.",
+      "Survey design theory + algebraic combinatorics."
+    ],
+    "prereqs": [
+      "math-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Enumeration: counting with style",
+      "body": "**Counting** = the art of structured enumeration. Modern combinatorics combines algebra, analysis, geometry, and probability.\n\n**Binomial coefficients** C(n, k) = n! / (k!(n-k)!) — count subsets of size k from n. Pascal's triangle (~1654; ancient roots in India + China — Halayudha ~10th c., Yang Hui ~13th c.). Identities:\n- C(n, k) = C(n, n-k).\n- C(n, k) = C(n-1, k-1) + C(n-1, k) (Pascal's rule).\n- Σ_k C(n, k) = 2^n.\n- Σ_k (-1)^k C(n, k) = 0 for n ≥ 1 (alternating sum).\n- Vandermonde's identity: Σ C(m,k)C(n,r-k) = C(m+n, r).\n\n**Generating functions (Euler, Laplace, later Wilf's *generatingfunctionology* 1990)**: encode sequences (a_n) as power series A(x) = Σ a_n x^n. Algebraic manipulations on series ↔ combinatorial identities. Closed forms reveal structure.\n\n*Ordinary GF (OGF)*: A(x) = Σ a_n x^n.\n*Exponential GF (EGF)*: A(x) = Σ a_n x^n/n!.\n\nExamples:\n- Geometric: 1/(1-x) = Σ x^n.\n- Binomial: (1+x)^n = Σ C(n,k) x^k.\n- Exponential: e^x = Σ x^n/n!.\n- Fibonacci: F(x) = x/(1-x-x²).\n\n**Catalan numbers** C_n = C(2n, n)/(n+1) = 1, 1, 2, 5, 14, 42, 132, 429, ... — Eugène Catalan (1814–1894). Count: balanced parentheses; binary trees with n+1 leaves; triangulations of (n+2)-gons; non-crossing partitions; Dyck paths; lattice paths under diagonal. **Catalan GF**: C(x) = (1 - √(1-4x)) / (2x). Satisfies C(x) = 1 + x C(x)². Among the most ubiquitous sequences in combinatorics.\n\n**Stirling numbers** (James Stirling, 1730):\n- *Stirling first kind* c(n,k): unsigned, count permutations of n with k cycles. Σ_k c(n,k) x^k = x(x+1)...(x+n-1) (rising factorial).\n- *Stirling second kind* S(n,k): count partitions of n-set into k nonempty blocks. Σ_k S(n,k)·x(x-1)...(x-k+1) = x^n.\n- Bell number B_n = Σ_k S(n,k): partitions of n-set; B_n EGF = e^(e^x - 1).\n\n**Integer partitions** p(n): number of ways to write n as an unordered sum of positive integers. p(4) = 5: {4, 3+1, 2+2, 2+1+1, 1+1+1+1}. **Euler's partition generating function**:\n\n$$\\sum_n p(n) x^n = \\prod_{k=1}^\\infty \\frac{1}{1 - x^k}$$\n\n**Hardy–Ramanujan asymptotic (1918)**: p(n) ~ 1/(4n√3) · exp(π√(2n/3)). **G. H. Hardy** (1877–1947) + **Srinivasa Ramanujan** (1887–1920) — one of the most famous collaborations in math. Ramanujan: self-taught Indian genius; sent Hardy notebooks of identities (1913); came to Cambridge; died young of TB. The Hardy–Ramanujan formula was sharpened to an exact formula by **Rademacher (1937)** using the **circle method**. Ramanujan's ideas (mock theta functions, modular forms, q-series) still drive research."
+    },
+    {
+      "kind": "text",
+      "title": "Ramsey theory and extremal combinatorics",
+      "body": "**Ramsey theory**: in any sufficiently large structure, order must appear. Frank Ramsey (1903–1930, Cambridge logician; died at 26 of liver disease).\n\n**Ramsey's theorem (1930)**: for any r, s ∃ N = R(r,s) such that any 2-coloring of edges of K_N contains a red K_r or a blue K_s. Equivalently: in any graph of N vertices, some r vertices are pairwise connected OR some s are pairwise non-connected.\n\n**Small Ramsey numbers**: R(3,3) = 6 (party problem: among 6 people, 3 are mutual friends or 3 are mutual strangers); R(4,4) = 18; R(5,5) ∈ [43, 48] (still open!). Famous Erdős quote: 'Suppose aliens land + threaten to destroy Earth unless we compute R(5,5). We should marshal all our resources. But if they asked for R(6,6), better to attempt to destroy the aliens.'\n\n**Infinite Ramsey theorem**: any 2-coloring of edges of K_ℵ₀ has an infinite monochromatic clique. Used throughout logic, model theory.\n\n**Schur's theorem (Issai Schur, 1916)**: for any r, ∃ N such that any r-coloring of {1, ..., N} has a monochromatic x + y = z. Foundation of **arithmetic Ramsey theory**.\n\n**Van der Waerden's theorem (1927)**: any r-coloring of ℕ contains arbitrarily long monochromatic arithmetic progressions. Generalized + sharpened: Szemerédi (1975) — every dense subset of ℕ contains arbitrarily long APs. Foundational for additive combinatorics. **Green–Tao (2004)**: primes contain arbitrarily long APs.\n\n**Extremal combinatorics** asks: what's the maximum (or minimum) size of a structure satisfying a property? Tools: probabilistic, algebraic, analytic.\n\n**Erdős–Ko–Rado theorem (1961)**: a family of k-subsets of an n-set, no two disjoint (for n ≥ 2k), has at most C(n-1, k-1) members. Tight; extremal example = all sets containing a fixed element.\n\n**Turán's theorem (1941)**: max # edges in an n-vertex graph with no K_r is achieved by the Turán graph T(n, r-1) (complete (r-1)-partite, balanced parts). Foundation of extremal graph theory.\n\n**Erdős–Stone–Simonovits theorem (1946, 1966)**: ex(n, H) = (1 - 1/(χ(H)-1) + o(1)) · n²/2, where ex(n, H) = max edges in n-vertex H-free graph, χ(H) = chromatic number. *The* fundamental theorem of extremal graph theory.\n\n**Szemerédi regularity lemma (1975)**: every dense graph approximately decomposes into pseudorandom bipartite pieces. Tool of analytic combinatorics; basis of property testing, graph limits (Lovász, Szegedy).\n\n**Flag algebras (Alexander Razborov, 2007)**: semi-definite-programming framework for extremal graph theory; resolved or made progress on dozens of long-standing problems (Goodman bounds, Turán-type questions, hypergraph extremals). Computer-aided + rigorous.\n\n**Probabilistic method (Erdős, 1947+)**: prove existence of objects by showing random construction has positive probability. Revolutionized combinatorics; Lovász Local Lemma, Talagrand inequalities, Janson's inequality."
+    },
+    {
+      "kind": "text",
+      "title": "Design theory + algebraic combinatorics",
+      "body": "**Design theory**: arrangements of points satisfying balance conditions.\n\n**Steiner system S(t, k, n)**: a collection of k-subsets (blocks) of an n-set such that every t-subset lies in exactly one block. Jakob Steiner (1796–1863).\n- S(2, 3, 7) = Fano plane (smallest projective plane, 7 points, 7 lines, 3 points per line).\n- S(5, 6, 12) (Mathieu) + S(5, 8, 24) (Witt): connected to the sporadic Mathieu groups + the Golay codes + the Leech lattice + Monster group.\n- Existence question (for many parameters) was open for 100+ years; **Keevash (2014)** showed existence for all sufficiently large n satisfying necessary divisibility — a landmark result.\n\n**Latin squares**: n×n array filled with n symbols, each appearing once per row + column. Order-n Latin squares model Sudoku, scheduling, design of experiments. **Mutually orthogonal Latin squares (MOLS)**: pairs whose superposition has all n² ordered pairs. Euler conjectured (1782) no MOLS of order 6 — proven by **Tarry (1900)** — but Euler also conjectured no MOLS of order 4k+2 in general; *disproven* in 1959 (Bose, Shrikhande, Parker) for all such orders except 6.\n\n**Block designs (BIBDs)**: balanced incomplete block designs. Generalizes Steiner systems. Used in statistical experiment design (Fisher) + coding theory.\n\n**Algebraic combinatorics** studies combinatorial structures via algebraic methods.\n\n**Symmetric functions**: ring Λ of symmetric polynomials in infinitely many variables. Bases: monomial m_λ, elementary e_λ, power-sum p_λ, complete homogeneous h_λ, **Schur functions s_λ** (basis intimately tied to ℓ representations of S_n + GL_n). Schubert calculus, intersection numbers in Grassmannians.\n\n**Bruhat decomposition**: for reductive group G with Borel subgroup B + Weyl group W, G = ⨆_{w ∈ W} BwB. Cells indexed by W. Foundational for representation theory, Schubert calculus, geometric Langlands.\n\n**Stanley–Reisner theory (Richard Stanley, 1970s)**: associates to a simplicial complex Δ a commutative ring k[Δ]; bridges combinatorics to commutative algebra + algebraic geometry. Stanley's *Combinatorics and Commutative Algebra* + *Enumerative Combinatorics* are foundational texts.\n\n**Characters + representation theory**: every finite group G has irreducible representations indexed by conjugacy classes. **Character table** = matrix of character values. For S_n: irreducibles indexed by partitions of n; characters computed by Murnaghan–Nakayama rule. Schur–Weyl duality connects S_n + GL_n reps.\n\n**Modern frontiers**: **graph limits** (Lovász + Szegedy, 2006+): dense graph sequences converge to *graphons* (symmetric measurable [0,1]² → [0,1]). **Sparse graphs**: Benjamini–Schramm convergence, local-global limits, Benjamini–Schramm + sparse graph theory. **Quantum combinatorics**, **algebraic statistics**, applications in machine learning + data science (graph neural networks)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_com_catalan",
+        "kind": "guided_derivation",
+        "question": "Derive C_n from the GF identity C(x) = 1 + x C(x)²",
+        "goal": "Solve C(x) = 1 + x C(x)² and extract Catalan numbers.",
+        "steps": [
+          {
+            "prompt": "Treat C(x) = 1 + x C(x)² as a quadratic in C(x). Solve for C(x).",
+            "motivation": "Quadratic formula.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(1 - sqrt(1-4x))/(2x)",
+                "(1 - √(1-4x))/(2x)"
+              ]
+            },
+            "hints": [
+              "Rearrange: x C² - C + 1 = 0."
+            ],
+            "reveal": "x C² - C + 1 = 0 ⇒ C(x) = (1 ± √(1-4x)) / (2x). The − branch gives C(0) = 1; the + branch blows up. So C(x) = (1 - √(1-4x))/(2x)."
+          },
+          {
+            "prompt": "Expand √(1-4x) using the binomial series. What is the coefficient of x^(n+1)?",
+            "motivation": "Series expansion.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "-C(2n,n)/(n+1) ... actually -2 C(2n,n)/(n+1) · ..."
+              ]
+            },
+            "hints": [
+              "(1+u)^(1/2) = Σ C(1/2,k) u^k; then plug u = -4x."
+            ],
+            "reveal": "√(1-4x) = 1 - 2x Σ_{n≥0} C_n x^n where the algebra (Newton's binomial + simplification) gives C_n = C(2n,n)/(n+1). Standard derivation."
+          },
+          {
+            "prompt": "What is the closed form for C_n?",
+            "motivation": "Final formula.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "C(2n,n)/(n+1)",
+                "binomial(2n,n)/(n+1)"
+              ]
+            },
+            "hints": [
+              "From the expansion."
+            ],
+            "reveal": "C_n = C(2n,n)/(n+1) = (2n)! / ((n+1)! n!). First few: 1, 1, 2, 5, 14, 42, 132, 429, 1430. **Catalan numbers** — count balanced parens, binary trees, triangulations, Dyck paths, non-crossing partitions, and dozens more."
+          }
+        ],
+        "finalResult": "$$C_n = \\frac{1}{n+1} \\binom{2n}{n}$$ Derived from C(x) = 1 + x C(x)²; counts dozens of natural structures (Stanley's book lists 200+)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_com_ramsey",
+        "kind": "multiple_choice",
+        "question": "What's the essential message of Ramsey theory?",
+        "options": [
+          "Random.",
+          "Ramsey's theorem (1930) and its descendants (Schur 1916, van der Waerden 1927, Szemerédi 1975, Green–Tao 2004) all say: in sufficiently large or dense structures, *unavoidable order* emerges. Color edges of a large enough K_N with 2 colors — a monochromatic K_r must appear. Color integers — monochromatic arithmetic progressions must occur. Take any dense subset of ℕ — it contains arbitrarily long APs. Pure chaos is impossible past a threshold; structure is forced. Mathematically deep + philosophically striking. Drives extremal combinatorics, additive combinatorics, theoretical computer science (pseudorandomness, expanders), and applications from PCP-theorem proofs to communication complexity.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Ramsey + descendants (Schur, van der Waerden, Szemerédi, Green–Tao): in sufficiently large/dense structures, unavoidable order emerges. Pure chaos is impossible past threshold. Drives extremal + additive combinatorics + CS."
+      },
+      "hints": [
+        "Order from chaos.",
+        "What's unavoidable in large structures?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Ramsey theory: large/dense structures contain unavoidable order. Schur, van der Waerden, Szemerédi, Green–Tao all variations. Pure chaos impossible past threshold."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_com_ramanujan",
+        "kind": "scenario",
+        "question": "Hardy–Ramanujan + the partition function",
+        "prompt": "G. H. Hardy + Srinivasa Ramanujan (1918) found the asymptotic p(n) ~ 1/(4n√3) · exp(π√(2n/3)) for integer partitions; Rademacher (1937) refined to an exact convergent series. Why is this such a celebrated formula, and what does it reveal about the interplay between combinatorics, complex analysis (the circle method), and modular forms? What broader role does Ramanujan's mathematics (q-series, mock theta functions) play in modern math?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_com_pascal",
+        "kind": "math_expression",
+        "question": "By Pascal's rule, $\\binom{n-1}{k-1} + \\binom{n-1}{k} = ?$",
+        "acceptedAnswers": [
+          "C(n,k)",
+          "\\binom{n}{k}",
+          "n choose k"
+        ],
+        "hint": "Pascal's triangle."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_com",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how modern combinatorics blends algebra, analysis, and probability into a unified discipline.",
+        "rubric": "Mentions: generating functions (algebraic encoding of sequences) bridge to analysis (closed forms, asymptotics via complex analysis / circle method — Hardy–Ramanujan partition formula). Ramsey + extremal combinatorics (Ramsey, Schur, Szemerédi, Erdős–Ko–Rado, Erdős–Stone–Simonovits) blend with probabilistic method (Erdős) + analytic regularity lemma + flag algebras (Razborov). Algebraic combinatorics — symmetric functions, Schur functions, Bruhat, Stanley–Reisner — connects to representation theory + commutative algebra + algebraic geometry. Modern: graph limits (graphons), sparse graphs (Benjamini–Schramm), additive combinatorics (Gowers, Tao, Green), all unified by interplay of algebra/analysis/probability. Combinatorics is no longer just counting — it's deep structural math."
+      }
+    }
+  ]
+}

@@ -1,0 +1,159 @@
+{
+  "slug": "friedmann-equations-and-expansion",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Write the FLRW metric + derive Friedmann equations.",
+      "Identify ΛCDM density parameters + their evolution.",
+      "Distinguish Big Rip, heat death, + bounce futures."
+    ],
+    "prereqs": [
+      "general-relativity-essentials"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "FLRW metric + scale factor + the Friedmann equations",
+      "body": "**FLRW metric** (Friedmann 1922-24, Lemaître 1927, Robertson 1935, Walker 1936): the unique homogeneous + isotropic spacetime — the geometric backbone of cosmology.\n\n  **ds² = -c² dt² + a(t)² [ dr²/(1 - kr²) + r²(dθ² + sin²θ dφ²) ]**\n\nor in conformal form ds² = a²(η)[-dη² + dχ² + S_k²(χ) dΩ²], where S_k(χ) is sin/sinh/χ for k = +1/-1/0.\n\n- **a(t)** = scale factor; physical distance to a comoving object = a(t) · r. Normalized a(t_0) = 1 today.\n- **k ∈ {-1, 0, +1}**: spatial curvature index. k=0 (flat), k=+1 (closed S³), k=-1 (open H³).\n- **Comoving coordinates** (r, θ, φ): observers at rest in comoving frame see CMB isotropic (modulo dipole).\n- **Cosmological redshift**: 1 + z = a_0/a_emit; photon wavelengths stretch with a.\n\n**Hubble parameter**: H(t) = ȧ/a; current value H_0 = H(t_0). Hubble parameter at scale factor a in ΛCDM:\n\n  **H²(a) = H_0² [ Ω_r·a⁻⁴ + Ω_m·a⁻³ + Ω_k·a⁻² + Ω_Λ ]**\n\n**Critical density**:\n\n  **ρ_crit(t) = 3H²(t)/(8πG)**\n\nToday: ρ_crit,0 ≈ 9.47×10⁻²⁷ kg/m³ (~6 H atoms per m³). Density parameters Ω_i ≡ ρ_i/ρ_crit. Planck 2018: Ω_m = 0.315, Ω_Λ = 0.685, Ω_b = 0.049, Ω_r ≈ 9×10⁻⁵, Ω_k ≈ 0 (universe flat to ~0.1%).\n\n**Deriving Friedmann from FLRW + Einstein**: substitute FLRW into G_μν + Λ g_μν = (8πG/c⁴) T_μν with perfect-fluid T_μν = (ρ + p/c²) u_μ u_ν + p g_μν:\n\n  **Friedmann equation (00-component)**:\n\n    (ȧ/a)² = (8πG/3) ρ − k c²/a² + Λc²/3\n\n  **Acceleration / Raychaudhuri equation (trace)**:\n\n    ä/a = −(4πG/3) (ρ + 3p/c²) + Λc²/3\n\n  **Fluid (continuity) equation** (Bianchi identity / energy conservation):\n\n    ρ̇ + 3·(ȧ/a)·(ρ + p/c²) = 0\n\n**Equation of state**: p = w·ρ·c². Solutions ρ ∝ a^{-3(1+w)}:\n- **Matter** (cold/dust, w = 0): ρ_m ∝ a⁻³ (density dilutes with volume).\n- **Radiation** (w = 1/3): ρ_r ∝ a⁻⁴ (volume + redshift).\n- **Cosmological constant** (w = -1): ρ_Λ = const.\n- **Curvature** (effective w = -1/3): ρ_k ∝ a⁻².\n- **Quintessence**: -1 < w < -1/3, time-varying.\n- **Phantom**: w < -1; leads to Big Rip.",
+      "viz": "friedmann-equation",
+      "vizProps": {
+        "omegaM": 0.3,
+        "omegaL": 0.7,
+        "H0": 70
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Density parameters + ΛCDM concordance",
+      "body": "**ΛCDM 'concordance' cosmology**: emerged ~1998-2003 as the standard. Six free parameters fit thousands of independent observations.\n\n**Density parameters** Ω_i = ρ_i,0 / ρ_crit,0:\n- **Ω_b ≈ 0.049**: baryonic matter (atoms — H, He, traces). BBN + CMB independent agreement.\n- **Ω_DM ≈ 0.265**: cold dark matter (non-baryonic, non-relativistic).\n- **Ω_m = Ω_b + Ω_DM ≈ 0.315**: total matter.\n- **Ω_Λ ≈ 0.685**: dark energy (cosmological constant; w ≈ -1).\n- **Ω_r ≈ 9.2×10⁻⁵**: radiation (photons + neutrinos; T_CMB = 2.7255 K + 3 ν species at T_ν = (4/11)^(1/3) T_CMB).\n- **Ω_k ≈ 0**: universe geometrically flat (Planck: |Ω_k| < 0.005).\n- **Sum = 1** (flat universe).\n\n**Evolution + epochs**:\n- **Radiation era** (a < a_eq ≈ 2.94×10⁻⁴, t < ~50 kyr): Ω_r dominates; H ∝ a⁻²; a ∝ t^(1/2).\n- **Matter era** (a_eq < a < a_acc ≈ 0.6): Ω_m dominates; H ∝ a^(-3/2); a ∝ t^(2/3).\n- **Λ era** (a > a_acc, z < 0.6): Ω_Λ dominates; H → const; a ∝ exp(H_Λ·t) — accelerating expansion.\n- **Equality redshifts**: z_eq ≈ 3402 (matter-radiation); z_Λ ≈ 0.3 (matter-Λ).\n\n**Six ΛCDM parameters (Planck 2018 base)**:\n1. ω_b ≡ Ω_b h² ≈ 0.0224 (baryon density)\n2. ω_c ≡ Ω_c h² ≈ 0.120 (cold DM density)\n3. 100·θ_MC ≈ 1.04 (angular scale of sound horizon)\n4. τ ≈ 0.054 (reionization optical depth)\n5. ln(10¹⁰ A_s) ≈ 3.04 (scalar amplitude)\n6. n_s ≈ 0.965 (scalar spectral index)\n\n**Derived**: H_0 ≈ 67.4, σ_8 ≈ 0.81, age = 13.797 Gyr, Ω_m, Ω_Λ.\n\n**Probes constraining ΛCDM**:\n- **CMB** (Planck 2018): angular power spectrum from ℓ=2 to ~2500; polarization E + B modes; lensing; integrated Sachs-Wolfe.\n- **BAO** (BOSS, eBOSS, DESI 2024): sound-horizon ruler at ~150 Mpc.\n- **Type Ia SNe** (Pantheon+, Union3, DES-SN): luminosity-distance vs z.\n- **Weak lensing** (KiDS, DES, HSC, Euclid 2023+): S_8 ≡ σ_8·√(Ω_m/0.3).\n- **Galaxy clustering** (BOSS, eBOSS, DESI, Euclid).\n- **Cluster counts** (Planck-SZ, eROSITA): mass function tail.\n- **Lyman-α forest** (BOSS, DESI): matter clustering at high z.\n\n**ΛCDM successes**:\n- Predicts position + relative heights of CMB acoustic peaks.\n- Predicts BAO scale from sound horizon.\n- Predicts late-time accelerating expansion from independent SN/CMB/LSS.\n- Predicts large-scale-structure two-point + higher-order statistics.\n- Provides framework for inflation + perturbation evolution.\n\n**ΛCDM tensions** (treated in modern-frontier-cosmology lesson):\n- **H_0 tension**: Planck CMB 67.4 vs SH0ES Cepheid+SNe Ia 73.0 — ~5σ.\n- **S_8 tension**: KiDS/DES weak lensing slightly low vs Planck — ~2-3σ.\n- **Neutrino mass**: Σm_ν upper limits tightening; tension with oscillation lower limits.\n- **Possible early dark energy + dynamical w(z)**: DESI 2024 hints."
+    },
+    {
+      "kind": "text",
+      "title": "Future evolution: Big Rip, heat death, bounce + interactive a(t)",
+      "body": "**Long-term future of the universe** depends on w(z) for dark energy + the ultimate fate of Λ.\n\n**Scenario 1: cosmological constant (Λ; w = -1) → Heat Death / Big Freeze**\n- ΛCDM with constant Λ: a(t) ∝ exp(H_Λ·t) asymptotic; H → const = √(Λ/3).\n- Galaxies beyond ~16 Gly (cosmological horizon) recede faster than light; observable universe shrinks.\n- Stars exhaust fuel (~10¹⁴ yr); BHs evaporate via Hawking radiation (~10¹⁰⁰ yr for stellar; ~10¹⁰⁶ yr for SMBH).\n- Eventually: ground state, maximum entropy, T → 0 (heat death; Helmholtz 1854; Kelvin).\n- Modern variant: **'Big Bounce'** in cyclic models (Steinhardt + Turok); periodic contraction-expansion.\n\n**Scenario 2: phantom dark energy (w < -1) → Big Rip**\n- Caldwell + Kamionkowski + Weinberg 2003: if w < -1, ρ_Λ grows with time → ä/a → +∞ at finite t.\n- Eventually rips apart galaxies, then stars, planets, atoms, nuclei.\n- Estimated ~20 Gyr from now if w ≈ -1.1.\n- DESI 2024 hints w slightly < -1 at low z — preliminary; needs confirmation.\n\n**Scenario 3: quintessence (w varying, > -1) → Heat Death (slower variant)**\n- Scalar field rolling down potential; w(z) varies with time.\n- Eventually w → -1; asymptotic de Sitter.\n- No Big Rip; gradual heat death.\n\n**Scenario 4: tracker / thawing / freezing fields**\n- Different scalar-field potentials → different w(z) trajectories.\n- Constrained by combined CMB + BAO + SNe.\n\n**Scenario 5: cyclic / ekpyrotic models (Steinhardt-Turok 2002)**\n- Universe contracts + bounces + re-expands; collision of branes in string theory.\n- Solves horizon + flatness without inflation.\n- Testable by absence of tensor B-modes + low-l CMB features.\n\n**Scenario 6: closed (k = +1) recollapse**\n- If Ω_total > 1 + no Λ: eventually a_max then recollapse → Big Crunch.\n- Excluded by Planck (Ω_k consistent with 0).\n\n**Heat death timeline (assuming ΛCDM)**:\n- **10¹⁴ yr**: last stars die.\n- **10¹⁵-10²⁰ yr**: planets ejected from systems via stellar encounters.\n- **10³⁴-10⁴⁰ yr**: proton decay (if τ_p ~ 10³⁴ yr; current limits push higher).\n- **10⁶⁴ yr**: stellar-mass BH evaporation by Hawking radiation.\n- **10¹⁰⁰ yr**: supermassive BH evaporation.\n- **10¹⁵⁰⁰ yr**: 'iron stars' from quantum tunneling (Dyson 1979).\n- **t → ∞**: maximum entropy, vacuum + isolated quanta.\n\n**Interactive viz** (this lesson): scale factor a(t) under user-controlled Ω_m + Ω_Λ + H_0. Demonstrates:\n- Matter-only universe: decelerating expansion, a ∝ t^(2/3).\n- Λ-only de Sitter: a ∝ exp(H·t).\n- ΛCDM concordance (Ω_m = 0.3, Ω_Λ = 0.7, H_0 = 70): decelerating until z ≈ 0.6, then accelerating.\n- Closed (Ω_m > 1 + Λ = 0): recollapse to Big Crunch.\n- Open + Λ = 0: eternal coasting.\n\n**Current best estimates**:\n- Age: 13.797 ± 0.023 Gyr (Planck) or 13.5 Gyr (SH0ES H_0).\n- Observable universe radius: ~46.5 Gly comoving (~14 Gpc).\n- Particle horizon: light-travel-time radius (~14 Gly).\n- Hubble sphere: c/H_0 ≈ 14.5 Gly.\n- Eventual heat death timescale: 10¹⁰⁰ yr or longer.\n\n**Cosmic acceleration discovery**: Perlmutter + Schmidt + Riess (1998 Nobel 2011) measured high-z Type Ia SNe dimmer than ΛCDM-without-Λ expected → universe accelerating → ä > 0 → from acceleration equation, ρ + 3p/c² < 0 ⇒ p < -ρc²/3, i.e., dark energy. DESI 2024 + Euclid 2023+ now precision-test w(z)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fried_1",
+        "kind": "guided_derivation",
+        "question": "Derive a(t) ∝ t^(2/3) for matter-dominated era",
+        "goal": "From Friedmann equation with k = 0, Λ = 0, matter only (ρ_m ∝ a⁻³), derive a(t) ∝ t^(2/3).",
+        "steps": [
+          {
+            "prompt": "Start from H² = (8πG/3)·ρ_m with ρ_m = ρ_m,0·a⁻³.",
+            "motivation": "Plug into Friedmann.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(ȧ/a)² = (8πG/3)·ρ_m,0·a⁻³, so ȧ² = (8πGρ_m,0/3)·a⁻¹"
+              ]
+            },
+            "hints": [
+              "Substitute ρ_m ∝ a⁻³."
+            ],
+            "reveal": "(ȧ/a)² = (8πG/3)·ρ_m,0·a⁻³ ⇒ ȧ² = A·a⁻¹ where A = 8πG·ρ_m,0/3. Then ȧ = A^(1/2)·a^(-1/2)."
+          },
+          {
+            "prompt": "Separate variables + integrate.",
+            "motivation": "Solve ODE.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "a^(1/2) da = A^(1/2) dt; (2/3) a^(3/2) = A^(1/2) t + C; with a(0) = 0: a^(3/2) ∝ t, so a ∝ t^(2/3)"
+              ]
+            },
+            "hints": [
+              "Integrate a^(1/2) da = A^(1/2) dt."
+            ],
+            "reveal": "a^(1/2) da = A^(1/2) dt ⇒ (2/3)·a^(3/2) = A^(1/2)·t + C. With Big Bang initial condition a(0) = 0: C = 0; a^(3/2) = (3/2)·A^(1/2)·t ⇒ **a(t) ∝ t^(2/3)**. Matter-dominated expansion is decelerating: ä < 0."
+          },
+          {
+            "prompt": "What is H(t) in this regime?",
+            "motivation": "Hubble parameter time evolution.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "H = ȧ/a = (2/3)/t — Hubble parameter decreases as 1/t"
+              ]
+            },
+            "hints": [
+              "Differentiate a ∝ t^(2/3)."
+            ],
+            "reveal": "ȧ ∝ (2/3)·t^(-1/3); ȧ/a = (2/3)/t. So **H_matter(t) = 2/(3t)**. In matter era, age = (2/3)·t_H = (2/3)·1/H. For H_0 = 70 km/s/Mpc this gives age ~9.3 Gyr — too young; need Λ to extend age to 13.8 Gyr observed."
+          },
+          {
+            "prompt": "What about radiation era (ρ_r ∝ a⁻⁴)?",
+            "motivation": "Different EoS.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "a ∝ t^(1/2), H = 1/(2t)"
+              ]
+            },
+            "hints": [
+              "Same procedure with a⁻⁴."
+            ],
+            "reveal": "Radiation: ȧ² = A·a⁻² ⇒ a·ȧ = A^(1/2) ⇒ a² ∝ t ⇒ **a ∝ t^(1/2)**, H = 1/(2t). Faster deceleration than matter; relevant t < ~50 kyr (matter-radiation equality at z ≈ 3402). Λ-dominated future: a ∝ exp(H·t); de Sitter."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fried_1",
+        "kind": "multiple_choice",
+        "question": "Why does observing distant Type Ia SNe dimmer than expected imply dark energy?",
+        "options": [
+          "Random.",
+          "Type Ia SNe are standardizable candles (M_B ≈ -19.3 after light-curve corrections). Their apparent magnitudes give luminosity distance d_L(z). In a matter-only decelerating universe, d_L(z) would be smaller than in an accelerating Λ universe at same z. Perlmutter (Supernova Cosmology Project) + Schmidt + Riess (High-z Supernova Team) 1998 found high-z SNe Ia (z ≈ 0.5) ~25% dimmer than expected for Ω_m = 1 → larger d_L → universe accelerating expansion → from acceleration equation ä/a = -(4πG/3)(ρ + 3p/c²) + Λc²/3, accelerating requires ρ + 3p/c² < 0 ⇒ w < -1/3. Cosmological constant (w = -1) fits perfectly. Combined with CMB (flat universe, Ω_m + Ω_Λ ≈ 1) + LSS, ΛCDM emerges with Ω_Λ ≈ 0.7. Nobel 2011 to Perlmutter, Schmidt, Riess. Modern precision: Pantheon+, Union3, DES-SN, JWST recalibration.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Type Ia SNe at high z (~0.5) were ~25% dimmer than Ω_m=1 matter-only universe predicts → larger d_L → accelerating expansion → from ä/a = -(4πG/3)(ρ+3p/c²)+Λc²/3, requires p < -ρc²/3 ⇒ dark energy with w ≲ -1/3. Perlmutter-Schmidt-Riess 1998; Nobel 2011. ΛCDM concordance follows from joint CMB + SNe + LSS fits."
+      },
+      "hints": [
+        "Standardizable candle → d_L(z).",
+        "Larger d_L than matter-only → acceleration."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Type Ia SNe at z~0.5 ~25% dimmer than matter-only ⇒ d_L larger ⇒ ä > 0 (accelerating). From acceleration equation, requires ρ + 3p/c² < 0 ⇒ p < -ρc²/3 (w < -1/3); Λ (w = -1) fits. Combined with CMB flatness, Ω_Λ ≈ 0.7. Perlmutter-Schmidt-Riess 1998 Nobel 2011."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fried_1",
+        "kind": "scenario",
+        "question": "DESI 2024 + 2025 data hint that w(z) may deviate from -1, with w₀ ≈ -0.6, w_a ≈ -1.4 (dynamic dark energy).",
+        "prompt": "What are the cosmological implications if confirmed? Would this rule out a pure cosmological constant? How does it affect H_0 tension + the cosmological coincidence problem? What follow-up surveys (Euclid, Roman, CMB-S4) would discriminate? Discuss connection to quintessence + the cosmological constant problem."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fried_1",
+        "kind": "math_expression",
+        "question": "Write the Friedmann equation (00-component) with all density components + curvature + Λ.",
+        "acceptedAnswers": [
+          "H² = (8πG/3)·ρ - k c²/a² + Λc²/3",
+          "(ȧ/a)² = (8πG/3)ρ - kc^2/a^2 + Λc^2/3",
+          "H^2 = H_0^2 (Omega_r a^-4 + Omega_m a^-3 + Omega_k a^-2 + Omega_L)"
+        ],
+        "hint": "Square of Hubble parameter equals matter terms, minus curvature, plus Λ contribution."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fried_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why the FLRW metric + Friedmann equations form the backbone of cosmology.",
+        "rubric": "Mentions: FLRW (Friedmann 1922-24 + Lemaître 1927 + Robertson 1935 + Walker 1936) is the unique homogeneous + isotropic metric encoding the cosmological principle. Has scale factor a(t) + curvature k. Substituting into Einstein equations yields Friedmann (00), acceleration (Raychaudhuri), + fluid (Bianchi) equations. Different equations of state w (matter w=0, radiation w=1/3, Λ w=-1, quintessence -1<w<-1/3, phantom w<-1) drive different a(t) histories: matter-only a ∝ t^(2/3), radiation a ∝ t^(1/2), Λ-only de Sitter a ∝ exp(Ht), closed recollapse. ΛCDM concordance (Ω_m=0.31, Ω_Λ=0.69, flat) fits CMB + BAO + SNe + LSS with six parameters. Future probes (Euclid, Roman, DESI, LSST) measure w(z) → discriminate Λ from quintessence/phantom. Foundation for everything in modern cosmology: from CMB acoustic peaks to BAO scale to growth of structure to dark energy probes."
+      }
+    }
+  ]
+}

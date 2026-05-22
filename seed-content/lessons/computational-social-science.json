@@ -1,0 +1,154 @@
+{
+  "slug": "computational-social-science",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Trace the rise of computational social science from Lazer 2009 to the LLM era.",
+      "Master agent-based modeling — Schelling, Sugarscape, Macy + Willer.",
+      "Apply text-as-data + word-embeddings + LLM-augmented research to sociology."
+    ],
+    "prereqs": [
+      "methods-quantitative-and-qualitative",
+      "networks-stratification-and-segregation"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The computational social science manifesto + big data + digital traces",
+      "body": "**Computational social science (CSS)** uses computation + large-scale digital trace data + simulation to study social phenomena at scales + with methods inaccessible to classical sociology.\n\n**The founding moment**. **David Lazer et al., 'Computational Social Science' (*Science* 2009)**. Authored by a consortium of network scientists + sociologists + computer scientists (Albert-László Barabási, Nicholas Christakis, Devon Brewer, Noshir Contractor, James Fowler, Myron Gutmann, Tony Jebara, Gary King, Michael Macy, Deb Roy, Marshall Van Alstyne — plus Lazer). The manifesto argued that:\n- Digital trace data (email, mobile phone, social media, web, transaction logs, sensor data) provided an unprecedented *behavioral microscope* on social life — far beyond what surveys + ethnography could observe.\n- This required new methodological + ethical + institutional infrastructure.\n- Sociologists, computer scientists, and physicists would collaborate.\nThe paper catalyzed a subfield. A *Lazer et al. 2020 Science* follow-up retrospective took stock + reaffirmed the agenda.\n\n**Why CSS works** (when it works):\n- **Volume + granularity**: billions of interactions; fine-grained timing.\n- **Naturalistic behavior**: traces of what people *did*, not what they said they did in surveys (no reporting bias).\n- **Network structure**: relationships are directly observed, not reconstructed via name-generators.\n- **Causal designs at scale**: A/B tests + natural experiments on platforms; matched-pair + RDD designs on administrative data.\n- **Cross-cultural + temporal range**: same instrument across many countries + years.\n\n**Where CSS struggles**:\n- **Representativeness**: digital traces over-represent users of a particular platform + age + country; the *digital divide* is structured (cross-ref lesson 5).\n- **Validity of constructs**: a 'like' is not a preference, a retweet not an endorsement, a friend not always a friend.\n- **Ethics + privacy**: re-identification risk, informed consent at scale, data ownership.\n- **Reproducibility**: platforms restrict API access; ToS forbid sharing; replication is increasingly impossible.\n- **Algorithmic confounding**: platform algorithms shape what is observed; researchers infer from data that has already been *curated*.\n\n**Major CSS data + infrastructure**:\n- **Mobile phone CDR / GPS**: mobility, contact patterns (cross-ref pandemic + Klinenberg-style work).\n- **Twitter / X + Facebook + YouTube + Reddit + TikTok**: communication + influence + ideology + polarization (lesson 8 P63 picks up).\n- **Government administrative data + Chetty's IRS-tax-records work** (cross-ref lesson 4).\n- **Wikipedia + GitHub + arXiv**: knowledge production, collaboration.\n- **Web archives + IA**: longitudinal cultural data.\n- **Replication infrastructures**: Open Science Framework, Dataverse, ICPSR.\n\n**Frontier debates**:\n- **Hindman 2018 *The Internet Trap*** + **Munger 2019** + others raised concerns about CSS overstating digital-platform effects.\n- **King 2014 + Salganik *Bit by Bit* (2018)**: textbook treatments setting methodological standards.\n- **Wagner et al. 2021 Nature, 'Measuring algorithmically infused societies'**: how do we measure social phenomena that are now *constituted* by algorithms?\n- **Computational + ethnographic integration** — Boellstorff, Hine; Boyd, *It's Complicated*; Marres on digital social research.\nCSS is now institutionalized — ICSSI conferences, Network Science + IC2S2 + ICWSM venues, dedicated programs at Northeastern, MIT, Princeton, Stanford, Oxford, ETH, Bocconi. It has not (yet) replaced classical sociological methods; it has expanded the toolbox."
+    },
+    {
+      "kind": "text",
+      "title": "Networks at scale + ABMs: Watts, Centola, Bakshy, Bail, Schelling, Sugarscape, Macy-Willer",
+      "body": "**Networks at scale**.\n\n**Duncan Watts** (Columbia / Microsoft / U Penn) bridged statistical physics + sociology in CSS's first wave.\n- *Six Degrees* (2003) reframed Milgram + small-worlds for the digital era.\n- **Watts + Dodds 2007** challenged the popular 'influentials' hypothesis: cascades are mostly driven by ordinary users + chance, not exceptionally influential nodes.\n- **Salganik + Dodds + Watts 2006 *Science***: the *MusicLab* experiment showed that with social influence, market outcomes (which song becomes a hit) are highly unpredictable + path-dependent — eight parallel 'worlds' produced eight different hit songs. A foundational empirical demonstration of cumulative advantage + the unpredictability of success.\n- *Everything Is Obvious (Once You Know the Answer)* (2011) on common-sense vs. sociological reasoning.\n\n**Damon Centola — complex contagion** (cross-ref lesson 4 networks).\n- *How Behavior Spreads* (2018); *Change* (2021).\n- Empirical experiments on online networks: **simple contagions** (single exposure suffices — viruses, viral content) spread fastest on weak-tie sparse networks (Granovetter-style). **Complex contagions** (multiple reinforcing exposures required — risky innovation, behavior change, political commitment) spread fastest on dense + clustered networks. Counter-intuitive against pure weak-ties intuition; expands the network-diffusion literature.\n\n**Eytan Bakshy + colleagues — exposure to ideologically diverse content (2015 *Science*)**. Bakshy + Messing + Adamic 2015, with Facebook data: examined Facebook News Feed exposure of self-identified liberal vs. conservative U.S. users. Findings: (a) friend networks are partially homophilous; (b) the News Feed algorithm modestly reduces cross-cutting exposure beyond what friend networks already constrain; (c) individual click-through further reduces it. The paper became central + contested in the *echo chamber + filter bubble* debate (Pariser *The Filter Bubble* 2011; Sunstein *#Republic* 2017). Critiques: Facebook-employee authorship, non-public access, dependent-measure decisions. Subsequent work (Bail, Guess, González-Bailón, Allcott + Gentzkow + Yu 2020 social-media-vacation experiment) refined + complicated the picture.\n\n**Chris Bail — *Breaking the Social Media Prism* (2021)** + the **Polarization Lab (Duke)**. A multi-platform multi-method investigation of polarization. *Findings*: social-media exposure to opposing-view content often *increases* polarization rather than reducing it (a counter-intuitive result against the deliberative-democracy hope of cross-cutting exposure). Vocal extremes dominate; moderates withdraw; identity-threat dynamics. Bail's lab combines large-scale experiments + LLM-augmented research (lesson next slide + lesson 8).\n\n**Agent-based modeling (ABM)**.\n\n**Thomas Schelling's segregation model (1971)** (lesson 4) is the canonical ABM in sociology — local rules, emergent macro outcome, surprising aggregation.\n\n**Joshua Epstein + Robert Axtell — *Growing Artificial Societies: Social Science from the Bottom Up* (1996)** + the **Sugarscape model**.\n- A grid of agents who consume + accumulate 'sugar' (resource); rules for movement, metabolism, vision, trade, reproduction, disease, culture, war.\n- Demonstrated that complex social phenomena — inequality, migration, market formation, cultural drift, epidemics — *emerge from simple local rules*.\n- Foundational example of **generative social science**: *if you didn't grow it, you didn't explain it* (Epstein 2006). ABMs as a third leg of social science alongside theory + empirical induction.\n\n**Michael Macy + Robert Willer — ABMs in sociology (2002 *Annual Review*)**. Macy + Willer's *Annual Review of Sociology* 2002 'From Factors to Actors' surveyed ABM applications in sociology — collective action, social influence, opinion dynamics, segregation, market dynamics, norm emergence. Argued ABMs are particularly suited to *threshold + network + adaptive* phenomena where the *interactions matter*, not just the population-level distribution of attributes.\n\n**Other ABM canon**:\n- **Axelrod, *The Evolution of Cooperation* (1984)** + the tit-for-tat tournament.\n- **Granovetter 1978 threshold model** — collective behavior.\n- **Hegselmann + Krause 2002** opinion dynamics; **DeGroot 1974** consensus.\n- **Centola + Willer + Macy 2005** false enforcement of unpopular norms.\n- **Mason + Watts** + collaborative problem-solving experiments.\n\n**ABM platforms**: NetLogo (Wilensky 1999 — pedagogically dominant), Mesa (Python), Repast, AnyLogic. Combined with empirical calibration + estimation methods (approximate Bayesian computation, indirect inference).\n\nNetworks-at-scale + ABMs are CSS's two flagship methodological clusters; together they bridge sociological theory + the computational era."
+    },
+    {
+      "kind": "text",
+      "title": "AI in sociology: text-as-data, word embeddings, topic models, LLM-augmented research",
+      "body": "**Text-as-data + computational text analysis**.\n\n**Justin Grimmer + Brandon Stewart — 'Text as Data' (2013 *Political Analysis*)**. The canonical methodological synthesis for social scientists. Grimmer + Roberts + Stewart later wrote ***Text as Data: A New Framework for Machine Learning and the Social Sciences*** (2022, Princeton). Core themes:\n- Text is high-dimensional + sparse + noisy.\n- Treat text as data via tokenization, n-grams, embeddings.\n- Dictionary methods (LIWC, etc.) for known constructs.\n- Supervised classification (sentiment, topic, ideology) with hand-coded training data + cross-validation.\n- Unsupervised structure-discovery (topic models, embeddings, clustering).\n- *Validate, validate, validate*: every text-as-data step requires substantive validation against human judgment + theory.\n\n**Topic models**.\n- **Latent Dirichlet Allocation (LDA)** — Blei + Ng + Jordan 2003. Documents are mixtures of latent topics; topics are distributions over words. Discovers thematic structure in large corpora.\n- **Structural Topic Model (STM)** — Roberts + Stewart + Tingley (2014, 2016) — LDA with topic prevalence + content varying by document-level covariates (year, author, party, demographic). Built for social science.\n- Topic models have been applied to legislative speech, news media, social-media posts, scientific abstracts, historical archives.\n- Critiques: topic interpretability is subjective; the number of topics is hard to choose; topic stability across runs varies.\n\n**Word + sentence embeddings** (Mikolov word2vec 2013; Pennington GloVe 2014; BERT 2018; modern sentence-BERT).\n- Words are represented as dense vectors capturing distributional semantics.\n- **Nikhil Garg + Londa Schiebinger + Dan Jurafsky + James Zou, *PNAS* 2018**: trained word embeddings on 100 years of U.S. text (Google Books) + showed that embedding-based associations track historical change in gender + ethnic stereotypes — e.g., the gendering of occupation terms shifted with women's entry into professions. A foundational demonstration that *cultural change is measurable in language at scale*.\n- **Bolukbasi et al. 2016**: word embeddings encode gender bias (man : programmer :: woman : homemaker); debiasing methods proposed + contested.\n- **Caliskan + Bryson + Narayanan 2017 *Science***: WEAT (Word Embedding Association Test) shows human-like biases in embeddings trained on natural language.\n- **Kozlowski + Taddy + Evans 2019 *American Sociological Review***: 'The Geometry of Culture' — embeddings recover cultural dimensions (affluence, gender, morality) measured by sociologists.\n\n**LLM-augmented social science research** (frontier; cross-ref lesson 8).\n- **Synthetic populations + silicon samples**: simulate survey responses by prompting LLMs with persona profiles.\n- **Argyle, Busby, Fulda, Gubler, Rytting, Wingate 2023 *Political Analysis*, 'Out of One, Many'**: showed GPT-3, prompted with demographic profiles, reproduces U.S. survey response patterns surprisingly well — but with systematic biases (over-representing some demographics, under-representing others). A controversial frontier.\n- **Hewitt et al. 2024**: LLM-augmented experimental design + qualitative-coding.\n- **LLMs as research assistants**: for coding, summarizing, hypothesis generation, literature synthesis. Best practice — human-in-the-loop, validate against held-out data, document prompts + versions.\n- **Generative ABM**: LLM-driven agents in social simulations (Park + Bernstein 2023 'Generative agents'; Vezhnevets et al. 2023 Concordia).\n- **Risks**: LLMs are trained on text that already encodes biases (race, gender, class, ideology); synthetic populations may *reproduce* + *launder* these biases as if they were empirical findings.\n\n**Other AI-in-sociology applications**:\n- **Image + video analysis**: facial-emotion analysis (with caveats), Buolamwini + Gebru *Gender Shades* on facial-recognition disparity (cross-ref lesson 8).\n- **Causal NLP**: text as treatment / outcome / mediator (Egami + Fong + Grimmer + Roberts + Stewart 2018+).\n- **Audio + speech**: tone + paralinguistic features in interviews + meetings.\n- **Knowledge graphs + automated literature synthesis**.\n\n**Methodological maturity**: CSS + AI-in-sociology have moved from breathless 'big data!' (2009-2015) to careful methodological standards — validation + ethics + replication + bias-audit + LLM-augmented research with explicit caveats. The field now interleaves with classical theory + identification + ethnography rather than competing with them. Lesson 8 picks up where this leaves off — the social + political implications of algorithmic + LLM-mediated life."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_css_1",
+        "kind": "guided_derivation",
+        "question": "Design a CSS study of online ideological polarization",
+        "goal": "Specify a defensible CSS design that integrates digital trace data + ABM + LLM-augmented analysis.",
+        "steps": [
+          {
+            "prompt": "What digital trace data would you collect + what are the representativeness limits?",
+            "motivation": "Specify the empirical base.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "posts and follow networks from multiple platforms, weighted to address platform + user demographic skew"
+              ]
+            },
+            "hints": [
+              "Multi-platform + weighting."
+            ],
+            "reveal": "Combine: (a) public posts + follow networks from X / Twitter, Reddit, Facebook (Meta CrowdTangle replacement), YouTube; (b) survey data linked to platform behavior where possible (e.g., YouGov + Pew); (c) Comscore-style panel of browsing. Representativeness limits: each platform skews demographically (older on Facebook, younger on TikTok, English-speaking + Western, more engaged users); weight to known demographic targets (MRP-style) + run sensitivity analyses + acknowledge non-coverage of non-users (the 'digital divide'). Cross-ref lesson 3 sampling."
+          },
+          {
+            "prompt": "How would you measure polarization + how would you test causal claims about its drivers?",
+            "motivation": "Identification.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "multiple polarization measures + field experiment manipulating exposure or platform features"
+              ]
+            },
+            "hints": [
+              "Multiple measures + experimental design."
+            ],
+            "reveal": "Measures: (1) issue-position alignment / dimensional reduction (Bonica DW-NOMINATE-style for ordinary users); (2) cross-cutting exposure index (Bakshy 2015 framework); (3) affective polarization (feeling thermometers, Iyengar et al.); (4) embedding-based ideological position (Kozlowski + Taddy + Evans 2019). Identification: leverage *field experiments* (Bail's Polarization Lab follow-friend manipulation; Allcott + Gentzkow + Yu 2020 paid social-media-vacation; Guess et al. 2023 Meta election-study); platform feature changes as natural experiments; panel design tracking individuals over time."
+          },
+          {
+            "prompt": "What ABM would complement the empirical work + what would it test?",
+            "motivation": "Generative theory.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "an opinion-dynamics ABM with homophily + influence + algorithmic feed parameters tested against empirical patterns"
+              ]
+            },
+            "hints": [
+              "Hegselmann + Krause + Centola + algorithmic feed."
+            ],
+            "reveal": "Build an ABM with (a) heterogeneous agents with initial ideological positions, (b) homophilous tie formation + dissolution, (c) influence rules (DeGroot consensus, Hegselmann-Krause bounded confidence, complex-contagion thresholds per Centola), (d) an algorithmic-feed module that selectively shows in-group vs. out-group content. Vary the parameters + see which configurations *generate* the empirical polarization patterns. The ABM is a *theory test* — if you didn't grow it, you didn't explain it (Epstein-Axtell)."
+          },
+          {
+            "prompt": "How would LLM-augmented analysis + the *ethics + bias* layer enter?",
+            "motivation": "AI tools + their critique.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "use LLMs to code content + simulate populations with validated prompts and bias audits and ethics review"
+              ]
+            },
+            "hints": [
+              "LLMs as coders + simulators + the bias caveat."
+            ],
+            "reveal": "LLM-augmented analysis: (a) use LLMs (with validation against human coders) to classify post content for issue, frame, sentiment, toxicity; (b) silicon-sample populations à la Argyle 2023 to explore counterfactual demographics (with explicit acknowledgment of LLM bias + Bolukbasi/Caliskan critiques + Hewitt-style protocols). Ethics: IRB approval; informed-consent + privacy considerations for re-identifiable trace data; platform-data terms of service; pre-registration; transparent prompt + model versioning. Bias-audit: report subgroup performance of all classifiers (cross-ref lesson 8 Buolamwini + Gebru 2018); release replication code + (where possible) data. The mature CSS study is multi-method, multi-platform, multi-theoretical, and reflexively aware of its own algorithmic substrate."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_css_1",
+        "kind": "multiple_choice",
+        "question": "Why is Garg + Schiebinger + Jurafsky + Zou (*PNAS* 2018) considered a landmark for CSS + AI-in-sociology?",
+        "options": [
+          "Random.",
+          "Garg et al. (PNAS 2018) trained word embeddings (word2vec-style) on 100 years of U.S. text (Google Books n-grams) decade by decade + showed that embedding-based associations track historical change in gender + ethnic stereotypes — the gendering of occupation terms shifted with women's entry into professions, the associations of ethnic-group terms shifted with immigration waves + civil-rights changes. It was a foundational demonstration that *cultural change is measurable in language at scale*, with quantitative time-series. It connects to Bolukbasi 2016 (gender bias in embeddings), Caliskan + Bryson + Narayanan 2017 *Science* (WEAT human-like biases), and Kozlowski + Taddy + Evans 2019 ASR (geometry of culture recovering sociological dimensions). Together these papers established embedding-based cultural sociology + opened a methodological frontier that LLMs (Argyle 2023, Hewitt et al.) extend further.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Garg et al. (*PNAS* 2018) used decade-by-decade word embeddings on 100 years of U.S. text to show that gender + ethnic stereotype dynamics are measurable in language — a foundational demonstration that culture changes quantifiably + traceably. With Bolukbasi 2016, Caliskan 2017 *Science*, and Kozlowski + Taddy + Evans 2019 ASR, it established embedding-based cultural sociology."
+      },
+      "hints": [
+        "What did the paper show with 100 years of text?",
+        "Why is it methodologically important?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Garg + Schiebinger + Jurafsky + Zou (*PNAS* 2018) used decade-by-decade word embeddings on 100 years of U.S. text to measure historical change in gender + ethnic stereotypes — a foundational CSS demonstration that culture changes quantifiably + traceably. Connects to Bolukbasi 2016, Caliskan 2017 *Science*, and Kozlowski + Taddy + Evans 2019 ASR — establishing embedding-based cultural sociology."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_css_1",
+        "kind": "scenario",
+        "question": "Critiquing an LLM-augmented research design",
+        "prompt": "A research team proposes to study political polarization in the U.S. by silicon-sampling: prompt GPT-4 with detailed demographic + ideological profiles representing the 2020 ANES sample + collect 'responses' to attitudinal items. They claim this lets them avoid survey-fielding costs + ethical complications. Drawing explicitly on (a) Argyle et al. 2023 'Out of One, Many' + Hewitt-era findings, (b) Bolukbasi 2016 + Caliskan 2017 + Garg 2018 on bias in language models, (c) Lazer 2009 + 2020 CSS manifestos on validity + ethics, and (d) the lesson 5 + lesson 8 critique of algorithmic bias (Buolamwini + Gebru 2018, Benjamin, Eubanks), write a ≤220-word critique. Identify two situations where silicon sampling is *defensible*, two where it is *not*, and propose one specific validation protocol the team should adopt."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_css_1",
+        "kind": "math_expression",
+        "question": "A Schelling-style agent-based simulation runs for 500 iterations on a $30 \\times 30$ grid with 900 cells. If the segregation index $S$ rises from $S_0 = 0.10$ at iteration 0 (random placement) to $S_{500} = 0.85$ at iteration 500, compute the change $\\Delta S = S_{500} - S_0$.",
+        "acceptedAnswers": [
+          "0.75",
+          ".75",
+          "0.750"
+        ],
+        "hint": "$0.85 - 0.10 = 0.75$. The Schelling segregation index typically rises rapidly from random ~0.1 to highly segregated ~0.8-0.9 within a few hundred iterations at $\\tau \\geq 0.3$. Classic emergent-aggregation result + foundational ABM in sociology (Schelling 1971; cross-ref lesson 4 viz)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_css_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, explain computational social science by (a) citing the founding manifesto + one big-data study, (b) naming one ABM + its lesson, (c) describing one text-as-data or embedding study, and (d) articulating one ethical or methodological risk.",
+        "rubric": "Mentions: Lazer et al. 2009 + 2020 *Science* CSS manifestos. Big-data studies — Watts + Salganik MusicLab (2006); Bakshy + Messing + Adamic 2015 Facebook News Feed; Bail's Polarization Lab. ABMs — Schelling 1971 segregation; Epstein + Axtell Sugarscape (1996) generative social science; Macy + Willer 2002 *Annual Review* synthesis; NetLogo + Mesa. Text-as-data + embeddings — Grimmer + Stewart 2013 + Grimmer + Roberts + Stewart 2022; LDA + Roberts STM; Garg + Schiebinger + Jurafsky + Zou *PNAS* 2018 (100 years of stereotype change); Bolukbasi 2016; Caliskan 2017 *Science*; Kozlowski + Taddy + Evans 2019 ASR. LLMs — Argyle 2023 silicon samples; Hewitt et al. 2024. Risks: representativeness (digital divide), construct validity, ethics + privacy + ToS, algorithmic confounding (Wagner et al. 2021), bias-laundering through LLMs. Concludes that CSS extends + complements classical methods + must be reflexively + ethically practiced."
+      }
+    }
+  ]
+}

@@ -1,0 +1,155 @@
+{
+  "slug": "secondary-tertiary-quaternary-structure",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Distinguish 1°-4° structure.",
+      "Classify domains.",
+      "Recognize IDPs/condensates."
+    ],
+    "prereqs": [
+      "protein-folding-and-ramachandran"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "From peptide bond to quaternary assembly",
+      "body": "**Hierarchical structure** organizes proteins across four levels.\n\n**Primary (1°) structure** — the amino acid sequence, encoded N→C, written single-letter (e.g., MKWVTFISLLLLFSSAYS...).\n\nKey chemistry:\n- Peptide bond C(=O)−N has **partial double-bond character** (resonance) → planar, restricted ω torsion (180° trans, occasionally 0° cis especially before Pro).\n- Only **φ (phi: N−Cα)** and **ψ (psi: Cα−C)** rotate freely per residue.\n- Side chains classified by chemistry: hydrophobic (V, L, I, M, F, W, Y, A); polar (S, T, N, Q, C, H); charged (K, R, D, E); special (G, P).\n\n**Secondary (2°) structure** — local, repeating backbone conformations stabilized by H-bonds.\n\n- **α-helix** (Pauling + Corey 1951): right-handed; 3.6 residues per turn; 1.5 Å rise; 5.4 Å pitch; H-bond C=O of residue i to NH of i+4; φ ≈ −60°, ψ ≈ −45°. Stabilized by helix-favoring residues (A, L, E, M); destabilized by Pro (kink) + Gly (flexibility); helix dipole + capping residues at N- and C-termini.\n- **β-sheet** (Pauling + Corey 1951): extended strands; **parallel** (N→C aligned, longer H-bonds, often connected by right-handed crossover) or **antiparallel** (alternating direction, shorter H-bonds via β-hairpins). φ ≈ −120°, ψ ≈ +120°. Twisted in real proteins (right-handed twist).\n- **310 helix**: tighter helix with H-bond i→i+3; rare except at helix termini.\n- **π helix**: looser helix i→i+5; rare.\n- **Loops + turns**: β-turns (4 residues, type I/II/III), γ-turns, longer Ω loops; concentrated in functionally important regions.\n- **DSSP** (Kabsch + Sander 1983) + **STRIDE** assign secondary structure from atomic coordinates by H-bond pattern.\n\n**Supersecondary motifs** (folds within folds):\n- **β-hairpin**: two antiparallel β-strands joined by a tight turn.\n- **β-α-β motif**: parallel strands bridged by an α-helix on the same side — building block of TIM barrels + Rossmann folds.\n- **Greek key**: 4 antiparallel β-strands in the same pattern as a Greek key meander; immunoglobulin folds.\n- **Helix-turn-helix (HTH)**: DNA-binding motif (Cro/CAP, homeodomains).\n- **Rossmann fold**: 6 parallel β-strands with helices; NAD(P)-binding domains; one of the most ancient + common folds (>10% of all enzymes).\n- **Jelly roll**: 8-strand β-sandwich; viral capsids (picornaviruses, adenoviruses).\n- **TIM barrel (β/α)₈**: 8 parallel β-strands forming a closed barrel surrounded by 8 α-helices; ~10% of all known enzymes (triose phosphate isomerase, glycolytic enzymes, many oxidoreductases).\n\n**Tertiary (3°) structure** — the full 3D arrangement of all atoms in a single polypeptide chain. The 'fold'.\n\n**Quaternary (4°) structure** — assembly of multiple chains (subunits) into a functional complex.\n- **Homo-oligomers**: same subunit (hemoglobin α₂β₂, GFP, GroEL 14-mer).\n- **Hetero-oligomers**: different subunits (RNA polymerase II = 12 subunits; the spliceosome ~50 proteins + 5 snRNAs).\n- Interfaces classified by area (typical 1200-2000 Å² for stable complexes; <800 Å² often transient), hydrophobicity, conservation, and interface 'hotspots' (single residues contributing >2 kcal/mol)."
+    },
+    {
+      "kind": "text",
+      "title": "Domains, motifs, and the modular logic of evolution",
+      "body": "**Domain** — an independently folding + often independently functional unit (typically 50-250 aa). Most proteins are **multi-domain**: titin has >300 domains; the average human protein has 2-3.\n\n**Why domains matter**:\n- Evolutionary reuse: ~25 000 human protein-coding genes generate diversity by recombining a much smaller set of ~16 000 domain families.\n- Functional modularity: a kinase domain + an SH2 domain + an SH3 domain can be wired into many distinct signaling proteins.\n- Computational tractability: domains often fold autonomously + can be solved separately.\n- Drug-target focus: small-molecule inhibitors typically bind a single domain (kinase ATP pocket, GPCR orthosteric site).\n\n**Classifications**:\n- **Pfam** (Sonnhammer 1997 → now part of InterPro/EBI): >20 000 protein families defined by profile HMMs; one of the largest curated resources in biology.\n- **SCOP / SCOP2** (Murzin, Chothia 1995): manual evolutionary classification — class (α, β, α+β, α/β, all-α, all-β, membrane, small, coiled-coil) → fold → superfamily → family.\n- **CATH** (Orengo 1997, semi-automatic): Class → Architecture → Topology → Homologous superfamily.\n- **InterPro**: meta-resource integrating Pfam, SMART, PROSITE, PRINTS, TIGRFAMs, CDD, PANTHER, SUPERFAMILY.\n- **ECOD** (Cheng + Grishin 2014): evolution-focused hierarchical classification.\n- **Foldseek** (van Kempen + Steinegger 2023): blazing-fast structure-based search → enables 'structural BLAST' across AFDB + PDB.\n\n**Canonical motifs + domains**:\n- **Helix-turn-helix (HTH)**: prokaryotic transcription factors (Cro, CAP); helix-2 docks in DNA major groove.\n- **Homeodomain**: 60 aa HTH variant; eukaryotic developmental regulators (Hox genes).\n- **Zinc fingers** (C2H2, RING, PHD, GATA): Zn²⁺ coordinates Cys + His; ~700 in human genome; TFIIIA, Sp1, CTCF.\n- **Leucine zipper** + **bZIP**: parallel coiled-coil dimerization (Fos/Jun, GCN4); heptad repeat with Leu at d-position.\n- **EF-hand**: helix-loop-helix Ca²⁺ binding (calmodulin, troponin C); pentagonal bipyramidal coordination.\n- **Immunoglobulin (Ig) fold**: 7-9 antiparallel β-strands forming a β-sandwich; antibodies, T-cell receptor, MHC, cell-adhesion molecules.\n- **PH (pleckstrin homology)**: 7-strand β-sandwich + capping helix; PIP2/PIP3 binding; membrane recruitment.\n- **WW + SH3**: small β-barrels recognizing PPxY + PxxP motifs.\n- **Kringle, fibronectin type-III, EGF-like**: extracellular signaling + adhesion.\n- **P-loop NTPase / Walker A motif (GxxxxGKS/T)**: nucleotide-binding loop; Ras-family GTPases, ABC transporters, AAA+ ATPases, F1 ATP synthase.\n- **Rossmann fold**: NAD(P)/FAD binding; dehydrogenases, kinases, methyltransferases.\n- **TIM barrel**: ~10% of enzymes; 8 parallel β-strands with helices outside, active site at the C-terminal end.\n\n**Domain evolution**: gene duplication + divergence creates **paralogous** families; **domain shuffling** (exon shuffling + retrotransposition) creates new architectures. The human kinome (~518 kinases) all share a bilobal Ser/Thr/Tyr kinase fold but with vastly different regulatory contexts."
+    },
+    {
+      "kind": "text",
+      "title": "Intrinsically disordered proteins + biomolecular condensates",
+      "body": "**Intrinsically disordered proteins (IDPs)** + **intrinsically disordered regions (IDRs)** lack stable 3D structure under physiological conditions yet are functional. The classical structure-function dogma misses ~30% of the human proteome.\n\n**Sequence signatures**:\n- Low hydrophobicity + high net charge (Uversky charge-hydrophobicity plot).\n- Enriched in P, E, S, K, R, Q; depleted in W, F, Y, I, L, V, C, N.\n- Low sequence complexity, often containing repeats (RG/RGG, polyQ, polyP, FG).\n- Low pLDDT in AlphaFold (<50) is now a routine IDR predictor.\n- Predictors: **IUPred3, PONDR, MobiDB-lite, flDPnn, AlphaFold-disorder, DisProt** (curated DB).\n\n**Functions**:\n- **Hub proteins** in signaling: p53 C-terminal regulatory domain, p27 Kip1 (cyclin-CDK inhibitor); fold upon binding.\n- **Post-translational modifications (PTMs)**: IDRs are ~80% of all phosphorylation, acetylation, ubiquitination sites.\n- **Linkers** between domains: provide reach + entropy.\n- **Liquid-liquid phase separation (LLPS)**: IDRs drive biomolecular condensate formation.\n- Examples: p53 (tumor suppressor), α-synuclein (Parkinson's), tau (Alzheimer's), nucleoporins (FG repeats lining nuclear pore), histone tails.\n\n**Biomolecular condensates (LLPS)** — **Brangwynne + Hyman 2009** (P-granules in C. elegans) launched the field.\n\n**Principle**: at sufficient concentration + low salt + crowding, **multivalent** weakly-interacting biomolecules demix into a dense **condensate** phase (~mM concentration) coexisting with a dilute phase. The dense phase behaves like a liquid (rounds, fuses, dynamic exchange measured by FRAP).\n\n**Driver interactions**:\n- π-π stacking (Tyr, Phe).\n- Cation-π (Arg, Lys with aromatic).\n- Electrostatic (D/E with K/R).\n- Hydrophobic.\n- RNA-protein (G-quadruplexes, polyA tracts; many condensates are RNP).\n\n**Major condensates**:\n- **Nucleoli**: rRNA transcription + ribosome assembly (multi-phase: FC, DFC, GC sub-compartments).\n- **Stress granules**: G3BP1/2 + TIA-1 + mRNA; form in stressed cells; dissolved by Hsp70/HSF1; persistent in ALS (TDP-43, FUS aggregation).\n- **P-bodies**: mRNA decay (Dcp1/Dcp2, Edc3).\n- **Cajal bodies, nuclear speckles, PML bodies, paraspeckles**: nuclear RNP condensates.\n- **Postsynaptic density (PSD)**: PSD-95 + SynGAP + Shank scaffold neurons.\n- **Heterochromatin**: HP1α phase-separates (Larson, Karpen, Strom, Narlikar 2017).\n- **Transcriptional condensates**: superenhancers, BRD4, Mediator hubs (Sabari + Young 2018).\n- **FUS, TDP-43, hnRNPA1**: ALS-linked RBPs whose IDR-driven LLPS can mature to amyloid fibrils — a proposed disease mechanism.\n\n**Tools**:\n- **In vitro reconstitution**: purified IDR + RNA at varying salt/temperature/crowder (PEG, dextran).\n- **Microscopy**: confocal + FRAP for dynamics; correlative LM-EM.\n- **Optogenetic clustering**: **Corelets**, **OptoDroplets** (Shin + Brangwynne 2017).\n- **Sequence design**: IDR grammar (sticker-spacer model, Pappu + Mittag).\n- **AlphaFold + ESMFold** flag IDRs by low pLDDT — AF3 begins to model some condensate-relevant assemblies.\n\nIDPs + LLPS reframe biochemistry as a hybrid of structured + disordered + condensed phases — increasingly central to gene regulation, signaling, neurodegeneration, and drug discovery (small molecules that selectively dissolve aberrant condensates are in trials)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sbio_struct_1",
+        "kind": "guided_derivation",
+        "question": "Geometric reasoning about α-helix dimensions",
+        "goal": "An α-helix with 3.6 residues per turn + 1.5 Å rise per residue is part of a coiled-coil transmembrane span 28 residues long. Compute axial length, number of turns, pitch, and decide whether it can span a 30 Å hydrophobic bilayer.",
+        "steps": [
+          {
+            "prompt": "Compute axial length of a 28-residue α-helix.",
+            "motivation": "Rise per residue × count.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "42 Å",
+                "28 × 1.5 = 42"
+              ]
+            },
+            "hints": [
+              "Length = residues × 1.5 Å."
+            ],
+            "reveal": "Axial length = 28 × 1.5 Å = 42 Å. That comfortably crosses a 30 Å hydrophobic core with ~6 Å protrusion at each end for cap residues + lipid headgroup interactions."
+          },
+          {
+            "prompt": "Number of complete turns?",
+            "motivation": "Residues per turn.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "7.78",
+                "28/3.6 ≈ 7.8 turns"
+              ]
+            },
+            "hints": [
+              "Divide residues by residues-per-turn."
+            ],
+            "reveal": "Turns = 28 / 3.6 ≈ 7.78. About 7¾ complete turns; the heptad repeat (7-residue periodicity) of a coiled coil maps cleanly onto every two turns."
+          },
+          {
+            "prompt": "Pitch — how far does the helix advance per full turn?",
+            "motivation": "Pitch = rise/residue × residues/turn.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "5.4 Å",
+                "1.5 × 3.6"
+              ]
+            },
+            "hints": [
+              "Pitch = 1.5 × 3.6."
+            ],
+            "reveal": "Pitch = 1.5 × 3.6 = 5.4 Å per turn. The canonical α-helix pitch — visible as fiber-diffraction meridional reflection."
+          },
+          {
+            "prompt": "Why is the minimum hydrophobic-core length for a transmembrane helix ~20 residues?",
+            "motivation": "Hydrophobic matching.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "20 × 1.5 = 30 Å matches a typical bilayer hydrophobic core"
+              ]
+            },
+            "hints": [
+              "Hydrophobic core thickness ≈ 30 Å; helix rise 1.5 Å/residue."
+            ],
+            "reveal": "A typical phospholipid hydrophobic core is ~30 Å thick. To span it as a single α-helix, you need at least 30/1.5 = 20 hydrophobic residues. Hydropathy plots (Kyte-Doolittle, Hessa biological hydrophobicity scale) use this rule of thumb to predict TM helices."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sbio_struct_1",
+        "kind": "multiple_choice",
+        "question": "Why are intrinsically disordered proteins (IDPs) often hubs in signaling networks?",
+        "options": [
+          "Wrong.",
+          "IDPs occupy ~30% of the human proteome + dominate signaling hubs because disorder confers properties no folded domain can match: (1) **conformational plasticity** — a single IDR can adopt distinct bound conformations depending on partner (p53 transactivation domain binds MDM2, CBP, p62 in different folds; **'one sequence, many structures'**); (2) **enormous interaction surface per residue** without the cost of folding; (3) **dense PTM regulation** — IDRs host ~80% of all phosphorylation, acetylation, ubiquitination sites, enabling combinatorial regulation; (4) **multivalency** that drives **LLPS** — weak multivalent interactions of IDRs + RNA create biomolecular condensates (stress granules, nucleoli, transcriptional hubs); (5) fast on/off kinetics + low affinity = switchable; (6) avoidance of crystallization-induced rigidity = robust to mutation. AlphaFold pLDDT < 50 reliably flags IDRs, which are NOT prediction failures but accurate structural classifications.",
+          "Wrong.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "IDPs = ~30% of human proteome; act as signaling hubs because disorder gives conformational plasticity (fold-on-binding), large interaction surfaces, dense PTM regulation (~80% of phospho-sites), multivalency driving LLPS condensates (stress granules, nucleoli, transcriptional hubs), fast switchable kinetics. AlphaFold pLDDT < 50 reliably flags IDRs."
+      },
+      "hints": [
+        "What functional properties does disorder enable?",
+        "How does LLPS depend on multivalency + IDRs?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "IDPs = ~30% of human proteome; signaling hubs via (1) conformational plasticity → fold-on-binding to many partners; (2) large interaction surface per residue; (3) PTM regulation (~80% of phospho-sites); (4) multivalency → LLPS condensates (stress granules, nucleoli, transcriptional hubs, PSD); (5) fast on/off kinetics. Low AlphaFold pLDDT < 50 correctly classifies IDRs."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sbio_struct_1",
+        "kind": "scenario",
+        "question": "Classify a multi-domain signaling protein",
+        "prompt": "You inspect a 920 aa human protein with Pfam annotations: N-terminal SH3, then SH2, then a Ser/Thr kinase domain, then a Pro/Ser-rich 200 aa C-terminal IDR with multiple SH3-binding PxxP motifs + several known phosphorylation sites. AlphaFold pLDDT averages 92 for the three N-terminal domains + 35 for the IDR; PAE shows confident intra-domain blocks + uncertain inter-domain orientation. Sketch the domain architecture, predict the signaling logic (substrate recognition, allosteric regulation, condensate recruitment), name a known protein family with this architecture, and propose two functional experiments to test the role of the IDR."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sbio_struct_1",
+        "kind": "math_expression",
+        "question": "Coiled-coil heptad geometry: a parallel two-stranded coiled coil has 3.5 residues per α-helix turn (slightly underwound vs canonical 3.6). What is the axial length per heptad repeat (7 residues, rise 1.5 Å)?",
+        "acceptedAnswers": [
+          "10.5 Å",
+          "7 × 1.5 = 10.5"
+        ],
+        "hint": "Length = residues × rise/residue = 7 × 1.5."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sbio_struct_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain the four-level hierarchy of protein structure + why intrinsically disordered proteins + biomolecular condensates extend (not break) it.",
+        "rubric": "Mentions: 1° amino acid sequence with planar peptide bond + free φ/ψ torsions. 2° local backbone H-bonded structures — α-helix (Pauling/Corey 1951; i→i+4, 3.6 res/turn, 1.5 Å rise), β-sheet (parallel/antiparallel), supersecondary motifs (β-hairpin, Greek key, Rossmann, TIM barrel). 3° full single-chain fold; classified by SCOP/CATH/Pfam/InterPro/Foldseek. 4° multi-subunit quaternary assemblies (hemoglobin, GroEL, RNA polymerase, spliceosome). Domains as modular evolutionary units; canonical motifs (HTH, zinc fingers, immunoglobulin fold, EF-hand, P-loop NTPase, kinase fold). IDPs ~30% of proteome with low hydrophobicity + high charge + low pLDDT — fold on binding, host most PTMs, drive LLPS condensates (Brangwynne 2009 P-granules; stress granules, nucleoli, transcriptional hubs, FUS/TDP-43 in ALS). Condensates add a phase-separated level above 4°: structured + disordered + condensed phases coexist. Concludes: structure-function logic now spans peptide bonds → atomistic folds → multi-subunit complexes → liquid condensates — with experimental + AF/Foldseek tools to navigate the whole hierarchy."
+      }
+    }
+  ]
+}

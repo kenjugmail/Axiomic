@@ -1,0 +1,115 @@
+{
+  "slug": "ai-and-the-future-of-radiology",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Trace the evolution from computer-aided detection to deep learning for detection and segmentation.",
+      "Explain radiomics and the PACS-DICOM imaging-informatics pipeline.",
+      "Describe emerging directions including theranostics, photon-counting CT, and the radiologist's changing role."
+    ],
+    "prereqs": [
+      "computed-tomography"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "From computer-aided detection to deep learning",
+      "body": "Computers have assisted image interpretation for decades, but the methods have changed radically. The first generation, **computer-aided detection (CADe)** and **computer-aided diagnosis (CADx)**, emerged in the 1990s and relied on **hand-engineered features**: human experts programmed rules and filters to flag suspicious patterns, such as the clustered **microcalcifications** and spiculated masses sought in screening **mammography**, where the U.S. **FDA** approved the first CAD system (by **R2 Technology**) in 1998. These systems were rule-based and brittle, and large trials gave mixed evidence about whether they improved radiologist performance or merely added false-positive marks.\n\nThe transformation came with **deep learning**, specifically the **convolutional neural network (CNN)**. The pivotal moment was the **2012 ImageNet** competition, where **Alex Krizhevsky**, **Ilya Sutskever**, and **Geoffrey Hinton** at the **University of Toronto** demonstrated **AlexNet**, a deep CNN that dramatically outperformed all hand-engineered approaches at image classification. Unlike classical CAD, a CNN **learns its own features** directly from labeled data through layers of convolutional filters, pooling, and nonlinear activations, optimized by **backpropagation** and gradient descent. (Hinton, with **Yoshua Bengio** and **Yann LeCun**, received the 2018 **Turing Award** for this work; Hinton went on to share the 2024 Nobel Prize in Physics.) Architectures specialized for medical imaging quickly followed.\n\nDeep learning now addresses several distinct radiology tasks. **Detection and classification** identify whether and where a finding is present, for example flagging a pulmonary nodule on chest CT, a large-vessel-occlusion stroke on CT angiography, or a fracture on a radiograph; some systems triage worklists so urgent cases are read first. **Segmentation**, delineating the exact boundary of a structure or lesion pixel by pixel, is dominated by the **U-Net** architecture introduced by **Olaf Ronneberger** and colleagues in 2015, whose encoder-decoder design with skip connections excels at biomedical segmentation of organs, tumors, and vessels, supporting volume measurement and radiotherapy planning. The first autonomous AI device cleared by the FDA, **IDx-DR** in 2018 for diabetic retinopathy, showed that regulators would permit AI to make certain screening decisions. Today hundreds of AI medical-imaging algorithms have FDA clearance, though most are **assistive** rather than autonomous, and validation, generalization across scanners and populations, and guarding against dataset bias remain central challenges."
+    },
+    {
+      "kind": "text",
+      "title": "Radiomics and the PACS-DICOM pipeline",
+      "body": "Beyond detecting what a human can see, **radiomics** treats the medical image as a dense source of **quantitative data**. The premise, articulated by researchers including **Philippe Lambin** and **Robert Gillies**, is that mineable, high-dimensional features extracted from images, intensity histograms, **texture** measures (such as gray-level co-occurrence and run-length statistics), **shape** descriptors, and wavelet-filtered features, can capture tumor **heterogeneity** and biology invisible to the naked eye and correlate with genomics (**radiogenomics**), prognosis, and treatment response. A radiomics workflow proceeds from image acquisition to lesion **segmentation**, **feature extraction** (often hundreds of features per lesion), and statistical or machine-learning modeling, with great attention to **reproducibility**, since features are notoriously sensitive to acquisition and reconstruction settings (motivating standardization efforts like the **Image Biomarker Standardisation Initiative**). Radiomics aims to turn images into noninvasive **biomarkers**, a 'virtual biopsy', supporting precision oncology.\n\nNone of this is possible without the **informatics infrastructure** that moves and stores images. The cornerstone standard is **DICOM** (Digital Imaging and Communications in Medicine), first released in 1993 by the **American College of Radiology (ACR)** and the **National Electrical Manufacturers Association (NEMA)**. DICOM defines both a **file format** and a **network protocol**: every image carries a rich **header** of metadata, patient identifiers, study and series descriptors, and crucial **acquisition parameters** (kVp, mAs, slice thickness, pixel spacing, window settings), bound to the pixel data, so that an image is self-describing and interoperable across vendors. DICOM services like C-STORE, C-FIND, and the modern web API **DICOMweb** govern how devices exchange studies.\n\nImages live in the **PACS** (Picture Archiving and Communication System), the digital backbone that replaced film: it acquires images from modalities, archives them, and distributes them to diagnostic **workstations** where radiologists interpret them. PACS connects to the **RIS** (Radiology Information System) for scheduling and reporting and to the hospital **EHR**, with **HL7** and **FHIR** standards carrying orders and results, and the **IHE** (Integrating the Healthcare Enterprise) initiative coordinating the workflow profiles that make these systems interoperate. The radiologist's report flows back through this chain to the referring clinician. Increasingly, **structured reporting** and AI tools are embedded directly into the PACS worklist, so that an algorithm's output, a flagged nodule, a computed volume, a triage priority, appears alongside the images at the moment of interpretation. Understanding DICOM and PACS is therefore as essential to modern practice as understanding the underlying physics: the data pipeline is where AI, quantitative imaging, and clinical care actually meet."
+    },
+    {
+      "kind": "text",
+      "title": "Theranostics, photon-counting CT, and the evolving role",
+      "body": "Several frontier technologies are reshaping what radiology can do. **Theranostics** fuses diagnosis and therapy by using the **same molecular target** for both an imaging tracer and a therapeutic radionuclide, the modern realization of the **'see what you treat, treat what you see'** principle. Landmark examples approved in recent years include imaging neuroendocrine tumors with **gallium-68 DOTATATE** PET and treating them with **lutetium-177 DOTATATE** (the agent **Lutathera**), and imaging prostate cancer with a **PSMA**-targeted **Ga-68** tracer and treating with **Lu-177 PSMA-617** (**Pluvicto**). Because the same molecule both localizes and delivers a beta- or alpha-emitting payload, theranostics enables true precision: PET imaging confirms target expression before therapy and monitors response after, blurring the historical line between diagnostic radiology and treatment.\n\nOn the hardware side, **photon-counting CT (PCCT)** is the most significant detector advance in decades, with the first clinical system (Siemens **NAEOTOM Alpha**) cleared by the FDA in 2021. Conventional CT uses **energy-integrating detectors** that sum the total energy deposited, discarding information about individual photons. A photon-counting detector, built from semiconductors such as **cadmium telluride (CdTe)** or **cadmium zinc telluride (CZT)**, registers **each individual X-ray photon** and sorts it into **energy bins**. The benefits are substantial: higher **spatial resolution** (smaller detector elements without the dead space of septa), improved **contrast-to-noise** and lower electronic noise, intrinsic **spectral/multi-energy** imaging that distinguishes materials (for example separating iodine contrast from calcium) and enables **virtual non-contrast** images, and **dose reduction** consistent with ALARA. PCCT advances the broader trend of **spectral and dual-energy CT** toward quantitative, material-specific imaging.\n\nAll of this reshapes, but does not eliminate, the **radiologist's role**. The discipline is moving from purely qualitative interpretation toward **quantitative, data-driven, and image-guided** medicine. AI handles repetitive detection, measurement, and triage; radiomics and spectral imaging supply quantitative biomarkers; theranostics integrates the radiologist into the treatment loop. Yet a human expert remains essential for **clinical context and integration** (correlating images with the patient's history, labs, and prior studies), for **handling the rare and the ambiguous** cases outside any algorithm's training distribution, for **accountability and communication** with patients and referring physicians, for **multidisciplinary decision-making** in tumor boards, and increasingly for **governance** of the AI tools themselves, validating, monitoring for performance drift, and detecting bias. The consensus of professional bodies such as the **Radiological Society of North America (RSNA)** and the **ACR**, and the often-quoted reframing that AI will not replace radiologists but that radiologists who use AI will replace those who do not, is that the future radiologist is a **physician-data-scientist**: fluent in imaging physics, in the AI and informatics pipeline, and in the clinical judgement that ties it all to patient care."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ai_1",
+        "kind": "multiple_choice",
+        "question": "What is the fundamental difference between classical computer-aided detection (CADe) and modern deep-learning CNN approaches?",
+        "options": [
+          "Classical CAD learns its own features from data, while CNNs use only hand-coded rules.",
+          "Classical CAD relied on hand-engineered features and rules, while CNNs learn hierarchical features directly from labeled data via backpropagation.",
+          "There is no difference; both are rule-based expert systems.",
+          "CNNs require no training data, whereas classical CAD needed large datasets."
+        ],
+        "correctIndex": 1,
+        "explanation": "Classical CADe/CADx systems used human-designed features and rules (e.g., filters for microcalcifications) and were brittle. Convolutional neural networks instead learn their own multi-level feature representations directly from large labeled datasets through backpropagation, the approach that won ImageNet 2012 (AlexNet) and now dominates detection, classification, and segmentation. This learned-feature paradigm is the key distinction."
+      },
+      "hints": [
+        "Think about who designs the features in each approach.",
+        "Recall what AlexNet demonstrated in 2012."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Classical CAD depended on experts hand-crafting features and decision rules, which made systems narrow and fragile. Deep CNNs learn feature detectors automatically from labeled examples by minimizing a loss with backpropagation, building hierarchical representations from edges to complex patterns. AlexNet's 2012 ImageNet win proved this learned-feature approach far superior, and it now underpins medical detection, classification, and U-Net segmentation. Option B states the distinction correctly."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ai_2",
+        "kind": "multiple_choice",
+        "question": "Which statement best describes the role of DICOM in the radiology informatics pipeline?",
+        "options": [
+          "DICOM is a deep-learning model for segmenting organs.",
+          "DICOM is both a standardized image file format and a network protocol; each image carries a metadata header (patient ID, acquisition parameters, pixel spacing, window settings) bound to the pixel data, enabling interoperability across vendors and within PACS.",
+          "DICOM is the physical hard drive where a single hospital stores film.",
+          "DICOM is a radiotracer used in theranostics."
+        ],
+        "correctIndex": 1,
+        "explanation": "DICOM, developed by the ACR and NEMA, defines a self-describing file format with a rich metadata header (including kVp, slice thickness, pixel spacing, and window settings) plus network services for exchanging studies. This standardization lets devices, PACS, and workstations from different vendors interoperate. It is the data-format backbone, not a model, a disk, or a tracer."
+      },
+      "hints": [
+        "DICOM concerns how images and their metadata are stored and exchanged.",
+        "It was created by the ACR and NEMA."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "DICOM (Digital Imaging and Communications in Medicine) is the standard, from the ACR and NEMA, that specifies both a file format and a network protocol. Every DICOM image embeds a header of metadata (identifiers and acquisition parameters such as kVp, mAs, slice thickness, pixel spacing, and window level/width) attached to the pixel data, making images self-describing and interoperable across PACS, RIS, and multi-vendor equipment. Hence option B is correct."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ai_1",
+        "kind": "math_expression",
+        "question": "An AI nodule-detection model is evaluated on 200 confirmed-positive cases and correctly flags 180 of them. Compute its sensitivity (true-positive rate) as a percentage.",
+        "acceptedAnswers": [
+          "90%",
+          "90",
+          "0.9",
+          "180/200"
+        ],
+        "hint": "Sensitivity = true positives / actual positives = 180 / 200."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ai_2",
+        "kind": "math_expression",
+        "question": "A photon-counting CT detector sorts photons into energy bins. In a test, of 1000 detected photons, 250 fall into the low-energy bin. Compute the fraction of photons in the low-energy bin as a decimal.",
+        "acceptedAnswers": [
+          "0.25",
+          "250/1000",
+          "1/4",
+          "25%"
+        ],
+        "hint": "Fraction = 250 / 1000."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ai_1",
+        "kind": "scenario",
+        "question": "A hospital wants to deploy an FDA-cleared AI tool that triages head CTs for intracranial hemorrhage, and asks the radiology department how to integrate and govern it.",
+        "prompt": "Your department is deploying an FDA-cleared deep-learning tool that flags intracranial hemorrhage on head CT and reprioritizes the worklist. Administration assumes it can reduce staffing. As the lead radiologist, explain how the tool should be integrated into the PACS and DICOM workflow, why it should remain assistive rather than autonomous, what validation and ongoing monitoring (for generalization, bias, and performance drift) you would require, and how this reflects the evolving role of the radiologist as a physician-data-scientist. Justify your governance recommendations."
+      }
+    }
+  ]
+}

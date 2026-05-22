@@ -1,0 +1,154 @@
+{
+  "slug": "structure-formation-and-bao",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Trace linear → nonlinear structure growth.",
+      "Survey N-body simulations.",
+      "Explain BAO as a standard ruler."
+    ],
+    "prereqs": [
+      "cmb-and-recombination",
+      "dark-matter-and-dark-energy"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Linear perturbation theory + Jeans + transfer function",
+      "body": "**Cosmic structure formation**: how the cosmic web of galaxies, clusters, filaments, + voids emerged from the ΔT/T ~ 10⁻⁵ initial perturbations at recombination.\n\n**Linear perturbation theory** (small δ = (ρ - ρ̄)/ρ̄ ≪ 1):\n\nFluid equations in expanding FLRW background, Fourier mode k:\n  δ̈ + 2H·δ̇ - 4πG·ρ̄·δ + c_s² k²·δ/a² = 0\n\nwhere c_s is sound speed.\n\n**Jeans length** (Jeans 1902 for stars; cosmological version Bonnor 1957):\n  λ_J = c_s · √(π/(G·ρ̄))\nor k_J = a · √(4πG·ρ̄)/c_s.\n\n**Jeans criterion**: k < k_J ⇔ λ > λ_J ⇒ growing mode (instability). k > k_J ⇒ oscillating (acoustic mode).\n\n**Different regimes**:\n- **Radiation era** (z > z_eq ≈ 3402): photon pressure dominates; perturbations in baryon-photon fluid oscillate as sound waves (precursors to CMB acoustic peaks). DM perturbations effectively stationary (Mészáros 1974: 'Mészáros effect' — DM growth suppressed in radiation era).\n- **Matter era**: DM perturbations grow as δ ∝ a; baryons free-stream to DM potentials after recombination (catch-up baryons).\n- **Λ era** (z < 0.6): expansion dilutes structure growth; δ growth slows.\n\n**Linear growth factor D(z)**: δ_lin(k, z) = δ_initial(k) · T(k) · D(z). T(k) transfer function encodes k-dependent processing through radiation era; D(z) growth function ~a(t) in matter era, suppressed by Λ.\n\n**Damping mechanisms**:\n- **Silk damping** (Silk 1968): photon diffusion in baryon-photon fluid before recombination smooths small-scale (sub-Mpc) perturbations. Damps CMB at ℓ > 1500.\n- **Free-streaming damping**: hot DM (eg neutrinos) free-streams out of small-scale wells. WDM (m ~ keV) cuts off P(k) at sub-kpc scales — modifies satellite galaxy abundance.\n- **Collisionless damping** of DM: minimal for CDM (cold).\n\n**Transfer function T(k)**:\n- Encodes the imprint of physical scales on initial scale-invariant spectrum during radiation + early matter era.\n- **Peak at k ~ 0.02 h/Mpc** (matter-radiation equality scale; comoving λ ~ 100 Mpc).\n- **Suppression at small k** (large scales): proportional to (k·λ_eq)² (modes entering horizon during matter era preserved).\n- **Suppression at large k** (small scales): Silk damping + BAO oscillations (~150 Mpc scale).\n- Computed by codes: CAMB (Lewis + Challinor + Lasenby 2000), CLASS (Lesgourgues + Tram 2011) — used for all CMB + LSS analyses.\n\n**Linear matter power spectrum**:\n  P(k, z) = A_s · (k/k₀)^n_s · T²(k) · D²(z)\n\n- Scale-invariant primordial slope n_s ≈ 0.965 (Planck).\n- Peak at k ≈ 0.02 h/Mpc → physical wavelength ~300 Mpc.\n- Power-law fall-off n_eff ≈ -3 at small scales.\n- BAO wiggles superimposed at k ~ 0.05-0.3 h/Mpc.\n\n**Observable proxies**:\n- **CMB anisotropies**: probe linear regime at z = 1090; sub-percent precision.\n- **Lyman-α forest**: 1D + 3D P(k) at z ~ 2-4 (large k); BOSS, eBOSS, DESI.\n- **Galaxy clustering**: probe at z = 0-2 (BOSS, eBOSS, DESI).\n- **Weak lensing**: probe matter (not biased; KiDS, DES, Euclid, HSC).\n- **21-cm**: future probe (HERA, SKA)."
+    },
+    {
+      "kind": "text",
+      "title": "Nonlinear collapse + Press-Schechter + N-body simulations",
+      "body": "**Nonlinear regime** (δ ≳ 1): density perturbations decouple from Hubble flow, collapse under gravity into virialized halos.\n\n**Spherical collapse** (Tolman 1934; Gunn + Gott 1972): idealized overdensity δ in a sphere; treated as separate closed Friedmann universe.\n- Linear extrapolation: δ_lin = δ_crit ≈ 1.686 at collapse (turnaround at δ_lin ≈ 1.06; collapse to virialization at 1.686 linear).\n- Virial: density at virialization ~ 178·ρ̄ (Einstein-de Sitter).\n- Halo radius R_vir from M = (4π/3)·R_vir³·Δ·ρ̄, Δ ≈ 200 (200·ρ̄_crit or 200·ρ̄_m by convention).\n\n**Press-Schechter formalism** (Press + Schechter 1974): predict halo mass function n(M) from Gaussian random field + spherical collapse threshold.\n- **Number density of halos** of mass M at z: n(M, z) dM ∝ (1/M) · (dν/dM) · exp(-ν²/2) dM,\n  where ν = δ_crit / (σ(M) · D(z)).\n- σ(M) = rms density fluctuation in spheres of mass M.\n- Predicts power-law at low M + exponential tail at high M (rare massive clusters).\n- Modern refinements: **Sheth-Tormen** (ellipsoidal collapse, fits N-body better); **Tinker et al.** (calibrated to N-body); **EPS** (excursion set, Bond et al. 1991).\n\n**Halo model** (Cooray + Sheth 2002, Seljak 2000): power spectrum = 1-halo term (correlations within halos) + 2-halo term (correlations between halos). Powerful framework for nonlinear P(k) + bias modeling.\n\n**N-body simulations**: solve gravitational N-body problem for millions to trillions of particles in expanding FLRW background. The standard tool for nonlinear regime.\n\n**Algorithms**:\n- **Particle-Particle (PP)**: direct O(N²) summation; small N.\n- **Particle-Mesh (PM)**: solve Poisson via FFT on grid; fast but coarse.\n- **TreePM** (Springel et al. 2001 GADGET): tree at small scales + PM at large; standard.\n- **Adaptive mesh refinement (AMR)**: ENZO, RAMSES.\n- **Smoothed particle hydrodynamics (SPH)** for gas: GADGET-2/3/4, GIZMO, AREPO (Springel 2010 — Voronoi moving mesh).\n\n**Landmark N-body simulations**:\n- **Millennium Run** (Springel et al. 2005): 10¹⁰ particles, 500 Mpc/h box; GADGET-2 on Max Planck Garching machine. Defined modern semi-analytic galaxy formation modeling; >1500 follow-up papers. Volker Springel led; major MPI/MPA effort.\n- **Millennium-II + Millennium-XXL**: higher resolution + larger volume.\n- **Bolshoi** (Klypin + Trujillo-Gomez + Primack 2011, NASA Pleiades): 8.6×10⁹ particles, 250 Mpc/h box; defined updated halo statistics + concentration-mass relation. Anatoly Klypin lab.\n- **Illustris** (Vogelsberger et al. 2014; AREPO + cosmological hydrodynamics): galaxy formation with cosmic feedback. IllustrisTNG-50/100/300 (2018-2020): higher-resolution successor.\n- **EAGLE** (Schaye et al. 2015): Durham/Leiden; cosmological hydro with calibrated feedback.\n- **FIRE** (Hopkins et al. 2014-2024): zoom-in galaxy simulations; high-resolution feedback physics.\n- **CAMELS** (Villaescusa-Navarro 2021): thousands of simulations varying cosmology + astrophysics; ML emulator training set.\n- **ABACUS** (Garrison + Eisenstein 2018-2024): CPU-GPU optimized; designed for BAO surveys; sub-percent halo statistics.\n- **AbacusSummit** (Maksimova + Eisenstein 2021): 60 trillion particles, 150 boxes for DESI/Roman/Euclid mock catalogs; petascale.\n- **FLAMINGO** (van Daalen + McCarthy 2023): large-volume hydro with multiple cosmologies.\n- **Aurigaia + Auriga** (Grand et al.): Milky Way-like zoom-ins.\n\n**Subhalo + galaxy formation**:\n- **Halo occupation distribution (HOD)**: prescription for placing galaxies in halos.\n- **Subhalo abundance matching (SHAM)** (Conroy + Wechsler 2009): match subhalo V_max to galaxy stellar mass.\n- **Semi-analytic models (SAMs)**: SAGE, Galacticus, MORGANA, L-Galaxies — analytic recipes on top of DM-only sims.\n\n**Small-scale challenges** (potential CDM problems or baryonic-physics resolutions):\n- **Missing satellites**: predicted vs observed Milky Way satellite count; resolved by baryonic feedback + completeness.\n- **Too-big-to-fail** (Boylan-Kolchin 2011): predicted massive subhalos missing observationally; resolved by feedback or self-interacting DM.\n- **Core-cusp** (Flores + Primack 1994): observed dwarf galaxy DM density profile cores vs NFW cusps; resolved by SN feedback or warm/self-interacting DM.\n- **Plane-of-satellites**: anisotropic satellite distribution at M31, MW; ΛCDM rare but possible.\n\n**Status**: N-body + hydrodynamics simulations + ML now reproduce large-scale structure to sub-percent precision over k < 1 h/Mpc; smaller scales increasingly probed."
+    },
+    {
+      "kind": "text",
+      "title": "Baryon acoustic oscillations: standard ruler + DESI 2024",
+      "body": "**Baryon acoustic oscillations (BAO)**: the sound waves in the photon-baryon plasma prior to recombination leave an imprint on the matter distribution — a slight excess in galaxy clustering at the comoving scale r_s ≈ 150 Mpc (sound horizon at drag epoch). Predicted by Peebles + Yu 1970 + Sunyaev + Zel'dovich 1970.\n\n**Drag epoch** (z_drag ≈ 1060, slightly after photon decoupling z_LSS ≈ 1090): baryons released from photon drag; sound waves freeze.\n\n**Sound horizon at drag**: r_s(z_drag) ≈ 147.05 ± 0.30 Mpc (Planck 2018; standard ruler).\n\n**Detection in galaxy correlation function**:\n- ξ(r) has a 'BAO bump' at r ≈ 147 Mpc.\n- Power spectrum P(k) shows damped oscillations at k = 0.05-0.3 h/Mpc.\n- 'Standard ruler': measured angular scale θ(z) = r_s/D_A(z) + radial scale (Δz) = H(z)·r_s/c.\n\n**Landmark BAO detections**:\n- **SDSS** (Eisenstein et al. 2005): first significant BAO detection in 47000 LRG galaxies at z = 0.35; 3.4σ. Daniel Eisenstein led.\n- **2dF** (Cole et al. 2005): independent detection at z = 0.1.\n- **BOSS** (Baryon Oscillation Spectroscopic Survey, SDSS-III, 2010-2014): 1.5M galaxies + 200k quasars; BAO at z = 0.3-2.5; ~1% precision on D_A + H(z).\n- **eBOSS** (extended BOSS, SDSS-IV, 2014-2019): Lyman-α forest BAO at z = 2.3 via quasar spectra (Busca + delubac 2013, du Mas 2017, Bourboux 2020).\n- **DESI** (Dark Energy Spectroscopic Instrument, Kitt Peak, Mayall 4m, 2021-2026): 5000 fiber spectrograph; ~30M galaxies + quasars over 14000 deg². First-year BAO results released April 2024 (Adame et al. 2024).\n- **Euclid** (ESA, July 2023 launch; first results 2025): photometric + spectroscopic galaxy survey to z = 2; 1.5B galaxies.\n- **Roman Space Telescope** (NASA, 2027 launch): wide-field IR; high-z BAO + SNe.\n- **PFS Subaru** (~2024 onwards): Prime Focus Spectrograph; cosmic-web + BAO.\n- **SKA / 21cm-IM**: future intensity-mapping BAO.\n\n**DESI 2024 April first BAO release** (Adame et al. 2024):\n- 4 Gpc³ effective volume; precision BAO at z = 0.5, 0.7, 0.9, 1.3, 2.3.\n- Combined BAO + CMB + SNe + lensing: w₀ = -0.55 ± 0.21, w_a = -1.4 ± 0.5 — **2.5σ-3.9σ deviation from w = -1 (cosmological constant)**.\n- 'Dynamical dark energy' hint; preliminary.\n- DESI-II + Euclid + Roman + LSST will arbitrate within 5 years.\n\n**Galaxy surveys + redshift-space distortions (RSD)**:\n- **Redshift-space distortions** (Kaiser 1987): galaxies infall toward overdensities → distort apparent clustering along line of sight. Measure f·σ_8 where f = dln(δ)/dln(a) is growth rate. Tests modified-gravity vs ΛCDM; w controls growth.\n- **Finger-of-God effect**: virialized cluster velocities elongate clusters in redshift space.\n- **Multipoles of correlation function/P(k)**: ξ₀, ξ₂, ξ₄; encode RSD + AP test (Alcock-Paczynski geometric).\n\n**Galaxy surveys driving BAO + LSS**:\n- **DESI**: ~30M targets (LRGs + ELGs + QSOs + BGS); 2021-2026.\n- **Euclid**: ~1.5B galaxy shapes (weak lensing) + ~50M spectroscopic galaxies; 6 years.\n- **Roman**: ~10M deep spectroscopic + photometric; 2027-2032.\n- **LSST / Vera C. Rubin Observatory**: 8.4m wide-field; ~20B galaxies + 5M SNe; survey starts 2025.\n- **SKA + HERA**: 21-cm intensity mapping; foreground-cleaning challenges; 2030s.\n\n**BAO + standard ruler is the cleanest geometric probe of cosmology**:\n- Independent of nuisance parameters that affect SN Ia or CMB.\n- Calibrated by CMB-derived sound horizon r_s.\n- Combined with SNe (relative distances) + CMB (absolute distance to LSS) — '1-2 punch' for H(z) + D_A(z) reconstruction.\n- Critical for H_0 + DE w(z) measurements.\n\n**Connection to cosmology**: BAO + RSD + weak lensing + CMB lensing + cluster counts + SNe — overdetermined system for ΛCDM 6-parameter fit. Sub-percent precision across multiple probes. Tensions (H_0, S_8, DESI w_a) may herald new physics or hidden systematics.\n\n**Connection to N-body**: BAO scale is on linear edge of clustering; N-body emulators (AbacusSummit, CAMELS) calibrate beyond-linear corrections for DESI/Euclid/Roman analyses."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ssf_1",
+        "kind": "guided_derivation",
+        "question": "Compute the BAO scale from sound horizon",
+        "goal": "Sound horizon r_s at drag = ∫c_s dη from t = 0 to η_drag. With c_s ≈ c/√3 + drag at z ≈ 1060, estimate r_s.",
+        "steps": [
+          {
+            "prompt": "Sound speed in baryon-photon fluid + drag epoch.",
+            "motivation": "Setup.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "c_s² = c²/(3(1 + R)) with R = 3ρ_b/(4ρ_γ)"
+              ]
+            },
+            "hints": [
+              "Acoustic sound speed with baryon loading."
+            ],
+            "reveal": "c_s = c/√(3·(1+R)) where R = 3ρ_b/(4ρ_γ). At z_drag = 1060, R ≈ 0.6 (Planck Ω_b h² = 0.0224). c_s ≈ c/√(4.8) ≈ 0.456c. Drag epoch z_drag ~ 1060 (later than photon decoupling z_dec ~ 1090 because baryons released from photon drag after photons decouple)."
+          },
+          {
+            "prompt": "Compute comoving r_s by integrating c_s/H(z) dz from z_drag to ∞ (or equivalently c_s·η_drag).",
+            "motivation": "Comoving sound horizon.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "r_s = ∫_z_drag^∞ c_s(z)/H(z) dz ≈ 147 Mpc"
+              ]
+            },
+            "hints": [
+              "Numerical integration; depends on Ω_m, Ω_b, T_CMB."
+            ],
+            "reveal": "r_s(z_drag) = ∫_{z_drag}^∞ c_s(z)/H(z) dz. In ΛCDM with Planck parameters, numerical integration: r_s ≈ 147.05 ± 0.30 Mpc (Planck 2018). The standard ruler — the most precise distance in cosmology."
+          },
+          {
+            "prompt": "How is r_s used as a 'ruler' to probe D_A(z) + H(z)?",
+            "motivation": "BAO methodology.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Measure angular scale θ_BAO(z) = r_s/D_A(z) + radial Δz_BAO = H(z)·r_s/c; constrains both"
+              ]
+            },
+            "hints": [
+              "Transverse vs line-of-sight BAO."
+            ],
+            "reveal": "BAO appears in 2D galaxy correlation function with two characteristic scales: (i) angular θ_BAO(z) = r_s(1+z)/D_A(z)·... → measures angular diameter distance D_A(z); (ii) radial Δz_BAO = H(z)·r_s/c → measures Hubble parameter H(z). Both at fixed r_s standard ruler. Joint measurement constrains cosmology. DESI 2024 + future: 0.5-1% precision per z bin."
+          },
+          {
+            "prompt": "Why does DESI 2024 hint of dynamical dark energy?",
+            "motivation": "Interpretation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "BAO+CMB+SNe joint fit prefers w₀ ≈ -0.6, w_a ≈ -1.4 over w = -1 at ~2.5-3.9σ"
+              ]
+            },
+            "hints": [
+              "BAO + SNe + CMB combined analysis."
+            ],
+            "reveal": "DESI 2024 first-year BAO at z = 0.5-2.3 combined with Pantheon+ SNe + DES-SN + CMB Planck/ACT/SPT: ΛCDM (w = -1) fit is somewhat worse than w₀w_a model with w₀ ≈ -0.55 ± 0.21, w_a ≈ -1.4 ± 0.5. Significance 2.5-3.9σ depending on SN sample. Preliminary; could be statistical fluctuation, systematic in SNe Ia (recent Pantheon+ vs DES-SN5YR + JWST tension), or genuine evolving DE. DESI-II + Euclid + Roman + LSST data 2025-2030 will resolve."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ssf_1",
+        "kind": "multiple_choice",
+        "question": "Why was Press-Schechter 1974 a foundational paper for structure formation?",
+        "options": [
+          "Random.",
+          "Press + Schechter (1974) provided the first analytic prediction of the cosmological halo mass function from spherical collapse + Gaussian random field theory. Their key insight: count fraction of mass in Gaussian field with smoothed density δ_smoothed > δ_crit ≈ 1.686 (spherical collapse threshold) → halo abundance. Result: n(M, z)·dM ∝ (1/M)·exp(-ν²/2)·dν, where ν = δ_crit/(σ(M)·D(z)). Predicts: (i) low-mass power-law dn/dM ∝ M^(-2); (ii) exponential cutoff at high M (rare cluster regime); (iii) z-dependence via growth function D(z). Calibrated to N-body simulations subsequently (Sheth-Tormen 1999, Jenkins 2001, Tinker 2008). Modern refinements use excursion-set theory (Bond et al. 1991) + ellipsoidal collapse. Press-Schechter framework remains the conceptual foundation for cluster cosmology, halo occupation distribution, semi-analytic galaxy formation, + cluster-count probes of σ_8 + dark energy. >3000 citations.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Press-Schechter 1974 = first analytic halo mass function: n(M) ∝ exp(-ν²/2) from Gaussian field + δ_crit ≈ 1.686 spherical-collapse threshold. Predicts low-mass power law + exponential high-mass cutoff. Foundation for cluster cosmology, halo occupation, semi-analytic models. Refined by Sheth-Tormen, Jenkins, Tinker calibrated to N-body. >3000 citations."
+      },
+      "hints": [
+        "Halo mass function from Gaussian field.",
+        "Threshold δ_crit ≈ 1.686."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Press-Schechter 1974: first analytic halo mass function from Gaussian density field + spherical-collapse threshold δ_crit = 1.686. Predicts n(M) ∝ exp(-ν²/2) with ν = δ_crit/(σ(M)·D(z)); low-mass power law + exponential high-mass cutoff. Refined by Sheth-Tormen, Jenkins, Tinker (calibrated to N-body). Foundation for cluster cosmology, halo occupation, semi-analytic models."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ssf_1",
+        "kind": "scenario",
+        "question": "JWST 2024 observes massive (~10¹⁰ M⊙) galaxies at z = 10-15 in surprising abundance — possibly more than ΛCDM predicts.",
+        "prompt": "Interpret the 'JWST excess' problem. What systematics (stellar masses, IMF, photo-z) could resolve it? What new physics (early dark energy, modified primordial power spectrum, primordial BHs, faster gas-to-stars efficiency) could explain it? How do AbacusSummit + IllustrisTNG + EAGLE bracket the predictions? What complementary observations (ALMA dust + 21cm + line-intensity mapping) would discriminate?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ssf_1",
+        "kind": "math_expression",
+        "question": "Write the Jeans length λ_J for cosmological perturbations.",
+        "acceptedAnswers": [
+          "λ_J = c_s · √(π/(G·ρ̄))",
+          "lambda_J = c_s sqrt(pi/(G rho))",
+          "lambda_J = c_s sqrt(pi/G/rho_bar)"
+        ],
+        "hint": "Sound speed times square root of (pi divided by G times mean density)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ssf_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how BAO functions as a 'standard ruler' + why DESI 2024 is exciting.",
+        "rubric": "Mentions: Before recombination, acoustic sound waves in photon-baryon plasma (c_s ≈ c/√3) traveled a comoving distance r_s ≈ 147 Mpc (sound horizon at drag epoch z ≈ 1060). At decoupling, baryons freeze with slight overdensity at scale r_s — visible as faint bump in galaxy correlation function ξ(r) + oscillations in P(k). Predicted by Peebles + Yu + Sunyaev-Zel'dovich 1970; first detected SDSS (Eisenstein 2005) + 2dF (Cole 2005). Standard ruler: measure θ_BAO(z) = r_s/D_A(z) + radial Δz_BAO = H(z)·r_s/c → independent geometric constraints on H(z) + D_A(z). BOSS, eBOSS (Ly-α QSOs), DESI (2024 first results, 5000-fiber spectrograph, ~30M targets to z=2.3). DESI 2024 + Pantheon+ SNe + Planck CMB joint analysis: hint of dynamical w₀w_a (2.5-3.9σ from w = -1). Preliminary; Euclid 2023 + Roman 2027 + LSST will arbitrate. BAO is the cleanest geometric DE probe."
+      }
+    }
+  ]
+}

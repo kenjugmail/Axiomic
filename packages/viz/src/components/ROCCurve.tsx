@@ -40,8 +40,8 @@ function gaussianSamples(mean: number, sd: number, n: number, seed: number): Dis
 function rocPoint(neg: Distribution, pos: Distribution, threshold: number) {
   // Predict positive when value >= threshold
   let tp = 0, fp = 0, tn = 0, fn = 0;
-  for (const x of pos) (x >= threshold ? tp++ : fn++);
-  for (const x of neg) (x >= threshold ? fp++ : tn++);
+  for (const x of pos) { if (x >= threshold) tp++; else fn++; }
+  for (const x of neg) { if (x >= threshold) fp++; else tn++; }
   const sens = tp / (tp + fn || 1);
   const spec = tn / (tn + fp || 1);
   const ppv = tp / (tp + fp || 1);

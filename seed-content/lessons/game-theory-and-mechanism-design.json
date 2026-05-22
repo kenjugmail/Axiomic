@@ -1,0 +1,157 @@
+{
+  "slug": "game-theory-and-mechanism-design",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Characterize Nash + best-response + applications to oligopoly + coordination.",
+      "Apply Bayesian + sequential-rationality refinements (subgame perfect, BNE).",
+      "Survey mechanism design: VCG, Myerson optimal auctions, matching."
+    ],
+    "prereqs": [
+      "market-structures-and-equilibrium"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Nash equilibrium + best-response + oligopoly games",
+      "body": "**Game theory** studies strategic interaction. The standard objects: players, strategies, payoffs, equilibrium concepts. (Cross-reference P25 game-theorist path for deeper treatment of pure game theory; here we focus on **applied micro** uses.)\n\n**Normal-form game** (G):\n- Players i = 1, …, n.\n- Strategy sets Sᵢ.\n- Payoffs uᵢ(s₁, …, sₙ).\n\n**Nash equilibrium (Nash 1950)**: strategy profile s* = (s₁*, …, sₙ*) such that no player can profitably deviate unilaterally — for all i + all sᵢ ∈ Sᵢ: uᵢ(sᵢ*, s₋ᵢ*) ≥ uᵢ(sᵢ, s₋ᵢ*).\n\n**Best-response function** BRᵢ(s₋ᵢ) = arg max_{sᵢ} uᵢ(sᵢ, s₋ᵢ). Nash equilibrium = fixed point of joint best-response.\n\n**Nash's theorem (1950)**: every finite game has at least one (possibly mixed-strategy) Nash equilibrium. Existence via Kakutani fixed-point theorem.\n\n**Applied micro examples** (Cournot + Bertrand + Stackelberg covered in lesson 4):\n\n**Cournot** = quantity competition; best-response = q_i(q_{-i}) = (a - c - q_{-i})/(2b). Strategic substitutes (slope < 0).\n\n**Bertrand** = price competition; best-response = undercut by ε down to MC. Strategic complements in differentiated case (slope > 0).\n\n**Stackelberg** = sequential moves; leader anticipates follower's BR.\n\n**Prisoner's dilemma**: classic dominant-strategy defect equilibrium that is Pareto inefficient. (Defect, Defect) is Nash but (Cooperate, Cooperate) Pareto dominates. Foundation for thinking about cartels (lesson 4), externalities, collective action.\n\n**Coordination games**:\n- Multiple Nash equilibria (often Pareto-ranked).\n- Selection problem: which equilibrium do players coordinate on?\n- **Schelling focal points** (Schelling 1960 Nobel 2005): culturally salient + commonly known features select equilibria.\n- **Risk dominance vs payoff dominance** (Harsanyi-Selten 1988): one criterion based on robust to opponent's uncertainty, the other on maximum payoff.\n- **Stag hunt** (Rousseau): both hunt stag (cooperative) vs hare (safe) — risk-dominant hare may be played even when stag is payoff-dominant.\n- Applications: technology standards (VHS vs Beta, Blu-ray vs HD-DVD), bank runs, currency speculation, social conventions.\n\n**Mixed strategies + indifference principle**:\n- When no pure NE, players randomize.\n- In a mixed NE, each player must be indifferent across all strategies in their support — else they'd play the best pure strategy.\n- Solves for mixing probabilities (rock-paper-scissors: uniform 1/3, 1/3, 1/3).\n\n**Evolutionary game theory** (Maynard Smith 1973+):\n- **Evolutionarily stable strategy (ESS)**: strategy that cannot be invaded by rare mutants.\n- Replicator dynamics: strategies with higher payoff grow.\n- Connections to learning + adaptation."
+    },
+    {
+      "kind": "text",
+      "title": "Sequential games + Bayesian games + refinements",
+      "body": "**Extensive form** — game tree with sequential moves + information sets. Solution concept: backward induction (for games of perfect information).\n\n**Subgame-perfect equilibrium (Selten 1965)** — refinement of Nash:\n- A strategy profile is SPE if it is Nash in every subgame.\n- Eliminates non-credible threats.\n- Reinhard Selten Nobel 1994 (with Nash + Harsanyi).\n\n**Example**: 'commitment device' games — incumbent firm threatens entry deterrence via excess capacity (Spence 1977, Dixit 1980). Threat must be subgame-perfect (in firm's interest to follow through if entry occurs).\n\n**Bayesian games (Harsanyi 1967-68)** — incomplete information:\n- Players have **types** drawn from a distribution.\n- Each player knows own type but only the distribution of others'.\n- **Bayesian Nash equilibrium (BNE)**: strategy profile σ(t) such that each type plays best response given conditional belief about others' types.\n- John Harsanyi Nobel 1994 — for converting incomplete-information games to games with imperfect information via 'Harsanyi doctrine'.\n\n**Examples**:\n- **First-price sealed-bid auction**: bidder i with private value vᵢ ~ F submits bid bᵢ; equilibrium bid b(v) = E[max of other (n−1) values | vᵢ is the max] — bid shading toward the next-highest value.\n- **Cournot with private cost**: each firm bids best response with expectation over rivals' cost distributions.\n\n**Perfect Bayesian equilibrium (PBE)**: SPE + belief consistency at every information set. Sequential equilibrium (Kreps-Wilson 1982) further refines.\n\n**Signaling games** (Spence 1973, lesson 5):\n- Sender has private type, sends signal; receiver observes signal + updates beliefs.\n- **Separating equilibrium**: different types send different signals — receiver infers type.\n- **Pooling equilibrium**: types send same signal — no information transmitted.\n- **Intuitive criterion** (Cho-Kreps 1987): refine PBE by eliminating implausible beliefs.\n\n**Repeated games + folk theorem**:\n- **Finitely repeated** PD: backward induction → defect every round (Selten paradox).\n- **Infinitely repeated** PD with sufficient patience: cooperation sustainable via trigger strategies.\n- **Folk theorem** (Aumann, Friedman, Fudenberg-Maskin): any individually rational payoff is sustainable as SPE of infinitely repeated game with patient players.\n- Foundation for sustaining collusion (lesson 4), social norms, reputation, contracts without enforcement.\n\n**Information design + persuasion** (Kamenica-Gentzkow 2011):\n- Sender chooses signal structure before observing realization.\n- Receiver Bayesian-updates from signal.\n- 'Bayesian persuasion' — modern wave of game theory."
+    },
+    {
+      "kind": "text",
+      "title": "Mechanism design: VCG, Myerson, matching markets",
+      "body": "**Mechanism design** — the **inverse of game theory**. Game theory: given the rules, predict play. Mechanism design: choose the rules so that strategic play yields a desired social outcome.\n\n**Hurwicz (1960s)**, **Maskin + Myerson (1970s-80s)** — Nobel 2007. **Revelation principle** (Myerson 1979): any outcome implementable by any mechanism can be implemented by a direct-revelation truthful mechanism. Reduces space of mechanisms to consider.\n\n**Implementation theory**:\n- **Dominant-strategy implementation**: each player's optimal strategy is independent of others' (very strong).\n- **Bayesian implementation**: optimal in expectation given beliefs.\n- **Ex-post implementation**: optimal given realized types (intermediate).\n\n**VCG mechanism (Vickrey 1961, Clarke 1971, Groves 1973)**:\n- For public-good provision + auctions with private values.\n- Each agent reports value; mechanism chooses outcome maximizing reported social value.\n- Payment = externality each agent imposes on others (difference in others' welfare due to your presence).\n- **Truthful in dominant strategies**: optimal to report true value regardless of others' reports.\n- Includes second-price (Vickrey) auction: highest bidder wins, pays second-highest bid → truthful.\n- William Vickrey Nobel 1996.\n\n**VCG limitations**:\n- May not be budget-balanced (mechanism either runs deficit or surplus).\n- Susceptible to collusion + false-name bidding (online auctions).\n- Computational complexity for combinatorial domains.\n\n**Myerson optimal auction theory (1981)** — revenue maximization:\n- Bidders' values drawn from distribution F.\n- **Optimal mechanism** uses **virtual values** ϕ(v) = v − (1−F(v))/f(v) (regular distributions).\n- Allocate to highest virtual value if positive; otherwise no sale.\n- **Revenue equivalence**: under regularity, first-price + second-price + all-pay auctions yield same expected revenue when each induces same allocation.\n- **Reserve price** = monopoly price = v such that ϕ(v) = 0.\n- Roger Myerson Nobel 2007.\n\n**Auction applications**:\n- **Spectrum auctions** (FCC since 1994, Milgrom 2020 Nobel with Wilson): SMR + combinatorial-clock auctions for billions in spectrum licenses.\n- **Online ad auctions**: Google + Facebook use generalized second-price (GSP) → switched some to first-price (~2019).\n- **Treasury auctions**: uniform-price vs discriminatory.\n- **Procurement**: reverse auctions for government contracting.\n\n**Matching markets — Roth + Shapley Nobel 2012**:\n- **Gale-Shapley deferred-acceptance algorithm (1962)**: stable matching for two-sided markets (medical residents + hospitals, students + schools).\n- **Stability**: no pair would both prefer to deviate from assignment.\n- **Strategy-proof for proposer side** (men in marriage market or students in schools).\n- **Top trading cycles (Shapley-Scarf 1974)**: kidney exchange + housing.\n- **Roth + Sotomayor (1990)** *Two-Sided Matching* — textbook treatment.\n- **Roth's applied work**: NRMP (medical residency matching), New York + Boston school choice (replaced manipulable mechanisms with strategy-proof DA + variants), national kidney exchange (chains + cycles).\n- Lloyd Shapley + Alvin Roth Nobel 2012.\n\n**Algorithmic mechanism design**:\n- Combines mechanism design with computational complexity (Nisan-Ronen 1999).\n- Approximate mechanisms when exact is intractable.\n- Online algorithms + dynamic mechanism design.\n- Applications: cloud computing pricing, ad auctions, recommender systems.\n\n**Modern frontier**:\n- **Roughgarden + Hartline + others** — algorithmic + machine-learning approaches.\n- **AI-driven mechanisms**: learn approximately optimal mechanisms from data when distribution unknown.\n- **Behavioral mechanism design**: account for bounded rationality + cognitive limits (lesson 7) — what mechanisms work when players are not perfectly rational?\n- **Decentralized + crypto mechanisms**: blockchain + smart contracts implementing trustless auctions, AMMs."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_gt_vcg",
+        "kind": "guided_derivation",
+        "question": "Show that the second-price (Vickrey) auction is truthful",
+        "goal": "Single-item, sealed-bid, second-price auction with private values. Show bidding own value is dominant strategy.",
+        "steps": [
+          {
+            "prompt": "Setup: bidder i has private value vᵢ, submits bid bᵢ. Highest bidder wins, pays second-highest bid. What is i's payoff if i wins?",
+            "motivation": "Payoff structure.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "vᵢ − max(b₋ᵢ) if bᵢ > max(b₋ᵢ); 0 otherwise",
+                "value minus second-highest bid"
+              ]
+            },
+            "hints": [
+              "Pay second-highest, not own bid."
+            ],
+            "reveal": "If i wins: payoff = vᵢ − max(b₋ᵢ) (pays second-highest = max of others' bids). If i loses: payoff = 0."
+          },
+          {
+            "prompt": "Suppose i bids bᵢ > vᵢ (overbid). Compare to truthful bid bᵢ = vᵢ in different cases of max(b₋ᵢ).",
+            "motivation": "Show overbidding weakly dominated.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "case 1 max(b₋ᵢ) < vᵢ: both win, same payment; case 2 vᵢ < max(b₋ᵢ) < bᵢ: overbid wins but pays > vᵢ (negative payoff); case 3 max(b₋ᵢ) > bᵢ: both lose. So overbidding weakly worse.",
+                "overbidding weakly dominated"
+              ]
+            },
+            "hints": [
+              "Three cases."
+            ],
+            "reveal": "Compare truthful bᵢ = vᵢ to overbid bᵢ' > vᵢ. Three cases for max(b₋ᵢ):\n- **max(b₋ᵢ) < vᵢ**: both bids win; both pay max(b₋ᵢ) < vᵢ; same payoff.\n- **vᵢ < max(b₋ᵢ) < bᵢ'**: overbid wins (pays max(b₋ᵢ) > vᵢ — **negative payoff**!), truthful loses (0). Overbidding worse.\n- **max(b₋ᵢ) > bᵢ'**: both lose, both 0.\nSo overbidding is **weakly dominated** by truthful."
+          },
+          {
+            "prompt": "Now consider underbidding bᵢ' < vᵢ. Same case analysis.",
+            "motivation": "Show underbidding also dominated.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "case max(b₋ᵢ) < bᵢ': both win, same; case bᵢ' < max(b₋ᵢ) < vᵢ: underbid loses (0), truthful wins (positive payoff). Underbidding worse.",
+                "underbidding weakly dominated"
+              ]
+            },
+            "hints": [
+              "Mirror argument."
+            ],
+            "reveal": "Compare truthful bᵢ = vᵢ to underbid bᵢ' < vᵢ. Three cases:\n- **max(b₋ᵢ) < bᵢ'**: both win, same payment, same payoff.\n- **bᵢ' < max(b₋ᵢ) < vᵢ**: underbid loses (payoff 0); truthful wins + pays max(b₋ᵢ) < vᵢ → positive payoff. Underbidding worse.\n- **max(b₋ᵢ) > vᵢ**: both lose, both 0.\nSo underbidding is also **weakly dominated**."
+          },
+          {
+            "prompt": "Conclude + state the implication.",
+            "motivation": "Dominant strategy.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "bidding bᵢ = vᵢ is weakly dominant strategy; mechanism is dominant-strategy incentive-compatible (DSIC)",
+                "truthful bidding is dominant"
+              ]
+            },
+            "hints": [
+              "What's the design implication?"
+            ],
+            "reveal": "**Truthful bidding bᵢ = vᵢ is a weakly dominant strategy** in second-price (Vickrey) auction. No bidder ever benefits from misreporting, regardless of others' strategies. This is **dominant-strategy incentive compatibility (DSIC)** — the gold standard of mechanism design. Generalizes to **VCG mechanism** (Vickrey 1961, Clarke 1971, Groves 1973) for multi-item + public-good problems. Each agent pays externality imposed on others → truth-telling dominant. Foundation for spectrum auctions + ad auctions + procurement."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Vickrey 2nd-price auction is DSIC: bidding }v_i\\text{ is weakly dominant}}$$ This is the foundational result of mechanism design — winner of Vickrey's 1996 Nobel + the basis for VCG generalization to all environments with private values. Modern applications: FCC spectrum, AdWords, procurement, kidney exchange. The art of mechanism design is finding settings where truthful behavior + efficient outcomes coexist."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_gt_matching",
+        "kind": "multiple_choice",
+        "question": "Why is the Gale-Shapley deferred-acceptance algorithm so influential in market design?",
+        "options": [
+          "Random.",
+          "**Gale-Shapley deferred acceptance (1962)** produces a **stable matching** for two-sided markets (medical residents + hospitals, students + schools, dating). Stability: no pair would both prefer to deviate from the assignment. Algorithm: each proposer (residents/students) proposes to top choice; receivers (hospitals/schools) tentatively hold best so far + reject others; rejected propose to next choice; iterate until no rejections. Guaranteed to terminate in stable matching that is **proposer-optimal** + **proposer strategy-proof** (residents/students can't gain by misreporting). **Alvin Roth's applied work**: redesigned NRMP (1995) using DA; deployed in New York (2003) + Boston (2005) school choice (replacing manipulable mechanisms like Boston mechanism); national kidney exchange (chains + cycles of compatible donors). Roth + Shapley Nobel 2012. Foundation: market-design + mechanism-design combine theory + algorithms + institutional engineering. Generalizations include top trading cycles (TTC, Shapley-Scarf for housing + kidney) + serial dictatorship.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Gale-Shapley deferred acceptance (1962): proposers propose to top remaining choice; receivers hold best so far, reject others; iterate. Produces stable matching, proposer-optimal, proposer strategy-proof. Roth deployed it in NRMP (medical residents), school choice (NY + Boston replacing manipulable Boston mechanism), kidney exchange. Roth + Shapley Nobel 2012. Foundation of market design — combines theory, algorithms, institutional implementation."
+      },
+      "hints": [
+        "What does stable mean?",
+        "Where has it been deployed?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Gale-Shapley deferred acceptance (1962): each proposer proposes top remaining; receivers tentatively hold best, reject others; iterate to convergence. Yields stable matching (no blocking pair), proposer-optimal, proposer strategy-proof. Roth's market-design work deployed in NRMP, NYC + Boston school choice (replacing manipulable mechanisms), national kidney exchange. Roth-Shapley Nobel 2012."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_gt_ad",
+        "kind": "scenario",
+        "question": "Designing online ad auctions",
+        "prompt": "You're a product manager at a search engine + must choose between first-price (FPA), second-price (SPA = Vickrey/VCG), + generalized second-price (GSP) auctions for slot-based ad placement. Walk through (a) truth-telling properties, (b) revenue implications under regularity + revenue-equivalence, (c) why GSP became standard but Google switched to FPA in 2019, + (d) implementation challenges (budgets, reserve prices, quality scores)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_gt_vcg",
+        "kind": "math_expression",
+        "question": "Second-price auction: bidders bid 100, 80, 60, 40. The winning bidder pays?",
+        "acceptedAnswers": [
+          "80",
+          "second-highest"
+        ],
+        "hint": "Second-price (Vickrey): highest bidder wins (bid 100) + pays second-highest bid (80). Their surplus = 100 − 80 = 20. Truthful bidding is dominant strategy regardless of others' bids."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_gt_design",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, contrast game theory + mechanism design + explain why mechanism design has become central to applied micro.",
+        "rubric": "Mentions: **game theory** takes the rules (game form) as given + predicts equilibrium play. **Mechanism design** is the **inverse**: choose rules to induce desired social outcomes given that players will play strategically. Hurwicz-Maskin-Myerson Nobel 2007 formalized. Revelation principle reduces design space to direct-revelation mechanisms. Major results: VCG (Vickrey-Clarke-Groves) — efficient + truthful with private values; Myerson optimal auction (1981) — revenue maximization via virtual values; Gale-Shapley deferred acceptance — stable matching. Applied success: FCC spectrum auctions (Milgrom-Wilson Nobel 2020 — $230B+), NRMP residency matching, school choice (NY + Boston), kidney exchange (national + multi-hospital chains), Google + Facebook ad auctions, treasury auctions. Mechanism design has become central because: (1) markets need explicit institutional design when natural markets fail (matching, lemons, public goods); (2) theory yields implementable algorithms; (3) high stakes — billions of dollars + thousands of medical careers; (4) intersects with CS (algorithmic) + ML (data-driven design). Concludes: mechanism design is the engineering arm of modern micro."
+      }
+    }
+  ]
+}

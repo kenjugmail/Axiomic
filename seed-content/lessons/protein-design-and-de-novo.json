@@ -1,0 +1,154 @@
+{
+  "slug": "protein-design-and-de-novo",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Trace Rosetta to RFdiffusion.",
+      "Use ProteinMPNN.",
+      "Design a binder pipeline."
+    ],
+    "prereqs": [
+      "alphafold-and-computational-structure"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "From Rosetta to Top7: physics-based de novo design",
+      "body": "**Protein design** asks the inverse of folding: given a desired 3D structure or function, find a sequence (or sequences) that will fold to it. The field has gone from a few hand-crafted examples in the 1990s to a deep-learning-driven design pipeline today.\n\n**Top7 (Kuhlman + Baker 2003 *Science*)** — first fully de novo protein with a fold not found in nature. 93 aa α/β protein designed by **RosettaDesign**: alternating loops of (a) backbone sampling with Rosetta fragment assembly, (b) sequence design optimizing a knowledge-based + physics-based energy function (van der Waals, electrostatics, solvation, H-bonds, side-chain packing via rotamer libraries + dead-end elimination / Monte Carlo). Crystal structure RMSD 1.2 Å from design. Proved physics + statistics can compute a foldable + stable sequence from scratch.\n\n**Rosetta framework** (Baker lab, 1997+):\n- **Rosetta energy function (REF15)**: weighted sum of Lennard-Jones, Lazaridis-Karplus solvation, hydrogen-bond geometric terms, Dunbrack rotameric self-energy, electrostatics, Ramachandran propensities, disulfide geometry.\n- **Monte Carlo + simulated annealing** in side-chain + backbone space; **fragment assembly** with 9-mer + 3-mer libraries from the PDB.\n- **PyRosetta** Python bindings (Chaudhury 2010) opened the framework to non-experts.\n- **Rosetta@home + Foldit** crowd-sourced design — Foldit produced a Mason-Pfizer monkey virus retroviral protease crystal structure (Cooper 2011).\n\n**Hyperstable miniproteins** (Rocklin + Baker 2017 *Science*): designed > 15 000 small (~40 aa) α-helical + β-sheet miniproteins; high-throughput **yeast surface display + protease degradation** screen as a stability proxy; thousands confirmed stable + monomeric — proving design success rates improve with massively parallel experiment-in-the-loop training data.\n\n**Designed enzymes (Rosetta era)**:\n- **Retro-aldolases** (Jiang + Baker 2008, Althoff 2012) — first computationally designed enzymes for non-natural Diels-Alder + retro-aldol reactions.\n- **Diels-Alderases** (Siegel + Baker 2010), **Kemp eliminases** (Röthlisberger 2008; Khersonsky 2010-2012 directed-evolution boost).\n- Initial k_cat/K_M 10²-10⁴ M⁻¹s⁻¹ (vs 10⁶-10⁹ for natural enzymes) — improvable by directed evolution after designing the scaffold.\n\n**De novo binders to therapeutic targets** (Chevalier + Baker 2017; Cao + Baker 2020 *Science*): computationally designed miniproteins (~40-65 aa) targeting **IL-2R**, **PD-1**, **HER2**, **VEGF-R**, **SARS-CoV-2 spike RBD** (LCB1 picomolar; protective in mouse model). Workflow: pick target patch → generate diverse backbone scaffolds → graft binding hotspots → design sequences → filter computationally → high-throughput yeast-display screening → affinity maturation.\n\n**Baker lab milestones (pre-DL)**: 2003 Top7 first novel fold; 2008-2010 designed enzymes; 2014 self-assembling nanocages (King + Baker); 2017 hyperstable miniproteins + first computational SARS-CoV-2 binders. Showed the design problem could be tackled computationally if you accept modest but non-zero success rates + iterate experimentally."
+    },
+    {
+      "kind": "text",
+      "title": "RFdiffusion + ProteinMPNN: the generative-AI revolution",
+      "body": "**2022-2023 leap**: generative diffusion models for backbone generation + deep-learning inverse folding for sequence design — pushing experimental success rates from ~1% to 10-50%.\n\n**ProteinMPNN** (Dauparas + Baker 2022 *Science* — 'Robust deep learning–based protein sequence design using ProteinMPNN'):\n- **Inverse folding**: given a 3D backbone, generate a sequence that will fold to it.\n- Graph neural network over Cα + backbone atoms; message passing over k-nearest-neighbor edges with relative-position encoding; trained on PDB to predict residue identities from backbone geometry.\n- **Experimental success rate ~40-60%** for native + de novo backbones — far above Rosetta-only baselines (~5-10%).\n- Drop-in replacement for RosettaDesign in modern pipelines.\n- Variants: **LigandMPNN** (Dauparas 2023) for protein-ligand co-design; **SolubleMPNN** for solubility bias; **AbMPNN** for antibody CDRs.\n\n**ESM-IF** (Hsu + Rives 2022, Meta): inverse folding using ESM language-model representations; comparable to ProteinMPNN, MSA-free.\n\n**RFdiffusion** (Watson + Juergens + Bennett + Trippe + Baker 2023 *Nature* — 'De novo design of protein structure and function with RFdiffusion'):\n- **Denoising diffusion model** built on **RoseTTAFold** weights.\n- Trained by reversing a Gaussian noise process applied to PDB backbone coordinates.\n- **Generates novel backbones** conditioned on: length, symmetry (cyclic, dihedral), hotspot residues for binders, topological scaffolds (helical bundles, β-barrels), motif scaffolding (preserving an active-site motif while designing the rest).\n- After backbone generation → ProteinMPNN designs sequence → AF2 validates fold confidence (designs accepted if AF2 pLDDT > 80 + RMSD < 2 Å from RFdiffusion target).\n- **Experimental success 5-50%** on binders + scaffolds — orders of magnitude better than prior methods.\n- **Wicky 2022, Bennett 2023**: hundreds of de novo SARS-CoV-2 spike + IL-2R + IL-23R binders validated.\n- **Glasscock + Baker 2023**: de novo enzyme scaffolds with RFdiffusion + LigandMPNN.\n\n**Chroma** (Ingraham + Baker + Generate Biomedicines 2023 *Nature*): diffusion over backbones + sequences jointly; text-prompt-style conditioning on symmetry + length + class.\n\n**Frame-based diffusion**: **FrameDiff** (Yim 2023), **Genie** (Lin 2023) — diffusion over SE(3) residue frames (position + orientation), leveraging Invariant Point Attention from AF2.\n\n**Flow matching + score-based alternatives**:\n- **FoldFlow / Multiflow** (Bose 2023, Campbell 2024).\n- **ProteinSGM**, **EigenFold** (Jing 2023).\n\n**Validation tools**: **Boltz, Chai-1, AlphaFold 3** for structure + affinity prediction.\n\n**Pipeline (modern Baker-lab style)**:\n1. Define target: binder hotspot, enzyme active site, symmetric scaffold, motif of interest.\n2. **RFdiffusion** generates many backbones (10⁴-10⁶) under constraints.\n3. **ProteinMPNN** designs sequences (multiple per backbone).\n4. **AF2 / ESMFold** filters by predicted self-consistency (pLDDT, RMSD to target).\n5. **Rosetta + ML scoring** for energetics + ligand binding.\n6. Top hundreds → **synthesized + tested** (gene synthesis, expression in E. coli or mammalian cells, yeast display or biochemical assays).\n7. **Affinity maturation** by additional design rounds + saturating mutagenesis."
+    },
+    {
+      "kind": "text",
+      "title": "Applications: binders, enzymes, vaccines, plastic-degrading proteins",
+      "body": "**Therapeutic de novo binders**:\n- **SARS-CoV-2 spike RBD**: Cao + Baker 2020 *Science* picomolar miniprotein binders (LCB1 ~6 nM, LCB3); LCB1 inhalable formulation as candidate therapeutic; AHB2 + minibinder designs neutralized variants. Linsky + Vorobieva 2020 designed ACE2-mimic binders. RFdiffusion era (Wicky 2022, Bennett 2023) extended to dozens of viral targets.\n- **IL-2R / IL-23R**: Silva + Baker 2019 *Nature* designed IL-2 mimics bypassing the toxic IL-2Rα subunit — Neoleukin NL-201 entered clinical trials for cancer immunotherapy.\n- **PD-1 + checkpoint mimics**: designed minibinders as oral/topical alternatives to mAbs.\n- **TrkB agonists, IgE blockers, complement inhibitors** in pipeline.\n\n**Designed enzymes**:\n- **Retro-aldolases + Diels-Alderases** (Jiang 2008; Siegel 2010): first computational enzymes for non-natural reactions.\n- **Kemp eliminases**: > 10⁶-fold improvement by combining design + directed evolution.\n- **Luciferases — LuxSit + LuxSit-i** (Yeh + Baker 2023 *Nature*): de novo small designed luciferases (~13 kDa) that emit light upon substrate binding; smaller + more tunable than Renilla or firefly. Enables custom bioluminescent reporters.\n- **PETase / hydrolase improvements**: original IsPETase (Yoshida 2016) found in soil bacteria; **FAST-PETase** (Lu + Alper 2022 *Nature*) ML-guided thermostable variant degrades PET bottles to monomers in days; Carbios pilot plant deployment 2024.\n\n**Designed vaccines + antigen scaffolds**:\n- **RSV F prefusion stabilization**: McLellan + Graham + Kwong 2013 *Science* used structure-based cavity-filling to stabilize the metastable prefusion conformation of RSV F — basis for FDA-approved RSV vaccines (Abrysvo, Arexvy 2023). Same principle applied to SARS-CoV-2 spike (S-2P → HexaPro) in the Pfizer-BioNTech + Moderna mRNA vaccines.\n- **HIV Env stabilization**: SOSIP trimers (Sanders + Moore 2013) + designed bnAb-epitope scaffolds.\n- **Self-assembling protein nanoparticles** (King + Baker 2014, 2016): 60-mer + 120-mer icosahedral nanocages display antigens at high valency. Used in IcosaVax + SK Bioscience SKYCovione COVID vaccine + influenza HA + RSV F display vaccines.\n- **AlphaFold + RFdiffusion** generating scaffolds for next-generation universal influenza + pan-coronavirus + HIV vaccines.\n\n**Industrial enzymes + sustainability**:\n- **PETase + MHETase** for plastic recycling.\n- **CO₂-fixing carbonic anhydrase variants** for carbon capture.\n- **Detergent proteases, lipases** with improved thermostability.\n- **Cellulases + xylanases** for biofuel.\n- **Designed metalloenzymes** mimicking nitrogenase, hydrogenase for green chemistry.\n\n**Self-assembling nanostructures** (King + Baker 2014-2024): icosahedral cages, helical filaments, tetrahedra by symmetric docking + ProteinMPNN; optical sensors, drug-delivery cages.\n\n**Designed protein switches + logic** (Langan + Boyken + Baker 2019 *Nature* — LOCKR): designed allosteric switches where a 'key' peptide displaces an autoinhibitory 'latch' — enabling protein-level logic gates, signaling networks, sensors.\n\n**Computational antibody design**:\n- **RFantibody** (Bennett + Baker 2024): RFdiffusion variant for de novo antibody CDR loops + nanobody scaffolds.\n- **AbMPNN, AbLang, AntiBERTy**: sequence-level antibody language models.\n- **AlphaFold-Multimer / AF3** for antibody-antigen interface prediction.\n- Combined with phage + yeast display libraries for affinity maturation.\n\n**The 2024 Chemistry Nobel** went to **David Baker** for de novo protein design, jointly with Hassabis + Jumper for AlphaFold — recognizing the unification of structure prediction + design as a single deep-learning-driven discipline."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_design_pipe_1",
+        "kind": "guided_derivation",
+        "question": "Design a SARS-CoV-2 spike RBD binder",
+        "goal": "Design a 60-aa de novo miniprotein binder for the SARS-CoV-2 spike RBD ACE2-binding interface. Walk through scaffold generation, sequence design, in-silico filtering, and experimental validation.",
+        "steps": [
+          {
+            "prompt": "Pick target hotspots + scaffold class.",
+            "motivation": "Hotspot selection defines the design problem.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ACE2-binding residues (K417, F456, F486, N487, Y489, Q493, Y505) as hotspots; small α-helical bundle scaffolds (3 helix, like LCB1)"
+              ]
+            },
+            "hints": [
+              "What residues on RBD contact ACE2?",
+              "What scaffold class did Cao + Baker 2020 LCB1 use?"
+            ],
+            "reveal": "Hotspots: K417, F456, F486, N487, Y489, Q493, Y505 — the ACE2 receptor-binding ridge + tip. Scaffold: small α-helical bundle (3-helix, ~60 aa) — Cao + Baker 2020 LCB1 used this class. Condition RFdiffusion on those hotspot positions + helix bundle topology."
+          },
+          {
+            "prompt": "Generate backbones + design sequences.",
+            "motivation": "Scale + filtering for binder design.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "RFdiffusion 10^4-10^5 backbones conditioned on hotspots; ProteinMPNN ~8 sequences per backbone; predict folding with AF2 single-sequence"
+              ]
+            },
+            "hints": [
+              "How many backbones do you need + how do you design sequences?"
+            ],
+            "reveal": "Run RFdiffusion ~10⁴-10⁵ times conditioned on hotspots + helix bundle topology — produces diverse novel backbones presenting the hotspots on a binding face. For each backbone, run ProteinMPNN ~8 times to generate diverse sequences (temperature 0.1-0.3). Predict each sequence's fold with AF2 in single-sequence mode (no MSA) — high pLDDT + low RMSD to RFdiffusion target = designs likely to fold as intended."
+          },
+          {
+            "prompt": "In-silico filters before synthesis.",
+            "motivation": "Reduce ~10⁵ to ~10² for ordering.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "AF2 pLDDT > 80, RMSD < 2 Å to design, AF-Multimer ipTM > 0.7 for binder-RBD complex, Rosetta ΔG_binding favorable, surface solubility + low aggregation"
+              ]
+            },
+            "hints": [
+              "Self-consistency (AF2 vs design), complex confidence (AF-Multimer), energetics."
+            ],
+            "reveal": "Filter cascade: (1) AF2 single-sequence pLDDT > 80 + Cα RMSD < 2 Å to RFdiffusion target (self-consistency); (2) AF-Multimer or AF3 ipTM > 0.7 + interface-PAE < 5 Å for binder-RBD complex; (3) Rosetta ΔG_binding < -30 REU; (4) surface hydrophilicity + no exposed hydrophobic patches; (5) sequence diversity for ~96-well synthesis."
+          },
+          {
+            "prompt": "Experimental validation.",
+            "motivation": "Synthesize + test.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "synthesize ~10^2 genes; yeast surface display screening with fluorescent RBD; deep-sequence enriched binders; characterize top hits by BLI/SPR + size-exclusion + cryo-EM or co-crystal"
+              ]
+            },
+            "hints": [
+              "How do you screen ~10^2 candidates fast?"
+            ],
+            "reveal": "Synthesize ~10² candidate genes; express in E. coli or yeast surface display (Aga1p/Aga2p anchor); incubate cells with fluorescent RBD; FACS-enrich high-binding cells over multiple rounds; deep-sequence to track enriched binders. Characterize top hits by BLI (Octet) or SPR (Biacore) for K_D (~nM expected); SEC-MALS for monomer/aggregate; cryo-EM or co-crystal for atomic confirmation. Affinity-mature winners by saturating mutagenesis + further design rounds."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_design_1",
+        "kind": "multiple_choice",
+        "question": "Why did RFdiffusion + ProteinMPNN transform de novo protein design?",
+        "options": [
+          "Wrong.",
+          "Pre-2022 design (Rosetta-only) had ~1-5% experimental success rates: designs often misfolded, aggregated, or bound the wrong epitope. **RFdiffusion** (Watson + Baker 2023 *Nature*) reformulates backbone generation as a **denoising diffusion process** on PDB-derived backbone coordinates — built on RoseTTAFold weights. It generates diverse, novel backbones from scratch under flexible conditioning (length, symmetry, hotspot residues, motif scaffolding, topological class). **ProteinMPNN** (Dauparas + Baker 2022 *Science*) replaces RosettaDesign for sequence design: a graph neural network on Cα + backbone atoms predicts residue identities consistent with the backbone, achieving ~40-60% experimental success (vs ~5-10% for Rosetta). The combination — RFdiffusion + ProteinMPNN + AF2 self-consistency filtering — pushes overall design success to 10-50% for binders, enzyme scaffolds, symmetric assemblies, antibody CDRs (RFantibody). Empirically validated on hundreds of SARS-CoV-2 spike binders (Wicky 2022, Bennett 2023), IL-2/IL-23R binders, de novo luciferases (LuxSit, Yeh 2023), plastic-degrading enzymes (FAST-PETase). David Baker's 2024 Chemistry Nobel recognized this unified deep-learning-driven design discipline.",
+          "Wrong.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "RFdiffusion (Watson + Baker 2023 *Nature*) — denoising diffusion on PDB backbones, conditioned on hotspots/symmetry/motifs. ProteinMPNN (Dauparas + Baker 2022 *Science*) — GNN inverse folding ~40-60% success vs ~5-10% Rosetta. Combined with AF2 self-consistency filtering, push experimental success to 10-50% for binders, enzymes, symmetric assemblies, antibody CDRs. Baker 2024 Nobel."
+      },
+      "hints": [
+        "What was the pre-2022 design success rate + why so low?",
+        "What do RFdiffusion + ProteinMPNN + AF2 each contribute?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Pre-2022 Rosetta-only design had ~1-5% experimental success. RFdiffusion (Watson + Baker 2023 *Nature*) — diffusion model on PDB backbones, conditional on hotspots/symmetry/motifs. ProteinMPNN (Dauparas + Baker 2022 *Science*) — GNN inverse folding with ~40-60% success. AF2 self-consistency filtering. Combined pipeline reaches 10-50% experimental success. Validated on SARS-CoV-2 spike binders, IL-2R binders, LuxSit luciferases, FAST-PETase. Baker 2024 Nobel."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_design_1",
+        "kind": "scenario",
+        "question": "Design a new enzyme scaffold",
+        "prompt": "You need a thermostable de novo retro-aldolase that catalyzes cleavage of a specific β-hydroxy ketone substrate with k_cat/K_M > 10³ M⁻¹s⁻¹. Walk through the design strategy: (a) catalytic motif (e.g., Lys-based Schiff-base mechanism vs metal-coordinated); (b) scaffold generation by RFdiffusion motif-scaffolding around the catalytic residues; (c) sequence design by LigandMPNN with substrate analog; (d) AF3 or Boltz for in-silico catalysis validation; (e) experimental pipeline including directed evolution rounds. Comment on realistic catalytic activity expectations + when to involve directed evolution."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_design_1",
+        "kind": "math_expression",
+        "question": "If RFdiffusion generates 10⁵ backbones, each with 8 ProteinMPNN sequences, AF2 self-consistency passes 5%, AF-Multimer ipTM filter passes 20%, and Rosetta passes 30%, how many designs do you order for synthesis?",
+        "acceptedAnswers": [
+          "2400",
+          "10^5 × 8 × 0.05 × 0.2 × 0.3",
+          "8 × 10^5 × 0.003 = 2400"
+        ],
+        "hint": "Multiply: $10^5 \\times 8 \\times 0.05 \\times 0.2 \\times 0.3$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_design_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how de novo protein design evolved from Rosetta Top7 (2003) to the RFdiffusion+ProteinMPNN pipeline (2023) + name three Nobel-noted applications.",
+        "rubric": "Mentions: Kuhlman + Baker Top7 (2003 *Science*) first novel fold designed with RosettaDesign physics-based scoring. Rosetta era: hyperstable miniproteins (Rocklin 2017), designed enzymes (retro-aldolases Jiang 2008, Diels-Alderases Siegel 2010, Kemp eliminases Röthlisberger 2008), nanocages (King + Baker 2014), de novo binders (LCB1 SARS-CoV-2 Cao 2020, IL-2 mimics Silva 2019). 2022-2023 deep-learning revolution: ProteinMPNN (Dauparas + Baker 2022 *Science*) GNN inverse folding ~40-60% experimental success; RFdiffusion (Watson + Baker 2023 *Nature*) denoising diffusion on PDB backbones conditioned on hotspots/symmetry/motifs. Pipeline: RFdiffusion → ProteinMPNN → AF2 self-consistency → synthesis + yeast-display screening → affinity maturation. Applications: SARS-CoV-2 + IL-2R + IL-23R binders, LuxSit designed luciferases (Yeh 2023), FAST-PETase plastic degradation (Lu + Alper 2022), RSV F prefusion-stabilized vaccines (McLellan 2013 → Abrysvo/Arexvy 2023), HexaPro spike for mRNA COVID vaccines, IcosaVax nanoparticle vaccines. David Baker 2024 Chemistry Nobel jointly with Hassabis + Jumper for protein design + AlphaFold. Concludes: structure prediction + design are now one discipline driven by deep learning + experimental validation."
+      }
+    }
+  ]
+}

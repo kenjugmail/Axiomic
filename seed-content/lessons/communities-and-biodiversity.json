@@ -1,0 +1,155 @@
+{
+  "slug": "communities-and-biodiversity",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Quantify diversity with Shannon + Simpson + Hill numbers.",
+      "Apply island biogeography + species-area.",
+      "Distinguish niche vs neutral assembly + intermediate-disturbance."
+    ],
+    "prereqs": [
+      "species-interactions-and-macarthur"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Diversity measures: from richness to Hill numbers",
+      "body": "**Biodiversity** has three levels (Whittaker 1972; CBD 1992):\n- **Alpha (α)**: within a community.\n- **Beta (β)**: turnover between communities.\n- **Gamma (γ)**: across a region (γ = α × β under multiplicative; γ = α + β under additive).\n\n**Species richness S** = number of species in a sample. Simplest, most intuitive — but rarefies poorly (sample-size dependent). Always report with sampling effort. **Rarefaction curves** (Sanders 1968; Hurlbert 1971) compare richness at standardized effort.\n\n**Shannon-Wiener (Shannon entropy)** H' = –Σ p_i · ln p_i, where p_i = proportion of species i. Units: nats (ln) or bits (log₂). Captures both richness + evenness. Range: 0 (one species) to ln(S) (perfectly even). Typical communities 1.5-3.5.\n\n**Simpson's index** D = Σ p_i² = probability two random individuals are conspecific. **Simpson's diversity** 1/D or 1 – D. More weight on dominant species. Less sensitive to rare species than Shannon.\n\n**Pielou's evenness** J = H' / ln(S), normalized 0-1.\n\n**Hill numbers (q-diversity)** (Hill 1973; Jost 2006): D_q = (Σ p_i^q)^(1/(1–q)). Unifies:\n- **q=0**: richness (each species counts once).\n- **q=1**: exp(Shannon) (geometric mean of typical species).\n- **q=2**: 1/Simpson (arithmetic mean of common species).\n- **q→∞**: 1/p_max (Berger-Parker).\nUnits = 'effective number of species' — interpretable + comparable. Hill numbers are now the recommended diversity framework (Chao + Jost 2014; Chao 2014).\n\n**Phylogenetic + functional diversity**: Faith's PD (1992) = sum of phylogenetic branch lengths; functional diversity from trait dendrograms (Petchey + Gaston 2002). Both increasingly used alongside taxonomic diversity for conservation prioritization.\n\n**Species-area relationship (SAR)**: **S = c · A^z**, log-log slope z. Empirically z ≈ 0.25-0.35 across systems (Preston 1962; MacArthur + Wilson 1967; Rosenzweig 1995). z varies: islands ~0.25-0.40; sample areas in continuous habitat ~0.15-0.20; nested vs independent samples differ. SAR underpins habitat-loss extinction estimates: lose A → lose ΔS ≈ S(1 – (1–ΔA/A)^z).\n\n**Latitudinal diversity gradient (LDG)**: tropical regions have 2-10× more species than temperate or polar regions across most taxa. Hypotheses: time + area (Wallace), energy + productivity (Wright 1983), evolutionary rates (Mittelbach 2007), tropical niche conservatism (Wiens + Donoghue 2004). The LDG is one of ecology's grand patterns + remains incompletely explained."
+    },
+    {
+      "kind": "text",
+      "title": "Island biogeography + community assembly",
+      "body": "**MacArthur-Wilson island biogeography** (**Robert MacArthur + E. O. Wilson 1967** *The Theory of Island Biogeography*): equilibrium model where species richness on an island balances:\n- **Immigration rate I**: declines with S (fewer species left in mainland pool); depends on **isolation** (distance to mainland).\n- **Extinction rate E**: rises with S (more species → more at risk); depends on **area** (small islands → high extinction).\n\nAt equilibrium, I(S) = E(S) → equilibrium S^* that depends on area + isolation. Predicts SAR + distance-decay. Empirical confirmation: defaunation + recolonization on mangrove islands (Simberloff + Wilson 1969); biogeographic patterns across archipelagos (Galápagos, Hawaii, Lesser Antilles).\n\n**Modern extensions**:\n- **General Dynamic Model** (Whittaker 2008): island ontogeny — emergence + erosion drive S over geological time.\n- **Metacommunity theory** (Leibold 2004): patch-network view — extends to non-island habitats (mountaintops, forest fragments, marine reserves).\n- **Trophic Theory of Island Biogeography** (Gravel 2011): adds food-web structure.\n\n**Reserve design + SLOSS debate** (Single Large Or Several Small): TIB predicts a single large reserve has lower extinction; but several small reserves capture more habitat diversity + sample beta-diversity. Resolution depends on context (Diamond 1975; Simberloff + Abele 1976; Higgs 1981). Modern view: depends on species + landscape.\n\n**Niche vs neutral assembly**:\n- **Niche-based** (MacArthur 1958, 1968; Hutchinson 1957 n-dimensional niche): species differ in resource use + environmental tolerance; environmental filtering selects fit species; limiting similarity (MacArthur + Levins 1967) prevents excessive overlap → species coexist via niche differentiation.\n- **Neutral theory** (**Stephen Hubbell 2001** *The Unified Neutral Theory of Biodiversity and Biogeography*): species are demographically equivalent; abundances drift stochastically with speciation balancing extinction. Predicts species-abundance distribution (zero-sum multinomial / log-series) + SAR + relative-species-area better than expected. Hubbell's null model surprised: many patterns explainable without niche structure.\n\nReality: most communities are partly niche-structured + partly neutral. Modern coexistence theory (Chesson 2000; Adler 2007) unifies — stabilizing niche differences > fitness differences for coexistence.\n\n**Community phylogenetics** (Webb 2002; Cavender-Bares 2009): are coexisting species more closely related (phylogenetic clustering → environmental filtering) or more distantly (phylogenetic overdispersion → competitive exclusion + limiting similarity)? Functional-trait analogs (Cornwell 2006; Kraft 2008) extend the framework.\n\n**Assembly rules** (Diamond 1975): forbidden combinations in communities; influential but controversial (Connor + Simberloff 1979 null-model critique). Modern view: assembly is probabilistic + context-dependent."
+    },
+    {
+      "kind": "text",
+      "title": "Disturbance + coexistence + the paradox of the plankton",
+      "body": "**Disturbance** is a major force shaping community diversity.\n\n**Intermediate Disturbance Hypothesis (IDH)** (**Joseph Connell 1978** *Science*; building on Grime 1973): species richness peaks at intermediate disturbance frequency/intensity. Low disturbance → competitive exclusion by dominants; high disturbance → only pioneers survive; intermediate → both coexist via non-equilibrium dynamics. Connell's coral reefs + rainforest examples. Influential framework but contested (Fox 2013; Sheil + Burslem 2003): clean tests are rare + many studies don't show unimodal pattern. Modern coexistence theory clarifies when IDH applies (Roxburgh 2004).\n\n**Janzen-Connell hypothesis** (**Daniel Janzen 1970**; **Joseph Connell 1971**): host-specific natural enemies (seed predators, pathogens) cause density-dependent + distance-dependent mortality near parent trees → recruitment is highest far from conspecifics → preventing dominance of any one species → maintaining diversity in tropical forests. Empirically supported (Hubbell 1999; Comita 2010; Mangan 2010) — fungal pathogens dominate.\n\n**Paradox of the plankton** (**G. Evelyn Hutchinson 1961** *Am Nat*): how can many phytoplankton species coexist on a few limiting resources (N, P, Si, Fe, light) when competitive exclusion predicts only as many species as resources? Answers:\n- **Non-equilibrium dynamics**: environment fluctuates faster than exclusion (Hutchinson's resolution).\n- **Multiple limitation + storage** (Sommer; Grover): different species best on different combinations.\n- **Grazing + selective predation**: top-down + 'kill the winner' (Thingstad 2000).\n- **Spatial heterogeneity** + dispersal: source-sink + microhabitat.\n- **Chaos** (Huisman + Weissing 1999): competition on ≥3 resources can produce chaotic oscillations + indefinite coexistence.\n- **Allelopathy + auxotrophy + mixotrophy**: niche dimensions beyond resources.\n\n**Storage effect** (Chesson 1985, 2000): species coexist when each performs best in different environmental states + can 'store' growth from good years through long-lived stages or seed banks. Foundation of fluctuation-dependent coexistence.\n\n**Succession** (Cowles 1899 sand dunes; Clements 1916 climax-as-organism; Gleason 1926 individualistic continuum; Connell + Slatyer 1977 facilitation/tolerance/inhibition; Pickett + White 1985 patch dynamics): community change over time after disturbance. Primary succession (bare substrate — Mt St Helens, glacial retreat); secondary (after fire/logging). Time scales: years (grasslands) to centuries (forests) to millennia (peatlands).\n\n**Modern view**: communities are non-equilibrium, history-dependent, partly stochastic, partly deterministic. Niche + neutral + dispersal + history all matter. Community ecology has matured into a probabilistic + mechanistic + predictive science (Vellend 2010 *Conceptual Synthesis*; Mittelbach + McGill 2019 *Community Ecology* 2nd ed)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_comm_div_1",
+        "kind": "guided_derivation",
+        "question": "Compute α-diversity (S, H', 1/D) for two communities + interpret",
+        "goal": "Two communities each have N=100 individuals; A has 50/30/15/5/0 for species 1-5; B has 25/25/20/15/15. Compute S, H', 1/D for each.",
+        "steps": [
+          {
+            "prompt": "Species richness S for A vs B?",
+            "motivation": "Count species present.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "S_A = 4; S_B = 5"
+              ]
+            },
+            "hints": [
+              "Count nonzero abundances."
+            ],
+            "reveal": "S_A = 4 (species 5 absent); S_B = 5 (all present). Richness alone misses evenness."
+          },
+          {
+            "prompt": "Shannon H' for community A?",
+            "motivation": "H' = –Σ p_i ln p_i.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "H'_A ≈ 1.17",
+                "1.17"
+              ]
+            },
+            "hints": [
+              "p = (0.5, 0.3, 0.15, 0.05)."
+            ],
+            "reveal": "H'_A = –(0.5·ln0.5 + 0.3·ln0.3 + 0.15·ln0.15 + 0.05·ln0.05) = –(–0.347 – 0.361 – 0.285 – 0.150) = 1.143 nats. Hill q=1: e^1.143 ≈ 3.14 effective species."
+          },
+          {
+            "prompt": "Shannon H' for community B?",
+            "motivation": "More even distribution.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "H'_B ≈ 1.58",
+                "1.58"
+              ]
+            },
+            "hints": [
+              "p = (0.25, 0.25, 0.20, 0.15, 0.15)."
+            ],
+            "reveal": "H'_B = –(0.25·ln0.25 ×2 + 0.20·ln0.20 + 0.15·ln0.15 ×2) = –(–0.347 ×2 – 0.322 – 0.285 ×2) = 1.586 nats. Higher than A despite same N — more even. Hill q=1: e^1.586 ≈ 4.88 effective species."
+          },
+          {
+            "prompt": "Simpson 1/D for A vs B, and overall comparison?",
+            "motivation": "Effective number, q=2.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1/D_A ≈ 2.86; 1/D_B ≈ 4.59; B more diverse on every metric"
+              ]
+            },
+            "hints": [
+              "D = Σ p_i²."
+            ],
+            "reveal": "D_A = 0.25+0.09+0.0225+0.0025 = 0.365; 1/D_A ≈ 2.74. D_B = 0.0625×2+0.04+0.0225×2 = 0.21; 1/D_B ≈ 4.76. B is more diverse on richness + Shannon + Simpson; equal N + greater evenness gives higher diversity at every q. Hill-number framework makes the rankings comparable + interpretable as 'effective species'."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_comm_div_1",
+        "kind": "multiple_choice",
+        "question": "Why did Hubbell's neutral theory (2001) shake community ecology even though most communities are partly niche-structured?",
+        "options": [
+          "Random.",
+          "Hubbell (2001) showed a model where all species are demographically equivalent (per capita birth + death rates equal across species) — i.e., no niche differences at all — can reproduce the species-abundance distribution, species-area relationship, and beta-diversity patterns of real communities. This was shocking because community ecology had assumed niche differences were required to explain coexistence + diversity. The neutral null forced ecologists to ask: how much of observed structure requires niches vs is consistent with neutrality? Set up rigorous null-model testing. Modern coexistence theory (Chesson 2000; Adler 2007) reconciled: stabilizing niche differences + fitness equivalence both matter; neutrality is a useful baseline; real communities live somewhere between purely neutral + purely niche. Stimulated phylogenetic + functional-trait community ecology + null-model frameworks for assembly rules.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Hubbell (2001) showed a fully neutral model reproduces SAR + species-abundance distributions + beta-diversity. Forced rigorous null-model thinking + integration with niche-based coexistence (Chesson 2000; Adler 2007). Modern community ecology lives between neutral + niche."
+      },
+      "hints": [
+        "What was the null model?",
+        "Why did it surprise?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Hubbell's neutral theory (2001) showed demographic equivalence + stochastic drift + speciation can reproduce SAR + species-abundance + beta-diversity patterns. Surprised because niche-based theory was assumed necessary. Drove rigorous null-model testing + reconciliation via Chesson 2000 modern coexistence theory."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_comm_div_1",
+        "kind": "scenario",
+        "question": "Designing a forest reserve under SLOSS",
+        "prompt": "A conservation NGO has funds for either one 1000-ha reserve or ten 100-ha reserves in the same landscape. Using island biogeography + SLOSS + metacommunity reasoning, what considerations would inform the choice, and what data would you collect?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_comm_div_1",
+        "kind": "math_expression",
+        "question": "A species-area curve has S = c · A^0.3. Habitat area is reduced from 1000 km² to 200 km². What fraction of species are predicted to be lost (to 2 decimals)?",
+        "acceptedAnswers": [
+          "0.38",
+          "38%",
+          "0.38 or 38%"
+        ],
+        "hint": "S_new / S_old = (200/1000)^0.3 = 0.2^0.3 ≈ 0.617. Fraction lost = 1 – 0.617 ≈ 0.383 ≈ 38%. The exponent z controls sensitivity; tropical habitats with z~0.25 lose less per unit area than islands (z~0.35)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_comm_div_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why diversity (Shannon, Simpson, Hill) + assembly (niche vs neutral) + disturbance (IDH, Janzen-Connell, paradox of plankton) together characterize community ecology.",
+        "rubric": "Mentions: Diversity metrics quantify community structure: S = richness; Shannon H' (Shannon-Wiener) + Simpson D combine richness + evenness; Hill numbers (q=0,1,2) give unified effective-species framework. Assembly: niche-based (MacArthur, Hutchinson, Tilman) vs neutral (Hubbell 2001) — both required; modern coexistence theory (Chesson 2000) unifies. Disturbance: Connell (1978) IDH maintains diversity at intermediate disturbance; Janzen-Connell (1970/71) host-specific enemies prevent dominance; Hutchinson's (1961) paradox of plankton solved by non-equilibrium + multiple limitation + grazing + chaos + storage effect. Island biogeography (MacArthur + Wilson 1967) + species-area relationship + LDG + community phylogenetics + null models complete the predictive framework. Applied to conservation reserve design, biodiversity assessment, ecosystem restoration."
+      }
+    }
+  ]
+}

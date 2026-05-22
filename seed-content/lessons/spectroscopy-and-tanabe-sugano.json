@@ -1,0 +1,164 @@
+{
+  "slug": "spectroscopy-and-tanabe-sugano",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Construct term symbols + microstates + apply Russell-Saunders coupling + Hund's rules.",
+      "Interpret UV-vis spectra of d-block complexes: d-d, LMCT, MLCT, IVCT + selection rules.",
+      "Read Tanabe-Sugano diagrams to predict ground states, crossovers, magnetic + EPR/Mössbauer signatures."
+    ],
+    "prereqs": [
+      "coordination-complexes-and-d-orbitals"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Term symbols, microstates, Hund's rules, spin-orbit coupling",
+      "body": "**Russell-Saunders (LS) coupling**: for light atoms, the orbital angular momenta couple first ($\\mathbf{L} = \\sum_i \\mathbf{l}_i$) and spins couple separately ($\\mathbf{S} = \\sum_i \\mathbf{s}_i$); then **L** + **S** couple to give **J** = **L** + **S**.\n\n**Term symbol notation**: $^{2S+1}L_J$ where L = 0, 1, 2, 3, 4, 5 → S, P, D, F, G, H. Example: $^3F_2$ has S = 1 (triplet), L = 3, J = 2.\n\n**Microstates**: each unique distribution of electrons into orbitals (with spin). For d², total microstates = $\\binom{10}{2} = 45$. Each microstate has $M_L = \\sum m_l$ and $M_S = \\sum m_s$.\n\n**Procedure to derive terms** from a d^n configuration:\n1. Enumerate microstates → table of $(M_L, M_S)$.\n2. Identify the term with highest $|M_L|$ + $|M_S|$.\n3. Strip microstates belonging to that term (those with $M_L \\in [-L, L]$ + $M_S \\in [-S, S]$).\n4. Repeat with remaining microstates.\n\n**Ground terms for d^n free ions** (Hund's rules):\n- d¹, d⁹: ²D\n- d², d⁸: ³F (+ ³P, ¹D, ¹G, ¹S)\n- d³, d⁷: ⁴F (+ ⁴P, doublets)\n- d⁴, d⁶: ⁵D\n- d⁵: ⁶S\n\n**Hund's rules** (for ground state):\n1. **Highest S** (multiplicity) — maximize unpaired electrons → exchange stabilization.\n2. **Highest L** among states with max S — maximize orbital angular momentum.\n3. **J = |L - S|** if shell less than half-full; **J = L + S** if more than half-full. (Spin-orbit coupling stabilizes opposite J in the two cases.)\n\n**Spin-orbit coupling (SOC)** $\\zeta_{nl} \\mathbf{L} \\cdot \\mathbf{S}$: scales as Z⁴/n³; small for 3d (~few hundred cm⁻¹) but dominant for 5d + 4f + 5f. Splits $^{2S+1}L_J$ into J-components separated by ~ζ. Lanthanide Ln³⁺ ions: J-levels well separated; magnetic moments use full $g_J \\sqrt{J(J+1)}$ formula (not spin-only). Actinide 5f: even larger SOC; relativistic effects + crystal field comparable to SOC → complex behavior.\n\n**Multiplets in crystal fields**: applying a crystal field to a free-ion term lowers its symmetry, splitting the term into multiple **states** labeled by irreducible representations of the point group (e.g., octahedral $O_h$: T_{1g}, T_{2g}, E_g, A_{1g}, A_{2g}). The $^3F$ ground term of d² splits in $O_h$ into ³A_{2g}, ³T_{2g}, ³T_{1g}.\n\n**Selection rules** (electric dipole):\n1. **Spin selection**: ΔS = 0 (no spin flip). Spin-forbidden transitions (e.g., Δ → singlet excited) very weak; gain intensity only via SOC.\n2. **Laporte (orbital) selection**: parity must change; d → d (g → g) forbidden in centrosymmetric (octahedral) complexes; allowed in tetrahedral (no center of symmetry) → tetrahedral complexes brighter.\n3. **Vibrational borrowing**: thermal vibrations break centrosymmetry → d-d transitions in octahedrals are weak but visible. ε (molar extinction coefficient) typically 1-100 M⁻¹ cm⁻¹ for d-d; 100-1000 for tetrahedral d-d; 10⁴-10⁵ for charge-transfer (fully allowed).",
+      "viz": "tanabe-sugano-diagram",
+      "vizProps": {
+        "electronConfig": "d3",
+        "DqB": 2.0
+      }
+    },
+    {
+      "kind": "text",
+      "title": "UV-Vis: d-d, LMCT, MLCT, IVCT + selection rules",
+      "body": "**UV-Vis spectra of d-block complexes**: each transition type has distinctive energy, intensity, and ligand/oxidation-state dependence.\n\n**d-d transitions**: electron moves between metal d orbitals (within the same shell).\n- Energy ≈ Δ_oct → visible (10000-30000 cm⁻¹).\n- Spin-allowed + Laporte-forbidden → weak (ε ~ 10-200 M⁻¹ cm⁻¹).\n- Color examples: [Ti(H₂O)₆]³⁺ (purple, d¹: t_{2g}¹ → e_g, ~20300 cm⁻¹); [Cr(H₂O)₆]³⁺ violet; [Co(H₂O)₆]²⁺ pink; [Ni(H₂O)₆]²⁺ green; [Cu(H₂O)₆]²⁺ blue.\n- Multiple bands for non-d¹/d⁹ configurations: d² has 3 transitions (³T_{1g} → ³T_{2g}, ³A_{2g}, ³T_{1g}(P)).\n\n**Charge-transfer (CT) transitions**: electron moves between metal + ligand.\n- **Ligand-to-Metal Charge Transfer (LMCT)**: ligand-based filled orbital → metal-based empty d orbital. Energy depends on (E_ligand HOMO - E_metal LUMO). Stronger for high-OS metals + reducing ligands.\n  - Examples: $\\text{MnO}_4^-$ deep purple (LMCT O → Mn(VII)), $\\text{CrO}_4^{2-}$ yellow, $\\text{IrCl}_6^{2-}$ deep red.\n- **Metal-to-Ligand Charge Transfer (MLCT)**: filled metal d → empty ligand π*. Common for low-OS metals + π-acceptor ligands. Examples: $[\\text{Fe(bpy)}_3]^{2+}$ deep red (MLCT Fe → bpy π*), $[\\text{Ru(bpy)}_3]^{2+}$ orange (basis of dye-sensitized solar cells + photoredox catalysis Gratzel cells, Bard, MacMillan).\n- **Intervalence Charge Transfer (IVCT)**: mixed-valence systems (e.g., Prussian blue Fe(II)/Fe(III), Creutz-Taube ion (NH₃)₅Ru-pyrazine-Ru(NH₃)₅⁵⁺) show transitions where one metal donates to another. Classification by **Robin-Day**: Class I (localized, no IVCT), Class II (partially delocalized, IVCT visible), Class III (fully delocalized, intense IVCT — bridges molecular electronics).\n\n**Charge-transfer transitions: ε ~ 10³-10⁵ M⁻¹ cm⁻¹** — orders of magnitude more intense than d-d because both spin- + Laporte-allowed.\n\n**Selection rules + intensity**:\n- **Laporte forbidden** (d-d in octahedral): vibronic coupling provides some intensity; ε ~ 1-100.\n- **Laporte allowed** (d-d in tetrahedral due to no center of symmetry): ε ~ 100-1000.\n- **Spin allowed + Laporte allowed** (CT, MLCT, LMCT): ε ~ 10³-10⁵.\n- **Spin forbidden** (e.g., ⁶A₁g → ⁴T₁g in d⁵): ε ~ 0.01-1. Mn(II) salts are nearly colorless because both spin-forbidden + Laporte-forbidden — only via SOC borrowing.\n\n**Spectroscopy beyond UV-Vis**:\n- **IR/Raman**: ligand vibrations + M-L stretches (M-O ~400-700 cm⁻¹, M-C ~300-600 cm⁻¹, M-CO ~1800-2150 cm⁻¹).\n- **CD/ORD**: enantiomeric resolution of chiral complexes.\n- **Magnetic susceptibility** (Evans method, SQUID): μ_eff → number of unpaired e⁻ → spin state.\n- **EPR (Electron Paramagnetic Resonance)**: paramagnetic species; g-factor + hyperfine; sensitive to environment.\n- **Mössbauer** (Fe, Sn, Eu, etc.): isomer shift + quadrupole splitting → oxidation state + spin state."
+    },
+    {
+      "kind": "text",
+      "title": "Tanabe-Sugano: ground states, crossovers, magnetic + EPR/Mössbauer",
+      "body": "**Tanabe-Sugano diagrams** (Yukito Tanabe + Satoru Sugano 1954): plot energies of crystal-field terms (in units of B, the Racah parameter) vs. crystal-field strength (Δ/B or Dq/B). One diagram per d-electron count (d¹ through d⁹).\n\n**Construction**:\n- x-axis: Δ/B (crystal-field strength, units of Racah B).\n- y-axis: E/B (term energy relative to ground state, units of B).\n- Ground state set to zero by construction (the bottom of the diagram, always horizontal x-axis).\n- Terms labeled by their octahedral irreducible representation (Mulliken symbols: A_{1g}, A_{2g}, E_g, T_{1g}, T_{2g}).\n\n**Racah parameters** B, C: interelectron-repulsion parameters of the free ion. For d²: B ≈ 860 cm⁻¹ (V³⁺), 1100 cm⁻¹ (Cr⁴⁺). For 3d ions: typical B ~ 700-1200 cm⁻¹; reduced in complex (nephelauxetic effect: 'cloud-expanding') → covalency. B in complex < B free ion → covalent character.\n\n**Ground-state crossovers** (high-spin ↔ low-spin):\n- For d⁴, d⁵, d⁶, d⁷ there exists a Δ/B at which the high-spin ground term and the low-spin ground term cross.\n- Below crossover: high-spin (Hund-favored, max unpaired).\n- Above crossover: low-spin (CFSE-favored).\n- d⁵ crossover: $^6A_{1g}$ HS → $^2T_{2g}$ LS at Δ/B ≈ 28.\n- d⁶ crossover: $^5T_{2g}$ HS → $^1A_{1g}$ LS at Δ/B ≈ 20.\n- **Spin crossover (SCO) materials**: Fe(II), Fe(III), Co(II) complexes near the crossover; small T or pressure changes flip spin state → memory devices, sensors (Halcrow + Real + Gütlich seminal work; ongoing research in molecular spintronics).\n\n**Magnetic properties**:\n- **Spin-only formula** (for 3d): $\\mu_{SO} = \\sqrt{n(n+2)} \\mu_B$ where n = unpaired electrons.\n- d⁵ HS: 5 unpaired → μ = √35 ≈ 5.92 μ_B (Mn(II), Fe(III)).\n- d⁴ HS Cr(II) Mn(III): 4 unpaired → 4.90 μ_B.\n- LS d⁶: 0 unpaired → diamagnetic.\n- **Curie law** ($\\chi = C/T$) + **Curie-Weiss** ($\\chi = C/(T-\\theta)$): paramagnetic susceptibility vs T → identifies magnetic ordering temperatures (Néel for AFM, Curie for FM).\n- Lanthanide Ln³⁺ ions: use $\\mu_{eff} = g_J \\sqrt{J(J+1)} \\mu_B$ because SOC strong + J good quantum number.\n\n**EPR**: paramagnetic species (S ≥ 1/2) resonate in magnetic field; ν = gβB/h.\n- g-factor: free electron g_e = 2.0023; deviations due to SOC ($g = g_e + Δg$ from admixture of excited states).\n- **Hyperfine coupling**: nuclear-spin-bearing nuclei (¹H, ¹⁴N, ⁶³,⁶⁵Cu, ⁵⁵Mn, ⁵⁷Fe) split EPR lines → identify metal + ligand environment.\n- **Anisotropy**: g_xx, g_yy, g_zz (axial/rhombic) probe symmetry.\n- Cu(II) S=1/2 d⁹ classic EPR: g_⊥ ≈ 2.05, g_∥ ≈ 2.20 with Cu hyperfine A_∥ ≈ 200 G.\n- **High-spin Fe(III)** S=5/2: 5 sub-levels; zero-field splitting → 'g=4.3' feature classic for rhombic Fe(III) sites in biology.\n\n**Mössbauer spectroscopy** (Mössbauer 1958, Nobel 1961): recoil-free γ-ray absorption; isotope-specific (most commonly ⁵⁷Fe, but also ¹¹⁹Sn, ¹⁵¹Eu, ¹⁹⁷Au, ²³⁷Np). Two main parameters:\n- **Isomer shift δ** (mm/s): s-electron density at nucleus; tracks oxidation state + spin state (Fe(II) HS: δ ~1.2 mm/s; Fe(III) HS: δ ~0.5; Fe(IV)/Fe(V) δ < 0.3).\n- **Quadrupole splitting ΔE_Q**: asymmetry of electric-field gradient; symmetric environments → no splitting; distorted/Jahn-Teller → large ΔE_Q.\n- **Magnetic hyperfine** at low T: 6-line spectra in magnetically ordered solids.\n- Iron Mössbauer indispensable for: biological iron centers (heme, [Fe-S] clusters in nitrogenase + ferredoxin), iron oxide identification (Fe₃O₄, α-Fe₂O₃, γ-Fe₂O₃, FeO(OH) polymorphs), Mars rover instrumentation (MIMOS-II on Spirit + Opportunity, identified hematite + jarosite → 'water on Mars' evidence)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ts_d3",
+        "kind": "guided_derivation",
+        "question": "Use a Tanabe-Sugano d³ diagram to assign the absorption spectrum of [Cr(H₂O)₆]³⁺",
+        "goal": "Three bands at ~17400, 24500, 37800 cm⁻¹. Use the d³ T-S diagram to assign + extract Δ_oct + B.",
+        "steps": [
+          {
+            "prompt": "Free ion ground term for d³ (Hund's rules)?",
+            "motivation": "Maximize S then L.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "4F"
+              ]
+            },
+            "hints": [
+              "3 unpaired electrons → S = 3/2 → 2S+1 = 4.",
+              "Max L for d³ in (m_l = +2, +1, 0): L = 3 → F."
+            ],
+            "reveal": "Three electrons all spin up in $m_l = +2, +1, 0$ orbitals → S = 3/2 → 2S+1 = 4; L = 3 → F. Ground term: $^4F$. Also $^4P, ^2H, ^2G, ^2F, ^2D, ^2P$ (free ion)."
+          },
+          {
+            "prompt": "In octahedral field, ⁴F splits into which irreps?",
+            "motivation": "Group theory: F → A_{2g} + T_{1g} + T_{2g} in O_h.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "4A_{2g}, 4T_{2g}, 4T_{1g}"
+              ]
+            },
+            "hints": [
+              "F (l=3) reduces in O_h to A_{2g} ⊕ T_{1g} ⊕ T_{2g}.",
+              "Multiplicity 4 preserved."
+            ],
+            "reveal": "$^4F \\to ^4A_{2g} + ^4T_{2g} + ^4T_{1g}(F)$ in O_h. The ⁴P term doesn't split (P → T_{1g} only): $^4P \\to ^4T_{1g}(P)$. Note both ⁴T_{1g} terms (from ⁴F + ⁴P) interact: their lines repel in the T-S diagram."
+          },
+          {
+            "prompt": "For d³, ⁴A_{2g} is always ground. Identify the three spin-allowed transitions (ΔS = 0).",
+            "motivation": "Three quartet → quartet transitions.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "4A_{2g} → 4T_{2g}, 4A_{2g} → 4T_{1g}(F), 4A_{2g} → 4T_{1g}(P)"
+              ]
+            },
+            "hints": [
+              "Same multiplicity = quartet.",
+              "Three excited quartets: T_{2g}, T_{1g}(F), T_{1g}(P)."
+            ],
+            "reveal": "Three spin-allowed transitions:\n1. $^4A_{2g} \\to ^4T_{2g}$ (E = Δ_oct = 10Dq).\n2. $^4A_{2g} \\to ^4T_{1g}(F)$.\n3. $^4A_{2g} \\to ^4T_{1g}(P)$.\nMeasured bands at 17400, 24500, 37800 cm⁻¹ correspond in order. ν₁ = Δ_oct directly = 17400 cm⁻¹."
+          },
+          {
+            "prompt": "Extract Δ_oct + B. From band 1: Δ_oct = 17400 cm⁻¹. Then ν₂ - ν₁ depends on Δ + B; ν₃ - ν₁ similarly. From standard d³ T-S tables, fit (ν₂, ν₃) → (Δ/B, B).",
+            "motivation": "Two equations, two unknowns.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Δ_oct ≈ 17400 cm⁻¹, B ≈ 750 cm⁻¹"
+              ]
+            },
+            "hints": [
+              "T-S diagrams give E/B vs Δ/B for each transition.",
+              "Choose Δ/B that fits both ν₂/B + ν₃/B simultaneously."
+            ],
+            "reveal": "Δ_oct = 17400 cm⁻¹. Solving T-S for d³ with ν₂ = 24500, ν₃ = 37800: Δ/B ≈ 23, B ≈ 750 cm⁻¹. Free-ion Cr³⁺ B = 918 cm⁻¹; **nephelauxetic ratio** β = B_complex/B_free ≈ 0.82. Modest covalency in Cr-OH₂ (water is hard, primarily ionic bonding). The ratio gives covalency: β ≈ 1 (ionic) → β << 1 (covalent, soft ligands like S²⁻)."
+          }
+        ],
+        "finalResult": "$$\\boxed{[Cr(H_2O)_6]^{3+}: \\Delta_{oct} \\approx 17400 \\text{ cm}^{-1}, B \\approx 750 \\text{ cm}^{-1}, \\beta \\approx 0.82}$$ T-S diagrams (Tanabe + Sugano 1954) let chemists extract both ligand-field strength + interelectron repulsion + covalency from a UV-Vis spectrum — the most direct experimental window into transition-metal electronic structure. Same procedure works for d² (V³⁺), d⁷ (Co²⁺), d⁸ (Ni²⁺), etc. Spin-allowed bands are quartet → quartet (d³, d⁷) or triplet → triplet (d², d⁸); spin-forbidden bands much weaker."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ts_crossover",
+        "kind": "multiple_choice",
+        "question": "What's the experimental significance of the d⁶ Tanabe-Sugano crossover at Δ/B ≈ 20?",
+        "options": [
+          "Random.",
+          "**Spin crossover (SCO)**: at Δ/B ≈ 20, the high-spin $^5T_{2g}$ (S=2, 4 unpaired e⁻, paramagnetic) and low-spin $^1A_{1g}$ (S=0, diamagnetic) ground states cross. For Fe(II) d⁶ complexes near this crossover, **small environmental perturbations** (temperature, pressure, light, magnetic field, guest molecules) flip the spin state, accompanied by **large measurable changes**: color (UV-Vis), magnetism (SQUID), bond lengths (~10-20% Fe-N expansion HS vs LS), ⁵⁷Fe Mössbauer (HS δ ~1.0 mm/s, large ΔE_Q; LS δ ~0.4 mm/s, small ΔE_Q). **LIESST (Light-Induced Excited Spin State Trapping)** enables optical switching at low T. Applications: molecular memory (write/read bit per molecule), thermochromic + barochromic sensors, soft-magnetic materials, drug-release triggers. Gütlich, Halcrow, Real, Bousseksou established field; commercial SCO thin-film devices being explored. The T-S diagram visualizes this fundamental switching threshold cleanly.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "d⁶ crossover at Δ/B ≈ 20 enables spin crossover (SCO) materials: temperature, pressure, light flip Fe(II) (or analogous) from HS to LS, dramatically changing color, magnetism, bond lengths, Mössbauer δ + ΔE_Q. Applications in molecular memory, sensors, LIESST switching. Gütlich-Halcrow-Real seminal work."
+      },
+      "hints": [
+        "What changes between HS and LS d⁶?",
+        "Why are environmental perturbations exploited near crossover?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "d⁶ T-S crossover at Δ/B ≈ 20: ⁵T₂g HS ↔ ¹A₁g LS. Fe(II) complexes near crossover → spin-crossover (SCO) materials sensitive to T, P, light (LIESST). Color, magnetism, bond length, Mössbauer all switch dramatically. Molecular memory + sensor applications."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ts_charge_transfer",
+        "kind": "scenario",
+        "question": "MLCT in Ru(bpy)₃²⁺ and solar cells",
+        "prompt": "[Ru(bpy)₃]²⁺ has an intense orange MLCT absorption at ~452 nm (ε ≈ 14600 M⁻¹ cm⁻¹), long-lived ³MLCT excited state (~600 ns at RT in water), and the excited state is both a stronger oxidant + reductant than the ground state. (a) Why is the MLCT so intense compared to d-d transitions? (b) Why is the excited state long-lived for an organometallic in solution? (c) Why does its photochemistry power dye-sensitized Grätzel solar cells + photoredox catalysis (MacMillan + Yoon + Stephenson + Glorio) + early photochemical water splitting?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ts_moment",
+        "kind": "math_expression",
+        "question": "[Mn(H₂O)₆]²⁺ is high-spin d⁵ (S=5/2). Compute the spin-only magnetic moment μ_SO in Bohr magnetons.",
+        "acceptedAnswers": [
+          "5.92",
+          "5.92 μ_B",
+          "5.92 mu_B",
+          "5.9"
+        ],
+        "hint": "n = 5 unpaired electrons; μ = √(n(n+2)) = √(5·7) = √35 ≈ 5.92 μ_B. Note: Mn(II) salts nearly colorless because all d-d transitions ⁶A₁g → ⁴Γ are spin-forbidden + Laporte-forbidden."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ts",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, explain the role of Tanabe-Sugano diagrams in modern transition-metal chemistry, including their relationship to magnetic measurements + Mössbauer + EPR.",
+        "rubric": "Mentions: T-S diagrams (Tanabe + Sugano 1954) plot crystal-field-state energies as a function of Δ/B for each d^n configuration. Allow experimental assignment of d-d absorption bands → extraction of both Δ_oct and Racah B (covalency, nephelauxetic effect β = B_complex/B_free). Reveal ground-state crossovers (high-spin ↔ low-spin) for d⁴-d⁷ → SCO materials. Tie to magnetic susceptibility (μ_SO = √(n(n+2)) for 3d, μ_eff = g_J√(J(J+1)) for lanthanides), Curie/Curie-Weiss laws, EPR (g-factor + hyperfine), and Mössbauer (isomer shift δ + ΔE_Q tracks oxidation + spin state). Together: a complete electronic-structure characterization of a d-block complex. Applications: SCO molecular memory, biological iron centers (hemoglobin Fe(II)/Fe(III) Mössbauer fingerprinting; nitrogenase + ferredoxin), Mars rover iron-mineral assignment via Mössbauer."
+      }
+    }
+  ]
+}

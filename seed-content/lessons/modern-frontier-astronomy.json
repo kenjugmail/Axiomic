@@ -1,0 +1,157 @@
+{
+  "slug": "modern-frontier-astronomy",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Catalog 2020s + 2030s flagship instruments + their science targets.",
+      "Understand AI/ML's role in modern survey astronomy.",
+      "Engage with open issues: data, light pollution, RFI, dark sky ethics."
+    ],
+    "prereqs": [
+      "galaxies-and-large-scale-structure",
+      "planetary-science-and-exoplanets",
+      "time-domain-and-multimessenger"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Flagship instruments of the 2020s + 2030s",
+      "body": "The 2020s are unprecedented for astronomy infrastructure: multiple flagship-class space + ground facilities coming online simultaneously, providing a sky-spanning capability across the EM spectrum + GW band.\n\n**Space telescopes**:\n- **JWST (James Webb Space Telescope)**: launched Dec 2021, operational July 2022 at L2. 6.5-m segmented gold-coated beryllium primary; 4 instruments NIRCam + NIRSpec + MIRI + FGS/NIRISS covering 0.6-28 μm. Major early science: high-z galaxies (z > 13 'JADES-GS-z14-0'); cosmic dawn; protoplanetary disks (ALMA-complementary thermal IR); exoplanet atmospheres (WASP-39b CO₂, K2-18b CH₄+DMS controversy); deep-field counts; galaxy structure + dust. Cost ~$10 B; mission lifetime 10-20 yr (passive cooling + station-keeping).\n- **Euclid (ESA)**: launched July 2023; L2; 1.2-m optical+NIR survey 15000 sq deg + deep fields. Dark energy via weak lensing + galaxy clustering + BAO; complementary to DESI ground.\n- **Roman Space Telescope (NASA)**: 2027 launch; L2; 2.4-m (HST optics); wide-field IR imager (300× HST FOV) + coronagraph technology demonstration. Dark energy via Type Ia SNe + BAO + weak lensing; microlensing exoplanet survey; cosmic dawn imaging.\n- **PLATO** (ESA, 2026 launch): exoplanet transit survey of bright stars; PLanetary Transits + Oscillations.\n- **ARIEL** (ESA, 2029): exoplanet atmospheric spectroscopy.\n- **Athena** (ESA, ~2037): next-gen X-ray; microcalorimeter spectroscopy of hot baryons + AGN feedback + GR effects.\n- **LISA** (Laser Interferometer Space Antenna, ESA + NASA, 2034 launch): 3-spacecraft mHz GW detector — SMBH-SMBH mergers, EMRIs, galactic binaries, possibly inflation/cosmic-string stochastic backgrounds. Bridges nHz PTAs + Hz LIGO.\n- **HabWorlds Observatory (HWO)**: 6-m UV/optical/IR space coronagraph; Astro2020 top priority; 2040s launch; image Earth analogs around nearest ~25 Sun-like stars + characterize biosignatures.\n- **LUVOIR-class**, **Origins**, **LIFE**: future flagship concepts.\n\n**Ground-based extremely-large telescopes (ELT-class, 30-40m)**:\n- **ELT (European Extremely Large Telescope)**: 39 m primary mirror (798 hexagonal segments); Cerro Armazones, Chile; first light ~2028. Science: exoplanet imaging + spectroscopy (TRAPPIST-1 atmospheres), first stars, BH at galactic centers.\n- **TMT (Thirty Meter Telescope)**: 30 m, Mauna Kea/Hawaii — stalled by local community concerns over land use + sacred-mountain status. Alternative La Palma site under consideration.\n- **GMT (Giant Magellan Telescope)**: 24.5 m effective (7 × 8.4-m circular mirrors); Las Campanas, Chile; first light late 2020s.\n\n**Survey telescopes**:\n- **Vera C. Rubin Observatory + LSST (Legacy Survey of Space + Time)**: 8.4 m at Cerro Pachón, Chile; first light 2025. 9.6 sq deg field of view; 3.2 Gpix camera. 10-yr survey, 825 visits per field, 6 bands (ugrizy). Expected: ~20 B stars + galaxies; ~10⁷ alerts/night; finding ~10⁴ NEAs/yr. Funded by NSF + DOE; Vera Rubin a tribute to dark-matter discoverer.\n- **Subaru HSC + PFS**: 8.2-m Hyper Suprime-Cam (already produced cosmology data); Prime Focus Spectrograph upcoming.\n- **SDSS-V** (Sloan Digital Sky Survey Phase V): Apache Point + Las Campanas; spectroscopic surveys.\n- **DESI** (Dark Energy Spectroscopic Instrument, 2021-2026): Mayall 4-m + 5000-fiber spectrograph; ~40 M galaxies + QSOs by 2026; BAO + H₀ + dark energy constraints; 2024 results hint at evolving dark energy.\n- **WEAVE** (William Herschel Telescope); **4MOST** (VISTA); **MOONS** (VLT); **MegaMapper** (proposed).\n\n**Radio + sub-mm + mm**:\n- **SKA (Square Kilometre Array)**: under construction in South Africa + Australia; eventually 1 sq km effective collecting area. Phase 1 (SKA-Low + SKA-Mid) operational late 2020s; transformational for HI cosmology, EoR, pulsar arrays, FRBs.\n- **ALMA** (Atacama Large Millimeter Array): 66 antennas at 5050 m altitude; protoplanetary disks, high-z dust, molecular clouds, M87 + Sgr A* (EHT contribution).\n- **EHT** (Event Horizon Telescope): planet-scale VLBI at 230 GHz; M87* image (2019), Sgr A* image (2022); future ngEHT + higher frequencies.\n- **MeerKAT** (precursor to SKA), **ngVLA** (next-gen VLA, 2030s).\n\n**Particle + GW astronomy**:\n- **IceCube + IceCube-Gen2**: Antarctic ice neutrino observatory; high-energy ν astronomy.\n- **CTA (Cherenkov Telescope Array)**: 100+ Cherenkov telescopes (LSTs + MSTs + SSTs), TeV γ-ray; 2025+ first phase.\n- **LIGO O5 + Cosmic Explorer + Einstein Telescope**: 3rd-gen GW.\n- **NANOGrav + IPTA**: nHz GW + cosmic-string searches."
+    },
+    {
+      "kind": "text",
+      "title": "AI + ML in modern astronomy",
+      "body": "Astronomy generates **petabytes of data** per year + will reach exabytes with SKA, Vera Rubin, Roman. Manual analysis is impossible; **machine learning is now infrastructural**.\n\n**Galaxy Zoo (2007-)**: Chris Lintott + Kevin Schawinski's pioneering citizen-science project — ~1M SDSS galaxy classifications by volunteers. Demonstrated:\n- Crowdsourced classifications match expert quality on average.\n- ~10⁵ volunteer-hours → expert decades of work.\n- Spawned >100 papers + the Zooniverse platform for many other projects.\n\n**Zoobot** (Walmsley + Lintott et al. 2020s): CNN trained on Galaxy Zoo labels → automated galaxy morphology classification for hundreds of millions of objects. Replaces volunteer effort at scale; combines well with active learning to query uncertain examples.\n\n**Deep learning for transients**:\n- **Charnock + Moss (2017)**: pioneering CNNs for supernova photometric classification → distinguishing Ia/II/Ib/c without spectroscopy.\n- **ALeRCE + Lasair + Antares brokers**: ML pipelines on ZTF + future LSST alerts; random forest + RNN/CNN models; real-time classification.\n- **Anomaly detection** (Stein 2021; Pruzhinskaya 2019; Villar 2023): unsupervised methods identify rare + novel transients without prior labels — crucial for finding GW170817-analogs + truly new phenomena.\n- **Photometric redshift**: PhotoZ (Bonnett 2015; Pasquet-Itam 2018; many followups) — CNN/MLP on multi-band photometry; standard now.\n\n**Gravitational waves + ML**:\n- LIGO **DeepClean** (Ormiston 2020): denoise auxiliary detector channels with deep learning.\n- **GWaveNet, GWSkyLocator** (Chua 2020+): rapid parameter estimation in seconds vs hours for Bayesian sampling. Critical for low-latency multimessenger follow-up.\n- LIGO **Search-it / DeepWaveform**: ML-based BBH waveform search.\n\n**Cosmology + structure**:\n- **Bayesian + ML emulators** for N-body simulations (CosmoFlow, IllustrisTNG, EAGLE distillation). Replaces expensive N-body with fast neural surrogates.\n- **CMB + LSS analysis**: power-spectrum prediction networks; cluster mass + lensing reconstruction.\n- **Foundation models for astronomy** (AstroLLaMA, AstroBERT, AstroNet 2024): scientific NLP for the literature; some attempt unified embedding spaces across observations.\n\n**Galaxy formation + simulations**:\n- IllustrisTNG, EAGLE, FIRE, AGORA — large-scale hydro simulations of galaxy + cluster evolution.\n- **GANs + diffusion models** for synthetic survey images (validate analysis pipelines).\n- **Symbolic regression** for discovering effective equations from data.\n\n**Other ML applications**: stellar parameter estimation (APOGEE NN, Bowen 2019); exoplanet transit detection (Shallue + Vanderburg 2018 — found Kepler-90i); FRB classification + repeater identification; asteroid hazard classification; cosmic-ray rejection in images.\n\n**Open data + tools**:\n- **AAVSO** (American Association of Variable Star Observers): century-old amateur+professional collaboration; variable-star light curves.\n- **Pan-STARRS, ATLAS, ZTF, ASAS-SN**: open public alert streams.\n- **Gaia DR3** (2022): astrometry + photometry + spectroscopy of ~1.8 B Milky Way stars; foundation for galactic + stellar science. Gaia DR4 (2026) + DR5 (~2030) coming.\n- **MAST + IRSA + NED + SIMBAD + ALMA archives + Vizier**: archive infrastructure.\n- **Astropy + Astroquery + LSST Stack + Jupyter**: open Python ecosystem for analysis.\n- **AAS open journals** + arXiv + Zenodo: open publication.\n- **Sloan Atlas of digital sky**: imaging + spectroscopy snapshot of nearby universe."
+    },
+    {
+      "kind": "text",
+      "title": "Open data, amateur astronomy, dark skies + ethics",
+      "body": "Modern astronomy increasingly operates on shared infrastructure + open principles, but faces existential threats from light pollution + satellite constellations + RFI.\n\n**Amateur + citizen-science**:\n- **AAVSO** (American Association of Variable Star Observers, 1911-): hundreds of millions of variable-star observations; supplies fundamental data on classical novae, Cepheids, eclipsing binaries.\n- **Comet hunters + asteroid discoverers**: Shoemaker-Levy 9 (1993), Hale-Bopp (1995, Alan Hale + Thomas Bopp), 'Oumuamua (2017 Pan-STARRS), Borisov (2019). Many discoveries still by amateurs with backyard telescopes.\n- **Pro-am collaborations**: Galaxy Zoo (~1M people); Planet Hunters; SETI@home (1999-2020); Einstein@home (continuing); Backyard Worlds: Planet 9; Stardust@home.\n- **Modern amateurs** use CCDs + 12-30-inch automated scopes + ML — closing gap with professional capability for some science.\n\n**Open survey data**:\n- **Pan-STARRS DR2**: full-sky 6-band photometric survey.\n- **Gaia DR3** (2022): ~1.8 billion stars with positions, parallax, proper motion, photometry, spectroscopy for many.\n- **Vera Rubin LSST data releases**: planned annually starting 2026.\n- **NASA/ESA archives**: HST + JWST + Spitzer + Chandra + XMM + others fully open after proprietary periods.\n- **arXiv**: physics + astrophysics + astro-ph; foundation of open scientific communication since 1991.\n\n**Threats to ground astronomy**:\n\n**Light pollution**: artificial sky brightness (Falchi + Cinzano 2016 *Science*) — 80%+ of world population lives under light-polluted skies; >⅓ can't see Milky Way. Even remote sites (Mauna Kea, Cerro Pachón) increasingly affected by distant cities + drone delivery + LED conversions. IDA (International Dark-Sky Association) advocates dark-sky reserves + responsible lighting.\n\n**Satellite constellations**: **Starlink** (SpaceX, ~7000 + 30000+ planned), **Project Kuiper** (Amazon, ~3000), **OneWeb**, **Guowang** (China). Bright LEO satellites streak through wide-field images:\n- Vera Rubin LSST: ~30% of twilight exposures + ~10% of dark-time exposures will contain bright satellite streaks.\n- Mitigation: SpaceX VisorSat + DarkSat coatings; software masking; coordinating exposure timing.\n- AAS + IAU SatCon working groups; ongoing dialogue between operators + astronomy community.\n- Brightness above magnitude 7 limit recommended; many constellation satellites violate.\n\n**Radio frequency interference (RFI)**:\n- 5G cellular + WiFi + Bluetooth + microwave ovens + RFID + wind turbines + satellite downlinks → growing background.\n- **Protected radio quiet zones**: NRQZ in West Virginia (Green Bank), South African Karoo (SKA), Western Australia (SKA-Low).\n- **Dynamic spectrum management**: time-varying band allocations.\n- **SKA + ngVLA** require RFI-free environments; SpaceX Starlink + competitors causing increasing concern.\n\n**Antarctic + South African + Atacama astronomy**:\n- **Antarctic** (Dome A, Dome C, South Pole): driest, lowest water-vapor; coldest skies. South Pole Telescope (SPT) + BICEP/Keck (CMB polarization). DOME C IR conditions.\n- **South Africa**: SKA-Mid (Karoo); MeerKAT precursor; HESS γ-ray (Namibia neighbor).\n- **Chile** (Atacama): best optical/IR sites: VLT, ALMA, Gemini-S, Las Campanas, Cerro Tololo, Cerro Pachón Rubin, ELT Armazones.\n- **La Palma** (Canary Islands): GTC 10.4-m, TMT-considered backup.\n- **Mauna Kea** (Hawaii): Keck, Subaru, Gemini-N — but TMT controversy + local sovereignty concerns.\n\n**Ethics + access**:\n- **Local sovereignty + sacred sites**: TMT/Mauna Kea controversy; consultation + benefits-sharing with Indigenous communities now standard.\n- **Diversity + inclusion** in astronomy workforce: NSF/NASA + university initiatives; historical barriers + ongoing work.\n- **Open access to data + publication**: drives democratization.\n- **Light pollution + skylight as cultural heritage**: 'right to see stars' arguments.\n- **Space debris + orbital sustainability**: Kessler syndrome risk; coordination needed.\n- **AI + automation**: changes labor structure of astronomy + who can contribute.\n\nThe **golden era** of 2020s-2030s astronomy is bringing unprecedented capability but also stakeholder conflicts that the field must navigate. Astronomy is increasingly a coordinated global + societal enterprise."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_front_1",
+        "kind": "guided_derivation",
+        "question": "Estimate Vera Rubin LSST's all-sky survey cadence",
+        "goal": "Given: 9.6 sq deg field, 30-s exposures, ~20000 sq deg visible sky, 6 filters, ~825 visits per field over 10 yr. Estimate observing time + nightly throughput.",
+        "steps": [
+          {
+            "prompt": "Pointings to tile sky once in one filter.",
+            "motivation": "Field area division.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "20000 / 9.6 ≈ 2083 pointings"
+              ]
+            },
+            "hints": [
+              "Just division."
+            ],
+            "reveal": "20000 / 9.6 ≈ 2083 pointings. Ignoring overlap + dithering."
+          },
+          {
+            "prompt": "Time for one pass: 2083 × 30 s exposures.",
+            "motivation": "Pointings × exposure time.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2083 × 30 s = 62500 s ≈ 17.4 hr (per filter, ignoring overheads)"
+              ]
+            },
+            "hints": [
+              "Convert to hours."
+            ],
+            "reveal": "62500 s ≈ 17.4 hr per filter — about 1.5 nights of continuous observing. With slewing + readout + multi-filter cycling overheads, ~3-4 nights per full-sky pass in one band."
+          },
+          {
+            "prompt": "Total observations over 10 yr at 825 visits per field × 2083 fields × 6 bands? Compute alerts per night assuming 30% of detections are transient.",
+            "motivation": "Throughput.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Total visits = 825 × 2083 × 6 / 10 yr / 365 d ≈ 2828/night. Difference images per visit: ~10⁴ - 10⁵ detections; alerts ~10⁶ - 10⁷/night reduced by classification"
+              ]
+            },
+            "hints": [
+              "Divide total over 10 yr by 3650 nights."
+            ],
+            "reveal": "825 visits × 2083 fields × 6 bands = 10.3 M observations / 10 yr = 1.03 M/yr ≈ 2820/night. Each ~30-s image → difference-image source detection → ~10⁴-10⁵ varying sources per image → ~10⁶-10⁷ alerts/night raw → ML brokers prioritize to 100s-1000s/night human-interesting. The data flood is staggering."
+          },
+          {
+            "prompt": "Why does LSST require alert brokers (ALeRCE, Lasair, Antares, etc.) + ML?",
+            "motivation": "Scale.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "10⁷ alerts/night exceeds any human processing capacity; brokers automatically classify + prioritize using ML; truly novel events still need follow-up + are flagged via anomaly detection"
+              ]
+            },
+            "hints": [
+              "How would a human review 10⁷ events?"
+            ],
+            "reveal": "10⁷ alerts/night is ~10⁵× what humans can review. ML brokers (random forest + CNN + RNN) classify alerts in real-time → routine variable stars + asteroids + noise filtered automatically → flagged transients (~100-1000/night) go to follow-up queues. Anomaly detection identifies truly novel events (e.g., GW counterparts). The infrastructure built for LSST (Apache Kafka pipelines, broker networks, citizen-science platforms) is reshaping how data-intensive science is done."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_front_1",
+        "kind": "multiple_choice",
+        "question": "Why are SpaceX Starlink (+ similar mega-constellations) such a significant concern for ground astronomy?",
+        "options": [
+          "Random.",
+          "Mega-constellations of bright LEO satellites (Starlink ~7000+ → 30000+; Kuiper, Guowang, OneWeb) cause: (1) bright streaks in wide-field exposures — Vera Rubin LSST expects ~30% of twilight + ~10% of dark-time exposures contaminated; AAS/IAU SatCon working groups quantify impact. (2) RFI in radio bands from satellite downlinks, threatening SKA + ngVLA + EHT science. (3) cumulative thermal + scattered light raising sky background. Mitigation efforts (VisorSat, DarkSat coatings, software masking) partially help but new operators continue. The fundamental issue: orbital + spectral commons resources lacking governance — same legacy-of-the-commons problem as light pollution + RFI but at unprecedented scale + pace.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Mega-constellations (Starlink, Kuiper, Guowang, OneWeb — 7000 to 30000+ each) bright streaks contaminate wide-field exposures (Vera Rubin: ~30% twilight + ~10% dark exposures; AAS/IAU SatCon quantifying impact); RFI from satellite downlinks threatens SKA/ngVLA/EHT; thermal + scattered light raises sky background. Mitigation (VisorSat, software masking) partial. Fundamental issue: orbital + spectral commons lack global governance for the pace of deployment. Astronomical community working with operators; outcome uncertain. Threatens decades of ground-based investment."
+      },
+      "hints": [
+        "What science do they disrupt?",
+        "Why hard to fix?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Starlink-class mega-constellations bright streaks contaminate wide-field exposures (Vera Rubin ~30% twilight); RFI from downlinks threatens radio astronomy (SKA, ngVLA); scattered/thermal light raises sky background. Mitigation (VisorSat coatings, software masking) partial. Fundamental: orbital + spectral commons lack governance; commercial deployment pace outstrips coordination."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_front_1",
+        "kind": "scenario",
+        "question": "In 2024, the TMT (Thirty Meter Telescope) construction at Mauna Kea remains stalled by Native Hawaiian protests over land use + the sacred status of the mountain. La Palma is under consideration as an alternative site, but at lower altitude + worse seeing.",
+        "prompt": "Walk through the multi-stakeholder considerations: (1) scientific case for ELT-class telescope (Earth-analog imaging, JWST follow-up, high-z spectroscopy, BH dynamics); (2) Hawaiian sovereignty + sacred-mountain status — Mauna Kea (Mauna a Wakea) is the highest point in the Pacific + an Indigenous cultural site; existing telescopes have created decades of tension; (3) precedent (Vera Rubin Cerro Pachón Chile, ELT Cerro Armazones Chile, ALMA Atacama — all use Indigenous land with negotiated agreements); (4) what governance + benefit-sharing models work; (5) what does this tell about astronomy's relationship to local communities + colonial legacy. How might the field improve consultation + sovereignty for future facilities?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_front_1",
+        "kind": "math_expression",
+        "question": "Write the field of view of the Vera Rubin LSST camera in square degrees.",
+        "acceptedAnswers": [
+          "9.6 sq deg",
+          "9.6",
+          "9.6 deg²",
+          "~9.6 sq deg"
+        ],
+        "hint": "Largest digital astronomy camera focal plane (3.2 Gpix CCD mosaic)."
+      },
+      "workedSolution": "Rubin LSST: 9.6 sq deg field of view (3.2 Gpix 189-CCD mosaic). For comparison: full Moon ~0.2 sq deg; HST WFC3 ~ 0.0036 sq deg; Subaru HSC ~ 1.5 sq deg; Pan-STARRS ~ 7 sq deg. Combined with 8.4-m aperture + 30-s exposures, Rubin can image ~half the sky every 3-4 nights — the most powerful survey machine ever built."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_front_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, summarize why the 2020s-2030s is described as a 'golden era' of astronomy + identify the major challenges it faces.",
+        "rubric": "Mentions: Unprecedented simultaneous flagships: JWST (2022, IR + high-z), Euclid (2023, dark energy + LSS), Roman (2027, wide-field IR + microlensing), Vera Rubin LSST (2025, all-sky 10-yr survey, 10⁷ alerts/night), SKA + ALMA + EHT (radio/mm imaging), ELT/TMT/GMT (30-40m ground, late 2020s), DESI + 4MOST (cosmology spectroscopy), LIGO + LISA (GW), CTA + IceCube (high-energy). ML/AI infrastructure (Galaxy Zoo + Zoobot, Charnock+Moss SNe classifiers, LIGO DeepClean, anomaly detection — Stein 2021). Open data + Gaia DR3 + AAVSO + arXiv. Challenges: satellite mega-constellations (Starlink) streaking exposures + RFI for radio; light pollution; orbital + spectral commons governance; Indigenous sovereignty (TMT Mauna Kea); funding + cost ($10B JWST); diversity + access. Coordinated global enterprise; foundational decade for understanding cosmos, exoplanets, multimessenger, dark sectors."
+      }
+    }
+  ]
+}

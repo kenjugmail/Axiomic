@@ -1,0 +1,161 @@
+{
+  "slug": "retrosynthesis-and-synthesis-planning",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply Corey's retrosynthetic disconnection logic to plan a synthesis.",
+      "Use protecting groups for orthogonal functional-group management.",
+      "Survey classic + modern total synthesis + AI-assisted retrosynthesis."
+    ],
+    "prereqs": [
+      "reaction-mechanisms-and-arrow-pushing"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Corey's retrosynthesis: the calculus of synthesis planning",
+      "body": "**E. J. Corey's retrosynthetic analysis** (1969 JACS; later 'The Logic of Chemical Synthesis' 1989; Nobel 1990) reformulated synthesis from a forward art into a systematic backward discipline. Instead of guessing 'how do I make this?', the chemist works the target backward step by step.\n\n**Core formalism**:\n- **Target molecule (TM)**: what we want to make.\n- **Retrosynthetic arrow ⟹**: 'derives from' — backward analysis. Cleave a bond to expose a simpler precursor.\n- **Disconnection**: hypothetical cleavage of a bond on the target.\n- **Synthon**: idealized fragment with charge/polarity assigned (e.g., disconnect C–C of α,β-unsaturated ketone → enolate anion synthon + electrophile synthon).\n- **Synthetic equivalent**: actual real reagent for each synthon (e.g., enolate ⇔ silyl enol ether or lithium enolate or β-ketoester).\n- **FGI (Functional Group Interconversion)**: transform one FG to another (no bond reconnection) — e.g., alcohol ⇌ ketone, nitrile ⇌ amine, halide ⇌ alkene.\n- **Strategic bond**: a bond whose disconnection most simplifies the target.\n- **Convergent synthesis**: synthesize two halves separately then unite — much higher yield than linear synthesis (n steps at 80% each: linear ~17% in 10 steps; convergent 5+5 ~32%).\n\n**Strategic guidelines** (Corey):\n- Disconnect at the most complex bond first.\n- Look for symmetry — two halves identical halves the problem.\n- Disconnect to maximize functional-group simplification.\n- Disconnect to known starting materials.\n- Consider stereochemistry at the disconnection — does the bond-forming reaction control it?\n- Protect/orthogonally manage incompatible FGs.\n\n**Heuristic disconnections**:\n- **C–X (heteroatom-C)**: usually substitution or addition. Disconnect retro-SN2.\n- **C=O α-C**: aldol/Claisen/Mannich. Disconnect to enolate + electrophile.\n- **C=C**: Wittig, olefin metathesis, elimination.\n- **Aromatic C–C, C–N**: cross-coupling (Suzuki, Negishi, Buchwald-Hartwig).\n- **Ring**: Diels-Alder (six-membered), intramolecular cyclization, RCM.\n\n**Nobel 1990**: Elias James Corey, Harvard, for retrosynthetic analysis + the synthesis of complex natural products (gibberellic acid, ginkgolide, longifolene, cafestol, prostaglandins). His group + students populated half the chemistry departments in the US (Bartlett, Danheiser, Sames, MacMillan, Buchwald, etc.).",
+      "viz": "retrosynthesis-tree",
+      "vizProps": {
+        "targetMolecule": "ibuprofen",
+        "depth": 3
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Protecting groups + the orthogonality principle",
+      "body": "A complex synthesis has many functional groups, not all compatible at every step. **Protecting groups (PGs)** temporarily mask reactive FGs.\n\n**Workflow**:\n1. **Protect** the sensitive FG (alcohol, amine, carboxylic acid, etc.).\n2. **Transform** elsewhere in the molecule using conditions the PG tolerates.\n3. **Deprotect** when ready.\n\n**Three properties of a good PG**:\n- **Selectivity in installation** (chemoselective + regioselective).\n- **Stability** under the planned transformations.\n- **Orthogonality**: removable under conditions that don't affect other PGs in the same molecule.\n\n**Orthogonality** (Greene + Wuts, *Protective Groups in Organic Synthesis* — the chemist's bible; first edition 1981, fifth edition 2014). Two PGs are orthogonal if each can be removed selectively in the presence of the other.\n\n**Major protecting-group classes**:\n\n**Alcohol PGs**:\n- **TBS (tert-butyldimethylsilyl)** + **TIPS (triisopropylsilyl)** + **TBDPS** + **TMS**: silyl ethers. Install via R₃Si–Cl + imidazole. Deprotect: fluoride (TBAF, HF·py) — silyl–O bond cleaved by F⁻ (Si–F = 135 kcal/mol).\n- **MOM (methoxymethyl)** + **MEM** + **SEM**: acetal-type. Install with R–O–CH₂–Cl + base. Deprotect: aqueous acid.\n- **Bn (benzyl)**: stable to acid + base. Deprotect: H₂/Pd-C (hydrogenolysis).\n- **Ac (acetyl)**: install with Ac₂O. Deprotect: K₂CO₃/MeOH or NaOH.\n- **Bz (benzoyl)**: similar to acetyl but more stable.\n- **THP (tetrahydropyranyl)**: install with DHP/H⁺. Deprotect: aqueous acid. Mild.\n- **Trityl (Tr)**: install with Tr–Cl. Selective for primary OH. Deprotect: mild acid.\n\n**Amine PGs**:\n- **Boc (tert-butoxycarbonyl)**: install with Boc₂O. Deprotect: TFA or dilute HCl. Standard for peptide synthesis.\n- **Cbz (Z-, benzyloxycarbonyl)**: install with Cbz–Cl. Deprotect: H₂/Pd-C.\n- **Fmoc (9-fluorenylmethoxycarbonyl)**: install with Fmoc–Cl or Fmoc–OSu. Deprotect: piperidine (mild base). The basis of Merrifield-Sheppard SPPS (solid-phase peptide synthesis).\n- **Alloc (allyloxycarbonyl)**: Pd-catalyzed deprotection.\n\n**Carboxylic acid PGs**:\n- **Methyl + ethyl ester**: install with alcohol/H⁺ or diazomethane. Deprotect: hydrolysis.\n- **tert-Butyl ester**: TFA-labile.\n- **Benzyl ester**: hydrogenolysis.\n- **Allyl ester**: Pd-catalyzed.\n\n**Carbonyl PGs**:\n- **Dimethyl acetal / dioxolane**: aldehydes/ketones as cyclic acetals. Install with diol/H⁺. Deprotect: aqueous acid.\n\n**Orthogonal sets** (chemist's standard menus):\n- Acid-labile (Boc, Trt, tBu) + base-labile (Fmoc, Ac, Bz) + hydrogenolysis (Bn, Cbz) + fluoride-labile (TBS, TIPS).\n- Peptide synthesis: Fmoc for α-amine (base-labile) + tBu/Trt/Boc for side chains (acid-labile) → cleave from resin with TFA.\n- Glycoside synthesis: Ac/Bz vs Bn vs silyl vs ester orthogonality.\n\n**Modern trends**: minimize PGs (atom economy + step economy — Trost 1991; protecting-group-free total synthesis — Baran). Modern catalysis + reagent design enables transformations that previously required protection. Phil Baran's 'ideal synthesis' goal: zero PGs, minimal steps."
+    },
+    {
+      "kind": "text",
+      "title": "Total synthesis history + AI-assisted retrosynthesis",
+      "body": "**Total synthesis** = constructing a complex natural product from simple commercial starting materials. The supreme proving ground of organic chemistry — equal parts science + art.\n\n**Classic-era heroes** (1950-2000):\n\n**R. B. Woodward (Harvard; Nobel 1965)** — the founding father of modern total synthesis. Targets:\n- Quinine (1944, with Doering — at the height of WWII, a 17-step racemic synthesis showed it was achievable).\n- Cholesterol + cortisone (1951).\n- Strychnine (1954, with 28 steps — the most complex natural product synthesized at that point; remained the benchmark for 30+ years).\n- Lysergic acid (1956).\n- Reserpine (1956).\n- Chlorophyll (1960).\n- Tetracycline (1962).\n- **Vitamin B₁₂** (1973, with Albert Eschenmoser at ETH Zürich) — 11-year, 100+ Ph.D.-equivalent collaboration; ~70 stages; published as the most complex natural product synthesis of the 20th century. Catalyzed the Woodward-Hoffmann rules + organized half of orbital-symmetry-controlled chemistry.\n- Erythromycin A (1981, posthumous).\n\n**Stork (Columbia)**: prostaglandins (1976-1985); cantharidin; intramolecular alkylation methodology — Stork enamine.\n\n**K. C. Nicolaou (Scripps, Rice)**: prolific total syntheses; landmark works:\n- **Taxol (paclitaxel)** (1994, with Holton + Wender independently; Holton 1994 race).\n- **Brevetoxin B** (1995) — marine ladder toxin, 11 fused rings, ~80 stages.\n- **Calicheamicin γ₁ᴵ** (1992) — bond-cleaving antitumor.\n- **CP molecules + diazonamide + ...** dozens of targets; *Classics in Total Synthesis* I, II, III textbooks are the standard reference.\n- **Maitotoxin** — ongoing; the largest non-polymeric natural product (MW 3422); 32 rings; the ultimate test piece of modern synthesis.\n\n**Modern era + Phil Baran (Scripps; MacArthur 2013)** — ideal-synthesis philosophy. Targets often previously synthesized only in 30-50 step routes are remade in 8-15 steps via radical methodology, biomimetic strategies, + C–H activation. Example: terpenoid syntheses (ingenol, taxol-related, ouabagenin) in <30 steps; reaching parity with biosynthetic step counts.\n\n**Other modern luminaries**: David Evans, Larry Overman, Sam Danishefsky, Steve Ley, Erick Carreira, Yoshito Kishi (palytoxin 1994), Brian Stoltz, Sarah Reisman, Jin-Quan Yu (C–H activation), Mohammad Movassaghi.\n\n**AI-assisted retrosynthesis** — the post-2017 revolution:\n- **Chematica → Synthia (Merck)**: Bartosz Grzybowski's expert system built over 20 years; ~50,000 rules; outputs full multi-step retrosynthetic plans. Acquired by Merck KGaA.\n- **AiZynthFinder, ASKCOS (MIT)**: Connor Coley + Klavs Jensen + Tim Jamison; transformer + Monte Carlo Tree Search; trained on 12+ million reactions from Reaxys/USPTO. Open-source, widely deployed.\n- **IBM RXN for Chemistry**: transformer model; predicts products + retrosynthesis; integrates with RoboRXN cloud lab.\n- **Schwaller transformer** (IBM, EPFL): MolecularTransformer — translates reactant SMILES to product SMILES like NLP.\n- **DeepMind + Synthia + Sanofi partnerships**: integrating AI retrosynthesis with autonomous synthesis platforms (Coley + Jensen → Sanofi).\n- **Baran + Cernak (Merck/Michigan)**: high-throughput experimentation (HTE) + ML — propose, run, learn at 10000+ reactions/week.\n\n**Robotic synthesis platforms**:\n- **Cronin** group (Glasgow): Chemputer — coding chemistry recipes.\n- **Lee Cronin's** + **Allchemy** + **Atinary** + **Insilico Medicine** + **Iktos** + **Postera (now Synthace)** + dozens of startups racing to combine AI retrosynthesis + robotic execution + analytical feedback into closed-loop molecular invention.\n- The vision: a chemist asks for a target; the AI plans the route; the robot synthesizes overnight; LC-MS verifies. Already partial reality in select labs (Cernak, Coley, Jensen, MacMillan).\n\nRetrosynthesis went from an art (Woodward intuition) to a science (Corey's logic) to an algorithm (modern AI). The pace of progress in 2020-2025 has been dramatic; the next 10 years will reshape pharmaceutical R&D + materials discovery."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_retro_ibu",
+        "kind": "guided_derivation",
+        "question": "Plan a retrosynthesis of ibuprofen",
+        "goal": "Ibuprofen = α-methyl-4-isobutyl phenylacetic acid. Disconnect step by step + identify synthons + suggest forward route.",
+        "steps": [
+          {
+            "prompt": "Identify the strategic bonds. Where would you disconnect?",
+            "motivation": "Strategic bonds = those whose disconnection most simplifies.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "α-methyl C-C, aryl-CH bond, isobutyl-aryl bond"
+              ]
+            },
+            "hints": [
+              "Three obvious C–C disconnections: α-C–CH₃, α-C–aryl, isobutyl–aryl.",
+              "Which gives accessible starting materials?"
+            ],
+            "reveal": "Three candidate disconnections: (1) α-methyl C–C bond → α-aryl carboxylic acid + methylating reagent; (2) α-aryl C–C bond → arenecarboxylic acid + alkyl synthon; (3) isobutyl–aryl C–C bond → 4-iPr-toluene + EAS or coupling. The simplest is (1) — install methyl at the α position of an existing α-aryl carboxylic acid via enolate alkylation."
+          },
+          {
+            "prompt": "Disconnect 1: α-methyl C-C → α-aryl carboxylic acid + CH₃⁺ synthon. What's the real synthetic equivalent?",
+            "motivation": "Synthon ⇌ reagent translation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "CH3I or (CH3)2SO4 with strong base (LDA enolate)"
+              ]
+            },
+            "hints": [
+              "Enolate alkylation: LDA generates the α-anion; MeI alkylates."
+            ],
+            "reveal": "Synthon: CH₃⁺ (methyl cation). Real reagent: **CH₃I** (methyl iodide) or (CH₃)₂SO₄ (dimethyl sulfate). The α-aryl carboxylic acid (or its ester) is deprotonated at α-C with LDA (or NaH) to generate the enolate, which alkylates SN2 on CH₃I. Conditions: −78°C, THF, LDA, then CH₃I."
+          },
+          {
+            "prompt": "Now retrosynth the α-aryl carboxylic acid: 4-isobutylphenylacetic acid. Disconnect the side chain.",
+            "motivation": "Recursive retrosynthesis.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "4-isobutyltoluene + Friedel-Crafts acylation then α-cyanation hydrolysis, or 4-isobutylbenzyl halide + cyanide then hydrolysis"
+              ]
+            },
+            "hints": [
+              "Carboxylic acid ⇐ nitrile via hydrolysis.",
+              "ArCH₂CN ⇐ ArCH₂Br via SN2 + CN⁻.",
+              "ArCH₂Br ⇐ ArCH₃ via benzylic bromination (NBS)."
+            ],
+            "reveal": "Multi-step: 4-isobutyltoluene → benzylic bromination (NBS, hν) → 4-iBuC₆H₄CH₂Br → SN2 with NaCN → 4-iBuC₆H₄CH₂CN → acid hydrolysis (H⁺, H₂O, heat) → 4-iBuC₆H₄CH₂COOH (ibuprofen minus the α-methyl). Then LDA + CH₃I → ibuprofen."
+          },
+          {
+            "prompt": "How is 4-isobutyltoluene made (commercial precursor)?",
+            "motivation": "Stop at commercial.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Friedel-Crafts acylation of toluene with isobutyryl chloride/AlCl3, then Clemmensen or Wolff-Kishner reduction"
+              ]
+            },
+            "hints": [
+              "Friedel-Crafts alkylation rearranges; acylation + reduction avoids it."
+            ],
+            "reveal": "**Friedel-Crafts acylation** of toluene with isobutyryl chloride (iBuCOCl) + AlCl₃ → 4-isobutyrylltoluene (para favored due to methyl directing). **Clemmensen reduction (Zn/HCl) or Wolff-Kishner (NH₂NH₂/KOH)** reduces the ketone to methylene → 4-isobutyltoluene. Toluene + isobutyric acid derivatives are commodity chemicals. **Modern Boots/BHC catalytic synthesis**: 3-step, 80% atom-economy route using Pd-catalyzed carbonylation — won the Presidential Green Chemistry Award (1997)."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Ibuprofen: 4 strategic disconnections} \\to \\text{commodity starting materials}}$$ Retrosynthesis identifies a complete forward route in minutes. AI tools (ASKCOS, IBM RXN, Chematica) propose 5+ alternative routes for ibuprofen in seconds, ranked by step count, cost, atom economy, + literature precedent. Industrial-scale syntheses optimize for greenness, throughput, + cost — the Boots/BHC route halved waste vs the original 6-step process."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_retro_pg",
+        "kind": "multiple_choice",
+        "question": "You need to perform a Grignard reaction on a substrate containing both an aldehyde + a primary alcohol. Which protecting-group strategy is correct?",
+        "options": [
+          "No protection needed.",
+          "Protect the aldehyde as a dimethyl acetal (acetone/H⁺ or HC(OMe)₃) — aldehydes are reactive toward Grignards; the primary alcohol is also reactive but the strategy depends on which FG you wish to retain unchanged. If the Grignard target is elsewhere on the molecule: protect both — alcohol as TBS ether (TBSCl/imidazole/DMF), aldehyde as cyclic acetal (HOCH₂CH₂OH/H⁺). Both PGs are orthogonal; aldehyde regenerated by aqueous acid, alcohol by TBAF. The protected substrate is now stable to RMgX.",
+          "Protect only the alcohol; aldehydes don't react with Grignards.",
+          "Use a stronger Grignard to overcome the issue."
+        ],
+        "correctIndex": 1,
+        "explanation": "Grignards (RMgBr/RMgI) are highly basic (pKaH ~50) + nucleophilic — they deprotonate alcohols + add to carbonyl carbons. Both functional groups need protection. Standard solution: TBS ether for the OH (fluoride-labile) + acetal for the aldehyde (acid-labile). Orthogonal — remove independently after the Grignard step. The Greene-Wuts handbook is the canonical reference for orthogonal protecting-group selection."
+      },
+      "hints": [
+        "Grignards react with both O–H + C=O.",
+        "Orthogonal PGs: removable independently."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Grignards (basic + nucleophilic) deprotonate OH + add to CHO. Protect alcohol as TBS ether (R₃SiCl, imidazole); protect aldehyde as acetal (HOCH₂CH₂OH, H⁺ or pTsOH). After Grignard, deprotect: TBAF removes TBS; aqueous H⁺ regenerates aldehyde. Orthogonal pair."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_retro_ai",
+        "kind": "scenario",
+        "question": "Choosing between AI-suggested routes",
+        "prompt": "ASKCOS returns 5 candidate retrosynthetic routes for your target (a 32-atom natural product with 3 stereocenters). Route A is 6 steps but uses one obscure reagent (yield in literature ~25%); Route B is 9 steps with high-yielding precedented chemistry (each step >85%); Route C is 12 steps but each step has literature precedent within the past 3 years. Which route would you choose for a 10-gram supply for early discovery + why?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_retro_conv",
+        "kind": "math_expression",
+        "question": "A 10-step linear synthesis has an average yield of 80% per step. A convergent synthesis has two 5-step halves at 80% each + a final coupling step at 80%. Convergent overall yield as percentage? Round to nearest whole.",
+        "acceptedAnswers": [
+          "26",
+          "26%"
+        ],
+        "hint": "Convergent: 0.8^5 × 0.8 = 0.328 × 0.8 ≈ 26.2%. (Linear comparison: 0.8^10 ≈ 10.7%.)"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_retro",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why retrosynthetic analysis (Corey 1969, Nobel 1990) transformed organic chemistry + what AI is doing to it now.",
+        "rubric": "Mentions: pre-Corey synthesis was an art driven by individual intuition; Corey formalized backward analysis: disconnect bonds to expose simpler precursors, mapped onto known reactions; introduced synthons, FGI, strategic bonds, convergent vs linear thinking; trained generations of synthetic chemists; Nobel 1990; tools like Synthesis Tree + LHASA (1969 onward) extended the formalism algorithmically. Modern AI (Chematica/Synthia, ASKCOS, IBM RXN, AiZynthFinder, Schwaller transformer) trains on 12M+ reactions to propose retrosyntheses + score them by precedent + cost. Robotic execution platforms (RoboRXN, Cronin Chemputer, Cernak HTE) close the loop. Retrosynthesis went from art to science to algorithm; AI hasn't replaced chemists but multiplied them by enabling pharmaceutical companies to explore vastly larger chemical spaces in less time."
+      }
+    }
+  ]
+}

@@ -1,0 +1,116 @@
+{
+  "slug": "seismic-waves-and-earth-structure",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Contrast body waves (P, S) with surface waves (Rayleigh, Love).",
+      "Apply Snell's law to refraction and reflection and read travel-time curves.",
+      "Explain how the Moho and the shadow zone revealed Earth's layered interior."
+    ],
+    "prereqs": [
+      "seismology-history-and-seismic-waves"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Body waves and surface waves",
+      "body": "Every earthquake launches two great families of elastic waves, and learning to read them is the heart of seismology.\n\n**Body waves** travel through the three-dimensional volume of the Earth and spread their energy over an expanding spherical wavefront, so their amplitude falls off rapidly with distance ($\\propto 1/r$ in a uniform medium). There are two:\n\n- **P waves** (primary, compressional): the fastest, with $v_P = \\sqrt{(K+\\tfrac{4}{3}\\mu)/\\rho}$, passing through solids and liquids.\n- **S waves** (secondary, shear): slower, with $v_S = \\sqrt{\\mu/\\rho}$, **blocked by liquids**.\n\n**Surface waves** are guided along the free surface, decay with depth, and spread over a *two*-dimensional wavefront, so their amplitude falls only as $\\propto 1/\\sqrt{r}$. At teleseismic distances they therefore dominate the seismogram and cause much of the felt shaking. There are two classic types:\n\n- **Rayleigh waves** (Lord Rayleigh, 1885): retrograde elliptical, vertical-plane rolling motion that exists on any free surface — the ground heaves like an ocean swell.\n- **Love waves** (A. E. H. Love, 1911): horizontally polarized shear motion that requires a faster layer beneath a slower one, exactly the layering the real crust provides; they often arrive slightly ahead of Rayleigh waves.\n\nA crucial property of surface waves is **dispersion**: their speed depends on frequency because long-period (long-wavelength) waves sample deeper, generally faster rock, while short-period waves sample shallow, slower rock. A plot of velocity versus period is a **dispersion curve**, and inverting it yields the depth profile of velocity — a technique central to **surface-wave tomography**.\n\nThe terminology of arrivals reflects all this. On a global seismogram an analyst marks **P**, then **S**, then the surface-wave train; **PP** and **SS** are waves reflected once at the surface; **PcP** reflects off the **core–mantle boundary** (the symbol *c*); **PKP** transmits *through* the outer core (the symbol *K*); and **PKIKP** passes through the solid **inner core** (the symbol *I*). This naming scheme, standardized by **Beno Gutenberg** and **Charles Richter** and codified in modern travel-time tables, lets seismologists worldwide describe ray paths in a shared language. Each phase samples a different part of the Earth, so the full menagerie of arrivals is what makes the planet's interior legible from the surface."
+    },
+    {
+      "kind": "text",
+      "title": "Refraction, reflection, and Snell's law",
+      "body": "Seismic rays bend and split at boundaries exactly as light does, governed by the same optics. When a ray strikes an interface between two media with different velocities, part of its energy **reflects** and part **refracts** (transmits with a change of direction). The angles obey **Snell's law**, first stated for light by **Willebrord Snellius (1621)** and applied throughout seismology:\n\n$$\\frac{\\sin\\theta_1}{v_1} = \\frac{\\sin\\theta_2}{v_2},$$\n\nwhere $\\theta$ is measured from the normal to the interface and $v$ is the wave speed in each layer. Equivalently the **ray parameter** (or horizontal slowness) $p = \\sin\\theta / v$ is conserved along the entire ray path — a single number that labels each ray and is the foundation of travel-time analysis.\n\nSeveral consequences follow directly:\n\n- Because seismic velocity generally **increases with depth** (rock is compressed and stiffer below), rays travel from slow to fast media, so $\\theta$ increases with depth and rays **bend back toward the surface**, tracing curved, concave-up paths through the mantle.\n- At a sufficiently steep incidence the refracted ray runs *along* the interface. The angle at which $\\theta_2 = 90°$ is the **critical angle** $\\theta_c = \\arcsin(v_1/v_2)$. Beyond it, energy is **totally internally reflected** and also produces a **head wave (refracted critical wave)** that travels along the boundary at the faster speed $v_2$ and leaks energy back up — the basis of the **refraction survey**.\n- At the **critical distance** the head wave first appears; at the **crossover distance** it overtakes the direct wave because its fast path more than compensates for the extra travel.\n\n**Travel-time curves** make this quantitative. Plotting arrival time $t$ against source–receiver distance $x$, the **direct wave** is a straight line through the origin with slope $1/v_1$ (the reciprocal of velocity), while the **refracted head wave** is a straight line of shallower slope $1/v_2$ that intercepts the time axis at a positive value set by the layer thickness. The slopes give the layer velocities and the intercept gives the depth — this is how a near-surface profile is read. Reflected waves trace **hyperbolas** because $t(x) = \\tfrac{1}{v}\\sqrt{x^2 + 4h^2}$ for a flat reflector at depth $h$; the curvature encodes the depth and is exploited in **reflection seismology**. **Wiechert** and **Herglotz** showed early in the twentieth century how to invert a smooth travel-time curve directly for the velocity-versus-depth profile (the Herglotz–Wiechert inversion), turning a graph of arrivals into a cross-section of the Earth."
+    },
+    {
+      "kind": "text",
+      "title": "The Moho, the shadow zone, and Earth's layers",
+      "body": "Putting waves, Snell's law, and travel-time curves together let early seismologists dissect the Earth into shells without a single drill hole reaching them.\n\n**The crust–mantle boundary (the Moho).** In 1909 the Croatian seismologist **Andrija Mohorovičić (1857–1936)** analyzed records of a Kupa Valley earthquake near Zagreb and noticed *two* P arrivals at intermediate distances: a direct wave and a faster refracted head wave. The crossover revealed a sharp velocity jump — P speed rising from roughly $6$–$7$ km/s in the crust to about $8$ km/s below — marking the base of the crust. This boundary is now called the **Mohorovičić discontinuity**, or **Moho**, and lies near $35$ km beneath continents but only $\\sim 7$ km beneath oceans. Its discovery is the textbook demonstration that a velocity contrast produces a diagnostic refracted arrival.\n\n**The core and the shadow zone.** Recall that **Richard Dixon Oldham (1906)** inferred a central core and **Beno Gutenberg (1913)** placed the **core–mantle boundary** at about $2890$ km depth. Their key evidence was the **P-wave shadow zone**. At the core–mantle boundary, P-wave velocity *drops abruptly* (from $\\sim 13.7$ to $\\sim 8$ km/s) because the outer core is liquid. By Snell's law a sudden velocity decrease bends rays sharply *downward*, refracting them into the core. As a result, direct P waves illuminate the surface only out to about **103°** of angular distance from the epicenter; beyond that, refraction sweeps them away, and they do not reappear (as **PKP** waves bent through the core) until about **143°**. The band from **103° to 143°** is the **P-wave shadow zone**, a ring around the globe nearly free of direct P.\n\nThe **S-wave shadow zone** is even more telling: because **S waves cannot pass through the liquid outer core**, no direct S reaches beyond about **103°** at all — a vast S shadow that proves the outer core is fluid.\n\nFinally, **Inge Lehmann (1936)** noticed faint P arrivals *inside* the P shadow zone. She explained them by postulating a **solid inner core** that reflects and refracts waves (the **PKIKP** phase), bounded by what is now called the **Lehmann discontinuity** near $5150$ km depth. The composite picture — **crust, mantle, liquid outer core, solid inner core** — was assembled entirely from travel times, shadow zones, and Snell's law, and was crystallized in the standard **Preliminary Reference Earth Model (PREM)** of **Dziewoński and Anderson (1981)**. It remains one of science's great feats of remote sensing."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_struct_1",
+        "kind": "multiple_choice",
+        "question": "Why does a band between about **103° and 143°** of angular distance from an earthquake receive almost no direct **P** waves (the P-wave shadow zone)?",
+        "options": [
+          "P waves are absorbed entirely by the mantle before reaching that distance.",
+          "At the core–mantle boundary the P velocity drops sharply (liquid outer core), so by Snell's law rays bend strongly downward into the core and are refracted away from that surface band, only reappearing as PKP near 143°.",
+          "The inner core reflects all P energy back to the epicenter.",
+          "S waves cancel the P waves in that range."
+        ],
+        "correctIndex": 1,
+        "explanation": "The outer core is liquid, so P velocity drops abruptly across the core–mantle boundary (from ~13.7 to ~8 km/s). By Snell's law a velocity decrease bends rays toward the downward normal, refracting them into the core. Direct P thus stops illuminating the surface near 103° and only returns (as PKP, bent through the core) around 143°, leaving a shadow ring between."
+      },
+      "hints": [
+        "Which way does Snell's law bend a ray entering a slower medium?",
+        "What happens to P velocity crossing into the liquid outer core?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "The liquid outer core has much lower P velocity than the deep mantle, so P speed drops sharply across the core–mantle boundary. Snell's law says a ray entering a slower medium bends toward the normal — here, strongly downward into the core. Rays that would otherwise emerge between about 103° and 143° are refracted into the core instead, creating the P-wave shadow zone. They re-emerge as PKP phases (refracted through the core) beyond about 143°. The even larger S shadow beyond 103° additionally proves the outer core is liquid."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_struct_1",
+        "kind": "math_expression",
+        "question": "A P wave travels in crust with $v_1 = 6.0$ km/s and strikes the Moho, below which $v_2 = 8.0$ km/s. Compute the **critical angle** $\\theta_c = \\arcsin(v_1/v_2)$ in degrees, to the nearest degree.",
+        "acceptedAnswers": [
+          "49",
+          "48.6",
+          "~49",
+          "49 degrees",
+          "49°"
+        ],
+        "hint": "$\\arcsin(6.0/8.0) = \\arcsin(0.75)$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_struct_2",
+        "kind": "multiple_choice",
+        "question": "On a travel-time plot of arrival time $t$ versus distance $x$, what does the **slope** of the straight line for a direct wave represent?",
+        "options": [
+          "The velocity $v_1$ of the medium directly.",
+          "The reciprocal of velocity, $1/v_1$ (the slowness), so a shallower slope means a faster layer.",
+          "The depth to the reflector.",
+          "The frequency of the wave."
+        ],
+        "correctIndex": 1,
+        "explanation": "For a direct wave $t = x/v_1$, so a $t$-versus-$x$ graph is a straight line through the origin with slope $1/v_1$ (the slowness). A refracted head wave appears as a line with the shallower slope $1/v_2$ (faster layer) and a positive time intercept set by the layer thickness, which is how velocities and depths are extracted from a refraction survey."
+      },
+      "hints": [
+        "Write $t$ as a function of $x$ for a direct wave: $t = x/v$.",
+        "Slope of $t$ vs $x$ is $dt/dx$."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "A direct wave obeys $t = x/v_1$, a straight line through the origin. Its slope $dt/dx = 1/v_1$ is the slowness, not the velocity itself, so a faster layer gives a shallower slope. The refracted head wave plots as a line with the still-shallower slope $1/v_2$ and a positive intercept time that encodes the layer thickness; reflected waves plot as hyperbolas. Reading slopes and intercepts is exactly how Mohorovičić recognized the crust–mantle boundary."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_struct_1",
+        "kind": "scenario",
+        "question": "Recognizing the Moho from a refraction record.",
+        "prompt": "You set out a line of geophones and detonate a small surface source. On the travel-time plot you see a direct P arrival as a straight line through the origin, and at distances beyond about 30 km a second, faster arrival overtakes it, plotting as a line with a shallower slope and a positive time intercept. Explain, as Mohorovičić did in 1909, why a second faster arrival appears at larger distances, what physical boundary it reveals, and how you would use the two slopes and the crossover distance to estimate the crustal velocity, the mantle velocity, and the depth to the Moho."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_struct_2",
+        "kind": "math_expression",
+        "question": "For a flat reflector at depth $h$, the reflection travel time is $t(x) = \\tfrac{1}{v}\\sqrt{x^2 + 4h^2}$. With $v = 4$ km/s, $h = 3$ km, and source–receiver offset $x = 8$ km, compute $t$ in seconds (two decimals).",
+        "acceptedAnswers": [
+          "2.5",
+          "2.50",
+          "~2.5",
+          "2.5 s"
+        ],
+        "hint": "$\\sqrt{8^2 + 4\\cdot3^2} = \\sqrt{64+36} = \\sqrt{100} = 10$ km; divide by $v$."
+      }
+    }
+  ]
+}

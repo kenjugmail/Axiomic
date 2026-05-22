@@ -1,0 +1,152 @@
+{
+  "slug": "food-webs-and-energy-flow",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply Lindeman trophic dynamics + 10% rule.",
+      "Analyze food-web structure + connectance.",
+      "Recognize trophic cascades + keystone species."
+    ],
+    "prereqs": [
+      "species-interactions-and-macarthur"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Trophic structure + Lindeman + the 10% rule",
+      "body": "**Trophic level** = position in a food chain, indexed by chemical energy origin.\n- **Trophic level 1**: primary producers (autotrophs — plants, algae, cyanobacteria, chemoautotrophs).\n- **Trophic level 2**: primary consumers / herbivores.\n- **Trophic level 3**: secondary consumers / carnivores.\n- **Trophic level 4+**: tertiary etc.\n- **Decomposers / detritivores**: process dead organic matter from all levels; form a parallel detritus food chain (often the larger flow).\n\n**Lindeman (1942)** *The trophic-dynamic aspect of ecology* (Ecology — published posthumously; Lindeman died of liver disease at 27): formalized trophic dynamics. Defined **trophic efficiency** = energy flux at level n+1 / energy flux at level n. Empirical: **~10% (range 5-30%) per trophic transfer** — the **'10% rule'**.\n\nWhere does the other 90% go?\n- **Not consumed**: dead organic matter → detritus.\n- **Not assimilated**: feces → detritus.\n- **Respiration**: heat loss from metabolic work.\n- **Reproduction + structural costs**.\n\n**Implication**: short food chains. ~3-5 trophic levels typical (limit ~6 in long-chain ocean systems with efficient ectotherms). With 10% rule + producer NPP ~120 Pg C/yr, only ~12 Pg supports herbivores, ~1.2 Pg secondary consumers, ~0.12 Pg tertiary — vast loss per step.\n\n**Ecological pyramids** (Elton 1927):\n- **Pyramid of energy** (Lindeman): always tapers upward.\n- **Pyramid of biomass**: usually tapers, but **inverted in ocean plankton** (small biomass of fast-turnover phytoplankton supports larger zooplankton biomass) — turnover vs standing stock.\n- **Pyramid of numbers**: often inverted when small predators eat one large producer (e.g., aphids on a tree).\n\n**Trophic position** measured directly via **stable isotopes**:\n- **δ¹⁵N**: ~3.4‰ enrichment per trophic transfer (DeNiro + Epstein 1981; Post 2002). Continuous-valued trophic position estimate.\n- **δ¹³C**: ~1‰ enrichment; traces carbon source (C3 vs C4 plants; marine vs terrestrial; benthic vs pelagic).\n- **Compound-specific isotope analysis (CSIA-AA)**: amino-acid-level resolution.\n\n**Eltonian niche vs Grinnellian niche**: Elton (1927) emphasized functional role in food web (trophic niche); Grinnell (1917) emphasized habitat. Hutchinson (1957) n-dimensional niche unified."
+    },
+    {
+      "kind": "text",
+      "title": "Food-web structure: Elton + connectance + network ecology",
+      "body": "**Food webs** (**Charles Elton 1927** *Animal Ecology*; Elton's pyramid + niche concepts foundational) are networks of feeding interactions.\n\n**Basic metrics**:\n- **S** = number of species (nodes).\n- **L** = number of trophic links (edges).\n- **Connectance C = L / S²** (or L / (S(S–1)/2) for undirected). Typical values 0.05-0.30; small webs higher, large webs lower (Beckerman + Petchey + Warren 2006).\n- **Link density L/S**: ~2-5.\n- **Mean food chain length**: ~2-4 trophic levels.\n- **Omnivory**: feeding on multiple trophic levels; common (Pimm + Lawton 1978; Polis 1991).\n- **Trophic similarity + modularity + nestedness**: structural patterns.\n\n**Topological vs energetic webs**:\n- **Topological** (binary): only presence/absence of links. Earlier studies (Cohen 1978; Briand 1983).\n- **Energetic** (weighted): magnitude of carbon flow. Modern (Hall + Raffaelli 1991; Banašek-Richter 2009). Quantitative webs reveal that a few links dominate — webs are 'rich-club' + skewed.\n\n**Classic large food webs**: Ythan estuary (Hall + Raffaelli 1991), Tuesday Lake (Carpenter + Kitchell 1993), Caribbean reef (Bascompte + Melian + Sala 2005), Serengeti, Black Rock Forest.\n\n**Food-web models**:\n- **Cascade model** (Cohen + Newman 1985): each species randomly placed on a 1D niche axis + eats lower-ranked species.\n- **Niche model** (Williams + Martinez 2000): each species has a niche position + diet range. Fits real webs surprisingly well.\n- **Nested-hierarchy model** (Cattin 2004): adds phylogenetic constraint.\n- **Allometric trophic network (ATN)** (Brose 2006; Yodzis + Innes 1992): mass-based dynamics; bioenergetic predator-prey.\n\n**Stability + complexity debate**: **May 1972** showed that random communities with high connectance are *more* unstable, contradicting MacArthur's 'diversity-stability' intuition. Resolution: real food webs are structured (skewed link strengths, weak interactions, prey-predator pattern) that confer stability (McCann 2000 *Nature*; Allesina + Tang 2012 *Nature*). Modern view: stability emerges from architecture, not raw complexity.\n\n**Mutualistic + parasite networks**: increasingly integrated with food webs into multi-layer networks (Pilosof 2017). Parasites add ~50% more links + can dominate biomass flow (Lafferty 2008).\n\n**Modeling advances**: Bayesian food-web inference from gut contents + isotopes + metabarcoding + DNA-based diet analysis. Machine-learning species-interaction prediction (Strydom 2021)."
+    },
+    {
+      "kind": "text",
+      "title": "Trophic cascades + keystone species + trophic downgrading",
+      "body": "**Trophic cascade**: top-down effect propagates down food chain (apex predator → herbivore → producer).\n\n**Hairston-Smith-Slobodkin (HSS) 1960** *Am Nat* ('the world is green'): predators control herbivores, which therefore can't strip vegetation — explaining why the world is mostly vegetated. Famous in ecology — argued top-down control dominates terrestrial systems. Controversial; counterpoint **Murdoch 1966** + **Ehrlich + Birch 1967** argued bottom-up + chemical defense matter more. Modern consensus: both operate; system-specific.\n\n**Paine (1969)** *Am Nat* coined **keystone species** from Mukkaw Bay sea-star (*Pisaster ochraceus*) removal experiments — removing *Pisaster* led to mussel dominance + diversity collapse. *Pisaster* has disproportionate effect relative to abundance. Other keystones: sea otters (kelp forests), wolves (Yellowstone), tigers, beaver as ecosystem engineer, prairie dogs, krill (Antarctic).\n\n**Classic cascades**:\n- **Yellowstone wolves** (Estes + Ripple): reintroduction 1995 → elk behavior + density change → willow + aspen recovery → beaver + songbird recovery → river morphology shift (Beschta + Ripple 2012). Some details contested but the cascade is real.\n- **Sea otters + urchins + kelp** (**Estes + Palmisano 1974** *Science*): otter loss → urchin explosion → kelp deforestation; otter recovery → kelp recovery. Documented across N Pacific from Aleutians to California.\n- **Cod + Atlantic ecosystem collapse**: Newfoundland cod collapse 1992 → ecosystem reorganization, capelin + shrimp boom; cod still not recovered 30 years later.\n- **Spotted hyena + lion + savanna**: African savannas (Sinclair).\n- **Coral reef fish + algae** (Hughes 1994; Mumby 2006): herbivorous fish loss → algal dominance.\n- **Lake trophic cascades** (**Carpenter + Kitchell 1985, 1993**): adding piscivores → planktivore decline → zooplankton boom → phytoplankton decline → water clarity ↑.\n\n**Trophic downgrading of planet Earth** (**Estes 2011** *Science*): humanity has caused ~75% decline in apex predators globally → cascading ecosystem changes. Loss of large predators may rival climate change as a top-down ecological force.\n\n**Behaviorally mediated trophic cascade (BMTC)** (Schmitz 1998): predators alter prey behavior + habitat use; effects on producers via 'landscape of fear' even without direct mortality. Sometimes larger than density effects.\n\n**Subsidy + cross-ecosystem flows** (Polis + Hurd 1996; Nakano + Murakami 2001): salmon → bears → forests; emerging insects → forest birds. Ecosystems are linked.\n\n**Rewilding** (Soulé + Noss 1998; *Nature Climate Change* 2022): restoration through reintroduction of apex predators + large herbivores; mainstreamed via Pleistocene Park, European Bison restoration, Knepp + Yellowstone + Iberian lynx + Tauros project. See P58 frontier lesson."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fw_1",
+        "kind": "guided_derivation",
+        "question": "Apply Lindeman's 10% rule to top-predator energy availability",
+        "goal": "Given producer NPP, estimate energy available to top predators at trophic level 4.",
+        "steps": [
+          {
+            "prompt": "Grassland NPP = 600 g C/m²/yr. Energy at trophic level 1?",
+            "motivation": "Starting point.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "600 g C/m²/yr"
+              ]
+            },
+            "hints": [
+              "Producers = level 1."
+            ],
+            "reveal": "Trophic level 1 = producers = 600 g C/m²/yr (NPP). This is the energy budget for the rest of the food web."
+          },
+          {
+            "prompt": "Energy at trophic level 2 (herbivores) with 10% transfer efficiency?",
+            "motivation": "Apply 10% rule.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "60 g C/m²/yr"
+              ]
+            },
+            "hints": [
+              "Multiply by 0.10."
+            ],
+            "reveal": "Level 2 = 0.10 × 600 = 60 g C/m²/yr. Supports zebras, wildebeest, grazing insects, etc."
+          },
+          {
+            "prompt": "Energy at level 3 (carnivores), then level 4 (top predators)?",
+            "motivation": "Cascade losses.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "L3 = 6 g C/m²/yr; L4 = 0.6 g C/m²/yr"
+              ]
+            },
+            "hints": [
+              "Two more × 0.10."
+            ],
+            "reveal": "Level 3 = 0.10 × 60 = 6 g C/m²/yr (lions, cheetahs, hyenas). Level 4 = 0.10 × 6 = 0.6 g C/m²/yr (apex secondary carnivores, scavenger guilds). Each step is an order of magnitude — explains why apex predators are rare + large home ranges."
+          },
+          {
+            "prompt": "Why is the ocean's tuna (top predator) sparser than equivalent terrestrial scale?",
+            "motivation": "Marine vs terrestrial chain length.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "longer food chains (5-6 levels), so even more energy lost per top predator"
+              ]
+            },
+            "hints": [
+              "Ocean chains are typically longer."
+            ],
+            "reveal": "Marine food chains often have 5-6 trophic levels (phytoplankton → zooplankton → small fish → predator fish → tuna → shark). With 10% rule, only 10⁻⁵ to 10⁻⁶ of NPP reaches the top → apex marine predators are extraordinarily rare relative to terrestrial. Overfishing magnifies this: removing tuna + sharks removes biomass at the most-energy-expensive position. See P42 marine ecology."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fw_1",
+        "kind": "multiple_choice",
+        "question": "Why does Paine's (1969) keystone-species concept remain central to conservation today?",
+        "options": [
+          "Random.",
+          "Paine (1969) showed via *Pisaster* removal experiments that some species have disproportionate effects on community structure relative to their abundance — 'keystone species'. Key examples: sea otters (Estes + Palmisano 1974 — kelp forest), wolves (Yellowstone — Ripple + Beschta 2012), tigers, krill, ecosystem engineers (beaver, prairie dogs, gopher tortoises). Implications: (1) conservation priorities should weight ecological role + not just rarity; (2) keystone loss triggers trophic cascades + ecosystem regime shifts; (3) rewilding programs target keystone reintroduction; (4) trophic downgrading (Estes 2011) — global loss of apex predators — explains widespread ecosystem disruption. The concept reframed ecology + conservation: it's not just species presence but ecological function that matters. Foundation of functional + trait-based conservation prioritization.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Paine's keystone species (1969) reframed conservation around ecological function, not just abundance. Foundation of trophic cascade theory, rewilding programs, and Estes' (2011) trophic downgrading of planet Earth thesis."
+      },
+      "hints": [
+        "What did Paine show?",
+        "How is it applied today?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Paine (1969) Pisaster removals showed some species have disproportionate community effects — keystones. Foundation of trophic cascade theory (HSS 1960; Estes + Palmisano 1974 sea otter-kelp; Yellowstone wolves), trophic downgrading (Estes 2011), and rewilding."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fw_1",
+        "kind": "scenario",
+        "question": "Restoring a regime-shifted kelp forest",
+        "prompt": "An urchin barren has replaced a kelp forest off the California coast after a sea otter decline + warming event. What ecological + management interventions could shift the system back, and what trophic + behaviorally mediated mechanisms would be at play?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fw_1",
+        "kind": "math_expression",
+        "question": "A food web has S = 25 species + L = 100 trophic links. Compute connectance C = L / S² to 3 decimals.",
+        "acceptedAnswers": [
+          "0.160",
+          "0.16"
+        ],
+        "hint": "C = L / S² = 100 / 625 = 0.16. Within typical range (0.05-0.30). Connectance shapes stability + how perturbations propagate; May 1972 showed that random high-C webs are unstable but real webs have structure that stabilizes them."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fw_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how Lindeman + Elton + Hairston-Smith-Slobodkin + Paine + Estes built food-web ecology.",
+        "rubric": "Mentions: Elton (1927) introduced food chains + ecological pyramids + niche concept. Lindeman (1942) formalized trophic dynamics + 10% rule, explaining short food chains. Hairston-Smith-Slobodkin (HSS 1960) 'world is green' argued top-down predator control structures terrestrial communities. Paine (1969) keystone species via Pisaster removals. Estes + Palmisano (1974) sea otter-urchin-kelp; Ripple + Beschta Yellowstone wolves. Estes (2011) trophic downgrading of planet Earth — global apex predator loss as ecological force. Behaviorally mediated cascades (Schmitz 1998). Network ecology (May 1972 stability-complexity; Williams + Martinez 2000 niche model; Allesina + Tang 2012). Together: food webs are quantitative networks where structure + interaction strength + apex predators determine stability + diversity + ecosystem function; foundation of conservation, fisheries, rewilding."
+      }
+    }
+  ]
+}

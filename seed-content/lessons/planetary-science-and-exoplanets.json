@@ -1,0 +1,154 @@
+{
+  "slug": "planetary-science-and-exoplanets",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish solar-system bodies + their formation contexts.",
+      "Compare exoplanet detection methods + their biases.",
+      "Reason about habitable zones, biosignatures, Drake + Fermi."
+    ],
+    "prereqs": [
+      "celestial-mechanics-and-kepler-orbits"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Solar system: from terrestrial to outer realms",
+      "body": "Our solar system formed ~4.567 Gyr ago from a collapsing molecular cloud fragment. Conservation of angular momentum produced a flattened **protoplanetary disk** around the proto-Sun; particles coagulated into planetesimals → planetary embryos → planets via runaway accretion + giant impacts. The current architecture reflects this formation + 4.5 Gyr of dynamical evolution.\n\n**Terrestrial (inner) planets**: Mercury, Venus, Earth, Mars. Rocky/metallic; high density (~5 g/cm³); small (R < 0.55 R⊕ Mercury → 1 R⊕ Earth); no rings; thin or absent atmospheres (except Venus + Earth); inside the **snow line** (~3-5 AU in early solar system; volatiles vaporized).\n- **Mercury**: smallest, closest, 3:2 spin-orbit lock, surprisingly large iron core (~60% of mass), cratered surface (BepiColombo mission 2018-2026).\n- **Venus**: nearly Earth-twin in size + mass but runaway greenhouse (T_surf 470°C, P_surf 92 bar CO₂), retrograde rotation, sulfuric-acid clouds. VERITAS + DAVINCI + EnVision missions planned.\n- **Earth**: only known biosphere; liquid water, plate tectonics, magnetic dynamo, Moon (giant-impact origin), N₂/O₂ atmosphere with biosignatures.\n- **Mars**: cold + thin atmosphere (CO₂, 6 mbar); evidence for past liquid water + habitable surface; current habitability questions for subsurface. Curiosity + Perseverance + Sample Return.\n\n**Asteroid belt** (~2-3.5 AU, between Mars + Jupiter): ~10⁶ objects > 1 km; Ceres (largest, dwarf planet, ~940 km, water ice); Vesta, Pallas. Sculpted by **Kirkwood gaps** — chaotic resonances with Jupiter (3:1, 5:2, 7:3 mean-motion resonances); cleared by Jupiter's gravity → never coalesced into a planet. **Dawn mission** (2007-2018) visited Vesta + Ceres.\n\n**Gas giants**: Jupiter + Saturn. Massive (Jupiter 318 M⊕, Saturn 95 M⊕); H/He-dominated; rings (especially Saturn — Cassini imagery + ring-mass measurement 2017); many moons. Formed beyond the snow line where ice grains accreted faster + larger.\n- **Jupiter**: rocky-core + metallic-hydrogen mantle + H-He envelope. Great Red Spot. **Galilean moons** (Galileo 1610): Io (volcanic from tidal heating; >400 active volcanoes); Europa (ice shell over subsurface ocean — Europa Clipper 2024); Ganymede (largest moon, has magnetic field — JUICE mission); Callisto (heavily cratered).\n- **Saturn**: spectacular rings (~10 m thick, 280000 km wide; ice + dust). Hexagonal polar storm. **Titan** moon: thick N₂/CH₄ atmosphere, methane lakes, prebiotic chemistry (Cassini + Huygens 2005 landed on surface; Dragonfly 2028 quadcopter mission). **Enceladus**: subsurface ocean spewing water vapor + organics via south-pole geysers (Cassini detected).\n\n**Ice giants**: Uranus + Neptune. Smaller than gas giants (~15 M⊕ each); higher water/ammonia/methane ratio. Uranus: tilted 98° (probably from giant impact), rings + 27 moons. Neptune: bluer (more methane), Triton retrograde-orbiting moon (probably captured Kuiper Belt object).\n\n**Trans-Neptunian + Kuiper Belt** (~30-50 AU): icy bodies including **Pluto** (1930 Tombaugh; reclassified as dwarf planet 2006), **Eris**, **Makemake**, **Haumea**, **Sedna** (extreme orbit, possible Planet Nine evidence). **New Horizons** flyby 2015 revealed Pluto's geology: N₂ ice plains (Sputnik Planitia), water-ice mountains, atmosphere, blue haze.\n\n**Oort cloud** (~10⁴ - 10⁵ AU, hypothesized): spherical shell of icy bodies; source of long-period comets when perturbed inward by passing stars or galactic tides. Outer edge ~halfway to nearest star. Solar wind extends to **heliopause** at ~120 AU (Voyager 1 crossed 2012).\n\n**Modern missions**: **Cassini** (1997-2017, Saturn — ring physics, Enceladus, Titan); **JUICE** (2023, ESA → Jupiter system 2031 → Ganymede orbit 2034); **Europa Clipper** (NASA 2024 → 2030); **DART** (2022 demonstrated kinetic asteroid deflection on Dimorphos); **Lucy** (Jupiter Trojans); **OSIRIS-REx** (Bennu sample return 2023)."
+    },
+    {
+      "kind": "text",
+      "title": "Exoplanet detection + the post-1995 revolution",
+      "body": "**Pre-1995**: no confirmed planets outside the solar system. Some discredited claims (PSR B1257+12 planets around a pulsar — Wolszczan + Frail 1992 — first true exoplanets, but in extreme environment, generally treated as outliers).\n\n**51 Pegasi b** — **Michel Mayor + Didier Queloz, October 1995** (*Nature*): first planet around a Sun-like star, detected by Doppler radial velocity. Hot Jupiter (M ≈ 0.46 M_Jup; orbit 4.2 days; 0.05 AU). Astonished the field — hot Jupiters were thought impossible (gas giants form beyond snow line, must migrate inward). **Mayor + Queloz Nobel 2019** with Peebles.\n\nBy May 2026: ~5800 confirmed exoplanets in ~4200 systems. **Four main detection methods**:\n\n**1. Radial velocity (RV / Doppler)** — Mayor + Queloz method:\n- Star wobbles around system center of mass; spectral lines Doppler-shift by Δv = (m_p/M_*) × v_orb.\n- Detect periodic line shifts via high-resolution echelle spectrograph (HARPS, ESPRESSO, HIRES, EXPRES).\n- **Sensitivity**: ~10 cm/s under ideal conditions today (Earth-Sun signal ~9 cm/s — at the edge).\n- **Bias**: massive planets close to small stars give biggest signal. Hot Jupiters discovered first.\n\n**2. Transit photometry** — flagship of Kepler / TESS / PLATO era:\n- Planet crosses stellar disk → flux drops by (R_p/R_*)². Earth-Sun: 84 ppm; Jupiter-Sun: 1%. Hot Jupiter: detectable from ground.\n- **Kepler (2009-2018)**: 9.5 sq deg stare at Cygnus-Lyra field; ~150000 stars monitored at ~30 ppm precision. **>2700 confirmed planets + ~5000 candidates**. Discovered prevalence of small (1-3 R⊕) planets — most common planet size in galaxy isn't represented in solar system!\n- **TESS (2018-)**: nearly all-sky survey of bright nearby stars → best follow-up targets.\n- **JWST (2022-)**: transmission + emission spectroscopy of transiting exoplanets — atmospheric characterization.\n- **Bias**: geometric transit probability ≈ R_*/a (Sun-Earth 0.5%, hot Jupiter 10%); need ≥3 transits → favors short periods.\n\n**3. Direct imaging**:\n- Resolves planet's reflected/thermal light spatially separated from host star.\n- Requires very young (hot, IR-luminous) planets at wide separations + coronagraphy + AO. Examples: **HR 8799 system** (4 planets imaged 2008 Marois + Lafrenière); **β Pic b** (Lagrange 2009); **PDS 70 b/c** (Keppler + Müller 2018, planets within disk).\n- **Future**: HabWorlds Observatory + ELT-class with coronagraphs → Earth analogs in 2030s+.\n\n**4. Gravitational microlensing**:\n- Foreground star+planet system magnifies background star; planet signature is brief secondary spike.\n- **OGLE** + **MOA** + **KMTNet** surveys; **Roman Space Telescope** (2027) will discover ~1000+ planets via microlensing.\n- Unique strength: sensitive to **low-mass planets at large orbital distances** (cold Earths + free-floating planets).\n\n**Combining transit + RV** gives **mass + radius → density** → composition (gas giant vs ice giant vs rocky vs water world). Best-characterized exoplanets have both. **JWST** atmospheric spectroscopy adds composition + temperature + clouds.\n\n**Population statistics from Kepler**:\n- Hot Jupiters: ~1% of stars.\n- Earth-sized in HZ around Sun-like (η_⊕): ~10-20% (Petigura 2013; Bryson 2021).\n- **Small planets (1-4 R⊕)** are the most common (Earth-likes + super-Earths + sub-Neptunes; gap at ~1.8 R⊕ — Fulton 2017).\n- Multi-planet systems are common (e.g., Kepler-90 has 8 planets like our solar system).\n- Compact systems around M dwarfs (TRAPPIST-1, 7 Earth-sized planets in ~12 d span).\n\nExoplanet science went from speculation to industry in 30 years."
+    },
+    {
+      "kind": "text",
+      "title": "Habitable zones, biosignatures, + Drake/Fermi",
+      "body": "**Habitable zone (HZ)**: orbital region where surface liquid water is plausible on an Earth-like planet.\n- Inner edge (runaway greenhouse, Venus-like): a_HZ,in ≈ 0.95 √(L/L☉) AU.\n- Outer edge (CO₂ condensation, Mars-like): a_HZ,out ≈ 1.67 √(L/L☉) AU.\n- Sun: HZ ≈ 0.95-1.67 AU. Earth comfortably inside.\n- 0.2 M☉ M dwarf (L = 0.005 L☉): HZ ~0.07-0.12 AU. Tightly compressed + tidally locked + bathed in flares.\n\n**Notable habitable-zone candidates**:\n- **Proxima Centauri b** (Anglada-Escudé 2016): closest exoplanet at 4.24 ly; M ≈ 1.07 M⊕; HZ orbit; M-dwarf host with high flare rate.\n- **TRAPPIST-1 system** (Gillon 2017): M8 dwarf (L = 5×10⁻⁴ L☉) 40 ly away with **7 Earth-sized planets**, 3-4 in HZ. Compact resonant chain. JWST observing for atmospheres.\n- **Kepler-186f, Kepler-452b, Kepler-442b, K2-18b**: other HZ candidates around various host types.\n\n**Atmospheric biosignatures**:\n- **Robust**: simultaneous O₂ + CH₄ far from chemical equilibrium (Earth: O₂ + CH₄ should react over ~10 yr — continuous coexistence requires biological flux of CH₄).\n- **Weaker**: O₃ (proxy for O₂), N₂O, vegetation 'red edge' (NIR reflectance jump at 700 nm), CHCl₃, DMSO.\n- **False positives for abiotic O₂**: H₂O photolysis + H escape on M-dwarf planets (high XUV); CO₂ photolysis on dry desert planets; post-runaway-greenhouse water loss. Mitigation: require multi-species disequilibrium signatures + contextual planet history.\n\n**JWST exoplanet science**:\n- Confirmed H₂O, CO₂, CH₄, SO₂ in giant exoplanet atmospheres since 2022.\n- WASP-39b: clear CO₂ detection (Jul 2022, first program).\n- K2-18b: claimed CH₄ + DMS (controversial — DMS is potential biosignature; Madhusudhan 2023).\n- TRAPPIST-1b + 1c: no thick atmospheres detected → bare rock surfaces likely.\n- Earth-like HZ biosignatures: just out of reach for JWST → future HWO / ARIEL / ELT mission goal.\n\n**Future**:\n- **HabWorlds Observatory (HWO)** (2040s flagship, Astro2020 top priority): 6-m UV/optical/IR with picometer wavefront control + coronagraph → image Earth-analogs around ~25 nearest Sun-like stars.\n- **ELT/TMT/GMT** + **HIRES** + adaptive optics: high-resolution spectroscopy of resolved nearby planets.\n- **LIFE** + **Origins Space Telescope**: thermal IR mission concepts for atmospheric biosignatures.\n\n**Drake equation** (Frank Drake, 1961): N = R_* × f_p × n_e × f_l × f_i × f_c × L. Number of communicating civilizations in our galaxy = SFR × fraction with planets × number HZ planets × fraction with life × fraction with intelligence × fraction communicating × lifetime of signal. Most factors poorly constrained — we now know f_p ≈ 1 + n_e ≈ 0.2 (from Kepler); the biological + sociological factors remain unknown. Originally a discussion framework; not a precise predictor.\n\n**Fermi paradox** (Enrico Fermi, ~1950): 'Where is everybody?' Even at modest expansion speeds (1% c), an industrial civilization could colonize the galaxy in ~10⁷-10⁸ yr — << age of galaxy. Why no evidence of ETIs? Resolutions span:\n- **Rare Earth**: complex life is rare (Ward + Brownlee 2000).\n- **Great Filter**: some barrier (origin of life? Industrial maturity? Self-destruction?) is hard (Hanson 1996); we may or may not have passed it.\n- **Loneliness / silence**: civilizations exist but don't communicate, deliberately or accidentally.\n- **Dark forest** (Liu Cixin's fictional, deterrence-game-theory rationale).\n- **Zoo hypothesis**, **simulation**, **berserker**, **transcendence into post-physical**.\n- **We are early**: universe is young; most stars to form haven't yet — we might be cosmic firstcomers.\n\nNo consensus; remains a deep open question. Astrobiology + SETI continue searching."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_plan_1",
+        "kind": "guided_derivation",
+        "question": "Estimate the radial velocity (RV) signal of an Earth analog around a Sun-like star at 10 pc",
+        "goal": "Apply momentum conservation + circular-orbit kinematics to derive the stellar RV wobble + compare to current spectrograph sensitivities.",
+        "steps": [
+          {
+            "prompt": "Center of mass: M_★·r_★ = m_p·r_p. Sun + Earth at 1 AU — what's r_Sun from COM?",
+            "motivation": "Mass ratio × planet distance.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "r_Sun = (m_Earth/M_Sun) × 1 AU = (3×10⁻⁶) × 1.496×10¹¹ m ≈ 4.5×10⁵ m = 450 km"
+              ]
+            },
+            "hints": [
+              "Mass ratio."
+            ],
+            "reveal": "r_★ = (m_p/M_★) × r_p = 3×10⁻⁶ × 1 AU ≈ 450 km. Sun orbits a point ~450 km from its center due to Earth's pull. Jupiter pulls Sun ~743000 km."
+          },
+          {
+            "prompt": "Sun's orbital speed around this COM: v = 2π r_Sun / T with T = 1 yr.",
+            "motivation": "Circumference / period.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "v = 2π × 4.5×10⁵ / 3.156×10⁷ ≈ 0.090 m/s = 9 cm/s"
+              ]
+            },
+            "hints": [
+              "T = 1 yr ≈ 3.156×10⁷ s."
+            ],
+            "reveal": "v = 2π × 4.5×10⁵ m / 3.156×10⁷ s ≈ 0.090 m/s = 9 cm/s. Earth induces a 9 cm/s RV wobble on the Sun (line-of-sight component, ignoring inclination)."
+          },
+          {
+            "prompt": "Compare to ESPRESSO sensitivity (~10 cm/s under ideal conditions).",
+            "motivation": "Detection threshold.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "9 cm/s is at the very edge of current precision; achieving consistent detection of Earth analogs requires many years of monitoring + stellar-activity decorrelation"
+              ]
+            },
+            "hints": [
+              "Compare to spectrograph floor."
+            ],
+            "reveal": "ESPRESSO at VLT: ~10 cm/s ideal, ~30 cm/s realistic. EXPRES at Discovery Channel ~30 cm/s. Earth at 1 AU around Sun-like star: 9 cm/s — currently at the very limit. Stellar activity (granulation, oscillations, p-modes, magnetic cycles) all contribute >1 m/s noise floor. So Earth analogs are out of routine reach via RV alone — need transits + future high-precision instruments + careful activity modeling."
+          },
+          {
+            "prompt": "How does this scale for a Jupiter analog at 5 AU? Hot Jupiter at 0.05 AU?",
+            "motivation": "RV ∝ m_p / √a.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Jupiter at 5 AU: ~12 m/s (the famous discoverable signal). Hot Jupiter (m=300 M⊕, a=0.05 AU) ~140 m/s — trivially detectable; explains why 51 Peg b was found first."
+              ]
+            },
+            "hints": [
+              "v scales as m_p × √(1/a)."
+            ],
+            "reveal": "From v = √(GM_★/a) × (m_p/M_★): proportional to m_p × √(1/a). Jupiter at 5 AU: ~12 m/s (Sun reflex). Hot Jupiter (300 M⊕) at 0.05 AU: ~140 m/s — easily detectable from ground in 1990s. This explains the discovery sequence: hot Jupiters first (1995), eventually mini-Neptunes + super-Earths around small stars (2010s+), Earth analogs around quiet Sun-likes still on the horizon."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_plan_1",
+        "kind": "multiple_choice",
+        "question": "Why does the **transit method** dominate exoplanet discovery despite each detection requiring a fortuitously-aligned orbit?",
+        "options": [
+          "Random.",
+          "Geometric transit probability ≈ R_*/a (Sun-Earth: 0.5%; hot Jupiter: 10%). Low per-system rate, but **survey scale** compensates: Kepler stared at ~150000 stars for 4 yr, TESS at ~200000 stars/sector — many simultaneous targets means even a 0.5% probability yields huge statistical samples. Plus transits give **R_p directly** (via depth = (R_p/R_*)²) + enable **atmospheric transmission/emission spectroscopy** during transit/eclipse (JWST 2022+). Combined with RV → mass + radius → density → composition. No other method gives R_p directly nor enables atmospheric characterization.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Transit probability ~ R_*/a is geometrically small per system, but huge survey samples (Kepler 150k stars, TESS 200k/sector, PLATO ~1M) yield 1000s of detections. Critically, transits also: (1) give R_p directly from depth — uniquely; (2) enable atmospheric transmission spectroscopy when the planet transits + emission spectroscopy when it's eclipsed; (3) combined with RV gives mass + density + composition. JWST 2022+ revolutionized exoplanet atmospheres via transit spectroscopy. Other methods (RV, microlensing, imaging) lack the radius + atmospheric handle. Transits are the workhorse + the data goldmine."
+      },
+      "hints": [
+        "What's the survey-scale leverage?",
+        "What unique info does a transit give?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Transit probability R_*/a is small per system (~0.5% Sun-Earth) but huge survey scale (Kepler 150k stars, TESS 200k) compensates. Critically transits: (1) give R_p directly from depth = (R_p/R_*)²; (2) enable atmospheric transmission + emission spectroscopy (JWST 2022+); (3) combined with RV → mass + density + composition. RV, microlensing, imaging can't match all three. Transits = exoplanet workhorse."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_plan_1",
+        "kind": "scenario",
+        "question": "JWST transmission spectroscopy of an Earth-sized HZ planet around an M dwarf shows H₂O + CO₂ + a hint of O₂ in the atmosphere. The press calls this 'evidence of life.'",
+        "prompt": "Why is this premature even though detection is real? Walk through: (1) M-dwarf XUV environment + abiotic O₂ pathways (H₂O photolysis + H escape — Domagal-Goldman + Meadows 2014); (2) need for co-existence of reduced species (CH₄) for chemical-disequilibrium signature; (3) contextual planet history (water inventory, age, stellar activity); (4) what additional observations would constitute robust biosignature evidence; (5) the role of independent confirmation + theoretical predictions across the astrobiology community. Why is the threshold high? What lesson does this teach about extraordinary-claims-need-extraordinary-evidence in exoplanet science?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_plan_1",
+        "kind": "math_expression",
+        "question": "Write the inner edge of the habitable zone (in AU) for a star of luminosity L (in solar units).",
+        "acceptedAnswers": [
+          "a_HZ,in ≈ 0.95 √(L/L☉) AU",
+          "0.95 √(L/L_sun) AU",
+          "a_in = 0.95 (L/L_sun)^(1/2)"
+        ],
+        "hint": "Runaway greenhouse threshold; scaled to Earth at 1 AU for Sun."
+      },
+      "workedSolution": "a_HZ,in ≈ 0.95 √(L/L☉) AU. Sun: 0.95 AU (just inside Earth at 1 AU). 3 L☉ F-star: 1.65 AU. 0.005 L☉ M dwarf: 0.067 AU. Outer edge: a_HZ,out ≈ 1.67 √(L/L☉) AU. Both scale with stellar luminosity → bigger HZ for hotter stars + tightly compressed for M dwarfs. Refined by Kasting + Kopparapu (multiple HZ definitions: moist greenhouse, conservative, optimistic)."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_plan_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how the exoplanet field went from 0 known planets in 1995 to ~5800 in 2026, + what the next-decade frontier looks like.",
+        "rubric": "Mentions: Mayor + Queloz 1995 (51 Peg b, RV, Nobel 2019); Wolszczan 1992 (PSR planets, pre-MS); RV early dominance → Kepler 2009-2018 transit survey opened small-planet population + statistics (η_⊕ ~ 0.1-0.2 from Kepler; Petigura 2013); TESS 2018+ all-sky nearby bright stars; JWST 2022+ atmospheric spectroscopy (WASP-39b CO₂, K2-18b DMS controversy). Population: small planets most common, mostly missing in solar system (1-4 R⊕ super-Earths + sub-Neptunes with Fulton gap at 1.8 R⊕). Future: HabWorlds Observatory (2040s, image Earth analogs via 6-m UV/visible + 10⁻¹⁰ coronagraph), ELT-class ground + Roman microlensing (2027) + ARIEL atmosphere mission. Goals: detect + characterize Earth analogs in HZ; robust biosignature detection; planetary diversity statistics. Drake + Fermi remain unresolved. Field went from 0 to industry in 30 years; Earth analogs the holy grail."
+      }
+    }
+  ]
+}

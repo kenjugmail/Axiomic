@@ -1,0 +1,158 @@
+{
+  "slug": "celestial-mechanics-and-kepler-orbits",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Derive Kepler's three laws from Newton's gravitation.",
+      "Manipulate the six orbital elements.",
+      "Reason about orbit types, n-body effects, Lagrange points + tidal dynamics."
+    ],
+    "prereqs": [
+      "astronomy-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Kepler's three laws + Newtonian derivation",
+      "body": "Kepler distilled Tycho Brahe's Mars observations into three empirical laws (1609 + 1619). Newton 1687 showed they all follow from F = G·M·m / r² with conservation of angular momentum + energy.\n\n**Law 1 (ellipses)**: a bound planetary orbit is an ellipse with the central mass at one focus. The other focus is empty. For Earth's orbit, eccentricity e = 0.0167 (nearly circular). Halley's comet e = 0.967 (very elongated). Sketch: r(ν) = a(1-e²) / (1 + e·cos ν), where ν is the true anomaly (angle from perihelion).\n\nDerivation: Newton showed that any central inverse-square force yields a conic section orbit (ellipse if E < 0; parabola if E = 0; hyperbola if E > 0). Total energy E = ½mv² - GMm/r determines orbit shape; angular momentum L determines size + orientation.\n\n**Law 2 (equal areas)**: the line from Sun to planet sweeps out equal areas in equal times. Equivalently dA/dt = L/(2m) = constant — this is just **conservation of angular momentum** for a central force. Planet moves faster at perihelion (Earth perihelion in early January, ~30.3 km/s) + slower at aphelion (~29.3 km/s). Mercury perihelion 59 km/s vs aphelion 39 km/s.\n\n**Law 3 (harmonic / period-axis)**: T² = (4π² / GM) · a³ — squared period proportional to cubed semi-major axis. Independent of eccentricity! A highly elliptical comet at a = 1 AU has T = 1 yr just like Earth. The constant 4π²/GM lets us **weigh the central body**: measure T + a → solve for M. Used to weigh:\n- The Sun (planetary orbits).\n- Jupiter (Galilean moons).\n- The Milky Way + Sgr A* (S-star orbits — Genzel + Ghez Nobel 2020 measured M_BH = 4.3×10⁶ M☉).\n- Binary stars + exoplanets.\n\nEnergy of Keplerian orbit: **E = -GMm / (2a)** — depends only on semi-major axis. Vis-viva equation: **v² = GM (2/r - 1/a)** — relates speed + radius + size at any point on the orbit. Eccentricity vector + Laplace-Runge-Lenz vector are additional conserved quantities specific to 1/r potentials.\n\nThe inverse-square law is special: only 1/r² + Hooke's r potentials give closed orbits (Bertrand's theorem 1873)."
+    },
+    {
+      "kind": "text",
+      "title": "Six orbital elements + orbit types",
+      "body": "A Keplerian orbit in 3D needs **six numbers** to fully specify (position + velocity = 6 phase-space coordinates; 6 constants of motion in the two-body problem):\n\n1. **a** — semi-major axis. Sets size + period (via Kepler 3) + energy.\n2. **e** — eccentricity. Shape: 0 = circle; <1 = ellipse; 1 = parabola; >1 = hyperbola.\n3. **i** — inclination. Tilt of orbit plane vs reference plane (ecliptic for solar system; sky plane for binary stars).\n4. **Ω** — longitude of ascending node. Where the orbit crosses the reference plane going up.\n5. **ω** — argument of periapsis. Angle from ascending node to periapsis within the orbit plane.\n6. **ν (or t_p)** — true anomaly (or time of periapsis passage). Where the body is right now / when it was last closest.\n\nAlternative angle conventions: mean anomaly M (uniform in time, M = n(t-t_p), n = 2π/T) + eccentric anomaly E (related to true anomaly via Kepler's equation M = E - e·sin E — solved iteratively).\n\n**Orbit types** by total energy:\n- **Circular** (e = 0; idealization): E = -GMm/(2a). Most planets approximately circular.\n- **Elliptical** (0 < e < 1; bound): periodic return; comets like Halley (e = 0.967, T = 76 yr, a = 17.8 AU); planetary orbits Mercury e = 0.21, Earth e = 0.017, Pluto e = 0.249.\n- **Parabolic** (e = 1; just-unbound): asymptotic escape speed. Many long-period comets approximately parabolic.\n- **Hyperbolic** (e > 1; unbound): single flyby. **'Oumuamua (2017, e = 1.20)** + **Borisov (2019, e = 3.36)** — first confirmed **interstellar visitors**, hyperbolic w.r.t. the Sun.\n\n**Escape velocity** at radius r: v_esc = √(2GM/r). At Earth's surface: 11.2 km/s. From low Earth orbit (LEO): 10.9 km/s. From solar system at 1 AU: 42.1 km/s. **Voyager 1** + **Voyager 2** + **New Horizons** + **Pioneer 10/11** are on hyperbolic solar-system trajectories — humanity's first interstellar emissaries.\n\n**Specific angular momentum** h = √(GM·a·(1-e²)) — conserved for two-body. Used for orbit transfer optimization (Hohmann transfer, gravity assists)."
+    },
+    {
+      "kind": "text",
+      "title": "n-body dynamics, Lagrange points, tidal locking, chaos",
+      "body": "The two-body problem is exactly solvable. The **three-body problem is not** (Poincaré 1887-89; established modern chaos theory). For n ≥ 3 bodies, no general closed-form solutions exist.\n\n**Special three-body solutions — Lagrange points (1772)**: in a restricted three-body problem (e.g., Sun + Earth + spacecraft, with spacecraft much smaller), there are **five equilibrium points** L1-L5 where a small body can orbit synchronously with the two large ones:\n- **L1** (between primaries): unstable; **SOHO**, **DSCOVR** (solar monitors).\n- **L2** (outside Earth from Sun): unstable; **JWST**, **Planck**, **Herschel**, **Gaia**, **Euclid**, **Roman** (cold + shielded from Sun).\n- **L3** (opposite Earth from Sun): unstable; never used (mostly fictional 'counter-Earth' lore).\n- **L4, L5** (60° ahead + behind Earth on its orbit): **stable** if mass ratio satisfies M₁/M₂ > 24.96. Host **Trojan asteroids** (Jupiter L4/L5 ~10000 known; Earth has at least one — 2010 TK7).\n\nLagrange-point spacecraft use minimal fuel for stationkeeping. L2 is ideal for telescopes — single shield blocks Sun + Earth + Moon thermal emission.\n\n**Hill sphere** (Roche lobe analog): region around a planet where its gravity dominates over the host star. Radius R_H ≈ a·(m_p/3M_*)^(1/3). Earth's Hill sphere ≈ 1.5×10⁶ km (Moon at 384000 km comfortably inside). Mass exterior to Hill sphere is stripped tidally over time.\n\n**Tides + tidal locking**: gravity weaker on the far side of a body than the near side — differential pulls produce **tidal bulges**. Friction in the bulges transfers angular momentum, leading to:\n- **Tidal locking**: rotation synchronizes with orbital period. Moon always shows same face to Earth (locked ~4 Gyr ago). Mercury in 3:2 spin-orbit resonance (3 sidereal rotations per 2 orbits). Many close-in exoplanets (especially around M dwarfs — TRAPPIST-1) expected to be tidally locked → extreme day-night temperature contrasts + possible atmospheric collapse on nightside.\n- **Orbital evolution**: Moon receding from Earth at 3.8 cm/yr (lunar-laser ranging since Apollo 11 retroreflectors); Earth day lengthening ~1.8 ms/century. Mars's moon **Phobos** spiraling inward at ~2 cm/yr; will tidally disrupt or impact in ~50 Myr.\n- **Tidal heating**: Io (Jupiter's volcanic moon, > 400 active volcanoes), Europa, Enceladus — internal heating from tidal flexing drives geological activity + subsurface oceans → astrobiology targets.\n\n**Chaos in the solar system**:\n- **Hyperion** (Saturn's moon, irregular shape) tumbles chaotically — first observed example of rotational chaos (Wisdom + Peale 1984).\n- **Inner planets**: Mercury's orbit is chaotic on Gyr timescales (Lyapunov time ~5 Myr; Laskar 1989 + 2009 long-term integrations); ~1% chance Mercury collides with Venus or is ejected in next 5 Gyr.\n- **Asteroid belt** sculpted by chaotic resonances with Jupiter (Kirkwood gaps at 3:1, 5:2, 7:3 mean-motion resonances with Jupiter — clearings).\n- **Saturn's rings** spectacularly resonant — gaps + density waves + braided structures.\n\n**Modern celestial mechanics** spans: spacecraft trajectory design (Apollo, Voyager, Cassini, Galileo, Juno, JWST insertion); asteroid + comet impact threat assessment (NEO surveys; DART deflection 2022); exoplanet system architectures + stability; binary + triple stellar dynamics; dense stellar cluster dynamics; galactic + extragalactic gravitational lensing + cluster dynamics. The Kepler-Newton synthesis is the backbone — augmented by GR (Mercury perihelion advance 43''/century; pulsar timing — Hulse-Taylor 1993 Nobel) for strong + relativistic regimes.",
+      "viz": "kepler-orbits",
+      "vizProps": {
+        "body": "earth"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_kep_1",
+        "kind": "guided_derivation",
+        "question": "Compute Halley's comet semi-major axis from its period + check perihelion + aphelion",
+        "goal": "Halley's comet has T = 76 yr + e = 0.967. Find a, then perihelion + aphelion distances. Confirm aphelion is beyond Neptune.",
+        "steps": [
+          {
+            "prompt": "Use Kepler's third law: T² = a³ in units of yr + AU. Solve for a.",
+            "motivation": "T² = a³ when T in yr, a in AU, central body the Sun.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "a = T^(2/3) = 76^(2/3) ≈ 17.94 AU"
+              ]
+            },
+            "hints": [
+              "76^(2/3)."
+            ],
+            "reveal": "a = T^(2/3) = 76^(2/3) ≈ 17.94 AU. The famous Kepler-in-AU-and-yr form: when the central body is the Sun + T in years + a in AU, then T² = a³ exactly. So a = 76^(2/3) ≈ 17.94 AU."
+          },
+          {
+            "prompt": "Perihelion distance q = a(1 - e). Compute.",
+            "motivation": "Closest approach.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "q = 17.94 × (1 - 0.967) = 17.94 × 0.033 ≈ 0.59 AU"
+              ]
+            },
+            "hints": [
+              "Plug in e = 0.967."
+            ],
+            "reveal": "q = a(1 - e) = 17.94 × 0.033 ≈ 0.59 AU. Inside Venus's orbit (0.72 AU). Halley sublimates vigorously near perihelion — that's when it grows its tail. Last perihelion 9 Feb 1986; next 28 July 2061."
+          },
+          {
+            "prompt": "Aphelion distance Q = a(1 + e). Compute + compare to Neptune (30.07 AU).",
+            "motivation": "Farthest point.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Q = 17.94 × 1.967 ≈ 35.29 AU — beyond Neptune (30.07 AU)"
+              ]
+            },
+            "hints": [
+              "1 + e."
+            ],
+            "reveal": "Q = 17.94 × 1.967 ≈ 35.3 AU. Just beyond Neptune (30.07 AU) — in the Kuiper belt region. Halley spends most of its 76-year orbit out in the cold outer solar system; we only see it ~1 yr around each perihelion."
+          },
+          {
+            "prompt": "Verify with semi-major axis = (q + Q)/2.",
+            "motivation": "Geometric check.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(0.59 + 35.29)/2 = 35.88/2 = 17.94 AU ✓"
+              ]
+            },
+            "hints": [
+              "Average of perihelion + aphelion = semi-major axis."
+            ],
+            "reveal": "(q + Q)/2 = (0.59 + 35.29)/2 = 17.94 AU ✓. Always true for an ellipse: semi-major axis is the average of the two extreme distances. Halley's tightly elongated orbit (e = 0.967) is among the most extreme of any periodic comet."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_kep_1",
+        "kind": "multiple_choice",
+        "question": "Why is the JWST stationed at the Sun-Earth L2 point rather than in a closer Earth orbit like HST?",
+        "options": [
+          "L2 has no atmosphere.",
+          "L2 (1.5 million km beyond Earth from the Sun) co-orbits with Earth, so a single sunshield blocks Sun + Earth + Moon simultaneously, allowing passive cooling to ~40 K — essential for mid-IR observation. Halo orbit needs minimal stationkeeping fuel. The tradeoff: no servicing possible (vs HST's 5 servicing missions).",
+          "L2 is closer to other stars.",
+          "L2 has lower gravity."
+        ],
+        "correctIndex": 1,
+        "explanation": "JWST is at L2 because: (1) co-orbits with Earth → single shield blocks all three warm bodies (Sun, Earth, Moon) — enables passive cooling to ~40 K (essential since JWST operates 0.6-28 μm; warm telescope would be blinded by its own thermal emission peaking at 10 μm). (2) Stable halo orbit around L2 needs only modest stationkeeping (~2.4 m/s/yr) — minimal fuel. (3) No Earth occultation interrupting observations. Tradeoff: 1.5 million km out = no human servicing possible (HST received 5 servicing missions in LEO). L2 has the same atmosphere as LEO (i.e., almost none — both vacuum), same proximity to other stars, similar gravity. The thermal + observational geometry is what matters."
+      },
+      "hints": [
+        "Why does JWST need to be cold?",
+        "What's special about L2's geometry?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "L2 (Lagrange point 2) is 1.5 Mkm outside Earth from Sun; co-orbits with Earth. JWST exploits this for: (a) single sunshield (~tennis-court-sized 5-layer kapton) blocks Sun + Earth + Moon → passive ~40 K cooling → mid-IR enabled; (b) no Earth occultation → continuous observation; (c) modest stationkeeping. HST in LEO can't shadow Earth/Moon so can't go cold enough for mid-IR; but LEO allowed 5 servicing missions which extended HST's life. JWST sacrificed serviceability for thermal geometry."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_kep_1",
+        "kind": "scenario",
+        "question": "In 2017, the first confirmed interstellar object 'Oumuamua passed through the inner solar system on a hyperbolic orbit (e = 1.20). It accelerated slightly faster than gravity alone predicted on its outbound leg.",
+        "prompt": "Walk through the celestial-mechanics reasoning: (1) how does e > 1 prove it's unbound + not native to our solar system; (2) what alternative explanations for non-gravitational acceleration (cometary outgassing vs hydrogen iceberg vs solar radiation pressure vs Loeb's 'lightsail' speculation); (3) why was Borisov 2019 (clearly cometary, e = 3.36) much less controversial; (4) what would future Vera Rubin LSST + Comet Interceptor missions add to interstellar-object science?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_kep_1",
+        "kind": "math_expression",
+        "question": "Write the vis-viva equation relating orbital speed v to radius r + semi-major axis a around mass M.",
+        "acceptedAnswers": [
+          "v² = GM(2/r - 1/a)",
+          "v^2 = GM(2/r - 1/a)",
+          "v = √(GM(2/r - 1/a))"
+        ],
+        "hint": "Derives from total energy conservation E = ½v² - GM/r = -GM/(2a)."
+      },
+      "workedSolution": "Vis-viva: v² = GM(2/r - 1/a). Special cases: circular orbit (r = a): v = √(GM/a). Escape (a → ∞): v_esc = √(2GM/r) = √2 × v_circular. At perihelion (r = a(1-e)): v_peri = √(GM(1+e)/(a(1-e))). At aphelion: v_aph = √(GM(1-e)/(a(1+e))). v_peri/v_aph = (1+e)/(1-e) — Halley's e = 0.967 gives ratio 60×."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_kep_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why celestial mechanics works in practice for solar-system missions despite the three-body problem being analytically unsolvable.",
+        "rubric": "Mentions: two-body Keplerian is exact + analytical (T² = 4π²a³/GM, ellipse, energy = -GM/2a). Three-body unsolvable in closed form (Poincaré → chaos). But: solar system is well approximated as Sun + planet two-body with small perturbations from other planets — perturbation theory + numerical integration (Encke, Cowell, Lagrange) handle multi-body to ppm precision. Lagrange points (L1-L5) are special restricted-three-body equilibria — used for SOHO, JWST, Gaia. Gravity assists (Voyager flybys, Cassini-VVEJGA, JWST L2 insertion) exploit n-body geometry. For chaotic effects (Mercury orbit, asteroid resonances) numerical integration over Gyr is now routine (Laskar 2009). Tidal evolution (Moon recession, tidal locking) uses dissipative perturbations. The Kepler-Newton framework augmented by perturbation theory + numerics is sufficient for nearly all solar-system applications; GR corrections only matter for Mercury perihelion + pulsar timing + strong-field regimes."
+      }
+    }
+  ]
+}

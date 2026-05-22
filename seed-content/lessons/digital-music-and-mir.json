@@ -1,0 +1,154 @@
+{
+  "slug": "digital-music-and-mir",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Master digital audio basics (Nyquist, FFT, MFCC, chroma).",
+      "Survey MIR tasks (beat, chord, key, melody, structure).",
+      "Apply computational musicology + music21 + audio fingerprinting."
+    ],
+    "prereqs": [
+      "acoustics-and-harmonic-series"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Digital audio + DSP: Nyquist, FFT, MFCC, chroma",
+      "body": "**Digital audio** = discrete samples of a continuous waveform. Two key parameters:\n\n- **Sample rate** ($f_s$, Hz): how often the waveform is measured. CD = 44.1 kHz, DVD = 48 kHz, studio = 96 or 192 kHz.\n- **Bit depth**: how many bits encode each sample. 16-bit (CD), 24-bit (studio); dynamic range $\\approx 6 \\cdot \\text{bits}$ dB. 16 bit ≈ 96 dB, 24 bit ≈ 144 dB.\n\n**Nyquist-Shannon sampling theorem** (Harry Nyquist 1928 + Claude Shannon 1949): to perfectly reconstruct a band-limited signal with highest frequency $f_{\\max}$, the sampling rate must satisfy $f_s > 2 f_{\\max}$. The bound $f_s / 2$ is the **Nyquist frequency**. For human hearing (~20 kHz top), 44.1 kHz comfortably exceeds the requirement. Frequencies above Nyquist **alias** down to spurious frequencies; **anti-alias filters** before ADCs prevent this.\n\n**Fourier analysis of discrete signals**:\n\n- **DFT (Discrete Fourier Transform)**: $X[k] = \\sum_{n=0}^{N-1} x[n] \\cdot e^{-i 2\\pi k n / N}$. Maps $N$ time samples to $N$ frequency bins.\n- **FFT (Fast Fourier Transform)**: Cooley-Tukey 1965 — $O(N \\log N)$ algorithm. Made real-time spectral analysis possible.\n- **STFT (Short-Time Fourier Transform)**: slide a windowed FFT across time → **spectrogram** (frequency × time × magnitude). Window choice (Hann, Hamming, Blackman) trades off frequency vs time resolution (Heisenberg-style).\n\n**Standard audio features for MIR**:\n\n- **Spectrogram**: magnitude STFT visualized as image; the standard input to most modern MIR models.\n- **Mel spectrogram**: spectrogram re-binned onto the **mel scale** — perceptual frequency scale, roughly logarithmic above 1 kHz (mimics cochlear basilar membrane).\n- **MFCC (Mel-Frequency Cepstral Coefficients)**: log-mel spectrogram → DCT → take first ~13 coefficients. Compactly captures timbre. Standard for speech recognition + speaker ID + music classification for decades; partly displaced by learned features but still used.\n- **Chroma (pitch class profile)**: 12-dim vector — energy at each pitch class (C, C♯, D, ..., B) collapsed across octaves. Key for chord recognition + key detection + cover-song identification.\n- **Onset strength**: function emphasizing note-onsets (energy + spectral-flux derivatives). Input to beat tracking.\n- **Tempogram**: autocorrelation / FFT of onset strength → BPM × time visualization.\n\n**Audio effects + DSP processors**:\n\n- **Filters**: lowpass, highpass, bandpass, notch, parametric EQ. Designed via biquad coefficients (analog prototypes — Butterworth, Chebyshev, Bessel — bilinear-transformed).\n- **Dynamics**: compressor (reduces loud peaks), limiter (hard ceiling), expander, gate, transient designer.\n- **Time / pitch**: time stretching (phase vocoder, WSOLA), pitch shifting, Auto-Tune. Elastique, Melodyne.\n- **Reverb**: convolution reverb (impulse response of real space) or algorithmic (Schroeder, Moorer, Gardner topologies).\n- **Distortion / saturation**: nonlinear waveshaping (tanh, hard clip, tube emulation).\n\nThese DSP tools live inside every DAW as plug-ins (VST, AU, AAX) + are the working vocabulary of modern producers."
+    },
+    {
+      "kind": "text",
+      "title": "Music Information Retrieval (MIR): beat, chord, key, melody, structure",
+      "body": "**MIR** = extracting musically meaningful information from audio (or symbolic) data. Active research field since ~1999 — annual **ISMIR conference**. Core tasks:\n\n**Beat tracking** (locate downbeats + tactus pulses):\n- **Dan Ellis (Columbia)** + others — classic onset-based + autocorrelation methods. Ellis's *Beat Tracking by Dynamic Programming* (2007) is a canonical baseline.\n- Modern: convolutional / recurrent neural networks on spectrograms (Madmom, BeatNet); state-of-the-art F-measures above 0.9 on stable styles.\n\n**Tempo estimation** + **downbeat tracking** — related tasks; tempogram-based methods + DL.\n\n**Chord recognition** (label each frame with chord — Cmaj, Am7, G7sus4):\n- Chroma features → HMM or DNN classifier. Adapted Hidden Markov Models (Sheh-Ellis 2003; Mauch-Dixon Chordino).\n- Modern: deep models on spectrograms or chroma, possibly combined with structure / language priors.\n\n**Key detection**:\n- **Krumhansl-Schmuckler algorithm** (Krumhansl + Schmuckler 1986) — correlate the song's chroma profile with empirical key-profile templates (Krumhansl-Kessler tonal-hierarchy probe-tone vectors).\n- Modern: DL classifier on chroma + global features.\n\n**Melody extraction** (extract dominant pitched melody from polyphonic audio):\n- **MELODIA** (Justin Salamon + Emilia Gómez 2012) — pitch-salience-based; long-standing baseline.\n- Modern DL: CREPE (Kim et al. 2018) for monophonic pitch; complex polyphonic separation models.\n\n**Cover-song identification**:\n- Match different recordings of the same song. Use chroma + dynamic programming (Serrà + Gómez Qmax) or learned embeddings. Tolerant to key + tempo + instrumentation changes.\n\n**Audio similarity** + **recommendation**:\n- Spotify's recommendation engine combines collaborative filtering (user behavior) + content-based features (audio embeddings) + NLP on track / playlist metadata + reviews. Driven by feature embeddings learned by deep models.\n\n**Music structure segmentation** (find verse-chorus-verse boundaries):\n- Self-similarity matrix (SSM) → segmentation (Foote 2000; McFee + Ellis; Serrà + Müller). Recent DL approaches give state-of-the-art on labeled-segment datasets.\n\n**Source separation**:\n- Demucs (Facebook 2019+), Spleeter (Deezer 2019), Open-Unmix — separate vocals / drums / bass / other from a mix. DL on spectrograms or waveforms. Karaoke + remix workflows + stems for sampling.\n\n**Genre classification, mood tagging, emotion recognition, autotagging** — multi-label classification on learned audio embeddings.\n\n**Toolkits**: **librosa** (McFee et al., Python — features + onsets + chroma + MFCC), **Essentia** (UPF — C++ + Python), **Madmom** (DL-based onsets + beats + chords), **TensorFlow Models for Music**, **OpenL3** (audio embeddings).\n\n**Audio fingerprinting** (deserves its own paragraph):\n- **Shazam** — Avery Wang's algorithm (*An Industrial-Strength Audio Search Algorithm*, ISMIR 2003). Build a fingerprint by detecting peaks in the spectrogram + hashing pairs of nearby peaks (anchor + target → hash of frequencies + time delta). Database stores millions of hashes per song. Query audio → extract its peaks → hash → look up. Robust to noise + distortion + cropping. ~10 seconds of audio identifies a song from a database of tens of millions in milliseconds. Revolutionized music discovery; opened the era of ambient audio recognition (Shazam, SoundHound, ACR Cloud, YouTube's Content ID)."
+    },
+    {
+      "kind": "text",
+      "title": "Computational musicology: symbolic analysis + corpus + generation history",
+      "body": "**Symbolic music** = explicit musical notation (MIDI, MusicXML, **kern, ABC, MEI). Distinct from audio MIR — works on the score, not the recording.\n\n**Michael Scott Cuthbert** + **music21** (MIT, 2008+): Python library for symbolic music analysis. Reads MusicXML, MIDI, **kern, ABC, MEI; runs corpus-level analyses (key estimation, chord extraction, voice-leading checks, melodic contour, statistical summaries); includes built-in corpora (Bach chorales, Mozart sonatas, Palestrina masses, Beethoven quartets, jazz lead sheets, Trecento Italian, etc.). Now the standard tool for computational + analytical musicology coursework + research.\n\n**Corpus-level musicology**:\n- Pre-music21 work: David Huron's Humdrum toolkit + **kern format (1990s+); Helmuth Schaffrath's Essen Folksong Collection.\n- Statistical musicology: distributional analysis of huge corpora — what intervals + chord transitions + phrase patterns are common? what differs across composers / styles / eras?\n- **Encoded scores** + ML on symbolic data: Bach chorale completion (Hadjeres + Pachet *DeepBach* 2017), jazz solo generation, automatic harmonization, music question answering.\n\n**David Cope (UC Santa Cruz, 1980s+)** — **EMI (Experiments in Musical Intelligence)**. Built one of the earliest systems for **algorithmic composition** in the style of existing composers. Cope's approach: analyze a composer's corpus → identify recurring patterns (*signatures*) → reassemble into new compositions following the composer's grammar + voice-leading conventions. EMI's Bach inventions, Mozart sonata movements, Mahler symphonic fragments were performed + recorded; some passed informal Turing-style listening tests. Cope's book *Computers and Musical Style* (1991) + *Virtual Music* (2001) seeded the field. Modern neural systems (Magenta, MuseNet, Music Transformer) descend from this lineage but use deep learning rather than pattern grammars.\n\n**Symbolic generation lineage** (also covered in next lesson, briefly here for context):\n- **Iannis Xenakis** (1950s+) — stochastic + probabilistic composition (*Pithoprakta*, *Achorripsis*); GENDYN.\n- **Hiller + Isaacson** *Illiac Suite* (1957) — first computer-composed score.\n- **David Cope** EMI (1980s+) — style replication.\n- **HMMs, RNNs, Music Transformers** (2010s) — Magenta team (Google).\n- **Modern audio diffusion + audio LLMs** (Jukebox 2020, MusicLM 2023, Suno + Udio 2024) — covered next lesson.\n\n**Open MIR datasets**:\n- **GTZAN** (genre, 2002 — historically common despite known mislabels).\n- **MagnaTagATune** (autotagging).\n- **FMA (Free Music Archive)** — millions of CC-licensed tracks.\n- **Million Song Dataset** (Echo Nest / LabROSA — features, metadata for 1M tracks).\n- **NSynth** (Google — synthesized instrument samples).\n- **MAESTRO** (piano performance + MIDI, ~200 hours).\n- **POP909**, **JAZZ Lead Sheet datasets**, **Lakh MIDI Dataset**.\n\n**Computational musicology has changed what we can ask**: instead of analyzing one Bach chorale, we can analyze 400; instead of one Beethoven sonata, all 32. Corpus statistics reveal regularities, exceptions, individual idiom, historical drift — patterns invisible to single-work analysis. The field's promise is empirical + scalable musicology: hypotheses tested across the canon, not just intuited from favorite examples."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mir_nyquist",
+        "kind": "guided_derivation",
+        "question": "Derive the CD sample rate from Nyquist",
+        "goal": "Show why 44.1 kHz was chosen as the CD sample rate.",
+        "steps": [
+          {
+            "prompt": "What's the upper limit of human hearing?",
+            "motivation": "~20 kHz.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "20 kHz"
+              ]
+            },
+            "hints": [
+              "Young adult human range."
+            ],
+            "reveal": "Adult human hearing tops out around 20 kHz (often lower for older listeners). 20 kHz is the canonical upper limit."
+          },
+          {
+            "prompt": "Apply Nyquist: minimum sample rate?",
+            "motivation": "$f_s > 2 f_{\\max}$.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "greater than 40 kHz"
+              ]
+            },
+            "hints": [
+              "$f_s > 2 \\cdot 20 = 40$ kHz."
+            ],
+            "reveal": "Nyquist-Shannon: $f_s > 2 f_{\\max} = 40$ kHz to perfectly reconstruct content up to 20 kHz. Strict inequality, so >40 kHz needed."
+          },
+          {
+            "prompt": "Why an additional margin above 40 kHz?",
+            "motivation": "Anti-alias filter transition band.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "anti-aliasing filter requires a transition band"
+              ]
+            },
+            "hints": [
+              "Real filters cannot drop to 0 instantly."
+            ],
+            "reveal": "Real anti-aliasing filters cannot be ideal brick walls — they have transition bands. To attenuate frequencies above Nyquist without rolloff in the audio band (<20 kHz), the filter needs a transition zone (e.g., 20 → 22.05 kHz to fully stop). Hence ~10% margin above 40 kHz."
+          },
+          {
+            "prompt": "Why specifically 44.1 kHz (and not, say, 48)?",
+            "motivation": "Historical / hardware reasons.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "compatible with video frame rates + PCM tape adapters"
+              ]
+            },
+            "hints": [
+              "U-matic VTR + 60Hz NTSC + 50Hz PAL?"
+            ],
+            "reveal": "Specific historical reason: early digital audio recorders used **U-matic videotape** as the storage medium (the F1 PCM adaptor, Sony). 44.1 kHz divided cleanly into both NTSC (60 Hz video, 3 samples × 245 lines × 60 Hz = 44.1k) + PAL (50 Hz, 3 × 294 × 50). Sony + Philips chose 44.1 for CD compatibility. Studio standard became 48 kHz (cleaner for video sync at 48 = 24 × 2). Both above the Nyquist + filter margin requirement."
+          }
+        ],
+        "finalResult": "$$\\boxed{f_s^{CD} = 44{,}100 \\text{ Hz} \\;>\\; 2 \\cdot 20{,}000 \\text{ + filter margin}}$$\n\nCD (44.1) + DVD/film (48) + studio (96, 192) all satisfy Nyquist for 20 kHz audio. Higher rates capture ultrasonic content + give DSP processors more headroom. 192 kHz is mostly overkill for playback but useful for synthesis + heavy nonlinear processing."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mir_shazam",
+        "kind": "multiple_choice",
+        "question": "Why does Avery Wang's Shazam algorithm work robustly on noisy phone audio?",
+        "options": [
+          "It compares full audio waveforms.",
+          "Shazam (Wang ISMIR 2003) builds a fingerprint from **spectral peaks** — local maxima in the spectrogram that survive noise + reverberation + EQ + compression. Hash *pairs* of nearby peaks (anchor + target) by (freq_anchor, freq_target, time_delta), yielding billions of compact hashes per song. Query audio: extract its peaks → compute query hashes → look up in DB → for each candidate song, check whether matched hashes have *consistent* time offsets (constant ∆t between anchor + target in query = constant ∆t in DB recording). Many matched hashes with consistent offset = positive ID. Robust because peaks survive degradation that flattens the rest of the spectrum; consistent time-offset check rejects spurious matches; hashes are tiny + indexable. Identifies a song in ~10 seconds of audio against tens of millions of tracks in milliseconds. Revolutionized ambient music recognition.",
+          "It uses Auto-Tune.",
+          "It downloads songs to the phone."
+        ],
+        "correctIndex": 1,
+        "explanation": "Shazam (Avery Wang, ISMIR 2003) fingerprints songs by hashing PAIRS of spectral peaks. Peaks survive noise + reverb + EQ; pair-hash captures local structure resistant to time/pitch shifts; consistent time-offset check across many matched hashes confirms identity. Compact + indexable + robust. Identifies songs from ~10s of phone audio against tens of millions of tracks in milliseconds."
+      },
+      "hints": [
+        "What survives noise + reverb?",
+        "Why hash *pairs* of peaks?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Shazam (Wang 2003) extracts spectral peaks (robust to noise) + hashes pairs of nearby peaks. Query audio → extract peaks → hash → look up DB → confirm via consistent time-offset between query + candidate. Compact + indexable + robust to phone audio noise + reverb."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mir_chord",
+        "kind": "scenario",
+        "question": "Building a chord recognizer",
+        "prompt": "You want to build a chord-recognition system that labels each frame of audio with a chord symbol (Cmaj7, Am, G7, etc.). Walk through the pipeline: (a) audio preprocessing, (b) chroma-feature extraction, (c) classifier choice, (d) post-processing for temporal coherence, (e) evaluation. What's hard about jazz chords vs simple triads, and what role does training data play?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mir_fft",
+        "kind": "math_expression",
+        "question": "An FFT bin's frequency resolution is $\\Delta f = f_s / N$ where $f_s$ is sample rate + $N$ is window length. For $f_s = 44100$ Hz + $N = 2048$ samples, compute $\\Delta f$ (Hz, to 1 decimal).",
+        "acceptedAnswers": [
+          "21.5",
+          "21.53",
+          "21.5 Hz"
+        ],
+        "hint": "$44100 / 2048 \\approx 21.5$ Hz per bin."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mir_overview",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, summarize the MIR pipeline: from raw audio to a musically useful feature (chroma or MFCC) + then to a task output (beat / chord / key / melody / fingerprint). Name at least 4 specific tools or researchers.",
+        "rubric": "Mentions: (1) audio sampled at 44.1 kHz (Nyquist for 20 kHz audio); (2) STFT → spectrogram → log-mel spectrogram; (3) **MFCC** (mel-frequency cepstral coefficients — DCT of log mel spectrogram; standard timbre feature) or **chroma** (12-d pitch class profile, key for chord + key detection); (4) MIR tasks: beat tracking (Dan Ellis dynamic programming; Madmom DL), chord recognition (chroma + HMM/DNN; Chordino), key detection (Krumhansl-Schmuckler templates), melody extraction (MELODIA, CREPE), structure segmentation, source separation (Demucs, Spleeter); (5) audio fingerprinting (Shazam — Wang 2003 — hashes pairs of spectral peaks → indexed lookup → consistent-time-offset check); (6) toolkits: **librosa** (Python), Essentia, Madmom, music21 (symbolic, Cuthbert); (7) optional: corpus-level computational musicology now standard; David Cope's EMI seeded algorithmic composition."
+      }
+    }
+  ]
+}

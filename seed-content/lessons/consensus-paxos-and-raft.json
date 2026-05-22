@@ -1,0 +1,176 @@
+{
+  "slug": "consensus-paxos-and-raft",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Reason about Paxos roles + ballot phases.",
+      "Apply Raft leader election + log replication + safety.",
+      "Compare Paxos variants + view-stamped replication."
+    ],
+    "prereqs": [
+      "consistency-models"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Raft log replication: leader, followers, replicated state machines",
+      "body": "**Consensus** is the problem of getting a set of nodes to agree on one value despite failures. Solving consensus enables **state machine replication** (Schneider 1990): if all replicas apply the same operations in the same order, they end in the same state — the foundation of fault-tolerant services.\n\n**Raft** (Diego Ongaro + John Ousterhout 2014, USENIX ATC, 'In Search of an Understandable Consensus Algorithm') was designed explicitly for understandability after years of Paxos confusing practitioners. Decomposes consensus into three sub-problems: **leader election**, **log replication**, **safety**. Visualization below shows a 5-node Raft cluster with leader replicating log entries to followers.\n\n**Leader-based**: at any moment, at most one leader for the current **term** (epoch). All client writes go through the leader. The leader appends to its log + replicates to followers; once a majority acknowledge, the entry is **committed** + applied to the state machine.\n\n**Why a leader?** Single-leader designs simplify: the leader linearizes operations; followers passively confirm. The leader is the bottleneck but the protocol is dramatically simpler than multi-leader (Multi-Paxos with no distinguished leader).\n\n**Replicated log** is the central abstraction. Each entry: ⟨term, index, command⟩. Entries are ordered + immutable once committed. The state machine applies committed entries in order. Replication = consensus on the log.\n\n**Quorum** = majority. For N=5, quorum=3. Tolerates f = (N-1)/2 crash failures. Common deployments: 3 (tolerate 1), 5 (tolerate 2), 7 (tolerate 3). Larger N reduces availability under correlated failures but increases tolerance.\n\n**Heartbeats**: leader sends `AppendEntries` (possibly empty) every ~50-150 ms to assert leadership + prevent election timeouts on followers. Loss of heartbeat → follower transitions to **candidate** → starts election.\n\n**Linearizability**: Raft guarantees linearizable writes by routing through the leader + waiting for commit. **Linearizable reads** require either lease-based reads (leader confirms still leader, with bounded clock skew) or quorum reads (Raft's `ReadIndex`). Stale reads from a follower are allowed only if explicitly tolerated.",
+      "viz": "raft-log-replication",
+      "vizProps": {
+        "nodes": 5,
+        "leader": 0
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Paxos: the original consensus algorithm (and why it confused everyone)",
+      "body": "**Paxos** (Leslie Lamport 1998, TOCS, 'The Part-Time Parliament' — originally rejected for being 'too whimsical' — re-published 2001 as 'Paxos Made Simple'). The algorithm assumes asynchrony, crash failures, + a majority-quorum system. Provides safety always; liveness when leader stable.\n\n**Roles**:\n- **Proposer**: proposes a value with a ballot number.\n- **Acceptor**: votes on proposals.\n- **Learner**: learns the chosen value.\nIn practice each node plays all three.\n\n**Ballot numbers (proposal numbers)**: monotonically increasing identifiers, partitioned per proposer (e.g., (counter, proposer_id) lexicographic) to ensure uniqueness + total order.\n\n**Two phases per ballot**:\n- **Phase 1 (prepare/promise)**: proposer sends `Prepare(b)` to a majority. Each acceptor that hasn't promised a higher ballot responds with `Promise(b)`, including the highest-numbered (b', v') it has already accepted, if any.\n- **Phase 2 (accept/accepted)**: proposer picks v: if any acceptor reported a previously accepted (b', v'), proposer must use the v' with highest b'; otherwise free choice. Sends `Accept(b, v)`. Each acceptor that hasn't promised a higher ballot accepts + replies `Accepted(b, v)`. Once a majority accept, v is **chosen**.\n\n**Why it's correct (intuitive)**: any two majorities intersect; the intersection contains the highest accepted ballot so far, forcing later ballots to converge on the same value. Formal safety: 'if v is chosen at ballot b, then for every ballot b' > b, every quorum contains some acceptor with v as its highest accepted value' — invariant preserved by the prepare phase.\n\n**Multi-Paxos** (Lamport's note + Chubby/Google practice): a single 'distinguished proposer' (leader) skips Phase 1 for subsequent commands, running Phase 2 only. Equivalent to Raft's log replication. Most production 'Paxos' systems are Multi-Paxos in practice (Google Chubby, Megastore, Spanner's TrueLock).\n\n**Variants + optimizations**:\n- **Fast Paxos** (Lamport 2006): clients send directly to acceptors, saving a round-trip; needs larger quorum (3f+1 with up to f Byz analog or fast-quorum 2f+1 within ⌈3N/4⌉).\n- **Cheap Paxos**: uses auxiliary acceptors only when needed; reduces hardware cost.\n- **Generalized Paxos** (Lamport 2005): allows non-conflicting commands to commit out of order — enabling higher throughput when commands commute.\n- **Egalitarian Paxos (EPaxos)** (Moraru-Andersen-Kaminsky 2013): leaderless; quorum depends on conflicts; lower tail latency.\n- **Flexible Paxos** (Howard 2016): different quorum sizes for Phase 1 + Phase 2 as long as they intersect.\n- **WPaxos** (Ailijiang 2020): WAN-optimized + multi-leader.\n\n**Production**:\n- **Google Chubby** (Burrows 2006): Paxos-based lock service.\n- **Megastore** (2011), **Spanner** (2012), **F1** (2013) — all Paxos.\n- **Microsoft Cosmos DB** uses a Paxos variant.\n\nPaxos's reputation for difficulty drove the field toward Raft, but Paxos is still the gold standard in many large-scale Google + Microsoft systems."
+    },
+    {
+      "kind": "text",
+      "title": "Raft details + view-stamped replication + log compaction + membership",
+      "body": "**Raft in detail** (Ongaro PhD thesis 2014, 'Consensus: Bridging Theory and Practice'):\n\n**States** per node: **Follower** (default), **Candidate** (during election), **Leader** (asserts leadership via heartbeats).\n\n**Leader election**:\n- Each follower has a randomized **election timeout** (150-300 ms typical).\n- On timeout, follower → candidate; increments term; votes for self; sends `RequestVote` to all peers.\n- A node votes yes if: (a) it hasn't voted in this term + (b) the candidate's log is **at least as up-to-date** as its own (defined by `(lastLogTerm, lastLogIndex)` lex order).\n- Wins on majority. Tie → randomized backoff + new term.\n- Randomization avoids split-vote livelock.\n\n**Log replication**:\n- Client → leader: append command.\n- Leader appends to local log; sends `AppendEntries(prevTerm, prevIndex, entries, leaderCommit)` to followers.\n- Followers check: `(prevTerm, prevIndex)` matches their log? If yes, append + truncate any conflicting suffix; return success. If no, reject; leader decrements `nextIndex` + retries (the 'log matching' property converges).\n- Once a majority replicate the entry, leader marks it **committed** + advances `commitIndex` + tells followers in next `AppendEntries`.\n- Each replica applies committed entries to its state machine in index order.\n\n**Safety properties** (proven in Ongaro's TLA+ spec):\n- **Election safety**: at most one leader per term.\n- **Leader append-only**: never overwrites or deletes its log.\n- **Log matching**: if two logs have an entry with same (term, index), prefixes are identical.\n- **Leader completeness**: if an entry is committed in term T, it appears in every leader's log for term > T.\n- **State machine safety**: if a node applies entry e at index i, no other node applies a different e at i.\n\n**Log compaction (snapshotting)**: long logs hurt memory + recovery time. Periodically snapshot the state machine + truncate log up to snapshot index. New followers / lagging followers receive `InstallSnapshot` before tailing log. Etcd + TiKV + Consul implement this.\n\n**Membership changes**:\n- **Joint consensus** (Raft paper): transition through a configuration that requires majority in both old + new configs → safe.\n- **Single-server changes** (Raft thesis): one node at a time; simpler but slower.\n- **Reconfiguration** without downtime is a delicate part of any consensus implementation — Etcd, TiKV bugs have occurred here.\n\n**View-Stamped Replication (VSR)** (Brian Oki + Barbara Liskov 1988, PODC, predates Paxos): essentially the same consensus algorithm Raft rediscovered. Roles: primary + backups; views correspond to terms; view changes correspond to elections. Liskov + Cowling revisited as 'VR Revisited' (2012) showing the connections. Both Raft + VSR are leader-based + replicate a log; Multi-Paxos in practice converges to the same structure.\n\n**ZAB (ZooKeeper Atomic Broadcast)** (Reed + Junqueira 2008): the protocol behind Apache ZooKeeper; similar leader-based total-order broadcast.\n\n**Open-source Raft implementations**:\n- **etcd/raft** (CoreOS, now CNCF) — most widely adopted; powers Kubernetes etcd, CockroachDB, TiKV, Consul, Patroni.\n- **HashiCorp raft** — Go library used in Consul + Nomad.\n- **NuRaft** (eBay) — C++.\n- **OpenRaft** — Rust.\n\n**Beyond Raft**: \n- **Multi-Raft**: thousands of Raft groups (one per shard) — CockroachDB, TiKV scale this way.\n- **Parallel Raft** (PolarFS) + **PigPaxos** — throughput optimizations.\n- **Byzantine Raft / Tendermint / HotStuff** — Byzantine variants (covered in blockchain lesson).\n\n**Failure modes to test** (Jepsen lessons): network partitions, asymmetric partitions (one-way), pause-and-resume leader (GC), clock skew breaking lease reads, disk full, slow follower, log corruption, snapshot corruption, byzantine leader-impersonation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_raft_1",
+        "kind": "guided_derivation",
+        "question": "Trace a Raft leader election + first replication",
+        "goal": "5-node Raft cluster (A,B,C,D,E). All followers, term 0. A's election timer fires. Trace through to a committed entry.",
+        "steps": [
+          {
+            "prompt": "A's timer fires. What does A do?",
+            "motivation": "Become candidate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "increment term to 1, transition to candidate, vote for self, send RequestVote to B,C,D,E"
+              ]
+            },
+            "hints": [
+              "Increment term + RequestVote."
+            ],
+            "reveal": "A becomes **candidate**: increments currentTerm to 1, votes for itself (votedFor=A), resets election timer, sends `RequestVote(term=1, lastLogTerm=0, lastLogIndex=0)` to B,C,D,E."
+          },
+          {
+            "prompt": "B,C,D haven't voted in term 1 + their logs are no more up-to-date than A's. What do they reply?",
+            "motivation": "Vote rules.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "voteGranted=true; set votedFor=A in term 1; A now has 4 votes including self → wins majority of 3"
+              ]
+            },
+            "hints": [
+              "Majority of 5 = 3."
+            ],
+            "reveal": "B, C, D grant vote (each updates currentTerm to 1, sets votedFor=A). A now has votes from {A,B,C,D} = 4 ≥ 3 (majority). A becomes **leader** for term 1. Sends heartbeat `AppendEntries(term=1, prevTerm=0, prevIndex=0, entries=[])` to assert leadership."
+          },
+          {
+            "prompt": "Client sends `SET x=10` to leader A. What does A do next?",
+            "motivation": "Log append + replicate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "append entry (term=1, index=1, cmd=SET x=10) locally; send AppendEntries to followers"
+              ]
+            },
+            "hints": [
+              "Local append then replicate."
+            ],
+            "reveal": "A appends ⟨term=1, index=1, cmd=SET x=10⟩ to its own log. Sends `AppendEntries(term=1, prevTerm=0, prevIndex=0, entries=[⟨1,1,SET x=10⟩], leaderCommit=0)` to B,C,D,E in parallel."
+          },
+          {
+            "prompt": "B + C reply success; D + E haven't yet. Can A commit?",
+            "motivation": "Majority replication.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "yes; A + B + C = majority of 3; A advances commitIndex to 1 + applies SET x=10 to state machine; replies to client"
+              ]
+            },
+            "hints": [
+              "Majority means 3 of 5 including leader."
+            ],
+            "reveal": "Yes. A counts itself: matchIndex[A]=1, matchIndex[B]=1, matchIndex[C]=1 → 3/5 majority. A advances **commitIndex to 1**, applies `SET x=10` to its state machine, replies success to client. Next `AppendEntries` heartbeat carries `leaderCommit=1` so B + C also apply. D + E catch up later. **Safety**: if A crashes now, any future leader for term ≥ 2 must have this entry (leader completeness)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_raft_1",
+        "kind": "multiple_choice",
+        "question": "Why did Ongaro + Ousterhout design Raft despite Paxos already existing?",
+        "options": [
+          "Just to be different.",
+          "Raft (Ongaro + Ousterhout 2014 USENIX ATC) was designed explicitly for **understandability**. Paxos (Lamport 1998), though elegant, was notoriously hard to teach + implement correctly — engineers + students struggled to derive a working Multi-Paxos from the original paper. Raft decomposes consensus into three clear sub-problems: **leader election**, **log replication**, **safety**. Strong leadership (only the leader appends; followers passively replicate) simplifies the algorithm. Randomized election timeouts avoid split-vote livelock. Joint-consensus membership changes formalize reconfiguration. The paper was accompanied by a formal TLA+ spec + a user study showing students learned Raft faster than Paxos. Result: a wave of high-quality implementations (etcd, TiKV, Consul, CockroachDB) + Raft becoming the de-facto consensus algorithm in modern open-source distributed systems.",
+          "Paxos is wrong.",
+          "Raft is faster."
+        ],
+        "correctIndex": 1,
+        "explanation": "Raft (Ongaro-Ousterhout 2014) was designed for understandability. Decomposes consensus into leader election + log replication + safety. Strong leader + randomized timeouts + clear membership changes. TLA+ spec + user study. Result: etcd, TiKV, Consul, CockroachDB adopt Raft."
+      },
+      "hints": [
+        "Why a new protocol?",
+        "What did Paxos lack?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Raft designed for understandability (Ongaro-Ousterhout 2014). Three sub-problems: leader election + log replication + safety. Strong leadership + randomized timeouts. Adopted by etcd, TiKV, Consul, CockroachDB."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_raft_1",
+        "kind": "scenario",
+        "question": "Production scenario: Raft cluster has 5 nodes; 2 are slow + 1 has a partial network partition (sends but doesn't receive). What happens to leader election?",
+        "options": [
+          "Leader keeps committing with the 2 reachable healthy followers — quorum of 3 (leader + 2 healthy) is met. The half-partitioned node may keep starting elections + bumping the term; mitigated by **PreVote** (Ongaro thesis) which checks reachability before incrementing term.",
+          "Cluster halts.",
+          "Split-brain.",
+          "Random outcome."
+        ],
+        "correctIndex": 0,
+        "explanation": "Raft needs majority (3 of 5). Leader + 2 healthy followers = 3, so commits proceed. The asymmetrically partitioned node, unable to receive heartbeats, repeatedly starts elections, bumping the term. Real-world fix: **PreVote** (Ongaro thesis §4.2.3) — candidates first ask 'would you vote for me?' without bumping term. Avoids disruption. Implemented in etcd, TiKV, hashicorp/raft (the latter as `LeadershipTransfer` + `PreVote` mode). Also use **CheckQuorum** to step down leaders that lose quorum contact."
+      },
+      "hints": [
+        "Majority is 3 of 5.",
+        "PreVote prevents disruptive elections."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Leader + 2 healthy = majority. The partial-partition node bumps term; PreVote (Ongaro thesis) prevents disruptive elections. Etcd, TiKV implement this."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_raft_1",
+        "kind": "math_expression",
+        "question": "For a Raft cluster to tolerate f = 3 crash failures, what is the minimum N?",
+        "acceptedAnswers": [
+          "N = 7",
+          "7",
+          "2f + 1",
+          "2*3+1"
+        ],
+        "hints": [
+          "Crash-only consensus.",
+          "N ≥ 2f + 1."
+        ],
+        "explanation": "Crash-only consensus (Paxos/Raft) needs N ≥ 2f+1: any two majorities intersect, so committed values survive failures. f=3 → N=7. Quorum = ⌈N/2⌉+1 = 4 (out of 7). Compare Byzantine: 3f+1 (= 10 for f=3). The 2f+1 bound is tight + matches the Dwork-Lynch-Stockmeyer (1988) lower bound for partial synchrony. Higher N improves tolerance + latency tail (slow node skip) but worsens commit latency (more nodes to coordinate) — common deployments are 3 or 5; 7 reserved for high-tolerance + geo-distributed."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_raft_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, compare Paxos + Raft + view-stamped replication.",
+        "rubric": "Mentions: all three solve consensus + enable state machine replication (Schneider 1990). **Paxos** (Lamport 1998 'Part-Time Parliament', simplified 2001): roles proposer/acceptor/learner; two phases per ballot; safety always, liveness with stable leader. Variants: Multi-Paxos, Fast Paxos (2006), Generalized Paxos (2005), EPaxos (2013), Flexible Paxos (2016). **Raft** (Ongaro + Ousterhout 2014): designed for understandability; strong leader; decomposed into leader election + log replication + safety; randomized timeouts; TLA+ spec. Adopted by etcd, TiKV, Consul, CockroachDB. **VSR** (Oki + Liskov 1988): predates Paxos; primary + backups; views = terms; revisited by Liskov + Cowling 2012 showing the deep similarities. All three converge in practice to a leader-based replicated log with majority quorum + N ≥ 2f+1 for crash tolerance. The differences are pedagogical + ergonomic, not theoretical."
+      }
+    }
+  ]
+}

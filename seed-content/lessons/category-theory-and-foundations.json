@@ -1,0 +1,154 @@
+{
+  "slug": "category-theory-and-foundations",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Master categories, functors, natural transformations.",
+      "Understand limits, colimits, adjoints, Yoneda, monads.",
+      "Survey topoi, HoTT, and formalized mathematics."
+    ],
+    "prereqs": [
+      "abstract-algebra-and-groups",
+      "analysis-and-topology"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Categories, functors, natural transformations",
+      "body": "**Category** 𝒞 consists of:\n- A collection of **objects** Ob(𝒞).\n- For each pair (A, B), a set Hom_𝒞(A, B) of **morphisms** (arrows) A → B.\n- **Composition**: ∘ : Hom(B, C) × Hom(A, B) → Hom(A, C), associative.\n- **Identity** id_A : A → A acting as left + right identity.\n\nExamples:\n- **Set**: sets + functions.\n- **Grp**: groups + group homomorphisms.\n- **Ab**: abelian groups + homomorphisms.\n- **Top**: topological spaces + continuous maps.\n- **Vect_k**: vector spaces over k + linear maps.\n- **Ring**: rings + ring homomorphisms.\n- **Cat**: (small) categories + functors.\n- A monoid M is a category with one object (morphisms = elements; composition = monoid operation).\n- A preorder (P, ≤) is a category with objects = P, morphisms = ordered pairs (a ≤ b).\n\n**Samuel Eilenberg (1913–1998)** + **Saunders Mac Lane (1909–2005)** invented category theory in their 1945 paper *General theory of natural equivalences* (Transactions AMS) — motivated by formalizing what 'natural' meant in algebraic topology (homology theories). The originating paper had the title because the *natural transformation* concept needed a precise home; the rest followed.\n\n**Functor** F : 𝒞 → 𝒟: assigns each object A ∈ Ob(𝒞) to F(A) ∈ Ob(𝒟); each morphism f : A → B to F(f) : F(A) → F(B); preserves composition + identity. Examples:\n- Forgetful U : Grp → Set (forget group structure).\n- Free F : Set → Grp (free group on a set).\n- Fundamental group π_1 : Top* → Grp.\n- Homology H_n : Top → Ab.\n\n**Natural transformation** η : F ⇒ G between functors F, G : 𝒞 → 𝒟: for each A ∈ Ob(𝒞), a morphism η_A : F(A) → G(A), such that for f : A → B the naturality square commutes:\n\n  F(A) →^{η_A} G(A)\n  F(f) ↓        ↓ G(f)\n  F(B) →^{η_B} G(B)\n\nNatural = uniformly defined across all objects. Captures 'canonical' isomorphisms (V ≅ V** for vector spaces *naturally*; V ≅ V* not naturally).\n\n**Diagrams + universal properties**: instead of constructions defined by elements, define objects up to unique iso by maps in/out. The product A × B is the universal pair (π_A, π_B) such that any (f, g) factors uniquely. Initial objects, terminal objects, equalizers, pullbacks all have universal-property definitions. **Category theory's central move**: replace constructions with mapping-in/mapping-out characterizations."
+    },
+    {
+      "kind": "text",
+      "title": "Limits, colimits, adjoints, Yoneda, monads",
+      "body": "**Limits + colimits** generalize products, kernels, intersections, unions, quotients.\n\n**Limit** of a diagram D : J → 𝒞: an object lim D + cone (projection morphisms) universal among cones into D. Special cases:\n- **Product** A × B (J = discrete two-object).\n- **Equalizer** of f, g : A → B (J = two parallel arrows).\n- **Pullback** A ×_C B (J = cospan • → • ← •).\n- **Inverse limit** lim ⟵ (J = filtered poset, going down).\n\n**Colimit** = dual; cocone universal among cocones from D. Coproduct (disjoint union/free product), coequalizer (quotient), pushout, direct limit.\n\n**Adjoint functors**: F : 𝒞 → 𝒟 left adjoint to G : 𝒟 → 𝒞 (written F ⊣ G) if there's a natural bijection Hom_𝒟(F A, B) ≅ Hom_𝒞(A, G B). Classic examples:\n- Free ⊣ Forgetful (Set ⇄ Grp; Set ⇄ Vect_k; Set ⇄ Top with discrete/indiscrete).\n- Tensor ⊣ Hom: (- ⊗ M) ⊣ Hom(M, -).\n- ∃ ⊣ pullback ⊣ ∀ in logic; Σ ⊣ pullback ⊣ Π in categorical logic.\n- Stone–Čech βX is left adjoint to inclusion CHaus ↪ Top.\n\nAdjoints encode 'universal solutions to problems'. **'Adjoint functors arise everywhere'** (Mac Lane); 'left adjoints preserve colimits, right adjoints preserve limits' is the central calculation rule.\n\n**Yoneda lemma**: for F : 𝒞 → Set + A ∈ 𝒞,\n\n$$\\text{Nat}(\\text{Hom}_𝒞(A, -), F) \\cong F(A).$$\n\nDeep consequence: every object A is fully determined by Hom_𝒞(A, -), the *functor of morphisms out of A*. **Yoneda embedding** 𝒞 ↪ [𝒞^op, Set] is fully faithful. Slogan: **'an object is what it does'**. Foundational; appears in algebraic geometry (functor of points), representation theory, type theory.\n\n**Monads** (Roger Godement, then Beck, Eilenberg–Moore 1960s): triple (T, η, μ) with T : 𝒞 → 𝒞, η : Id ⇒ T (unit), μ : T² ⇒ T (multiplication) satisfying associativity + unit laws. Encodes algebraic theories. Examples:\n- List monad (free monoid).\n- Maybe monad (partiality).\n- State, Continuation, IO monads (functional programming, Haskell).\n- Distribution monad (Giry).\n\n**Kleisli + Eilenberg–Moore categories** of a monad. Adjunctions F ⊣ G induce monads T = GF.\n\n**Kan extensions (Daniel Kan, 1958)**: left + right Kan extensions Lan_F H, Ran_F H along F : 𝒞 → 𝒟 of H : 𝒞 → 𝒟. Mac Lane: **'all concepts are Kan extensions'**. Limits + colimits are special cases. Kan extensions generalize Fourier extension, integration of functors, sheafification."
+    },
+    {
+      "kind": "text",
+      "title": "Topoi, HoTT, and formalized mathematics",
+      "body": "**Topos theory** (Grothendieck 1960s; Lawvere–Tierney 1970s): a *topos* is a category that behaves like Set + admits internal logic. Two flavors:\n\n- **Grothendieck topos**: sheaves on a site (category with topology). Each topos has its own 'geometry' + 'logic'. Examples: Sh(X) for X a topological space; étale topos of a scheme. **Alexander Grothendieck** introduced topoi to do **étale cohomology** for the Weil conjectures (proved by Deligne 1973). Topoi = 'generalized spaces'.\n\n- **Elementary topos** (Lawvere–Tierney): finitely complete, cartesian closed, with subobject classifier Ω. Has internal higher-order logic. Models for set theory + alternative foundations.\n\n**William Lawvere (1937–2023)**: revolutionary categorical foundations. **ETCS (Elementary Theory of the Category of Sets, 1964)**: axiomatizes Set categorically, no membership-based ZFC. *Categorical foundations* — mathematics built on functions + composition rather than membership + sets. **Lawvere theories** (algebraic theories categorically). **Lawvere–Tierney topology** (sheafification axiomatically).\n\n**Curry–Howard–Lambek isomorphism**: propositions = types = objects in a cartesian closed category. Proofs = programs = morphisms. Logic ↔ programming ↔ category theory.\n- **Curry–Howard (1934–1969)**: typed λ-calculus ↔ intuitionistic logic. Types = propositions; programs = proofs.\n- **Lambek (1969)**: cartesian closed categories ↔ simply typed λ-calculus.\n\n**Homotopy Type Theory (HoTT, 2006–)**: Vladimir Voevodsky (1966–2017, Fields Medal 2002 for motivic cohomology + motivic homotopy theory) noticed that Martin-Löf intensional type theory has *homotopical* structure: types as ∞-groupoids, equality as paths. **Univalence axiom**: equivalent types are equal (literally — propositional equality of types is equivalent to equivalence of types). Resolves long-standing foundational tensions.\n\n**Univalent Foundations (UF)**: Voevodsky's program to refound mathematics on HoTT. Set theory → ∞-groupoid + types. Strict equality vs path equality clarified. New foundation for math + formal verification.\n\n**Lean (Microsoft Research, 2013+; Leonardo de Moura)** + **Coq (1989; INRIA)** + **Agda + Isabelle/HOL**: interactive proof assistants. **mathlib**: Lean's math library; >1.5M lines + growing. Proofs verified by computer.\n\n**Formalized mathematics milestones**:\n- **Four color theorem** (Appel–Haken 1976; formalized by Gonthier in Coq 2005).\n- **Feit–Thompson odd-order theorem** (Gonthier et al. 2012 in Coq).\n- **Kepler conjecture** (Hales–Ferguson 1998; Flyspeck project, formalized 2014 in HOL Light + Isabelle).\n- **Liquid Tensor Experiment** (Scholze 2020 → Lean 2022): Peter Scholze (Fields 2018) challenged Lean community to formalize a key step in condensed math; succeeded 2022. Demonstrates Lean's research-grade capabilities.\n- **Polynomial Freiman–Ruzsa conjecture** (Gowers, Green, Manners, Tao 2023; formalized in Lean within weeks).\n\n**Future**: AI-augmented theorem proving (AlphaProof, GPT-f, Lean Copilot); formalization of frontier math; new foundations (cubical type theory, ∞-topoi à la Lurie); computer-checked + human-readable proofs as a research norm."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cat_yoneda",
+        "kind": "guided_derivation",
+        "question": "Yoneda for a one-object category (monoid)",
+        "goal": "Specialize Yoneda to a monoid M viewed as a one-object category.",
+        "steps": [
+          {
+            "prompt": "A monoid M = (M, ·, 1) viewed as a category 𝒞 has how many objects?",
+            "motivation": "Setup.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1"
+              ]
+            },
+            "hints": [
+              "One-object category."
+            ],
+            "reveal": "𝒞 has one object •; Hom(•, •) = M (elements as morphisms); composition = monoid op."
+          },
+          {
+            "prompt": "A functor F : 𝒞 → Set is a what?",
+            "motivation": "Identify.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "M-set; left action of M on a set"
+              ]
+            },
+            "hints": [
+              "F(•) = a set with M acting."
+            ],
+            "reveal": "F(•) = set X; F(m) : X → X for each m ∈ M; functoriality ⇒ M acts on X. F : 𝒞 → Set ≃ left M-set."
+          },
+          {
+            "prompt": "Hom_𝒞(•, -) corresponds to which M-set?",
+            "motivation": "Representable.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "M acting on itself by left multiplication; regular representation"
+              ]
+            },
+            "hints": [
+              "Hom(•, •) = M with M acting by composition."
+            ],
+            "reveal": "Hom_𝒞(•, -) corresponds to M with left action by left multiplication — the *regular M-set*."
+          },
+          {
+            "prompt": "What does Yoneda say in this case?",
+            "motivation": "Apply lemma.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "M-equivariant maps from regular M-set to X are in bijection with elements of X"
+              ]
+            },
+            "hints": [
+              "Nat(Hom(•, -), F) ≅ F(•)."
+            ],
+            "reveal": "Nat(Hom_𝒞(•, -), F) ≅ F(•). I.e. M-equivariant maps {regular M-set} → X correspond bijectively to elements of X (the image of 1 ∈ M determines the map). Yoneda specialized = familiar fact about group/monoid actions."
+          }
+        ],
+        "finalResult": "**Yoneda for monoids**: M-equivariant maps M → X are determined by where 1 goes. A specialization that makes the abstract lemma concrete + intuitive. The general Yoneda lemma is this fact's most natural home."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cat_eilenberg",
+        "kind": "multiple_choice",
+        "question": "Why was Eilenberg + Mac Lane's 1945 paper foundational?",
+        "options": [
+          "Random.",
+          "Eilenberg + Mac Lane (1945) introduced *categories*, *functors*, *natural transformations* to make precise what 'natural' meant — initially for algebraic topology (comparing homology theories). The framework abstracted patterns appearing across algebra + topology + analysis. Within 20 years, category theory had become the lingua franca of modern math: Grothendieck's algebraic geometry (schemes, topoi); Lawvere's categorical foundations (ETCS, ALG-theories); Mac Lane's *Categories for the Working Mathematician* (1971 — the bible); programming languages (Haskell-style monads); modern frontier (∞-categories à la Lurie, HoTT à la Voevodsky). Foundational because it became the *language* in which higher mathematics is written + thought.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Eilenberg + Mac Lane (1945) introduced categories/functors/natural transformations to formalize 'natural' in algebraic topology. Became lingua franca of modern math (Grothendieck schemes, Lawvere foundations, ∞-categories, HoTT, FP). Language for higher math."
+      },
+      "hints": [
+        "1945 + naturality of algebraic topology.",
+        "What language did it become?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Eilenberg + Mac Lane 1945 paper introduced categories/functors/natural transformations for algebraic topology. Within 20 years, the language of modern math (Grothendieck, Lawvere, Lurie, Voevodsky). Lingua franca."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_cat_hott",
+        "kind": "scenario",
+        "question": "Voevodsky's HoTT + univalence",
+        "prompt": "Vladimir Voevodsky proposed homotopy type theory (HoTT) as new foundations for math (~2006). The univalence axiom says equivalent types are equal. Why is this a natural + powerful foundational move? How does it relate to category theory (∞-groupoids), formal verification (Lean, Coq), and the everyday work of mathematicians? Why has it been called potentially as significant as Cantor's set theory?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_cat_yoneda",
+        "kind": "math_expression",
+        "question": "By Yoneda, $\\text{Nat}(\\text{Hom}_𝒞(A, -), F) \\cong ?$",
+        "acceptedAnswers": [
+          "F(A)",
+          "F A"
+        ],
+        "hint": "Set elements of F at A."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cat",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why category theory has become 'the language of modern mathematics' and how it bridges to logic + computer science.",
+        "rubric": "Mentions: Eilenberg + Mac Lane (1945) introduced categories/functors/natural transformations from algebraic topology; spread to algebra (Grothendieck schemes, topoi), foundations (Lawvere ETCS), logic (Lambek; categorical logic), CS (typed λ-calculus = cartesian closed cats; monads in functional programming). Bridge to logic via Curry–Howard–Lambek (propositions = types = objects). HoTT (Voevodsky) + univalent foundations refound math on ∞-groupoids. Formal verification (Lean, Coq, mathlib) makes proofs machine-checkable; Liquid Tensor Experiment + PFR formalized. Category theory = uniform organizing language; abstraction that compresses + reveals; spans pure math + applied CS + foundations."
+      }
+    }
+  ]
+}

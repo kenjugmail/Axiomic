@@ -1,0 +1,156 @@
+{
+  "slug": "robotics-foundations-and-history",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Trace the arc from Unimate to humanoids.",
+      "Decompose a robot into links, joints, DOF, end-effectors.",
+      "Place key isaacs (Asimov, Brooks, Moravec) in context."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "From Unimate to humanoids: 60 years of robotics",
+      "body": "**Robotics** is the engineering discipline of building physical machines that sense, decide, and act in the world. The word entered English via Karel Čapek's 1920 play *R.U.R.* but the field as we know it began with industrial automation.\n\n**Industrial era (1961-1990s)**:\n- **Unimate (1961)**: George **Devol** patented the programmable manipulator in 1954; Joseph **Engelberger** (\"father of robotics\") commercialized it as Unimate, installed at General Motors' Trenton plant in 1961 to unload die-casts. The first industrial robot. Engelberger went on to found Unimation and evangelize robotics for decades.\n- **Stanford Arm (1969)** + **Stanford Cart**: Victor Scheinman's all-electric 6-DOF arm — the ancestor of the PUMA.\n- **Shakey the Robot (1969 SRI)**: first mobile robot with reasoning. Combined STRIPS planner, vision, and natural-language commands. Spawned A* search (Nils Nilsson, Bertram Raphael, Peter Hart). Funded by DARPA.\n- **PUMA 560 (1978, Unimation/Scheinman)**: programmable universal manipulator for assembly. Six revolute joints, anthropomorphic. Became the workhorse of academic robotics — every grad student in the 1980s-90s ran code on a PUMA.\n- **SCARA (1981, Makino)**: selective-compliance assembly robot arm. Specialized for pick-and-place + electronics assembly.\n\n**AI winter + new approaches (1980s-90s)**:\n- Classical AI hit walls on perception + manipulation. Rodney **Brooks** (MIT, 1986) proposed **subsumption architecture**: layered behaviors built bottom-up from sensors to actuators, no global world model. \"The world is its own best model.\" His robots Allen, Herbert, Genghis walked and navigated reactively. Co-founded iRobot (Roomba, 2002) and Rethink Robotics (Baxter, 2012).\n\n**Mobile + autonomous era (2000s-2010s)**:\n- **Honda ASIMO (2000)**: humanoid bipedal robot demonstrated stable walking, stairs, running. Closed program 2018 — but proved walking humanoids were possible.\n- **DARPA Grand Challenge (2004, 2005)**: autonomous vehicles across the Mojave. 2004: no team finished. 2005: Stanford's **Stanley** (Sebastian Thrun's team) won — launched modern self-driving. **Urban Challenge (2007)** added traffic.\n- **Boston Dynamics**: spun out of MIT Leg Lab (Marc Raibert). **BigDog (2005)** quadruped on rough terrain (DARPA-funded); **Spot (2015→)** commercial quadruped; **Atlas (2013→)** humanoid doing parkour, backflips, dynamic manipulation. Acquired by Google (2013), SoftBank (2017), Hyundai (2020).\n- **Roomba (2002)**: first mass-market home robot; >40M sold.\n\n**Modern AI-robotics era (2020s)**:\n- **RT-1 (Google 2022)** and **RT-2 (2023)**: large vision-language-action models. \"Robotic transformers.\"\n- **Tesla Optimus (2022→)**: humanoid for factory + home; multiple generations.\n- **Figure 01 / Figure 02 (2023→)**: humanoid robots with OpenAI integration.\n- **Agility Digit, Sanctuary Phoenix, 1X Neo, Apptronik Apollo**: humanoid renaissance.\n- General-purpose humanoids backed by foundation models is the current frontier."
+    },
+    {
+      "kind": "text",
+      "title": "Robot anatomy: links, joints, DOF, end-effectors, workspace",
+      "body": "A robot is a **mechanism** — a kinematic chain of rigid bodies connected by joints — plus actuators, sensors, and a controller. Understanding the anatomy is foundational.\n\n**Links**: the rigid bodies (segments). Numbered from base (link 0) to end-effector (link n).\n\n**Joints**: connections between links. The standard taxonomy:\n- **Revolute (R)**: rotational, 1 DOF. Angle θ. Most common — like a hinge or human elbow.\n- **Prismatic (P)**: translational, 1 DOF. Displacement d. Like a slider or hydraulic ram.\n- **Spherical (S)**: ball-and-socket, 3 DOF (roll, pitch, yaw). Like a shoulder. Decomposes into 3 revolutes.\n- **Cylindrical (C)**: 2 DOF (R + P along same axis).\n- **Universal (U)**: 2 DOF (two perpendicular R).\n- **Planar (E)**: 3 DOF in a plane (2T + 1R).\n\nMost industrial arms use 6 revolute joints in a serial chain: shoulder-yaw, shoulder-pitch, elbow, wrist-roll, wrist-pitch, wrist-yaw.\n\n**Degrees of freedom (DOF)**: number of independent parameters needed to specify configuration.\n- A rigid body in 3D space has 6 DOF (3 translation + 3 rotation).\n- A robot with n single-DOF joints has n DOF in joint space.\n- **Task space DOF** = dimension of the space the end-effector can reach (≤ 6 in 3D).\n- **Redundancy**: joint DOF > task DOF. Example: 7-DOF arm (Kuka iiwa, Franka Panda) reaching a 6-DOF target — extra DOF allows obstacle avoidance, joint-limit avoidance, manipulability optimization.\n\n**End-effector**: the tool at the tip — gripper, welding torch, suction cup, surgical tool, dexterous hand. Specified by **pose** = position (3) + orientation (3, as rotation matrix, Euler angles, axis-angle, or quaternion).\n\n**Workspace**: the set of poses the end-effector can reach.\n- **Reachable workspace**: end-effector position reachable in any orientation.\n- **Dexterous workspace**: end-effector reachable in all orientations.\n- Shaped by link lengths, joint limits, self-collision.\n\n**Architectures**:\n- **Serial (open-chain)**: links in a chain (industrial arms). Easy forward kinematics, hard inverse.\n- **Parallel (closed-chain)**: multiple chains from base to platform (Stewart-Gough platform, Delta robot). Stiff + fast but small workspace.\n- **Hybrid**: e.g., humanoid (parallel torso + serial limbs).\n- **Soft robots**: continuum mechanisms, no discrete joints.\n\n**Actuators**: electric (DC, BLDC, stepper, servo) most common; hydraulic (Atlas, BigDog) for power density; pneumatic (soft robots, McKibben muscles); SEAs (series elastic actuators) for compliance + force control.\n\n**Sensors** (anticipating the perception lesson): proprioception (encoders, IMU, force/torque) + exteroception (cameras, LIDAR, tactile)."
+    },
+    {
+      "kind": "text",
+      "title": "Foundational isaacs: Asimov, Brooks, Moravec",
+      "body": "A few ideas have shaped how roboticists think about machines, intelligence, and embodiment.\n\n**Asimov's Three Laws of Robotics (1942 short story \"Runaround\", later expanded)**:\n1. A robot may not injure a human being, or through inaction allow a human being to come to harm.\n2. A robot must obey orders given by humans, except where such orders would conflict with the First Law.\n3. A robot must protect its own existence as long as such protection does not conflict with the First or Second Laws.\nLater added: **Zeroth Law** — a robot may not harm humanity. \n\nAsimov's stories explore how the laws fail under ambiguity — they are a literary device, not an engineering specification. But they shaped public discourse and serve as a touchstone for modern AI-safety and value-alignment debates. Real robots use safety architectures (force limits, safety-rated monitored stop, ISO 10218, ISO/TS 15066 for collaborative robots) — not Asimov's laws — but the philosophical question of how to specify safe behavior is alive and central.\n\n**Brooks' subsumption architecture (1986, \"A Robust Layered Control System For A Mobile Robot\")**:\n- Reject the **sense-plan-act** pipeline (build world model → plan → execute) which dominated 1970s-80s AI robotics. It was brittle, slow, and failed in real environments.\n- Instead, build **layered behaviors** that connect sensors to actuators directly. Each layer (avoid-obstacles, wander, explore, build-map) is a simple finite-state machine. Higher layers **subsume** lower ones by suppressing or inhibiting their outputs.\n- Slogan: **\"The world is its own best model.\"** Don't store what you can sense.\n- Built Allen, Herbert (collected soda cans on MIT floors), Genghis (six-legged insectoid). Co-founded iRobot, Rethink.\n- Critique: didn't scale to abstract reasoning or long-horizon tasks. But it permanently changed robotics — modern systems blend reactive layers (low-level control, obstacle avoidance) with deliberative ones (planning, language understanding).\n\n**Moravec's paradox (Hans Moravec, late 1980s)**: \"It is comparatively easy to make computers exhibit adult-level performance on intelligence tests or playing checkers, and difficult or impossible to give them the skills of a one-year-old when it comes to perception and mobility.\"\n\nWhy: 500M years of evolution optimized perception + sensorimotor skills; abstract reasoning is recent (~100k years) and re-uses sensorimotor machinery. So:\n- Chess + theorem-proving + math: \"easy\" for AI (1990s on).\n- Picking up a child's toy + walking on uneven terrain + understanding what you see: \"hard.\"\n\nThe paradox is being slowly demolished by modern ML (vision-language-action models, diffusion policies, end-to-end neural control) — but it shaped a generation of robotics research and still informs why **manipulation in the real world** is the hardest open problem.\n\n**Other touchstones**: Mason's *Mechanics of Robotic Manipulation* (2001); Khatib's operational-space formulation (1987); Whitney's introduction of resolved-rate motion control (1969); Latombe's planning textbook (1991); Murray-Li-Sastry *Mathematical Introduction to Robotic Manipulation* (1994); Siciliano-Khatib *Handbook of Robotics*. These define the field's vocabulary and we will use them throughout this mastery path."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_rob_dof",
+        "kind": "guided_derivation",
+        "question": "Count DOF for a humanoid robot",
+        "goal": "A humanoid has: 7-DOF per arm (×2), 6-DOF per leg (×2), 2-DOF neck, 3-DOF waist, 1-DOF per gripper (×2). Compute joint-space DOF and reason about task-space redundancy.",
+        "steps": [
+          {
+            "prompt": "Sum the joints.",
+            "motivation": "Arithmetic.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "31",
+                "31 DOF",
+                "7+7+6+6+2+3+1+1 = 33",
+                "33"
+              ]
+            },
+            "hints": [
+              "2×7 + 2×6 + 2 + 3 + 2×1."
+            ],
+            "reveal": "2(7)+2(6)+2+3+2(1) = 14+12+2+3+2 = 33 DOF. Modern humanoids run 25-40 DOF depending on hand design (Tesla Optimus ~28; Atlas ~28; with dexterous hands +15-20 each)."
+          },
+          {
+            "prompt": "Each arm has 7 DOF but the task (reach a 6-DOF pose) needs only 6. What's the extra DOF for?",
+            "motivation": "Redundancy.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "obstacle avoidance, joint-limit avoidance, manipulability optimization, null-space motion"
+              ]
+            },
+            "hints": [
+              "Null-space."
+            ],
+            "reveal": "Redundancy resolution: the 1-D null space (kinematic null-space) lets the elbow swing without moving the wrist. Useful for avoiding obstacles, keeping joints away from limits, maximizing manipulability (distance from singularity), comfort/anthropomorphic posture, energy minimization. Standard in Kuka iiwa, Franka Panda, human arms."
+          },
+          {
+            "prompt": "A bipedal humanoid in free space has 6 floating-base DOF + joint DOF. Total config DOF?",
+            "motivation": "Floating base.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "33 + 6 = 39",
+                "39"
+              ]
+            },
+            "hints": [
+              "Base = unconstrained rigid body in 3D."
+            ],
+            "reveal": "Generalized coordinates: q = (base position 3 + base orientation 3 + joint angles 33) = 39. This is the configuration vector for whole-body dynamics + control. Boston Dynamics Atlas, Optimus, Anymal all use floating-base formulations (Featherstone's algorithm, RBDL, Pinocchio)."
+          },
+          {
+            "prompt": "Why does the foot constraint reduce effective DOF when standing?",
+            "motivation": "Closed kinematic chain.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "foot contact closes the kinematic chain; constraint forces reduce floating-base DOF"
+              ]
+            },
+            "hints": [
+              "Holonomic constraint."
+            ],
+            "reveal": "Each foot in contact (no-slip) constrains 6 DOF (or 5 if rotating about contact). Two feet flat: 12 constraints. With 39 generalized coords this leaves ~27 effective DOF — close to the joint DOF as expected. Whole-body controllers (Khatib's operational-space framework, modern MPC at Boston Dynamics) handle the constraint via Lagrange multipliers."
+          }
+        ],
+        "finalResult": "$$\\boxed{q_{\\text{humanoid}} = (x_{\\text{base}}, R_{\\text{base}}, \\theta_{\\text{joints}}) \\in \\mathbb{R}^{6+n_j}}$$ A humanoid with ~30 joints lives in a ~36-dimensional configuration space. Redundancy is a feature, not a bug — it gives the robot human-like dexterity. The cost is harder kinematics + control, which the next lessons unpack."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_rob_history",
+        "kind": "multiple_choice",
+        "question": "Who built the first industrial robot, what was it called, and when did it first work?",
+        "options": [
+          "Random.",
+          "George Devol invented and patented the programmable manipulator (1954); Joseph Engelberger commercialized it as Unimate and installed the first unit at General Motors' Trenton, NJ plant in 1961 to unload die-castings. Devol is credited as the inventor; Engelberger (\"father of robotics\") as the entrepreneur who turned it into an industry. The Robotics Industries Association's lifetime-achievement award is named the Engelberger Award.",
+          "Magic.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Devol invented (1954 patent), Engelberger commercialized (Unimation), Unimate started work at GM Trenton in 1961. Together they created the industrial robotics industry."
+      },
+      "hints": [
+        "Two people: inventor + entrepreneur.",
+        "1961, General Motors."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Devol (inventor, 1954 patent) + Engelberger (entrepreneur, Unimation) + Unimate (the machine) + 1961 GM Trenton (first deployment). Brooks added subsumption later (1986). Moravec wrote about the paradox separately (late 1980s)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_rob_paradox",
+        "kind": "scenario",
+        "question": "Moravec's paradox in practice",
+        "prompt": "A robot can play grandmaster-level chess on a laptop but cannot reliably pick up a child's stuffed bunny from a messy bedroom floor. Explain why — invoke Moravec's paradox, the perceptual + manipulation challenges (lighting, clutter, deformable object, grasp planning), and what's changed in the past five years (foundation models, diffusion policies, vision-language-action models) that's beginning to close the gap."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_rob_dof",
+        "kind": "math_expression",
+        "question": "A planar 3R arm (3 revolute joints in a plane) has how many task-space DOF?",
+        "acceptedAnswers": [
+          "3",
+          "3 (x, y, θ)",
+          "three"
+        ],
+        "hint": "Planar rigid body."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_rob",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, summarize the arc from Unimate (1961) to modern humanoids (2024). Mention Devol/Engelberger, Brooks' subsumption, the DARPA challenges, Boston Dynamics, and the foundation-model era.",
+        "rubric": "Mentions Devol/Engelberger + Unimate at GM (1961) as the start of industrial robotics; Brooks' subsumption architecture (1986) as the shift from sense-plan-act to layered behavior; Shakey (1969) as early mobile AI robot; ASIMO (2000) as bipedal demonstration; DARPA Grand Challenge (2004/2005) + Urban Challenge (2007) catalyzing self-driving (Thrun's Stanley); Boston Dynamics (Raibert lineage) — BigDog, Spot, Atlas — for dynamic legged + humanoid; the 2020s humanoid renaissance (Optimus, Figure, Digit, Phoenix, Neo) coupled with foundation models (RT-1/RT-2, PaLM-E, OpenVLA, Octo) closing Moravec's paradox via large-scale learning. Concludes that robotics has moved from hand-engineered systems to learning-based stacks, with classical kinematics + control + planning still as the substrate."
+      }
+    }
+  ]
+}

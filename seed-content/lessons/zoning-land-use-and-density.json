@@ -1,0 +1,155 @@
+{
+  "slug": "zoning-land-use-and-density",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Trace zoning from Euclid v. Ambler 1926 to form-based codes + PUDs + overlays.",
+      "Apply density measures (FAR, DUA, missing middle) across NYC, LA, Houston.",
+      "Evaluate reform — upzoning, ADUs, Minneapolis 2018, SB 9, parking minimums (Shoup)."
+    ],
+    "prereqs": [
+      "urban-planning-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Zoning history: Euclid v. Ambler, Euclidean vs form-based, R/C/M, overlays, PUDs",
+      "viz": "zoning-grid",
+      "vizProps": {
+        "preset": "mixed-use"
+      },
+      "body": "**Zoning** is the legal instrument that divides a city into districts (zones) and prescribes what uses, building forms, and densities are permitted in each. It is the single most powerful tool U.S. planners have — and arguably the most consequential land-use regulation in modern history.\n\n**Origin — Euclid v. Ambler Realty (1926)**:\n- The first comprehensive U.S. zoning code was New York City's **1916 Zoning Resolution** (responding to the Equitable Building's shadow on Lower Broadway). Across the next decade, hundreds of municipalities followed.\n- **Village of Euclid (Ohio) v. Ambler Realty Co.**, 272 U.S. 365 (1926). Ambler Realty owned 68 acres in Euclid (a Cleveland suburb); the village zoned it for residential use, drastically reducing its value. Ambler sued, claiming a taking under the 14th Amendment.\n- Justice **George Sutherland** wrote the majority (6-3) upholding Euclid's zoning ordinance as a valid exercise of police power. His memorable analogy: 'A nuisance may be merely a right thing in the wrong place — like a pig in the parlor instead of the barnyard.'\n- The case constitutionalized **Euclidean zoning** — strict use-based districting (residential / commercial / industrial as separate zones) became the U.S. norm. Almost every U.S. municipality (Houston being the famous exception) adopted some form within decades.\n\n**Euclidean vs. form-based codes**:\n- **Euclidean (use-based)**: regulates *what* you can do — single-family residential (R1) vs multi-family residential (R3) vs neighborhood commercial (C1) vs heavy industry (M3). Plus dimensional rules (setbacks, height limits, lot coverage, floor-area ratio).\n- **Form-based codes** (FBCs): regulate *how* the building meets the street — build-to lines, frontage types (porch / stoop / shopfront / arcade), height, transparency, materials, parking placement. Use is treated more permissively. Pioneered by **DPZ (Duany + Plater-Zyberk)** in *SmartCode*; adopted in Miami 21 (2010), Buffalo Green Code, Denver, Cincinnati, and ~600 U.S. jurisdictions.\n- **Hybrid codes**: most modern reform efforts blend use + form regulation.\n\n**Typical U.S. base zones**:\n- **R — Residential**: R-1 single-family, R-2 two-family, R-3 multi-family, R-4 high-density. Lot-area + frontage + setback minimums; FAR limits.\n- **C — Commercial**: C-1 neighborhood, C-2 community, C-3 regional, C-4 downtown core. Floor-area limits; parking minimums; signage rules.\n- **M (or I) — Industrial / Manufacturing**: M-1 light, M-2 medium, M-3 heavy. Buffer requirements; loading + truck access; environmental performance standards.\n- **MX or MU — Mixed use**: explicit recognition that R + C separation is the disease, not the cure.\n- **Specialized**: AG (agricultural), OS (open space), PD (planned development), historic-district, airport overlay.\n\n**Overlay districts**: secondary regulations that *overlay* base zoning — historic preservation, flood plain (FEMA mapped), airport-noise, transit-oriented (TOD) bonus, design review, hillside / steep-slope, special character. Overlay can add bonuses (more density near transit) or restrictions (no demolition in historic district).\n\n**Planned Unit Developments (PUDs)**: site-specific negotiated zoning that lets developers cluster density + mix uses in exchange for amenities, open space, design quality. Flexible but opaque; sometimes a workaround for outdated base zoning, sometimes a tool of regulatory capture.\n\n**The interactive grid above (`zoning-grid` viz, `mixed-use` preset)** shows a small block with a mix of residential + commercial parcels — click to flip parcels between R / C / M / MU and see how the resulting density + walkability scores change. Play with it to develop intuition for *why* mixing uses (Jacobs's condition 1) outperforms strict Euclidean segregation."
+    },
+    {
+      "kind": "text",
+      "title": "Density measures: FAR, dwelling units per acre, NYC vs LA vs Houston, missing middle",
+      "body": "**Density** has many meanings. The two dominant metrics:\n\n**Floor-area ratio (FAR)**:\n- FAR = (total floor area of buildings) / (lot area). Dimensionless.\n- FAR 1.0 = single-story covering 100% of the lot, or 10 stories covering 10%, etc.\n- Manhattan typical commercial FAR 10-15+ (Midtown FAR can reach 21.6 with bonuses). Manhattan R10 residential FAR ~10. Brooklyn brownstone rowhouses FAR ~2-3.\n- Los Angeles downtown FAR 6-13 (with TFAR bonuses); R1 single-family FAR ~0.45-0.50.\n- Houston (no zoning per se): no FAR caps in most areas — market drives form, with deed restrictions + minor regs filling the gap.\n- **Why FAR matters**: it directly limits how much building you can put on a lot; combined with setbacks + height, it shapes the entire urban form. *Upzoning* means raising FAR (or DUA, see below).\n\n**Dwelling units per acre (DUA)**:\n- DUA = dwelling units / acre of land.\n- Single-family detached suburbs: 1-6 DUA.\n- Single-family attached / townhouse: 8-15 DUA.\n- Low-rise multi-family (3-4 stories): 20-50 DUA.\n- Mid-rise (5-7 stories): 50-150 DUA.\n- High-rise: 150-1000+ DUA (Manhattan UES blocks ~400-600 DUA; Hong Kong + Singapore HDB ~800-1500 DUA).\n- DUA × persons-per-household ≈ population density. Manhattan ~70000/mi² (~109 persons/acre); LA city ~8500/mi²; Houston ~3700/mi².\n\n**NYC vs LA vs Houston — three regulatory archetypes**:\n- **NYC** has the oldest + densest U.S. zoning (1916; rewritten 1961, since amended hundreds of times). Inclusionary housing, contextual zoning, historic districts, ZQA + MIH (2016). High FAR + transit + walkability + the country's most expensive housing.\n- **LA**: classic Euclidean. R1 covers ~75% of residential land (until 2020s reforms). Vast single-family suburbs + scattered high-rise nodes + freeway-defined morphology. Low average density but very large area; the *suburbanization of poverty* is acute.\n- **Houston** has *no* conventional zoning (the only major U.S. city without). Land use is governed by deed restrictions + setbacks + parking minimums + sub-division regs. Result: surprising mixed use (taquerías next to houses next to refineries) + extreme sprawl + flooding vulnerability + relatively affordable housing.\n\n**The 'missing middle' (Daniel Parolek, 2010)**:\n- Parolek (Opticos Design, Berkeley): U.S. zoning is bimodal — single-family detached on one side, mid+ high-rise apartments on the other. The **missing middle** is the range in between: duplexes, triplexes, fourplexes, courtyard apartments, bungalow courts, live-work, ADUs. These types built America's pre-1940 walkable neighborhoods (Brooklyn brownstones, Boston triple-deckers, Chicago two-flats, Cincinnati shotgun rows) but are *illegal to build* in ~75% of U.S. urban residential land today.\n- *Missing Middle Housing* (Parolek 2020 book; Island Press) made the concept canonical. Adopted in Minneapolis 2040 (2018), Sacramento 2040, Walla Walla, etc. Form-based codes are the natural tool.\n\n**Lot-coverage + height + setback** together with FAR + DUA control the *envelope*. The interactive zoning-grid lets you observe how restrictive Euclidean rules produce sparse low-vitality form, while form-based mixed-use codes produce the Jacobs-style dense walkable block."
+    },
+    {
+      "kind": "text",
+      "title": "Reform: upzoning, ADUs, Minneapolis 2018, California SB 9, Shoup + parking minimums",
+      "body": "A reform movement (~2015-) targets U.S. zoning's exclusionary effects + supply restriction. The intellectual heart is **Glaeser + Gyourko's housing-supply work** (lesson 4) + **Shoup's parking critique** + the **YIMBY** (Yes In My Backyard) policy network.\n\n**Upzoning**: legally permitting more units or floor area on a given parcel.\n- **Minneapolis 2040 (passed 2018, effective 2020)**: first major U.S. city to legalize *triplexes citywide* — eliminating single-family-only zoning everywhere. Also raised height + density along transit corridors + eliminated parking minimums. Early evidence (Pew, Mercatus) suggests Minneapolis added housing at higher rates than peer Midwestern cities + saw rent growth below regional average through 2022 — though confounded by general regional dynamics + the COVID rental shock.\n- **Oregon HB 2001 (2019)**: legalized duplex + (in larger cities) up to fourplex statewide.\n- **California SB 9 (2021, in effect 2022)**: 'lot splits' — any single-family lot can be split into two + each half can have up to two units = effectively 4 units on a former 1-unit parcel. Take-up has been lower than projected (local procedural friction).\n- **California SB 35** (2017, streamlined ministerial approval for housing meeting standards) + **SB 423** (2023 extension).\n- **Other states**: Washington (HB 1110, 2023, middle-housing statewide), Montana (Miracle 2023), Vermont, Maine. The reform wave is bipartisan + accelerating.\n\n**Accessory Dwelling Units (ADUs)**: small additional units on a single-family lot — garage apartments, basement units, backyard cottages.\n- **California (AB 68, 2019; AB 670, 671, 881)**: dramatically liberalized statewide; ~25000 ADUs/yr permitted by 2023, ~20% of state housing production.\n- ADUs are a low-controversy upzoning + tested gentle-density tool.\n\n**Donald Shoup — *The High Cost of Free Parking* (2005; 2nd ed. 2011)**:\n- UCLA urban-planning professor (1938-2024). Shoup argued parking minimums (zoning requirements that every project provide N parking spaces per unit / per 1000 sq ft) are massively distortionary:\n  - They *force* development of parking even where market demand is low.\n  - Average U.S. parking minimum: ~2 spaces / dwelling + 4 / 1000 sq ft retail. Parking land area in many cities exceeds housing land area.\n  - 'Free' parking is paid for by everyone in higher rent, higher prices, more sprawl, more driving.\n  - Shoup's *three pillars*: (1) eliminate off-street parking minimums; (2) charge market prices for curb parking; (3) return curb-parking revenue to neighborhoods.\n- Shoup's intellectual influence is hard to overstate. *Shoupistas* (his followers, including the YIMBY + parking-reform networks) have driven parking-minimum eliminations in San Francisco (2018), Buffalo (2017 first major U.S. city to eliminate minimums citywide), Minneapolis (2021), Berkeley, Sacramento, San Diego, Cambridge MA, Toronto, Edmonton, and ~150+ U.S. cities.\n- *Parking and the City* (Shoup ed. 2018) compiles case studies. The 2023 California AB 2097 banned parking minimums near major transit statewide.\n\n**Inclusionary zoning + density bonuses**:\n- Mandatory inclusionary zoning (MIZ): a share of units in new development must be affordable (e.g., 10-30%). NYC MIH (2016), Cambridge MA, Boston, DC.\n- *Density bonuses*: extra FAR/units in exchange for affordable units (CA Density Bonus Law).\n- Economists (Glaeser, Cassidy, Schuetz) note inclusionary requirements act as a tax on development; calibrating them to avoid suppressing supply is hard. Better-evaluated when paired with upzoning.\n\n**Why zoning reform matters**:\n- **Housing affordability** (lesson 5): supply-restricted high-productivity metros (Bay Area, NYC, LA, Boston, Seattle) have produced the U.S. affordability crisis (Glaeser + Gyourko 2003, Hsieh + Moretti 2019).\n- **Environmental footprint**: dense walkable neighborhoods have ~50-70% lower per-capita VMT + carbon (Ewing + Cervero meta-analyses).\n- **Equity**: exclusionary single-family zoning has a documented racial history (Rothstein *The Color of Law* 2017, lesson 7); upzoning has equity rationale beyond housing supply.\n- **Fiscal**: dense compact development has higher property-tax yield per acre (Strong Towns analyses).\n\nThe political economy is hard: local incumbents control zoning + benefit from supply restriction. State-level preemption (CA, OR, WA, MA, MT) + federal incentive (HUD AFFH; YIMBY-Act bills) are the emerging counter-weight.\n\nLesson 5 dives into the housing-affordability + policy side. Lesson 3 picks up the transportation thread (parking + transit + walkability)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_zone_1",
+        "kind": "guided_derivation",
+        "question": "Reason through a Minneapolis-style upzoning's mechanism + likely effects",
+        "goal": "Trace the chain from a zoning change (triplexes citywide; eliminate parking minimums) to housing-market + environmental + equity outcomes.",
+        "steps": [
+          {
+            "prompt": "Minneapolis 2040 (2018) legalized triplexes on every residential lot citywide + eliminated parking minimums. What is the immediate effect on what a property owner *may* build?",
+            "motivation": "Establish the legal change.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "owners may now legally build 2 or 3 units per lot instead of only 1, and may build without including off-street parking spaces"
+              ]
+            },
+            "hints": [
+              "Use rights + parking rights expand."
+            ],
+            "reveal": "Pre-2018, ~70% of Minneapolis residential land was R1 single-family-only; new triplexes or even duplexes were illegal. Plus typical parking minimum 1+ space/unit forced surface parking that consumed lot area + project budget. The reform let owners build up to 3 units per lot + skip required parking — expanding the legal envelope of what could be developed."
+          },
+          {
+            "prompt": "Why would supply respond gradually rather than instantly?",
+            "motivation": "Adjustment lags.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "owner turnover, financing, construction, capacity constraints, and the fact that only a fraction of parcels are even candidates for redevelopment in any given year — supply is a slow-moving stock"
+              ]
+            },
+            "hints": [
+              "Housing is a stock that turns over slowly."
+            ],
+            "reveal": "Even with permission, only a small share of single-family owners redevelop in any given year (capital, family, location-specific demand, building-feasibility constraints). Construction + financing take 1-3 years; permitting + design ~6-18 months. Effects therefore accumulate over a decade. Early Minneapolis data (2019-2022) shows ~700-1000 new triplex/duplex units permitted/year out of ~150k+ candidate parcels — meaningful at the margin but not transformative overnight."
+          },
+          {
+            "prompt": "What's the expected rent + price effect (treating Minneapolis as one market)?",
+            "motivation": "Standard supply-side effect.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "more supply at given demand should produce lower rent growth than counterfactual — possibly visible in slower rent increases relative to comparable metros without reform"
+              ]
+            },
+            "hints": [
+              "Supply ↑ → price growth ↓ (ceteris paribus)."
+            ],
+            "reveal": "More supply at given demand should slow rent + price growth relative to counterfactual. Pew + Mercatus analyses (Furth, Schuetz) found Minneapolis rent growth 2018-22 lagged peer Midwest metros by several points. Confounded by COVID + remote-work shocks; full causal identification requires longer panel + better controls. The mechanism is unambiguous in theory; magnitude is the empirical question."
+          },
+          {
+            "prompt": "What's the joint effect of eliminating parking minimums?",
+            "motivation": "Shoup channel.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "reduces per-unit construction cost, frees up lot area for housing, lowers car ownership and vmt over time — together making more units feasible at lower price points and reducing emissions"
+              ]
+            },
+            "hints": [
+              "Shoup's mechanism: parking is a tax on housing + a subsidy to driving."
+            ],
+            "reveal": "Parking minimums add ~\\$25k-\\$75k per stall in construction cost + consume ~300 sq ft per stall in land + reduce dwelling-unit count. Eliminating them lowers per-unit cost + lets developers add units instead of parking. Shoup's broader argument: market-priced curb parking + no minimums together reduce VMT + emissions + traffic — a critical climate + equity benefit. AB 2097 (CA 2023) banned minimums near major transit statewide following the Shoup + YIMBY playbook."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_zone_1",
+        "kind": "multiple_choice",
+        "question": "What did *Village of Euclid v. Ambler Realty Co.* (1926) decide + why does it matter?",
+        "options": [
+          "It struck down zoning as unconstitutional.",
+          "*Euclid v. Ambler* (1926; Justice Sutherland for a 6-3 majority) upheld Euclid Ohio's comprehensive use-based zoning ordinance as a valid exercise of police power — constitutionalizing **Euclidean zoning** (strict separation of residential, commercial, industrial uses). Almost every U.S. municipality adopted similar codes within decades (Houston is the famous exception). The decision's lasting effect: a near-century of use-based segregation of cities + the regulatory baseline against which all subsequent reform (form-based codes, mixed-use, upzoning, Minneapolis 2040, SB 9) reacts. Sutherland's pig-in-the-parlor analogy ('a nuisance may be merely a right thing in the wrong place — like a pig in the parlor instead of the barnyard') remains the canonical defense of separation by use.",
+          "It legalized form-based codes.",
+          "It established a federal zoning code."
+        ],
+        "correctIndex": 1,
+        "explanation": "*Euclid v. Ambler* (1926) upheld use-based zoning as a valid exercise of police power, constitutionalizing Euclidean zoning. Nearly every U.S. municipality adopted similar codes within decades (Houston excepted). It is the baseline against which every modern reform (form-based codes, mixed use, upzoning, Minneapolis 2040, SB 9) reacts."
+      },
+      "hints": [
+        "Police power.",
+        "Sutherland + pig analogy."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Sutherland (1926, 6-3) upheld Euclid's zoning as a valid exercise of police power, constitutionalizing Euclidean (use-based) zoning. Almost every U.S. city adopted similar codes within decades. It is the baseline against which form-based codes + upzoning reform react."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_zone_1",
+        "kind": "scenario",
+        "question": "Recommending an upzoning package",
+        "prompt": "You advise the mayor of a U.S. mid-sized city facing rapid rent growth + a documented housing shortage. The current zoning code is strict Euclidean: R1 covers 70% of residential land, parking minimums of 2 spaces/unit, FAR 0.5 on most lots. Propose a 5-part reform package — drawing on Minneapolis 2040, California SB 9, Shoup's parking work, and form-based codes — and explain how each component addresses a distinct mechanism (supply, cost, mode share, equity)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_zone_1",
+        "kind": "math_expression",
+        "question": "A 5000 ft² lot has FAR = 2.0 + lot-coverage limit 50%. What is the maximum allowed building floor area (ft²)?",
+        "acceptedAnswers": [
+          "10000"
+        ],
+        "hint": "Max floor area = FAR × lot area."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_zone_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, explain why the 'missing middle' (Parolek) + Shoup's parking critique are central to contemporary zoning reform.",
+        "rubric": "Mentions: U.S. Euclidean zoning is bimodal — single-family detached on one side, mid+ high-rise apartments on the other. Parolek (*Missing Middle Housing* 2020) names the gap: duplexes, triplexes, fourplexes, courtyard apartments, bungalow courts, ADUs — types that built America's pre-1940 walkable neighborhoods but are illegal in ~75% of urban residential land today. Shoup's *The High Cost of Free Parking* (2005) argues parking minimums force expensive + land-consuming parking everywhere, raising housing cost + subsidizing driving. Reform packages combine: legalize missing-middle types citywide (Minneapolis 2040, OR HB 2001, CA SB 9), eliminate parking minimums (Buffalo, Minneapolis, SF, CA AB 2097), allow ADUs (CA AB 68). Together they aim to restore the gentle-density walkable form that explains pre-1940 American cities + that strict postwar Euclidean codes outlawed."
+      }
+    }
+  ]
+}

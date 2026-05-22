@@ -15,6 +15,8 @@
     {
       "kind": "text",
       "title": "AES + GCM, the modern default",
+      "viz": "cipher-modes",
+      "vizProps": {},
       "body": "**Block cipher**: takes a fixed-size block of plaintext (128 bits for AES) plus a key, outputs a fixed-size block of ciphertext. AES is the standard; AES-128 / AES-192 / AES-256 differ only by key length.\n\nA bare block cipher encrypts only one block. To handle longer messages you need a **mode of operation**:\n\n- **ECB** (Electronic Codebook): encrypt each block independently. **Broken**: identical plaintext blocks produce identical ciphertext blocks. The famous 'ECB penguin' image shows the silhouette clearly even after encryption.\n- **CBC** (Cipher Block Chaining): XOR each plaintext block with the previous ciphertext block before encrypting. Hides block-level patterns, but you need a unique random IV per message and the mode is unauthenticated (vulnerable to padding oracle attacks).\n- **GCM** (Galois/Counter Mode): counter-mode encryption + GHASH for authentication. Single-key authenticated encryption with associated data (AEAD). The modern default."
     },
     {

@@ -15,6 +15,13 @@ import { LoginPage } from "./pages/LoginPage";
 import { SignupPage } from "./pages/SignupPage";
 import { WikiListPage } from "./pages/WikiListPage";
 import { MasteryListPage } from "./pages/MasteryListPage";
+import { VizGalleryPage } from "./pages/VizGalleryPage";
+import { DiscoverPage } from "./pages/DiscoverPage";
+import { ConceptSearchPage } from "./pages/ConceptSearchPage";
+import { AuthorLessonPage } from "./pages/admin/AuthorLessonPage";
+import { LearnNextPage } from "./pages/LearnNextPage";
+import { JourneysListPage } from "./pages/JourneysListPage";
+import { JourneyDetailPage } from "./pages/JourneyDetailPage";
 import { MasteryPathPage } from "./pages/MasteryPathPage";
 import { ForumListPage } from "./pages/ForumListPage";
 import { NewsListPage } from "./pages/NewsListPage";
@@ -227,6 +234,11 @@ const AdminErrorStatsPage = lazy(() =>
 const AdminFeedbackPage = lazy(() =>
   import("./pages/AdminFeedbackPage").then((m) => ({
     default: m.AdminFeedbackPage,
+  })),
+);
+const AdminLessonQualityPage = lazy(() =>
+  import("./pages/AdminLessonQualityPage").then((m) => ({
+    default: m.AdminLessonQualityPage,
   })),
 );
 const CapstonePage = lazy(() =>
@@ -547,6 +559,13 @@ function AppRoutes() {
           <Route path="/wiki/:slug/edit" element={<WikiEditPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/paths" element={<MasteryListPage />} />
+          <Route path="/viz-gallery" element={<VizGalleryPage />} />
+          <Route path="/discover" element={<DiscoverPage />} />
+          <Route path="/concepts/search" element={<ConceptSearchPage />} />
+          <Route path="/admin/author/lesson" element={<AuthorLessonPage />} />
+          <Route path="/learn-next" element={<LearnNextPage />} />
+          <Route path="/journeys" element={<JourneysListPage />} />
+          <Route path="/journeys/:slug" element={<JourneyDetailPage />} />
           <Route path="/paths/:slug" element={<MasteryPathPage />} />
           <Route
             path="/paths/:pathSlug/lessons/:nodeSlug"
@@ -741,6 +760,7 @@ function AppRoutes() {
           <Route path="/admin/approvals" element={<AdminApprovalsPage />} />
           <Route path="/admin/errors" element={<AdminErrorStatsPage />} />
           <Route path="/admin/feedback" element={<AdminFeedbackPage />} />
+          <Route path="/admin/quality" element={<AdminLessonQualityPage />} />
           <Route path="/me/weak-concepts" element={<WeakConceptsPage />} />
           <Route path="/me/mri" element={<KnowledgeMRIPage />} />
           <Route path="/me/mentors" element={<MentorDashboardPage />} />

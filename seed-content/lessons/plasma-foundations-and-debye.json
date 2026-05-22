@@ -1,0 +1,155 @@
+{
+  "slug": "plasma-foundations-and-debye",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Define plasma + 4th state.",
+      "Compute Debye length.",
+      "Apply plasma criteria."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Plasma: the fourth state of matter",
+      "body": "**Plasma**: a quasi-neutral ionized gas exhibiting **collective behavior** mediated by long-range electromagnetic forces. Heat a solid → liquid → gas; heat further → ionize → plasma. **Irving Langmuir** (Nobel 1932 for surface chemistry) coined the term in **1928** at GE Research Labs, after the way oscillating electron clouds reminded him of blood plasma carrying corpuscles. Earlier, **William Crookes** (1879) called it 'radiant matter' from observations in vacuum discharge tubes. **Penning discharges** + **glow discharges** + **Townsend avalanches** built the early experimental foundation.\n\n**Why a separate state?** Unlike a neutral gas, plasma supports:\n- **Long-range Coulomb interactions** (1/r²) — every particle 'feels' many others simultaneously.\n- **Collective modes** (Langmuir oscillations, ion-acoustic waves, Alfvén waves) absent in neutral gas.\n- **Magnetization** + frozen-in flux when conducting.\n- **Highly nonlinear** response: shocks, double layers, sheaths, filamentation.\n\n**Ubiquity** — ~**99% of baryonic matter in the visible universe is plasma**:\n- **Stellar interiors + atmospheres**: Sun's core ~1.5×10⁷ K; photosphere ~5800 K; corona ~10⁶ K.\n- **Interstellar medium (ISM)**: cold neutral (~100 K), warm neutral/ionized (~10⁴ K), hot ionized (~10⁶ K).\n- **Magnetospheres + ionospheres**: Earth + Jupiter + Saturn + pulsars.\n- **Lightning + sprites + jets + elves** in Earth atmosphere.\n- **Accretion disks**, **AGN jets**, **GRBs**, **pulsar wind nebulae**.\n- **Lab + industrial**: fluorescent lamps, plasma TVs, etching IC fabrication, arc welding, fusion devices (ITER, NIF, SPARC), Hall thrusters.\n- **Solar wind**: ~5 cm⁻³, ~10⁵ K, ~400 km/s flowing past Earth.\n- **Cosmic rays + relativistic particles**.\n\nPlasma physics underpins astrophysics, fusion energy, space weather, ionospheric communication, semiconductor manufacturing, and emerging fields like plasma medicine + electric propulsion."
+    },
+    {
+      "kind": "text",
+      "title": "Debye screening + the Debye length",
+      "body": "**Debye screening** (Peter Debye + Erich Hückel 1923, originally for electrolytes; Debye Nobel Chemistry 1936): a test charge in plasma is **screened** by a polarization cloud of opposite-sign charges. The screening length is the **Debye length**:\n\n$$\\lambda_D = \\sqrt{\\frac{\\varepsilon_0 k_B T_e}{n_e e^2}}$$\n\nDerivation sketch: linearize Poisson + Boltzmann (n_e = n_0 exp(eφ/k_B T_e) ≈ n_0(1 + eφ/k_B T_e)), giving ∇²φ = φ/λ_D² in 1D, with solution φ(r) = (q/4πε₀r) exp(-r/λ_D) — a **Yukawa potential** replacing the bare Coulomb 1/r.\n\n**Typical Debye lengths**:\n- **Solar wind**: ~7-10 m (n ~ 5 cm⁻³, T ~ 10⁵ K).\n- **Solar corona**: ~0.1 m.\n- **Ionosphere (F-layer)**: ~1 cm.\n- **Tokamak edge**: ~10 μm (n ~ 10¹⁹ m⁻³, T ~ 10 eV).\n- **Tokamak core**: ~50 μm (n ~ 10²⁰ m⁻³, T ~ 10 keV).\n- **Glow discharge**: ~0.1 mm.\n- **Metals (Thomas-Fermi screening)**: ~50 nm — formally analogous though degenerate.\n- **NIF compressed DT**: ~Å scale (extreme density 10³² m⁻³).\n\n**Plasma sheath**: at material boundaries (probes, vessel walls, divertors), electrons leave faster than ions → wall charges negative → forms a **sheath** of thickness several λ_D where quasi-neutrality breaks down. **Bohm sheath criterion** (David Bohm 1949): ions must enter sheath at v ≥ c_s = √(k_B T_e/m_i).\n\n**Quasi-neutrality**: at scales L ≫ λ_D, |n_e - n_i Z| / n_e ≪ 1 — emerges spontaneously because separating charge over L costs energy ~ (eΦ)² ~ (en L²)² which exceeds thermal energy unless L ~ λ_D. This is the **fundamental scaling** that distinguishes plasma from a charged-particle beam."
+    },
+    {
+      "kind": "text",
+      "title": "Plasma parameter + the three plasma criteria",
+      "body": "**Plasma parameter** (Debye number) — number of particles in a Debye sphere:\n\n$$N_D = \\frac{4}{3}\\pi n \\lambda_D^3 \\equiv \\Lambda$$\n\nThis is the key dimensionless quantity. **Coupling parameter** Γ = (e²/4πε₀ a)/(k_B T) where a = (3/4πn)^{1/3} is the inter-particle spacing; Γ ~ N_D^{-2/3}. Most lab + astrophysical plasmas have **Γ ≪ 1** (weakly coupled, ideal plasma); WDM (warm dense matter), strongly-coupled dusty plasmas, and white-dwarf interiors have **Γ ~ 1 or > 1** (strong coupling, ion correlations matter).\n\n**The three plasma criteria** (the textbook conditions to call something a 'plasma' — Chen, Krall + Trivelpiece):\n\n1. **λ_D ≪ L** — Debye length much smaller than the system size. Otherwise it's a particle beam or non-neutral plasma.\n2. **N_D ≫ 1** — many particles in a Debye sphere → collective screening is statistically meaningful; mean-field (Vlasov) description valid.\n3. **ω_p τ ≫ 1** — electron plasma frequency much faster than the electron-neutral collision rate. Otherwise neutral collisions dominate and the medium behaves as a weakly-ionized gas without collective plasma modes.\n\n**Saha ionization equation** (Meghnad Saha 1920, applied to stellar spectra; foundation of stellar classification) — equilibrium ionization fraction:\n\n$$\\frac{n_i n_e}{n_n} = \\frac{2 g_i}{g_n}\\left(\\frac{2\\pi m_e k_B T}{h^2}\\right)^{3/2} \\exp\\!\\left(-\\frac{\\chi}{k_B T}\\right)$$\n\nwith χ the ionization energy (13.6 eV for H), g the partition functions. **Striking consequence**: even at T ~ 1 eV (~10⁴ K, far below χ = 13.6 eV for hydrogen), substantial ionization occurs because of the large prefactor — entropy favors ionization at low density. Saha equation underlies why **stellar photospheres ionize at 5000-10000 K**, why **fluorescent lamps light up at modest discharge voltage**, and why the **early universe recombined at T ~ 0.3 eV not 13.6 eV** (CMB last-scattering at z ~ 1100). Departures from Saha (non-LTE) are signatures of non-equilibrium physics in plasma sources from coronae to tokamaks."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_pls_1",
+        "kind": "guided_derivation",
+        "question": "Compute the Debye length for a tokamak core plasma",
+        "goal": "Given n_e = 10²⁰ m⁻³, T_e = 10 keV, find λ_D + the Debye number + check criteria.",
+        "steps": [
+          {
+            "prompt": "Convert T_e = 10 keV to Joules.",
+            "motivation": "Need SI units for the formula.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1.6e-15 J",
+                "1.6 × 10⁻¹⁵ J"
+              ]
+            },
+            "hints": [
+              "1 eV = 1.602×10⁻¹⁹ J. Multiply by 10⁴."
+            ],
+            "reveal": "k_B T_e = 10 keV = 10⁴ × 1.602×10⁻¹⁹ J ≈ 1.6×10⁻¹⁵ J. Note for plasma we typically quote temperature in eV — k_B is absorbed."
+          },
+          {
+            "prompt": "Compute λ_D = √(ε₀ k_B T_e / (n_e e²)).",
+            "motivation": "Plug in.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "7.4e-5 m",
+                "~74 μm",
+                "~50-100 μm"
+              ]
+            },
+            "hints": [
+              "ε₀ = 8.85×10⁻¹² F/m; e = 1.6×10⁻¹⁹ C. Numerator ~ 1.4×10⁻²⁶; denominator ~ 2.6×10⁻¹⁸."
+            ],
+            "reveal": "Numerator ε₀ k_B T_e = 8.85×10⁻¹² × 1.6×10⁻¹⁵ ≈ 1.42×10⁻²⁶. Denominator n_e e² = 10²⁰ × (1.6×10⁻¹⁹)² = 2.56×10⁻¹⁸. Ratio ~ 5.5×10⁻⁹; √ ≈ 7.4×10⁻⁵ m ≈ **74 μm**. Often quoted as λ_D[m] ≈ 7430 × √(T[eV]/n[m⁻³])."
+          },
+          {
+            "prompt": "Compute N_D = (4/3)π n λ_D³.",
+            "motivation": "Number of particles in Debye sphere.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~1.7e8",
+                "~10⁸"
+              ]
+            },
+            "hints": [
+              "λ_D³ ~ 4×10⁻¹³; n × λ_D³ ~ 4×10⁷; × 4π/3 ~ 1.7×10⁸."
+            ],
+            "reveal": "λ_D³ ≈ (7.4×10⁻⁵)³ ≈ 4.1×10⁻¹³ m³. N_D = (4π/3) × 10²⁰ × 4.1×10⁻¹³ ≈ **1.7×10⁸**. Vastly ≫ 1 — collective mean-field plasma physics is rigorously valid in tokamak cores."
+          },
+          {
+            "prompt": "Check the three plasma criteria for L ~ 1 m system.",
+            "motivation": "Verify it's a plasma.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "all satisfied; λ_D/L ~ 10⁻⁴, N_D ~ 10⁸, ω_p ~ 10¹¹ rad/s"
+              ]
+            },
+            "hints": [
+              "λ_D ≪ L? N_D ≫ 1? ω_p τ ≫ 1?"
+            ],
+            "reveal": "(1) λ_D/L ~ 7.4×10⁻⁵ ≪ 1 ✓. (2) N_D ~ 1.7×10⁸ ≫ 1 ✓. (3) ω_p = √(n e²/(ε₀ m_e)) ~ 5.6×10¹¹ rad/s for n=10²⁰; collision time at 10 keV ~ 10⁻⁴ s → ω_p τ ~ 5×10⁷ ≫ 1 ✓. Conclusion: textbook fully-ionized collective plasma. Coulomb logarithm ln Λ ~ 17 here (Λ ≡ 12π N_D ~ 6×10⁹)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_pls_1",
+        "kind": "multiple_choice",
+        "question": "Why is Debye screening the defining feature of plasma?",
+        "options": [
+          "Magic.",
+          "A neutral gas has only short-range collisions; a charged-particle beam has unscreened Coulomb interaction. **Plasma** sits in between: free charges respond to any electric field by forming a polarization cloud that **screens** test charges over a distance λ_D = √(ε₀ k_B T/(n e²)). This Yukawa-like screening (Debye + Hückel 1923; Debye Chemistry Nobel 1936) reduces the effective interaction range from infinite (bare Coulomb) to finite λ_D, making (i) mean-field Vlasov equations valid when N_D ≫ 1, (ii) quasi-neutrality automatic at scales L ≫ λ_D, (iii) collective modes like Langmuir + ion-acoustic waves possible. Without Debye screening you have either a neutral gas or a charged-particle beam — not a plasma. All three plasma criteria (λ_D ≪ L, N_D ≫ 1, ω_p τ ≫ 1) involve λ_D directly or implicitly.",
+          "Random.",
+          "Wrong."
+        ],
+        "correctIndex": 1,
+        "explanation": "Debye screening — polarization cloud of opposite-sign charges around any test charge over distance λ_D — is what distinguishes plasma from neutral gas (no long-range force) + from charged-particle beam (no screening). Quasi-neutrality + collective modes + Vlasov mean-field description all rest on N_D ≫ 1 + λ_D ≪ L."
+      },
+      "hints": [
+        "Compare neutral gas vs charged beam vs plasma response to a test charge.",
+        "Why do we need N_D ≫ 1?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Debye screening forms a polarization cloud over distance λ_D = √(ε₀ k_B T/(n e²)), turning bare Coulomb 1/r into a screened Yukawa φ(r) ∝ exp(-r/λ_D)/r. This screening enables: quasi-neutrality at scales L ≫ λ_D, validity of Vlasov mean-field equations when N_D ≫ 1, and collective modes (Langmuir, ion-acoustic, Alfvén). Without it you'd have a neutral gas (no charges) or a non-neutral beam. The three plasma criteria (λ_D ≪ L, N_D ≫ 1, ω_p τ ≫ 1) all hinge on Debye-length physics."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_pls_1",
+        "kind": "scenario",
+        "question": "Sheath formation at a Langmuir probe",
+        "prompt": "You insert a small biased metal probe into a plasma at potential V_b relative to plasma potential V_p. Electrons (much faster than ions) initially flood the probe → it charges negative → repels further electrons. A **sheath** forms within several Debye lengths where quasi-neutrality breaks down. Describe (a) the sheath thickness in terms of λ_D + bias voltage; (b) the Bohm sheath criterion for ions entering the sheath; (c) why the I-V curve of a Langmuir probe gives both electron temperature + density."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_pls_1",
+        "kind": "math_expression",
+        "question": "Write the Debye length formula in SI units.",
+        "acceptedAnswers": [
+          "lambda_D = sqrt(epsilon_0 * k_B * T_e / (n_e * e^2))",
+          "λ_D = √(ε₀ k_B T_e / (n_e e²))",
+          "sqrt(epsilon_0*k_B*T/(n*e^2))"
+        ],
+        "hint": "Square root of (permittivity × thermal energy) divided by (density × charge²)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_pls_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why plasma is considered the 4th state of matter + the three criteria for an ionized gas to qualify as plasma.",
+        "rubric": "Mentions: plasma = quasi-neutral ionized gas with collective behavior. Langmuir 1928 coined term; ~99% baryonic universe is plasma (stars, ISM, magnetospheres, fusion devices, lightning). Distinguished from neutral gas (no long-range force) + non-neutral beam (no screening) by Debye screening of length λ_D = √(ε₀ k_B T/(n e²)). Three plasma criteria: (1) λ_D ≪ L system size — Debye screening fits inside; (2) N_D = (4π/3) n λ_D³ ≫ 1 — many particles per Debye sphere for collective behavior + Vlasov validity; (3) ω_p τ ≫ 1 — electron plasma frequency exceeds collision rate so collective modes exist. Saha ionization equation gives equilibrium ionization. Concludes: plasma is a separate state because long-range Coulomb forces + collective screening enable phenomena (modes, sheaths, frozen flux) absent in other states."
+      }
+    }
+  ]
+}

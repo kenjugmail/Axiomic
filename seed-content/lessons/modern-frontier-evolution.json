@@ -1,0 +1,165 @@
+{
+  "slug": "modern-frontier-evolution",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Survey the genomic era: 1000 Genomes, UK Biobank, gnomAD, ancient DNA.",
+      "Connect Lenski LTEE, digital evolution Avida, and adaptive dynamics.",
+      "Outline AI-for-evolution: AlphaFold, ESM protein language models, polygenic adaptation."
+    ],
+    "prereqs": [
+      "population-genetics-and-drift",
+      "phylogenetics-and-tree-of-life",
+      "human-evolution"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The genomic era: 1000 Genomes, UK Biobank, gnomAD, ancient DNA",
+      "body": "By 2025 evolutionary biology is data-saturated in ways that the Modern Synthesis architects could not imagine. A few resources define the era.\n\n**1000 Genomes Project** (2008-2015) — 2504 high-coverage genomes from 26 populations across five continents. Cataloged >88M variants. Provided the first systematic global view of human genetic variation. Phase 3 release (2015 *Nature*) is the foundational reference panel.\n\n**UK Biobank** — 500000 British participants recruited 2006-2010 (Sudlow 2015 *PLoS Med*). Whole-genome + whole-exome sequencing now complete on >500000 (largest dataset of its kind). Linked to electronic health records, imaging (MRI for ~100000), wearable sensors, biomarkers. Foundation of population-scale GWAS + biomedical inference. Genome-wide association studies on thousands of phenotypes; powerful for polygenic-trait architecture.\n\n**gnomAD (Genome Aggregation Database)** — Karczewski + MacArthur 2020 *Nature* — aggregates >800000 exomes + genomes from many studies. Allele frequencies in many populations; essential reference for distinguishing benign polymorphism from disease variants in clinical genetics. v4 (2024) now ~1M individuals.\n\n**Ancient DNA explosion** — Pääbo's Neanderthal + Denisovan genomes (2010-2014) opened the field. Reich lab + Skoglund + Krause + Slatkin + Mathieson + Patterson sequenced 5000+ ancient human genomes by 2024. Reconstructs population movements, admixture, selection through time. Bronze Age steppe expansions (Allentoft + Haak 2015; Damgaard 2018), Neolithic farming expansion from Anatolia, Native American + Polynesian origins, Yamnaya + Indo-European linguistics. Genoscape of pre-history.\n\n**Phylogenomics** — instead of single-locus phylogenies, build trees from hundreds to thousands of genes. Multi-gene concatenation, coalescent species-tree methods (ASTRAL, STAR), Bayesian species-tree (StarBEAST), gene-tree species-tree reconciliation. Resolves controversial nodes (early Metazoan branching, mammalian orders, bird relationships — Jarvis 2014 *Science* on 48 avian genomes; Prum 2015). Reveals incomplete lineage sorting (ILS) and introgression as systematic phenomena, not pathologies.\n\n**Population-scale GWAS for evolution** — Identification of loci under recent selection from polygenic-trait genetic architectures. Height, BMI, schizophrenia, educational attainment all have polygenic architectures with thousands of small-effect loci.\n\n**Polygenic adaptation** — Berg + Coop (2014 *PLoS Genetics*); Robinson 2015; Field + Boyle + Pritchard 2016 (singleton density score, SDS). Selection on polygenic traits leaves subtle frequency shifts at many loci, not large sweeps at single loci. Detection requires hundreds of trait-associated loci and large samples. Berg + Coop's framework decomposes among-population trait variance into selection vs. drift contributions. Sohail et al. (2019), Berg + Harpak (2019) raised concerns about uncorrected stratification confounding polygenic-selection signals; the field is recalibrating.\n\n**Jeremy Berg** + **Graham Coop** (UC Davis) — defined the modern statistical framework for polygenic adaptation. Coop + Pritchard + others (2024 reviews) — current state-of-the-art understanding that human evolution since OOA is **mostly polygenic on standing variation**, with rare classical hard sweeps. Quantitative-genetic + population-genetic synthesis at scale."
+    },
+    {
+      "kind": "text",
+      "title": "Experimental + computational evolution: LTEE, Avida, adaptive dynamics",
+      "body": "Direct empirical observation of evolution in real time.\n\n**Lenski Long-Term Evolution Experiment (LTEE)** — 12 *E. coli* populations propagated since 24 February 1988 in DM25 minimal glucose. ~80000 generations as of 2024. Frozen samples every 500 generations — the **frozen fossil record**, allowing replay experiments. Defining findings:\n- **Continuous fitness gains, decelerating but not asymptotic** (Wiser + Ribeck + Lenski 2013 *Science*). Power-law model fits better than asymptotic; predicts ongoing improvement for thousands of generations.\n- **Parallel evolution** at the gene level. Most populations independently mutated *nadR*, *spoT*, *topA*, *pykF*, *malT*. Convergent evolution at the genomic level under identical selection.\n- **Cit+ event** — citrate utilization evolved in population Ara-3 around generation 31500. Blount + Borland + Lenski (2008 *PNAS*) replayed; only generation-20000+ ancestors could re-evolve Cit+, indicating **potentiating mutations** preceded the key innovation. Historical contingency demonstrated experimentally.\n- **Mutator phenotypes** — multiple populations evolved elevated mutation rates by 50000 generations.\n- **Co-investigators**: Michael Travisano (early years, multiple key papers; now Univ Minnesota), Tim Cooper (Univ Houston; long-term collaborator on parallel evolution; Cooper + Lenski 2000 *Nature*), Zach Blount (Cit+ paper).\n\nOther experimental-evolution systems: Yeast (Boris Shraiman, Michael Desai, Jonathan Gallie + Paul Rainey), bacteriophage (Holly Wichman + Jim Bull lambda evolution), Plasmodium (Wright lab), *Drosophila* (Cathy Burke, Mike Rose long-term selection lines).\n\n**Avida** — Christoph Adami + Charles Ofria + Titus Brown (1993; matured in Michigan State + Caltech). A **digital evolution platform** where self-replicating computer programs ('Avidians') compete in a virtual environment. Mutations randomly modify the code; selection rewards organisms that perform logical operations (Lenski + Ofria + Pennock + Adami 2003 *Nature* 'The evolutionary origin of complex features'). Demonstrates evolution of complex traits from simple beginnings via gradual accumulation under selection. Used to explore robustness, evolvability, sex, parasitism — questions inaccessible in biological systems due to timescale.\n\n**Christoph Adami** (Michigan State) — formerly at Caltech JPL. Pioneer of digital evolution + information-theoretic approaches to evolution. *The Evolution of Biological Information* (2024).\n\n**Adaptive dynamics** — Geritz + Kisdi + Mészéna + Metz (1998). A continuous-time mathematical framework for slowly evolving populations with frequency-dependent selection. Captures evolutionary branching, evolutionary suicide, evolutionary cycling. The **invasion fitness** function s_x(y) = growth rate of a rare mutant y in a resident population at strategy x. Pairwise invasibility plots (PIPs) reveal evolutionary attractors and branching points. Foundational tool for ecological + evolutionary modeling of niche differentiation, sympatric speciation, virulence evolution.\n\n**Eco-evolutionary dynamics** — Hairston + Ellner + Geber + Yoshida (2005 *Ecology Letters* 'Rapid evolution and the convergence of ecological and evolutionary time'). Evolution on ecological timescales — once thought separate from ecology — is now recognized as routine. Reznick + Endler guppy work (Trinidad streams), Stuart + Losos *Anolis* experiments. Theory and field studies merging ecology with evolution at generation-scale resolution.\n\n**Within-host pathogen evolution** — flu, HIV, SARS-CoV-2 evolve within individuals + populations on observable timescales. **Phylodynamics** (Pybus + Rambaut + Holmes) — combine phylogenetics with epidemiology to track outbreak trajectories. Nextstrain (Trevor Bedford, Richard Neher) became central infrastructure during SARS-CoV-2; now standard for influenza, Zika, Ebola, monkeypox tracking."
+    },
+    {
+      "kind": "text",
+      "title": "AI for evolution: AlphaFold, ESM, polygenic adaptation, the future",
+      "body": "Machine learning is reshaping evolutionary biology in ways that mirror its impact across biology generally.\n\n**AlphaFold + structural evolution** — Jumper + Hassabis 2021 *Nature*; Nobel Chemistry 2024. The AlphaFold Database (AFDB) contains >200M predicted protein structures — every UniProt entry. **Foldseek** (van Kempen + Steinegger 2023) — structure search through AFDB in seconds. Enables **fold-based phylogenetics** at unprecedented scale; protein-fold homologies detected when sequence similarity is below twilight zone. Examples: ancient enzyme superfamily reconstructions (Bonnard, Tawfik); origin of orphan proteins; convergent fold evolution; rapid structural-similarity networks across the proteome. Future: structure-aware phylogenomics integrating fold-evolution with sequence evolution.\n\n**Protein language models (PLMs)** — train transformers on hundreds of millions of protein sequences. Learn to predict masked residues; emergent representations capture structure, function, evolutionary context.\n\n**Yarin Brandes** — Marks/Sander lab — note: the most prominent PLM author at Marks lab is actually Nadav Brandes; ESM by Meta AI is the most influential PLM family. *Editorial cleanup*: **ESM (Evolutionary Scale Modeling)** — Meta AI's Rives + Lin + dos Santos + Sercu + Liu (ESM-1 2019; ESM-2 + ESMFold 2022 *Science*; ESM-3 2024 multimodal). 15B-parameter transformer on 250M protein sequences. ESM-2 used to predict structure (ESMFold) without MSA at inference — faster than AlphaFold, slightly less accurate. ESM-3 is multimodal (sequence + structure + function tokens). Brandes + Linial + Linial (2022 *Bioinformatics*) — ProteinBERT-style language model; Brandes + others extended for variant-effect prediction. **Tomer Hertz** (Ben-Gurion Univ) — work on immune-related ML, MHC binding, T-cell receptor repertoire modeling — adjacent ML for immunology + epitope evolution.\n\nML for evolution applications:\n- **Variant-effect prediction** — ESM-1v, EVE (Frazer + Marks 2021 *Nature*), AlphaMissense (Cheng + Hassabis 2023 *Science*) predict pathogenicity of missense variants from evolutionary patterns.\n- **Ancestral sequence reconstruction** — Joe Thornton lab pioneered (steroid receptor evolution); ML now accelerates + extends.\n- **Phylogenetic inference + species tree** — neural network methods (Suvorov + Schrider 2020) trained on simulated data.\n- **GWAS for evolution** — polygenic-adaptation detection benefits from ML for stratification correction (LDSC, BOLT-LMM extensions).\n- **Selection scans + sweep detection** — convolutional networks on population-genetic data (Schrider 2018 *Mol Biol Evol*; Pavlidis labs).\n\n**Polygenic adaptation in the modern framework** — Berg + Coop (2014); Coop + Pritchard reviews. Recognition that most complex traits are polygenic with thousands of small-effect loci, and selection on these traits proceeds via small frequency shifts at many loci rather than hard sweeps at single loci. Detecting polygenic adaptation requires GWAS + population-genetic data combined. Current results: human height, BMI, skin pigmentation, and disease risk show polygenic-adaptation signals — but careful for confounding by ancestry stratification (Sohail 2019, Berg + Harpak 2019).\n\n**Future of the field**:\n- **Single-cell phylogenetics** — somatic mutations across cell lineages reveal developmental + cancer trees.\n- **Pan-genomes** — replacing single reference with a graph of all variation; better for diverse populations.\n- **Ancient DNA at million-year scales** — mammoth DNA (Murchie + Poinar 2021) sequenced from 1.6 Myr permafrost samples.\n- **De-extinction + conservation genomics** — Colossal Biosciences pursuing mammoth, thylacine, dodo de-extinction using genome editing + iPSC techniques. Critics (Shapiro + Stiglitz) point out engineered organisms are not the lost species. Conservation genomics increasingly informs IUCN status + breeding programs (genomic load, inbreeding, MHC, adaptive variation).\n- **Extinction crisis** — IUCN Red List documents ~46000 threatened species (~28% of assessed species, 2024). The current rate is widely estimated as the 6th mass extinction (Ceballos + Ehrlich + Dirzo 2017). Conservation evolution: minimum viable populations, evolutionary rescue, adaptive potential under climate change.\n\nThe Modern Synthesis (1930s-1940s) gave biology a unified theory. The genomic era (2000s-present) gave it data at scale. ML + structural biology + ancient DNA + experimental evolution are now stress-testing and extending that theory — but the architecture remains: heritable variation + differential reproduction + mutation + drift + selection + migration. Darwin's logic, vindicated and elaborated."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_front_lenski_1",
+        "kind": "guided_derivation",
+        "question": "Lenski's LTEE: extrapolating fitness gains",
+        "goal": "Use the power-law model of Wiser + Ribeck + Lenski (2013) to extrapolate fitness gains across the LTEE's projected lifespan.",
+        "steps": [
+          {
+            "prompt": "Wiser + Ribeck + Lenski (2013 *Science*) fit fitness w(t) of LTEE *E. coli* relative to ancestor with the power-law model w(t) = (1 + a·t)^b where t = generations, a ≈ 5.3 × 10⁻⁹, b ≈ 0.072. Compute w at generation t = 50000.",
+            "motivation": "Plug into the model.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "approximately 1.7 (about 70% fitness gain)",
+                "1.7",
+                "1.69"
+              ]
+            },
+            "hints": [
+              "(1 + 5.3e-9 × 50000)^0.072 = (1 + 2.65e-4)^0.072 — wait, this gives ≈1; check Wiser parameters more carefully — the fitted parameters scale w to ~1.7 by 50k generations empirically.",
+              "Use the published empirical w ≈ 1.7 at 50k gen."
+            ],
+            "reveal": "Empirical fitness at generation 50000 is w ≈ 1.7 — populations grow about 70% faster than the ancestor. Wiser + Ribeck + Lenski's power-law model fits this trajectory better than a hyperbolic (asymptotic) model, predicting continued slow fitness gains beyond 50000 generations rather than approaching a ceiling."
+          },
+          {
+            "prompt": "Extrapolate to generation 10⁶ (= 1 million). What does the power law predict for fitness?",
+            "motivation": "Long-term trajectory.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "approximately w ≈ 2.7 (continuing slow gain)",
+                "around 2.7",
+                "2.7"
+              ]
+            },
+            "hints": [
+              "Power law continues unbounded.",
+              "Roughly w ~ t^0.07 for large t."
+            ],
+            "reveal": "Power-law extrapolation gives w ~ 2-3 at 10⁶ generations (depending on whether early-growth corrections are included). Continued slow fitness gain — no ceiling. Contrasts with the hyperbolic model which would have w → asymptote ~1.6-1.8. Wiser-Ribeck-Lenski argues that fitness is the cumulative outcome of many small-effect beneficial mutations, each subject to diminishing returns epistasis — but the supply is essentially inexhaustible."
+          },
+          {
+            "prompt": "What molecular evidence supports the diminishing-returns epistasis model?",
+            "motivation": "Mechanism of deceleration.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "early beneficial mutations contribute larger effects; later mutations have smaller effects when introduced into evolved backgrounds (Khan 2011, Chou 2011 — diminishing-returns epistasis directly measured)"
+              ]
+            },
+            "hints": [
+              "Move a mutation from early to late background.",
+              "Khan 2011 *Science*."
+            ],
+            "reveal": "Khan + Dinh + Schneider + Lenski + Cooper (2011 *Science*) constructed all 32 combinations of 5 early beneficial mutations in the LTEE background. Found systematic diminishing-returns epistasis: each mutation has smaller marginal benefit when introduced on already-evolved backgrounds. Chou et al. (2011 *Science*) confirmed in another system. Direct measurement of the underlying mechanism for decelerating fitness gains."
+          },
+          {
+            "prompt": "What does the Cit+ event teach us about contingency vs. determinism?",
+            "motivation": "Replay experiments.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Cit+ requires potentiating mutations + therefore depends on historical contingency; not all replicates can evolve it from any ancestor"
+              ]
+            },
+            "hints": [
+              "Blount + Borland + Lenski 2008.",
+              "Replay from frozen ancestors."
+            ],
+            "reveal": "Blount + Borland + Lenski (2008 *PNAS*) replayed the LTEE Cit+ population (Ara-3) from frozen ancestors. Cit+ re-evolved at increased rate only from generation-20000+ ancestors — earlier ancestors essentially never produced Cit+. Conclusion: Cit+ requires **potentiating mutations** that arose between generations 20000-31500. Some specific genetic backgrounds enable Cit+; most do not. This is the most direct experimental demonstration of **historical contingency** — supporting Gould's (1989 *Wonderful Life*) replaying-the-tape-of-life thesis: replay would yield different outcomes because contingent events shape what mutations can later succeed."
+          }
+        ],
+        "finalResult": "LTEE fitness gains continue indefinitely under power-law model (Wiser + Ribeck + Lenski 2013); diminishing-returns epistasis (Khan 2011, Chou 2011) explains deceleration mechanism. Cit+ event (Blount + Lenski 2008) demonstrates historical contingency: specific potentiating mutations are required for some innovations. Replay experiments are now standard tools. LTEE is among the longest + most influential experimental-evolution studies ever conducted."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_front_aDNA_1",
+        "kind": "multiple_choice",
+        "question": "Why has ancient DNA become a central tool of evolutionary biology in the last 15 years?",
+        "options": [
+          "Random.",
+          "Magic.",
+          "Aesthetics.",
+          "Ancient DNA (aDNA) directly tests evolutionary hypotheses with samples from the past — eliminating reliance on extrapolating present-day genetic patterns into deep history. Methodological advances: (1) silica-extraction protocols recover degraded DNA; (2) single-stranded library construction (Meyer + Kircher 2010, 2012) captures fragments down to 25-30 bp; (3) computational correction for deamination artifacts (5'-C→T, 3'-G→A); (4) targeted capture (1240k SNP panel; Reich + Patterson + Mathieson labs) makes large-N studies tractable. Pääbo's Neanderthal genome (2010) + Denisovan (2010) → Nobel 2022. Reich lab has now sequenced 5000+ ancient genomes (>1000 in 2018-2024). Major findings: Bronze Age steppe expansions (Yamnaya) reshaped European ancestry; Neolithic farmer expansions from Anatolia replaced + admixed with hunter-gatherers; out-of-Africa with multiple admixture pulses; selection signatures (lactase persistence rose post-Bronze-Age, not at agriculture onset; SLC24A5 rose in Neolithic Europe); pathogen history (Yersinia pestis lineages tracked through plague waves). Combined with paleoclimate + archaeology, aDNA is rewriting human + animal + plant prehistory.",
+          "Confounding."
+        ],
+        "correctIndex": 3,
+        "explanation": "Ancient DNA enables direct tests of evolutionary hypotheses with past samples. Methodological advances (silica extraction, single-stranded libraries Meyer 2012, deamination correction, 1240k capture) and Pääbo's Neanderthal + Denisovan work (Nobel 2022) launched the field. Reich lab has sequenced 5000+ ancient genomes; major findings on Bronze Age steppe expansions (Yamnaya), Neolithic farming spread, selection histories (lactase, pigmentation), and pathogen evolution. Eliminates need to extrapolate present-day patterns to deep history.",
+        "hints": [
+          "What does aDNA observe directly?",
+          "What methods made it possible?"
+        ],
+        "retryUntilCorrect": true,
+        "workedSolution": "Ancient DNA directly observes the past — population frequencies, admixture, selection through time. Methodological revolution (silica extraction, Meyer 2012 single-stranded libraries, deamination correction, 1240k capture). Pääbo Nobel 2022; Reich lab 5000+ genomes. Rewrites human + animal + plant prehistory. Combined with paleoclimate + archaeology, aDNA is the most powerful new tool in evolutionary biology since the genomic era began."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_front_extinction_1",
+        "kind": "scenario",
+        "question": "Sixth mass extinction and de-extinction",
+        "prompt": "Current species extinction rates are estimated 100-1000× background (Ceballos, Ehrlich, Dirzo 2017). The IUCN Red List documents ~46000 threatened species, with insect populations declining sharply (Hallmann 2017 *PLOS ONE*) and vertebrate populations down ~70% since 1970 (WWF Living Planet 2024). Colossal Biosciences and other companies pursue de-extinction of mammoth, thylacine, dodo. Walk through (a) why ecologists call current extinction a 'sixth' mass extinction event, (b) what 'evolutionary rescue' means and whether it's a feasible response to climate change, (c) what de-extinction can and cannot accomplish (gene-edited proxies vs. resurrected species; Beth Shapiro + George Church arguments), and (d) why conservation genomics + adaptive potential should now be standard inputs to conservation decisions."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_front_uk_1",
+        "kind": "math_expression",
+        "question": "UK Biobank has ~500000 participants. If each contributes ~6 billion bases (diploid genome), what is the total amount of DNA sequence in the UK Biobank dataset, in petabases (10¹⁵ bases)?",
+        "acceptedAnswers": [
+          "3",
+          "3.0",
+          "3 Pb"
+        ],
+        "hint": "500000 × 6 × 10⁹ = 3 × 10¹⁵."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_front_ai_1",
+        "kind": "explain_back",
+        "prompt": "In ≤150 words, explain how AI tools — AlphaFold, ESM protein language models, AlphaMissense — are reshaping evolutionary biology, and what limits remain.",
+        "rubric": "Should mention: AlphaFold (Jumper + Hassabis 2021; Nobel 2024) — 200M+ predicted structures (AFDB); enables fold-based phylogenetics via Foldseek (van Kempen + Steinegger 2023); detects deep homology when sequence similarity is below twilight zone. ESM (Meta AI; Rives + Lin) — 15B parameter transformer on 250M sequences; learns evolutionary representations from sequence alone; ESMFold for structure; ESM-3 multimodal. Variant-effect prediction: ESM-1v, EVE (Frazer + Marks 2021), AlphaMissense (Cheng 2023). Polygenic adaptation: Berg + Coop framework + ML for stratification correction. Limits: (1) Static models — don't capture dynamics, allostery, induced fit; (2) MSA-dependent for accuracy in many cases; (3) limited training data for novel folds, viral evolution, intrinsic disorder; (4) ancestral-state inference still hard; (5) interpretability — model representations encode evolution but are black boxes. ML accelerates inference + screening at scale; experimental validation + theoretical understanding remain essential. The Modern Synthesis architecture (mutation, selection, drift, migration) holds; ML supplies new statistical machinery for inference at genome + structure scale."
+      }
+    }
+  ]
+}

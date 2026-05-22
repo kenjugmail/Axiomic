@@ -1,0 +1,167 @@
+{
+  "slug": "glacier-and-ice-sheet-dynamics",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Reason about mass balance + the equilibrium line altitude.",
+      "Apply Shallow-Ice + Shelfy-Stream approximations.",
+      "Explain Marine Ice Sheet Instability + the Thwaites threat."
+    ],
+    "prereqs": [
+      "glaciology-foundations-and-ice-physics"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Mass balance, ELA + glacier health",
+      "body": "An ice sheet or glacier evolves by **mass balance**: net difference between **accumulation** (snowfall, riming, refreezing) + **ablation** (melt, sublimation, calving, runoff). Surface mass balance (SMB) = accumulation − surface ablation. Total mass balance = SMB + basal melt + frontal ablation (calving, submarine melt).\n\n**Equilibrium Line Altitude (ELA)**: the altitude at which annual accumulation = annual ablation. Above ELA: accumulation zone (firn, gain of mass). Below ELA: ablation zone (bare ice, net loss). For a healthy steady-state glacier, the **Accumulation Area Ratio (AAR)** ≈ 0.5-0.7; ratios < 0.5 indicate a glacier out of balance (shrinking).\n\n**Climate sensitivity of mass balance**:\n- Temperate alpine glaciers: ELA rises ~150-200 m per °C of warming → exponentially shrinking accumulation area on conical mountains. Most Alpine + Andean + HKH glaciers projected to lose >50% mass by 2100 under high emissions (RGI / WGMS reports; Hugonnet et al. 2021 Nature found global glacier thinning rate ~0.5 m/yr accelerated by 2000-2019).\n- Polar ice sheets: SMB still positive at altitude; mass loss dominated by dynamic discharge (calving + submarine melt) + warming runoff at low-elevation margins. Greenland surface-melt extreme July 2012 + 2019 + 2021 + 2023.\n\n**Field-method history**: Mass-balance measurements (stake networks, snow pits, ground-penetrating radar) pioneered by **Mark Meier** (USGS/INSTAAR, 1957-) + Wally Broecker + Hans Oeschger + Willi Dansgaard's networks. Modern: remote-sensing altimetry (CryoSat, ICESat) + GRACE gravimetry + InSAR velocity inversion (Joughin, Rignot).\n\n**Equilibrium-line response** is *the* climate signal in glacier change — but with a delay. Glacier 'response time' τ ≈ h / b (thickness over ablation rate); ~few decades for alpine + ~10⁵ yr for ice sheets. Means most observed alpine retreat reflects 1970-2020 climate, not future commitment.",
+      "viz": "ice-sheet-dynamics",
+      "vizProps": {
+        "accumulation": 0.5,
+        "iceTemperature": -10
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Shallow-Ice + Shelfy-Stream Approximations + MISI",
+      "body": "Full 3D ice-flow physics couples Glen's flow law (ε̇ = A τ^n, n=3) with momentum balance under gravity. Solving the full Stokes equations is expensive; glaciologists exploit **scale separation** — ice sheets are thin (~few km) relative to lateral extent (~thousands km) — to derive **approximations** valid in different regimes.\n\n**Shallow-Ice Approximation (SIA)** (Hutter 1983; Morland 1984):\n- Assumes vertical shear dominates: τ_xz dominant stress.\n- Valid where motion is mostly internal deformation + slope drives flow (East Antarctica interior, central Greenland).\n- Surface velocity ∝ h^(n+1) (sin α)^n.\n- Limit: fails near margins, ice streams, grounding lines, ice shelves.\n\n**Shelfy-Stream Approximation (SSA)** (MacAyeal 1989):\n- Assumes membrane stresses (longitudinal + lateral shear) dominate; vertical shear neglected.\n- Valid for floating ice shelves + fast-sliding ice streams.\n- Used for WAIS ice streams, ice shelves, marine grounding-line studies.\n\n**Hybrid + L1L2 + Blatter-Pattyn + full-Stokes**: increasing computational cost. Modern community models — **ISSM (Ice-sheet System Model; Larour + Rignot)**, **Elmer/Ice (Gagliardini)**, **BISICLES (Cornford, AMR Stokes)**, **CISM/MALI/PISM** — pick the right approximation per region with adaptive resolution.\n\n**Marine Ice Sheet Instability (MISI)**:\n- Identified by **Mercer 1968 + 1978**, formalized by **Weertman 1974** + **Schoof 2007** (J. Geophys. Res.) + **Joughin + Alley + Holland 2012** + **Pollard + DeConto** simulations.\n- Where ice sheet rests on **retrograde bedrock slope** (bed deepens inland, e.g., much of WAIS) + grounded **below sea level**, retreat is self-amplifying: as grounding line retreats inland to deeper bed, ice flux through the grounding line increases (Q_GL ∝ h_GL^(n+1)/m ~ h_GL⁴ ish), accelerating retreat. **Once a threshold is crossed, retreat is unstoppable** until reaching a stabilizing bedrock high.\n- Schoof 2007: derived analytical boundary-layer grounding-line flux; showed grounding lines on retrograde slopes have no stable steady state.\n- **Pine Island Glacier (PIG)** + **Thwaites Glacier** sit on retrograde slopes; bedrock topography (BedMachine; Morlighem 2017+) shows retreat could trigger collapse of much of WAIS (~3 m SLE).\n- **Thwaites the 'Doomsday Glacier'**: Rignot + Joughin + Alley + Bindschadler measurements 2014-2024 (NASA + BAS + ITGC) show grounding-line retreating 1-2 km/yr; submarine ice shelf (Thwaites Eastern Ice Shelf) increasingly weakened.\n\n**Marine Ice Cliff Instability (MICI)** (DeConto + Pollard 2016 Nature):\n- Even more dramatic: once an ice shelf collapses, the exposed grounded-ice cliff calves rapidly if h > ~90 m above water (~800 m total).\n- Could give meters of SLR per century in extreme runs; controversial — Edwards et al. 2019 emphasized large uncertainty; ISMIP6 ensembles bracket.\n- Recent observations: Larsen B (2002) + Wilkins (2008-2009) ice-shelf collapses; Conger ice shelf (2022); Brunt rifts."
+    },
+    {
+      "kind": "text",
+      "title": "Basal sliding, subglacial hydrology + ice streams",
+      "body": "Beneath fast-flowing ice — **ice streams** + **outlet glaciers** — Glen-law internal deformation is dwarfed by **basal sliding**. Understanding the bed conditions is therefore central to predicting future ice loss.\n\n**Conditions for sliding**: bed at **pressure-melting point** (typically ~−0.5 to −1.0 °C beneath thick ice due to Clausius-Clapeyron lowering), liquid water present at the bed, lubricating the interface.\n\n**Sliding laws** (constitutive):\n- **Weertman (1957, 1964)**: u_b = C τ_b^m (power-law); m ≈ 1-3.\n- **Coulomb friction** (Iken 1981): u_b limited by effective pressure (N = P_ice − P_water).\n- **Schoof (2005) regularized Coulomb**: u_b = C τ_b^m / (τ_b^m + N^m)^(1/m) — smooth transition power-law to Coulomb.\n- **Sediment-bed rheology** (Tulaczyk + Kamb): ice streams on deformable till; till deforms plastically (Coulomb).\n\n**Subglacial hydrology** (Röthlisberger 1972; Nye; Kamb; Walder; Schoof; Werder):\n- **Distributed system** (cavities, sheets, films): high water pressure, slow flow.\n- **Channelized system** (R-channels, Nye-channels): low pressure, fast flow, efficient.\n- **Transition**: low-melt-input → distributed → high pressure → fast sliding. High-melt → channels grow → drain water → low pressure → slow sliding (counterintuitive!).\n- **Diurnal/seasonal speed-up** on Greenland: surface meltwater plunges down moulins → subglacial hydrology pressurizes → faster sliding in spring; channels organize → speed slows in late summer (Schoof 2010; Sole; Bartholomew).\n\n**Ice streams** (Bindschadler + Whillans + MacAyeal + Joughin classics on the Siple Coast):\n- WAIS Siple Coast ice streams (A-E, renamed Mercer, Whillans, Kamb, Bindschadler, MacAyeal).\n- Whillans Stream slowing ~1-2% per yr (Joughin; Beem); Kamb Ice Stream stagnated ~150 yr ago.\n- Ice streams discharge ~90% of WAIS mass into Ross Ice Shelf.\n- Greenland: Northeast Greenland Ice Stream (NEGIS), Jakobshavn, Petermann, 79N + Zachariæ.\n\n**Pine Island Glacier (PIG)**:\n- ~125 km long; drains ~10% of WAIS.\n- Discharge ~130 Gt/yr; mass loss accelerated 1990-2010 then plateaued.\n- Grounding-line retreated >30 km since 1992 (Rignot ERS + Sentinel InSAR).\n- Submarine melt by warm Circumpolar Deep Water (CDW) intrusion under PIG Ice Shelf is the dominant forcing (Jenkins; Pritchard; Holland).\n\n**Thwaites Glacier — the 'Doomsday' threat**:\n- ~120 km wide grounding line; drains ~5% of WAIS.\n- Submarine bed grounded ~1000 m below sea level + deepens inland (retrograde): primary MISI candidate.\n- **International Thwaites Glacier Collaboration (ITGC)** 2018-2024 (NSF + NERC; ~$50M; Alley + Anandakrishnan + Pettit + Wåhlin + Joughin + Holland leads): aerial + ship + ice-shelf instruments showed Eastern Ice Shelf fracturing rapidly, grounding-line retreating, warm-water cavity expanding.\n- If Thwaites destabilizes, could contribute 0.6 m direct SLE + trigger ~3 m WAIS collapse over 100-200 yr.\n- **Rignot et al. 2014 + 2019** + **Joughin et al. 2014** + **Scambos + Bell + Bindschadler 2017**: papers calling Thwaites 'in collapse' or 'past tipping' — strong language but with substantial uncertainty in timescale.\n\n**Calving + ice-shelf collapse** (Bassis; Benn; Astrom):\n- Calving mechanics — buoyancy + flexure + hydrofracture (meltwater filling crevasses).\n- Larsen B 2002 collapse in days following meltwater hydrofracture; tributary glaciers accelerated 3-8× post-collapse (proving shelves do buttress).\n- Antarctic Peninsula warming destabilizes shelves; Pine Island + Thwaites + Crosson + Dotson shelves all thinning."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ice_2",
+        "kind": "guided_derivation",
+        "question": "Estimate the contribution of Thwaites Glacier to future sea level",
+        "goal": "Thwaites drainage basin contains ~480,000 km² ice with mean thickness ~1700 m. Discharge currently ~120 Gt/yr. If MISI triggers full collapse over 200 yr, estimate the SLR contribution. Use 1 Gt ice ≈ 0.00278 mm SLE.",
+        "steps": [
+          {
+            "prompt": "Total ice mass in Thwaites basin (Gt)? Use ρ_ice = 917 kg/m³.",
+            "motivation": "Reservoir size.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~750,000 Gt",
+                "~7.5×10⁵ Gt",
+                "0.75 million Gt"
+              ]
+            },
+            "hints": [
+              "Mass = ρ × V = 917 × 4.8×10¹¹ × 1700.",
+              "4.8×10⁵ km² × 1.7 km = 8.16×10⁵ km³."
+            ],
+            "reveal": "V = 4.8×10⁵ km² × 1.7 km = 8.16×10⁵ km³ = 8.16×10¹⁴ m³. Mass = 917 × 8.16×10¹⁴ kg = 7.5×10¹⁷ kg = 7.5×10⁵ Gt ≈ 750,000 Gt."
+          },
+          {
+            "prompt": "Direct SLE if Thwaites basin fully discharged (mm)?",
+            "motivation": "Use the SLE conversion.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~2100 mm",
+                "2.1 m",
+                "~2000 mm"
+              ]
+            },
+            "hints": [
+              "7.5×10⁵ Gt × 0.00278 mm/Gt = 2085 mm."
+            ],
+            "reveal": "SLE = 7.5×10⁵ Gt × 2.78×10⁻³ mm/Gt = 2.08×10³ mm ≈ 2.1 m. The 'Thwaites basin direct' figure of ~0.6 m sometimes quoted is for the marine-grounded portion only — most of the basin sits above sea level on bedrock + would only contribute if the whole WAIS marine sector unzipped."
+          },
+          {
+            "prompt": "If discharge accelerates from 120 Gt/yr to mean 1500 Gt/yr over 200 yr, total loss (Gt)?",
+            "motivation": "Time-integrated.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~300,000 Gt",
+                "3×10⁵ Gt",
+                "300 Gt-yr-equivalent"
+              ]
+            },
+            "hints": [
+              "1500 × 200 = 3×10⁵."
+            ],
+            "reveal": "Mean ~1500 Gt/yr × 200 yr = 3×10⁵ Gt ≈ ~40% of basin discharged in 200 yr. Yields ~830 mm SLE ≈ 0.8 m from Thwaites basin alone — comparable to plausible high-end AR6 + DeConto-Pollard scenarios for Antarctica."
+          },
+          {
+            "prompt": "How does this compare to AR6 SSP5-8.5 Antarctica projection for 2100?",
+            "motivation": "Context.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "extreme end / above central estimate",
+                "high-end / consistent with MICI-on scenarios",
+                "Significantly larger than likely range"
+              ]
+            },
+            "hints": [
+              "AR6 Antarctica 2100 SSP5-8.5 likely range ~0.03-0.34 m."
+            ],
+            "reveal": "AR6 (Fox-Kemper et al. 2021, IPCC WG1 Ch. 9) SSP5-8.5 Antarctica likely range to 2100: 0.03-0.34 m. Low-likelihood, high-impact scenarios (MICI on, DeConto-Pollard 2016) push to ~1 m+ from Antarctica alone. A 200-yr Thwaites-collapse contribution of 0.8 m straddles the upper tail. Hence the precautionary 'tipping point' framing — Thwaites is the largest deep-uncertainty term in 21st-century sea-level rise."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ice_2",
+        "kind": "multiple_choice",
+        "question": "Why is Marine Ice Sheet Instability (MISI) a tipping-point process, not a gradual response to warming?",
+        "options": [
+          "Random.",
+          "MISI is a positive feedback rooted in geometry. On a retrograde (landward-deepening) bed, the grounding-line ice flux scales steeply with ice thickness there: Schoof 2007 derived Q_GL ∝ h_GL^β with β ≈ 5 for n=3 Glen flow + power-law sliding. As the grounding line retreats inland to a deeper bed, h_GL increases → Q_GL increases → grounding line retreats faster — runaway. Once initiated, retreat continues until reaching a stabilizing bedrock high or the basin empties of grounded ice. Thwaites + Pine Island sit on retrograde slopes drained ~1000 m below sea level. Threshold-crossing depends on ice-shelf buttressing (Holland + Joughin + Scambos), oceanographic CDW intrusion (Jenkins), + GIA + sliding-law choice. Hence MISI gives a non-reversible, tipping-style commitment beyond a forcing threshold — the language IPCC AR6 uses for 'low-likelihood, high-impact storylines'.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "MISI is geometric: retrograde slope means grounding-line retreat into deeper bedrock thickens grounded ice there, which scales-up grounding-line flux (Schoof 2007: Q_GL ∝ h^~5). Self-amplifying retreat → runaway. Tipping-style, non-reversible. Thwaites + PIG candidates. Threshold depends on shelf buttressing + ocean forcing + sliding law. AR6 includes MISI in 'low-likelihood, high-impact storylines'."
+      },
+      "hints": [
+        "What does Q_GL depend on?",
+        "Why does retrograde slope matter?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Schoof 2007: Q_GL ∝ h_GL^~5 → grounding line on retrograde slope retreats to deeper bed → thicker h → higher flux → more retreat → tipping. Thwaites + PIG candidates on retrograde slopes. Once initiated, retreat unstoppable until bedrock high or basin empty. AR6 'low-likelihood, high-impact storylines'."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ice_2",
+        "kind": "scenario",
+        "question": "The Thwaites Eastern Ice Shelf breaks up",
+        "prompt": "The Thwaites Eastern Ice Shelf — the floating pinned section buttressing fast-flowing grounded ice — disintegrates over a single Antarctic summer following hydrofracture (similar to Larsen B 2002). As an ice-sheet modeler advising the IPCC, walk through what you'd expect over the next 1, 10, 100 yr + which observations would clarify timescales."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ice_2",
+        "kind": "math_expression",
+        "question": "Schoof 2007 grounding-line flux scales as Q_GL ∝ h_GL^β with Glen n = 3 + power-law sliding m = 1/3. The derived exponent is β = (n + m + 3) / (m + 1). Compute β.",
+        "acceptedAnswers": [
+          "~4.75",
+          "4.75",
+          "(3+1/3+3)/(1/3+1)"
+        ],
+        "hint": "(3 + 1/3 + 3)/(1/3 + 1) = 6.333/1.333 = 4.75."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ice_2",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why Pine Island + Thwaites Glaciers are the 'deep uncertainty' in 21st-century sea-level rise + how the International Thwaites Glacier Collaboration (ITGC) is reducing that uncertainty.",
+        "rubric": "Mentions: PIG + Thwaites sit on retrograde bedrock + are marine-grounded → vulnerable to MISI (Weertman 1974, Schoof 2007). Warm CDW intrusion under their ice shelves drives submarine melt (Jenkins, Pritchard) thinning them; grounding lines retreating (Rignot, Joughin InSAR; Bindschadler observations); MICI-style cliff instability (DeConto + Pollard 2016) could amplify further. Potential ~0.6-3 m SLR via WAIS chain reaction. ITGC (2018-2024, NSF + NERC, ~$50M) deployed ships (Nathaniel B. Palmer, Sir David Attenborough), Icefin AUV, autosubs under ice shelf, hot-water-drill sub-shelf observations, geophysics, GPS, ice-core, models — combined to constrain melt + retreat rates + tipping thresholds. Recent results: Eastern Ice Shelf fracturing rapidly + grounding-line retreat ongoing. Conclusion: physically plausible upper-tail of AR6 projections + key target of glaciological research."
+      }
+    }
+  ]
+}

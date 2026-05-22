@@ -1,0 +1,159 @@
+{
+  "slug": "topography-and-relief",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Survey DEM sources (SRTM, ASTER, Copernicus, 3DEP, ArcticDEM, GEBCO).",
+      "Apply contour, hillshade, slope, aspect, hypsometric tint to represent relief.",
+      "Recognize Imhof + Patterson traditions of manual + analytical relief shading."
+    ],
+    "prereqs": [
+      "gis-fundamentals-and-spatial-data"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Digital Elevation Models — sources + characteristics",
+      "body": "A **Digital Elevation Model (DEM)** is a raster representation of Earth's surface elevation. DEMs underlie hydrology, geomorphology, slope analysis, viewshed, hillshading, line-of-sight, drone planning, climate modeling, autonomous driving, terrain visualization.\n\n**Global DEM sources**:\n- **SRTM (Shuttle Radar Topography Mission, NASA + DLR 2000)** — single space-shuttle mission imaged ~80% of Earth's landmass between 60° N + 56° S using C-band + X-band InSAR. Released at 90 m (SRTM-3), later 30 m (SRTM-1). Voids over water bodies + steep terrain. **The most cited DEM in science**.\n- **ASTER GDEM (Japan + NASA, 2009 v1, v3 2019)** — 30 m global; stereoscopic ASTER imagery on Terra satellite. Independent of SRTM; complements it at high latitudes (above 60° N).\n- **Copernicus DEM GLO-30 (ESA + Airbus, 2019+)** — 30 m global from TanDEM-X (German DLR) InSAR. Now the modern global DEM benchmark; replaces SRTM for most uses; available under permissive license.\n- **ALOS World 3D (Japan AW3D, 2016+)** — 30 m global from JAXA's ALOS PRISM. Commercial at 5 m + 1 m; free at 30 m.\n- **NASADEM (2020)** — reprocessed SRTM at 30 m with improved void filling. NASA's modern release of the SRTM legacy.\n\n**Regional / national high-resolution DEMs**:\n- **USGS 3DEP (3D Elevation Program, 2016+)** — U.S. national lidar program; covers most of CONUS at 1-m resolution from airborne lidar. Funded by USGS + federal agencies. Available as IfSAR (Alaska), lidar point clouds (.las/.laz, COPC), DEMs (GeoTIFF, COG). The gold standard for U.S. terrain.\n- **OS Terrain (Britain)** + **IGN BDAlti (France)** + **BKG ATKIS (Germany)** — national DEMs at 1-5 m resolution.\n- **ArcticDEM (PGC + ESRI 2017+)** — 2-m DEM of the entire Arctic from WorldView stereo. Spectacular pan-Arctic resolution.\n- **REMA (Reference Elevation Model of Antarctica, 2018)** — 8 m + 2 m DEM of Antarctica from WorldView stereo.\n- **Drone-derived DEMs** — Structure-from-Motion (SfM) photogrammetry (Pix4D, OpenDroneMap, Agisoft Metashape); cm-resolution for project-scale.\n- **Lidar point clouds** — raw 3D returns (lidar points labeled ground/vegetation/building); resolved to bare-earth DEM or DSM (digital surface model, including vegetation + buildings).\n\n**Bathymetry — the seafloor**:\n- **GEBCO (General Bathymetric Chart of the Oceans, IHO + IOC)** — global seafloor DEM at 15 arc-second resolution; combines ship soundings, satellite altimetry, dredge data. The standard global bathymetry; Seabed 2030 initiative aims to map all seafloor by 2030.\n- **Olex** — commercial fishing-vessel-sourced bathymetry; very high resolution in fishing grounds.\n- **NOAA Coastal Relief Model (CRM)** — coastal U.S. bathymetry + topography combined.\n- **EMODnet Bathymetry (EU)** — European seas.\n- Most bathymetry derives from **multibeam echo-sounders** + **satellite altimetry** (Smith + Sandwell 1997) deriving seafloor topography from gravity-anomaly signatures.\n\n**DEM types — DSM vs. DTM vs. DEM**:\n- **DSM (Digital Surface Model)** — top of features (canopy, building roofs). What InSAR sees.\n- **DTM (Digital Terrain Model)** — bare earth. What lidar can extract after classification.\n- **DEM** — general term; sometimes synonymous with DTM, sometimes generic."
+    },
+    {
+      "kind": "text",
+      "title": "Representing relief — contours, hillshade, slope, aspect, hypsometric tint",
+      "body": "Once you have a DEM, representing it on a 2D map is its own cartographic challenge.\n\n**Contour lines (isolines of elevation)**:\n- Lines of constant elevation; **contour interval** chosen for scale (10 m for 1:24000 topo, 100 m for 1:250000).\n- **Index contours** every 5th line are bolder + labeled.\n- Originated in **bathymetric** mapping (Cruquius 1729 Merwede River, Buache 1737); generalized to topography by Dupain-Triel 1791.\n- **Pros**: precise elevation readable, area-preserving. **Cons**: poor at conveying form to non-specialists; clutter in steep terrain.\n\n**Hillshade — analytical relief shading**:\n- Simulates a low-angle sun on the terrain; bright slopes face the sun, dark slopes are shadowed. Standard parameters: **sun azimuth 315° (NW)**, **sun altitude 45°**. The NW-light convention dates to **Yoëli (Pinhas Yoëli, 1965)** + earlier manual practice; people read NW-lit terrain naturally + reversing it produces the **relief inversion illusion** (hills appear as basins).\n- Algorithm: at each pixel, compute the surface normal from neighboring elevations; dot with sun vector; clamp.\n- **Multi-directional hillshade** — average multiple light angles for richer texture; **Mark Burgener 1996** + **Patterson + Jenny 2014**.\n- Computed via `gdaldem hillshade dem.tif hillshade.tif -z 1 -az 315 -alt 45`.\n\n**Slope + aspect**:\n- **Slope** — magnitude of the elevation gradient; degrees or percent. Used for hydrology (steepness drives flow), engineering, agriculture, avalanche risk.\n- **Aspect** — direction the slope faces (compass bearing of the downhill gradient). Used in ecology (north-facing slopes are cooler in N. hemisphere), solar siting, snowpack analysis.\n- Standard algorithms (Horn 1981) use a 3×3 neighborhood; alternatives by Zevenbergen + Thorne (1987). Implemented in `gdaldem slope`, `gdaldem aspect`.\n\n**Hypsometric tint**:\n- Color elevation by hue (green low → yellow → brown → white high); the canonical 19th-century atlas style.\n- **Eduard Imhof** considered hypsometric tinting an essential complement to relief shading in his *Cartographic Relief Presentation* (1965, translated 1982).\n- Modern hypsometric: **'Cynthia Brewer + Tom Patterson'** style palettes; **shaded relief + hypsometric** combined gives the textbook 'world atlas' look.\n\n**Imhof's *Cartographic Relief Presentation* (1965)**:\n- **Eduard Imhof (1895-1986)** — Swiss cartographer; the master of manual relief shading. *Kartographische Geländedarstellung* (1965) is the canonical relief textbook, translated 1982. Imhof's principles:\n  - Light from upper-left (NW, sun altitude ~45°).\n  - Aerial perspective: distant + lower terrain washed out + blueish.\n  - Local lighting adjustments — exaggerate features.\n  - Color cohesion across hypsometric + cultural overlays.\n- Imhof's hand-drawn Swiss school atlases (1932-78) are the high-water mark of the manual tradition. His students at ETH Zürich + the Swiss Federal Office of Topography (swisstopo) extended the tradition.\n\n**Patterson + modern Natural Earth**:\n- **Tom Patterson** (US National Park Service cartographer, retired 2018) — produced **shaded relief for U.S. national park maps**; popularized hand-tuned analytical relief shading in the digital era. Co-founder (with **Nathaniel Vaughn Kelso**) of **Natural Earth**, the public-domain reference data + reference maps used worldwide.\n- Patterson's tutorials + style guides (shadedrelief.com) are essential reading for modern relief cartographers. Many techniques combine **analytical hillshade** with **manual painterly adjustments** for the best of both worlds.\n- **Cross-blended hypsometric tints** (Patterson 2009) — blends biome-influenced color tints across climate zones — used by Natural Earth.\n\n**Modern AI-generated terrain**:\n- **DEM-Net + neural-rendering approaches** — generate terrain from sparse inputs.\n- **Esri World Hillshade + Mapbox Terrain-RGB** — globally-served vector + raster relief.\n- **3D + WebGL globes** — Cesium, Mapbox 3D, ArcGIS Earth allow interactive perspective views; flat-map relief is increasingly augmented by 3D + immersive viewing."
+    },
+    {
+      "kind": "text",
+      "title": "Lidar revolution, terrain analysis, + the frontier",
+      "body": "**Lidar (Light Detection + Ranging)**:\n- Active sensor emits laser pulses + measures return times → 3D point clouds. Airborne lidar (ALS) maps terrain + vegetation; terrestrial lidar (TLS) maps buildings + objects; mobile + handheld lidar (e.g., **iPhone Pro LiDAR**) maps small spaces.\n- Typical ALS: 1-30 points/m², centimeter vertical accuracy; **multi-return** (first/last + intermediates) lets the analyst separate canopy from ground.\n- **USGS 3DEP** — coordinated lidar acquisition for the U.S.; quality levels QL0 (best) - QL2 (typical) - QL3.\n- **Lidar point cloud formats**: **LAS / LAZ** (LasZIP compressed); **COPC (Cloud Optimized Point Cloud, 2021+)** for cloud-native streaming.\n- **Open-source tools**: **PDAL** (Point Data Abstraction Library, Howard Butler) — Swiss-army knife for point clouds; **CloudCompare**, **PotreeViewer** for visualization; **whitebox-tools** (John Lindsay) for hydrology + geomorphometry.\n\n**Lidar-revealed archaeology + geomorphology**:\n- **Caracol Maya** (Chase et al. 2011): lidar through Belize jungle revealed extensive Maya urban infrastructure, terraces, causeways invisible to surface survey.\n- **Angkor (Cambodia)** + **Mosquitia (Honduras)** + many more — lidar has revolutionized tropical archaeology by **stripping canopy** in software.\n- **LiDAR fault mapping** — post-EQ surface ruptures (e.g., 2010 El Mayor-Cucapah, 2016 Kaikoura) revealed in unprecedented detail.\n- **Beach + dune monitoring** — sequential lidar tracks coastal erosion + dune mobility.\n\n**Terrain analysis (geomorphometry)**:\n- **Slope, aspect, curvature** (plan + profile + tangential) — Wood 1996 morphometric variables.\n- **Topographic Position Index (TPI), Topographic Wetness Index (TWI)** — Beven + Kirkby 1979; predicts soil moisture distribution.\n- **Flow accumulation + flow direction** — D8 (O'Callaghan + Mark 1984), D∞ (Tarboton 1997), MFD. Foundation of hydrologic GIS.\n- **Watershed delineation** — Pfafstetter coding + nested basins; USGS HUC (Hydrologic Unit Codes 1-12).\n- **Roughness, ruggedness, vector ruggedness measure (VRM)** — used in ecology + climbing.\n- **Geomorphons (Jasiewicz + Stepinski 2013)** — automated landform classification using pattern recognition.\n\n**Viewsheds + line-of-sight**:\n- Compute what is visible from a point; military + telecom + scenic-route + wildfire watchtower planning.\n- Multi-point cumulative viewsheds for visual-impact analysis (wind turbines, transmission lines).\n\n**Hydrological modeling**:\n- DEM + flow direction → stream network → watersheds → flood modeling (HEC-RAS, LISFLOOD, ANUGA).\n- **WhiteboxTools** + **TauDEM** + **GRASS r.watershed** — open-source hydrologic tools.\n\n**Frontier**:\n- **NeuralFields + 3D Gaussian Splatting (2023+)** — generative + neural representations of terrain + photorealistic 3D scenes (Mip-NeRF, Zip-NeRF, Gaussian Splatting Kerbl 2023). May change how DEMs + terrain visualizations are stored + rendered.\n- **DeepBathy + DeepDEM** — AI super-resolution of DEMs.\n- **InSAR time series (Sentinel-1 + ESA, ALOS PALSAR, NISAR 2024+)** — measure cm-scale surface deformation; landslide + subsidence monitoring; volcanic + tectonic deformation.\n- **Photogrammetric Mars + Lunar DEMs** — HiRISE Mars (~1 m/pixel), LROC Moon; the same techniques applied off-planet.\n- **Combined fusion of lidar + photogrammetry + InSAR** — best-of-all terrain products.\n\nFrom Imhof's painted Alps to AI-generated planetary terrain in a Gaussian-splat 3D scene, the representation of relief remains the most spectacular branch of cartography."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_topo_1",
+        "kind": "guided_derivation",
+        "question": "Compute hillshade for a single cell",
+        "goal": "A DEM cell has slope 30° + aspect 270° (W-facing). The sun is at altitude 45° + azimuth 315° (NW). Compute the hillshade intensity (0-255).",
+        "steps": [
+          {
+            "prompt": "What is the surface normal direction relative to the sun?",
+            "motivation": "Set up the geometry.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Dot product of unit surface normal + unit sun vector; angle between them governs intensity",
+                "n · s"
+              ]
+            },
+            "hints": [
+              "Lambertian shading model."
+            ],
+            "reveal": "**Lambertian shading**: intensity is proportional to the cosine of the angle between the surface normal $\\hat{n}$ + the sun vector $\\hat{s}$. $I = \\max(0, \\hat{n} \\cdot \\hat{s})$. Both vectors are computed from slope + aspect."
+          },
+          {
+            "prompt": "Express $\\hat{n} \\cdot \\hat{s}$ in terms of slope $\\beta$, aspect $\\alpha$, sun altitude $\\theta_s$, sun azimuth $\\phi_s$.",
+            "motivation": "Derive the formula.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "cos β sin θs + sin β cos θs cos(φs − α)",
+                "n·s = cos(slope)sin(alt) + sin(slope)cos(alt)cos(az_sun - az_slope)"
+              ]
+            },
+            "hints": [
+              "Standard Horn (1981) hillshade formula."
+            ],
+            "reveal": "$\\hat{n} \\cdot \\hat{s} = \\cos\\beta \\sin\\theta_s + \\sin\\beta \\cos\\theta_s \\cos(\\phi_s - \\alpha)$. Origin: with surface normal tilted by slope $\\beta$ + aspect $\\alpha$, + sun vector at altitude $\\theta_s$ + azimuth $\\phi_s$, dot product expands to two terms — vertical (sin θs) + horizontal (cos θs)."
+          },
+          {
+            "prompt": "Substitute β = 30°, α = 270°, θs = 45°, φs = 315°. Compute.",
+            "motivation": "Plug + chug.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "cos 30° × sin 45° + sin 30° × cos 45° × cos(315° − 270°) = 0.866 × 0.707 + 0.5 × 0.707 × 0.707 ≈ 0.612 + 0.250 ≈ 0.862",
+                "~0.86",
+                "0.86"
+              ]
+            },
+            "hints": [
+              "cos(45°) = sin(45°) ≈ 0.707."
+            ],
+            "reveal": "$\\cos 30° \\sin 45° = 0.866 \\times 0.707 = 0.612$. $\\sin 30° \\cos 45° \\cos 45° = 0.5 \\times 0.707 \\times 0.707 = 0.250$. Sum = **0.862**. Scaled to 0-255: $0.862 \\times 255 \\approx 220$ — a bright pixel, because the W-facing slope is well-illuminated by the NW sun at 45°."
+          },
+          {
+            "prompt": "Why is NW sun (azimuth 315°) the Imhof / Yoëli convention + what happens if reversed?",
+            "motivation": "Cartographic tradition + perception.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "NW light is the convention; reversal causes relief inversion illusion (hills look like basins)",
+                "NW; reversal inverts perceived relief"
+              ]
+            },
+            "hints": [
+              "What does the eye expect?"
+            ],
+            "reveal": "**NW (upper-left) light** is the cartographic convention (Imhof's *Cartographic Relief Presentation* 1965 + Yoëli 1965). Light from the upper-left has been Western painting tradition since the Renaissance — readers parse upper-left-lit terrain as 'mountains rising'. **Reverse the lighting** (lower-right) + the brain inverts the percept — mountains read as basins (the **relief inversion illusion**). Even experienced cartographers can be fooled. Always use NW unless deliberately exploiting the illusion (rare). Multi-directional hillshade (Patterson + Jenny 2014) averages multiple angles for richer texture while preserving the dominant NW convention."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_topo_1",
+        "kind": "multiple_choice",
+        "question": "What is the canonical reference for **manual + analytical relief shading** + what are the core principles it established?",
+        "options": [
+          "Random.",
+          "**Eduard Imhof's *Cartographic Relief Presentation* (Kartographische Geländedarstellung, 1965, English translation 1982)** is the canonical reference. **Imhof (1895-1986)**, Swiss cartographer at ETH Zürich, was the master of manual relief shading; his Swiss school atlases are the high-water mark of the manual tradition. Core principles: (1) **Light from upper-left** — azimuth ~315° NW, altitude ~45°. Western perceptual convention; reversal causes the **relief inversion illusion** (mountains look like basins). (2) **Aerial perspective** — distant + lower terrain wash to lighter, bluish tones — depth cue. (3) **Local lighting adjustments** — manual exaggeration of significant features (passes, summits) at expense of strict geometry. (4) **Hypsometric tinting** layered with shading — color encodes elevation, shading encodes form. (5) **Cohesion** — relief must integrate with cultural overlays (roads, place names) without overwhelming them. **Pinhas Yoëli (1965)** independently formalized analytical hillshade. **Tom Patterson (US NPS)** carried Imhof's principles into the digital era; co-created **Natural Earth** + popularized hand-tuned analytical hillshade. Modern multi-directional hillshade (Patterson + Jenny 2014) blends angles for richer texture while preserving the NW convention. Together with **Cynthia Brewer's ColorBrewer**, the Imhof-Patterson-Yoëli lineage is the foundation of modern relief cartography.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Imhof's *Cartographic Relief Presentation* (1965/1982) is canonical. Principles: NW lighting (azimuth ~315°, altitude ~45°) to match Western perception (reverse causes relief inversion illusion); aerial perspective for depth; local lighting adjustments; hypsometric tinting layered with shading; cohesion with cultural overlays. Yoëli formalized analytical hillshade; Patterson carried tradition into digital era + co-created Natural Earth."
+      },
+      "hints": [
+        "Who wrote the canonical text?",
+        "Why NW lighting?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Imhof's *Cartographic Relief Presentation* (1965). Core principles: NW light (azimuth 315°, altitude 45°) — Western perceptual convention, reversal inverts apparent relief. Aerial perspective + local lighting adjustments + hypsometric tinting + cohesion with overlays. Yoëli analytical hillshade; Patterson + Natural Earth + multi-directional shading carry tradition forward."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_topo_1",
+        "kind": "scenario",
+        "question": "Map design for a national park trail map",
+        "prompt": "You're commissioned to design a printed + digital trail map for a U.S. national park with dramatic relief (1000-3500 m elevation, glacial valleys, alpine summits). Apply the relief-representation principles. Address: (1) **DEM source** — USGS 3DEP 1-m lidar vs. SRTM 30 m — which + why; how to handle voids + canopy; (2) **Bare-earth DTM vs. DSM** — lidar gives both; what is each used for; (3) **Contour interval** — 20 m? 40 m? 10 m? — at what scale + paper size; index contours every 5th line; (4) **Hillshade** — NW 315° + 45° (Imhof / Yoëli convention); multi-directional for richer texture; relief inversion illusion if reversed; (5) **Hypsometric tinting** — Brewer-style green → tan → brown → white; cross-blended for biome variation (Patterson 2009); (6) **Aerial perspective** — Imhof's distant-haze convention; what does that mean on a flat map; (7) **Trail symbology + readability** — overlay design so contours + trails + place names + hillshade integrate per Imhof's cohesion principle; (8) **Web map version** — Mapbox Terrain-RGB + 3D extrusion; how does it differ from the print version; (9) **Critical layer** — ranger station + bear-incident heat-map overlay; how the relief base supports the thematic layer; (10) **Reference work** — Imhof, Yoëli, Patterson, swisstopo, Natural Earth. Deliver a design memo + a labeled mockup."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_topo_1",
+        "kind": "math_expression",
+        "question": "A slope is 45° + aspect points directly toward the sun. Sun altitude 30°, azimuth aligned with aspect. Compute the hillshade dot product (to 2 decimal places).",
+        "acceptedAnswers": [
+          "0.97",
+          "0.966",
+          "~0.97",
+          "sin(75°) ≈ 0.97"
+        ],
+        "hint": "$\\hat{n} \\cdot \\hat{s} = \\cos\\beta\\sin\\theta_s + \\sin\\beta\\cos\\theta_s\\cos(\\Delta\\phi)$. With slope 45°, sun altitude 30°, aspect aligned (Δφ = 0): $\\cos 45° \\sin 30° + \\sin 45° \\cos 30° \\cos 0 = 0.707 \\times 0.5 + 0.707 \\times 0.866 \\times 1 = 0.354 + 0.612 = 0.966 \\approx \\sin(45° + 30°) = \\sin 75°$."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_topo_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, explain (1) major DEM sources + the lidar revolution; (2) techniques for representing relief on a 2D map; (3) the Imhof + Patterson cartographic tradition.",
+        "rubric": "Mentions: **Sources**: **SRTM (NASA + DLR 2000)** 30/90 m global; **ASTER GDEM** (Japan + NASA) 30 m global; **Copernicus DEM** GLO-30 (ESA + Airbus, modern benchmark); **NASADEM** (reprocessed SRTM); **USGS 3DEP** 1-m lidar for CONUS; **ArcticDEM + REMA** 2 m polar regions; **GEBCO + Olex** for bathymetry. DSM vs. DTM vs. DEM distinction. **Lidar** point clouds (LAS/LAZ/COPC) revolutionized terrain + revealed Maya, Angkor, Mosquitia archaeology through canopy. **Representation**: **contour lines** (Cruquius 1729, Dupain-Triel 1791); **hillshade** (Lambertian, Horn 1981) with NW sun convention (azimuth 315°, altitude 45°) — reversal causes **relief inversion illusion**; **slope + aspect** (Horn 1981, Zevenbergen-Thorne 1987); **hypsometric tint**; **multi-directional hillshade** (Patterson + Jenny 2014). **Imhof's *Cartographic Relief Presentation* (1965)** is canonical: NW light, aerial perspective, local adjustments, hypsometric + shading layered. **Yoëli (1965)** formalized analytical hillshade. **Tom Patterson** (US NPS) carried tradition into digital era + co-founded **Natural Earth**. **Frontier**: AI super-resolution, NeRF + 3D Gaussian Splatting, InSAR (Sentinel-1, NISAR) for deformation. Concludes: relief is where cartography is most spectacular + tradition + technology meet."
+      }
+    }
+  ]
+}

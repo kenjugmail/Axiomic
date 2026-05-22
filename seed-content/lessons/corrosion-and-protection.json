@@ -1,0 +1,158 @@
+{
+  "slug": "corrosion-and-protection",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Read Pourbaix + galvanic-series diagrams.",
+      "Apply mixed-potential theory + Evans diagrams.",
+      "Choose between cathodic protection, coatings, inhibitors, passivation."
+    ],
+    "prereqs": [
+      "electrode-kinetics-butler-volmer"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Corrosion thermodynamics — Pourbaix + galvanic series",
+      "body": "**Corrosion** = unwanted electrochemical degradation. Cost ~$2.5 trillion/yr globally — ~3-4% of GDP. The Statue of Liberty (Cu skin + Fe armature) lost most of its iron skeleton to galvanic corrosion 1886-1986 + had a full restoration. The RMS Titanic at 3800 m depth is being eaten by 'rusticle' communities of iron-oxidizing bacteria (Halomonas titanicae) — predicted gone by 2030.\n\n**Driving force** — any metal exposed to an electrolyte (water, soil, atmosphere) tends to ionize: M → M^n+ + ne⁻ — if the resulting reduction (usually O₂ + H₂O → 4OH⁻ or 2H⁺ + 2e⁻ → H₂) can consume the electrons.\n\n**Pourbaix diagram** (Marcel Pourbaix 1938-1963) — E vs pH map showing thermodynamically stable species for a metal-water system. Three regions:\n- **Immunity** — metal stable; reduction potential below corrosion thresholds.\n- **Corrosion** — soluble cation (or oxyanion at high pH) thermodynamically favored.\n- **Passivation** — protective oxide/hydroxide film thermodynamically stable; kinetically blocks further corrosion.\n\nIron Pourbaix: immune below ~-0.6 V vs SHE (cathodic protection target); passive at high pH (pipes in alkaline soil okay); corrodes at neutral pH oxic. Aluminum is amphoteric — passive at pH 4-9, corrodes both acidic + alkaline. Zinc same. Titanium near-universally passive (why Ti is the gold-standard biomedical implant + chemical-plant material).\n\n**Pourbaix is thermodynamics only** — says nothing about kinetics. A 'corrosion' region might be slow; a 'passive' region might fail if the oxide is mechanically damaged + cannot re-form. Use Pourbaix as a first screen; verify with kinetic measurements.\n\n**Galvanic series in seawater** (most-anodic → most-cathodic; positions empirical):\n- Mg / Mg alloys → Zn → galvanized steel → Al alloys → cadmium → carbon steel → cast iron → 304 active SS → Pb → Sn → brass → Cu → Ni → 304 passive SS → Ti → Pt / Au.\n\nWhen two metals contact + share an electrolyte, the anodic (more active) one corrodes; the cathodic (more noble) is protected. **Area ratio matters** — small anode + large cathode = catastrophic local corrosion (the boat-propeller-on-Cu-hull scenario; the steel screws in a brass marine fitting).\n\n**Two iconic cases**:\n- **Statue of Liberty (1886)** — Cu skin (cathode) over wrought-iron armature (anode); Frédéric Bartholdi's intended insulation degraded; saltwater + galvanic + crevice corrosion ate the iron. Restoration 1984-86 replaced armature with 316L SS + PTFE isolation. Same form, different materials.\n- **Titanic (1912 → ongoing)** — at 3800 m, low O₂, 2 °C: corrosion is iron-oxidizing bacteria-driven (MIC, see next slide). Predicted to collapse within 20-30 yr of present.\n\n**Why this matters** — bridges, ships, pipelines, reinforcing steel in concrete, biomedical implants, nuclear reactor primary loops, military aircraft, archaeological artifacts. A field where electrochemistry meets metallurgy + materials + microbiology + civil engineering."
+    },
+    {
+      "kind": "text",
+      "title": "Corrosion kinetics — mixed potential + Evans diagrams + types",
+      "body": "**Mixed-potential theory** (Wagner + Traud 1938) — a corroding metal hosts two simultaneous half-reactions:\n- **Anodic**: M → M^n+ + ne⁻ (with its own Tafel curve + i₀).\n- **Cathodic**: usually O₂ + 2H₂O + 4e⁻ → 4OH⁻ (aerated water) or 2H⁺ + 2e⁻ → H₂ (acid).\n\nAt the freely corroding electrode, total current = 0 → anodic + cathodic rates equal. The intersection of the two Tafel curves on an E vs log|i| plot is the **corrosion potential E_corr** + **corrosion current i_corr**.\n\n**Evans diagram** — plot of E vs log|i| with anodic + cathodic Tafel lines superimposed; intersection gives E_corr + i_corr. Modifying either curve shifts the intersection:\n- Faster O₂ reduction (stirring, more O₂, catalytic surface) → more cathodic current → higher i_corr, more noble E_corr.\n- Adding inhibitor that slows anodic dissolution → lower i_corr, more cathodic E_corr.\n- Cathodic protection (apply external negative current) → shift E below E_corr to where M dissolution is negligible.\n\n**Corrosion rate** = i_corr × M / (nFρ) → in mm/yr or mpy (mils per year). For steel in seawater i_corr ~10 μA/cm² → ~0.1 mm/yr. Important for asset-life prediction.\n\n**Tafel extrapolation** — measure polarization curve, extrapolate cathodic + anodic Tafel branches to E_corr; intersection y-value is log i_corr. **Linear polarization resistance (LPR)**: measure dE/di near E_corr (the small-overpotential linear regime); R_p = (β_a·β_c)/[2.303·i_corr·(β_a + β_c)] (Stern-Geary). Non-destructive, used for in-service monitoring.\n\n**Forms of corrosion**:\n- **Uniform** — even attack; predictable; corrosion-allowance engineering handles it.\n- **Pitting** — localized; chloride breaks down passive film; small anode + large cathode → catastrophic perforation. Stainless steels + Al + Ti susceptible despite passivity. Marine fasteners, heat exchangers.\n- **Crevice** — under gaskets, washers, deposits; O₂ depletion + Cl⁻ enrichment in the crevice → autocatalytic acid + Cl-rich local environment.\n- **Galvanic** — two metals + electrolyte; covered above.\n- **Intergranular** — grain-boundary attack; e.g., sensitized 304 SS where Cr-depleted zones near boundaries from carbide precipitation become anodic. Mitigated by 304L (low C) or post-weld solution-annealing.\n- **Stress corrosion cracking (SCC)** — combined tensile stress + specific corrosive environment → cracking with little overall metal loss. Chloride-SCC of austenitic SS in hot Cl⁻; hydrogen-induced cracking of high-strength steels; caustic SCC of carbon steel in NaOH (boiler tubes).\n- **Erosion-corrosion / cavitation** — flow-accelerated removal of protective film; pump impellers, elbows.\n- **MIC — Microbially Induced Corrosion** — sulfate-reducing bacteria (SRB) Desulfovibrio under biofilms produce H₂S → pitting + sulfide stress cracking. Oil + gas industry's nemesis (~20% of all corrosion damage). Titanic + buried steel tanks. Mitigated by biocides + cathodic protection.\n- **Hydrogen embrittlement** — H atoms permeate ferritic steels, trap at defects + cause delayed brittle fracture in high-strength components. A growing concern with H₂ pipeline retrofits.\n\n**Diagnosis is half the battle** — the visual/microscopy pattern (uniform vs pit vs grain-boundary vs branched SCC) narrows the mechanism rapidly + dictates the remediation."
+    },
+    {
+      "kind": "text",
+      "title": "Protection: cathodic, coatings, inhibitors, passivation",
+      "body": "**Cathodic Protection (CP)** — apply electrons to the protected metal to push it into immunity. Two flavors:\n\n1. **Sacrificial anode (galvanic CP)** — couple to a more anodic metal which corrodes preferentially. Zn anodes on ships' hulls + rudders, Mg in domestic hot-water tanks (anode rod), Al alloys in seawater. The anode is consumed + must be replaced. Cheap, simple, no power needed. ~80% of CP installs.\n\n2. **Impressed current (ICCP)** — external DC supply drives current from inert anodes (Pt-coated Ti, mixed-metal-oxide, graphite, silicon iron) to the structure. Used for buried pipelines (>100 km/anode bed), large ships, offshore platforms, prestressed concrete bridges, storage-tank bottoms. Powerful + tunable; needs power + monitoring.\n\nDesign target: shift E to -0.85 V vs Cu/CuSO₄ for buried steel (≈ -0.55 V vs SHE) — well into iron's immunity region. **NACE/AMPP** standards govern CP design.\n\n**Coatings** — first line of defense:\n- **Organic** — paints, epoxies, polyurethanes, fluoropolymers. Barrier to O₂ + H₂O; eventually permeable; +pinholes = local corrosion under the coating. Combined with sacrificial primer (Zn-rich epoxy) for protection if scratched.\n- **Metallic** — galvanizing (Zn coat by hot dip or electroplate); aluminizing; chrome (decorative + protective). Galvanized coatings consume themselves to protect the steel beneath (sacrificial action of Zn).\n- **Conversion** — phosphating (Fe/Zn-phosphate); chromating (Cr⁶⁺ hexavalent — being phased out for toxicity, replaced by trivalent Cr or Zr-based); anodizing of Al (controlled growth of thick Al₂O₃).\n- **Powder coats + thick film** — paint-replacement for high-durability.\n\n**Passivation** — engineer a self-healing oxide:\n- Stainless steels (≥10.5% Cr): forms Cr₂O₃ thin (~2-3 nm) layer; reforms within seconds when scratched. 304 + 316 (Mo addition for Cl⁻ pitting resistance); duplex 2205 + super-duplex; 904L for harsh conditions; super-austenitic + nickel alloys (Hastelloy, Inconel) for extreme.\n- Aluminum: native Al₂O₃ ~5 nm; anodizing thickens to μm scale.\n- Titanium: TiO₂ near-universally passive; the marine + chemical + biomedical workhorse.\n- Chromate conversion coatings on Al (Boeing 737 fuselages historically used hexavalent; replaced by trivalent + non-Cr).\n\n**Inhibitors** — chemicals added to the electrolyte to slow corrosion:\n- **Anodic inhibitors** — passivate the metal (chromate, molybdate, nitrite). Dangerous if underdosed (pitting); now mostly molybdate + tungstate for environmental reasons.\n- **Cathodic inhibitors** — slow O₂ reduction or H₂ evolution (Zn²⁺, polyphosphates).\n- **Mixed inhibitors** — adsorb on the surface (amines, imidazolines, benzotriazoles for Cu, alkyl-pyridinium).\n- **Vapor-phase inhibitors (VPI/VCI)** — for packaging, museum cases.\n- Oil + gas pipelines dose tens-of-thousands of ppm inhibitor cocktails continuously.\n\n**Atmospheric corrosion** — humid air + pollutants (SO₂, NaCl aerosol):\n- **Patina** on Cu (CuO → Cu₂(OH)₂CO₃ malachite + Cu₄SO₄(OH)₆ brochantite + chloride variants): the green-blue protective layer of the Statue of Liberty. Long-term stable.\n- **Rust** on steel: hydrated Fe oxyhydroxides, non-protective, flakes off → continuing corrosion.\n- **Weathering steel (Cor-Ten)**: alloyed with Cu, Cr, Ni, P → forms a protective rust layer ~similar to patina. Bridges, sculptures (Picasso Daley Plaza Chicago). Self-protecting after ~2-5 yr exposure.\n- **Marine atmosphere**: salt aerosols accelerate corrosion 10-100x vs inland. Why ships + offshore wind + bridges demand specialized coatings + cathodic protection.\n\n**Asset-life engineering** — modern infrastructure design combines: corrosion-allowance metal thickness + coating system + CP + inhibitors + periodic inspection (ultrasonic thickness gauging, pulsed eddy current, in-line pigging for pipelines, drone visual inspection). The economic argument: $1 in proactive corrosion control saves $5-10 in repair/replacement."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_corr_evans",
+        "kind": "guided_derivation",
+        "question": "Read an Evans diagram for steel in aerated seawater",
+        "goal": "Given anodic Tafel slope b_a = 60 mV/dec, cathodic slope b_c = 120 mV/dec (O₂ reduction), and a measured E_corr = -0.65 V vs SHE with i_corr ≈ 10 μA/cm², compute corrosion rate in mm/yr.",
+        "steps": [
+          {
+            "prompt": "First, what's the corrosion-rate formula in terms of i_corr for Fe?",
+            "motivation": "Faraday's law.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "CR = i_corr · M/(nFρ)",
+                "rate = iM/(nFρ)"
+              ]
+            },
+            "hints": [
+              "Mass per area per time from current."
+            ],
+            "reveal": "CR (length/time) = i_corr × M / (nFρ). For Fe → Fe²⁺: M = 55.85 g/mol, n = 2, ρ = 7.87 g/cm³."
+          },
+          {
+            "prompt": "Convert i_corr = 10 μA/cm² to mol e⁻/(cm²·s).",
+            "motivation": "Get to molar units.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1.04e-10 mol/(cm² s)",
+                "1.04 × 10⁻¹⁰"
+              ]
+            },
+            "hints": [
+              "10 × 10⁻⁶ A/cm² ÷ 96485 C/mol."
+            ],
+            "reveal": "10 × 10⁻⁶ / 96485 = 1.04 × 10⁻¹⁰ mol e⁻/(cm²·s)."
+          },
+          {
+            "prompt": "Convert to mass of Fe per cm² per second.",
+            "motivation": "n = 2 per Fe.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2.9e-9 g/(cm²·s)",
+                "2.89e-9"
+              ]
+            },
+            "hints": [
+              "Divide by n = 2 → mol Fe; × M = 55.85."
+            ],
+            "reveal": "1.04 × 10⁻¹⁰ / 2 × 55.85 = 2.89 × 10⁻⁹ g/(cm²·s) of Fe lost."
+          },
+          {
+            "prompt": "Convert to mm/yr penetration. Density ρ = 7.87 g/cm³; 1 yr = 3.156 × 10⁷ s.",
+            "motivation": "Final corrosion rate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~0.12 mm/yr",
+                "~0.1 mm/yr",
+                "0.116"
+              ]
+            },
+            "hints": [
+              "Divide by ρ → cm/s; × seconds/yr × 10 → mm/yr."
+            ],
+            "reveal": "2.89e-9 / 7.87 = 3.67e-10 cm/s. × 3.156e7 s/yr = 1.16e-2 cm/yr = 0.116 mm/yr ≈ 4.6 mpy. Typical for unprotected steel in mildly aggressive aerated water; engineering allowance for 25-yr design needs ~3 mm corrosion allowance + CP + coatings."
+          }
+        ],
+        "finalResult": "$$\\boxed{CR \\approx 0.12 \\text{ mm/yr at } i_{corr} = 10 \\text{ μA/cm}^2 \\text{ for Fe}^{2+}}$$\n\nUseful conversion: 1 μA/cm² ≈ 11.6 μm/yr ≈ 0.46 mpy for Fe. Pipelines + ships design corrosion allowance + CP + coatings around this."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_corr_pourbaix",
+        "kind": "multiple_choice",
+        "question": "What does a Pourbaix diagram tell you — and what does it NOT?",
+        "options": [
+          "It tells you how fast a metal corrodes.",
+          "Pourbaix diagrams (Marcel Pourbaix 1938-63) map *thermodynamically* stable species in E-pH space — showing three regions: immunity (metal stable), corrosion (soluble cation/anion stable), and passivation (protective oxide/hydroxide stable). They do NOT predict kinetics — a 'corrosion' region might be very slow if passive films persist; a 'passive' region might fail if the oxide is mechanically damaged + cannot re-form (chloride pitting of stainless steel is the classic example). Use Pourbaix as a first-pass screen, then verify with polarization measurements + actual exposure tests.",
+          "It predicts pitting kinetics.",
+          "It gives you i_corr."
+        ],
+        "correctIndex": 1,
+        "explanation": "Pourbaix = thermodynamic E-pH map; immunity/corrosion/passivation regions. Does not predict rates or local breakdown. Pair with kinetic measurements (Tafel, LPR, EIS) + accelerated exposure tests."
+      },
+      "hints": [
+        "Thermodynamics vs kinetics."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Pourbaix gives thermodynamic stability map; says nothing about rate or kinetic film failure."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_corr_galvanic",
+        "kind": "scenario",
+        "question": "Pick the right anode for a steel hull",
+        "prompt": "A coastal-Florida sport-fishing boat owner sees pitting on a steel rudder + propeller-shaft interface. Recommend a sacrificial-anode strategy (alloy + sizing approach) + explain why area ratios matter."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_corr_cp_potential",
+        "kind": "math_expression",
+        "question": "NACE/AMPP cathodic protection criterion for buried steel = -0.85 V vs Cu/CuSO₄ reference (offset +0.318 V vs SHE). Compute the protection target vs SHE in V (signed).",
+        "acceptedAnswers": [
+          "-0.532",
+          "-0.53",
+          "-0.532 V"
+        ],
+        "hint": "E_SHE = E_CuSO4 + 0.318. Apply: -0.85 + 0.318."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_corr",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how Pourbaix + Evans diagrams + protection methods together govern corrosion engineering — using the Statue of Liberty or Titanic as illustration.",
+        "rubric": "Mentions: Pourbaix maps E-pH thermodynamic stability (immunity/corrosion/passivation); Evans diagrams overlay anodic + cathodic Tafel curves; intersection = E_corr + i_corr (mixed-potential theory, Wagner-Traud 1938). Forms: uniform, pitting, crevice, galvanic, intergranular, SCC, MIC, hydrogen embrittlement. Protection: (1) cathodic — sacrificial Zn/Mg/Al anodes or impressed current to push E into immunity (-0.85 V vs Cu/CuSO₄ target for buried Fe); (2) coatings — barrier + sacrificial primer; (3) passivation — alloying Cr/Ni/Mo for self-healing oxide; (4) inhibitors. Statue of Liberty (Cu skin galvanically attacked Fe armature 1886-1986; restored with 316L SS + PTFE insulation 1984-86); Titanic at 3800 m being consumed by SRB/IOB-driven MIC. Together: thermodynamics + kinetics + protection engineering form the corrosion playbook for trillion-dollar infrastructure."
+      }
+    }
+  ]
+}

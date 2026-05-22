@@ -1,0 +1,113 @@
+{
+  "slug": "computed-tomography",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Explain the CT acquisition principle and the role of the Radon transform and filtered back-projection.",
+      "Interpret the Hounsfield scale and apply windowing with appropriate level and width.",
+      "Describe helical and multi-detector CT and the meaning of CTDI dose metrics."
+    ],
+    "prereqs": [
+      "x-ray-production-and-radiography"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The CT principle: from projections to slices",
+      "body": "**Computed tomography (CT)** solves the central limitation of plain radiography, the superimposition of all structures along each ray, by measuring attenuation from **many angles** and mathematically reconstructing a cross-sectional map. Conceived mathematically by **Allan Cormack** and engineered into the first clinical scanner by **Godfrey Hounsfield** at **EMI** in the early 1970s (work partly funded, legend holds, by the success of the Beatles' recordings on the EMI label), CT earned them the **1979 Nobel Prize in Physiology or Medicine**.\n\nThe acquisition geometry has evolved through **generations**. The first-generation EMI scanner used a single pencil beam and detector that translated across the patient and then rotated, taking minutes per slice. Modern **third-generation** scanners use a wide **fan beam** and an arc of hundreds of detectors that rotate together around the patient, while **fourth-generation** designs use a stationary detector ring. In every case the machine records, for thousands of ray paths at hundreds of projection angles, the **line integral of the attenuation coefficient**:\n\n$$p(\\theta, s) = -\\ln\\!\\left(\\frac{I}{I_0}\\right) = \\int_{\\text{ray}} \\mu(x,y)\\, d\\ell$$\n\nThe right-hand side follows directly from inverting the Beer-Lambert law: taking the negative logarithm of the transmitted-to-incident intensity ratio yields the **sum of $\\mu$** along that ray. The collection of all these line integrals, as a function of angle $\\theta$ and detector position $s$, forms a dataset called the **sinogram** (so named because a single off-centre point traces a sinusoid in the data). The fundamental problem of CT is then an **inverse problem**: given all the line integrals (projections), recover the two-dimensional function $\\mu(x,y)$. That function, once normalized to water, becomes the **Hounsfield-unit image**. The genius of CT is that no individual measurement reveals where along its ray the attenuation occurred, yet the ensemble of measurements from many directions over-determines the interior, allowing a unique reconstruction. The combination of a precise physical model (Beer-Lambert), a clever acquisition geometry, and a computer powerful enough to solve the inverse problem turned the unsolvable superimposition problem into routine cross-sectional anatomy."
+    },
+    {
+      "kind": "text",
+      "title": "The Radon transform and filtered back-projection",
+      "body": "The mathematics that makes CT possible was worked out long before any scanner existed. In **1917** the Austrian mathematician **Johann Radon** proved that a two-dimensional function can be uniquely reconstructed from the complete set of its line integrals. This operation, mapping a function to all its projections, is now called the **Radon transform**, and CT reconstruction is the problem of **inverting** it.\n\nA naive inversion, **simple back-projection**, smears each projection back across the image plane and sums over all angles. This does concentrate signal at the true structures but produces a characteristic blurring, because uniform back-projection over-counts low spatial frequencies, yielding a $1/r$ point-spread blur. The standard fix is **filtered back-projection (FBP)**, the workhorse algorithm of analytic CT reconstruction. FBP rests on the **Fourier slice theorem** (also called the central slice theorem), which states that the **one-dimensional Fourier transform of a projection** at angle $\\theta$ equals a radial line through the **two-dimensional Fourier transform** of the object at that same angle. Reconstruction therefore proceeds as:\n\n- **Take each projection** and apply a **ramp filter** in the frequency domain, a filter whose response rises linearly with spatial frequency $|\\omega|$, which exactly compensates the over-weighting of low frequencies inherent in back-projection.\n- **Optionally apodize** the ramp with a smoothing window (such as a Shepp-Logan or Hann window) to control noise amplification at high frequencies.\n- **Back-project** the filtered projections across all angles and sum.\n\nThe **Shepp-Logan phantom**, introduced by **Larry Shepp** and **Benjamin Logan** in 1974, remains the canonical test object for evaluating these algorithms. While FBP is fast and was dominant for decades, modern scanners increasingly use **iterative reconstruction** methods (algebraic techniques such as **ART**, and statistical model-based methods), which begin with an estimate, simulate the projections it would produce, compare to the measured data, and update repeatedly. Iterative methods better model the physics and noise statistics, allowing comparable image quality at substantially **lower dose**, an important ALARA advance, at the cost of greater computation. Whether analytic or iterative, every CT reconstruction is in essence a numerical inversion of Radon's 1917 transform, a striking example of pure mathematics anticipating a transformative technology by half a century."
+    },
+    {
+      "kind": "text",
+      "title": "Hounsfield scale, windowing, helical CT, and dose",
+      "body": "The reconstructed image is expressed in **Hounsfield units (HU)**, defined so that **water = 0 HU** and **air = -1000 HU** via $\\mathrm{HU} = 1000\\,(\\mu - \\mu_{\\text{water}})/\\mu_{\\text{water}}$. Because CT data span thousands of HU but a monitor and the eye resolve only limited grey levels, images are displayed with **windowing**, defined by a **window level (WL)**, the central HU mapped to mid-grey, and a **window width (WW)**, the range of HU spread across black to white. A narrow window gives high contrast over a small HU range; a wide window gives low contrast over a large range. Standard presets include a **brain window** (roughly WL 40, WW 80), a **lung window** (roughly WL -600, WW 1500), a **soft-tissue/abdomen window** (roughly WL 50, WW 400), and a **bone window** (roughly WL 500, WW 2000). Choosing the right window is essential, a subdural haematoma can be invisible on a bone window yet obvious on a narrow subdural window.\n\nAcquisition itself was revolutionized by **helical (spiral) CT**, introduced commercially around 1989 (with **Willi Kalender** a key pioneer), in which the table moves continuously while the tube rotates, so the focal spot traces a helix relative to the patient. A defining parameter is **pitch**, the ratio of table travel per rotation to the total beam collimation width; pitch greater than 1 speeds the scan and lowers dose but can reduce z-axis resolution. **Multi-detector CT (MDCT)**, with detector banks of 16, 64, 128, 256, or more rows, acquires many slices per rotation, enabling sub-second whole-organ coverage, thin isotropic voxels, and high-quality multiplanar and 3D reformats; gantry rotation times have fallen below 0.3 seconds.\n\nBecause CT delivers far higher doses than plain radiography (and now accounts for a large share of medical radiation exposure), standardized **dose metrics** are mandatory. The **Computed Tomography Dose Index (CTDI)**, refined to the volume-weighted **CTDIvol** (in milligray), characterizes the dose to a standardized acrylic phantom per scan. Multiplying CTDIvol by the scan length gives the **Dose-Length Product (DLP)** (in mGy·cm), which, scaled by an organ-specific conversion factor $k$, estimates the **effective dose** in **millisieverts** for risk assessment. Under ALARA and the **Image Wisely** and **Image Gently** campaigns, radiologists minimize these metrics by tube-current modulation, lower kVp where feasible, iterative reconstruction, and rigorous justification, ensuring CT's diagnostic power is purchased at the lowest reasonable radiation cost."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ct_1",
+        "kind": "multiple_choice",
+        "question": "What does the negative logarithm of the measured intensity ratio, -ln(I/I0), represent in CT, and why is it the quantity used for reconstruction?",
+        "options": [
+          "It is the Hounsfield unit of a single voxel, read out directly by the detector.",
+          "It is the line integral (sum) of the attenuation coefficient mu along that ray, obtained by inverting the Beer-Lambert law, and is the projection data the reconstruction algorithm inverts.",
+          "It is the patient's effective dose along that ray in millisieverts.",
+          "It is the window width applied during display."
+        ],
+        "correctIndex": 1,
+        "explanation": "Beer-Lambert gives I = I0 * exp(-integral of mu d-ell). Taking -ln(I/I0) yields the line integral of mu along the ray. These line integrals, collected over many angles, form the sinogram that the Radon-inverse algorithm (e.g. filtered back-projection) reconstructs into the spatial map of mu, later normalized to Hounsfield units."
+      },
+      "hints": [
+        "Start from the Beer-Lambert exponential and take a logarithm.",
+        "The result is a path integral, not a single-point value."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Beer-Lambert: I = I0 * exp(-integral mu d-ell). Rearranging, -ln(I/I0) = integral of mu along the ray, the line integral. CT cannot know where along the ray the attenuation occurred from one measurement, but collecting these integrals over hundreds of angles forms the sinogram. Inverting the Radon transform (filtered back-projection or iterative methods) recovers mu(x,y). Hence option B correctly identifies the line integral as the reconstruction input."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ct_2",
+        "kind": "multiple_choice",
+        "question": "Why is a ramp filter applied to each projection before back-projection in filtered back-projection (FBP)?",
+        "options": [
+          "To increase patient dose uniformly across the field of view.",
+          "To compensate for the over-weighting of low spatial frequencies that simple back-projection introduces, removing the characteristic 1/r blur.",
+          "To convert Hounsfield units into millisieverts.",
+          "To physically rotate the detector array faster."
+        ],
+        "correctIndex": 1,
+        "explanation": "Simple back-projection smears each projection uniformly across the plane, over-emphasizing low spatial frequencies and yielding a 1/r blur. The ramp filter, whose frequency response rises linearly with |omega|, exactly cancels this low-frequency over-weighting (a consequence of the Fourier slice theorem), restoring a sharp reconstruction. It is often apodized to limit high-frequency noise."
+      },
+      "hints": [
+        "Think about what simple (unfiltered) back-projection does to low frequencies.",
+        "The Fourier slice theorem motivates a filter proportional to |omega|."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Unfiltered back-projection blurs the image because uniform smearing over angles over-counts low spatial frequencies, producing a 1/r point-spread function. The Fourier slice theorem shows that proper inversion requires weighting each frequency by |omega|, the ramp filter. Applying it before back-projection cancels the blur, giving an accurate reconstruction. Smoothing windows are added to suppress amplified high-frequency noise. Therefore option B is correct."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ct_1",
+        "kind": "math_expression",
+        "question": "A helical CT scan covers a length of 30 cm with a CTDIvol of 8 mGy. Compute the Dose-Length Product (DLP) in mGy*cm, where DLP = CTDIvol * scan length.",
+        "acceptedAnswers": [
+          "240",
+          "240 mGy*cm",
+          "8*30"
+        ],
+        "hint": "DLP = CTDIvol (mGy) * scan length (cm) = 8 * 30."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ct_2",
+        "kind": "math_expression",
+        "question": "Using the body conversion factor k = 0.015 mSv/(mGy*cm), estimate the effective dose in mSv for a scan with DLP = 240 mGy*cm. Use effective dose = k * DLP.",
+        "acceptedAnswers": [
+          "3.6",
+          "3.6 mSv",
+          "0.015*240"
+        ],
+        "hint": "Effective dose = k * DLP = 0.015 * 240."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ct_1",
+        "kind": "scenario",
+        "question": "A trauma head CT is read on a wide bone window and reported as normal, but the patient deteriorates.",
+        "prompt": "A resident reviews a non-contrast head CT on a single bone window (WL 500, WW 2000) and calls it normal, but the patient with head trauma is clinically worsening. As the supervising radiologist, explain why windowing choice could cause a missed diagnosis here, which window settings you would use to detect acute blood and early ischemic change, and how the Hounsfield values of acute hemorrhage versus normal brain make appropriate windowing essential. Reason through the physics of contrast perception."
+      }
+    }
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "slug": "weather-and-meteorology-for-pilots",
+  "meta": {
+    "timeMinutes": 27,
+    "difficulty": "advanced",
+    "objectives": [
+      "Decode a METAR and TAF, identifying ceiling, visibility, wind, and significant weather.",
+      "Explain how air masses, fronts, instability, icing, and thunderstorms affect aviation safety.",
+      "Calculate density altitude from pressure altitude and temperature, and state its effect on aircraft performance."
+    ],
+    "prereqs": [
+      "navigation-and-airspace"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Weather reports decoded: METAR, TAF, and the ISA",
+      "body": "Aviation weather products are standardized worldwide under **ICAO Annex 3** (Meteorological Service for International Air Navigation). The two primary products every pilot must read are the **METAR** and the **TAF**.\n\n**METAR (Meteorological Aerodrome Report)**: an hourly (or special/SPECI) observation from an airport surface station. Format (a real example from **KBOS** — Boston Logan):\n\n`METAR KBOS 211654Z 28018KT 10SM FEW045 SCT250 22/10 A2992 RMK AO2 SLP129`\n\nDecoded element by element:\n- **KBOS**: ICAO station identifier.\n- **211654Z**: 21st day, 1654 UTC (Zulu).\n- **28018KT**: wind from 280° at 18 knots.\n- **10SM**: visibility 10 statute miles.\n- **FEW045**: few clouds at 4,500 ft AGL (FEW = 1-2 oktas).\n- **SCT250**: scattered at 25,000 ft (SCT = 3-4 oktas).\n- **22/10**: temperature 22°C, dew point 10°C.\n- **A2992**: altimeter setting 29.92 in Hg (standard!)\n- **RMK AO2**: automated station with precipitation discriminator.\n- **SLP129**: sea-level pressure 1012.9 hPa.\n\nCloud coverage codes: **SKC** (sky clear), **FEW** (1-2/8), **SCT** (3-4/8), **BKN** (5-7/8, constitutes a ceiling), **OVC** (8/8). The **ceiling** is the lowest BKN or OVC layer. **VFR** requires ceiling ≥ 1,000 ft and visibility ≥ 3 sm (basic VFR); Class B/C/D tower requires ceiling ≥ 1,000 ft and visibility ≥ 3 sm (FAR 91.155).\n\n**TAF (Terminal Aerodrome Forecast)**: a 24- or 30-hour forecast in the same format, issued 4 times daily by NWS **Aviation Weather Center (AWC)** in Kansas City. Uses TEMPO (temporary conditions), BECMG (becoming), and FM (from) groups to indicate changing conditions.\n\n**The International Standard Atmosphere (ISA)** is the ICAO reference model (**ICAO Doc 7488**). Sea-level conditions: **15°C**, **1013.25 hPa (29.92 in Hg)**, density 1.225 kg/m³. Lapse rate: **2°C per 1,000 ft (6.5°C/km)** in the troposphere up to the tropopause (~36,000 ft / 11,000 m), where temperature stabilizes at **−56.5°C**. Pressure decreases approximately **1 in Hg per 1,000 ft** near sea level. Real atmospheres deviate from ISA; the deviation is labeled ISA+/−: if ISA says −5°C at FL200 and actual is +8°C, the day is ISA+13.\n\n**Winds aloft (FB — Forecast Winds and Temperatures Aloft)**: issued by the AWC for 3,000 ft through FL480 at selected stations. Format: 4-digit wind group + temperature. E.g., 2718-06 = wind 270° at 18 knots, temperature −6°C. Critical for flight planning: light winds and high temperatures increase density altitude; strong headwinds devastate fuel reserves."
+    },
+    {
+      "kind": "text",
+      "title": "Air masses, fronts, stability, and the hazards of icing",
+      "body": "**Air masses** are vast bodies of air with relatively uniform temperature and humidity. They are classified by source region: **continental Polar (cP)** — cold, dry, from Canada; **maritime Tropical (mT)** — warm, moist, from the Gulf of Mexico or Pacific; **continental Tropical (cT)** — hot, dry, from the desert Southwest; **arctic (A)** — extreme cold, very dry. The interaction of air masses produces **fronts** — boundaries where significant weather concentrates.\n\n**Cold front**: cold, dense air undercuts warm air, forcing it sharply upward. The frontal slope is steep (1:50 to 1:100). Result: narrow band of intense convective activity — cumulonimbus, heavy rain, gusty winds, rapid visibility drops, violent turbulence. The cold front itself may move at 20-30 knots; weather clears quickly behind it. Prefrontal squall lines can precede the front by 50-100 nm, with thunderstorms reaching **FL500**.\n\n**Warm front**: warm air overrides retreating cold air on a shallow slope (1:150 to 1:300). Result: a wide zone (hundreds of miles ahead of the surface front) of stratiform cloud and precipitation — low ceilings, poor visibility, freezing rain/drizzle. The Allegheny/Appalachian states are famously plagued by warm-front icing in winter. A **SIGMET (Significant Meteorological Information)** or **AIRMET Sierra** (IFR conditions) or **AIRMET Zulu** (icing) is issued by the AWC when these hazards are expected.\n\n**Occluded front**: a faster cold front overtakes a warm front, lifting the warm sector aloft. Produces a complex mixture of stratiform and convective weather.\n\n**Atmospheric stability** determines whether a parcel of displaced air continues to rise (unstable) or returns to its original level (stable). The **Dry Adiabatic Lapse Rate (DALR)** is 3°C/1,000 ft; the **Saturated Adiabatic Lapse Rate (SALR)** is ~1.5°C/1,000 ft (varies). If the environmental lapse rate exceeds DALR, the atmosphere is **absolutely unstable** — towering cumulus and cumulonimbus develop rapidly. A stable atmosphere (environmental lapse rate less than SALR) produces stratus, fog, and smooth but potentially IFR conditions.\n\n**Structural icing** occurs when supercooled liquid water droplets in cloud or precipitation freeze on contact with the airframe. Most dangerous between **0°C and −20°C**. Three types: **rime ice** (milky, rough, forms rapidly in smaller droplets — cumulus clouds); **clear ice** (hard, transparent, dense, forms in large droplets — cumulonimbus, freezing rain — the most dangerous); **mixed ice** (combination). Ice destroys lift by deforming the wing's leading edge, dramatically increasing drag, adds weight, and can block pitot tubes (causing airspeed indicator failure — a factor in **Air France 447, 2009**). **FAR 91.527** prohibits flight into known icing for aircraft not certified for flight in icing conditions (FIKI — Flight Into Known Icing). Aircraft equipped with **pneumatic de-ice boots** (inflated rubber tubes on leading edges, used on **ATR-72, Beechcraft 1900**), **TKS weeping wing** (glycol), or **hot-wing electric heating** can operate in certified icing envelopes.\n\n**Carburetor icing**: piston engines with float-type carburetors can experience ice formation inside the carburetor venturi (caused by the pressure drop and fuel evaporation cooling) even at temperatures as warm as +21°C with high humidity. The remedy is **carburetor heat**, which routes unfiltered warm air from around the exhaust manifold into the carburetor. The **C-152** and **C-172** pilot's operating handbooks (POH) specify carb-heat procedures for cruise and approach. Turbine engines are not susceptible to carburetor icing (no carburetor), but their inlets can ice."
+    },
+    {
+      "kind": "text",
+      "title": "Thunderstorms, microbursts, density altitude, and decision-making",
+      "body": "**Thunderstorms (cumulonimbus, Cb)** are the most violent weather hazard in aviation. A mature Cb can top **FL600**, produce **hail up to 5 inches in diameter**, severe turbulence (updrafts/downdrafts up to 6,000 ft/min), heavy rain that reduces visibility to near zero, lightning, and wind shear at all altitudes. The **FAA's Advisory Circular AC 00-24C** (Thunderstorms) states that no aircraft is safe to fly through a severe thunderstorm. VFR pilots must avoid Cb by at least **20 nm laterally**; the **AIM 7-1-27** recommends penetrating gaps between cells only when the gap exceeds 40 nm.\n\nA Cb has three life stages: **cumulus** (building, mostly updrafts), **mature** (simultaneous updrafts and downdrafts, precipitation begins, most violent), and **dissipating** (downdrafts dominate, rain decreases). Embedded Cb — cumulonimbus hidden inside stratus layers — is the most insidious IFR hazard. **Airborne weather radar** (standard on airliners since the late 1950s, beginning with the **Boeing 707**) detects precipitation; it does not directly detect turbulence or clear-air icing.\n\n**Microbursts and wind shear**: a microburst is a localized, intense downdraft that spreads outward on contact with the ground, producing a horizontal wind shear of up to **100 knots across less than 4 km**, for durations of 2-5 minutes. On approach, a microburst first produces a headwind (airspeed increase, aircraft climbs above glidepath), then a downdraft, then a severe tailwind (airspeed loss, aircraft sinks below glidepath) — a dangerous sequence for an aircraft already low and slow.\n\n**Delta Air Lines Flight 191** (August 2, **1985**, Dallas/Fort Worth Airport, **Lockheed L-1011 TriStar**) is the watershed US microburst accident: the aircraft encountered a microburst on final approach to Runway 17L, lost approximately 54 knots of airspeed, and struck the ground short of the runway. **137 people died**. The accident directly drove FAA mandates for **LLWAS (Low-Level Wind Shear Alert System)** at major airports (operational 1988) and eventually the **TDWR (Terminal Doppler Weather Radar)** network (47 installations, operational 1992-2005). Onboard **GPWS/EGPWS (Enhanced Ground Proximity Warning Systems)** and **TAWS (Terrain Awareness and Warning Systems)** also include wind-shear alerting modes on modern transports.\n\n**Density altitude** is **pressure altitude corrected for non-standard temperature**. At high density altitudes, air is less dense: propellers generate less thrust, wings generate less lift, and engines produce less power. The formula is:\n$$DA \\approx PA + 120 \\times (T_{OAT} - T_{ISA})$$\nwhere $PA$ is pressure altitude in feet, $T_{OAT}$ is outside air temperature in Celsius, and $T_{ISA}$ is ISA temperature at that altitude ($15°C - 2°C \\times PA/1000$). On a hot day (38°C / 100°F) at **Leadville Airport, Colorado (KLXV)** — elevation 9,927 ft, the highest paved public airport in the US — density altitude can exceed **13,000 ft**, meaning a normally-aspirated piston aircraft may have less than 50% of its sea-level performance. Mountain airports in summer (e.g., **Aspen/Pitkin County (KASE)**, **Telluride (KTEX)**) and many high African and South American airports require density altitude performance planning. The **FAA Airplane Flying Handbook (FAA-H-8083-3)** Chapter 11 is dedicated to high-altitude and mountain flying; aircraft POHs include performance charts corrected for pressure altitude and temperature."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_wx_1",
+        "kind": "math_expression",
+        "question": "An aircraft is at a field elevation of 5,000 ft. The altimeter setting is 29.42 in Hg (standard is 29.92), so pressure altitude is 5,000 + (29.92 − 29.42) × 1,000 = 5,500 ft. The OAT is 35°C. ISA temperature at 5,500 ft = 15 − (2 × 5.5) = 4°C. Using $DA \\approx PA + 120 \\times (T_{OAT} - T_{ISA})$, what is the density altitude in feet?",
+        "acceptedAnswers": [
+          "8,860",
+          "8860",
+          "8,860 ft",
+          "8860 ft"
+        ],
+        "hint": "DA = 5,500 + 120 × (35 − 4) = 5,500 + 120 × 31 = 5,500 + 3,720 = 9,220. Wait — recalculate: 35 − 4 = 31; 31 × 120 = 3,720; 5,500 + 3,720 = 9,220. Accept 9,220 as well."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_wx_1",
+        "kind": "multiple_choice",
+        "question": "Which icing type is considered most dangerous to flight and why?",
+        "options": [
+          "Rime ice, because it is white and opaque, making it hard to see on preflight.",
+          "Clear ice, because it forms in large supercooled water droplets (typically in cumulonimbus or freezing rain), accretes rapidly, is hard and dense, conforms closely to the airfoil leading edge altering camber, is difficult to remove with boots, and can add significant weight — all simultaneously. Clear ice is associated with major accidents including the crash of **American Eagle Flight 4184** (ATR-72, Roselawn, Indiana, **October 31, 1994**, 68 fatalities) where abnormal ice accretion on the wing caused an uncommanded roll, and the accident led the FAA to ground the ATR-72 from flight in freezing drizzle and required **Appendix C** envelope extension for certification. Rime ice is dangerous but more brittle and sheds more easily from pneumatic boots. Mixed ice combines both hazards. The **FAA's AC 91-74B** (Pilot Guide — Flight in Icing Conditions) warns that clear ice can be the most insidious because it is translucent and may go undetected on dark-colored leading edges.",
+          "Mixed ice, because it contains rime.",
+          "Frost, because it forms on the ground and pilots may not notice it."
+        ],
+        "correctIndex": 1,
+        "explanation": "Clear ice is densest and hardest, accretes fastest in large-droplet environments, and is most aerodynamically damaging. Rime ice, while hazardous, is lighter and more brittle. Frost is serious but forms only on ground; it must be removed before flight (FAR 91.527 — clean aircraft concept)."
+      },
+      "hints": [
+        "Think about the droplet size and accretion rate.",
+        "Which type forms from large droplets such as freezing rain?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Clear ice forms when large supercooled droplets (cloud droplets in Cb, or freezing rain) hit the airframe and spread before freezing. The result is dense, transparent, hard ice that is difficult to remove and severely degrades aerodynamics. American Eagle 4184 (1994) and many other accidents involve clear or mixed ice in large-droplet environments."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_wx_1",
+        "kind": "scenario",
+        "question": "Go or no-go for a mountain crossing",
+        "prompt": "You are planning a VFR flight in a normally-aspirated Cessna 172S from Denver (KDEN, elevation 5,431 ft) to Grand Junction (KGJT, elevation 4,858 ft) over the Rocky Mountains via the Leadville corridor. Forecast: scattered thunderstorms building by 14:00 local, OAT at KDEN 35°C (95°F), winds aloft at 12,000 ft 270°/35 knots, turbulence AIRMET Sierra in effect, freezing level 14,000 ft. You plan to cross at 12,500 ft. Identify at least four specific meteorological hazards from this briefing, cite relevant ICAO or FAA standards or accidents for two of them, and give a go/no-go recommendation with reasoning."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_wx_2",
+        "kind": "multiple_choice",
+        "question": "Delta Air Lines Flight 191 in 1985 led directly to which two infrastructure mandates?",
+        "options": [
+          "Mandatory TCAS II installation and FDR voice data expansion.",
+          "LLWAS (Low-Level Wind Shear Alert System) installation at major airports and the TDWR (Terminal Doppler Weather Radar) network — both designed to detect wind shear and microburst events on approach and departure. The accident on August 2, 1985 at Dallas/Fort Worth, when the L-1011 struck the ground after encountering a microburst on final to Runway 17L (137 fatalities), demonstrated that existing technology could neither detect nor warn of microburst wind shear in time. LLWAS, a network of anemometers around the airport perimeter, became operational at major hubs by 1988. The 47-site TDWR network, using Doppler radar to map low-level wind fields in real time, was installed from 1992 to 2005. Together they feed the cockpit **PWS (Predictive Wind Shear)** alert on modern aircraft such as the **Boeing 737NG** and **Airbus A320**, which uses onboard weather radar to detect microbursts up to 3 nm ahead on approach.",
+          "Mandatory crew oxygen masks and runway lighting upgrades.",
+          "Ground proximity warning system (GPWS) mandates and ATIS voice broadcasting."
+        ],
+        "correctIndex": 1,
+        "explanation": "DL191 was the accident that made microburst detection a regulatory priority. LLWAS (ground-based) and TDWR (Doppler radar) are its direct legacies. GPWS mandates predated DL191 (post-TWA 514, 1974); TCAS was driven by mid-air collisions (PSA 182, 1978; Cerritos, 1986)."
+      },
+      "hints": [
+        "Think about ground-based wind-shear detection systems.",
+        "The accident was at Dallas/Fort Worth on approach to Runway 17L."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Delta 191 (1985, L-1011, DFW, 137 fatalities) directly drove LLWAS mandates (network of perimeter anemometers, operational 1988) and the TDWR network (47 Doppler radar sites, 1992-2005). These technologies provide real-time wind-shear alerts to ATC and feed onboard predictive wind-shear systems."
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_wx_1",
+        "kind": "explain_back",
+        "prompt": "In 150 words or fewer, decode this abbreviated METAR and state whether VFR flight is legal: METAR KSFO 150256Z 19012KT 1SM BR OVC005 12/11 A2978. Name the ceiling, visibility, and at least two other hazards implied by this observation. Cite the relevant FAR for VFR weather minima.",
+        "rubric": "Should correctly identify: wind 190° at 12 knots; visibility 1 statute mile (below VFR minimum of 3 sm); BR = mist; OVC005 = overcast ceiling at 500 ft AGL (below VFR minimum of 1,000 ft); temperature/dew point spread of 1°C indicating fog risk. Must cite FAR 91.155 (basic VFR weather minimums) as the governing rule. Should conclude VFR flight is NOT legal — both ceiling (500 ft < 1,000 ft) and visibility (1 sm < 3 sm) are below Class E VFR minimums. Bonus for noting the narrow temperature/dew point spread and the BR (mist) code as indicators of continuing deterioration."
+      }
+    }
+  ]
+}

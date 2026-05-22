@@ -1,0 +1,154 @@
+{
+  "slug": "structure-based-drug-design",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Walk the SBDD pipeline.",
+      "Compare screening methods.",
+      "Reason about allostery."
+    ],
+    "prereqs": [
+      "membrane-proteins-and-channels",
+      "alphafold-and-computational-structure"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The SBDD pipeline: target → structure → hit → lead → drug",
+      "body": "**Structure-based drug design (SBDD)** uses the 3D structure of a target protein (apo or bound) to design or optimize small molecules + biologics. It replaced (or augmented) decades of empirical phenotypic screening starting in the 1980s.\n\n**Canonical SBDD pipeline** (~3-7 years to clinic):\n1. **Target validation**: genetic + functional evidence that modulating this target affects disease. Sources: GWAS, knockouts, CRISPR screens, human disease genetics (loss-of-function tolerated? gain-of-function pathogenic?). PCSK9 (familial hypocholesterolemia) + sclerostin (osteoporosis) are textbook genetics-driven targets.\n2. **Structure determination**: X-ray, cryo-EM, NMR, or now AlphaFold-derived models. Apo + holo (ligand-bound) structures both valuable. For druggability, identify pockets via FTMap, SiteMap, CASTp, PocketFinder.\n3. **Hit identification**: high-throughput screening (HTS, 10⁵-10⁶ compounds), fragment-based screening (FBDD, ~10³ fragments), virtual screening (10⁶-10⁹ compounds in silico), DNA-encoded libraries (DEL, 10⁹-10¹² molecules).\n4. **Hit-to-lead**: synthesize 10-100 analogs of confirmed hits; establish structure-activity relationship (SAR); improve potency from μM to nM; verify on-target via biochemistry + cell-based assays.\n5. **Lead optimization**: medicinal chemistry SAR + structural insight. Optimize potency, selectivity over off-targets (kinome panels for kinase drugs), ADME (absorption, distribution, metabolism, excretion), pharmacokinetics, oral bioavailability, CYP450 inhibition, hERG cardiac safety.\n6. **Preclinical**: PK/PD in rodents + dogs/monkeys; tox studies; CMC manufacturing scale-up.\n7. **Clinical trials**: Phase I safety + PK in healthy volunteers; Phase II efficacy + dose-finding in patients; Phase III pivotal efficacy + safety in large populations.\n8. **Regulatory + post-marketing**: NDA/BLA approval; Phase IV pharmacovigilance.\n\n**Medicinal chemistry SAR** = structure-activity relationship: systematic atom-by-atom modification reveals which moieties drive potency, selectivity, ADME. Captured visually via Free-Wilson + Hansch QSAR or modern matched-molecular-pair analysis (MMPA).\n\n**Lipinski's Rule of 5** (Pfizer 1997 — heuristic for oral bioavailability): MW ≤ 500, logP ≤ 5, H-bond donors ≤ 5, H-bond acceptors ≤ 10. Modern targets (PROTACs, macrocycles, peptides) often violate.\n\n**Drug modalities expanding beyond small molecules**:\n- **Monoclonal antibodies** (Adalimumab, Trastuzumab, Pembrolizumab).\n- **Antibody-drug conjugates** (Kadcyla, Enhertu).\n- **PROTACs / molecular glues** (degraders — Arvinas ARV-471, lenalidomide CRBN ligand).\n- **mRNA + RNA therapeutics** (mRNA vaccines, siRNA patisiran for TTR, antisense oligos).\n- **CAR-T + cell therapies**.\n- **Designed miniproteins / peptides** (de novo binders, GLP-1 analogs).\n- **CRISPR-based therapies** (Casgevy for sickle cell, 2023 FDA).\n\n**Druggability assessment**: even with a structure, ~80% of human proteins are 'undruggable' by small molecules (no enclosed pocket, surface-exposed PPIs, IDRs). PROTAC degraders + AlphaFold + cryptic pocket discovery + cryo-EM-driven design are expanding the druggable proteome."
+    },
+    {
+      "kind": "text",
+      "title": "Fragment + virtual screening + free-energy perturbation",
+      "body": "**Fragment-based drug design (FBDD)** — Astex Pharmaceuticals + Vernalis pioneered in late 1990s.\n\n**Principle**: screen ~10³ small fragments (MW < 250 Da, 'rule of 3': MW ≤ 300, logP ≤ 3, HBD/HBA ≤ 3) at high concentration (mM) by sensitive biophysics. Fragments bind weakly (mM-μM K_D) but with high **ligand efficiency (LE = ΔG_binding / heavy-atom count)** — typical hits have LE > 0.3 kcal/mol/heavy atom. Grow, merge, or link fragments using structural insight to reach drug-like (nM) potency.\n\n**Detection methods**:\n- **X-ray crystallography**: soak crystals with cocktails of ~5-10 fragments; serial femtosecond crystallography or single-crystal MR; identifies even mM-affinity binders.\n- **NMR (¹H STD, WaterLOGSY, ¹⁵N HSQC chemical shift perturbation)**: ligand- or protein-observed.\n- **SPR (Biacore), BLI (Octet)**: real-time binding.\n- **Thermal shift assays (DSF, Thermofluor)**: ligand binding stabilizes protein melting.\n- **DEL (DNA-encoded libraries)**: 10⁹-10¹² compounds with DNA-barcoded synthesis; pull-down + deep sequencing identifies binders.\n\n**FBDD success stories**:\n- **Vemurafenib** (Plexxikon → Roche, BRAF V600E in melanoma; FDA 2011) — fragment hit grown into kinase inhibitor.\n- **Venetoclax** (AbbVie/Genentech, BCL-2 in CLL; FDA 2016) — fragment-derived; first BCL-2 inhibitor.\n- **Erdafitinib** (FGFR inhibitor for bladder cancer).\n- **Sotorasib + adagrasib** (KRAS G12C — discussed below).\n\n**Virtual screening (VS)**:\n- **Docking**: place small molecules into a binding site + score by predicted ΔG. Tools: **AutoDock Vina** (open-source baseline), **GLIDE** (Schrödinger), **GOLD** (CCDC), **ICM** (MolSoft), **rDock**.\n- **Scoring functions**: empirical (ChemScore, GlideScore), force-field-based (AMBER), knowledge-based (PMF, DrugScore), ML-based (GNINA, DeepDock, EquiBind, **DiffDock** — diffusion-based generative docking by Corso 2022, Stark 2024).\n- **Ultra-large library docking**: Shoichet + Irwin **DOCKovsky** screens of **ZINC22** + Enamine REAL Space (~10¹⁰ make-on-demand compounds); validated for D2/D4 dopamine + AmpC + MT2 melatonin receptor — actual hit rates 10-30% for purchased top hits.\n- **Pharmacophore search**, **shape similarity (ROCS)**, **2D fingerprint similarity** (ECFP/Morgan) are complementary.\n\n**Free-energy perturbation (FEP)** — physics-based relative binding-affinity prediction:\n- **Schrödinger FEP+** (Wang + Friesner 2015): alchemical transformations between ligand pairs in explicit solvent + receptor; converged free-energy differences via thermodynamic integration / Bennett acceptance ratio.\n- ~1 kcal/mol accuracy for congeneric series; routine in lead optimization at top pharma + biotech.\n- Open-source alternatives: **GROMACS + Pmx**, **OpenFE / Open Free Energy** consortium, **Free Energy Calculator (FEC)** + machine-learning surrogates (NequIP-FF, MACE-OFF23).\n- ML-accelerated: active learning over thousands of FEP calculations.\n\n**ML docking + binding-affinity prediction**:\n- **DiffDock** (Corso + Stark + Jaakkola + Barzilay 2022 ICLR): diffusion model over ligand pose; faster + better than classical docking on PoseBusters benchmark.\n- **Boltz-2** (MIT 2024): affinity + structure jointly.\n- **AlphaFold 3** + **Chai-1**: complex prediction with bound ligands; affinity ranking is improving but not yet at FEP+ accuracy.\n- **AIDD platforms**: Atomwise, Recursion, Isomorphic Labs (Hassabis's Alphabet spin-out using AF3), Insitro, Iambic Therapeutics — vertically integrate ML + chemistry + experiment.\n\n**Cryo-EM-driven SBDD**: post-2017 cryo-EM enabled SBDD for previously intractable targets — GPCRs in active states, ion channels with bound drugs, large heterocomplexes, membrane transporters. Drug discovery now routinely uses cryo-EM structures within 6 months of project initiation."
+    },
+    {
+      "kind": "text",
+      "title": "Allostery, cryptic pockets + cracking 'undruggable' targets",
+      "body": "**Allostery** — binding at a site distant from the orthosteric (functional) site modulates activity via conformational change. Originally formalized by Monod-Wyman-Changeux (MWC, 1965) and Koshland-Némethy-Filmer (KNF, 1966) for hemoglobin cooperativity. Now central to modern drug design.\n\n**Why allosteric drugs**:\n- **Selectivity**: allosteric sites less conserved than orthosteric → fewer off-targets (e.g., kinase ATP pocket is conserved → notorious off-target promiscuity; allosteric kinase inhibitors like trametinib MEK, asciminib BCR-ABL myristoyl pocket are more selective).\n- **Saturable response**: allosteric modulators have ceiling effects → safer than orthosteric overdose.\n- **State selectivity**: target active vs inactive conformations differentially (cinacalcet PAM on CaSR for hyperparathyroidism).\n- **PPIs**: many protein-protein interactions are undruggable orthosterically — allosteric pockets near interfaces can disrupt them (Bcl-2 inhibitor venetoclax binds a BH3 groove).\n\n**Cryptic pockets**: hidden pockets that open transiently due to protein dynamics. Often missed in static crystal structures. Identified by MD simulations + cosolvent screening (mixed-solvent MD, FTMap) + AlphaFold ensembles. KRAS G12C switch-II pocket (Shokat lab 2013) was a paradigmatic cryptic pocket.\n\n**KRAS — the most famous 'undruggable' target now drugged**:\n- KRAS mutations (G12C, G12D, G12V, G13D, Q61) in ~30% of human cancers (~95% pancreatic, ~45% colorectal, ~30% NSCLC).\n- KRAS has no deep pocket on its surface (small, smooth, GTPase) — considered undruggable for ~30 years.\n- **Shokat lab 2013**: discovered cryptic 'switch-II pocket' beneath the switch-II loop, accessible only in GDP-bound KRAS G12C → covalent inhibitor design with acrylamide warhead reacting with G12C cysteine.\n- **Sotorasib** (AMG 510, Amgen; FDA 2021) + **adagrasib** (MRTX849, Mirati; FDA 2022): first KRAS G12C inhibitors approved for NSCLC + colorectal cancer.\n- **KRAS G12D** (more common, no cysteine for covalent targeting): MRTX1133 (non-covalent), pan-KRAS inhibitors RMC-6236 (Revolution Medicines), PROTAC + molecular glue degraders in clinical development 2024.\n- Resistance mechanisms (Y96D mutations, MAPK reactivation) drive next-generation designs.\n\n**SARS-CoV-2 antivirals**:\n- **Paxlovid (nirmatrelvir + ritonavir)** (Pfizer, FDA EUA Dec 2021): nirmatrelvir is a structure-based covalent peptidomimetic inhibitor of SARS-CoV-2 main protease (Mpro/3CLpro). Designed from crystal structures of Mpro within ~18 months of COVID outbreak — landmark of rapid SBDD.\n- **Molnupiravir** (Merck/Ridgeback): RNA-dependent RNA polymerase mutagen.\n- **Remdesivir** (Gilead): RdRp chain terminator.\n\n**GLP-1 agonists** for obesity + diabetes:\n- **Semaglutide** (Ozempic, Wegovy; Novo Nordisk) + **tirzepatide** (Mounjaro, Zepbound; Eli Lilly — dual GLP-1/GIP) revolutionized obesity treatment with ~15-20% body weight loss.\n- Designed via structural insight into GLP-1 receptor (class B GPCR) + extended half-life by albumin-binding fatty-acid conjugation.\n- Oral semaglutide (Rybelsus) uses absorption enhancer SNAC.\n\n**BCL-2 family inhibitors**:\n- **Venetoclax** (AbbVie/Genentech; FDA 2016): first FDA-approved BH3-mimetic; CLL + AML in combinations. Designed by FBDD targeting the BH3 binding groove of BCL-2.\n- **Navitoclax** (broader BCL-2/BCL-XL — thrombocytopenia limits use).\n\n**MDM2-p53 inhibitors**: idasanutlin, milademetan — restore p53 in cancers with wild-type p53.\n\n**AF-driven undruggable targets**: AlphaFold supplies structures for ~80% of the human proteome — including previously structure-less hubs. Combined with cryptic-pocket detection (PocketMiner, P2Rank, alphafold-multistate ensembles), enables design against transcription factors, IDRs, scaffolding proteins.\n\n**Isomorphic Labs** (Hassabis's Alphabet drug discovery spin-out, 2021): integrates AlphaFold 3 + ML chemistry + generative chemistry; partnered with Eli Lilly + Novartis for AI-driven discovery; deals worth ~$3B in 2024.\n\n**Recursion**, **Insitro**, **Atomwise**, **Iambic**, **Genesis Therapeutics**, **Generate Biomedicines**, **Xaira Therapeutics** are competitor AI-native drug discovery companies.\n\n**The modern SBDD playbook** combines: cryo-EM + AlphaFold structures → ML + FEP-guided lead optimization → cryptic + allosteric pocket exploration → covalent + PROTAC modalities for tough targets → DEL + ultra-large virtual screening → integrated experiment-in-the-loop design. SBDD now drives the majority of new molecular entities (NMEs) at major pharma."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sbdd_1",
+        "kind": "guided_derivation",
+        "question": "Estimate hit-to-lead efficiency for an HTS campaign",
+        "goal": "An HTS screen of 10⁶ compounds at 10 μM identifies 5000 primary hits (0.5% hit rate). Walk through hit triage to a lead series, applying typical attrition rates.",
+        "steps": [
+          {
+            "prompt": "What fraction of primary hits are typically reproducible + non-artifactual?",
+            "motivation": "Triage filters out PAINS, aggregators, fluorescent interferents.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~10-30%; the rest are PAINS, aggregators, fluorescent/colored, or false positives"
+              ]
+            },
+            "hints": [
+              "What fraction of HTS primary hits survive secondary confirmation?"
+            ],
+            "reveal": "Typically 10-30% of primary hits survive confirmation: dose-response in primary assay, orthogonal biophysical assay (SPR, ITC, NMR), PAINS filter (Baell + Holloway 2010), aggregation assay (with Triton X-100 surfactant), counter-screen for assay artifact. For 5000 hits → ~1000 confirmed (~20%)."
+          },
+          {
+            "prompt": "Of ~1000 confirmed hits, how many become tractable for medicinal chemistry?",
+            "motivation": "ADME, novelty, IP, SAR tractability.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~5-15% (~50-150); filtered by chemical tractability, novelty/IP, predicted ADME, ligand efficiency"
+              ]
+            },
+            "hints": [
+              "What proportion of confirmed hits are chemically tractable for medchem?"
+            ],
+            "reveal": "Of ~1000 confirmed hits, ~5-15% (50-150) typically pass tractability triage: chemical novelty + IP white space, synthetic accessibility, ligand efficiency (LE > 0.3), no reactive functional groups, predicted Lipinski compliance + low CYP/hERG/Ames risk. Clustering by scaffold gives ~5-10 distinct chemotypes."
+          },
+          {
+            "prompt": "From ~10 chemotypes to ~1-3 lead series — what's required?",
+            "motivation": "SAR exploration + selectivity + cell activity.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1-2 years of SAR exploration; cell-based confirmation; selectivity panels; co-crystal structures"
+              ]
+            },
+            "hints": [
+              "How is a hit chemotype upgraded to a lead series?"
+            ],
+            "reveal": "Each chemotype is explored by synthesizing 20-100 analogs to define SAR: which substitutions drive potency? Confirm in cell-based assays (target engagement via CETSA, NanoBRET, or pharmacological reversal). Run selectivity panels (kinome for kinases, GPCR panels, hERG, ADME). Solve co-crystal structures (X-ray) or use AF3 if no crystals. Survivors: 1-3 lead series with sub-μM potency, cell activity, defined SAR."
+          },
+          {
+            "prompt": "From lead series to clinical candidate — what's the typical timeline + attrition?",
+            "motivation": "Lead optimization + preclinical.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~2-3 years lead optimization; ~10-100 compounds synthesized in tight cycles; one clinical candidate per ~10⁴-10⁵ starting compounds (~3-5 yr total)"
+              ]
+            },
+            "hints": [
+              "What's the funnel from HTS to a clinical candidate?"
+            ],
+            "reveal": "Lead optimization: 2-3 years iterative cycles of design-make-test-analyze (DMTA), often 100-500 analogs per lead series. Improve potency to nM, selectivity > 100-fold over off-targets, oral bioavailability > 30%, half-life suitable for QD dosing, no hERG/CYP/Ames/tox flags. Final candidate enters IND-enabling tox + scale-up. Overall: ~1 clinical candidate per 10⁴-10⁵ HTS compounds in ~3-5 yr from hit to IND."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sbdd_1",
+        "kind": "multiple_choice",
+        "question": "Why was KRAS G12C considered 'undruggable' for 30 years + how was it finally drugged?",
+        "options": [
+          "Wrong.",
+          "**KRAS** is a small ~21 kDa GTPase mutated in ~30% of all human cancers (95% pancreatic, 45% colorectal, 30% NSCLC) — arguably the most important + frustrating oncology target. It was considered **undruggable** for three decades because: (1) its surface is small + smooth with **no deep enclosed pocket** for small-molecule binding; (2) the orthosteric GTP site has picomolar affinity for GTP — impossible to compete with cellular [GTP] ~mM; (3) protein-protein interfaces with RAF/PI3K/RalGDS effectors are flat + featureless. **Kevan Shokat's lab (UCSF) 2013** (Ostrem + Peters + Wells + Shokat *Nature*) discovered a **cryptic pocket** beneath the switch-II loop, accessible only in the GDP-bound state — invisible in static crystal structures of GTP-bound KRAS. Critically, they exploited the G12C mutation's **cysteine thiol** with electrophilic acrylamide warheads forming a **covalent bond** — bypassing the need for high orthosteric affinity. **Sotorasib (AMG 510, Amgen, FDA 2021)** + **adagrasib (MRTX849, Mirati, FDA 2022)** are the first approved KRAS G12C inhibitors for NSCLC + CRC. Next-generation: KRAS G12D (no cysteine), pan-KRAS inhibitors (RMC-6236), molecular glue degraders, all enabled by cryptic-pocket + dynamic-structure thinking + cryo-EM/AF3. Marked the era when 'undruggable' became 'just hard'.",
+          "Wrong.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "KRAS = small smooth GTPase, ~21 kDa, mutated in 30% of cancers; no deep pocket, picomolar GTP affinity, flat PPI surfaces. Shokat 2013 discovered cryptic switch-II pocket in GDP-bound state + exploited G12C cysteine with covalent acrylamide warhead. Sotorasib (Amgen, FDA 2021) + adagrasib (Mirati, FDA 2022) first approvals. KRAS G12D + pan-KRAS + degraders next; AF3 + cryptic pockets reshape druggability."
+      },
+      "hints": [
+        "Why does KRAS lack a classical drug pocket?",
+        "What two discoveries enabled the breakthrough — cryptic pocket + what kind of warhead?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "KRAS: small smooth GTPase, no deep pocket, picomolar GTP affinity, flat PPI surfaces — undruggable for 30 years. Shokat 2013 *Nature* found a cryptic switch-II pocket in GDP-bound KRAS + exploited G12C cysteine with covalent acrylamide warhead. Sotorasib (Amgen, FDA 2021), adagrasib (Mirati, FDA 2022) approved for NSCLC + CRC. KRAS G12D non-covalent (MRTX1133), pan-KRAS (RMC-6236), degraders next. Cryptic pockets + AF3 reshape druggability."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sbdd_1",
+        "kind": "scenario",
+        "question": "Design a structure-based campaign for a kinase",
+        "prompt": "You are leading a project to develop a selective inhibitor of a previously-undrugged Ser/Thr kinase implicated in autoimmunity. Apo + ATP-bound crystal structures are available at 2.0 Å. The kinase is in a family of ~25 close homologs (>60% identity in catalytic domain). Walk through: (a) druggability + selectivity analysis using the structure; (b) hit identification strategy (HTS vs DEL vs virtual screen vs FBDD); (c) lead optimization including FEP+, kinome selectivity panels, hERG safety; (d) whether to target the ATP pocket (Type I/II) vs an allosteric site vs a covalent cysteine; (e) how AlphaFold + cryo-EM + ML scoring (DiffDock, Boltz-2) integrate."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sbdd_1",
+        "kind": "math_expression",
+        "question": "ΔG of binding ↔ K_D: a drug with K_D = 1 nM at 298 K has what binding free energy in kcal/mol? Use ΔG = RT ln(K_D), R = 1.987 × 10⁻³ kcal/(mol·K).",
+        "acceptedAnswers": [
+          "-12.3 kcal/mol",
+          "-12.27",
+          "RT ln(1e-9) ≈ -12.3"
+        ],
+        "hint": "$\\Delta G = RT \\ln K_D = 0.592 \\ln(10^{-9}) = 0.592 \\times (-20.72) \\approx -12.3$ kcal/mol at 298 K."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sbdd_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain the modern SBDD pipeline + why allostery + cryptic pockets + AlphaFold 3 are expanding the druggable proteome.",
+        "rubric": "Mentions: SBDD pipeline (target validation → structure → hit ID → lead optimization → preclinical → clinical → approval, ~3-7 yr). Structure methods: X-ray, cryo-EM, NMR, AlphaFold + AF3 + Boltz/Chai. Hit-finding: HTS (10⁵-10⁶), FBDD (Astex; ~10³ at high conc, LE > 0.3, success via grow/merge/link → venetoclax BCL-2, vemurafenib BRAF), DEL (10⁹-10¹²), virtual screening (AutoDock/GLIDE/GOLD, DiffDock, DOCKovsky ultra-large ZINC22/Enamine REAL ~10¹⁰), FEP+ (Schrödinger ~1 kcal/mol accuracy). Lipinski Rule of 5; ADME, hERG, kinome selectivity; SAR + DMTA cycles. Allostery: MWC/KNF; selectivity advantage; venetoclax, asciminib BCR-ABL myristoyl, cinacalcet CaSR; cryptic pockets (KRAS switch-II Shokat 2013 → sotorasib FDA 2021 + adagrasib 2022). Other landmark cases: Paxlovid Mpro (Pfizer 2021), GLP-1 agonists semaglutide/tirzepatide for obesity, MDM2-p53, PROTAC degraders. AlphaFold supplies structures for previously structureless targets; combined with cryptic-pocket detection (P2Rank, ensembles), expands druggable proteome from ~20% toward most. Isomorphic Labs, Recursion, Insitro, Atomwise, Iambic, Generate Biomedicines — AI-native drug discovery firms. Concludes: SBDD now drives most NMEs; deep learning, cryo-EM, allostery + cryptic pockets together make ~half of the proteome accessible."
+      }
+    }
+  ]
+}

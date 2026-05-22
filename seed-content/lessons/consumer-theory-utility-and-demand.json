@@ -1,0 +1,164 @@
+{
+  "slug": "consumer-theory-utility-and-demand",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Axiomatize preferences + derive utility representation.",
+      "Derive Marshallian + Hicksian demand from utility maximization + expenditure minimization.",
+      "Apply Slutsky decomposition to interpret income + substitution effects."
+    ],
+    "prereqs": [
+      "microeconomics-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Preferences, utility representation, and indifference",
+      "body": "**Consumer theory** starts from preferences over consumption bundles, not from numerical utility. Utility is a convenient representation when it exists.\n\n**Preference axioms** (over bundle space X = ℝⁿ₊):\n- **Completeness**: for all bundles x, y, either x ≿ y or y ≿ x (or both).\n- **Transitivity**: x ≿ y + y ≿ z ⇒ x ≿ z.\n- **Continuity**: 'no sudden jumps' — for any sequence xₙ → x, if xₙ ≿ y for all n, then x ≿ y.\n- **Monotonicity** (more is better): x ≥ y + x ≠ y ⇒ x ≻ y.\n- **Convexity**: averages weakly preferred to extremes — if x ≿ z + y ≿ z, then for any α ∈ [0,1], αx + (1-α)y ≿ z.\n- **Strict convexity**: strictly preferred (gives unique demand).\n\n**Debreu's representation theorem (1954)**: if ≿ is complete + transitive + continuous, there exists a continuous utility function u: X → ℝ representing it (x ≿ y ⇔ u(x) ≥ u(y)). Utility is **ordinal** — any strictly increasing transform represents the same preferences (Pareto's insight 1906).\n\n**Indifference curves**: sets {x : u(x) = c} for constant c. With smooth, monotone, strictly convex preferences in two goods, indifference curves are downward-sloping, convex toward the origin, never cross.\n\n**Marginal rate of substitution (MRS)** at bundle (x, y):\n- Slope of indifference curve (in absolute value).\n- MRSₓ,y = ∂u/∂x / ∂u/∂y = MUₓ / MUᵧ (ratio of marginal utilities).\n- Interpretation: how much y you'd give up for one more unit of x while staying on the same indifference curve.\n- **Diminishing MRS** (strict convexity): as you have more x relative to y, you require more x to compensate for losing y.\n\n**Budget constraint**: prices p = (pₓ, pᵧ) + income m. Affordable set = {(x, y) ≥ 0 : pₓ x + pᵧ y ≤ m}. The budget line has slope −pₓ/pᵧ + intercepts m/pₓ + m/pᵧ.\n\n**Utility maximization (UMP)**:\n\nmax u(x, y) subject to pₓ x + pᵧ y ≤ m, x, y ≥ 0.\n\n**Lagrangian** ℒ = u(x, y) − λ(pₓ x + pᵧ y − m). FOC:\n- ∂u/∂x = λ pₓ\n- ∂u/∂y = λ pᵧ\n- pₓ x + pᵧ y = m\n\nDividing: **MRSₓ,y = pₓ / pᵧ** — at the optimum, indifference curve is tangent to budget line. λ = marginal utility of income.\n\nThe solution x*(p, m), y*(p, m) is **Marshallian (Walrasian) demand**.",
+      "viz": "utility-indifference",
+      "vizProps": {
+        "px": 1,
+        "py": 1,
+        "income": 10
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Marshallian + Hicksian demand and duality",
+      "body": "**Indirect utility function** v(p, m) = u(x*(p, m), y*(p, m)) — maximum utility attainable given prices + income.\n\n**Properties**:\n- Homogeneous of degree 0 in (p, m): scaling all prices + income by same factor leaves choices unchanged.\n- Decreasing in prices, increasing in income.\n- Quasi-convex in p.\n- **Roy's identity**: xᵢ*(p, m) = − (∂v/∂pᵢ) / (∂v/∂m). Recovers Marshallian demand from indirect utility.\n\n**Expenditure minimization problem (EMP)** — dual to UMP:\n\nmin pₓ x + pᵧ y subject to u(x, y) ≥ ū.\n\nSolution h(p, ū) = **Hicksian (compensated) demand** — minimum expenditure to reach utility ū.\n\n**Expenditure function** e(p, ū) = pₓ hₓ(p, ū) + pᵧ hᵧ(p, ū).\n\n**Properties**:\n- Concave in p.\n- Homogeneous degree 1 in p.\n- **Shephard's lemma**: hᵢ(p, ū) = ∂e/∂pᵢ. Recovers Hicksian demand from expenditure function.\n\n**Duality** — UMP + EMP are equivalent:\n- v(p, e(p, ū)) = ū\n- e(p, v(p, m)) = m\n- xᵢ(p, m) = hᵢ(p, v(p, m))\n- hᵢ(p, ū) = xᵢ(p, e(p, ū))\n\n**Slutsky equation** — decomposing total demand response:\n\n∂xᵢ/∂pⱼ = ∂hᵢ/∂pⱼ − xⱼ · ∂xᵢ/∂m\n\nLeft: total (Marshallian) response. Right first term: **substitution effect** (along same indifference curve). Right second term: **income effect** (purchasing-power change).\n\n**Substitution effect always negative** for own price (∂hᵢ/∂pᵢ ≤ 0) — Hicksian demand slopes down. **Income effect** can go either way:\n- **Normal good**: ∂xᵢ/∂m > 0 — income effect reinforces substitution.\n- **Inferior good**: ∂xᵢ/∂m < 0 — income effect partially offsets substitution.\n- **Giffen good** (rare): inferior good where income effect overwhelms substitution, so Marshallian demand slopes **up**. Empirically documented (Jensen-Miller 2008 rice in Hunan + potatoes in Ireland during famine).\n- **Veblen good**: status consumption where demand rises with price (different mechanism — not preference for the good but for visible expenditure)."
+    },
+    {
+      "kind": "text",
+      "title": "Special preferences + comparative statics + welfare measures",
+      "body": "**Common functional forms**:\n\n**Cobb-Douglas** u(x, y) = xᵅ yᵝ:\n- Marshallian demand: xₘ* = α m / (pₓ(α+β)).\n- Expenditure shares constant (= α/(α+β) for good x).\n- Convenient closed-form.\n\n**CES** (constant elasticity of substitution) u(x, y) = (αxᵖ + (1-α)yᵖ)^(1/ρ):\n- Elasticity of substitution σ = 1/(1−ρ).\n- ρ → 1: linear (perfect substitutes); ρ → 0: Cobb-Douglas; ρ → −∞: Leontief (perfect complements).\n- Foundation for CES production functions (Solow 1956, lesson 3).\n\n**Quasi-linear** u(x, y) = v(x) + y:\n- No income effect on x → Marshallian = Hicksian demand for x.\n- Useful for partial-equilibrium welfare analysis (consumer surplus exact).\n\n**Leontief** (perfect complements) u(x, y) = min(x/a, y/b):\n- L-shaped indifference curves.\n- Demand: x* = m / (pₓ + (b/a)pᵧ).\n\n**Linear** (perfect substitutes) u(x, y) = ax + by:\n- Indifference curves are straight lines.\n- Demand: corner solutions (all x or all y or indifferent).\n\n**Consumer surplus**:\n- Marshallian CS = area under demand curve above price.\n- **Compensating variation (CV)**: income needed to compensate consumer for a price change to keep utility constant.\n- **Equivalent variation (EV)**: income equivalent to the price change at original prices.\n- CV = e(p¹, ū⁰) − m; EV = m − e(p⁰, ū¹).\n- For quasi-linear preferences, CV = EV = Marshallian CS exactly.\n\n**Comparative statics**:\n- **Engel curve**: x*(p, m) as function of m (holding p fixed) — normal vs inferior, luxury (income elasticity > 1) vs necessity (< 1).\n- **Income elasticity**: η = (∂x/∂m)(m/x).\n- **Price elasticity**: ε = (∂x/∂p)(p/x).\n- **Cross-price elasticity**: εᵢⱼ — substitutes (ε > 0) or complements (ε < 0).\n\n**Revealed preference** (Samuelson 1938, lesson 1):\n- Infer preferences from observed choices.\n- **WARP**: if x revealed-preferred to y, never reverse.\n- **SARP** (Houthakker 1950): no preference cycles.\n- Afriat's theorem (1967): finite data consistent with utility maximization ⇔ SARP holds.\n\n**Empirical demand**:\n- Aggregate demand systems: AIDS (Deaton-Muellbauer 1980), translog (Christensen-Jorgenson-Lau 1975).\n- BLP demand (Berry-Levinsohn-Pakes 1995, lesson 8): differentiated products with random coefficients."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ct_cobb",
+        "kind": "guided_derivation",
+        "question": "Derive Marshallian demand for Cobb-Douglas u(x, y) = x^α y^(1-α)",
+        "goal": "Closed-form Marshallian demand + verify expenditure shares are constant.",
+        "steps": [
+          {
+            "prompt": "Set up Lagrangian for max u(x, y) = x^α y^(1-α) s.t. pₓ x + pᵧ y = m.",
+            "motivation": "Write KKT/Lagrangian.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "L = x^α y^(1-α) − λ(pₓ x + pᵧ y − m)",
+                "Lagrangian with multiplier λ"
+              ]
+            },
+            "hints": [
+              "Standard constrained max."
+            ],
+            "reveal": "ℒ = x^α y^(1-α) − λ(pₓ x + pᵧ y − m). Interior FOC: ∂ℒ/∂x = α x^(α-1) y^(1-α) − λ pₓ = 0; ∂ℒ/∂y = (1-α) x^α y^(-α) − λ pᵧ = 0; ∂ℒ/∂λ = m − pₓ x − pᵧ y = 0."
+          },
+          {
+            "prompt": "Divide FOC for x by FOC for y to get MRS = price ratio.",
+            "motivation": "Tangency condition.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(α/(1-α))(y/x) = pₓ/pᵧ",
+                "MRS = αy/((1-α)x) = pₓ/pᵧ"
+              ]
+            },
+            "hints": [
+              "MRS = MUₓ/MUᵧ."
+            ],
+            "reveal": "α x^(α-1) y^(1-α) / [(1-α) x^α y^(-α)] = pₓ / pᵧ ⇒ [α / (1-α)] · (y / x) = pₓ / pᵧ. So pᵧ y = ((1-α)/α) pₓ x — y-expenditure is a constant ratio of x-expenditure."
+          },
+          {
+            "prompt": "Solve with budget constraint pₓ x + pᵧ y = m.",
+            "motivation": "Get x* + y*.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "x* = α m / pₓ; y* = (1-α) m / pᵧ",
+                "constant expenditure shares α and 1-α"
+              ]
+            },
+            "hints": [
+              "Substitute pᵧ y = ((1-α)/α) pₓ x."
+            ],
+            "reveal": "Substituting pᵧ y = ((1-α)/α) pₓ x into budget: pₓ x + ((1-α)/α) pₓ x = m ⇒ pₓ x · (1/α) = m ⇒ **x* = α m / pₓ**. By symmetry **y* = (1-α) m / pᵧ**. **Expenditure shares**: pₓ x* / m = α, pᵧ y* / m = 1-α — constant in prices + income."
+          },
+          {
+            "prompt": "What's the indirect utility v(p, m)?",
+            "motivation": "Plug x*, y* back.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "v(p, m) = (α/pₓ)^α ((1-α)/pᵧ)^(1-α) · m",
+                "indirect utility proportional to m"
+              ]
+            },
+            "hints": [
+              "Substitute Marshallian demand."
+            ],
+            "reveal": "v(p, m) = (x*)^α (y*)^(1-α) = (αm/pₓ)^α ((1-α)m/pᵧ)^(1-α) = m · (α/pₓ)^α · ((1-α)/pᵧ)^(1-α). Indirect utility is **linear in income** (Cobb-Douglas is homothetic). Roy's identity: x* = −(∂v/∂pₓ)/(∂v/∂m) recovers Marshallian demand."
+          }
+        ],
+        "finalResult": "$$\\boxed{x^*=\\alpha m/p_x,\\; y^*=(1-\\alpha)m/p_y}$$ Cobb-Douglas has constant expenditure shares = exponents — the workhorse functional form for empirical work + macro production. Foundation for empirical demand systems + the Cobb-Douglas (1928) production function (lesson 3)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ct_slutsky",
+        "kind": "multiple_choice",
+        "question": "When can a good be Giffen — having upward-sloping Marshallian demand?",
+        "options": [
+          "Always.",
+          "A Giffen good must be (1) **inferior** — income effect ∂x/∂m < 0 — so when price rises, real income falls, raising demand; (2) the **income effect must outweigh the substitution effect**, which is always negative. Both conditions require the good to be a large share of the budget for the relevant consumers + have few substitutes. Empirically rare; Jensen + Miller (2008 AER) documented rice in Hunan + wheat in Gansu for poor households. The Irish potato during the 1840s famine is a classic but disputed example. Veblen goods (status consumption) can also slope up but for a different reason — preference is for visible expenditure, not the good itself.",
+          "Whenever it's a luxury.",
+          "Whenever it has many substitutes."
+        ],
+        "correctIndex": 1,
+        "explanation": "A Giffen good requires: (1) inferior good (negative income effect) + (2) income effect outweighs substitution effect. The substitution effect (Hicksian own-price) is always non-positive. So the good must be a large budget share with few substitutes — typically staple foods for the poor. Jensen-Miller (2008) documented Chinese rice + wheat. Veblen goods slope up for different reasons (status, not preference for the good)."
+      },
+      "hints": [
+        "What's the Slutsky decomposition?",
+        "When does substitution lose to income effect?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Giffen good requires: (1) inferior (negative income effect) + (2) income effect outweighs substitution effect. Substitution always non-positive. Conditions: large budget share + few substitutes — typically staple foods of poor households. Jensen-Miller 2008 AER documented Chinese rice + wheat. Veblen goods slope up for different (status) reason."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ct_health",
+        "kind": "scenario",
+        "question": "Public-policy demand analysis",
+        "prompt": "A health agency wants to tax sugary drinks to reduce consumption. Walk through the consumer-theory analysis: substitution + income effects, who bears the burden, how to estimate elasticities, + what behavioral phenomena (lesson 7) might complicate the prediction."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ct_mrs",
+        "kind": "math_expression",
+        "question": "Cobb-Douglas u(x, y) = x^0.5 y^0.5, prices pₓ = 2, pᵧ = 1, income m = 20. What is Marshallian demand x*?",
+        "acceptedAnswers": [
+          "5",
+          "x* = 5",
+          "5 units"
+        ],
+        "hint": "x* = α m / pₓ = 0.5 · 20 / 2 = 5. By symmetry y* = 10. Check: pₓ x* + pᵧ y* = 2·5 + 1·10 = 20 = m. ✓"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ct_duality",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain duality between the utility maximization problem (UMP) + the expenditure minimization problem (EMP) + why economists care.",
+        "rubric": "Mentions: UMP maximizes utility subject to budget — yields Marshallian demand x*(p, m) + indirect utility v(p, m). EMP minimizes expenditure subject to utility constraint — yields Hicksian (compensated) demand h(p, ū) + expenditure function e(p, ū). Duality identities: v(p, e(p, ū)) = ū; e(p, v(p, m)) = m; x(p, m) = h(p, v(p, m)). Why care: (1) Shephard's lemma gives Hicksian demand from e(p, ū) by differentiation; (2) Roy's identity gives Marshallian demand from v(p, m); (3) Slutsky decomposition needs both — substitution effect is the Hicksian derivative, income effect comes from Marshallian; (4) exact welfare measures (compensating + equivalent variation) require the expenditure function; (5) duality structures empirical demand systems (AIDS, translog) where the analyst chooses whichever form is easier to estimate. Concludes: duality is more than aesthetic — it's the algebraic glue connecting choice, welfare, + comparative statics."
+      }
+    }
+  ]
+}

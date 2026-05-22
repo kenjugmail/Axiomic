@@ -62,7 +62,7 @@ reproductionsRouter.get("/review-queue", requireAuth, async (c) => {
     .all()
     .map((r) => r.id);
 
-  let q = db
+  const q = db
     .select({
       id: reproductions.id,
       targetKind: reproductions.targetKind,

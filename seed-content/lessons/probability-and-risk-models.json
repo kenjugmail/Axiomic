@@ -1,0 +1,141 @@
+{
+  "slug": "probability-and-risk-models",
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "advanced",
+    "objectives": [
+      "Construct aggregate loss distributions using the collective risk model with compound Poisson frequency-severity decomposition.",
+      "Apply the Cramér-Lundberg model to compute ruin probabilities and the adjustment coefficient.",
+      "Select appropriate severity distributions (exponential, gamma, Pareto, lognormal) based on tail-heaviness criteria."
+    ],
+    "prereqs": [
+      "life-contingencies-and-the-force-of-mortality"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "From individual to collective: frequency × severity decomposition",
+      "body": "Non-life insurance mathematics is built on a single organizing insight: **aggregate loss $S$ is a random sum of random severities**. We separate the problem into two independent components.\n\n**The collective risk model** (also called the compound distribution model) defines:\n$$S = X_1 + X_2 + \\cdots + X_N$$\nwhere $N$ is the **claim count** (frequency) and $X_1, X_2, \\ldots$ are i.i.d. **claim severities**, independent of $N$. The key aggregate moments follow immediately:\n$$E[S] = E[N] \\cdot E[X], \\qquad \\text{Var}(S) = E[N] \\cdot \\text{Var}(X) + \\text{Var}(N) \\cdot (E[X])^2$$\nThis formula, sometimes called **Wald's identity** for the mean, is the workhorse of premium calculation.\n\n**The individual risk model**, by contrast, sums over a **fixed** portfolio of $n$ independent policies, each contributing a loss $Y_i$: $S = \\sum_{i=1}^n Y_i$. The Poisson-binomial exact calculation is computationally heavy for large $n$; the collective model is the practical approximation.\n\n**Frequency distributions** used in practice:\n- **Poisson$(\\lambda)$**: $P(N=k) = e^{-\\lambda}\\lambda^k / k!$. Mean $= $ Var $= \\lambda$. The benchmark.\n- **Negative Binomial$(r, p)$**: variance exceeds mean (**overdispersion**), capturing heterogeneity across policyholders. Arises as a Poisson mixture with a Gamma mixing distribution — the **Poisson-Gamma mixture** construction discovered by **William Greenwood** and **G. Udny Yule** (1920). The negative binomial is the default frequency model in modern **Generalized Linear Model** (GLM) pricing when overdispersion is detected.\n- **(a, b, 0) class** (Panjer 1981): recursive formula $p_k = (a + b/k)p_{k-1}$ unifies Poisson, negative binomial, and binomial. **Harry Panjer's** recursive algorithm (1981, *ASTIN Bulletin*) is the industry-standard method for exact aggregate loss distributions.\n\n**Severity distributions** span a wide tail-weight spectrum. Choosing the wrong tail model systematically misprices catastrophic loss layers — the central practical problem in non-life pricing."
+    },
+    {
+      "kind": "text",
+      "title": "Severity distributions and compound Poisson aggregation",
+      "body": "The choice of severity distribution $X$ determines how the model prices high-loss events. Actuaries classify distributions by **tail heaviness** — the rate at which $P(X > x)$ decays.\n\n**Light-tailed (exponential family)**:\n- **Exponential$(\\theta)$**: $f(x) = \\theta^{-1}e^{-x/\\theta}$, mean $\\theta$, memoryless property. Tractable but too thin-tailed for property claims.\n- **Gamma$(\\alpha, \\theta)$**: $f(x) = x^{\\alpha-1}e^{-x/\\theta}/(\\theta^\\alpha \\Gamma(\\alpha))$, mean $\\alpha\\theta$. Generalizes exponential; good for moderate-tailed losses. The **Erlang** distribution (integer $\\alpha$) arises in waiting-time models.\n- **Weibull$(\\tau, \\theta)$**: $F(x) = 1 - e^{-(x/\\theta)^\\tau}$. Flexible shape: $\\tau < 1$ is heavy-tailed relative to exponential.\n\n**Heavy-tailed distributions (power-law decay)**:\n- **Pareto$(\\alpha, \\theta)$** (single-parameter: $F(x)=1-(\\theta/(\\theta+x))^\\alpha$): the standard model for catastrophic property and liability claims. Finite mean requires $\\alpha > 1$; finite variance requires $\\alpha > 2$. Named after **Vilfredo Pareto** (1897) who observed the 80/20 wealth concentration law — the same mathematics governs large losses.\n- **Lognormal$(\\mu, \\sigma^2)$**: $\\ln X \\sim N(\\mu, \\sigma^2)$. Mean $= e^{\\mu + \\sigma^2/2}$. The empirical workhorse for medical expense and workers' compensation severity — observed to fit large datasets well (**Robert Hogg** and **Stuart Klugman**, *Loss Distributions*, 1984).\n\n**Compound Poisson is infinitely divisible**: if $N \\sim$ Poisson$(\\lambda)$ and $X$ has distribution $F_X$, then $S$ has a **compound Poisson distribution** whose cumulants are $\\kappa_r(S) = \\lambda \\cdot E[X^r]$. This means the sum of independent compound Poisson risks is compound Poisson — a critical property for portfolio aggregation.\n\n**Reinsurance and excess-of-loss treaties** directly modify the severity: under an **excess-of-loss** treaty with retention $d$, the retained severity is $Y = \\min(X, d)$ and the ceded piece is $(X - d)_+$. For Pareto severity, the excess loss distribution above $d$ is again Pareto — the **stability under excess-of-loss** property. For exponential severity the memoryless property gives the same result. These closed-form properties drive treaty pricing.\n\n**Tail Value-at-Risk** (TVaR) — also called **Expected Shortfall** — for severity $X$ at confidence $p$:\n$$\\text{TVaR}_p(X) = \\frac{1}{1-p}\\int_p^1 \\text{VaR}_u(X)\\,du = E[X \\mid X > \\text{VaR}_p(X)]$$\nFor Pareto$(\\alpha, \\theta)$ with $\\alpha > 1$: $\\text{TVaR}_p = \\text{VaR}_p \\cdot \\alpha/(\\alpha-1) + \\theta/(\\alpha-1)$ — the **mean excess loss function** is linear in the VaR, a signature of Pareto tails."
+    },
+    {
+      "kind": "text",
+      "title": "Ruin theory: the Cramér-Lundberg model and the adjustment coefficient",
+      "body": "**Ruin theory** asks: given a surplus process, what is the probability that the insurer's surplus ever falls below zero? This reframes solvency from a static balance-sheet question into a dynamic stochastic one.\n\n**The Cramér-Lundberg model** (also called the classical risk model) was introduced by Swedish mathematician and statistician **Filip Lundberg** in his 1903 Uppsala thesis *Approximerad Framställning av Sannolikhetsfunktionen* and later given rigorous treatment by **Harald Cramér** in his 1930 monograph *On the Mathematical Theory of Risk*. The surplus process is:\n$$U(t) = u + ct - S(t)$$\nwhere $u \\geq 0$ is initial surplus, $c$ is the constant premium income rate, and $S(t) = \\sum_{i=1}^{N(t)} X_i$ is the compound Poisson aggregate loss with $N(t) \\sim$ Poisson$(\\lambda t)$. The **net profit condition** $c > \\lambda E[X]$ ensures positive drift; the **loading factor** is $\\theta = c/(\\lambda E[X]) - 1 > 0$.\n\n**The probability of ruin** $\\psi(u) = P(U(t) < 0 \\text{ for some } t > 0)$ satisfies the **Lundberg-Cramér integro-differential equation**:\n$$c \\psi'(u) = \\lambda \\psi(u) - \\lambda \\int_0^u \\psi(u-x)\\,dF_X(x) - \\lambda \\bar{F}_X(u)$$\nFor exponential severity $X \\sim \\text{Exp}(1/\\mu)$, the explicit solution is:\n$$\\psi(u) = \\frac{\\lambda \\mu}{c} e^{-Ru} = \\frac{1}{1+\\theta}e^{-Ru}$$\n\n**The adjustment coefficient** (also called the **Lundberg coefficient**) $R > 0$ is the unique positive root of the **Lundberg equation**:\n$$\\lambda + cR = \\lambda M_X(R)$$\nwhere $M_X(R) = E[e^{RX}]$ is the moment-generating function of severity. The **Lundberg inequality** bounds ruin for any severity distribution:\n$$\\psi(u) \\leq e^{-Ru}$$\nThis is the central actuarial result connecting surplus, premium loading, and tail risk.\n\n**Reinsurance and ruin**: excess-of-loss reinsurance with retention $d$ replaces $X$ with $\\min(X, d)$, which has a lighter tail, increases the adjustment coefficient $R$, and reduces $\\psi(u)$ — the mathematical justification for reinsurance purchase.\n\n**Extensions beyond classical Cramér-Lundberg**:\n- **Renewal (Sparre Andersen) model** (1957): inter-arrival times are i.i.d. (not necessarily exponential).\n- **Diffusion-perturbed model**: adds a Brownian motion $\\sigma W(t)$ to $U(t)$, capturing small continuous fluctuations (**Gerber 1970**).\n- **De Vylder's approximation** (1978): fits an exponential distribution to the first three moments of $X$ and uses the known exponential-severity ruin formula as an approximation — widely used in practice because exact solutions exist only for limited severity classes.\n\nRuin theory feeds directly into **Solvency II** capital requirements: the 99.5% one-year Value-at-Risk standard for the Solvency Capital Requirement (SCR) is the regulatory operationalization of Cramér and Lundberg's foundational insight that insurer solvency is a probabilistic, not deterministic, concept."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "me_risk_1",
+        "kind": "math_expression",
+        "question": "A compound Poisson aggregate loss has frequency $N \\sim \\text{Poisson}(\\lambda = 50)$ and severity $X$ with $E[X] = 1000$. What is $E[S]$?",
+        "acceptedAnswers": [
+          "50000",
+          "50,000",
+          "50000.00"
+        ],
+        "hint": "Use Wald's identity: $E[S] = E[N] \\cdot E[X]$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_risk_1",
+        "kind": "guided_derivation",
+        "question": "Derive the Lundberg equation and bound on ruin probability",
+        "goal": "Starting from the classical Cramér-Lundberg surplus $U(t) = u + ct - S(t)$ with $S(t)$ compound Poisson$(\\lambda, F_X)$, derive (a) the Lundberg equation for the adjustment coefficient $R$ and (b) the Lundberg upper bound $\\psi(u) \\leq e^{-Ru}$.",
+        "steps": [
+          {
+            "prompt": "Write the martingale condition: what process $M(t)$ must be a martingale for ruin analysis?",
+            "motivation": "The martingale approach provides the cleanest derivation of the Lundberg bound.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "M(t) = e^{-R U(t)} is a martingale when R satisfies the Lundberg equation"
+              ]
+            },
+            "hints": [
+              "Try an exponential function of the surplus.",
+              "$E[e^{-R U(t)}]$ is constant when $R$ is chosen correctly."
+            ],
+            "reveal": "$M(t) = e^{-R U(t)}$ is a martingale if and only if $E[e^{R(c - X)} ] = 1$ per unit Poisson jump, which expands to $\\lambda + cR = \\lambda M_X(R)$ — the **Lundberg equation**. Here $M_X(R) = E[e^{RX}]$ is the MGF of severity."
+          },
+          {
+            "prompt": "Show that the Lundberg equation $\\lambda + cR = \\lambda M_X(R)$ has a unique positive root under the net profit condition.",
+            "motivation": "Existence of $R > 0$ is required for the bound.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "LHS is linear in R; RHS is convex and equals lambda at R=0; by convexity and net profit condition c > lambda E[X] they cross exactly once at some R > 0"
+              ]
+            },
+            "hints": [
+              "At $R=0$: LHS $=\\lambda$, RHS $=\\lambda$. Check derivatives.",
+              "LHS slope $= c$; RHS slope at 0 $= \\lambda E[X] < c$ by net profit condition."
+            ],
+            "reveal": "At $R=0$ both sides equal $\\lambda$. The derivative of LHS is $c$; the derivative of RHS at 0 is $\\lambda E[X]$. Since $c > \\lambda E[X]$ (net profit condition), LHS initially grows faster. But $M_X(R)$ is convex and eventually grows faster than any linear function, so the two curves must cross again at some unique $R^* > 0$. This is the adjustment coefficient."
+          },
+          {
+            "prompt": "Apply the optional stopping theorem to $M(t) = e^{-R U(t)}$ to obtain the Lundberg inequality $\\psi(u) \\leq e^{-Ru}$.",
+            "motivation": "Optional stopping converts the martingale condition into a ruin bound.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "At ruin time tau, U(tau) <= 0, so e^{-R U(tau)} >= 1; by optional stopping E[M(tau)] = M(0) = e^{-Ru}; hence P(ruin) <= e^{-Ru}"
+              ]
+            },
+            "hints": [
+              "Let $\\tau$ be the ruin time; on the event $\\{\\tau < \\infty\\}$, $U(\\tau) \\leq 0$."
+            ],
+            "reveal": "Let $\\tau = \\inf\\{t : U(t) < 0\\}$. On $\\{\\tau < \\infty\\}$, $U(\\tau) \\leq 0$ so $e^{-RU(\\tau)} \\geq 1$. By the optional stopping theorem $E[M(\\tau \\wedge T)] = M(0) = e^{-Ru}$. Taking $T \\to \\infty$: $E[e^{-RU(\\tau)}\\mathbf{1}_{\\tau<\\infty}] \\leq e^{-Ru}$. Since the left-hand side $\\geq P(\\tau < \\infty) = \\psi(u)$, we get $\\psi(u) \\leq e^{-Ru}$. $\\square$"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_risk_1",
+        "kind": "multiple_choice",
+        "question": "Which property makes the compound Poisson distribution especially convenient for aggregating independent lines of business?",
+        "options": [
+          "It is always symmetric and fully described by two parameters.",
+          "Its moment-generating function is always finite for all $R > 0$.",
+          "It is **infinitely divisible**: the sum of independent compound Poisson risks is compound Poisson, so portfolio-level aggregation preserves the distributional form.",
+          "It has a finite support, making numerical computation exact."
+        ],
+        "correctIndex": 2,
+        "explanation": "**Infinite divisibility** is the key property. If $S_1$ is compound Poisson$(\\lambda_1, F_1)$ and $S_2$ is compound Poisson$(\\lambda_2, F_2)$, then $S_1 + S_2$ is compound Poisson$(\\lambda_1 + \\lambda_2, F_{\\text{mixed}})$ where $F_{\\text{mixed}}$ is the $\\lambda$-weighted mixture of $F_1$ and $F_2$. This means an insurer writing multiple independent lines of business can aggregate all lines into a single compound Poisson model, apply Panjer's 1981 recursive algorithm to compute the aggregate distribution exactly, and price reinsurance treaties on the total portfolio — all within one coherent framework. **Harry Panjer's** recursive formula (1981, *ASTIN Bulletin*) exploits the (a,b,0) class structure to compute compound distributions without Monte Carlo simulation. The Cramér-Lundberg ruin theory also depends critically on the Poisson claim-arrival structure. Option A is false — compound Poisson is right-skewed. Option B is false — heavy-tailed severity (e.g. Pareto with $\\alpha \\leq 1$) can make the MGF infinite. Option D is false — compound Poisson has unbounded support when severity is unbounded."
+      },
+      "hints": [
+        "Think about what happens when you add two compound Poisson random variables.",
+        "The Poisson distribution belongs to the class of infinitely divisible distributions."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "The sum of two independent compound Poisson random variables is itself compound Poisson — this is the infinite divisibility property. Concretely, if claims from auto insurance arrive as Poisson$(\\lambda_1)$ with severity $F_1$ and claims from property arrive as Poisson$(\\lambda_2)$ with severity $F_2$, the combined portfolio has aggregate loss distributed as compound Poisson$(\\lambda_1+\\lambda_2, F_{\\text{mix}})$. This closure property is unique to the Poisson frequency distribution among the (a,b,0) class and is the reason the compound Poisson model dominates actuarial aggregate-loss modeling."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_risk_1",
+        "kind": "scenario",
+        "question": "Catastrophe reinsurance pricing",
+        "prompt": "A property insurer has aggregate losses $S$ with Poisson$(\\lambda=20)$ frequency and Pareto$(\\alpha=2.5, \\theta=500{,}000)$ severity (in dollars). A catastrophe reinsurer offers to cover the **aggregate stop-loss** layer $S - 12{,}000{,}000$ if positive (i.e., aggregate excess of \\$12M). Using what you know about the collective risk model, Pareto tail properties, and the adjustment coefficient: (a) explain why the Pareto tail makes this layer disproportionately expensive relative to lower layers; (b) describe how excess-of-loss per-risk reinsurance at retention $d$ changes the severity distribution seen by the insurer, and how this affects the adjustment coefficient $R$; (c) if the insurer's initial surplus is $u = \\$5{,}000{,}000$ and premium loading $\\theta = 0.20$, qualitatively describe what happens to the ruin probability $\\psi(u)$ if severity is mistakenly modeled as lognormal instead of Pareto."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_risk_1",
+        "kind": "explain_back",
+        "prompt": "In ≤160 words, explain the Cramér-Lundberg model: what it models, what the adjustment coefficient $R$ measures, and why the Lundberg bound $\\psi(u) \\leq e^{-Ru}$ matters for practical solvency. Cite Lundberg 1903 and Cramér 1930.",
+        "rubric": "Should cover: surplus process $U(t) = u + ct - S(t)$ with compound Poisson aggregate losses; net profit condition $c > \\lambda E[X]$; adjustment coefficient $R$ as the positive root of $\\lambda + cR = \\lambda M_X(R)$; the bound $\\psi(u) \\leq e^{-Ru}$ showing ruin probability decays exponentially with initial surplus. Should cite **Lundberg 1903** (Uppsala thesis introducing the model) and **Cramér 1930** (*On the Mathematical Theory of Risk* — rigorous treatment). Practical relevance: increasing $u$ (capital) or increasing $\\theta$ (premium loading) or reducing severity tail (reinsurance) all increase $R$ and reduce the ruin bound. Bonus: mention that Solvency II's 99.5% VaR SCR is the regulatory descendant of this theory."
+      }
+    }
+  ]
+}

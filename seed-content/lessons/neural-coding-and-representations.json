@@ -1,0 +1,152 @@
+{
+  "slug": "neural-coding-and-representations",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Compare rate + temporal codes.",
+      "Read population activity.",
+      "Reason about Bayesian brain."
+    ],
+    "prereqs": [
+      "action-potentials-and-hodgkin-huxley"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Rate vs temporal coding",
+      "body": "**The neural coding problem**: how does a neuron — emitting stereotyped all-or-none spikes — represent the rich continuous world (visual scenes, sounds, intentions)? The answer is not a single code but a hierarchy of complementary schemes used by different circuits + behaviors.\n\n**Rate code** = information in the mean firing rate over some time window.\n- **Edgar Adrian (1926)**, Nobel 1932: recorded from single frog muscle-spindle afferents, showed stretch intensity → firing rate (impulses/s). The first quantitative neural code. Adrian's recordings appear in textbooks for a century.\n- **Tuning curves**: a neuron's firing rate as a function of stimulus parameter (orientation in V1, frequency in A1, direction in MT, eye position, joint angle). Gaussian or cosine-shaped; bandwidth ~tens of degrees.\n- **Hubel + Wiesel 1959**: V1 simple cells show orientation-tuned rate codes; complex cells phase-invariant. Nobel 1981.\n- **Fano factor** F = variance/mean of spike counts. For Poisson process F = 1. Cortical neurons typically F ≈ 1-1.5 over moderate windows → trial-to-trial variability is huge (often >50% of mean), severely limiting single-neuron information.\n- **Inter-spike interval (ISI)** distribution: exponential under Poisson assumption; deviations indicate refractoriness + bursting + adaptation.\n- **Spike-count windows**: 100-500 ms typical for rate decoding; too short = high noise, too long = lose temporal dynamics.\n- Rate codes are robust + simple but slow + waste temporal precision.\n\n**Temporal code** = information in precise spike timing relative to a reference (sensory event, oscillation phase, other spikes).\n- **Submillisecond precision**: auditory MNTB calyx of Held + medial superior olive code interaural time differences down to ~10 µs (sound localization; Carr + Konishi barn owl).\n- **Phase coding** (O'Keefe + Recce 1993): hippocampal place cells fire at progressively earlier phases of the theta cycle (4-8 Hz) as the animal traverses the place field — *theta phase precession*. Encodes position more precisely than rate alone.\n- **Gamma oscillations** (30-80 Hz): cortical PV-interneuron-driven; thought to bind features into perceptual objects + multiplex inputs (Fries 2005 communication-through-coherence).\n- **Spike-burst codes**: thalamic relay cells signal in bursts (Sherman) vs tonic firing — different modes for novelty vs ongoing input.\n- **Sparse temporal codes** (Hahnloser + Fee 2002): zebra finch HVC neurons fire 1 burst per song motif — exquisitely precise.\n- **Synchrony** as a code: spikes from many neurons aligned within ~ms (Singer hypothesis; debated).\n\n**Cortical oscillations**:\n- **Delta (1-4 Hz)**: deep sleep, slow waves.\n- **Theta (4-8 Hz)**: hippocampal navigation + REM sleep + working memory.\n- **Alpha (8-13 Hz)**: occipital eyes-closed Berger 1929; inhibitory gating.\n- **Beta (13-30 Hz)**: motor cortex; Parkinson's exaggerated.\n- **Gamma (30-80 Hz)**: cortical computation, attention.\n- **Sharp-wave ripples (150-250 Hz)**: HC memory replay during sleep.\n\n**Both codes coexist**: many sensory + motor areas use a mixed rate-temporal representation. The brain is multi-scale + the 'code' depends on the question + decoder.\n\n**Information theory** (Shannon 1948 → Bialek + de Ruyter 1991 *Spikes*): mutual information I(R;S) between response R + stimulus S in bits/spike. Reverse correlation + spike-triggered average extract relevant features. **Coding efficiency** ≈ I / channel capacity; cortical neurons sit around 1-4 bits/spike — surprisingly close to information-theoretic limits given biological noise."
+    },
+    {
+      "kind": "text",
+      "title": "Population codes + sparse representations",
+      "body": "**Population code** = stimulus represented by joint activity across many neurons. Single-neuron tuning curves overlap → population activity unambiguously specifies stimulus even when each neuron is noisy.\n\n**Population vector** (Georgopoulos 1986): in motor cortex (M1), each neuron has a preferred movement direction; instantaneous movement direction = vector sum of all neurons' preferences weighted by their firing rates. Decoded reaching arm direction from monkey M1 ensemble before the arm moved — foundation of motor BMI. Spawned subsequent algorithms (Kalman filter, point-process filter, recurrent neural net decoders).\n\n**Bayesian decoding** (Zhang, Ginzburg, McNaughton, Sejnowski 1998): given spike counts {r_i}, infer posterior P(s | {r_i}) ∝ P({r_i} | s)·P(s). Optimal decoder = MAP estimate. Outperforms population vector for non-Gaussian tuning + correlated noise.\n\n**Noise correlations** (Zohary, Shadlen, Newsome 1994): pairs of cortical neurons share ~10-30% trial-to-trial covariance. Limits population information; cannot be averaged away by adding neurons (Averbeck + Latham + Pouget 2006). Active topic — task-dependent noise correlations + their modulation by attention.\n\n**Sparse coding** (Olshausen + Field 1996 *Nature*): trained an algorithm to encode natural images with a small number of basis functions active per image (sparsity prior) + minimize reconstruction error. **The learned basis = oriented, localized, bandpass Gabor-like filters — quantitatively matching V1 simple-cell receptive fields**. Foundational result: V1 receptive fields are optimal sparse codes for natural image statistics. Inspired generations of dictionary learning + ICA approaches. Sparse coding extends to A1 (auditory cortex matches spectrotemporal speech statistics; Smith + Lewicki 2006), S1 (somatosensory).\n\n**Independent Component Analysis (ICA)** (Bell + Sejnowski 1995, Hyvärinen): decompose multivariate signal into statistically independent sources; applied to fMRI + EEG/MEG + V1 modeling. Related to sparse coding under sparse priors.\n\n**Principal Component Analysis (PCA)** + neural state-space (Churchland + Shenoy + Cunningham): population activity occupies low-dimensional manifold (~10-30 dims for many tasks vs ~10⁶ recordable neurons); 'neural state space' analyses (jPCA, GPFA, LFADS) reveal dynamics + computation.\n\n**Hippocampal spatial codes** — a tour of grandmother-cell-meets-distributed:\n- **Place cells** (O'Keefe + Dostrovsky 1971): hippocampal pyramidal cells fire when rat occupies specific location → 'place fields'. **John O'Keefe Nobel 2014**. Cognitive map (O'Keefe + Nadel 1978 book).\n- **Grid cells** (Hafting + Fyhn + Moser + Moser 2005): medial entorhinal cortex (MEC) layer II neurons fire on a triangular lattice tiling environment; nested modules of different spacing. **May-Britt + Edvard Moser Nobel 2014** (shared with O'Keefe).\n- **Head direction cells** (Ranck 1984; Taube): postsubiculum + ADN cells fire only when head points specific direction; an internal compass.\n- **Border + boundary cells** (Solstad 2008): fire near environmental edges.\n- **Time cells** (Pastalkova + Buzsáki; Eichenbaum): fire at specific times during a delay → temporal counterpart to place cells.\n- **Object-vector cells** (Høydal 2019): fire at specific direction + distance from a landmark.\n- **Replay** (Wilson + McNaughton 1994; Diba + Buzsáki 2007): place-cell sequences re-fire during SWRs in sleep or quiet wake — consolidation + planning.\n- **Engram cells** (Tonegawa, Josselyn, Silva): subset of HC + cortex active during learning; reactivation = recall.\n\n**Place-grid translation**: theoretical models (Burak + Fiete continuous attractor; oscillatory-interference O'Keefe + Burgess) explain grid emergence from path integration. Deep-learning vector navigation (Banino, Whittington Tolman-Eichenbaum machine) recapitulates grid + place cells.\n\n**Mixed selectivity** (Rigotti + Fusi 2013): prefrontal neurons exhibit nonlinear mixed responses to task variables — increases dimensionality + downstream readout flexibility. Counters the 'one neuron one feature' grandmother-cell view."
+    },
+    {
+      "kind": "text",
+      "title": "Bayesian + predictive coding",
+      "body": "**Helmholtz (1860s)**: perception is 'unconscious inference' — the brain infers external causes from ambiguous sensory data using prior knowledge. The grandfather of Bayesian + predictive views.\n\n**Bayesian brain hypothesis** (Knill + Pouget 2004 + many): the brain represents + computes with probability distributions over stimuli + actions; perception = posterior inference; action = expected-utility maximization. Reframes neural computation as approximating Bayesian inference.\n\n**Cue combination** (Ernst + Banks 2002 *Nature*): humans integrate visual + haptic estimates of object size with weights inversely proportional to each modality's variance — exactly the maximum-likelihood (Bayes-optimal) prediction. Replicated across many sensorimotor + perceptual tasks (Körding + Wolpert 2004).\n\n**Probabilistic population codes (PPCs)** (Ma + Beck + Latham + Pouget 2006 *Nat Neurosci*): population activity directly represents probability distributions; cue combination becomes linear addition of population activity (under Poisson-like variability). Elegant link between biology + Bayesian computation.\n\n**Predictive coding** (Rao + Ballard 1999 *Nat Neurosci*): cortical hierarchy generates top-down predictions; bottom-up signal carries only prediction errors. Higher areas predict activity of lower areas; only mismatches propagate. Explains many V1 phenomena (end-stopping, contextual modulation, extra-classical RFs). Generalizes to higher cognition (Bar 2007).\n\n**Active inference + free-energy principle** (Karl Friston 2006+): organisms minimize variational free energy (an upper bound on surprise / negative log-evidence) via perception (update beliefs) + action (change sensations to match beliefs). Unifying framework spanning perception, learning, action, allostasis. Influential + controversial; sometimes critiqued as too general to falsify, but has spawned testable predictions + therapeutic frameworks (PTSD, schizophrenia, addiction).\n\n**Efficient coding** (Barlow 1961 *Possible Principles Underlying the Transformations of Sensory Messages*): sensory systems should remove redundancy in input statistics + maximize information transmitted per spike. Predicts: lateral inhibition (decorrelates), adaptation (matches current statistics), sparse coding, divisive normalization. Atick + Redlich; Schwartz + Simoncelli formalized; explains retinal ganglion + V1 properties from natural image statistics.\n\n**Reinforcement learning + dopamine** (Schultz, Dayan, Montague 1997 *Science*): SNc/VTA dopamine neurons encode **reward prediction error (RPE)** δ = r - V(s) — exactly the TD-learning error of Sutton + Barto. Higher than expected → burst; lower → pause. Foundation of computational reward + addiction + motivated behavior. Modern: distributional RL in DA neurons (Dabney + Kurth-Nelson 2020 *Nature*).\n\n**Deep learning analogies**:\n- CNNs ↔ ventral stream (Yamins + DiCarlo 2014; Schrimpf Brain-Score): high-performing CNNs predict V4 + IT activity quantitatively.\n- Transformers ↔ flexible context-dependent computation (Whittington TEM, Tolman-Eichenbaum Machine; Kanitscheider; Friston).\n- Backprop biologically implausible but feedback alignment (Lillicrap 2016), predictive coding (Whittington + Bogacz 2017), equilibrium propagation (Scellier + Bengio 2017) propose biological-plausible learning.\n- Brain-Score benchmarks (Schrimpf, Hong, DiCarlo) systematically test models against neural + behavioral data.\n\n**Active vision + sampling** (Yarbus 1967 eye-tracking; Itti + Koch saliency; Berniker + Körding inference): perception is not passive — saccades + attention sample optimally under model uncertainty. Schmidhuber, Friston curiosity = info-gain.\n\n**Open puzzles**:\n- How are population probability distributions actually represented + updated by biological circuits?\n- Where does the prior come from + how is it learned?\n- Can free-energy minimization be experimentally distinguished from alternative objectives?\n- How do single neurons implement nonlinear mixed selectivity?\n- Backpropagation in the brain — does it exist, in what form?\nNeural coding remains the field's longest-running grand question; modern large-scale recordings (Neuropixels, calcium imaging) + ML decoders are revolutionizing what we can ask + answer."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_code_1",
+        "kind": "guided_derivation",
+        "question": "Decode a population of orientation-tuned V1 neurons",
+        "goal": "Three neurons have preferred orientations 0°, 60°, 120° and Gaussian tuning curves (σ = 30°). On a trial they fire at 20, 5, 5 Hz. Estimate the stimulus orientation.",
+        "steps": [
+          {
+            "prompt": "Why is rate at one neuron alone insufficient?",
+            "motivation": "Multiple stimuli give same rate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Tuning curves are non-monotonic + ambiguous; same rate matches two orientations"
+              ]
+            },
+            "hints": [
+              "Where does a bell curve cross a given rate?"
+            ],
+            "reveal": "Each tuning curve is Gaussian → bell-shaped + non-monotonic → a given firing rate matches two orientations symmetric about the preferred. One neuron's rate alone is ambiguous. Population activity breaks the ambiguity."
+          },
+          {
+            "prompt": "Compute population-vector orientation estimate.",
+            "motivation": "Cosine/vector sum.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "θ_est ≈ atan2(Σ r_i sin(2θ_i), Σ r_i cos(2θ_i))/2 ≈ 20° (close to 0° because neuron 1 dominates)"
+              ]
+            },
+            "hints": [
+              "Use 2θ because orientation is π-periodic."
+            ],
+            "reveal": "Orientation is π-periodic (180° ≡ 0°), so use 2θ. Vector sum: Σ r·cos(2θ) = 20·cos(0) + 5·cos(120°) + 5·cos(240°) = 20 + 5·(-0.5) + 5·(-0.5) = 15. Σ r·sin(2θ) = 0 + 5·sin(120°) + 5·sin(240°) = 5·(0.866) + 5·(-0.866) = 0. So vector angle = atan2(0,15)/2 = 0°. Population vector estimates stimulus orientation = 0° — matches that neuron 1 dominates."
+          },
+          {
+            "prompt": "Compute Bayesian/ML estimate under Poisson noise.",
+            "motivation": "More principled, handles non-uniform tuning.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "argmax_θ Σ r_i log f_i(θ) - f_i(θ); for Gaussian tuning + small σ this also peaks near 0°"
+              ]
+            },
+            "hints": [
+              "Poisson log-likelihood = Σ [r log λ - λ]."
+            ],
+            "reveal": "P(r | θ) = ∏ Poisson(r_i; f_i(θ)) where f_i(θ) = A·exp(-(θ - θ_i)²/2σ²). Log-likelihood L(θ) = Σ [r_i log f_i(θ) - f_i(θ)] (ignoring r_i! constant). Maximizing over θ: with the observed (20, 5, 5) pattern matching neuron 1's tuning + low rates elsewhere, ML estimate is ~0° ± noise. PPC (Ma + Pouget) framework: this likelihood IS the population code. Adding a prior gives MAP = full Bayesian."
+          },
+          {
+            "prompt": "Why does adding more neurons sharpen the estimate, but only up to a limit?",
+            "motivation": "Noise correlations limit population coding.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Independent noise averages as 1/√N; correlated noise doesn't average out"
+              ]
+            },
+            "hints": [
+              "Zohary + Shadlen + Newsome 1994."
+            ],
+            "reveal": "Independent Poisson noise: variance of mean falls as 1/N → SNR rises with √N. But cortical neurons share noise correlations (~10-30% covariance, Zohary + Shadlen + Newsome 1994 + Averbeck + Pouget 2006). Correlated noise *doesn't average away* → information saturates with N. Modern view (Moreno-Bote + Latham 'differential correlations') shows noise patterns *along* the tuning derivative are especially harmful. Active topic; attention reduces noise correlations + boosts information (Cohen + Maunsell 2009)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_code_1",
+        "kind": "multiple_choice",
+        "question": "Why did Olshausen + Field's 1996 sparse-coding paper become foundational for computational neuroscience and machine learning?",
+        "options": [
+          "Wrong.",
+          "Olshausen + Field (1996 *Nature*) showed that an algorithm trained to encode natural images with a sparseness prior (few active units per image) + minimal reconstruction error spontaneously learned a basis of oriented, localized, bandpass Gabor-like filters — quantitatively matching V1 simple-cell receptive fields recorded by Hubel + Wiesel (Nobel 1981) decades earlier. This proved a normative principle: V1's receptive fields are the optimal sparse code for natural image statistics. The result unified Barlow's 1961 efficient-coding hypothesis with concrete biology + provided a template for dictionary learning, ICA, autoencoders, and ultimately deep learning's hierarchical feature extraction. It launched a research program (sparse coding in A1, S1; predictive coding; deep generative models) and contributed to the ML revolution by demonstrating that biological perception could be cast as optimization under simple priors over natural statistics.",
+          "Wrong.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Olshausen + Field (1996 Nature) showed an algorithm with sparseness prior + reconstruction error learns V1-like Gabor receptive fields from natural images. Demonstrated normative principle: V1 is optimal sparse code of natural image statistics. Unified Barlow 1961 efficient-coding with concrete biology + launched dictionary learning, ICA, autoencoders, deep learning hierarchical features. Template for understanding sensory cortex as optimization under priors over natural statistics."
+      },
+      "hints": [
+        "What did the algorithm learn?",
+        "Why was that biologically + computationally significant?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Olshausen + Field (1996 Nature) trained an algorithm with a sparsity prior + reconstruction loss on natural images. The learned basis = oriented, localized, bandpass Gabor-like filters — matching V1 simple-cell RFs (Hubel + Wiesel Nobel 1981). Showed V1 implements optimal sparse coding of natural image statistics (Barlow 1961). Foundational for dictionary learning, ICA, autoencoders, modern deep learning, and the normative paradigm for sensory cortex."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_code_1",
+        "kind": "scenario",
+        "question": "You record from 384 Neuropixels-electrode channels in mouse primary visual cortex while presenting drifting gratings.",
+        "prompt": "Design an analysis pipeline to: (1) spike-sort to single units (Kilosort), (2) compute tuning curves + selectivity indices, (3) decode stimulus orientation from population activity using both Bayesian decoder + linear (logistic) regression, (4) quantify noise correlations + their impact on decoding, (5) compare against CNN model predictions (Brain-Score). What controls are needed? What pitfalls (spike sorting errors, drift, attention modulation) must you address?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_code_1",
+        "kind": "math_expression",
+        "question": "Write the Poisson log-likelihood of stimulus θ given spike counts r_i across N neurons with mean tuning curves f_i(θ).",
+        "acceptedAnswers": [
+          "L(θ) = Σ_i [r_i log f_i(θ) - f_i(θ)] - Σ log(r_i!)",
+          "L(θ) = sum_i (r_i * log(f_i(θ)) - f_i(θ))"
+        ],
+        "hint": "Drop the r_i! constant — it doesn't depend on θ."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_code_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why grid + place cells (Nobel 2014) and reward-prediction-error dopamine neurons (Schultz 1997) are considered crowning achievements of systems neuroscience.",
+        "rubric": "Mentions: O'Keefe + Dostrovsky 1971 discovered hippocampal place cells; Hafting + Fyhn + Moser + Moser 2005 discovered entorhinal grid cells; O'Keefe + the Mosers shared the 2014 Nobel — for showing that the mammalian brain implements an internal cognitive map (O'Keefe + Nadel 1978). Grid cells tile space on a triangular lattice; place cells fire in specific locations; head direction, border, time, object-vector cells fill out the cognitive cartography. Schultz, Dayan, Montague (1997 Science) showed that midbrain dopamine neurons fire as reward prediction errors δ = r - V(s) — precisely the temporal-difference (Sutton + Barto) signal of reinforcement learning. Unified neuroscience with computer-science RL; revolutionized addiction, depression, decision-making research. Both stories show abstract computations (Bayesian-mapped space; TD-learned values) implemented in identified cell populations — the dream of systems neuroscience: from circuit to algorithm to function."
+      }
+    }
+  ]
+}

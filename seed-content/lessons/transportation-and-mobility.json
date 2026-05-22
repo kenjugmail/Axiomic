@@ -1,0 +1,151 @@
+{
+  "slug": "transportation-and-mobility",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Compare modes + mode share — auto, transit, cycling, walking, micromobility.",
+      "Apply transit planning — BRT, LRT, heavy + commuter rail, frequency vs coverage.",
+      "Synthesize cycling + pedestrian + Vision Zero + 15-minute city."
+    ],
+    "prereqs": [
+      "zoning-land-use-and-density"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Modes + mode share: auto, transit, cycling, walking, micromobility — and induced demand",
+      "body": "**Urban transportation** moves people + goods within and between cities. The mode mix (the *mode share* — fraction of trips by each mode) defines a city's spatial form, climate footprint, equity profile, and street life.\n\n**Mode-share archetypes** (urban commuting, recent data):\n- **U.S. average**: ~76% private auto (solo + carpool), ~5% transit, ~3% walk + bike + other, ~16% work from home (rising post-2020).\n- **NYC** (city only): ~32% transit, ~28% auto, ~10% walk, very high WFH. Outer-borough numbers more auto-heavy.\n- **Tokyo (23 wards)**: ~58% rail, ~25% bike + walk, ~10% auto, ~7% bus.\n- **Copenhagen**: ~28% bike, ~26% walk + transit, ~32% auto (CBD).\n- **Amsterdam**: similar bike + walk dominance.\n- **Bogotá**: ~30% transit (TransMilenio + Sitp), ~9% bike, large walk share.\n- **Curitiba**: ~45% BRT-driven transit.\n\n**Mode choice** depends on: trip purpose + length, time-of-day, weather, household income, vehicle availability, urban form (density, mix, design), transit quality, parking cost + availability, congestion. Disaggregate logit models (McFadden's discrete-choice models, Nobel 2000) underpin travel-demand forecasting.\n\n**Induced demand + the Downs-Thomson paradox**:\n- **Anthony Downs (1962, 'The Law of Peak-Hour Expressway Congestion'; *Stuck in Traffic* 1992) + John Thomson**: in a congested network with substitute transit, adding road capacity attracts more drivers until congestion returns to equilibrium. The new auto equilibrium is *worse* if the substitution drains transit ridership, raising transit fares + lowering frequency.\n- **Empirical confirmation**: Duranton + Turner (2011 *AER*, 'The Fundamental Law of Road Congestion') — using IV with planned-highway data — find a near-unitary elasticity of VMT with respect to road capacity. *Building more roads does not reduce congestion*.\n- **Implication**: the only ways to reduce congestion are demand-side — pricing (next), better substitutes (transit), or different urban form (density + mix reduce trip lengths).\n\n**The Braess paradox**:\n- **Dietrich Braess (1968, *Unternehmensforschung*)**: in some network configurations, adding a new edge *increases* total travel time at equilibrium because selfish routing reroutes more flow through the bottleneck. Counter-examples exist in real networks: closing Cheonggyecheon expressway in Seoul (2003) + 42nd Street in NYC (1990 Earth Day) improved overall flow.\n- A reminder that traffic-engineering intuition is unreliable; networks have emergent + non-monotone behavior.\n\n**Congestion pricing (Vickrey)**:\n- **William Vickrey (Nobel 1996, sadly posthumous by 3 days)** advocated marginal-cost congestion pricing from the 1950s. The idea: charge each driver the externality they impose on others (delay + emissions + crash risk). Toll varies with time of day + corridor demand.\n- **Real implementations**: Singapore Area Licensing Scheme (1975) → Electronic Road Pricing (1998); London Congestion Charge (2003, Ken Livingstone); Stockholm (2006 trial → permanent); Milan (2008); New York City (Manhattan CBD pricing 2025-, after years of delay). Evidence: ~20-30% reduction in cordon-entry traffic; improved bus speeds + reduced emissions + sustained over years.\n- Politically hard. Equity concerns (regressive on low-income drivers) addressed via revenue recycling (transit investment, low-income credits).\n\n**Micromobility** (mid-2010s-): dockless e-scooters (Bird, Lime), e-bikes, bike-share (Citi Bike, Vélib', Bicing), mopeds. Short trips, last-mile + first-mile, complement transit. Regulatory + safety issues + clutter; cities now permit + cap fleets."
+    },
+    {
+      "kind": "text",
+      "title": "Transit planning: BRT, LRT, heavy + commuter rail, Curitiba, TransMilenio, Walker's frequency vs coverage",
+      "body": "**Public transit** is the mode that determines whether a city can have urban form denser than ~10000/mi² without congestion meltdown. Modes vary in capacity, cost, speed, and use case.\n\n**Mode capacities** (passengers per hour per direction, PPHPD):\n- **Mixed-traffic bus**: ~1500 PPHPD.\n- **Bus Rapid Transit (BRT)**: ~5000-25000 PPHPD (depending on dedicated infrastructure).\n- **Light rail (LRT)**: ~10000-20000 PPHPD.\n- **Heavy rail metro**: ~30000-80000+ PPHPD (Shanghai Line 9 + NYC L + Hong Kong MTR push the upper bound).\n- **Commuter rail**: ~10000-40000 PPHPD; longer headways, longer trips.\n- **Cars (freeway lane)**: ~2000-2400 PPHPD.\n\nThe order-of-magnitude advantage of rail over auto is the structural reason dense cities (NYC, Tokyo, Paris, London, Shanghai) require metros — there is no other technology that moves so many people through so little space.\n\n**Bus Rapid Transit (BRT)**:\n- Dedicated lanes + station platforms + prepaid boarding + signal priority — bus operations approaching rail performance at a fraction of capital cost.\n- **Curitiba, Brazil**: Jaime Lerner (architect, 3-term mayor, 1971-1992). The original BRT system + the most influential. Trinary road + transit-oriented land use co-designed. *Network of Direct Lines* + *Speedy Bus*.\n- **Bogotá TransMilenio (2000-)**: largest BRT in the world; ~2.5M daily riders peak; 113 stations + 142 km dedicated. Enrique Peñalosa's mayoral signature; ITDP gold-standard.\n- **Guangzhou BRT (2010)**: highest-capacity BRT in the world (~27000 PPHPD).\n- **Other**: Quito, Mexico City Metrobús, Jakarta TransJakarta, Lagos, Dar es Salaam DART, Cleveland HealthLine.\n\n**Light rail (LRT)**: dedicated track at-grade or elevated; medium capacity; lower cost than heavy rail; Portland MAX, Calgary CTrain, Houston Light Rail, Manchester Metrolink, Strasbourg, Bordeaux.\n\n**Heavy rail metro**: grade-separated; highest capacity; required for highest densities. Tokyo (Yamanote + 13 metro lines + ~40M daily riders system-wide), Beijing (largest by ridership), Shanghai (largest by track-km), Moscow, Seoul, NYC (oldest U.S. system 1904), London (1863 first), Paris (1900), Madrid, Mexico City.\n\n**Commuter rail / regional rail**: longer-distance + lower-frequency than metro; suburbs to CBD. NYC LIRR + Metro-North + NJ Transit; Boston MBTA Commuter Rail; London + Paris RER; Tokyo Yamanote + JR East lines; Munich S-Bahn; Stockholm Pendeltåg.\n\n**High-speed rail (HSR)**: 250+ km/h dedicated track for intercity. Japan Shinkansen (1964 first, ~9000 km network); France TGV (1981-); Spain AVE; China (~45000 km, largest network); South Korea KTX; Italy Frecciarossa. U.S.: Acela (Boston-DC, ~240 km/h max but averages lower); California HSR under construction; Texas HSR proposed.\n\n**Frequency vs coverage — Jarrett Walker, *Human Transit* (2012)**:\n- **Walker (transit consultant + public-policy writer)**: every transit-network design is a trade-off on the *frequency-coverage spectrum*. **High-frequency** networks concentrate service on the densest corridors → most-effective per ride but skip low-density areas. **High-coverage** networks spread service thin → reach everyone but each route is infrequent + slow + has low ridership.\n- *Human Transit* argues the choice is *political* (what does the city value?), not technical. Houston Reimagined (2015) + Auckland (2016) + Brisbane redesigns all explicitly chose high-frequency + accepted lower coverage.\n- **Transit ridership drivers**: density + mix near stations, walkability of station areas, service frequency (the *15-min frequency threshold* — service waitable without a schedule), reliability, fares.\n\n**Fare policy + integration**:\n- Distance-based (Tokyo, Shanghai) vs flat (NYC subway) vs zone (London).\n- Integrated multi-modal fares (Stockholm SL, London Oyster, Singapore EZ-Link).\n- Income-based reduced fares + free youth fares (Boston, Kansas City fare-free).\n- Mobility-as-a-Service (MaaS) integration platforms (Helsinki Whim).\n\n**Transit-oriented development (TOD)** (lesson 1 + Calthorpe): co-locating density + mix + walkability with high-quality transit. The bidirectional condition for rail-supported urbanism."
+    },
+    {
+      "kind": "text",
+      "title": "Bicycle + pedestrian + Vision Zero + complete streets + the 15-minute city (Moreno)",
+      "body": "**Walking + cycling** are the cheapest, healthiest, lowest-emission, lowest-footprint modes. They were the default of pre-automotive cities + are central to every contemporary planning movement (New Urbanism, smart growth, TOD, sustainable + 15-minute city).\n\n**Copenhagen — the bicycle exemplar**:\n- Bike mode share for commuting: ~49% in central Copenhagen; ~28% city-wide.\n- ~390 km of bike lanes + ~12k bike parking spaces at Nørreport Station.\n- *Copenhagenize Index* ranks bike-friendly cities globally; Copenhagen + Utrecht + Amsterdam + Antwerp consistently top.\n- Built on decades of design: cycle tracks (protected lanes physically separated from cars + sidewalks); intersection-priority signals; integrated transit transfer.\n- Cost: extensive but a fraction of equivalent road capacity. ROI from health + congestion + emissions reduction.\n\n**Dutch infrastructure**: the Netherlands invented + perfected the *fietsstraat* (bike street), the *roundabout-for-bikes*, the protected intersection. ~27% national bike mode share; in Houten + Groningen + Utrecht over 40%. The 1970s *Stop de Kindermoord* (Stop the Child Murder) movement responded to high traffic-deaths of children + drove a national investment in cycling infrastructure.\n\n**Protected bike lanes / cycle tracks**: physically separated from motor traffic (curb, bollard, planter, parked-car buffer). Critical for safety perception + mode-share growth. NYC, Vancouver, Montreal (over 1000 km of bike network), Seville (built ~100 km in 3 years, raising bike share 1% → 7%), Bogotá (Ciclorrutas + Sunday Ciclovía).\n\n**Vision Zero — Sweden + the global movement**:\n- **Vision Zero** originated in Sweden's 1997 traffic-safety legislation: *no fatal or serious injury in the transport system is acceptable*.\n- Premise: humans make mistakes; the system must be designed so mistakes do not produce death. Speed management, separation of users, predictable design.\n- Sweden's road-deaths-per-capita are ~⅓ the U.S. rate.\n- **U.S. adoption**: NYC 2014 (first major U.S. city; Mayor de Blasio + DOT Commissioner Polly Trottenberg); Seattle, San Francisco, Boston, Portland, Washington DC, Los Angeles + ~50 U.S. cities.\n- Tools: lower speed limits (20 mph residential, 25 arterial); road diets; protected lanes; daylighting at intersections; leading pedestrian intervals; automated enforcement.\n- Evidence: NYC pedestrian deaths down ~40% (2014-22); broader U.S. trends mixed — increased SUV + truck sizes + driver smartphone use + COVID-era driving have worked against Vision Zero efforts.\n\n**Complete Streets**: U.S. policy framework (Smart Growth America + NCSC) — design streets for all users (pedestrians, cyclists, transit, motorists, freight) of all ages + abilities. ~1500 U.S. jurisdictions have Complete Streets policies. Counter to the postwar default of designing for through-auto-traffic.\n\n**Vision Zero + Complete Streets converge on**: lower speed limits, road diets (reducing travel lanes), protected bike + bus + pedestrian infrastructure, accessible (ADA) crossings, daylighting + curb extensions, reducing curb radii at intersections.\n\n**Carlos Moreno — the 15-minute city (2016-)**:\n- **Moreno** (Sorbonne, Franco-Colombian urbanist; *Droit de cité* 2020): every resident should reach daily needs (work, school, food, health, leisure, culture) within a 15-minute walk or bike ride from home.\n- Six functions × four conditions (proximity, diversity, density, ubiquity).\n- **Paris under Anne Hidalgo (mayor 2014-)** is the flagship: pedestrianized Seine quays, *coronapistes* (pop-up COVID bike lanes made permanent), school streets, Rue de Rivoli car-free.\n- *Adopted globally*: Melbourne (*20-minute neighbourhood*), Portland (*20-minute neighborhoods*), Barcelona superblocks (lesson 6), Milan, Bogotá, Buenos Aires, Ottawa.\n- *Critiques + conspiracies*: ill-founded conspiracy theories framed 15-min cities as climate-lockdown plots (2023-); Moreno + cities have pushed back. The actual proposal is simple urban-form + accessibility.\n\n**Tactical urbanism**: low-cost, quick-build interventions — paint-and-post bike lanes, parking-day parklets, pedestrian plazas (NYC Times Square 2009), open streets (Sunday Ciclovía Bogotá 1974-; replicated worldwide). A way to demonstrate change + build constituency before permanent redesign.\n\n**Synthesis — what makes a transportation-equity-and-climate-coherent city**:\n1. High-frequency transit network (Walker).\n2. Dense + mixed land use near stations (Calthorpe TOD).\n3. Walkable + cyclable + protected infrastructure (Dutch + Danish models).\n4. Congestion + parking pricing (Vickrey + Shoup).\n5. Vision Zero design + speed management.\n6. 15-minute-city accessibility planning.\n7. Equity (transit + bike access in underserved neighborhoods).\n\nLesson 7 returns to the equity + environmental-justice dimensions. Lesson 6 picks up the infrastructure side."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_trans_1",
+        "kind": "guided_derivation",
+        "question": "Apply Downs-Thomson + induced demand to a road-widening proposal",
+        "goal": "A metro's main commute corridor is widened from 4 to 6 lanes. Predict the effects + propose a better policy.",
+        "steps": [
+          {
+            "prompt": "What does the immediate (week-1) flow look like?",
+            "motivation": "Baseline.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "more capacity, faster trips, congestion temporarily relieved"
+              ]
+            },
+            "hints": [
+              "More lanes → more capacity initially."
+            ],
+            "reveal": "Week-1: the wider road has more capacity at given demand; speeds rise + congestion drops. This is the political pitch for widening — visible short-run relief."
+          },
+          {
+            "prompt": "What does Downs-Thomson predict over 1-3 years?",
+            "motivation": "Induced demand.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "lower travel times attract new auto trips (latent demand, mode switch from transit, land-use change), and congestion returns to roughly the prior equilibrium"
+              ]
+            },
+            "hints": [
+              "Latent demand + mode switch + land use react."
+            ],
+            "reveal": "Lower travel times unleash latent demand (trips previously suppressed), pull commuters from transit + carpool to solo driving, and encourage development further from CBD (induced sprawl). Within 1-3 years, congestion returns to roughly the prior equilibrium. Duranton + Turner (2011 AER) find a near-unitary elasticity of VMT to road capacity — the *Fundamental Law of Road Congestion*."
+          },
+          {
+            "prompt": "What's the joint Downs-Thomson effect on transit?",
+            "motivation": "The paradox is jointly with substitutes.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "transit ridership falls; fare revenue falls; service is cut or fares raised; quality declines and the new auto equilibrium is worse than the old one"
+              ]
+            },
+            "hints": [
+              "Mode substitution drains the transit network."
+            ],
+            "reveal": "Downs-Thomson: with shared origin-destination pairs, mode share is set so that car + transit generalized cost is equal at the margin. Improving driving draws ridership away from transit; transit fixed costs spread over fewer riders → higher unit cost → cuts in service / higher fares → further loss of ridership. The equilibrium can be strictly worse than the original."
+          },
+          {
+            "prompt": "What policy package is supported by the evidence instead of widening?",
+            "motivation": "Demand-side intervention.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "congestion pricing (vickrey), invest in transit + bike + ped + tod, eliminate parking minimums (shoup), upzone near transit — addressing demand and improving substitutes rather than expanding auto supply"
+              ]
+            },
+            "hints": [
+              "Vickrey + Shoup + Calthorpe."
+            ],
+            "reveal": "The supply-of-roads channel is the wrong lever. Effective alternatives: (1) Congestion pricing — Vickrey + London + Singapore + NYC 2025 — to price the externality; (2) Invest in transit + bike + pedestrian infrastructure to expand substitutes; (3) Shoup-style parking-price + minimum reform; (4) Calthorpe TOD + upzoning near transit (lesson 2) to reduce trip lengths + auto-dependence. Combined demand + substitute + land-use changes are the only durable solution to congestion."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_trans_1",
+        "kind": "multiple_choice",
+        "question": "Why is Vision Zero (Sweden 1997-) considered a paradigm shift in traffic-safety policy?",
+        "options": [
+          "It builds more freeways.",
+          "Vision Zero (Sweden 1997 traffic-safety legislation) reframes road deaths from *acceptable cost of mobility* to *unacceptable system failure*. The premise: humans make mistakes; the system must be designed so mistakes do not produce death — by managing speeds, separating users, and using predictable design. This inverts traditional traffic engineering's focus on *driver education* + *enforcement* + *minimum standards*. Sweden's road-deaths-per-capita are ~⅓ the U.S. rate. NYC adopted Vision Zero in 2014 + has cut pedestrian deaths ~40% through 2022; ~50 other U.S. cities have followed. Tools include lower speed limits, road diets, protected lanes, daylighting, leading pedestrian intervals, automated enforcement. Vision Zero + Complete Streets + the 15-minute city (Moreno) together define the contemporary safe + walkable urbanism agenda.",
+          "It only applies to highways.",
+          "It mandates faster speed limits."
+        ],
+        "correctIndex": 1,
+        "explanation": "Vision Zero (Sweden 1997) reframes road deaths from acceptable cost to unacceptable system failure. Humans err; the system must be designed so errors don't kill. Sweden's road-deaths rate is ~⅓ the U.S. rate. NYC adopted 2014; pedestrian deaths down ~40%; ~50 U.S. cities followed. Tools: lower speeds, road diets, protected lanes, daylighting. Vision Zero + Complete Streets + 15-min city define contemporary safe-walkable urbanism."
+      },
+      "hints": [
+        "Reframing road deaths.",
+        "Sweden 1997."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Vision Zero (Sweden 1997) treats road deaths as unacceptable system failure rather than acceptable cost. Humans err; the system must be designed so they don't die. Sweden ~⅓ U.S. rate; NYC -40% pedestrian deaths since 2014; ~50 U.S. cities follow."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_trans_1",
+        "kind": "scenario",
+        "question": "Designing a corridor redesign",
+        "prompt": "A 4-lane urban arterial (~20000 ADT, ~35 mph posted, residential + light commercial frontage, 9 pedestrian deaths in past 5 years) is up for repaving. Propose a Vision-Zero + Complete-Streets + frequency-vs-coverage-informed redesign: lane configuration, bike + bus + pedestrian elements, speed-management tools, and how you'd respond to community objections about lost parking + lost vehicle capacity."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_trans_1",
+        "kind": "math_expression",
+        "question": "A BRT line averages 25 km/h with 90-second peak headways + 80 passengers per articulated bus per direction. What is the approximate peak capacity (passengers per hour per direction, PPHPD)?",
+        "acceptedAnswers": [
+          "3200"
+        ],
+        "hint": "PPHPD = (3600 / headway in seconds) × passengers/bus."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_trans_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, explain why the 15-minute city (Moreno) + TOD (Calthorpe) + Jacobs's four conditions converge on a common urban form.",
+        "rubric": "Mentions: All three frameworks identify the *same* spatial structure: dense, mixed-use, walkable, fine-grain blocks where daily needs (work, food, school, health, leisure) are reachable on foot, bike, or short transit ride. Jacobs (1961) — mixed primary uses + short blocks + varied building ages + sufficient density. Calthorpe TOD (1993) — compact mixed-use within 5-10 min walk of high-quality transit. Moreno's 15-minute city (2016) — every resident accesses six functions within 15-min walk or bike. They converge because the spatial logic is the same: proximity + diversity + density + walkability. Differences are emphasis (Jacobs micro-empirical, Calthorpe transit-anchored regional, Moreno accessibility-centered). Combined with Vision Zero (safe streets) + Shoup (no parking minimums) + Walker (frequent transit), they define the contemporary integrated transportation + land-use agenda."
+      }
+    }
+  ]
+}

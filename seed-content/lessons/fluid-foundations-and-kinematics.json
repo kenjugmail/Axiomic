@@ -1,0 +1,150 @@
+{
+  "slug": "fluid-foundations-and-kinematics",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Define the continuum hypothesis.",
+      "Distinguish Eulerian vs Lagrangian.",
+      "Derive conservation laws."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The continuum hypothesis + fluid properties",
+      "body": "**Fluid mechanics** studies matter that deforms continuously under shear — liquids + gases. Despite molecules being discrete, fluids at human scales are modeled as a **continuum**: properties (ρ, μ, T, v) are smooth fields rather than statistics over molecules.\n\n**Continuum hypothesis**: a small volume element dV is still large enough to contain many molecules (~10²⁰ at STP) but small enough to be 'point-like' relative to flow gradients. Lets us apply calculus + PDEs.\n\n**Knudsen number** Kn = λ/L where λ is the molecular mean free path + L the characteristic length:\n- **Kn < 0.01**: continuum regime (Navier-Stokes valid).\n- **0.01 < Kn < 0.1**: slip flow (modified BCs).\n- **0.1 < Kn < 10**: transition regime (need DSMC, Boltzmann).\n- **Kn > 10**: free molecular flow (rarefied gas dynamics, satellite atmospheres).\n\nAt sea-level air λ ≈ 70 nm; Kn ≪ 1 for any macroscopic flow. But for **MEMS**, **shock interiors**, **hypersonic re-entry**, or **interstellar plasmas**, Kn ~ O(1) and continuum breaks down.\n\n**Key fluid properties**:\n- **Density** ρ [kg/m³] — mass per volume. Water 1000; air 1.2; mercury 13546.\n- **Dynamic viscosity** μ [Pa·s] — resistance to shear. Water 10⁻³; air 1.8·10⁻⁵; honey ~10; glass ~10²².\n- **Kinematic viscosity** ν = μ/ρ [m²/s] — momentum diffusivity. Air kinematic ν ≈ 1.5·10⁻⁵, water 10⁻⁶. Air is 'thinner' (lower ρ) but more viscous in kinematic terms.\n- **Surface tension** σ [N/m] — liquid-gas interface energy. Water 0.072; mercury 0.485. Drives capillarity + droplets (Young-Laplace).\n- **Compressibility** κ + bulk modulus K. Liquids nearly incompressible (K_water ≈ 2.2 GPa); gases highly compressible.\n- **Speed of sound** c = √(K/ρ). Water 1480 m/s; air 343 m/s; iron 5000 m/s.\n\n**Newton's viscosity law** (Newtonian fluid): τ = μ ∂u/∂y. Linear stress-strain-rate relation. Water + air + most gases obey it. **Non-Newtonian** fluids (blood, polymers, ketchup) do not — covered later.\n\n**Pioneers**: Newton (1687 viscosity), Euler (1755 inviscid), Navier (1822) + Stokes (1845) — the full viscous equation. Reynolds (1883) — turbulence transition. Prandtl (1904) — boundary layer."
+    },
+    {
+      "kind": "text",
+      "title": "Eulerian vs Lagrangian + the material derivative",
+      "body": "**Two viewpoints** of fluid motion:\n\n**Lagrangian description**: track individual fluid particles. Position **x**(**X**, t) where **X** = initial position. Natural for solid mechanics + particle tracking. Variables follow the parcel.\n\n**Eulerian description**: fix the observer in space; record fields v(**x**, t), ρ(**x**, t), p(**x**, t) at every point. Natural for flow visualization, PIV measurements, CFD grids. Most fluid problems use Eulerian.\n\n**Bridging the two**: the **material derivative** (also called substantial / convective / total derivative):\n\n  D/Dt = ∂/∂t + **v** · ∇\n\nThis is the rate-of-change *following a fluid particle* expressed in Eulerian fields. The **∂/∂t** term is the local change at a fixed point; **v · ∇** is the convective change as the parcel is carried by the flow.\n\nExample — acceleration:\n\n  D**v**/Dt = ∂**v**/∂t + (**v** · ∇)**v**\n\nThe convective term (**v** · ∇)**v** is **nonlinear** — the root cause of turbulence + most of fluid mechanics' difficulty. Without it, fluids would be solvable analytically. With it, they aren't even known to admit smooth solutions in 3D (Clay Millennium Prize for Navier-Stokes existence + smoothness).\n\n**Kinematic descriptors**:\n- **Streamline**: curve tangent to **v** at one instant (snapshot).\n- **Pathline**: trajectory of a single fluid particle over time (Lagrangian).\n- **Streakline**: locus of particles that have passed through a fixed point (dye injection in experiments).\n- **Steady flow**: ∂/∂t = 0 ⇒ all three coincide. Unsteady flow ⇒ they differ.\n\n**Velocity-gradient tensor** ∇**v** decomposes uniquely into:\n- **Strain-rate tensor** S = ½(∇**v** + ∇**v**ᵀ) — symmetric; describes stretching + shearing.\n- **Vorticity tensor / rotation tensor** Ω = ½(∇**v** − ∇**v**ᵀ) — antisymmetric; associated with **vorticity** ω = ∇ × **v** (rate of rotation × 2).\n\n**Vorticity** ω is central in fluids: irrotational flows (ω = 0) admit a velocity potential (potential flow); rotational flows house turbulence + circulation + lift.\n\n**G.I. Taylor** (Cambridge, 20th-century giant) + **George Batchelor** built the kinematic framework that underlies modern fluid mechanics."
+    },
+    {
+      "kind": "text",
+      "title": "Conservation laws — mass, momentum, energy",
+      "body": "Three pillars of continuum mechanics.\n\n**1. Conservation of mass — continuity equation**.\n\nIntegral form over control volume V with boundary ∂V:\n\n  d/dt ∫ ρ dV + ∫ ρ **v** · n̂ dA = 0\n\nApplying the Reynolds transport theorem + divergence theorem yields the **differential continuity equation**:\n\n  ∂ρ/∂t + ∇ · (ρ**v**) = 0\n\nFor **incompressible flow** (ρ = const): ∇ · **v** = 0 (divergence-free velocity field).\n\nIncompressibility is an excellent approximation when Mach M = v/c < ~0.3 — most engineering + bio + ocean flows. Gases at high speeds + acoustics need full compressible form.\n\n**2. Conservation of momentum — Cauchy's equation**.\n\nNewton's 2nd law per unit volume:\n\n  ρ D**v**/Dt = ∇ · σ + ρ**g**\n\nwhere σ = Cauchy stress tensor + **g** body force per unit mass. The stress tensor splits as σ = −pI + τ where p = pressure + τ = **deviatoric (viscous) stress**.\n\nFor Newtonian incompressible fluids τ = 2μS, yielding the **Navier-Stokes equation** (next lesson):\n\n  ρ D**v**/Dt = −∇p + μ ∇²**v** + ρ**g**\n\n**3. Conservation of energy** — first law of thermodynamics for a fluid parcel:\n\n  ρ De/Dt = −p ∇ · **v** + Φ + ∇ · (k ∇T) + Q\n\nwhere e = internal energy per unit mass, Φ = viscous dissipation = τ : ∇**v** ≥ 0, k = thermal conductivity, Q = volumetric heat source.\n\nFor incompressible flow + constant properties this becomes the **convection-diffusion equation** for temperature:\n\n  DT/Dt = α ∇²T + Φ/(ρc_p)\n\nwith thermal diffusivity α = k/(ρc_p).\n\n**Together** these PDEs — coupled, nonlinear, three-dimensional — define essentially all of classical fluid mechanics. Add equations of state (ρ(p,T), μ(T)) + boundary conditions + you have the full system. Solving it in general is impossible analytically; CFD + asymptotic theory + experiment carry the load.\n\n**No-slip boundary condition** (Stokes 1845 — initially controversial): at a solid surface, fluid velocity equals surface velocity. Confirmed experimentally everywhere except for extreme rarefaction + hydrophobic nano-surfaces."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_fluid_kin_1",
+        "kind": "guided_derivation",
+        "question": "Derive the incompressible continuity equation",
+        "goal": "Starting from mass conservation in integral form, derive ∇ · **v** = 0 for incompressible flow.",
+        "steps": [
+          {
+            "prompt": "Write integral mass conservation over a fixed control volume.",
+            "motivation": "Mass in = mass out + accumulation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "d/dt ∫ρ dV + ∫ρv·n dA = 0"
+              ]
+            },
+            "hints": [
+              "Reynolds transport theorem."
+            ],
+            "reveal": "d/dt ∫_V ρ dV + ∮_∂V ρ**v** · n̂ dA = 0. The first term is the rate of mass accumulation inside V; the second is the net mass flux outward through the boundary. With no sources/sinks the sum is zero."
+          },
+          {
+            "prompt": "Apply the divergence theorem to convert the surface integral to a volume integral.",
+            "motivation": "Gauss's theorem.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "∫(∂ρ/∂t + ∇·(ρv)) dV = 0"
+              ]
+            },
+            "hints": [
+              "∮ F·n dA = ∫ ∇·F dV."
+            ],
+            "reveal": "∮ρ**v**·n̂ dA = ∫∇·(ρ**v**) dV. Combining: ∫_V (∂ρ/∂t + ∇·(ρ**v**)) dV = 0. Since V is arbitrary the integrand must vanish pointwise."
+          },
+          {
+            "prompt": "State the local differential form.",
+            "motivation": "Pointwise PDE.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "∂ρ/∂t + ∇·(ρv) = 0"
+              ]
+            },
+            "hints": [
+              "Integrand-must-vanish argument."
+            ],
+            "reveal": "∂ρ/∂t + ∇·(ρ**v**) = 0 — the continuity equation in conservative form. Expanding: ∂ρ/∂t + **v**·∇ρ + ρ∇·**v** = 0, i.e. Dρ/Dt + ρ∇·**v** = 0."
+          },
+          {
+            "prompt": "Specialize to incompressible flow (ρ = const).",
+            "motivation": "Final form.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "∇·v = 0"
+              ]
+            },
+            "hints": [
+              "Dρ/Dt = 0 when ρ is constant."
+            ],
+            "reveal": "If ρ is constant along particle paths (Dρ/Dt = 0) the continuity equation reduces to ∇·**v** = 0 — the **divergence-free** condition. Equivalent to volume preservation of any fluid parcel. The pressure field then acts as a Lagrange multiplier enforcing this constraint at every point — the source of much CFD difficulty (pressure-Poisson, projection methods)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fluid_kin_1",
+        "kind": "multiple_choice",
+        "question": "Why is the convective term (**v** · ∇)**v** so important in fluid mechanics?",
+        "options": [
+          "It vanishes for steady flows.",
+          "The convective acceleration (**v**·∇)**v** is the **nonlinear** part of the Navier-Stokes equation — multiplying velocity by its own gradient. This term couples scales: large eddies feed smaller ones (energy cascade), giving rise to turbulence, vortex stretching, shock formation, hydrodynamic instabilities (Kelvin-Helmholtz, Rayleigh-Taylor), and the lack of analytical solutions in general 3D. Without it the equations would be linear diffusion + would admit Fourier solutions trivially; the Reynolds-number dependence + the very existence of turbulence stem from this nonlinearity. The Clay Millennium Prize for Navier-Stokes existence + smoothness exists precisely because of this term.",
+          "It only matters at low Reynolds numbers.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "The convective term (**v**·∇)**v** is the nonlinearity in Navier-Stokes; it couples spatial scales + drives turbulence, instabilities, shock formation. Without it fluids would be linear diffusion + analytically tractable. With it, even 3D smoothness of solutions remains an open Millennium Prize problem."
+      },
+      "hints": [
+        "What makes Navier-Stokes nonlinear?",
+        "Why is turbulence hard?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "(v·∇)v is the nonlinearity in Navier-Stokes — velocity multiplied by its own gradient. Couples scales, drives turbulence + instabilities + shocks. Source of mathematical difficulty (Clay Prize); without it fluids would be linear + trivial."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fluid_kin_1",
+        "kind": "scenario",
+        "question": "MEMS device design",
+        "prompt": "You're designing a MEMS gas-flow sensor with channel dimension L = 500 nm operating in atmospheric air (λ ≈ 70 nm). Compute the Knudsen number, classify the regime, and discuss whether Navier-Stokes with no-slip is adequate or whether slip BCs / DSMC / Boltzmann are needed. What experimental + modeling adjustments would you recommend?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fluid_kin_1",
+        "kind": "math_expression",
+        "question": "Write the material derivative operator D/Dt acting on a scalar f(**x**, t) in Cartesian coordinates.",
+        "acceptedAnswers": [
+          "Df/Dt = ∂f/∂t + v·∇f",
+          "Df/Dt = ∂f/∂t + u ∂f/∂x + v ∂f/∂y + w ∂f/∂z"
+        ],
+        "hint": "Local + convective contributions."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_fluid_kin_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain the continuum hypothesis + when it breaks down.",
+        "rubric": "Mentions: continuum hypothesis treats fluids as smooth fields ρ(x,t), v(x,t), T(x,t) rather than statistics over discrete molecules; valid when a small volume element contains enough molecules (~10²⁰ at STP) to define meaningful averages, yet is small relative to flow gradients. Quantified by Knudsen number Kn = λ/L (ratio of molecular mean free path to system size). Kn ≪ 1: Navier-Stokes valid with no-slip. Kn ~ 0.01-0.1: slip BCs. Kn > 0.1: DSMC / Boltzmann / rarefied gas dynamics required. Examples where continuum fails: MEMS, hypersonic re-entry shock interiors, satellite drag in upper atmosphere, interstellar plasmas. Concludes: continuum hypothesis is the foundation that makes calculus + PDE methods applicable to fluids, but engineers + scientists must always check Kn before applying Navier-Stokes."
+      }
+    }
+  ]
+}

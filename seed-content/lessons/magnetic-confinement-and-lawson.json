@@ -1,0 +1,160 @@
+{
+  "slug": "magnetic-confinement-and-lawson",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply Lawson + triple product.",
+      "Compare tokamak/stellarator.",
+      "Reason about ITER/SPARC."
+    ],
+    "prereqs": [
+      "plasma-waves-and-instabilities"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Magnetic confinement: requirements + dimensionless figures of merit",
+      "body": "**The goal**: confine a 10-100 keV fully-ionized DT plasma at n ~ 10²⁰ m⁻³ long enough that fusion reactions release more energy than needed to heat + maintain it. Magnetic field is the only practical way to insulate a 100 million °C plasma from material walls — gyromotion across B is suppressed → χ_⊥ ~ ρ_L² ν ≪ χ_∥.\n\n**Why toroidal?** Straight field lines would let particles stream out the ends. Wrapping field lines into a torus eliminates open ends. But a purely toroidal field is unstable: grad-B + curvature drifts separate charges → vertical E → outward E×B drift → loss. Solution: add a **poloidal field** so field lines twist → **rotational transform** ι = poloidal/toroidal winding → short-circuits charge separation.\n\n**Key dimensionless parameters**:\n- **Plasma β = p_thermal/p_magnetic = 2μ₀p/B²** — efficiency of using B-field. Tokamaks ~1-5%; spherical tokamaks (MAST-U, ST40) ~30-40%; reversed-field pinch ~10%; ICF compressed → β > 1. **Troyon limit**: β_max[%] ≈ 2.8 × I_p[MA]/(a[m] B[T]).\n- **Safety factor q = (r B_φ)/(R B_θ)** = field-line winding number; q > 1 at center prevents kink instability; q(a)>2 avoids external kinks; **Kruskal-Shafranov limit** q > 1.\n- **Greenwald density limit** n_GW[10²⁰ m⁻³] = I_p[MA]/(π a²[m²]) — empirical; exceeding it triggers MARFEs + disruptions.\n- **Energy confinement time τ_E = W/P_loss** — central figure of merit; **IPB98(y,2) scaling** for H-mode (ITER design basis).\n- **Bootstrap fraction f_BS = I_BS/I_p** — pressure-driven non-inductive current; reaches ~70-90% in advanced scenarios.\n- **Pedestal pressure** — H-mode edge transport barrier; sets core performance via stiff profile constraint.\n\n**Configurations**:\n- **Tokamak** (T-3 1968 Artsimovich): axisymmetric, externally-driven toroidal current generates B_pol → simple but pulsed unless current driven non-inductively. Workhorse of fusion (JET, JT-60SA, EAST, KSTAR, DIII-D, ASDEX-U, NSTX-U, MAST-U, ST40, ITER, SPARC).\n- **Stellarator**: 3D twisted coils generate full field externally — steady-state, no current-driven instabilities, but engineering complexity high. **W7-X** (Greifswald 2015–) is the optimized flagship.\n- **Reversed-Field Pinch (RFP)**: high β, self-organized (Taylor relaxation); RFX-mod, MST.\n- **Spheromak + FRC**: compact toroids, plasma-generated field — TAE Technologies, Helion.\n- **Z-pinch + sheared-flow Z-pinch**: Zap Energy, ZaP.\n- **Magnetic mirror**: open ends, leaky; revived in axisymmetric variants (Realta, Open Plasma).",
+      "viz": "lawson-criterion",
+      "vizProps": {
+        "T": 15,
+        "ntau": 2.0
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Tokamaks, stellarators, alternatives: a tour of fusion machines",
+      "body": "**Tokamak** (тороидальная камера с магнитными катушками = 'toroidal chamber with magnetic coils', Soviet acronym):\n- **T-3** (Kurchatov Institute, **Lev Artsimovich 1968**) — first to demonstrate T_e ~1 keV, blew away open competitors; confirmed by British Culham team with Thomson scattering → world adopted tokamak.\n- **TFTR** (Princeton 1982-1997): first DT plasma 1993; 10.7 MW peak fusion (1994), Q ~ 0.27.\n- **JET** (Joint European Torus, Culham, 1983–2023): JET DTE1 1997: 16 MW, Q = 0.67; **JET DTE2 2022: 59 MJ in 5 s** — record fusion energy in any machine.\n- **JT-60U / JT-60SA** (Japan, JAEA): set Q_eq = 1.25 D-D equivalent; JT-60SA (2023 first plasma) is largest pre-ITER tokamak.\n- **KSTAR** (Korea, 2008–): superconducting, all-Nb₃Sn coils, > 100 s H-mode 100 MK.\n- **EAST** (China, 2006–): superconducting, ~1000 s LH-driven plasma.\n- **DIII-D** (General Atomics): physics workhorse, negative-triangularity research.\n- **ASDEX-Upgrade** (Garching): tungsten wall, ELM control benchmark.\n- **NSTX-U / MAST-U / ST40**: spherical tokamaks (A=R/a ~ 1.5) — high β, compact.\n- **ITER** (Cadarache, France, **first plasma 2034 (delayed); DT 2039**): R=6.2 m, B=5.3 T, I_p=15 MA, target **Q=10, 500 MW for 400 s**.\n- **SPARC** (Commonwealth Fusion Systems / MIT, Devens MA, **first plasma 2027 target**): R=1.85 m, B=12.2 T REBCO HTS coils, target **Q≈11**.\n\n**Stellarator** (Lyman Spitzer, Princeton 1951 — coined the term + invented the concept):\n- **Wendelstein 7-X (W7-X)** (Greifswald, 2015–): optimized HELIAS, 50 superconducting non-planar coils, demonstrated steady-state low-turbulence operation; T_i ~ 3 keV at n ~ 10²⁰ m⁻³, 30 min plasmas; quasi-isodynamic optimization → minimal neoclassical transport.\n- **LHD** (Toki, Japan, 1998–): largest stellarator; heliotron design.\n- **TJ-II, HSX**: smaller research stellarators.\n- **Type One Energy** (US private): stellarator startup using TAE / W7-X concepts.\n- **Renaissance Fusion, Proxima** (EU): private stellarator efforts.\n\n**Alternatives + private fusion**:\n- **Commonwealth Fusion Systems (SPARC, ARC)**: HTS tokamak.\n- **TAE Technologies**: FRC + neutral-beam stabilized (advanced fuels p-B11).\n- **Helion Energy (Polaris)**: FRC + pulsed direct conversion (D-³He).\n- **Zap Energy**: sheared-flow Z-pinch.\n- **Tokamak Energy (ST40)**: compact spherical tokamak with HTS.\n- **Realta, Avalanche, Marvel, Pacific Fusion, Xcimer**: ICF-like + hybrid.\n- **Focused Energy** (US/Germany): direct-drive laser fusion.\n- **First Light Fusion**: projectile-driven inertial fusion (acquired 2024).\n\n**Why so many concepts now?** HTS breakthrough (~2020 commercial REBCO at 20 T-class fields), 2022 NIF ignition, climate urgency, private capital ($7B+ since 2020 per FIA)."
+    },
+    {
+      "kind": "text",
+      "title": "Lawson criterion + triple product + the road to ignition",
+      "body": "**Lawson criterion** (John D. Lawson, AEA Harwell, **1955 internal report; 1957 Proc. Phys. Soc.**): for a fusion power plant to produce net energy, the energy released by fusion must exceed energy lost. For **DT fusion** with bremsstrahlung + transport losses:\n\n$$n \\tau_E \\gtrsim \\frac{12 T}{\\langle\\sigma v\\rangle E_{ch}}$$\n\nwhere E_ch = 3.5 MeV (alpha energy retained for self-heating); ⟨σv⟩ is fusion reactivity. For **DT ignition** the threshold is approximately:\n\n$$n \\tau_E \\gtrsim 1.5 \\times 10^{20} \\text{ s/m}^3 \\quad (\\text{at } T = 15 \\text{ keV})$$\n\n**Triple product** (more useful figure of merit because reactivity peaks at finite T):\n\n$$n T \\tau_E \\gtrsim 3 \\times 10^{21} \\text{ keV·s/m}^3 \\quad (\\text{at } T \\approx 15 \\text{ keV, the DT minimum})$$\n\nThe triple product has a **minimum at T ≈ 15 keV** for DT — colder plasma has low reactivity, hotter plasma loses too much to bremsstrahlung (∝ T^{1/2}) + transport. The **D-³He triple product threshold is ~10× higher** because no neutron heating + higher T optimum (~50 keV); **p-¹¹B is ~100× harder** still (TAE's pursuit).\n\n**Q = P_fusion/P_aux** is the **fusion gain**:\n- Q = 1 = **scientific breakeven**: fusion power equals injected heating.\n- Q ≈ 5: **alpha heating dominant** over external (alpha is 20% of fusion energy; equilibrium when α-heating matches losses).\n- **Q = ∞ = ignition**: alpha heating fully sustains plasma without external heating.\n- Q ≈ 30-40: typical **economic / engineering breakeven** target for power plants (accounting for plant electricity, BOP, tritium breeding).\n\n**Historical milestones**:\n- **TFTR 1994**: 10.7 MW peak fusion, Q ≈ 0.27 (Princeton).\n- **JET DTE1 1997**: 16 MW peak (5 s), 22 MJ total, Q = 0.67 (then-record).\n- **JT-60U 1998**: Q_DD-equivalent ≈ 1.25 (would have been DT Q ≈ 1.25; no DT campaign).\n- **JET DTE2 2022**: **59 MJ in 5 s** sustained — record fusion energy magnetic confinement.\n- **NIF Dec 5 2022**: first laboratory ignition (Q_target = 3.15 MJ / 2.05 MJ = 1.54 — but inertial confinement, see next lesson).\n- **ITER**: design target **Q=10, 500 MW for 400 s**; first plasma 2034 (delayed); DT 2039.\n- **SPARC**: target **Q ≈ 11** in compact REBCO-HTS device; first plasma ~2027.\n- **STEP** (UK Spherical Tokamak for Energy Production): operational 2040s target.\n- **CFETR** (China Fusion Engineering Test Reactor): operational ~2035 target.\n\n**Power-plant scaling**: ITER → DEMO (~2050) → first-of-a-kind power plant (~2060s public path; CFS/Helion private timelines 2030s). Key gating issues: **tritium breeding** (Li blanket modules, TBR > 1.1), **first-wall materials** (W, RAFM steels, neutron damage at 20-150 dpa), **disruption mitigation**, **divertor heat handling** (~10 MW/m² steady, much higher transient), **non-inductive current drive for steady-state**.\n\n**Alpha self-heating significance**: NIF 2022 ignition demonstrated **alpha-particle self-heating > external drive** for the first time in lab — a watershed for the entire field. JET, ITER, SPARC chase the magnetic-confinement counterpart."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_law_1",
+        "kind": "guided_derivation",
+        "question": "Apply triple product to assess SPARC vs ITER",
+        "goal": "Estimate triple product n T τ_E for ITER (n=10²⁰, T=15 keV, τ_E=3.7 s) + SPARC (n=4×10²⁰, T=12 keV, τ_E=0.5 s); compare to Lawson.",
+        "steps": [
+          {
+            "prompt": "Compute n T τ_E for ITER.",
+            "motivation": "Direct calc.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "5.6e21 keV·s/m³",
+                "~5e21"
+              ]
+            },
+            "hints": [
+              "10²⁰ × 15 × 3.7."
+            ],
+            "reveal": "n T τ_E = 10²⁰ × 15 × 3.7 = **5.6×10²¹ keV·s/m³** — comfortably exceeds Lawson ~3×10²¹, consistent with Q=10."
+          },
+          {
+            "prompt": "Compute for SPARC.",
+            "motivation": "Compact + high-B path.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2.4e21 keV·s/m³",
+                "~2.4e21"
+              ]
+            },
+            "hints": [
+              "4×10²⁰ × 12 × 0.5."
+            ],
+            "reveal": "n T τ_E = 4×10²⁰ × 12 × 0.5 = **2.4×10²¹ keV·s/m³** — just below Lawson, but with B=12.2 T → Greenwald limit relaxed, β-margin large → projected Q ≈ 11 in burning-plasma regime."
+          },
+          {
+            "prompt": "Why does high B help compact reactors per τ_E ∝ B^α scaling?",
+            "motivation": "HTS rationale.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "fusion power ~ β² B⁴ at fixed β; HTS gives 2× B → 16× power density"
+              ]
+            },
+            "hints": [
+              "P_fus/V ~ n² ⟨σv⟩ ~ (β B²)² × T²-like → ~ β² B⁴ for fixed T."
+            ],
+            "reveal": "At fixed β: p = β B²/(2μ_0) → n ∝ B² (at fixed T); P_fus/V ~ n²⟨σv⟩ ~ β² B⁴. Doubling B → 16× power density. **HTS REBCO** lets compact CFS-SPARC reach ITER-class Q in fraction of volume + cost. Also IPB98(y,2) gives τ_E ∝ B^0.15 I_p^0.93 → high I_p limited by Greenwald, but high B lets you push n proportionally."
+          },
+          {
+            "prompt": "What's the alpha-heating self-sufficiency condition + when does ignition occur?",
+            "motivation": "Ignition criterion.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "P_α ≥ P_loss → ignition; for DT alpha = 20% of fusion = 0.2 P_fus → Q → ∞"
+              ]
+            },
+            "hints": [
+              "Alpha carries 3.5 MeV / (3.5+14.1 MeV) ≈ 20% of fusion energy."
+            ],
+            "reveal": "DT releases 17.6 MeV/reaction: 14.1 MeV to neutron (escapes plasma, breeds tritium in blanket), 3.5 MeV to alpha (stays + heats). **Ignition** = P_α ≥ P_loss → external heating not needed (Q → ∞). **Burning plasma** = alpha-heating dominant (Q ≳ 5). ITER aims Q=10 → alpha heating 5× external; SPARC Q≈11 similar. Sustaining ignition requires controllable α-channeling + avoiding burn instabilities."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_law_1",
+        "kind": "multiple_choice",
+        "question": "Why is the **triple product n T τ_E** the canonical figure of merit instead of just n τ_E?",
+        "options": [
+          "Wrong.",
+          "Fusion reactivity ⟨σv⟩(T) is a strong function of T — it rises steeply, peaks (DT at ~70 keV, broad), but **bremsstrahlung losses scale as √T** + thermal energy as T, so the **most efficient operating temperature is finite** (~15 keV for DT, ~50 keV for D-³He). The Lawson criterion n τ_E ≥ f(T) gives different thresholds at every T; the **triple product nTτ_E** absorbs the T-dependence into a quantity with a **clear minimum** at the optimal T → a single ~3×10²¹ keV·s/m³ target for DT. Useful because: (i) progress across machines + decades is benchmarked on one axis; (ii) trade-offs between n, T, τ_E (set by ∇p MHD limits, β limits, Greenwald limit, IPB98 scaling) are explicit; (iii) makes physics-engineering comparison (ITER, SPARC, JET, NIF, W7-X) commensurate. Recent rapid progress in private fusion + NIF ignition + JET 59 MJ are all benchmarked against triple-product targets.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Triple product n T τ_E captures the T-dependence of ⟨σv⟩ + bremsstrahlung losses → has a minimum at the optimal T (~15 keV DT). Lets us compare progress across machines/decades on a single axis. Standard target for DT: ~3×10²¹ keV·s/m³. Captures trade-offs in n, T, τ_E set by β limits + Greenwald limit + scaling laws."
+      },
+      "hints": [
+        "Why does the Lawson threshold depend on T?",
+        "What's the minimum T-dependent quantity?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Reactivity ⟨σv⟩(T) rises + peaks; bremsstrahlung ∝ √T + thermal energy ∝ T means there's an optimal T (DT ~15 keV). The triple product n T τ_E is constructed so its threshold has a minimum at that optimal T (~3×10²¹ keV·s/m³ for DT), giving a single number that captures all the trade-offs. Standard benchmark across machines + decades; NIF 2022, JET 2022, ITER, SPARC all measured against it."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_law_1",
+        "kind": "scenario",
+        "question": "Why HTS changes the fusion landscape",
+        "prompt": "Commonwealth Fusion Systems (SPARC) + Tokamak Energy bet on REBCO HTS coils at B = 12-20 T vs ITER's LTS Nb₃Sn at 5.3 T. Discuss (a) why P_fus/V ~ β² B⁴ matters for compact machines, (b) cost-scaling of magnets vs B, (c) engineering challenges of HTS at 20 T (Lorentz stress, joints, quench protection, neutron damage), (d) why this enabled the post-2020 private-fusion boom (>$7B raised since 2020)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_law_1",
+        "kind": "math_expression",
+        "question": "Write the DT triple-product Lawson target at T=15 keV.",
+        "acceptedAnswers": [
+          "n T tau_E >= 3e21 keV s/m^3",
+          "n T τ_E ≥ 3×10²¹ keV·s/m³",
+          "nTτ >= 3*10^21"
+        ],
+        "hint": "Density × temperature × confinement time threshold for DT ignition."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_law_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how Lawson's 1957 criterion + the triple product set the bar for fusion + how today's machines (JET, ITER, SPARC, W7-X) compare.",
+        "rubric": "Mentions: Lawson (1955/1957) — for net fusion energy need n τ_E ≥ ~10²⁰ s/m³; better is **triple product n T τ_E ≥ ~3×10²¹ keV·s/m³** for DT at optimal T~15 keV (minimum of T-dependent threshold). Defines **Q = P_fus/P_aux** (Q=1 breakeven, Q=∞ ignition). Tokamak progress: TFTR 1994 Q~0.27; JET DTE1 1997 Q=0.67; JET DTE2 2022 59 MJ — record; ITER targets Q=10, 500 MW; SPARC Q≈11 in compact HTS. Stellarator W7-X demonstrates steady-state low-turbulence regimes. P_fus/V ~ β² B⁴ rationale for HTS path. Concludes: Lawson stays the central benchmark; HTS + 2022 NIF ignition + JET 59 MJ unlocked the modern private-fusion era + put real engineering reactors within sight."
+      }
+    }
+  ]
+}

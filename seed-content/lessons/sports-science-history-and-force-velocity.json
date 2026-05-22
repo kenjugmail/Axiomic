@@ -1,0 +1,114 @@
+{
+  "slug": "sports-science-history-and-force-velocity",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intro",
+    "objectives": [
+      "Trace the founding of exercise physiology from A.V. Hill and August Krogh to the modern $\\dot{V}O_2max$ concept.",
+      "State and interpret Hill's force-velocity equation and the derived force-velocity-power relationship.",
+      "Identify the contributions of Per-Olof Astrand and Rodolfo Margaria to work physiology and the energetics of running."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The founders: Hill, Krogh, and the birth of exercise physiology",
+      "body": "Modern **sports science** grew out of early twentieth-century muscle physiology. Its central figure is **Archibald Vivian Hill** (1886-1977), usually written **A.V. Hill**, a Cambridge-trained physiologist who shared the **1922 Nobel Prize in Physiology or Medicine** for his measurements of **heat production in muscle**. Hill used exquisitely sensitive thermopiles to show that contracting muscle liberates heat in two distinct phases, an **initial heat** tied to the contraction itself and a **recovery heat** tied to the slower restoration of the muscle afterward. This was the first quantitative evidence that contraction is an energetic, chemical process rather than a purely mechanical one.\n\nHill shared his 1922 prize with the German biochemist **Otto Fritz Meyerhof**, who had connected muscle work to the breakdown of glycogen and the accumulation of **lactic acid**. Together their findings framed the question that still organizes the field: where does the energy for movement come from, and how fast can it be supplied?\n\nA second founder was the Danish physiologist **August Krogh** (1874-1949), winner of the **1920 Nobel Prize** for describing the regulation of **capillary** blood flow in skeletal muscle. Krogh showed that capillaries are not passive pipes but open and close to match oxygen delivery to demand, a control system now called **capillary recruitment**. His **Krogh cylinder** model of oxygen diffusion from a capillary into surrounding tissue remains a teaching staple.\n\nFrom these biochemical and circulatory foundations the discipline expanded. The Swedish physiologist **Per-Olof Astrand** (1922-2015) co-wrote the *Textbook of Work Physiology*, the standard reference that systematized how the heart, lungs, blood, and muscles respond to exercise. The Italian physiologist **Rodolfo Margaria** (1901-1983) at the University of Milan quantified the **energy cost of running** and showed it rises roughly linearly with speed, work that underlies every modern treatment of running economy.\n\nThe unifying physiological variable that emerged is **maximal oxygen uptake**, written $\\dot{V}O_2max$ (the dot denotes a rate, volume per unit time). It measures the highest rate at which an athlete can take in, transport, and use oxygen, and it became the single most studied number in endurance physiology. Hill himself, with **Hartley Lupton**, introduced the idea in the 1920s while studying his own running. These researchers, working across England, Denmark, Sweden, Germany, and Italy, turned athletic performance into a measurable science.",
+      "viz": "force-velocity-curve",
+      "vizProps": {}
+    },
+    {
+      "kind": "text",
+      "title": "Hill's force-velocity equation (1938)",
+      "body": "In a landmark **1938** paper, *The heat of shortening and the dynamic constants of muscle*, **A.V. Hill** published the equation that bears his name. He measured how fast an isolated frog muscle shortens against different loads and found a smooth, hyperbolic relationship between the **force** a muscle produces and the **velocity** at which it shortens.\n\nThe **Hill force-velocity equation** is written\n\n$$(F + a)(v + b) = (F_0 + a)\\,b$$\n\nwhere $F$ is the load (force), $v$ is the shortening velocity, $F_0$ is the maximal isometric force (the force at zero velocity), and $a$ and $b$ are constants with units of force and velocity respectively. The constant $a$ is closely related to the extra heat liberated per unit distance of shortening, a connection Hill called the **heat of shortening**, linking his thermal measurements directly to mechanics.\n\nThe key qualitative lessons are simple and durable:\n\n- **As the load rises, shortening velocity falls.** A heavily loaded muscle contracts slowly; a lightly loaded muscle contracts fast.\n- **At maximal load** $F = F_0$, the velocity is zero. This is an **isometric** contraction: the muscle generates force but does not shorten.\n- **At zero load**, the muscle shortens at its maximum velocity, written $v_{max}$.\n\nThe curve is concave, meaning velocity drops steeply at first as load increases and then more gradually. Rearranging Hill's equation to solve for velocity gives\n\n$$v = \\frac{b\\,(F_0 - F)}{F + a}$$\n\nThe ratio $a/F_0$ (often near 0.25 for fast muscle) sets the curvature: a smaller ratio means a more sharply bent curve. Hill's constants are not arbitrary fitting parameters; they reflect the underlying **cross-bridge** kinetics that the **sliding-filament theory** would later explain. Although Hill worked before the molecular machinery of muscle was understood, his hyperbola has survived because it captures a real property of the contractile apparatus. To this day, the Hill model is built into biomechanical simulations, prosthetic control systems, and the **force-velocity profiling** methods used by sport scientists to characterize athletes."
+    },
+    {
+      "kind": "text",
+      "title": "From force-velocity to power: why power peaks at intermediate loads",
+      "body": "Mechanical **power** is the rate of doing work, the product of force and velocity:\n\n$$P = F \\times v$$\n\nThis simple definition has a profound consequence when combined with **Hill's force-velocity relationship**. At the two extremes of the force-velocity curve, power is zero. At maximal isometric force ($v = 0$) nothing moves, so no work is done per unit time and $P = 0$. At zero load ($F = 0$) the muscle moves fast but exerts no force, so again $P = 0$. Between these extremes, power must rise and then fall, which means it reaches a **maximum at some intermediate load and intermediate velocity**.\n\nFor a Hill-type muscle, peak power typically occurs near **one third of maximal force** and roughly **one third of maximal velocity**. The exact optima depend on the curvature constant $a/F_0$, but the qualitative result is universal: the **force-velocity-power relationship** is an inverted-U for power superimposed on the descending force-velocity hyperbola.\n\nThis explains many practical observations in sport:\n\n- A **track cyclist** chooses a gear so that pedaling cadence places the legs near the velocity that maximizes power, rather than grinding a huge gear (too much force, too little velocity) or spinning a tiny gear (too little force).\n- A **shot-putter** or **weightlifter** training for explosive output works at loads that maximize power, not the heaviest load they can move.\n- **Sprinting** acceleration depends on producing high power against the resistance of body inertia.\n\nHistorically, **Rodolfo Margaria** and colleagues exploited exactly this physics in the **Margaria-Kalamen stair-climb test**, an early field measure of anaerobic power in which an athlete sprints up a staircase and power is computed from body weight, vertical height, and time. The test is a direct application of $P = F \\times v$, with force supplied by body weight and velocity by climbing speed.\n\nModern athlete assessment formalizes this through **force-velocity profiling**, pioneered by **Pierre Samozino** and **Jean-Benoit Morin**, which fits a linear force-velocity line to sprint or jump data and locates each athlete's individual power optimum. The conceptual lineage runs straight back to **A.V. Hill** in **1938**: the shape of the muscle's force-velocity curve dictates where, and how much, power an athlete can produce."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fv_1",
+        "kind": "multiple_choice",
+        "question": "According to Hill's force-velocity relationship, mechanical power output of a muscle is greatest when:",
+        "options": [
+          "The load is maximal, producing the highest possible force.",
+          "The load is intermediate, near roughly one third of maximal force, so the product of force and velocity is maximized.",
+          "The load is zero, allowing the highest shortening velocity.",
+          "The muscle is held isometric so no energy is wasted on movement."
+        ],
+        "correctIndex": 1,
+        "explanation": "Power is $P = F \\times v$. At maximal force the velocity is zero, and at zero load the force is zero, so power vanishes at both extremes of the force-velocity curve. Power therefore peaks at an intermediate load and velocity, for a Hill-type muscle near one third of maximal force and one third of maximal velocity."
+      },
+      "hints": [
+        "Power is the product of force and velocity, $P = F \\times v$.",
+        "Check what power equals at each end of the force-velocity curve."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Start from $P = F \\times v$. At the isometric extreme $v = 0$ so $P = 0$; at the unloaded extreme $F = 0$ so $P = 0$. Because power is zero at both ends and positive in between, it must reach a maximum at an intermediate point. Solving for the maximum of $F \\times v$ along Hill's hyperbola places the optimum near one third of $F_0$ and one third of $v_{max}$. Hence the correct answer is the intermediate-load option."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fv_1",
+        "kind": "math_expression",
+        "question": "A muscle has maximal isometric force $F_0 = 300$ N. Using the common approximation that peak power occurs at one third of maximal force, what load (in newtons) maximizes power output?",
+        "acceptedAnswers": [
+          "100",
+          "100 N",
+          "100.0"
+        ],
+        "hint": "One third of the maximal isometric force: $F_0 / 3$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_fv_2",
+        "kind": "math_expression",
+        "question": "An athlete weighing $80$ kg climbs a vertical height of $1.05$ m in $0.50$ s during a Margaria-Kalamen stair test. Using $g = 9.81\\ \\text{m/s}^2$ and power $P = (m \\cdot g \\cdot h)/t$, compute the power output in watts. Round to the nearest whole watt.",
+        "acceptedAnswers": [
+          "1648",
+          "1648 W",
+          "1647",
+          "1649"
+        ],
+        "hint": "Compute work $= m \\cdot g \\cdot h$ first, then divide by the time $t$."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_fv_1",
+        "kind": "scenario",
+        "question": "A track cyclist is not hitting expected peak power on the velodrome.",
+        "prompt": "You are advising a track sprint cyclist who produces excellent power on a strength-test rig at heavy loads but underperforms during flying-200m efforts on the velodrome. Using Hill's force-velocity-power relationship, explain why the gear ratio they have chosen could be placing them at the wrong point on the curve. Describe what you would measure to locate their individual power optimum, and recommend qualitatively whether they should select a lighter or heavier gear if their pedaling cadence at top speed is far below the velocity that maximizes power."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_fv_2",
+        "kind": "multiple_choice",
+        "question": "Which pairing of scientist and contribution is correct?",
+        "options": [
+          "August Krogh first wrote down the force-velocity equation in 1938.",
+          "Per-Olof Astrand won the 1922 Nobel Prize for muscle heat production.",
+          "August Krogh won a Nobel Prize for describing the regulation of capillary blood flow in muscle, and Rodolfo Margaria quantified the energy cost of running.",
+          "Rodolfo Margaria shared the 1922 Nobel Prize with Otto Meyerhof for lactic acid metabolism."
+        ],
+        "correctIndex": 2,
+        "explanation": "August Krogh received the 1920 Nobel Prize for his work on capillary regulation in skeletal muscle, and Rodolfo Margaria quantified the energy cost of running at the University of Milan. A.V. Hill (not Krogh) published the force-velocity equation in 1938 and shared the 1922 Nobel with Otto Meyerhof; Per-Olof Astrand co-authored the Textbook of Work Physiology but did not win a Nobel."
+      },
+      "hints": [
+        "Krogh's Nobel was about capillaries and oxygen delivery.",
+        "The force-velocity equation belongs to A.V. Hill, not Krogh."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Match each name to its documented contribution: Krogh, capillary regulation, Nobel 1920; Hill, heat production and the 1938 force-velocity equation, Nobel 1922 shared with Meyerhof; Margaria, energy cost of running; Astrand, Textbook of Work Physiology. Only the third option pairs scientists with their real contributions, so it is correct."
+    }
+  ]
+}

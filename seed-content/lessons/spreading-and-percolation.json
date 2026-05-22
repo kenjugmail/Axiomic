@@ -1,0 +1,153 @@
+{
+  "slug": "spreading-and-percolation",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Derive percolation thresholds.",
+      "Analyze epidemic models on networks.",
+      "Explain cascades + threshold models."
+    ],
+    "prereqs": [
+      "scale-free-and-preferential-attachment"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Percolation on networks: site, bond + critical thresholds",
+      "body": "**Percolation theory** asks: when does a giant connected cluster appear in a randomly damaged or constructed network? Originally a physics question (Broadbent + Hammersley 1957) about flow through porous media. Now central to network science — failures, immunization, robustness, epidemics, phase transitions.\n\n**Site percolation**: each node is **present** with probability p, **absent** with probability 1 - p. Ask: for which p does a **giant cluster** spanning the network exist?\n\n**Bond percolation**: each edge is **present** with probability p, absent with probability 1 - p. Equivalent to site percolation in some settings; subtly different in general.\n\n**Critical threshold p_c** = smallest p at which a giant cluster exists. Below p_c: cluster sizes O(log n) or smaller. Above p_c: a unique giant cluster of size O(n).\n\n**Lattice + regular networks**: p_c is geometry-dependent.\n- 2D square lattice bond: p_c = 1/2 (Kesten 1980).\n- 2D triangular lattice site: p_c = 1/2.\n- Bethe lattice (tree) with branching b: p_c = 1/(b-1).\n- 3D simple cubic bond: p_c ≈ 0.2488.\n\n**Erdős-Rényi**: bond percolation on G(n, p̃) — equivalent to G(n, p·p̃), so p_c·⟨k⟩ = 1, i.e. p_c = 1/⟨k⟩.\n\n**General networks (Molloy + Reed 1995; Cohen + Erez + ben-Avraham + Havlin 2000)**:\n  **Molloy-Reed criterion**: giant component exists iff ⟨k²⟩ - 2⟨k⟩ > 0, i.e. **⟨k²⟩/⟨k⟩ > 2**.\n  Equivalent **percolation threshold**: p_c = ⟨k⟩ / (⟨k²⟩ - ⟨k⟩).\n\n**Scale-free networks** (Cohen + Erez + ben-Avraham + Havlin 2000): for P(k) ~ k^(-γ), ⟨k²⟩ diverges when γ ≤ 3. Then **p_c → 0** in the thermodynamic limit — scale-free networks **always** have a giant component regardless of how much you damage them randomly. Foundational for understanding Internet robustness.\n\n**Robustness vs attack** (Albert + Jeong + Barabási 2000 Nature *Error + attack tolerance of complex networks*):\n- **Random failure**: scale-free networks extraordinarily robust (most random removals hit low-degree nodes that barely matter).\n- **Targeted attack** (remove highest-degree hubs first): scale-free networks shatter rapidly; random networks more uniform under both regimes.\n- **Mixed strategies**: real networks face combination.\n\n**Continuous vs discontinuous percolation** (Achlioptas + D'Souza + Spencer 2009 Science): rules that delay or accelerate cluster merging can shift the transition from continuous (2nd-order) to abrupt (1st-order). 'Explosive percolation' studied intensively 2010s.\n\n**Algorithms**:\n- **Newman-Ziff cluster-growth**: efficient simulation.\n- **Union-Find data structures** + path compression.\n- **Generating-function approach** (Newman + Strogatz + Watts 2001): analytical for arbitrary degree distributions."
+    },
+    {
+      "kind": "text",
+      "title": "Epidemics on networks: SIR/SIS + targeted immunization",
+      "body": "**Epidemic models** describe disease (or rumor, behavior) spread.\n\n**SIR (Susceptible-Infectious-Recovered)** + **SIS (Susceptible-Infectious-Susceptible)** are canonical compartmental models.\n- **SIR**: S + I → 2I at rate β per S-I edge; I → R at rate γ. R immune.\n- **SIS**: S + I → 2I at rate β; I → S at rate γ. No permanent immunity.\n\n**Mass-action (well-mixed) basic reproduction number**: R_0 = β/γ × ⟨k⟩ (rough). Threshold R_0 > 1 for outbreak; below 1 disease dies out.\n\n**On networks** the picture changes radically. Pastor-Satorras + Vespignani (2001 PRL *Epidemic spreading in scale-free networks*) derived:\n\n  **Epidemic threshold λ_c = ⟨k⟩ / ⟨k²⟩**\n\nfor SIS on uncorrelated networks via heterogeneous mean-field theory. **For scale-free networks with γ ≤ 3, ⟨k²⟩ diverges → λ_c → 0** — diseases always spread, no matter how small β/γ. Foundational result; explained HIV/AIDS spread on heavy-tailed sexual contact networks (Liljeros 2001).\n\n**Critical implications**:\n- **Vaccinate randomly**: useless on scale-free networks (random nodes are low-degree).\n- **Vaccinate highest-degree hubs (targeted)** (Pastor-Satorras + Vespignani 2002): efficient; restores finite threshold.\n- **Acquaintance immunization** (Cohen + Havlin + ben-Avraham 2003): pick random nodes + immunize a random *friend* of theirs (exploits friendship paradox — your friends have higher degree than you on average). Easy to deploy when degrees aren't known.\n- **Ring vaccination**: vaccinate contacts of confirmed cases (smallpox, Ebola).\n\n**Refinements**:\n- **Heterogeneous degree-block mean-field**: separate ODEs per degree class.\n- **Pair approximation** + **moment-closure**: capture correlations.\n- **Discrete-time + stochastic agent-based**: simulation-driven (FluTE, GleamViz, EpiSimS, CovaSim).\n- **Networked SEIR + COVID models** (Vespignani's MOBS lab; Imperial College Ferguson 2020; Stanford Lessler).\n- **Annealed vs quenched** networks: quenched (fixed topology) shows lower thresholds + heterogeneous outbreak sizes.\n\n**Spectral approach** (Wang + Chakrabarti + Wang + Faloutsos 2003; Castellano + Pastor-Satorras 2010): epidemic threshold on **any** network is λ_c = 1/Λ_max(A) where Λ_max is the largest eigenvalue of the adjacency matrix. For scale-free networks Λ_max ~ √k_max → divergent.\n\n**Vespignani group COVID-19 work**: networked metapopulation models with global airline + commuting data informed pandemic policy. Pastor-Satorras + Castellano + Van Mieghem + Vespignani 2015 *Reviews of Modern Physics* is the canonical review.\n\n**Bond percolation = SIR equivalence** (Newman 2002 PRE): the final size of an SIR outbreak with transmissibility T = β/(β+γ) per edge equals the giant cluster of bond percolation at p = T. Gives analytical exact final-size distribution.\n\n**Immunization strategies summary**:\n- Random: poor on heterogeneous networks.\n- Targeted by degree: highly effective.\n- Acquaintance: practical when degrees unknown.\n- Ring vaccination: when only cases known.\n- Network-informed (digital contact tracing, mobility data): COVID-era + future."
+    },
+    {
+      "kind": "text",
+      "title": "Cascades + threshold models: complex contagion",
+      "body": "**Simple vs complex contagion** (Centola + Macy 2007 American Journal of Sociology):\n- **Simple contagion** (SIR-like): each infectious contact independently transmits with probability β. One contact may suffice — like flu.\n- **Complex contagion**: adoption requires **multiple reinforcing contacts**. Threshold-based — like behaviors, opinions, joining a movement, technology adoption.\n\n**Granovetter threshold model** (1978 American Journal of Sociology *Threshold models of collective behavior*): each agent i has threshold θ_i. Agent adopts (riots, joins protest) iff the fraction of adopted neighbors ≥ θ_i. Heterogeneous θ_i across agents produces **cascades + tipping points**. Tiny threshold differences can determine whether a movement succeeds or stalls. Foundational sociology paper; informed marketing, viral diffusion, political mobilization.\n\n**Watts cascade model** (2002 PNAS *Simple model of global cascades on random networks*): linear-threshold model on networks. Each node activates if its fraction of active neighbors ≥ θ. Watts showed:\n- **Cascade window**: cascades only occur for certain combinations of ⟨k⟩ + θ.\n- **Vulnerability**: nodes with k_i < 1/θ are 'vulnerable' (a single neighbor can flip them).\n- **Global cascade condition**: requires a connected component of vulnerable nodes (a 'vulnerable cluster') that percolates.\n- Low ⟨k⟩: graph too sparse, cascade fizzles.\n- High ⟨k⟩: most nodes need many active neighbors → cascade fails.\n- Sweet spot in between → cascade window.\n\n**Centola 2010 *The Spread of Behavior in an Online Social Network Experiment* (Science)**: ran a randomized experiment on an online health-behavior platform. **Clustered** (lattice-like) networks spread behavior **faster** than random networks for complex contagion — opposite of simple contagion. Mechanism: clustered networks provide multiple-reinforcement signals; random networks don't. Important applied result.\n\n**Long ties + the strength of weak ties**: Granovetter (1973) showed weak ties (acquaintances) carry novel information. But for complex contagion (Centola), strong ties + clustered networks matter more — adoption needs social reinforcement, not just exposure.\n\n**Influence maximization** (Kempe + Kleinberg + Tardos 2003 KDD): given a network + threshold/cascade model, find k seed nodes that maximize expected adoption. NP-hard but **submodular** → greedy 1 - 1/e approximation. Foundation of viral-marketing literature. Many extensions (CELF heuristic, IMM, RIS).\n\n**Independent cascade model**: each newly-active node tries each neighbor once with probability p_ij; if success, neighbor becomes active. Closely related to bond percolation.\n\n**Real-world cascades**:\n- **Twitter retweet cascades** (Goel + Watts + Goldstein 2012): mostly shallow + small; rare deep cascades are 'broadcast-like' from a single hub, not viral.\n- **Hashtag adoption** (Romero + Meeder + Kleinberg 2011): political hashtags require multiple exposures; mundane hashtags spread like simple contagion.\n- **Financial cascades**: bank-failure contagion (Battiston 2012 DebtRank, COVID supply chain shocks 2020).\n- **Power grid cascades** (Buldyrev + Parshani + Paul + Stanley + Havlin 2010 Nature) on interdependent networks: cascading failures across coupled networks (power grid + Internet) → catastrophic. Studied intensively after 2003 + 2012 blackouts.\n- **Bootstrap percolation**: similar to threshold model; nodes activate when k ≥ θ neighbors active.\n\n**Modern + open**: cascade prediction (deepRetweet, CasFlow, GNN models); influence maximization at scale; reverse engineering 'seeds' from observed cascades; identifying super-spreaders in disease + behavior; manipulating cascades in misinformation contexts."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sp_1",
+        "kind": "guided_derivation",
+        "question": "Derive epidemic threshold λ_c on uncorrelated network",
+        "goal": "Show λ_c = ⟨k⟩/⟨k²⟩ for SIS via heterogeneous mean-field (Pastor-Satorras + Vespignani 2001).",
+        "steps": [
+          {
+            "prompt": "Define ρ_k = fraction of infected among nodes of degree k. What's the probability a random neighbor is infected? Use friendship-paradox: probability your neighbor has degree k is proportional to k·P(k)/⟨k⟩.",
+            "motivation": "Excess-degree distribution.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Θ = (1/⟨k⟩) Σ_k k P(k) ρ_k"
+              ]
+            },
+            "hints": [
+              "Edge points to node of degree k with prob k P(k)/⟨k⟩."
+            ],
+            "reveal": "Probability a random edge ends at infected node = Θ = (1/⟨k⟩) Σ_k k P(k) ρ_k. (Friendship-paradox weighting: higher-degree nodes more likely to be at end of random edge.)"
+          },
+          {
+            "prompt": "Write the rate equation for ρ_k under SIS dynamics: rate in = (1-ρ_k) · k · λ · Θ; rate out = ρ_k.",
+            "motivation": "Healing rate normalized to 1; infection rate λ = β/γ per S-I edge.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "dρ_k/dt = -ρ_k + λ k (1-ρ_k) Θ"
+              ]
+            },
+            "hints": [
+              "Susceptible fraction (1-ρ_k) infected at rate λk·Θ; recover at rate 1."
+            ],
+            "reveal": "dρ_k/dt = -ρ_k + λ·k·(1 - ρ_k)·Θ. At steady state: ρ_k = λ·k·Θ / (1 + λ·k·Θ)."
+          },
+          {
+            "prompt": "Substitute steady-state ρ_k into Θ + linearize near Θ = 0 to find threshold.",
+            "motivation": "Self-consistency near critical point.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Θ ≈ (λ/⟨k⟩) Σ_k k² P(k) Θ = λ ⟨k²⟩/⟨k⟩ · Θ"
+              ]
+            },
+            "hints": [
+              "ρ_k ≈ λ·k·Θ for small Θ."
+            ],
+            "reveal": "Near Θ → 0: ρ_k ≈ λ·k·Θ. Then Θ = (1/⟨k⟩) Σ_k k·P(k)·(λ·k·Θ) = (λ·⟨k²⟩/⟨k⟩)·Θ. Nontrivial solution requires λ·⟨k²⟩/⟨k⟩ ≥ 1."
+          },
+          {
+            "prompt": "What's λ_c?",
+            "motivation": "Critical infection rate.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "λ_c = ⟨k⟩/⟨k²⟩"
+              ]
+            },
+            "hints": [
+              "Threshold of self-consistency."
+            ],
+            "reveal": "**λ_c = ⟨k⟩/⟨k²⟩**. For scale-free networks with γ ≤ 3, ⟨k²⟩ diverges (in the n → ∞ limit) → λ_c → 0. Diseases always spread regardless of infection rate. Pastor-Satorras + Vespignani 2001 PRL; canonical result. Explains why heavy-tailed sexual networks (Liljeros 2001) facilitate HIV spread + why targeted immunization (removing hubs) restores a finite threshold."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sp_1",
+        "kind": "multiple_choice",
+        "question": "Why is targeted (hub-based) immunization dramatically more effective than random immunization on scale-free networks?",
+        "options": [
+          "Random.",
+          "On scale-free networks with P(k) ~ k^(-γ), γ ≤ 3, the epidemic threshold λ_c = ⟨k⟩/⟨k²⟩ → 0 (Pastor-Satorras + Vespignani 2001 PRL) because ⟨k²⟩ diverges. Random immunization removes nodes uniformly — most random picks are low-degree leaves that barely matter for transmission; the few hubs remain. Targeted immunization (Pastor-Satorras + Vespignani 2002): rank by degree + remove highest first; removing the top ~5-10% of hubs typically shatters the giant component + restores a finite threshold. **Acquaintance immunization** (Cohen + Havlin + ben-Avraham 2003 PRL): when degrees are unknown, pick a random node + immunize a random friend (exploits the **friendship paradox** — your friends have higher expected degree than you, k_friend ≈ ⟨k²⟩/⟨k⟩); also highly effective + practical. Modern variants: contact-tracing networks; ring vaccination (smallpox, Ebola); mobility-based targeting in COVID-19 (Vespignani MOBS lab). The asymmetry mirrors Albert + Jeong + Barabási (2000 Nature) error/attack tolerance: scale-free networks robust to random failure + fragile to targeted attack. Both follow from the heavy tail.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "On scale-free networks λ_c = ⟨k⟩/⟨k²⟩ → 0 (Pastor-Satorras + Vespignani 2001) since ⟨k²⟩ diverges. Random immunization misses hubs (mostly hits leaves). Targeted by degree (PS+V 2002): remove top 5-10% hubs to restore finite threshold. Acquaintance immunization (Cohen + Havlin + ben-Avraham 2003): immunize random friend of random node — exploits friendship paradox. Mirrors error/attack tolerance asymmetry (Albert + Jeong + Barabási 2000)."
+      },
+      "hints": [
+        "What's special about hubs?",
+        "What does ⟨k²⟩ control?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "On scale-free networks λ_c = ⟨k⟩/⟨k²⟩ → 0 since ⟨k²⟩ diverges (Pastor-Satorras + Vespignani 2001). Targeted immunization of top-degree hubs shatters giant component + restores finite threshold. Acquaintance immunization (Cohen + Havlin + ben-Avraham 2003) exploits friendship paradox when degrees unknown. Mirrors Albert + Jeong + Barabási 2000 robustness/fragility asymmetry."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_sp_1",
+        "kind": "scenario",
+        "question": "A novel respiratory pathogen is spreading in a country with heavy-tailed contact network (γ ≈ 2.5).",
+        "prompt": "You have 10% vaccine doses available. Compare expected outcomes for: (a) uniform random allocation, (b) age-targeted (elderly first), (c) hub-targeted via mobility + contact-tracing data, (d) acquaintance-based (vaccinate friend of random sample). Quantify expected reduction in final outbreak size using percolation theory + epidemic threshold ⟨k⟩/⟨k²⟩. What ethical + practical considerations make pure hub-targeted infeasible? How would you integrate genomic + mobility data à la COVID era (Vespignani MOBS, GISAID)?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sp_1",
+        "kind": "math_expression",
+        "question": "Write the heterogeneous-mean-field epidemic threshold λ_c for SIS on an uncorrelated network with degree distribution P(k).",
+        "acceptedAnswers": [
+          "λ_c = ⟨k⟩ / ⟨k²⟩",
+          "λ_c = <k>/<k^2>",
+          "λ_c = mean(k)/mean(k^2)"
+        ],
+        "hint": "Pastor-Satorras + Vespignani 2001."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sp_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how network structure controls spreading + percolation.",
+        "rubric": "Mentions: Percolation threshold (Molloy + Reed 1995; Cohen + Erez + ben-Avraham + Havlin 2000) p_c = ⟨k⟩/(⟨k²⟩ - ⟨k⟩); for scale-free networks with γ ≤ 3, ⟨k²⟩ diverges + p_c → 0 — networks always have giant component. Epidemic threshold (Pastor-Satorras + Vespignani 2001) λ_c = ⟨k⟩/⟨k²⟩ vanishes similarly; diseases always spread on heterogeneous networks. Explains HIV spread on heavy-tailed sexual networks (Liljeros 2001). Spectral form λ_c = 1/Λ_max(A). Targeted hub immunization (PS+V 2002) restores finite threshold; acquaintance immunization (Cohen + Havlin + ben-Avraham 2003) exploits friendship paradox. SIR = bond percolation (Newman 2002). Cascades: Granovetter (1978) thresholds; Watts (2002) cascade window; Centola (2010) showed complex contagion spreads faster on clustered networks. Influence maximization (Kempe + Kleinberg + Tardos 2003) submodular → greedy 1 - 1/e. Real-world: COVID-19 (Vespignani MOBS), Buldyrev 2010 cascading failures on interdependent networks."
+      }
+    }
+  ]
+}

@@ -1,0 +1,173 @@
+{
+  "slug": "bacterial-growth-and-metabolism",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Master bacterial growth phases + kinetics.",
+      "Apply Monod kinetics + chemostat theory.",
+      "Map metabolic diversity from heterotrophy to chemolithotrophy."
+    ],
+    "prereqs": [
+      "prokaryote-cell-biology"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Growth phases — lag, exponential, stationary, death, VBNC",
+      "body": "Inoculate a flask of fresh medium with a small bacterial inoculum + measure cell density over time. The resulting **growth curve** is one of the most universal patterns in biology, with four (or five) canonical phases. Drag the controls in the visualization to move between phases + watch the curve evolve.\n\n**Lag phase** — cells adapt to new conditions:\n- No net increase in cell number, but extensive **physiological + transcriptomic reprogramming**: ribosome biogenesis, transporter expression, repair of starvation damage, induction of medium-specific catabolic operons.\n- Lag length depends on the difference between previous + new conditions, inoculum size, growth phase of inoculum, + cell physiology. Cells from log phase have short lag; from stationary, long lag.\n- Famously absent if the inoculum was already growing on the same medium.\n\n**Exponential (logarithmic) phase** — balanced growth at maximum rate possible in the conditions:\n- Cell number doubles every constant **doubling time τ_d**: *E. coli* in rich medium ~20 min, M9 minimal medium ~60 min, *M. tuberculosis* ~24 h, soil microbes often hours-days.\n- N(t) = N₀ · 2^(t/τ_d) = N₀ · e^(μ·t), where μ = ln 2 / τ_d is the **specific growth rate** (units 1/time).\n- All cellular components scale together — RNA, DNA, protein, mass — defining **balanced growth**.\n- Ribosome content scales with μ (~Schaechter-Maaløe-Kjeldgaard 1958 'growth law'): faster cells have more ribosomes (~30-40% of cell dry mass at maximum μ).\n- This is the phase used for nearly all molecular-biology experiments + recombinant-protein production.\n\n**Stationary phase** — net growth = 0:\n- Triggered by depletion of nutrient(s), accumulation of waste products, quorum signals, or environmental stress (pH, O₂, temperature).\n- Cells remain viable but undergo extensive remodeling: chromosome compaction, ribosome hibernation (Rmf, Hpf), σ^S (RpoS) regulon activation in *E. coli*, stress-protective proteins (catalases, DnaK), trehalose accumulation, glycogen storage, sometimes capsule.\n- **General stress response** σ^S in *E. coli* + σ^B in Bacillus + Listeria — master sigma factor for survival.\n- *Bacillus + Clostridium*: stationary phase triggers **sporulation** (Spo0A cascade) → endospore.\n\n**Death phase** — viability declines:\n- Net loss of cultivable cells over time.\n- Often exponential decline; survivors may include resistant subpopulations.\n- **Cryptic growth** — dead cells lyse + release nutrients, supporting low-level continued growth of the survivors. Population stabilizes far below stationary peak but not at zero.\n\n**VBNC (Viable But Non-Culturable)**:\n- Stress-induced state in which cells remain viable (membrane intact, ATP present, gene expression occurring) but **fail to form colonies on standard media**. Important for *Vibrio cholerae* (winters in cold seawater as VBNC then resurges), *Helicobacter pylori*, *Campylobacter*, *Legionella*, mycobacteria.\n- Clinically important because routine culture-based diagnostics miss VBNC cells; **molecular detection (qPCR, viability PCR)** + animal models reveal them.\n- Distinct from sporulation; the cell is dormant but not spore-encapsulated.\n\n**Persister cells** (Kim Lewis lab) — a small subpopulation (<0.001-1%) of phenotypically dormant cells **tolerant to antibiotics** (not resistant — they re-grow + remain susceptible after the antibiotic is removed). Mechanism: stochastic entry into a slow-growth state with low translation + division; antibiotics that need active growth (β-lactams, fluoroquinolones) fail to kill them. Persisters drive chronic infections + recurrence (TB, biofilm infections). New drug strategies target persisters directly (mitomycin C activation, ADEPs that activate ClpP, acyldepsipeptides)."
+      ,
+      "viz": "bacterial-growth-curve",
+      "vizProps": {
+        "phase": "exponential",
+        "doublingTime": 20
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Growth kinetics — Monod, chemostats, batch + fed-batch",
+      "body": "**Jacques Monod's law of growth (1949)** — the founding quantitative framework for microbial physiology + the basis of all bioprocess engineering:\n\n  μ = μ_max · S / (K_s + S)\n\nwhere μ = specific growth rate (1/h); μ_max = maximum growth rate; S = limiting substrate concentration; K_s = substrate affinity constant (S at which μ = μ_max/2). Formally identical to Michaelis-Menten enzyme kinetics — Monod recognized that whole-cell growth obeyed the same hyperbolic saturation.\n\n**Interpretation of K_s**:\n- Low K_s (μM) → **oligotrophic** organisms: high affinity, grow at trace substrate. Pelagibacter in oligotrophic ocean: K_s for many substrates ~nM.\n- High K_s (mM) → **copiotrophs**: only grow when substrate is abundant; outcompeted at low S but dominate flushes (gut after meal, leaf litter).\n\n**Multiple substrates + diauxie (Monod 1942)**: when *E. coli* grows on glucose + lactose, it consumes glucose first, then after a brief lag switches to lactose (diauxic growth). Catabolite repression: cAMP-CRP only activates non-glucose operons when glucose is gone. The phenomenon launched Jacob + Monod's regulatory work.\n\n**Yield coefficient Y_xs**:\n- Biomass produced per substrate consumed: Y_xs = ΔX/ΔS (g cells / g substrate).\n- *E. coli* on glucose aerobic ~0.5 g/g; anaerobic ~0.1 g/g (most C goes to fermentation products).\n- Acetogens, methanogens, sulfate reducers — very low yields, near thermodynamic floor.\n- **Maintenance energy**: nonzero ATP demand even at μ = 0 (Pirt 1965): q_S = (μ / Y_xs^max) + m_S.\n\n**Cultivation modes**:\n\n1. **Batch** — closed flask or fermenter, no nutrient addition during run. Cells go through lag → log → stationary → death. Simple but conditions change continuously; **never at steady state**.\n\n2. **Fed-batch** — batch with timed nutrient additions; standard for **high-cell-density recombinant-protein production** (insulin, antibodies). Glucose fed to keep S below overflow threshold (acetate suppression in *E. coli*; ethanol suppression in *Saccharomyces*) — yields cell densities >100 g/L wet.\n\n3. **Chemostat (continuous culture)** — invented independently by **Monod** (1950 Pasteur Institute) + **Novick + Szilard** (1950 Chicago). Continuous inflow of fresh medium + outflow of culture at the same rate. Dilution rate D (1/h) = flow rate / volume.\n- At steady state, μ = D — the culture self-tunes its growth rate to match the imposed dilution.\n- Substrate concentration at steady state: S* = K_s · D / (μ_max - D). Independent of feed S₀!\n- Biomass at steady state: X* = Y_xs · (S₀ - S*).\n- **Washout** when D ≥ μ_max → cells removed faster than they divide.\n- Used for evolution experiments (Lenski-style + the Hammerstrom + Sauer + Vasi + Lenski long-term *E. coli* evolution experiment, ~75000 generations as of 2025) + for steady-state physiology measurements.\n\n**Turbidostat**: continuous culture with feedback control of dilution rate to maintain constant OD — useful for adaptive-evolution experiments.\n\n**Microfluidic + mother-machine devices**: track single cells across thousands of divisions (Wang + Jun + Tans labs), revealed cell-size + division-control laws (adder, sizer, timer models).\n\n**Counting + measurement methods**:\n- **OD600** turbidity → cell density (~10⁸-10⁹ cells/mL at OD 1 for *E. coli*).\n- **Plate count** (CFU/mL) — only viable + culturable cells.\n- **Direct microscopy** (Petroff-Hausser counter).\n- **Flow cytometry** — viability + heterogeneity.\n- **qPCR / 16S sequencing** for community composition.\n- **Coulter counter / Zetasizer** for size + count.\n\nAll have biases — combine for full picture."
+    },
+    {
+      "kind": "text",
+      "title": "Metabolic modes — heterotrophy, fermentation, anaerobic respiration, chemolithotrophy + photosynthesis",
+      "body": "Microbial metabolism spans the widest energetic + redox space of any group of organisms. **Classification axes**:\n- **Carbon source**: autotroph (CO₂) vs heterotroph (organic C).\n- **Energy source**: phototroph (light) vs chemotroph (chemicals).\n- **Electron source**: lithotroph (inorganic) vs organotroph (organic).\n\nGiving 8 trophic types (e.g., chemoorganoheterotroph = humans + most bacteria; chemolithoautotroph = nitrifiers, hydrogen oxidizers, *Beggiatoa*; photolithoautotroph = cyanobacteria + plants).\n\n**Heterotrophy**:\n- Most studied bacteria + medically important pathogens.\n- Catabolize sugars, amino acids, fatty acids, organic acids through glycolysis (EMP), pentose phosphate pathway, Entner-Doudoroff (in *Pseudomonas*, *Zymomonas*), TCA cycle + electron-transport chain.\n- Generate ATP via substrate-level phosphorylation + oxidative phosphorylation.\n\n**Aerobic respiration**:\n- O₂ as terminal electron acceptor; ΔE° highest → maximum ATP yield (~30 ATP/glucose vs ~2 in fermentation).\n- Drives most heterotrophic metabolism in oxic environments.\n\n**Fermentation** — substrate-level phosphorylation only; no external electron acceptor; organic intermediate accepts electrons + is excreted:\n- **Lactic acid fermentation**: lactobacilli, streptococci, enterococci, lactic acid bacteria — central to dairy + many fermented foods (yogurt, cheese, kimchi, sauerkraut, sourdough).\n- **Alcoholic fermentation**: *Saccharomyces cerevisiae* (yeast — covered in mycology lesson), *Zymomonas mobilis* (bacterial; faster than yeast). Pasteur's foundational study.\n- **Mixed acid fermentation**: *E. coli*, *Salmonella* — acetate + ethanol + lactate + succinate + formate + H₂ + CO₂. Methyl-red positive.\n- **2,3-butanediol fermentation**: *Klebsiella*, *Enterobacter* — acetoin + butanediol; Voges-Proskauer positive.\n- **Butyric / butanol-acetone**: *Clostridium acetobutylicum* (Weizmann process for WWI cordite; revived for biofuels).\n- **Propionic**: *Propionibacterium* (Swiss cheese eyes from CO₂ release).\n\n**Anaerobic respiration** — terminal acceptor other than O₂:\n- **NO₃⁻ → NO₂⁻ → NO → N₂O → N₂** (denitrification; *Paracoccus*, *Pseudomonas*) — major N-loss pathway in agriculture + wastewater.\n- **SO₄²⁻ → S → H₂S** (sulfate reducers — *Desulfovibrio*, *Desulfuromonas*) — anoxic sediments, hydrocarbon souring, corrosion.\n- **CO₂ → CH₄** (methanogens — Methanobacterium, Methanosarcina; archaea only) — rumen, wetlands, anaerobic digesters, landfills.\n- **Fe³⁺ → Fe²⁺**, **Mn⁴⁺ → Mn²⁺** (Geobacter, Shewanella — even with extracellular electrodes — bacterial 'wiring' + microbial fuel cells).\n- **Acetogenesis**: CO₂ + H₂ → acetate (*Clostridium ljungdahlii*).\n- **Halorespiration**: chlorinated solvents (TCE) → ethene by *Dehalococcoides* (bioremediation).\n\n**Chemolithotrophy** — energy from inorganic chemistry (Winogradsky 1887):\n- **Nitrification**: NH₃ → NO₂⁻ (*Nitrosomonas*, *Nitrospira*) → NO₃⁻ (*Nitrobacter*, *Nitrospira* — comammox). Drives wastewater treatment + nitrogen cycling.\n- **Sulfur oxidation**: H₂S, S⁰, S₂O₃²⁻ → SO₄²⁻ (*Thiobacillus*, *Beggiatoa* — huge filamentous bacteria visible to the naked eye; sulfur granules inside).\n- **Iron oxidation**: Fe²⁺ → Fe³⁺ at low pH (*Acidithiobacillus ferrooxidans* — acid-mine-drainage organism; biomining).\n- **Hydrogen oxidation**: H₂ + ½O₂ → H₂O (*Ralstonia*, knallgas bacteria).\n- **Ammonia-oxidizing archaea (AOA)**: *Nitrosopumilus* — discovered ~2005, may be the most abundant chemolithotroph on Earth (huge in marine + soil).\n- **Anammox** (anaerobic ammonium oxidation): NH₄⁺ + NO₂⁻ → N₂ + H₂O by *Brocadia* + relatives (Strous 1995 — covered in ecology lesson).\n\n**Photosynthesis**:\n- **Oxygenic photosynthesis** — cyanobacteria (the only prokaryotes with both Photosystem I + II + water-splitting); chloroplasts of plants + algae are evolved from a cyanobacterial endosymbiont. Drives ~half of global primary production.\n- **Great Oxidation Event** ~2.4 Gyr ago — cyanobacterial photosynthesis remade Earth's atmosphere, enabled aerobic respiration + complex life.\n- **Anoxygenic photosynthesis** — purple sulfur (*Chromatium*), purple nonsulfur (*Rhodobacter*, *Rhodopseudomonas*), green sulfur (*Chlorobium*), green nonsulfur (*Chloroflexus*), Heliobacteria. Use H₂S, H₂, organic compounds, or reduced sulfur as electron donor — no O₂ produced. Predates oxygenic photosynthesis; survives today in stratified anoxic + sulfidic environments (sulfur springs, anoxic basins).\n- **Rhodopsin-based phototrophy** — proteorhodopsin in marine bacteria (SAR11, SAR86) + halobacterial bacteriorhodopsin (Stoeckenius + Oesterhelt 1971). Light-driven proton pumps; supplement chemoheterotrophic metabolism. Hugely abundant in surface oceans (Beja + DeLong 2000).\n\nThe sheer diversity of bacterial + archaeal metabolism is why microbes drive every biogeochemical cycle + can colonize every habitat — covered in the next lesson on ecology."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_growth_1",
+        "kind": "guided_derivation",
+        "question": "Derive the chemostat steady-state from Monod kinetics",
+        "goal": "Starting from mass balance in a continuous-culture chemostat, show that μ = D + derive steady-state substrate concentration S*.",
+        "steps": [
+          {
+            "prompt": "Write the biomass balance for a chemostat of volume V at dilution rate D = F/V.",
+            "motivation": "In - Out + Generation = Accumulation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "dX/dt = μX - DX"
+              ]
+            },
+            "hints": [
+              "Inflow has X = 0 (sterile feed)."
+            ],
+            "reveal": "Sterile feed → no biomass inflow. Outflow = D·X. Generation = μ·X. So dX/dt = μX - DX = (μ - D)X."
+          },
+          {
+            "prompt": "At steady state dX/dt = 0 + X > 0. What does this imply?",
+            "motivation": "Steady state.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "μ = D"
+              ]
+            },
+            "hints": [
+              "Set equation = 0."
+            ],
+            "reveal": "(μ - D)X = 0 + X > 0 implies μ = D. The culture self-tunes its specific growth rate to match the imposed dilution rate. If D > μ_max → washout (cells leave faster than they grow)."
+          },
+          {
+            "prompt": "Substituting Monod μ = μ_max · S / (K_s + S) = D, solve for steady-state S*.",
+            "motivation": "Substrate concentration is set by D + kinetics.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "S* = K_s · D / (μ_max - D)"
+              ]
+            },
+            "hints": [
+              "Solve μ_max S = D(K_s + S)."
+            ],
+            "reveal": "μ_max · S / (K_s + S) = D ⇒ μ_max · S = D · K_s + D · S ⇒ S(μ_max - D) = D · K_s ⇒ S* = K_s D / (μ_max - D). As D → μ_max, S* → ∞ → washout. As D → 0, S* → 0 (full consumption)."
+          },
+          {
+            "prompt": "Biomass balance on substrate: derive X* at steady state.",
+            "motivation": "Yield links X + S.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "X* = Y_xs · (S₀ - S*)"
+              ]
+            },
+            "hints": [
+              "All consumed substrate becomes biomass times yield."
+            ],
+            "reveal": "Substrate balance at steady state: D · S₀ = D · S* + μ · X / Y_xs. With μ = D, X* = Y_xs · (S₀ - S*). Remarkably, X* depends on S₀ + K_s + D + Y_xs but not on flow rate or volume separately."
+          },
+          {
+            "prompt": "What does the chemostat let you measure that batch can't?",
+            "motivation": "Steady-state physiology.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "μ-dependence of any cellular property; maintenance; evolution experiments"
+              ]
+            },
+            "hints": [
+              "Controlled μ at constant environment."
+            ],
+            "reveal": "Chemostat = constant environment, controlled μ, steady-state physiology. Measure: ribosome content vs μ (growth law); proteome partitioning; transcriptome; mutation rates; long-term adaptive evolution (Lenski + others); maintenance energy at slow μ. Foundation of quantitative microbial physiology."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_growth_1",
+        "kind": "multiple_choice",
+        "question": "Why is Monod's μ = μ_max·S/(K_s+S) the founding law of quantitative microbiology?",
+        "options": [
+          "It's wrong.",
+          "**Monod (1949)** showed that microbial specific growth rate μ saturates hyperbolically with limiting substrate concentration S — formally identical to Michaelis-Menten enzyme kinetics but applied to **whole-cell growth**. The two parameters μ_max + K_s describe how fast an organism can possibly grow + how well it competes at low substrate (its ecological niche). The framework supports: **batch fermentation** modeling; **chemostat theory** (Monod + Novick-Szilard 1950, where steady-state μ = D + S* = K_s·D/(μ_max-D)); **fed-batch optimization** of recombinant-protein production; **microbial-ecology** competition theory (low-K_s organism wins at low S — Tilman R*); **bioprocess control + scale-up**. Combined with the **yield coefficient Y_xs** + **maintenance energy** (Pirt 1965), Monod kinetics underpin essentially all biotechnology + much of microbial ecology. It is the founding bridge between molecular physiology + macroscale population dynamics.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Monod (1949): μ = μ_max · S / (K_s + S). Founding law connecting substrate concentration to whole-cell growth rate. Supports chemostat theory (Monod + Novick-Szilard 1950), bioprocess engineering, microbial ecology, competition theory. Parameters μ_max + K_s define a microbe's growth strategy + niche."
+      },
+      "hints": [
+        "Saturating substrate dependence.",
+        "Bridges molecules + populations."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Monod (1949) μ = μ_max·S/(K_s+S) — hyperbolic saturation of growth rate with substrate, analogous to Michaelis-Menten. Parameters μ_max + K_s define competitiveness. Underlies chemostat theory, bioprocess engineering + microbial ecology competition theory. Founding bridge from molecular physiology to population dynamics."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_growth_1",
+        "kind": "scenario",
+        "question": "Process-engineering optimization",
+        "prompt": "You are tasked with scaling up production of a recombinant human protein in *E. coli* from shake flask (10 mL) to 1000 L stirred-tank bioreactor. Outline: (1) why fed-batch beats batch + continuous for high-cell-density protein production; (2) the role of acetate overflow + how to control it via glucose feed; (3) O₂ transfer (kLa) limits at scale + foam control; (4) IPTG induction strategy + temperature shift. Reference Monod kinetics + maintenance metabolism (Pirt). What's the biological reason yields drop at very high cell density (>100 g/L)?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_growth_1",
+        "kind": "math_expression",
+        "question": "Write Monod's growth-rate equation as a function of limiting substrate S.",
+        "acceptedAnswers": [
+          "μ = μ_max · S / (K_s + S)",
+          "mu = mu_max * S / (K_s + S)",
+          "μ = μ_max S/(K_s+S)"
+        ],
+        "hint": "Hyperbolic saturation; analogous to Michaelis-Menten."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_growth_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain bacterial growth phases + the diversity of metabolic strategies.",
+        "rubric": "Mentions: growth curve — lag (adaptation, transcriptome reprogramming), exponential (balanced growth at μ_max, doubling time τ_d; E. coli ~20 min, M. tuberculosis ~24 h), stationary (nutrient depletion, σ^S, stress response), death + cryptic growth, VBNC (Vibrio, Helicobacter), persister cells (Lewis lab, antibiotic tolerance not resistance). Kinetics: Monod μ = μ_max·S/(K_s+S) (1949); chemostat steady-state μ = D, S* = K_s·D/(μ_max-D); yield coefficient Y_xs + maintenance (Pirt). Metabolic modes: heterotrophy (aerobic respiration ~30 ATP/glucose, fermentation ~2); fermentation types (lactic, alcoholic, mixed acid Pasteur); anaerobic respiration (denitrification, sulfate reduction, methanogenesis, metal respiration Geobacter); chemolithotrophy (Beggiatoa, nitrifiers — Winogradsky); photosynthesis (cyanobacteria oxygenic + GOE, anoxygenic purple/green sulfur, proteorhodopsin marine). Concludes: bacteria + archaea exploit virtually every redox couple on Earth — the basis of biogeochemistry + biotechnology."
+      }
+    }
+  ]
+}

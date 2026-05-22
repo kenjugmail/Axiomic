@@ -1,0 +1,156 @@
+{
+  "slug": "perception-and-sensors",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Choose appropriate sensors for proprioception and exteroception.",
+      "Apply Kalman/EKF/particle filters and factor graphs for state estimation.",
+      "Compare SLAM approaches from EKF-SLAM to ORB-SLAM, VINS, LOAM."
+    ],
+    "prereqs": [
+      "robotics-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Sensors: proprioception and exteroception",
+      "body": "A robot's perception stack starts with sensors. Choosing them is a tradeoff of bandwidth, accuracy, cost, weight, and robustness.\n\n**Proprioception** — internal state.\n- **Joint encoders**: incremental (relative; quadrature A/B) or absolute (Gray code, SSI, BiSS, EnDat). Modern arms use 17- to 25-bit absolute encoders for sub-arc-second resolution. Critical for closed-loop position control.\n- **IMU (inertial measurement unit)**: 3-axis accelerometer + 3-axis gyroscope (and often magnetometer). MEMS IMUs (Bosch BMI, Analog Devices, Invensense) cost a few dollars; fiber-optic + ring-laser gyros (KVH, Honeywell) for aerospace. Gyroscope bias drift → integrated heading drifts → must be fused with vision or magnetometer.\n- **Force/torque sensors**: 6-axis F/T at the wrist (ATI, Robotiq) for impedance control + assembly; joint torque sensors (Kuka iiwa, Franka strain-gauge) for whole-body force feedback.\n- **Motor current**: indirect torque estimate via i_q in field-oriented BLDC control. Cheap but noisy.\n\n**Exteroception** — external world.\n- **Cameras**: ubiquitous, cheap, high information density. RGB at 30-120 Hz; global shutter (CMOS, OnSemi/Sony) for fast motion; rolling shutter cheaper but distortion.\n- **Stereo + RGB-D**: depth from disparity (ZED, Intel D435) or active IR pattern (Microsoft Kinect v1 PrimeSense 2010; v2 ToF 2014; Intel RealSense D-series); also Kinect Azure. Depth accuracy ~mm at <1 m, degrades with distance.\n- **LIDAR**: time-of-flight laser ranging. **Velodyne HDL-64** ($75k, 64 beams, 360°) — Stanley + 2005 DARPA Grand Challenge winner; revolutionized autonomous vehicles. **Ouster** (digital lidar, OS series); **Hesai**, **Luminar**, **Innoviz** (auto). Solid-state lidars (no rotating mirrors) cheaper + smaller.\n- **Event cameras (DVS/DAVIS, Prophesee, iniVation)**: per-pixel asynchronous brightness-change events. μs latency, huge dynamic range (>120 dB), low data rate. Used in HDR / high-speed / low-power scenarios.\n- **Radar**: mm-wave (77 GHz auto) penetrates fog/rain; lower angular resolution than LIDAR. Tesla famously dropped radar; most automakers retain it.\n- **Ultrasonic**: cheap, short-range (parking sensors).\n- **Tactile sensors**: skin-like.\n  - **BioTac (SynTouch)**: fluid-filled + impedance sensing + temperature; classic for grip control.\n  - **GelSight (Adelson + MIT 2009)**: gel + camera = high-resolution surface imprint; revolutionary for tactile sensing.\n  - **DIGIT (Lambeta + Meta 2020)**: open-source GelSight variant.\n  - **Capacitive arrays** (Pressure Profile Systems, Tekscan): mat sensors for gripping pressure.\n- **GPS / GNSS**: meter-level outdoors; RTK + PPP for cm-level. Useless indoors.\n\n**Sensor fusion** is mandatory — no single sensor gives complete state. Cameras lack scale; LIDAR is sparse; IMUs drift; GPS is multipath-prone. The next slide covers how to fuse them."
+    },
+    {
+      "kind": "text",
+      "title": "State estimation: Kalman, EKF, particle filter, factor graphs",
+      "body": "**Bayesian filtering** is the unifying framework. State x_t evolves x_t = f(x_{t-1}, u_t) + w (process noise); we observe z_t = h(x_t) + v (measurement noise). Compute posterior p(x_t | z_{1:t}).\n\n**Kalman filter (Rudolf E. Kálmán, 1960)**: optimal Bayesian filter for linear-Gaussian systems.\n- **Predict**: x̂⁻ = F x̂ + B u; P⁻ = F P Fᵀ + Q.\n- **Update**: K = P⁻ Hᵀ (H P⁻ Hᵀ + R)⁻¹; x̂ = x̂⁻ + K(z − H x̂⁻); P = (I − KH) P⁻.\n- Kalman gain K balances prior + measurement precision. The single most important estimation algorithm in engineering — used in Apollo guidance, GPS receivers, every modern navigation system.\n\n**Extended Kalman filter (EKF)**: linearize f, h around current estimate.\n- F = ∂f/∂x, H = ∂h/∂x at x̂.\n- Same recursion. Works when nonlinearity is mild; fails when distribution is strongly non-Gaussian or linearization bad.\n- Workhorse of robotics localization + SLAM for 30 years.\n\n**Unscented Kalman filter (Julier + Uhlmann 1997)**: propagate sigma points through nonlinear f, h; recompute mean + covariance. Better than EKF for moderate nonlinearity, no Jacobians needed.\n\n**Particle filter (Sequential Monte Carlo)**: represent posterior with N weighted samples (particles). Predict: propagate each through f + noise. Update: reweight by p(z | x). Resample to avoid degeneracy.\n- Handles arbitrary nonlinear non-Gaussian. Curse of dimensionality (need exponentially many particles in high dim).\n- **Monte Carlo Localization (Dellaert + Fox + Burgard + Thrun 1999)**: particle filter for robot localization on a known map; still standard in ROS (AMCL).\n- **Rao-Blackwellized particle filter**: marginalize linear-Gaussian parts; basis of **FastSLAM** (Montemerlo + Thrun 2002).\n\n**Factor graphs (Kaess + Dellaert + Ranganathan; Frank Dellaert lineage)**: represent the estimation problem as a bipartite graph of variables (poses, landmarks) + factors (sensor measurements + motion + priors). Sparse, modular, supports nonlinear least squares solved via Gauss-Newton or Levenberg-Marquardt.\n- **GTSAM (Dellaert, Georgia Tech)**, **g2o (Kümmerle), Ceres (Google), iSAM/iSAM2 (Kaess)** — the canonical libraries.\n- Underlies modern SLAM, visual-inertial odometry, multi-robot estimation, calibration. Sliding-window + incremental smoothing (iSAM2) trade real-time + accuracy.\n\n**Smoothing vs filtering**: filtering uses past + present; smoothing uses past + present + future (offline) or sliding-window (online). Modern systems use **fixed-lag smoothing** for the best of both.\n\n**Sensor calibration**: intrinsics (camera matrix K, distortion), extrinsics (sensor → body transform). Hand-eye calibration (Tsai-Lenz 1989), kalibr for camera-IMU. All estimation downstream depends on it."
+    },
+    {
+      "kind": "text",
+      "title": "SLAM: from EKF-SLAM to ORB-SLAM, VINS, LOAM",
+      "body": "**Simultaneous Localization and Mapping (SLAM)**: estimate both robot pose and a map of the environment simultaneously. The chicken-and-egg problem: localize against a map you're building.\n\n**Foundations**:\n- **Smith + Self + Cheeseman (1990)**: \"Estimating uncertain spatial relationships in robotics\" — introduced the EKF-SLAM framework, modeling robot + landmarks in a joint Gaussian.\n- The realization that **correlations between landmarks** must be tracked.\n\n**EKF-SLAM** (1990s-2000s):\n- State = (robot pose, all landmark positions); full covariance.\n- O(n²) update — doesn't scale beyond ~1000 landmarks.\n- Linearization errors accumulate; inconsistency a known problem.\n\n**Particle filter SLAM**:\n- **FastSLAM (Montemerlo + Thrun 2002)**: Rao-Blackwellized; each particle has its own map; O(N log M).\n- **GMapping (Grisetti + Stachniss + Burgard 2007)**: 2D occupancy grid SLAM with laser scanner; long the default in ROS for indoor mobile robots.\n\n**Graph-based SLAM** (the modern paradigm):\n- Pose graph: nodes = robot poses, edges = relative-motion factors (odometry, loop closures).\n- Optimize globally via nonlinear least squares (Lu + Milios 1997; **g2o (Kümmerle 2011)**; iSAM, GTSAM).\n- **Loop closure** = recognize a previously visited place; the critical missing ingredient that bounds drift.\n\n**Visual SLAM**:\n- **MonoSLAM (Davison 2003)**: real-time monocular EKF-SLAM.\n- **PTAM (Klein + Murray 2007)**: parallel tracking + mapping (separate threads); bundle adjustment in the map thread. Inspired everything since.\n- **ORB-SLAM / ORB-SLAM2 / ORB-SLAM3 (Mur-Artal + Tardós 2015-2020)**: ORB feature-based; loop closure + relocalization + bundle adjustment; mono/stereo/RGB-D/VI. The de facto open-source visual SLAM.\n- **LSD-SLAM (Engel + Schöps + Cremers 2014)**: direct (photometric) instead of feature-based; semi-dense.\n- **DSO (Engel + Koltun + Cremers 2018)**: direct sparse odometry; state-of-the-art visual odometry.\n- **DROID-SLAM (Teed + Deng 2021)**: deep learning + bundle adjustment; SOTA on TUM, EuRoC.\n\n**Visual-inertial odometry/SLAM (VIO/VI-SLAM)**: fuse camera + IMU.\n- **MSCKF (Mourikis + Roumeliotis 2007)**: multi-state-constraint Kalman filter. Used in Skydio drones, Apple ARKit.\n- **OKVIS (Leutenegger 2015)**: optimization-based VI.\n- **VINS-Mono (Qin + Shen 2018)**: monocular VI with loop closure; open-source benchmark.\n- **ROVIO (Bloesch 2015)**: tightly-coupled iterated EKF.\n- **Maplab, Kimera (Rosinol + Carlone 2020)**, **OKVIS2**: modern stacks combine VIO + dense mapping + semantics.\n\n**Multi-camera + omni-directional**: more redundancy + larger FOV; trade computation.\n\n**LIDAR SLAM**:\n- **ICP (Besl + McKay 1992)**: iterative closest point — point cloud registration. Foundation of LIDAR odometry.\n- **NDT (Biber + Strasser 2003)**: normal distributions transform; robust scan matching.\n- **LOAM (Zhang + Singh 2014, CMU)**: LIDAR odometry + mapping; edge + planar features; the standard. Two threads: fast odometry, accurate mapping.\n- **LeGO-LOAM (Shan + Englot 2018)**: lightweight; ground segmentation.\n- **LIO-SAM / LIO-mapping**: tight LIDAR-IMU coupling; factor-graph optimization.\n- **Cartographer (Google 2016)**: real-time 2D/3D SLAM with branch-and-bound loop closure.\n- **FAST-LIO2 (Xu + Cai + Zhang 2022)**: iterated EKF; very fast; widely used on drones/quadrupeds.\n\n**Dense reconstruction**: KinectFusion (Newcombe 2011), DynamicFusion (Newcombe 2015), BundleFusion (Dai 2017), NeRF-based SLAM (iMAP, NICE-SLAM, Co-SLAM 2023), 3D Gaussian Splatting SLAM (2024).\n\n**Place recognition**: bag-of-words (DBoW2/3, Mur-Artal), NetVLAD (Arandjelović 2016), AnyLoc 2023. Loop closure detection without GPS.\n\nModern stacks combine VIO + LIDAR + GPS in factor graphs for robust outdoor autonomy."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_perc_kalman",
+        "kind": "guided_derivation",
+        "question": "Derive the scalar Kalman filter update",
+        "goal": "Prior: x ~ N(μ⁻, σ²⁻). Measurement: z = x + v, v ~ N(0, R). Posterior?",
+        "steps": [
+          {
+            "prompt": "Write Bayes' rule + identify the posterior as Gaussian.",
+            "motivation": "Conjugacy.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "p(x|z) ∝ N(z; x, R) N(x; μ⁻, σ²⁻) = Gaussian with parameters from completing the square"
+              ]
+            },
+            "hints": [
+              "Product of two Gaussians is Gaussian."
+            ],
+            "reveal": "p(x|z) ∝ exp(−½(z−x)²/R) · exp(−½(x−μ⁻)²/σ²⁻). Sum of two quadratics in x → another quadratic → Gaussian posterior."
+          },
+          {
+            "prompt": "Complete the square: posterior precision = sum of precisions.",
+            "motivation": "Algebra.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1/σ²⁺ = 1/σ²⁻ + 1/R",
+                "σ⁺² = (σ⁻² R)/(σ⁻² + R)"
+              ]
+            },
+            "hints": [
+              "Precision = 1/variance."
+            ],
+            "reveal": "σ⁺² = σ⁻² R / (σ⁻² + R) (harmonic mean of variances). Or: 1/σ⁺² = 1/σ⁻² + 1/R. The fundamental fact: information adds."
+          },
+          {
+            "prompt": "Posterior mean (Kalman gain form).",
+            "motivation": "Linear combo.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "μ⁺ = μ⁻ + K(z − μ⁻) with K = σ²⁻ / (σ²⁻ + R)",
+                "K = σ²⁻/(σ²⁻ + R)"
+              ]
+            },
+            "hints": [
+              "Innovation = z − μ⁻."
+            ],
+            "reveal": "μ⁺ = μ⁻ + K(z − μ⁻); K = σ⁻²/(σ⁻² + R). When R small (precise measurement) K → 1 (trust z). When σ⁻² small (precise prior) K → 0 (ignore z). The Kalman gain is the canonical Bayesian balancing act."
+          },
+          {
+            "prompt": "Why does the multivariate EKF fail when nonlinearity is strong?",
+            "motivation": "Limitation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "linearizes f, h around current estimate; if estimate is wrong, linearization is wrong; bias accumulates; covariance underestimates uncertainty"
+              ]
+            },
+            "hints": [
+              "First-order Taylor."
+            ],
+            "reveal": "EKF linearizes f, h with first-order Taylor around current estimate. If estimate is far from truth (large bearing/range errors, sharp turns, kidnapped robot) linearization mis-represents the geometry → bias, overconfident covariance → filter inconsistency. Remedies: UKF (sigma points), particle filter, iterated EKF, factor-graph smoothing — all gain accuracy at compute cost."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\mu^+ = \\mu^- + K(z - \\mu^-),\\;\\; K = \\sigma^{-2}/(\\sigma^{-2} + R),\\;\\; 1/\\sigma^{+2} = 1/\\sigma^{-2} + 1/R}$$ The Kalman filter is the optimal linear-Gaussian Bayes recursion. EKF generalizes via linearization; UKF + particle filters + factor graphs go further when needed. This logic underlies every modern robot's localization."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_perc_slam",
+        "kind": "multiple_choice",
+        "question": "Why is loop closure the key ingredient that makes SLAM work over large environments?",
+        "options": [
+          "Random.",
+          "Without loop closure, errors in odometry (visual, inertial, wheel) accumulate unboundedly — a trajectory that should be a closed loop appears as an open spiral. Loop closure detects \"I've been here before\" (place recognition via bag-of-words, NetVLAD, or geometric matching) and adds a constraint to the factor graph that the current pose equals a past pose. Global graph optimization (g2o, GTSAM, iSAM2) then redistributes accumulated error along the entire trajectory, snapping the map back into consistency. Loop closures convert SLAM from \"drift forever\" to \"globally consistent map.\"",
+          "Magic.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Loop closure bounds drift. Place recognition (DBoW, NetVLAD) provides the data association; graph optimization (g2o, GTSAM, iSAM2) redistributes the error globally. Without it SLAM is just odometry."
+      },
+      "hints": [
+        "Drift bounding.",
+        "Re-recognize a place."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Loop closure detection (bag-of-words / NetVLAD / geometric match) adds long-distance constraints in the factor graph; global optimization snaps drift away. ORB-SLAM, VINS-Fusion, Kimera, Cartographer all do this. Without loop closure, SLAM = odometry = unbounded drift."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_perc_robust",
+        "kind": "scenario",
+        "question": "Sensor fusion for autonomous driving",
+        "prompt": "Design a state estimation stack for an autonomous car in city driving. You have: GPS (10 Hz, m-level, multipath in urban canyons), IMU (200 Hz, drift), wheel encoders (50 Hz, slippage), front + side cameras (30 Hz), 64-beam LIDAR (10 Hz), HD map. Specify which sensors go into which estimator (EKF? factor graph?), how loop closure is handled (HD-map relocalization? visual place recognition?), and how the system handles GPS outages, tunnel passages, and a corrupted IMU."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_perc_gain",
+        "kind": "math_expression",
+        "question": "Kalman filter scalar update: prior σ⁻² = 4, measurement noise R = 1. What is the Kalman gain K?",
+        "acceptedAnswers": [
+          "0.8",
+          "4/5",
+          "K = 4/(4+1) = 0.8"
+        ],
+        "hint": "K = σ⁻² / (σ⁻² + R)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_perc",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain the modern perception + state-estimation stack for a mobile robot: from raw sensor data to a globally-consistent map and pose.",
+        "rubric": "Mentions raw sensors (camera, IMU, LIDAR, GPS, wheel encoders, F/T, tactile) → calibration (intrinsics + extrinsics) → low-level features (visual: ORB/SIFT/learned features; LIDAR: edge + planar features as in LOAM) → odometry (visual-inertial odometry as in VINS-Mono, OKVIS, MSCKF; LIDAR-inertial as in LIO-SAM, FAST-LIO) → SLAM with loop closure (place recognition via DBoW, NetVLAD; global graph optimization via g2o/GTSAM/iSAM2) → optionally dense mapping (KinectFusion, NeRF-based, 3D Gaussian Splatting). Notes Smith-Self-Cheeseman 1990 as origin, EKF-SLAM as first paradigm, factor graphs as the modern unifying framework, and modern tightly-coupled multimodal fusion as the state of the art. Concludes that perception is computationally expensive but solved well enough to run at 30-1000 Hz on edge GPUs for self-driving, drones, and quadrupeds."
+      }
+    }
+  ]
+}

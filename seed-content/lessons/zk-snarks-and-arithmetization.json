@@ -1,0 +1,159 @@
+{
+  "slug": "zk-snarks-and-arithmetization",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Define SNARK and trace Pinocchio → Groth16 → PLONK lineage with their trusted-setup trade-offs.",
+      "Distinguish arithmetization formats: R1CS, QAP, AIR, Plonkish, Halo2, ACIR.",
+      "Compare polynomial commitment schemes: KZG, FRI, IPA/Bulletproofs."
+    ],
+    "prereqs": [
+      "commitments-and-sigma-protocols",
+      "elliptic-curves-and-pairings"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "SNARK = Succinct Non-interactive ARgument of Knowledge: Pinocchio → Groth16 → PLONK",
+      "body": "A **SNARK** is a proof system with:\n\n- **Succinct**: proof size + verification time are sub-linear (ideally polylog) in the size of the computation being verified.\n- **Non-interactive**: a single message from prover to verifier (after one-time setup).\n- **ARgument**: computationally sound (vs perfectly sound; trades infeasibility for efficiency).\n- **of Knowledge**: prover must know a witness — extractor can recover it.\n\nA **zk-SNARK** adds zero-knowledge: the proof leaks nothing about the witness.\n\n**Lineage**:\n\n**(1) Pinocchio (Parno, Howell, Raykova, Gentry 2013)** — first practical zk-SNARK. Built on QAPs (Gennaro-Gentry-Parno-Raykova 2013). Proof ~288 bytes, verification ~10 ms. Per-circuit trusted setup.\n\n**(2) Groth16 (Jens Groth 2016)** — the most succinct SNARK to date. Proof = **3 elliptic-curve points** (~200 bytes); verification = 3 pairings. Per-circuit trusted setup (powers-of-tau + circuit-specific). Powered **Zcash Sapling (2018)**, Tornado Cash, Filecoin. Limitation: setup must redo for every circuit.\n\nUse the visualization below to explore proof generation + verification for Groth16 with a 1024-constraint circuit.\n\n**(3) Sonic (Maller-Bowe-Kohlweiss-Meiklejohn 2019)** — first **universal + updatable** trusted setup (one setup serves all circuits up to bounded size). Inspired PLONK + Marlin.\n\n**(4) PLONK (Gabizon, Williamson, Ciobotaru 2019)** — *Permutations over Lagrange-bases for Oecumenical Non-interactive arguments of Knowledge*. Universal setup, KZG polynomial commitments, custom-gate-friendly arithmetization (Plonkish). The dominant modern SNARK. Variants: **TurboPLONK, UltraPLONK, plookup, HyperPlonk**.\n\n**(5) Marlin (Chiesa-Hu-Maller-Mishra-Vesely 2020)** — universal SNARK with KZG commitments. Mary Maller + Pratyush Vesely are key authors.\n\n**(6) Halo (Bowe-Grigg-Hopwood 2019)** + **Halo2 (Zcash 2020)** — IPA-based, **no trusted setup**, recursion via nested proofs. Powers Zcash Orchard + many Ethereum L2s.\n\n**Trusted vs transparent setup**:\n\n- **Per-circuit trusted setup**: Groth16. Must redo per circuit. Lowest proof + verification cost.\n- **Universal trusted setup**: PLONK, Marlin. One setup serves all circuits ≤ size N.\n- **Transparent setup (no toxic waste)**: STARKs, Halo2, Bulletproofs. Stronger trust model; larger proofs.\n\n**Powers of Tau ceremonies**: thousands of participants each contribute randomness; security if ≥1 honest. Zcash, Filecoin, Ethereum KZG ceremonies have each had >100K participants.",
+      "viz": "zk-proof-verification",
+      "vizProps": {
+        "scheme": "groth16",
+        "circuitSize": 1024
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Arithmetization: R1CS, QAP, AIR, Plonkish, Halo2 circuits, ACIR",
+      "body": "**Arithmetization** = encode a computation as a system of polynomial equations over a finite field. The prover proves they know a satisfying assignment.\n\n**(1) R1CS — Rank-1 Constraint System**: a set of equations of the form (a · z)(b · z) = (c · z), where z is the witness vector + a, b, c are constant vectors. Each equation is **one multiplication** + arbitrary linear combinations. Foundation of Pinocchio, Groth16, Spartan. Compilers (circom, ZoKrates, snarkjs) emit R1CS from high-level code.\n\n**(2) QAP — Quadratic Arithmetic Program**: turn R1CS into polynomial form. For m constraints, define polynomials A_i(X), B_i(X), C_i(X) interpolating a_i, b_i, c_i values at m points. R1CS satisfaction ⟺ polynomial divisibility: (Σ z_i A_i)(Σ z_i B_i) − (Σ z_i C_i) = h(X) · t(X), where t(X) vanishes on the constraint points. Used in Groth16.\n\n**(3) AIR — Algebraic Intermediate Representation**: STARK arithmetization. Computation = sequence of state transitions; AIR specifies transition + boundary constraints as low-degree polynomials over an execution trace. Used in StarkWare's Cairo, RISC Zero, Boojum, Polygon zkEVM.\n\n**(4) Plonkish**: PLONK's arithmetization. Witness arranged as a table (rows = gates, columns = wire values); constraints are polynomial identities on columns + permutation arguments link copies of the same wire. Supports **custom gates** + **lookups (plookup, halo2-lookup, lasso)** for efficient operations (range checks, XOR tables, elliptic-curve ops). Dominant modern format.\n\n**(5) Halo2 circuits**: Zcash's Plonkish variant. Configurable advice/instance/selector columns, lookups, gate composition. Powers Zcash Orchard, Scroll, Taiko.\n\n**(6) ACIR — Abstract Circuit IR**: Aztec's Noir language IR. Backend-agnostic — compile once, target Barretenberg (UltraPLONK), Halo2, or generic backends.\n\n**Compilers + tooling**:\n- **circom** (iden3): R1CS for Groth16/PLONK.\n- **ZoKrates**: high-level → R1CS or Marlin.\n- **Cairo** (StarkWare): for STARKs / AIR.\n- **Noir** (Aztec): ACIR + multiple backends.\n- **Leo, Halo2-DSL, snarkVM**: Aleo's privacy-preserving smart contracts.\n- **Lurk, Plonky2/3** (Mir, Polygon): newer recursive provers.\n\n**Witness encoding** — the gulf between high-level code + R1CS is significant; quadratic blowup in constraint count for many ops (hashes, ECC) is the bottleneck. Optimizations: lookup arguments, custom gates, MSM-friendly fields."
+    },
+    {
+      "kind": "text",
+      "title": "Polynomial commitments: KZG, FRI, IPA, Bulletproofs",
+      "body": "A **polynomial commitment scheme** lets a prover commit to a polynomial p(X), later open p(z) = y at chosen points z with a short proof. The foundation of every modern SNARK.\n\n**(1) KZG (Kate-Zaverucha-Goldberg 2010)** — pairing-based. Setup: trusted ceremony produces ([1]₁, [τ]₁, [τ²]₁, ..., [τ^N]₁) for secret τ. Commitment to p(X) of degree ≤ N: C = [p(τ)]₁. Opening at z: witness π = [(p(X) − p(z))/(X − z)]₁. Verify via pairing equation e(C − [y]₁, g₂) = e(π, [τ − z]₂).\n\n- **Pros**: **constant-size** commitment (1 group element) + opening (1 element). Verifier O(1).\n- **Cons**: trusted setup, pairings (not post-quantum), bounded degree.\n- **Used in**: PLONK, Marlin, Groth16 (with QAP), EIP-4844 'blob' transactions, Ethereum Verkle trees (planned).\n\n**(2) FRI — Fast Reed-Solomon IOP of Proximity (Ben-Sasson-Bentov-Horesh-Riabzev 2018)** — hash-based. Tests that a function f is close to a low-degree polynomial via recursive folding: at each round, fold f(X) + f(-X) using a random challenge; ends in a single value. Verifier checks a logarithmic number of Merkle openings.\n\n- **Pros**: **transparent setup** (no toxic waste), post-quantum (only hash + field assumptions), recursive-friendly.\n- **Cons**: larger proofs (~100 KB), more verifier work (~log²).\n- **Used in**: STARKs, RISC Zero, StarkWare, Plonky2/3 (Polygon), Boojum.\n\n**(3) IPA — Inner Product Argument**: based on **Bulletproofs (Bünz et al. 2017)** — Pedersen commitments + recursive log-folding. Commit to vector v as C = Σ v_i G_i + r H. Prove inner product ⟨v, w⟩ = y by log-folding.\n\n- **Pros**: transparent, no pairings, small commitments.\n- **Cons**: linear verifier time (no succinctness in verification).\n- **Used in**: Halo2 (Zcash), Bulletproofs (Monero range proofs), Spartan.\n\n**(4) Bulletproofs (Bünz, Bootle, Boneh, Poelstra, Maxwell 2017)**: a complete proof system on top of IPA. Specialized for range proofs (Monero confidential transactions).\n\n**Comparison**:\n\n| Scheme | Setup | Proof | Verif | PQ? |\n|---|---|---|---|---|\n| KZG | Trusted | O(1) | O(1) | No |\n| FRI | Transparent | O(log²) | O(log²) | Yes |\n| IPA | Transparent | O(log) | O(n) | No |\n\n**Modern hybrid**: many systems compose schemes — e.g., Halo2 uses IPA for transparency; PLONK uses KZG for succinctness; Plonky2 uses FRI for post-quantum + recursion-friendliness.\n\n**Folding schemes** (Nova 2021, ProtoStar 2023) extend polynomial commitments for **incrementally verifiable computation** — accumulate proofs over many steps without growing proof size. The frontier of recursive proving."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_snark_r1cs",
+        "kind": "guided_derivation",
+        "question": "Arithmetize y = x³ + x + 5 into R1CS",
+        "goal": "Express the cubic computation as a Rank-1 Constraint System ((a · z)(b · z) = (c · z)).",
+        "steps": [
+          {
+            "prompt": "Decompose y = x³ + x + 5 into elementary multiplications.",
+            "motivation": "Each R1CS row = one multiplication.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "x2 = x*x; x3 = x2 * x; y = x3 + x + 5"
+              ]
+            },
+            "hints": [
+              "Two multiplications + one linear combination."
+            ],
+            "reveal": "Decompose into: (1) x₂ = x · x; (2) x₃ = x₂ · x; (3) y = x₃ + x + 5. The final step is linear, not a multiplication."
+          },
+          {
+            "prompt": "Define the witness vector z.",
+            "motivation": "Witness layout.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "z = (1, x, x2, x3, y) or similar"
+              ]
+            },
+            "hints": [
+              "Include constant 1, all intermediate wires."
+            ],
+            "reveal": "Witness z = (1, x, x₂, x₃, y). Index 0 = constant 1; remaining = wires. Public input: y. Private witness: x, x₂, x₃."
+          },
+          {
+            "prompt": "Write the R1CS constraint for x₂ = x · x.",
+            "motivation": "First constraint.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(0,1,0,0,0) * (0,1,0,0,0) = (0,0,1,0,0)"
+              ]
+            },
+            "hints": [
+              "a · z = x; b · z = x; c · z = x₂."
+            ],
+            "reveal": "Row 1: a = (0,1,0,0,0), b = (0,1,0,0,0), c = (0,0,1,0,0). Then (a·z)(b·z) = x · x = x₂ = c·z. ✓"
+          },
+          {
+            "prompt": "Write the constraint for the linear y = x₃ + x + 5.",
+            "motivation": "Encode linear as multiplication by 1.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "(0,1,0,1,0) + (5,0,0,0,0) = (0,0,0,0,1); enforce via (a)*1 = c"
+              ]
+            },
+            "hints": [
+              "Multiply by constant 1 from index 0."
+            ],
+            "reveal": "Linear constraint via (a)(1) = c: a = (5, 1, 0, 1, 0) (= 5 + x + x₃), b = (1, 0, 0, 0, 0) (= 1), c = (0, 0, 0, 0, 1) (= y). Each linear constraint costs 1 R1CS row. Total: 3 constraints for this circuit. Modern compilers (circom) automate this."
+          }
+        ],
+        "finalResult": "y = x³ + x + 5 arithmetizes to 3 R1CS rows. QAP transforms this into polynomial-divisibility check over a finite field; Groth16 then proves this in ~200 bytes. For large circuits (e.g., hash function), R1CS row count drives prover cost — main bottleneck of modern SNARKs."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_snark_kzg_vs_fri",
+        "kind": "multiple_choice",
+        "question": "What is the key trade-off between KZG and FRI polynomial commitments?",
+        "options": [
+          "KZG is faster, FRI is slower — no other differences.",
+          "KZG has constant-size proofs + O(1) verification but requires a trusted setup and is not post-quantum (uses pairings); FRI has transparent setup + is post-quantum but produces larger O(log²) proofs and slower verification.",
+          "Both are identical in performance.",
+          "FRI uses lattices."
+        ],
+        "correctIndex": 1,
+        "explanation": "**KZG (Kate-Zaverucha-Goldberg 2010)**: constant-size commitments + 1-element opening proofs verified via 1 pairing. **Requires trusted setup** (toxic waste τ) + relies on pairing-friendly curves → NOT post-quantum. **FRI (Ben-Sasson-Bentov-Horesh-Riabzev 2018)**: transparent (only hashes), post-quantum, but produces O(log²) proofs (~100 KB) + O(log²) verification. Trade-off: KZG for short proofs in trusted-setup OK environments (PLONK, Groth16, Ethereum 4844 blobs); FRI for transparency + post-quantum (STARKs, RISC Zero, Plonky2)."
+      },
+      "hints": [
+        "Setup model + post-quantum + proof size."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "KZG: trusted setup, pairings (not PQ), O(1) proof + verif. FRI: transparent, hash-based (PQ), O(log²) proof + verif. Choice depends on application: KZG for short proofs (PLONK, Groth16); FRI for transparency + PQ (STARKs)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_snark_choice",
+        "kind": "scenario",
+        "question": "Choose a SNARK system for a use case",
+        "prompt": "You're designing (a) a one-shot proof system for a fixed Merkle-tree-inclusion circuit deployed on Ethereum, (b) a universal rollup that must support many evolving circuits, (c) a post-quantum-safe identity system. Recommend Groth16, PLONK, or STARK for each + justify."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_snark_groth16",
+        "kind": "math_expression",
+        "question": "Groth16 proof size: how many group elements?",
+        "acceptedAnswers": [
+          "3",
+          "three",
+          "3 group elements"
+        ],
+        "hint": "Two G₁ points + one G₂ point."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "eb_snark",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain the three-layer architecture of a modern SNARK: arithmetization (R1CS/AIR/Plonkish) → polynomial encoding → polynomial commitment. Why this layering, and how does it affect proof size, prover cost, and setup requirements?",
+        "rubric": "Mentions: arithmetization encodes computation as polynomial equations (R1CS, QAP, AIR, Plonkish). Polynomial encoding (QAP, AIR) turns constraints into polynomial-divisibility checks. Polynomial commitment scheme (KZG, FRI, IPA) lets prover commit to + open polynomials succinctly. Layering enables mix-and-match: PLONK = Plonkish + KZG; STARK = AIR + FRI; Halo2 = Plonkish + IPA. Affects proof size (KZG O(1), FRI O(log²), IPA O(log)), verifier cost, and setup (KZG trusted; FRI/IPA transparent). Pinocchio 2013 → Groth16 2016 → PLONK 2019 → Halo2/Plonky2 today. Parno, Howell, Raykova, Gentry, Groth, Maller, Bowe, Kate-Zaverucha-Goldberg, Ben-Sasson, Riabzev all key contributors."
+      }
+    }
+  ]
+}

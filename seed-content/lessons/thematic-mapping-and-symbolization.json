@@ -1,0 +1,158 @@
+{
+  "slug": "thematic-mapping-and-symbolization",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Survey thematic-map types (choropleth, proportional, dot, cartogram, flow).",
+      "Choose classification + color schemes using Jenks, Brewer ColorBrewer + Bertin's visual variables.",
+      "Avoid MAUP + ecological fallacy in thematic mapping."
+    ],
+    "prereqs": [
+      "cartography-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Thematic-map types — choropleth, proportional, dot, isarithm, flow, cartogram",
+      "body": "Thematic cartography represents a **theme** — a phenomenon's spatial distribution — beyond the reference base map. The genre is the home of public-health, election, climate, demography, + economic visualization.\n\n**Types of thematic maps**:\n\n**Choropleth (classed vs. unclassed)**:\n- Enumeration units (countries, states, counties, census tracts) shaded by a value (rate, density, percentage).\n- **Classed**: data binned into 5-9 classes; ColorBrewer sequential or diverging palette.\n- **Unclassed**: continuous color ramp; Tobler-style.\n- **Critical rule**: choropleth should use **rates, ratios, or percentages** — never raw counts — because units have different sizes. A choropleth of 'total COVID cases by state' is dominated by California + Texas because they're big; rates per 100000 reveal the actual spatial pattern.\n- Examples: U.S. election maps (red/blue by county); WHO mortality maps; FBI crime rates by city.\n\n**Proportional + graduated symbols**:\n- Circles, squares, or pictograms sized proportionally to magnitude. **Flannery (1971) scaling** corrects for human perceptual under-estimation of circle areas (use $r \\propto V^{0.57}$).\n- Used for absolute counts at point locations (city populations, earthquake magnitudes).\n- Avoids the rate-vs-count problem of choropleths.\n\n**Dot density**:\n- One dot represents N events; place randomly within the enumeration unit.\n- **John Snow's 1854 cholera map** is the founding example: deaths as dots clustered around the Broad Street pump.\n- Modern dot-density maps of population (e.g., the 2010 racial dot map by the University of Virginia) show spatial pattern at sub-unit resolution.\n\n**Isarithmic + isopleth**:\n- Contour lines connecting equal values (isotherms, isobars, isohyets, isodepths).\n- Distinguishes **isometric** (true point measurements: temperature, elevation) from **isopleth** (derived densities: population per area).\n\n**Flow + ribbon maps**:\n- Lines with width proportional to flow magnitude. **Charles Minard's 1869 map** of Napoleon's Russian campaign — width = army size, color = direction, plus temperature timeline — is Tufte's exemplar of multivariate data graphics.\n- Modern: trade flows, migration, commuting (LEHD LODES), telecom traffic, ocean currents.\n\n**Cartograms**:\n- Distort map area in proportion to a variable. Types:\n  - **Contiguous cartograms (Gastner + Newman 2004, density-equalizing diffusion)** — preserve topology + neighbors; popularized by *Worldmapper* (Worldmapper.org, Mark Newman + colleagues). UK + Michigan election maps. The **Gastner-Newman algorithm** uses diffusion of the population field to equalize density.\n  - **Non-contiguous cartograms (Olson 1976)** — scale each unit independently; preserve shape, sacrifice topology.\n  - **Dorling cartograms (Daniel Dorling 1991)** — replace each unit with a circle sized by variable; preserves topology approximately.\n  - **Hexagon + grid cartograms** — used by NPR + FT for U.S. state-level election results.\n\n**Modern hybrids**: bivariate choropleth (two variables × color grid), trivariate ternary, ridge maps, swarm bee maps. The field continually invents new types as designers push the envelope (NYT Upshot, Pudding, FT Visual Vocabulary, Guardian Datablog)."
+    },
+    {
+      "kind": "text",
+      "title": "Classification, color, + Bertin's visual variables",
+      "body": "Choosing **how to bin + color** data shapes the message at least as much as the data itself.\n\n**Classification schemes** (for choropleth + isarithm):\n- **Equal interval** — class width = (max − min) / k. Simple; works for uniformly distributed data; misleading for skewed.\n- **Quantile (equile)** — equal feature counts per class. Maximizes within-map visual variation; obscures actual magnitude gaps.\n- **Jenks natural breaks (Fisher-Jenks 1958-67)** — minimizes within-class variance + maximizes between-class variance. Adapts to data clusters; the default in many GIS tools. Computationally O(N² k) — feasible for thousands of features.\n- **Standard deviation** — classes by σ; appropriate when data are normally distributed + the user understands z-scores.\n- **Geometric / logarithmic** — for highly skewed data (income, earthquake magnitude).\n- **Manual + meaningful** — designer-chosen thresholds aligned with policy (e.g., poverty line, regulatory limit).\n\n**Number of classes**: typically 5-7. More than ~9 exceeds human discrimination on a sequential ramp.\n\n**Color theory + ColorBrewer (Cynthia Brewer)**:\n- **Cynthia Brewer** (Penn State cartographer) developed **ColorBrewer** (colorbrewer2.org, 2003+) — the standard palette source for thematic mapping. Three palette types:\n  - **Sequential** — ordered low → high (single hue or multi-hue progression). Blues, Greens, YlOrRd. Use for ordered data (income, density).\n  - **Diverging** — emphasize deviation from a midpoint (above/below average). RdBu, BrBG, PiYG. Use for difference, change, anomaly maps.\n  - **Qualitative** — distinct hues without order. Set1, Paired. Use for categorical data (land cover types, party affiliation).\n- **Colorblind-safe** palettes (deuteranopia ~8% of men, protanopia + tritanopia rarer). ColorBrewer flags safe choices. Modern alternatives: **viridis** (Stéfan van der Walt + Nathaniel Smith) for sequential; **cividis** for colorblind.\n- **CIE Lab + perceptually uniform** color spaces — viridis + cividis are designed to be uniform in perceptual lightness gradient → ordinality preserved even in grayscale.\n\n**Bertin's visual variables (Jacques Bertin, *Sémiologie Graphique* 1967)**:\n- Bertin enumerated **seven retinal variables** the eye distinguishes pre-attentively:\n  1. **Position** (x, y) — strongest variable.\n  2. **Size** (length, area, volume).\n  3. **Value** (lightness from black to white).\n  4. **Texture** (granularity, dot density).\n  5. **Color (hue)** — wavelength.\n  6. **Orientation** (angle).\n  7. **Shape**.\n- Each variable supports different data types: **size + value** ↔ ordered/quantitative; **hue + shape** ↔ qualitative; **position** ↔ both. Modern extensions add motion, transparency.\n- **Alan MacEachren's *How Maps Work* (1995)** + *Sémiologie* extension to **cognitive cartography** — maps as both representations + reasoning instruments.\n\n**Tufte's data-ink ratio (Edward Tufte 1983, *Visual Display of Quantitative Information*)**:\n- **Maximize the data-ink ratio**: ink used to represent data / total ink. Strip chartjunk: heavy borders, drop shadows, 3D effects, decorative gradients.\n- **Small multiples** — multiple small versions of the same map for comparison across time / variables.\n- **Eradicate moiré + duck graphics**.\n- Tufte's exemplars: Minard's Napoleon map, John Snow's cholera, Galileo's Saturn drawings."
+    },
+    {
+      "kind": "text",
+      "title": "MAUP, ecological fallacy, + critical thematic cartography",
+      "body": "Thematic maps invite two classic statistical traps.\n\n**Modifiable Areal Unit Problem (MAUP, Openshaw 1984)**:\n- **Stan Openshaw** (Leeds geographer) formalized the MAUP — the dependence of analytical results on the **scale + zoning** of the enumeration units.\n- Two components: **scale effect** (results change when you aggregate to coarser units) + **zoning effect** (results change when you redraw unit boundaries at the same scale, e.g., gerrymandering).\n- Classic demonstrations: race + voting correlations in U.S. counties vs. tracts vs. blocks; income inequality measured at neighborhood vs. metro level; cancer-cluster identification.\n- **Mitigation**: use the smallest sensible units; report at multiple scales; use **dasymetric mapping** (re-allocate to underlying land use); use **Tobler-style pycnophylactic interpolation**; never present a single-unit choropleth without acknowledging the MAUP.\n- The MAUP is unavoidable; the ethical cartographer surfaces it.\n\n**Ecological fallacy (Robinson 1950)**:\n- **William Robinson** demonstrated that correlations at aggregate level (e.g., counties) can be opposite-signed to correlations at individual level. The 1950 paper used literacy + nativity by state.\n- Famous in election: ZIP-code averages tell you nothing about a particular voter; literature reviews of 'red counties' should not generalize to individuals.\n- Cure: only make inferences at the level of your data; for individual-level claims, use individual-level data.\n\n**Other pitfalls**:\n- **Raw counts vs. rates** — choropleth without normalization is misleading (covered above).\n- **Map projections** for thematic mapping — never use Mercator for global thematics; prefer equal-area (Equal Earth, Mollweide).\n- **Class breaks** — manipulating class breaks can dramatically change the map's message; transparency + multiple schemes are best practice.\n- **Color**: avoid red-green palettes (colorblind); never use random color for ordered data; respect cultural color associations.\n- **The 'rainbow' palette** (jet) is widely considered harmful — non-perceptually-uniform, no natural ordering, fails colorblind users; replaced by viridis in scientific Python + R.\n\n**Critical thematic cartography**:\n- **Mark Monmonier's *How to Lie with Maps* (1991)** — the foundational primer on cartographic deception (intentional + accidental).\n- **Denis Wood's *The Power of Maps* (1992)** — every map encodes interest + ideology; no map is neutral.\n- **J.B. Harley's 'Deconstructing the Map' (1989)** — applied postmodern theory to cartography; maps as power-knowledge.\n- These voices warn that thematic choices — what to map, at what scale, with what classification, in what palette, on what projection — are political acts. Modern critical cartography (Crampton, Wood, Pickles) is now standard in the GIScience curriculum.\n\n**Modern best practice**:\n1. Choose the right type (choropleth for rates, proportional for absolute counts, dot density for events).\n2. Choose units at the right scale (smallest sensible + dasymetric).\n3. Classify thoughtfully (Jenks for skewed; manual for policy thresholds).\n4. Use ColorBrewer or viridis (sequential/diverging/qualitative, colorblind-safe).\n5. Apply Bertin's variables intentionally.\n6. Strip chartjunk per Tufte.\n7. Acknowledge MAUP + ecological fallacy in caption.\n8. Cite data sources + critical context (Wood, Harley)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_them_1",
+        "kind": "guided_derivation",
+        "question": "Design a county-level COVID thematic map",
+        "goal": "You're producing a public-facing COVID severity choropleth for the U.S. — ~3000 counties. Walk through the decisions: variable, classification, color, projection.",
+        "steps": [
+          {
+            "prompt": "What variable do you map: raw case counts or cases per 100000?",
+            "motivation": "Rate vs. count.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Cases per 100000 — choropleth must use rates to be comparable across unequal units",
+                "rate per 100k"
+              ]
+            },
+            "hints": [
+              "Why do raw counts mislead?"
+            ],
+            "reveal": "**Cases per 100000.** Choropleths assign a single value to a polygon, so the visual area-weight implies the value is intensive. Raw counts conflate population size with disease severity — Los Angeles County (10M people) would dominate every choropleth regardless of severity. Rates per 100000 are the public-health standard."
+          },
+          {
+            "prompt": "How do you classify the rates? Choose between equal interval, quantile, Jenks, standard-deviation.",
+            "motivation": "Classification.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Jenks natural breaks (or manual at CDC severity thresholds); equal interval if uniform; never quantile alone",
+                "Jenks or policy thresholds"
+              ]
+            },
+            "hints": [
+              "Skewed distribution + meaningful thresholds."
+            ],
+            "reveal": "COVID rates are highly skewed; many counties low, few extreme. **Jenks natural breaks** adapt to the distribution; **manual thresholds** aligned with CDC severity (e.g., <50, 50-100, 100-200, 200-500, >500 per 100k) are even better for policy alignment. **Quantile** alone misleads — equal counts per class hides real magnitude gaps. **Equal interval** fails on skewed data."
+          },
+          {
+            "prompt": "Which ColorBrewer palette?",
+            "motivation": "Color choice.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Sequential (YlOrRd or Reds) — ordered low → high; colorblind-safe; never diverging unless showing anomaly",
+                "sequential YlOrRd colorblind-safe"
+              ]
+            },
+            "hints": [
+              "Is data ordered or categorical? Diverging or single-direction?"
+            ],
+            "reveal": "**Sequential palette** (e.g., **YlOrRd** or **Reds** from ColorBrewer) — data is single-direction ordered (low to high severity). **Diverging** would be inappropriate here unless you map deviation from a baseline. **Cynthia Brewer's ColorBrewer** flags colorblind-safe choices — YlOrRd is safe; pure Red-Green is not. Modern alternative: **viridis sequential** for perceptually uniform + colorblind-safe."
+          },
+          {
+            "prompt": "Projection + MAUP + ecological-fallacy concerns?",
+            "motivation": "Critical cartography.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Albers Equal-Area Conic (EPSG:5070); state-level may hide tract-level variation (MAUP); per-county rates ≠ individual risk (ecological fallacy)",
+                "Albers equal-area + acknowledge MAUP"
+              ]
+            },
+            "hints": [
+              "What CRS? What caveats?"
+            ],
+            "reveal": "**Albers Equal-Area Conic (EPSG:5070 NAD83 / Conus Albers)** — standard for U.S. thematic mapping; areas are correctly proportioned. Caption: 'Rates aggregated to counties may mask within-county variation (**MAUP, Openshaw 1984**); a high county rate does not imply any specific individual's risk (**ecological fallacy, Robinson 1950**).' Provide alternate views (tract-level if data permit; demographic stratification). Cite data sources (CDC) + dates. Apply Tufte: minimal chartjunk, clear legend, source attribution."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_them_1",
+        "kind": "multiple_choice",
+        "question": "What is the **Modifiable Areal Unit Problem (MAUP)** + why must every thematic cartographer reckon with it?",
+        "options": [
+          "Random.",
+          "The **Modifiable Areal Unit Problem (MAUP)** — formalized by **Stan Openshaw (1984, *The Modifiable Areal Unit Problem*)** — is the statistical observation that the results of aggregate spatial analyses depend on **how the enumeration units are scaled + zoned**. Two components: (1) **scale effect** — coarser aggregation can change the apparent pattern (e.g., a strong correlation at county level can become weak at state level + vice versa); (2) **zoning effect** — at fixed scale, redrawing unit boundaries (e.g., re-districting, alternate ZIP groupings) can flip results. Classic demonstrations span elections, epidemiology, environmental justice, gerrymandering analysis. The MAUP is **unavoidable** — every choropleth aggregates — but the cartographer can mitigate: (a) use the smallest sensible units (block, tract) rather than county or state; (b) report results at multiple scales; (c) apply **dasymetric mapping** to reallocate to underlying land use; (d) use **Tobler-style pycnophylactic interpolation** for smooth reallocation; (e) caption explicitly noting MAUP. Companion trap: **ecological fallacy (Robinson 1950)** — correlations at the aggregate level can be opposite-signed at the individual level — never claim individual-level conclusions from aggregate maps. **MAUP + ecological fallacy are the two non-negotiable caveats of thematic mapping** + the foundation of critical cartography (Wood, Harley, Monmonier).",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "MAUP (Openshaw 1984) is the dependence of spatial-analysis results on the scale + zoning of enumeration units. Scale effect: results change with aggregation level. Zoning effect: results change with boundary redrawing. Unavoidable in choropleth; mitigate via smallest units, multi-scale reporting, dasymetric, pycnophylactic interpolation. Companion trap: ecological fallacy (Robinson 1950) — aggregate ≠ individual."
+      },
+      "hints": [
+        "Two components: scale + zoning.",
+        "What are the mitigations?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "MAUP (Openshaw 1984): results depend on scale + zoning of enumeration units. Unavoidable; mitigate via smallest units, multi-scale, dasymetric, pycnophylactic. Pairs with ecological fallacy (Robinson 1950). Foundation of critical cartography (Wood, Harley)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_them_1",
+        "kind": "scenario",
+        "question": "Critique + redesign a flawed thematic map",
+        "prompt": "A newspaper publishes a U.S. choropleth titled 'Where Crime Happens' shaded by raw violent-crime counts per county, using a red-green diverging palette with five quantile classes, on a Web Mercator projection, no caption, no source. The visual implication is that big cities are crime hotspots + rural areas are safe. Critique the map across all dimensions of thematic cartography you have learned. Address: (1) **variable error** — why raw counts (vs. rates) misleads; (2) **classification** — why quantile + 5 classes hide real distribution; (3) **color** — why red-green fails colorblind + lacks ordinal meaning; alternative ColorBrewer choices; (4) **projection** — why Web Mercator distorts U.S. spatial pattern; recommend Albers; (5) **Bertin variables** — what visual variables are mismatched to data type; (6) **MAUP + ecological fallacy** — what claims the map invites that the data cannot support; (7) **Wood + Harley critical** — whose interest does the visual narrative serve? (8) **Monmonier's *How to Lie with Maps*** — which classic deceptions does this map exhibit? (9) **Redesign** — propose a corrected version with rate per 100000, Jenks or manual breaks, ColorBrewer sequential YlOrRd, Albers Equal-Area, small multiples by year, explicit caption with MAUP + ecological-fallacy caveat, source citation. Deliver a critique memo + a redesigned mockup description."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_them_1",
+        "kind": "math_expression",
+        "question": "You have 100 counties with violent-crime rates per 100000 ranging from 50 to 2000, with most counties below 500. Using Jenks natural breaks with 5 classes, the optimization minimizes which quantity?",
+        "acceptedAnswers": [
+          "within-class variance",
+          "sum of squared deviations from class means",
+          "within-class sum of squares",
+          "SDCM"
+        ],
+        "hint": "Jenks (Fisher-Jenks 1958-67) chooses breaks that minimize the **sum of squared deviations from the class means** (SDCM, within-class variance) + equivalently maximizes the between-class variance. This adapts to clusters in skewed data better than equal-interval or quantile schemes."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_them_1",
+        "kind": "explain_back",
+        "prompt": "In ≤130 words, explain (1) major thematic map types; (2) classification + color principles; (3) MAUP + ecological-fallacy pitfalls.",
+        "rubric": "Mentions: **Types**: choropleth (classed/unclassed; rates only), proportional symbols (Flannery 1971 scaling), dot density (John Snow 1854), isarithmic, flow (Minard 1869), cartogram (Dorling, Gastner-Newman density-equalizing diffusion 2004). **Classification**: equal interval, quantile, **Jenks natural breaks (1958-67, minimizes within-class variance)**, standard deviation, manual policy thresholds. **Color**: **Brewer ColorBrewer (Cynthia Brewer)** sequential/diverging/qualitative palettes; colorblind-safe; **viridis** modern alternative. **Bertin's seven visual variables (1967)**: position, size, value, texture, color hue, orientation, shape — matched to data type. **MacEachren *How Maps Work* (1995)** cognitive cartography. **Tufte's data-ink + small multiples**. **Pitfalls**: **MAUP (Openshaw 1984)** — scale + zoning effects make aggregate results unstable; **ecological fallacy (Robinson 1950)** — aggregate ≠ individual. Critical cartography: **Wood *Power of Maps*, Harley deconstruction, Monmonier *How to Lie with Maps***. Concludes: thematic mapping is a sequence of design choices, each with statistical + political consequences."
+      }
+    }
+  ]
+}

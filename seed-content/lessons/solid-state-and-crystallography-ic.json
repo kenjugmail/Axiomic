@@ -1,0 +1,160 @@
+{
+  "slug": "solid-state-and-crystallography-ic",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Apply close-packing + radius-ratio rules to predict ionic structures (NaCl, CsCl, ZnS, CaF₂).",
+      "Compute Madelung constants + lattice energies via Born-Landé.",
+      "Survey intermetallics, perovskites, spinels, Zintl phases, zeolites, MOFs + Bragg/Laue crystallography."
+    ],
+    "prereqs": [
+      "inorganic-foundations-and-periodicity"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Close packing, interstitial sites, radius ratio, classic ionic structures",
+      "body": "**Close packing of spheres**: maximize packing efficiency. Two infinite families of close-packed structures:\n- **ABCABC** stacking → **face-centered cubic (FCC)**, also called cubic close-packed (CCP). Coordination number 12 in the bulk. Packing efficiency $\\pi/(3\\sqrt{2}) \\approx 74\\%$.\n- **ABAB** stacking → **hexagonal close-packed (HCP)**. CN 12. Same 74% efficiency.\n- Other stackings (longer periods, polytypes) seen in SiC + CdI₂.\n- **Body-centered cubic (BCC)**: not close-packed; CN 8; packing efficiency 68%. Common for alkali metals, group 5/6 transition metals at high T (Fe-α, V, Cr, Mo, W, Nb, Ta).\n\n**Interstitial sites** in close-packed lattices:\n- **Octahedral holes**: 1 per sphere; radius = 0.414 × sphere radius.\n- **Tetrahedral holes**: 2 per sphere; radius = 0.225 × sphere radius.\n- Small cations occupy holes between anion close-packed layers → ionic structures.\n\n**Radius ratio rule** (Pauling): predict cation coordination from $r_+/r_-$.\n- **0.225-0.414**: tetrahedral CN 4 (ZnS, β-form).\n- **0.414-0.732**: octahedral CN 6 (NaCl).\n- **0.732-1.0**: cubic CN 8 (CsCl).\n- **>1.0**: anion coordination of cation = cation coordination of anion (rare for highly ionic).\n- Exceptions abound — radius-ratio rule is a guide, not a law. Covalency + Jahn-Teller + soft-soft interactions cause deviations.\n\n**Common ionic structures**:\n- **NaCl (rock salt)**: FCC array of Cl⁻; Na⁺ in all octahedral holes. Both ions CN 6. Coordination polyhedra share edges. Adopted by alkali halides (except CsCl, CsBr, CsI), AgX (X=F,Cl,Br), MgO, CaO, SrO, BaO, NiO, FeO, CoO, MnO, PbS (galena), MgS, CaS.\n- **CsCl**: simple cubic Cl⁻; Cs⁺ in body center. Both CN 8. CsCl, CsBr, CsI, TlCl, TlBr, TlI, NH₄Cl + some intermetallics (CuZn brass at low T).\n- **Zinc blende (sphalerite, β-ZnS)**: FCC S²⁻; Zn²⁺ in half the tetrahedral holes (alternating). CN 4 both. ZnS, CuCl, AgI, BeS, CdS, GaAs, InSb (most III-V + II-VI semiconductors).\n- **Wurtzite (α-ZnS)**: HCP S²⁻; Zn²⁺ in half tetrahedral holes. Closely related to zinc blende (ABAB vs ABCABC); ionic / covalency / polarity preferences decide.\n- **Fluorite CaF₂**: FCC Ca²⁺; F⁻ in all tetrahedral holes. Ca²⁺ CN 8; F⁻ CN 4. CaF₂, SrF₂, BaF₂, ZrO₂ (cubic at high T), CeO₂, UO₂, ThO₂.\n- **Antifluorite** (Li₂O, Na₂O, K₂O): same lattice with cation + anion roles swapped.\n- **Rutile TiO₂**: tetragonal; Ti CN 6 (distorted octahedra); O CN 3. Rutile family: TiO₂, SnO₂, MnO₂, RuO₂, IrO₂, MgF₂, NiF₂.\n\n**Madelung constant M**: sums Coulombic interactions per ion pair over the entire lattice. Depends on geometry only.\n- NaCl: M = 1.7476.\n- CsCl: M = 1.7627.\n- Zinc blende: M = 1.6381.\n- Fluorite: M = 2.5194.\n- Wurtzite: 1.641 (slightly less than zinc blende).\n\n**Born-Landé lattice energy**:\n\n$$U = -\\frac{N_A M z^+ z^- e^2}{4\\pi\\epsilon_0 r_0}\\left(1 - \\frac{1}{n}\\right)$$\n\nwhere M = Madelung; z⁺z⁻ = ionic charges; r₀ = M-X bond length; n = Born exponent (~5-12) from ionic compressibility. Born-Haber cycle decomposes lattice energy from measurable thermochemical quantities: sublimation + ionization + dissociation + electron affinity + ΔH_f. Comparison reveals covalency (real lattice energy > Born-Landé estimate when covalency present)."
+    },
+    {
+      "kind": "text",
+      "title": "Intermetallics, alloys, Hume-Rothery, Laves phases",
+      "body": "**Metallic bonding model**: free-electron gas + Bloch states + Fermi surface. Conduction = filled valence band partially populated → electrons mobile. **Tight binding** + **DFT** explain band structures + electron localization quantitatively.\n\n**Alloys**: solid solutions or compounds of two or more metals. Classified by structural relationship:\n\n**Substitutional solid solutions**: solute atoms replace solvent atoms in the host lattice. Examples: Cu-Ni (FCC, fully miscible), Au-Ag (FCC continuous solubility).\n\n**Interstitial solid solutions**: small atoms (H, C, N, B) occupy interstitial holes. Examples: steel (carbon in Fe interstices, α-Fe BCC vs γ-Fe FCC); titanium nitride TiN; tungsten carbides WC, W₂C.\n\n**Intermetallic compounds**: ordered structures with defined composition + characteristic crystal structures distinct from constituent metals. Often hard + brittle (deviation from metallic continuum bonding).\n\n**Hume-Rothery rules** for substitutional solid-solution miscibility:\n1. **Atomic radius**: < 15% difference for extensive miscibility.\n2. **Crystal structure**: identical (both FCC, both BCC, etc.).\n3. **Electronegativity**: similar (large Δχ → intermetallic compound instead).\n4. **Valence**: same or higher solute valence than solvent extends solubility.\n\n**Hume-Rothery electron compounds**: phases stabilized by electron-to-atom ratio (e/a). Examples: β-brass (CuZn, e/a = 3/2, BCC); γ-brass (Cu₅Zn₈, e/a = 21/13); ε-brass (CuZn₃, e/a = 7/4, HCP). Brillouin-zone-boundary explanations (Mott + Jones).\n\n**Laves phases**: AB₂ intermetallic, three structural variants:\n- **C14**: MgZn₂-type (hexagonal).\n- **C15**: MgCu₂-type (cubic).\n- **C36**: MgNi₂-type (hexagonal, layer-mixed).\n- Common for $r_A/r_B \\approx 1.225$. Examples: TaCo₂, ZrV₂, CeRu₂, NbFe₂. Important in superalloys, hydrogen storage (LaNi₅ + TiMn₂ for Ni-MH batteries), superconductors.\n\n**Frank-Kasper phases**: topologically close-packed phases with CN 12, 14, 15, 16. Examples: σ-phase (Fe-Cr in stainless steels, brittle), μ-phase, χ-phase. Detrimental to mechanical properties — formation must be avoided.\n\n**Quasi-crystals** (Shechtman 1982, Nobel 2011): aperiodic but long-range-ordered structures with forbidden symmetries (5-, 10-, 12-fold). Aluminum-manganese, Al-Cu-Fe, holmium-magnesium-zinc. Forbidden by classical crystallography → re-shaped the field.\n\n**Superalloys**: Ni-base γ/γ' (Ni₃Al ordered FCC L1₂) + γ-FCC matrix; precipitation hardening. Used for jet engine turbine blades — operating temperatures > 1000°C, single-crystal castings. CMSX-4, CMSX-10, René N5/N6. Cobalt-base + iron-base variants.\n\n**Metallic glasses (amorphous alloys)**: liquid-quenched, no long-range order; deep eutectic compositions like Pd-Si, Cu-Zr, Fe-B-Si. Industrial use: transformer cores (Metglas), structural (Liquidmetal Vit-1 Zr-Ti-Cu-Ni-Be). High elastic limit, isotropic, no grain boundaries."
+    },
+    {
+      "kind": "text",
+      "title": "Perovskites, spinels, Zintl phases, zeolites + MOFs, Bragg/Laue crystallography",
+      "body": "**Perovskite ABO₃** (Goldschmidt 1926): cubic structure with A on corners (CN 12), B at body center (CN 6 octahedral), O at face centers. Tilting + distortion + cation ordering give a huge family.\n- **Tolerance factor** $t = (r_A + r_O)/[\\sqrt{2}(r_B + r_O)]$: predicts stability + distortion (cubic ~ 0.9-1.0; distorted 0.7-0.9).\n- **Examples**: CaTiO₃ (named perovskite, Russian mineral), SrTiO₃, BaTiO₃ (ferroelectric, lead-free piezoelectric), PbTiO₃, LaMnO₃ (CMR colossal magnetoresistance), YBa₂Cu₃O₇ (HTS superconductor below 92K, Bednorz-Müller Nobel 1987 framework, layered perovskite), CH₃NH₃PbI₃ (halide perovskite solar cells — efficiency 26%+ now, lifetime + lead-toxicity issues).\n- **Double perovskites** A₂BB'O₆: ordered B/B' alternation.\n- **Brownmillerite**: oxygen-deficient perovskite; oxide-ion-conducting fuel cells.\n\n**Spinel AB₂O₄**: FCC O²⁻; A in 1/8 tetrahedral holes; B in 1/2 octahedral holes.\n- **Normal**: A on tetrahedral, B on octahedral (MgAl₂O₄, ZnAl₂O₄).\n- **Inverse**: B on tetrahedral, (A,B) on octahedral (Fe₃O₄ = magnetite [Fe³⁺][Fe²⁺Fe³⁺]O₄ — basis of magnetism + iron-oxide nanoparticles for MRI).\n- **CFSE drives normal/inverse choice**: d⁰, d⁵, d¹⁰ no preference; d⁶, d⁷ prefer octahedral → inverse.\n- Examples: ferrites (MgFe₂O₄, NiFe₂O₄ — microwave + RF), garnet variants (YIG yttrium iron garnet for magnonics).\n\n**Zintl phases**: 'salt-like' compounds of electropositive metal (alkali, alkaline earth, lanthanide) + post-transition or metalloid (Ga, In, Tl, Si, Ge, Sn, Pb, As, Sb, Bi).\n- Pseudo-anion: covalently-bonded anionic substructure (e.g., Sn₄⁴⁻ tetrahedra in NaSn).\n- **Zintl-Klemm concept** (1939): electropositive metal donates electrons → anion adopts geometry expected for that electron count (Si⁴⁻ isolated like Ne; Ge₄⁴⁻ adamantane like P₄; tin (II) lone pairs; Sb skeletal pairs).\n- Examples: NaSi (Si₄⁴⁻ tetrahedra), Ba₈Si₄₆ (clathrate hydride analog; thermoelectric materials), CaSi₂, Ca₅Si₃ (Mooser-Pearson).\n- Thermoelectric materials + battery cathodes + intermetallic catalysts.\n\n**Zeolites**: aluminosilicate frameworks with corner-sharing TO₄ tetrahedra (T = Si, Al, sometimes P, Ga, Ge); microporous (pores 0.3-1.5 nm).\n- Charge balance: Si⁴⁺ → Al³⁺ substitution requires charge-balancing extra-framework cation (Na⁺, K⁺, Ca²⁺, NH₄⁺, H⁺); Brønsted acid (H-zeolite) form is highly catalytic.\n- Examples: ZSM-5 (MFI, ExxonMobil 1972 — fluid catalytic cracking + MTG methanol-to-gasoline); zeolite Y (FAU — petroleum FCC catalysis); zeolite A (LTA, detergent builder + drying agent).\n- Shape selectivity: only molecules fitting in pores react → para-selective xylene synthesis; only linear paraffins isomerize; only small product alcohols diffuse out.\n- ~250+ known frameworks (IZA atlas).\n\n**Metal-Organic Frameworks (MOFs)** (Yaghi 1995, Kitagawa, Férey, Long): metal nodes (single atoms or clusters) + organic linkers (carboxylates, imidazolates, pyridines) → 1D/2D/3D porous frameworks.\n- Extremely high surface areas (up to 7800 m²/g for NU-1501); tunable pore sizes + chemistry.\n- Famous examples: MOF-5 [Zn₄O(BDC)₃], HKUST-1 [Cu₃(BTC)₂], UiO-66 [Zr₆O₄(OH)₄(BDC)₆], ZIF-8 [Zn(MeIm)₂].\n- Applications: H₂ storage, CO₂ capture (CALF-20 industrially deployed by Svante), water harvesting from air (Yaghi MOF-303 — Saudi Arabia desert demos), gas separation, drug delivery, single-site catalysis. **2025 Nobel Chemistry: Robson + Kitagawa + Yaghi for MOFs**.\n\n**Bragg + Laue diffraction** (cross-ref P48 X-ray crystallography):\n- **Bragg's law** (W.H. + W.L. Bragg, joint Nobel 1915): $n\\lambda = 2d\\sin\\theta$. Constructive interference from parallel lattice planes spaced d. λ ~ 0.7-2 Å X-rays match interatomic spacings.\n- **Laue's equations** (Laue 1912, Nobel 1914): vector diffraction conditions; equivalent to Bragg.\n- **Reciprocal lattice**: Fourier dual of real lattice. Diffraction = sampling of reciprocal lattice. Ewald sphere construction.\n- **Single-crystal XRD**: full 3D atomic structure of any sufficiently crystalline material (synthesis output, mineral, molecule, protein). Modern automated diffractometers + cryogenic protection + synchrotron sources.\n- **Powder XRD**: phase identification + lattice constants + quantitative composition. Used in mineralogy, pharma polymorph control, ceramic processing.\n- **Modern frontiers**: serial crystallography at XFELs (free-electron lasers, LCLS + SACLA + EuXFEL); cryo-EM at near-atomic for non-crystalline; pair distribution function (PDF) for amorphous materials; neutron diffraction for light atoms (H) + magnetic structures."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_ic_madelung",
+        "kind": "guided_derivation",
+        "question": "Compute lattice energy of NaCl using Born-Landé",
+        "goal": "Apply $U = -\\frac{N_A M z^+ z^- e^2}{4\\pi\\epsilon_0 r_0}(1 - 1/n)$ with M = 1.7476, r₀ = 2.82 Å, n = 9.1 to estimate U_NaCl.",
+        "steps": [
+          {
+            "prompt": "Compute the prefactor: $\\frac{N_A e^2}{4\\pi\\epsilon_0} = 1.39 \\times 10^{-4} \\text{ J m / mol}$. With M = 1.7476 + r₀ = 2.82 × 10⁻¹⁰ m, what's $\\frac{N_A M e^2}{4\\pi\\epsilon_0 r_0}$ in kJ/mol?",
+            "motivation": "Setup numerical Coulomb.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "861 kJ/mol",
+                "860"
+              ]
+            },
+            "hints": [
+              "$1.39 \\times 10^{-4} / 2.82 \\times 10^{-10} \\approx 4.93 \\times 10^5 \\text{ J/mol}$.",
+              "Multiply by Madelung 1.7476."
+            ],
+            "reveal": "$\\frac{N_A e^2}{4\\pi\\epsilon_0 r_0} = 1.39 \\times 10^{-4} / 2.82 \\times 10^{-10} = 4.93 \\times 10^5$ J/mol = 493 kJ/mol. Multiplied by Madelung 1.7476: $493 \\times 1.7476 = 862$ kJ/mol. This is the pure Coulomb attraction summed over the infinite lattice."
+          },
+          {
+            "prompt": "Apply the Born repulsion correction: multiply by $(1 - 1/n)$ with n = 9.1.",
+            "motivation": "Account for short-range Pauli repulsion.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "U ≈ -767 kJ/mol",
+                "-767"
+              ]
+            },
+            "hints": [
+              "$(1 - 1/9.1) = 0.890$.",
+              "Multiply 862 × 0.890 → 767."
+            ],
+            "reveal": "$(1 - 1/9.1) = 0.890$. $U = -862 \\times 0.890 = -767$ kJ/mol. (z⁺z⁻ = -1 incorporated as overall negative.) Born repulsion takes ~10% off pure Coulomb to account for short-range Pauli repulsion."
+          },
+          {
+            "prompt": "Experimental NaCl lattice energy from Born-Haber: -787 kJ/mol. Compare + explain difference.",
+            "motivation": "Born-Landé vs reality.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "experiment -787 vs Born-Landé -767; ~3% covalency + dispersion"
+              ]
+            },
+            "hints": [
+              "Why is experimental more exothermic?",
+              "Van der Waals + covalency contribute."
+            ],
+            "reveal": "Born-Landé: -767 kJ/mol. Experimental (Born-Haber): -787 kJ/mol. Difference ~3% reflects: (1) dispersion (London + Debye + Keesom forces) ~10-20 kJ/mol; (2) zero-point lattice vibration ~few kJ/mol; (3) modest covalency (still mostly ionic for NaCl). For more covalent compounds (AgCl, AgI, ZnS) the gap is much larger — Born-Landé underestimates U because it assumes pure point charges. **Born-Mayer + Kapustinskii** refinements; **DFT lattice-energy calculations** now standard for accurate values."
+          },
+          {
+            "prompt": "Why does CsCl adopt cubic structure rather than NaCl-type, despite both being 1:1 alkali halides?",
+            "motivation": "Radius ratio + Madelung.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Cs+ large, r+/r- > 0.732; CsCl Madelung larger than NaCl 1.763 vs 1.748"
+              ]
+            },
+            "hints": [
+              "Cs⁺ ionic radius: 167 pm; Na⁺: 102 pm.",
+              "Radius ratio r⁺/r⁻ for Cs⁺Cl⁻ ≈ 0.91; for Na⁺Cl⁻ ≈ 0.56."
+            ],
+            "reveal": "Cs⁺ radius 167 pm vs Na⁺ 102 pm; r⁺/r⁻ ratio 0.91 (CsCl) vs 0.56 (NaCl). CsCl ratio is in the cubic CN-8 range. Additionally, CsCl Madelung 1.7627 > NaCl 1.7476 — cubic packing slightly more electrostatically favorable per ion pair when the radius ratio permits. Both factors push CsCl to adopt cubic CN-8 structure: greater lattice energy per ion despite the smaller per-formula-unit Madelung (with 1 instead of 6 NaCl-like nearest neighbors at greater distance)."
+          }
+        ],
+        "finalResult": "$$\\boxed{U_{NaCl} = -767 \\text{ kJ/mol (Born-Landé)}; -787 \\text{ kJ/mol (experimental)}}$$ Born-Landé combines Madelung constant + Born repulsion to predict lattice energy from first principles. Captures ~97% of experimental for ionic NaCl; deviations grow with covalency (AgCl, AgI 10-15%; ZnS even larger). Foundational for thermochemistry of ionic + ionic-covalent compounds — combined with Born-Haber cycle, lets chemists predict reactivity, solubility, mineralogy. Modern DFT + ML potentials now give kJ/mol-accurate lattice energies for any material."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ss_perovskite",
+        "kind": "multiple_choice",
+        "question": "Why have hybrid halide perovskites (CH₃NH₃PbI₃ and related) revolutionized solar cell research since 2009?",
+        "options": [
+          "Random.",
+          "**Combination of structural tunability + defect tolerance + earth-abundant + solution-processable**. Perovskite ABO₃ framework (Goldschmidt 1926) — here substituted: A = CH₃NH₃⁺ (methylammonium), Cs⁺, formamidinium; B = Pb²⁺ (Sn²⁺ alternative); X = I⁻, Br⁻, Cl⁻. Strong absorption (~10⁵ cm⁻¹), tunable bandgap 1.2-2.3 eV by halide mixing, long carrier diffusion lengths (~µm), high tolerance to defects (intrinsic defects form shallow non-recombinant levels), spin-coated from precursor solutions at <150°C. **Power conversion efficiency**: 3.8% (Kojima 2009) → 26.7% (NREL 2024 single junction) → 34%+ silicon-perovskite tandems. Manufacturing potential at fraction of silicon cost. **Outstanding issues**: stability (moisture + heat + UV + ion migration → degradation in months-years); Pb toxicity (Sn-perovskites underperform); lead-free alternatives (Bi, Sb, Cs₂AgBiBr₆ double perovskites) being developed. Also: perovskite LEDs (PeLEDs, > 28% EQE), photodetectors, X-ray scintillators (CsPbBr₃), radiation detectors (medical imaging). Crystal-engineering principle: tilting + ordering + substitution in the perovskite framework yields ferroelectric (BaTiO₃), CMR magnetoresistance (LaMnO₃), HTS superconductivity (YBa₂Cu₃O₇), thermoelectric (SrTiO₃) — all from the same archetype.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Halide perovskites: tunable bandgap, high absorption, defect tolerance, solution processing, PCE 3.8 → 26.7% in 15 years. Lead toxicity + stability still issues. Perovskite framework underlies ferroelectric (BaTiO₃), CMR (LaMnO₃), superconductor (YBCO), thermoelectric, photovoltaic, LED, scintillator. Crystal engineering archetype."
+      },
+      "hints": [
+        "What's special about defect tolerance in perovskites?",
+        "Why has efficiency grown so fast?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Halide perovskites have tunable bandgap (1.2-2.3 eV via halide mix), high absorption, long diffusion lengths, solution processable, defect tolerant. PCE 3.8 → 26.7% in 15 yr. Issues: stability + Pb toxicity. Perovskite ABX₃ framework is base for ferroelectric, CMR, superconductor, thermoelectric, photovoltaic, LED, scintillator applications."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ss_mofs",
+        "kind": "scenario",
+        "question": "MOFs for carbon capture",
+        "prompt": "Yaghi-Robson-Kitagawa won the 2025 Chemistry Nobel for MOFs. Svante has deployed CALF-20 (Cu₂(BTC)) at industrial scale for CO₂ capture; UiO-66 + Mg-MOF-74 are workhorses for laboratory studies. (a) Why are MOFs particularly well-suited to selective CO₂ adsorption (compared to amine-scrubbing or zeolites)? (b) What stability + cost + cyclability challenges remain? (c) How do single-site catalytic MOFs (with metal nodes acting as Lewis acid sites or with ligand-anchored coordination complexes) bridge homogeneous + heterogeneous catalysis?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ss_radius",
+        "kind": "math_expression",
+        "question": "For an ionic compound with cation radius 0.95 Å and anion radius 1.81 Å, compute the radius ratio r⁺/r⁻ to predict coordination geometry. Round to 2 decimals.",
+        "acceptedAnswers": [
+          "0.52",
+          ".52",
+          "0.525"
+        ],
+        "hint": "r⁺/r⁻ = 0.95/1.81 = 0.525. Between 0.414 + 0.732 → octahedral CN 6 → NaCl-type structure expected. This is exactly Na⁺/Cl⁻; ratio 0.525; NaCl-type observed."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_ss",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, explain how solid-state inorganic chemistry connects atomic-scale structure (close packing, lattice energies) to functional materials (superalloys, perovskites, MOFs, semiconductors) and why crystallography (Bragg + Laue + cryo-EM + XFEL) is the indispensable experimental method.",
+        "rubric": "Mentions: close-packing (FCC + HCP, ~74%) + interstitial sites + radius ratio predict ionic structures (NaCl, CsCl, ZnS, CaF₂); Madelung + Born-Landé give lattice energies; Born-Haber cycle decomposes them from thermochemistry. Functional materials: superalloys (Ni-base γ/γ' for jet engines), perovskites (ABO₃ → ferroelectric BaTiO₃ + CMR LaMnO₃ + superconductor YBa₂Cu₃O₇ + photovoltaic CH₃NH₃PbI₃), spinels (Fe₃O₄ magnetism, MRI nanoparticles), Zintl phases (thermoelectric), zeolites (FCC + MTG catalysis, shape selectivity), MOFs (Yaghi-Robson-Kitagawa Nobel 2025 — H₂ storage, CO₂ capture, water harvesting). Crystallography: Bragg's law nλ = 2d sin θ, Laue equations, reciprocal lattice (Bragg + von Laue Nobels 1915 + 1914). Modern: synchrotron + XFEL serial crystallography + cryo-EM atomic resolution + neutron diffraction for H + magnetism. Conclude: structure determines property; crystallography determines structure; solid-state chemistry shapes modern technology."
+      }
+    }
+  ]
+}

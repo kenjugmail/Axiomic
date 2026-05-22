@@ -23,6 +23,7 @@ import { gamificationRouter } from "./routes/gamification";
 import { onboardingRouter } from "./routes/onboarding";
 import { uploadsRouter } from "./routes/uploads";
 import { conceptsRouter } from "./routes/concepts";
+import { authoringRouter } from "./routes/authoring";
 import { researchRouter } from "./routes/research";
 import { researchFeedRouter } from "./routes/research-feed";
 import { paperSummaryRouter } from "./routes/paper-summary";
@@ -87,6 +88,7 @@ import { notifyExpiringCertsJob } from "./jobs/notifyExpiringCerts";
 import { resurfacingDecayJob } from "./jobs/resurfacingDecay";
 import { signTreeHeadJob } from "./jobs/signTreeHead";
 import { lapseCommitmentsJob } from "./jobs/lapseCommitments";
+import { captureQualitySnapshotJob } from "./jobs/captureQualitySnapshot";
 import { hardDeleteSoftDeletedUsersJob, cleanupOldLoginAttemptsJob } from "./lib/userCleanupJob";
 import { captureError } from "./lib/observability";
 import { bootstrapAdmin } from "./lib/bootstrapAdmin";
@@ -363,6 +365,7 @@ app.route("/gamification", gamificationRouter);
 app.route("/onboarding", onboardingRouter);
 app.route("/uploads", uploadsRouter);
 app.route("/concepts", conceptsRouter);
+app.route("/authoring", authoringRouter);
 // Sprint 70 — for-you feed at /research/feed and tier-aware AI summary
 // at /research/:slug/summary. Mounted BEFORE researchRouter so the
 // `/feed` literal wins against researchRouter's `/:slug` matcher.
@@ -489,6 +492,8 @@ if (process.env.DISABLE_JOB_RUNNER !== "1") {
   registerJob(signTreeHeadJob);
   // Phase 34D — daily lapse sweep for learning commitments.
   registerJob(lapseCommitmentsJob);
+  // Daily lesson-quality snapshot for the /admin/quality trend view.
+  registerJob(captureQualitySnapshotJob);
   startJobRunner();
 }
 

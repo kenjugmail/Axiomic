@@ -1,0 +1,151 @@
+{
+  "slug": "network-foundations-and-graph-theory",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Trace graph theory history.",
+      "Define basic network measures.",
+      "Distinguish network types."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "From Königsberg to graph theory: the birth of networks",
+      "body": "**Network science** = the study of complex systems represented as nodes (vertices) + edges (links). It unifies physics, math, computer science, biology, sociology, economics, ecology — wherever connections matter.\n\n**Euler 1736 — Seven Bridges of Königsberg**: Leonhard Euler proved no walk crosses all 7 bridges of Königsberg exactly once. He abstracted land masses → nodes, bridges → edges, founding **graph theory**. The Eulerian-path criterion: a connected graph has an Eulerian path iff it has 0 or 2 vertices of odd degree. Often called the first paper in topology + graph theory.\n\n**Subsequent foundational work**:\n- **Kirchhoff (1847)**: matrix-tree theorem; electrical-circuit graphs.\n- **Cayley (1857-1889)**: counted trees; chemistry of alkanes.\n- **Jordan (1869), Petersen (1891)**: connectivity, factors.\n- **Dénes König (1936)**: first textbook of graph theory (Hungarian school); systematic foundations.\n- **Erdős + Rényi (1959)**: random graphs (next lesson).\n- **Watts + Strogatz (1998), Barabási + Albert (1999)**: small-world + scale-free networks — birth of modern network science.\n\n**Adjacency matrix A**: n × n matrix with A_ij = 1 if edge (i,j) exists, else 0. For weighted networks A_ij = weight w_ij. For undirected networks A = A^T (symmetric).\n\n**Degree** k_i = Σ_j A_ij = number of neighbors. For directed networks: in-degree k_i^in = Σ_j A_ji, out-degree k_i^out = Σ_j A_ij.\n\n**Laplacian matrix L = D - A** where D = diag(k_1, ..., k_n). Properties:\n- L symmetric positive semi-definite for undirected graphs.\n- Smallest eigenvalue λ_0 = 0; eigenvector = (1, 1, ..., 1).\n- Multiplicity of λ_0 = number of connected components.\n- Second-smallest eigenvalue λ_1 (algebraic connectivity, Fiedler 1973): governs synchronization, mixing time, spectral clustering.\n- Normalized Laplacian L_sym = I - D^(-1/2) A D^(-1/2); spectrum in [0, 2].\n\n**Why matrices?** Spectral methods (eigenvalue/eigenvector analysis) reveal community structure, centrality, diffusion, synchronization. Modern foundations: Chung's *Spectral Graph Theory* (1997), the basis of PageRank (Brin + Page 1998), Bonacich eigenvector centrality (1972), spectral clustering."
+    },
+    {
+      "kind": "text",
+      "title": "Basic network measures",
+      "body": "**Degree distribution P(k)**: probability a random node has degree k. The single most-informative summary statistic of a network.\n- **Poisson (Erdős-Rényi)**: P(k) = e^(-⟨k⟩) ⟨k⟩^k / k!; sharply peaked at ⟨k⟩.\n- **Power-law (scale-free)**: P(k) ~ k^(-γ); heavy-tailed; hubs dominant.\n- **Exponential, log-normal, stretched-exponential**: many real networks fall here.\n- Higher moments: ⟨k⟩ = mean degree; ⟨k²⟩ = second moment (controls many dynamics — epidemic threshold, percolation).\n\n**Path length**:\n- d_ij = shortest-path distance (number of edges in shortest path).\n- ⟨d⟩ = average shortest path = (1/n(n-1)) Σ_ij d_ij.\n- **Diameter** = max_ij d_ij.\n- For random networks: ⟨d⟩ ~ log n / log ⟨k⟩ (small-world property).\n- For lattices: ⟨d⟩ ~ n^(1/d) (much larger).\n- **Six degrees of separation**: ⟨d⟩ ~ 6 for human social networks (Milgram 1967; covered next lesson).\n\n**Clustering coefficient C** (Watts + Strogatz 1998):\n- **Local**: C_i = (number of edges among i's neighbors) / (k_i choose 2). Measures triangle density around i.\n- **Global**: C = (1/n) Σ_i C_i (average local), or C = 3·(number of triangles) / (number of connected triples) (transitivity).\n- Lattices: high C (your friends know each other).\n- Random graphs: C ≈ ⟨k⟩/n (vanishingly small).\n- Real social networks: C ~ 0.1-0.6 — much higher than random.\n\n**Assortativity r** (Newman 2002): Pearson correlation of degrees across edges. r ∈ [-1, 1].\n- **Assortative (r > 0)**: high-degree nodes link to high-degree nodes (social networks: ~0.1-0.3).\n- **Disassortative (r < 0)**: hubs connect to leaves (Internet, biological networks: ~-0.1 to -0.3).\n- Affects spreading, robustness, percolation thresholds.\n\n**Centrality** — node importance:\n- **Degree** = local connectivity.\n- **Closeness** = 1 / (sum of distances to others).\n- **Betweenness** (Freeman 1977) = fraction of shortest paths passing through.\n- **Eigenvector** (Bonacich 1972): x_i ∝ Σ_j A_ij x_j ; principal eigenvector of A.\n- **Katz** centrality: damped eigenvector.\n- **PageRank** (Page + Brin 1998): random-walk stationary distribution; foundation of Google search.\n- **k-core** (Seidman 1983): largest subgraph where every node has degree ≥ k; identifies dense cores.\n\n**Modularity, communities, motifs**: covered in later lessons."
+    },
+    {
+      "kind": "text",
+      "title": "Network types + representations",
+      "body": "**Undirected vs directed**:\n- **Undirected**: edges symmetric (friendship, co-authorship, protein-protein interaction). A = A^T.\n- **Directed**: edges asymmetric (web hyperlinks, citations, Twitter follows, food webs, gene regulation). A may be non-symmetric. Separate in/out degree distributions.\n\n**Weighted networks**: edges carry weights w_ij (intensity, capacity, similarity, traffic). Weighted degree (strength): s_i = Σ_j w_ij. Examples: airline passenger flows, gene-expression correlation, brain functional connectivity.\n\n**Bipartite networks**: two disjoint node sets U, V; edges only between sets. Examples: actor-film (Newman + Watts + Strogatz), author-paper, user-item (recommendation), gene-disease, host-parasite. **One-mode projections** onto U or V (co-actor graph, co-citation graph) introduce structure that must be controlled for.\n\n**Multilayer + multiplex networks** (Boccaletti + Bianconi + others 2014 review): multiple types of edges (same node set; e.g. air, rail, road in a transportation network) or multiple layers (interconnected systems). Tensor formalism (de Domenico + Solé-Ribalta + Cozzo + Arenas 2013). Phenomena: interlayer synchronization, multiplex percolation, layer-dependent communities. Covered in detail later.\n\n**Temporal networks** (Holme + Saramäki 2012): edges have timestamps. **Time-respecting paths** matter — a sequence of edges where each occurs after the previous. Examples: email, mobile-phone calls, sexual contacts, neuronal spike trains. Static aggregation loses crucial information about causality + spreading.\n\n**Hypergraphs**: edges connect ≥ 2 nodes (Berge 1973). Captures group interactions (co-authorship of n authors, multi-party meetings, multi-protein complexes). Modern interest in higher-order interactions — simplicial complexes, topological data analysis (Carlsson 2009).\n\n**Trees + DAGs**:\n- **Tree**: connected, acyclic, n-1 edges. Phylogenies, taxonomies, hierarchies.\n- **DAG (directed acyclic graph)**: directed, no cycles. Citations, dependency graphs, Bayesian networks, build systems, version control history.\n\n**Storage representations**:\n- **Adjacency matrix**: O(n²) space; O(1) edge query. Best for dense networks + spectral methods.\n- **Adjacency list**: O(n + m) space; O(k) neighbor query. Best for sparse networks (most real ones, m ~ n).\n- **Edge list**: just list (i, j) tuples; ideal for streaming / disk-based.\n- **Compressed Sparse Row (CSR)**: efficient sparse matrix format; used in NetworkX, SNAP, graph-tool, igraph, NetworkKit, PyTorch Geometric, DGL.\n\n**Software**: NetworkX (Python, easy), graph-tool (C++ backend, fast), igraph (R/Python/C), SNAP (Stanford, scalable), Gephi + Cytoscape (visualization). PyG + DGL for graph neural networks (lesson 8)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_net_1",
+        "kind": "guided_derivation",
+        "question": "Derive degree-sum identity + properties",
+        "goal": "Show Σ_i k_i = 2m for undirected graphs + derive mean degree ⟨k⟩ = 2m/n.",
+        "steps": [
+          {
+            "prompt": "Each edge (i,j) contributes how much to the degree sum?",
+            "motivation": "Counting edges from both endpoints.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2"
+              ]
+            },
+            "hints": [
+              "Each edge has two endpoints; both endpoints' degrees increment."
+            ],
+            "reveal": "Each undirected edge (i,j) contributes 1 to k_i + 1 to k_j = 2 to the total degree sum. This is the handshake lemma."
+          },
+          {
+            "prompt": "If the graph has m edges, what is Σ_i k_i?",
+            "motivation": "Sum over all edges.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2m"
+              ]
+            },
+            "hints": [
+              "Each edge contributes 2."
+            ],
+            "reveal": "Σ_i k_i = 2m. Corollary: the number of odd-degree vertices is always even (handshake lemma). Euler used this to prove the Königsberg bridges problem has no solution."
+          },
+          {
+            "prompt": "Mean degree ⟨k⟩ for n nodes + m edges?",
+            "motivation": "Average is sum / count.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "2m/n"
+              ]
+            },
+            "hints": [
+              "⟨k⟩ = Σ k_i / n."
+            ],
+            "reveal": "⟨k⟩ = 2m/n. For sparse networks m ~ n, so ⟨k⟩ ~ O(1). For dense networks m ~ n², so ⟨k⟩ ~ n. Real-world networks: ⟨k⟩ ~ 5-100 typically — sparse."
+          },
+          {
+            "prompt": "Density ρ = m / (n choose 2). How does ρ scale for typical sparse network?",
+            "motivation": "Density vs sparsity.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ρ ~ 1/n (vanishes as n grows)"
+              ]
+            },
+            "hints": [
+              "ρ = 2m/(n(n-1)) ≈ ⟨k⟩/n."
+            ],
+            "reveal": "ρ = 2m/(n(n-1)) ≈ ⟨k⟩/n. For sparse networks where ⟨k⟩ ~ constant, ρ → 0 as n → ∞. Real networks are sparse — Facebook ⟨k⟩ ~ 200, n ~ 3×10^9 → ρ ~ 10^(-7). Sparsity makes adjacency lists + sparse matrix algorithms essential."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_net_1",
+        "kind": "multiple_choice",
+        "question": "Why is the Laplacian L = D - A central to network analysis?",
+        "options": [
+          "Random.",
+          "The graph Laplacian L = D - A encodes diffusion, synchronization, + spectral structure. Properties: (1) L is symmetric PSD for undirected graphs, so eigenvalues 0 = λ_0 ≤ λ_1 ≤ ... ≤ λ_(n-1); (2) multiplicity of 0 = number of connected components; (3) λ_1 (Fiedler value, 1973) = algebraic connectivity, controls mixing time, synchronization onset (Pecora + Carroll master stability function), spectral bisection (Fiedler vector for graph partitioning); (4) heat equation du/dt = -Lu describes diffusion on the network; (5) eigenvectors form a Fourier basis on the graph, enabling graph signal processing (Shuman + Narang + Frossard + Ortega 2013) + graph neural networks (Bruna + Zaremba + Szlam + LeCun 2014; Bronstein geometric DL). Laplacian eigenmaps (Belkin + Niyogi 2003) underlie nonlinear dimensionality reduction. PageRank (Page + Brin 1998), Cheeger inequality, expander graphs — all rest on Laplacian spectra. Modern GCNs (Kipf + Welling 2017) operate on normalized Laplacian spectra. Foundational object linking algebra, geometry, dynamics + ML on graphs.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Laplacian L = D - A is symmetric PSD; eigenvalue 0 multiplicity counts connected components; Fiedler value λ_1 governs synchronization + mixing + spectral bisection; heat equation = diffusion; eigenvectors = graph Fourier basis underlying graph signal processing + graph neural networks (Bronstein, Kipf, Bruna). Central to spectral clustering, PageRank, Cheeger inequality, expander theory + modern ML on graphs."
+      },
+      "hints": [
+        "What does the spectrum tell us?",
+        "Think diffusion, partitioning, ML."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "L = D - A is symmetric PSD; eigenvalue 0 = connected components; Fiedler eigenvalue λ_1 = algebraic connectivity (synchronization, mixing, bisection); heat eqn du/dt = -Lu is diffusion; eigenvectors = graph Fourier basis behind graph signal processing, Laplacian eigenmaps, PageRank, spectral clustering, Cheeger inequality, GCNs (Kipf + Welling). Core mathematical object of modern network science + ML on graphs."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_net_1",
+        "kind": "scenario",
+        "question": "You're analyzing a 10M-node Twitter follower network. You have an edge list on disk.",
+        "prompt": "Walk through how you'd compute (a) the in-degree + out-degree distributions, (b) the top-100 nodes by PageRank, (c) the largest weakly connected component, + (d) the diameter approximately. Which storage representation + which library do you choose, + why? What pitfalls (memory, parallelism) do you anticipate at this scale? Tie to known scale-free + assortativity findings for Twitter follower graphs."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_net_1",
+        "kind": "math_expression",
+        "question": "Write the definition of the local clustering coefficient C_i for node i with degree k_i and t_i triangles centered on i.",
+        "acceptedAnswers": [
+          "C_i = 2 t_i / (k_i (k_i - 1))",
+          "C_i = t_i / (k_i choose 2)",
+          "C_i = 2 t_i / k_i / (k_i - 1)"
+        ],
+        "hint": "Triangles centered on i / possible pairs of neighbors of i. (k_i choose 2) = k_i (k_i - 1)/2."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_net_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why graph theory (Euler 1736 → modern network science) became one of the unifying languages of complex systems.",
+        "rubric": "Mentions: Euler (1736 Königsberg bridges) abstracted physical objects → nodes + edges, founding graph theory + topology. Kirchhoff (1847 circuits), Cayley, Jordan, König (1936 textbook) developed combinatorial + algebraic foundations. The adjacency + Laplacian matrices link algebra, geometry, dynamics — eigenvalues encode connectivity (Fiedler), diffusion, synchronization, partitioning (spectral bisection). Modern network science (Erdős-Rényi 1959; Watts-Strogatz 1998; Barabási-Albert 1999) unified disparate complex systems — social, biological, technological, economic — under the same mathematical lens. Same measures (degree distribution, clustering, path length, modularity) apply to citations, neurons, ecosystems, the Internet, the WWW. Network science = a universal language for complex systems + the substrate for PageRank, epidemic models, neuroscience connectomes, financial-risk modeling, recommendation, + graph neural networks (Bronstein geometric DL)."
+      }
+    }
+  ]
+}

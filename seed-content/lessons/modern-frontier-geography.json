@@ -1,0 +1,174 @@
+{
+  "slug": "modern-frontier-geography",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Survey the digital + geospatial revolution: Google Earth, OpenStreetMap, Sentinel, Planet, AI land-cover, Microsoft Buildings.",
+      "Connect AI + geo-NLP (GeoBERT, Tobler-in-ML, GeoCLIP, LLM place description) to research + policy.",
+      "Engage critical, indigenous, decolonial, environmental-justice, and place-based methodological futures."
+    ],
+    "prereqs": [
+      "political-geography-and-borders",
+      "environment-and-sustainability"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Digital + geospatial frontier — Earth, OSM, Sentinel, Planet, AI",
+      "body": "The geographer's toolkit has been transformed in the last 20 years by an explosion of digital + geospatial infrastructure.\n\n**Google Earth (2005-)**:\n- Origin: Keyhole Inc., acquired 2004; *Google Earth* released June 2005.\n- Streamed global imagery + terrain + 3D buildings + Street View; democratized 3D Earth visualization.\n- Now Google Earth Engine (2010+) provides petabyte-scale cloud computation on Landsat + Sentinel + MODIS + climate + nighttime-lights archives for any user.\n\n**OpenStreetMap (OSM, 2004-)**:\n- Founded by **Steve Coast** (London, 2004) as crowdsourced open-data alternative to proprietary maps.\n- Now ~10M+ registered contributors; ~9B+ nodes; ~1B+ ways. Underlies Facebook + Apple + Mapbox + Uber + Komoot + Tesla + countless services.\n- **Humanitarian OSM Team (HOT)** mobilized after 2010 Haiti earthquake; now standard disaster-response infrastructure.\n- **Mapillary (2013, acquired by Meta 2020)** — crowdsourced street-level imagery; AI-extracted features. Open imagery + AI labels.\n\n**Satellite earth observation**:\n- **Landsat (USGS + NASA, 1972-)** — 50+ years of free 30 m optical imagery; eight + nine satellites; the longest continuous record. Critical for climate + land-cover + forest + agriculture studies.\n- **Copernicus Sentinel (ESA, 2014-)** — Sentinel-1 (SAR), Sentinel-2 (10 m optical), Sentinel-3 (ocean + land), Sentinel-5P (atmospheric); free + open; 5-10 day revisit; backbone of modern operational EO.\n- **Planet Labs (2010-)** — daily 3-4 m global imagery from PlanetScope CubeSat constellation (~200 satellites); SkySat 0.5 m on-demand; revolutionary cadence for monitoring.\n- **Maxar (DigitalGlobe + GeoEye)** — sub-meter optical (WorldView-3 at 30 cm); deep-archive + tasking.\n- **ICEYE + Capella + Umbra** — commercial SAR (synthetic aperture radar) constellations.\n- **NASA + ESA missions**: GRACE-FO (gravity + groundwater), ICESat-2 (laser altimetry + cryosphere), SMAP (soil moisture), GEDI (forest structure), PACE (oceans + aerosols), Tempo (US air quality), Sentinel-6 Michael Freilich (sea level).\n\n**AI for land cover + buildings**:\n- **Krishna Karra et al. (Impact Observatory, 2021) + Esri**: 10 m global land cover from Sentinel-2 + deep learning; annual update; one of the first global AI land-cover products at high resolution.\n- **ESA WorldCover 10 m (2020, 2021)**, **Dynamic World (Google + WRI, 2022)** — multiple deep-learning global land-cover products now compete + reconcile.\n- **Microsoft Building Footprints** (2018-) — ML-extracted ~1.4B buildings worldwide from Bing imagery; released openly.\n- **Google Open Buildings** (2021+) — ~1.8B buildings in Africa + South Asia + SE Asia; complements Microsoft.\n- **Overture Maps Foundation (2022-)** — Amazon + Meta + Microsoft + TomTom + others; shared open base-map layers under Linux Foundation.\n\n**Other key digital geographies**:\n- **UN-Habitat Global Urban Monitoring Framework (UMF, 2021)** — standardized indicators on SDG 11 + urban data; pairs with global building + population data (WorldPop, GHSL).\n- **Atlas of Inequalities** + **World Inequality Database (Piketty + Saez + Zucman, WID)** — open spatial inequality data.\n- **Global Forest Watch (WRI + Hansen)** + **GLAD alerts** — operational deforestation monitoring.\n- **Climate TRACE** — facility-level emissions from satellite + AI; ~80000 facilities; reshapes emissions accounting.\n\n**Open standards + ecosystem**:\n- OGC standards (WMS, WFS, WCS, OGC API Features), STAC (SpatioTemporal Asset Catalogs), Cloud-Optimized GeoTIFF (COG), Zarr; Parquet + GeoParquet; ML frameworks (TorchGeo, segment-anything, raster-vision)."
+    },
+    {
+      "kind": "text",
+      "title": "AI + geography — geo-NLP, GeoBERT, GeoCLIP, Tobler in ML, LLMs",
+      "body": "The integration of AI + geography has accelerated dramatically since ~2018.\n\n**Geo-NLP** — natural-language processing of geographic information:\n- **GeoNames + Geoparser pipelines** — extract + disambiguate place names from text (Edinburgh Geoparser, Mordecai, CLAVIN).\n- **GeoBERT + variants** — BERT-style transformer encoders fine-tuned on geographic corpora; learn place-name + administrative-hierarchy + spatial-relation tokens. Used in news event extraction, conflict-event datasets (ACLED, GDELT), historical-document mapping.\n- **GeoLM, ERNIE-Geo, GeoLLM** — recent LLM-augmented systems; Berkeley + Tsinghua + MIT releases 2022-2024.\n- **LLMs as place describers — Manvi et al. (2023, 2024)**: 'GeoLLM' + 'Foundation Models for Geospatial Knowledge' show that GPT-4-class LLMs encode meaningful geographic priors (climates, demographics, language, economy) at country + city scale, with measurable bias toward English-language + high-resource places.\n\n**Geographic anomaly detection — Stein**:\n- **Andreas Stein** + colleagues (ITC Twente; *International Journal of Applied Earth Observation + Geoinformation* editor) advanced spatial anomaly + outlier detection methods + deep-learning approaches for spatial outliers in remote-sensing + environmental monitoring.\n- Cloud-native anomaly detection now standard via Earth Engine + Microsoft Planetary Computer + AWS Open Data.\n\n**Tobler's first law in machine learning**:\n- 'Everything is related to everything else, but near things are more related than distant things.' (Tobler 1970)\n- In ML this is operationalized as **spatial autocorrelation** + **convolutional inductive bias**: CNNs assume locality (Tobler-like) by construction; ViTs add attention. **Graph neural networks** generalize to irregular spatial topologies (road networks, river basins, social networks).\n- **Spatial cross-validation** (Roberts et al. 2017 *Ecography*) — train + test must be spatially separated, else Tobler's law inflates accuracy estimates.\n- **Kriging + Gaussian processes** — formal probabilistic models of Tobler's law; backbone of geostatistics + AI emulators.\n- **Stochastic-PDE + INLA-SPDE (Lindgren-Rue 2011)** — modern computationally efficient framing.\n\n**GeoCLIP + visual geolocation — Hays et al.**:\n- **James Hays (Georgia Tech)** — *IM2GPS* (2008): predict GPS coordinates from a single image. Founding paper of visual geolocation.\n- **GeoCLIP (Vivanco Cepeda et al. 2023)** + **PIGEON (Stanford 2024)** + **GeoLM** — CLIP-style models that jointly embed images + locations; outperform earlier methods by orders of magnitude.\n- Applications: open-source intelligence, conflict + atrocity verification (Bellingcat), wildlife + species locality, historical photo geolocation, smartphone privacy considerations.\n\n**LLMs for place description — Manvi et al.**:\n- Vishakh Manvi + Bharath Hariharan (Cornell), + Stanford + Berkeley teams have shown LLMs can describe + predict place attributes (climate, demographics, economy, health, hazards) with accuracy comparable to specialized models for some tasks — but with biases reflecting training-data geography.\n- **Implications**: LLMs as **geographic priors** in low-data settings; **augmenting** rather than replacing specialized models.\n- **GeoChat + RemoteCLIP + GeoCLIP-2** — multi-modal foundation models for remote sensing.\n\n**Foundation models for Earth observation**:\n- **Prithvi (IBM-NASA 2023)**, **SatMAE (Stanford 2022)**, **DINOv2-Geo**, **Clay (Made by Clay 2024)**, **Galileo (DeepMind 2024)** — pretrained satellite + geospatial foundation models; emerging zero-shot + few-shot capabilities for crop type, building detection, change detection.\n\n**The future of the discipline**:\n- Geography is being **re-quantified** with AI + remote-sensing scale; but the critical + qualitative + ethnographic + decolonial agendas must keep pace.\n- Risks: surveillance + extractive data practices; loss of place specificity; centralization of platforms; AI-amplified geographic biases (well-mapped places dominate).\n- Opportunities: democratized access to global geospatial data; rapid disaster response; conservation; equity monitoring; participatory mapping at unprecedented scale."
+    },
+    {
+      "kind": "text",
+      "title": "Critical geography future — Harvey + Massey + indigenous + decolonial + justice + place-based",
+      "body": "The frontier of critical geography returns to questions of power, knowledge, justice, + place.\n\n**Late Harvey + Massey**:\n- **David Harvey** (now in his 90s; CUNY Graduate Center) — continues to publish on capital + space; *Anti-Capitalist Chronicles* (2020), *A Companion to Marx's Capital* + *Grundrisse* lectures + YouTube series (millions of views) made Marxist geography mainstream pedagogy. His insistence that capital accumulation produces uneven geographic development remains the touchstone for critical economic geography.\n- **Doreen Massey** (d. 2016) — her relational + power-geometric conception of place + space continues to shape feminist + post-structural + ethnographic geographies. *For Space* (2005) + *World City* (2007) are standard reading; her concept of 'a global sense of place' anchors much of the post-globalization critical literature.\n\n**Indigenous geographies — Sarah Hunt + others**:\n- **Sarah Hunt** (Kwakwaka'wakw scholar; UBC) — *Ontologies of Indigeneity* + 'Ontologies of Indigeneity: the politics of embodying a concept' (2014 *cultural geographies*); leading voice on Indigenous geography + the politics of methodology + place-based knowledge.\n- **Glen Coulthard** (Yellowknives Dene; *Red Skin, White Masks* 2014), **Audra Simpson** (Mohawk; *Mohawk Interruptus* 2014), **Leanne Betasamosake Simpson** (Michi Saagiig Nishnaabeg; *As We Have Always Done* 2017), **Mishuana Goeman** (Tonawanda Band of Seneca; *Mark My Words* 2013), **Eve Tuck + K. Wayne Yang** ('Decolonization is not a metaphor' 2012) — Indigenous geographers + theorists who challenge settler-colonial cartography + advance Indigenous sovereignty + land back.\n- Methodological commitments: relational + reciprocal research; co-design with communities; ethical data sovereignty (CARE Principles, Te Mana Raraunga).\n\n**Decolonial geography — Juanita Sundberg + others**:\n- **Juanita Sundberg** (UBC) — 'Decolonizing posthumanist geographies' (*cultural geographies* 2014); leading voice on the limits of universalizing posthumanism + the politics of more-than-human geographies through a decolonial lens.\n- **Sarah Radcliffe** (Cambridge) — *Dilemmas of Difference: Indigenous Women + the Limits of Postcolonial Development* (2015); decolonial development geography.\n- **Walter Mignolo, Aníbal Quijano, Catherine Walsh** — decolonial theorists frequently cited by geographers; **coloniality of power** + **modernity/coloniality/decoloniality** trio.\n- Decolonizing curricula + cartography + GIS + remote sensing programs — Why is My Curriculum White?, Decolonising the Map (Crampton, Bryan, Sletto).\n\n**Climate justice — Mary Robinson + Mary Annaïse Heglar + others**:\n- **Mary Robinson** (former Irish president + UN Human Rights Commissioner; founder of the **Mary Robinson Foundation - Climate Justice (MRFCJ)** + author of *Climate Justice* 2018) — major voice integrating human-rights + climate-policy framing; African + small-island advocacy.\n- **Vanessa Nakate, Sunita Narain, Sandrine Dixson-Declève, Naomi Klein, Bill McKibben, Mary Annaïse Heglar, Hindou Oumarou Ibrahim** — climate-justice movement leaders.\n- COP27 + COP28 loss-and-damage fund (2022, 2023) operationalized historic responsibility + climate justice in UN climate-finance architecture.\n\n**Environmental justice — Robert Bullard**:\n- **Robert D. Bullard** (Texas Southern University) — *Dumping in Dixie* (1990); 'father of environmental justice'.\n- Documented disproportionate siting of waste + pollution in Black + brown + Indigenous + poor communities in the US; mobilized the 1991 First National People of Color Environmental Leadership Summit + the 17 Principles of Environmental Justice.\n- Now global — **just transition**, **climate justice**, **environmental racism** are mainstream policy + research vocabulary. EPA Justice40 (2021), IPCC AR6 WGII recognition.\n\n**Place-based methods — Sarah Pink**:\n- **Sarah Pink** (Monash University; founding director of Emerging Technologies Research Lab) — *Doing Sensory Ethnography* (2009), *Doing Visual Ethnography* (4th ed 2021), *Energy + Digital Living* (2017), *Anthropologies + Futures* (2017); leading methodologist on **sensory + visual + digital + place ethnography**.\n- Approaches: walking + biking interviews, video + photo elicitation, sensory + atmosphere ethnography, design-anthropology collaborations, futures methods. Standard reading for place-based human geography.\n\n**The discipline's future — pluralism + integration**:\n- The frontier of geography combines (a) AI + planetary-scale geospatial computing, (b) Anthropocene + planetary-boundaries Earth-systems science, (c) critical, feminist, Indigenous, decolonial, climate-justice politics, + (d) qualitative + ethnographic + place-based methods. The challenge: keep the discipline pluralistic enough to integrate quantitative AI + qualitative ethnography + classical regional synthesis + critical theory in service of habitable + just geographies.\n- The lessons of this path — Eratosthenes + Humboldt + Sauer + Hägerstrand + Tobler + Massey + Harvey + Crutzen + Bullard + Hunt + Pink — all live in the working geographer's toolkit. Geography remains, as ever, the discipline of integration."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_front_1",
+        "kind": "guided_derivation",
+        "question": "Design an AI-augmented + critically reflexive deforestation-monitoring system",
+        "goal": "Combine satellite + AI + ground-truth + indigenous-data-sovereignty + justice principles in a deforestation alert system for a tropical-forest country.",
+        "steps": [
+          {
+            "prompt": "Pick the EO + AI stack.",
+            "motivation": "Step 1: technical foundation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Sentinel-2 10 m optical + Sentinel-1 SAR + Planet daily; AI land-cover (Karra, Dynamic World, WorldCover); GLAD + DETER alerts; foundation models (Prithvi, Clay)",
+                "Sentinel + Planet + AI land-cover + GLAD"
+              ]
+            },
+            "hints": [
+              "Cadence + resolution tradeoffs."
+            ],
+            "reveal": "Stack: **Sentinel-2 (10 m optical, free, 5-day revisit)** + **Sentinel-1 (SAR, cloud-penetrating, ESA)** + **Planet PlanetScope (~3-4 m daily)** for high-cadence verification + **Landsat** for historical baseline. AI land-cover: **Karra/Impact Observatory + Esri (annual 10 m)** + **Dynamic World (Google+WRI near-real-time)** + **ESA WorldCover**. Alerts: **GLAD + GLAD-S2** (Hansen UMD) + **DETER (INPE)**. Foundation models: **Prithvi (IBM-NASA)**, **Clay**, **Galileo** for transfer learning + few-shot fine-tuning. Cloud platform: Google Earth Engine + Microsoft Planetary Computer + AWS Open Data Registry."
+          },
+          {
+            "prompt": "Address Tobler's first law in ML practice.",
+            "motivation": "Step 2: spatial autocorrelation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "use spatial cross-validation (Roberts 2017); avoid leakage from autocorrelated train/test; weight loss by class imbalance + edge proximity",
+                "spatial CV + leakage control"
+              ]
+            },
+            "hints": [
+              "Why is i.i.d. CV misleading?"
+            ],
+            "reveal": "Tobler's first law: near things are more related — independent train/test sampling assumes i.i.d., but neighboring pixels are highly autocorrelated. Use **spatial block CV** (Roberts et al. 2017): hold out spatially separated tiles or basins. Weight loss for class imbalance + edge effects. Report **spatial accuracy** (over tiles), not pixel-level accuracy. Geostatistical baselines (kriging, GP) anchor uncertainty estimates."
+          },
+          {
+            "prompt": "Integrate ground-truth + community data + indigenous sovereignty.",
+            "motivation": "Step 3: participatory + ethical.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "OSM + HOT + community mapping + indigenous-led monitoring; CARE + FPIC + data sovereignty; co-design rather than top-down",
+                "community + indigenous data sovereignty"
+              ]
+            },
+            "hints": [
+              "CARE principles + FPIC."
+            ],
+            "reveal": "Ground-truth: **OpenStreetMap** + **HOT** + national land registries + indigenous land monitoring (e.g., RAISG in the Amazon; Karipuna, Yanomami, Kayapó community networks). **CARE Principles** (Collective benefit, Authority to control, Responsibility, Ethics) + **FPIC** (Free, Prior, Informed Consent) + Te Mana Raraunga / indigenous data sovereignty. **Co-design** with communities — Hunt, Sundberg, Coulthard methodological commitments. Avoid extractive 'parachute' science."
+          },
+          {
+            "prompt": "Connect to climate + environmental justice.",
+            "motivation": "Step 4: justice integration.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Bullard environmental justice — who is exposed; Robinson climate justice — historical responsibility + loss + damage; Pink place-based ethnography for community context",
+                "EJ + climate justice + place-based"
+              ]
+            },
+            "hints": [
+              "Whose places are being destroyed + by whom?"
+            ],
+            "reveal": "**Robert Bullard**'s environmental justice lens: who lives in deforestation frontlines (often Indigenous + Quilombola + smallholder communities); who bears the harms (land violence; Bruno + Dom killings; water contamination); who profits (agribusiness, mining, financiers). **Mary Robinson**'s climate justice: global-North consumption demand + global-South frontline communities; historical responsibility + loss + damage. **Sarah Pink** sensory + visual + place ethnography: pair satellite data with community-grounded methods so the data system answers actual community questions + does not reinforce surveillance. **Harvey + Massey**: capital + uneven development; **Sundberg**: decolonize the analysis."
+          },
+          {
+            "prompt": "Sustainability + governance framework.",
+            "motivation": "Step 5: institutional integration.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Rockström planetary boundaries; SDGs 13/15; Brundtland; ecosystem services valuation (Costanza); REDD+; degrowth/Hickel; just-transition narratives",
+                "planetary boundaries + SDGs + REDD+ + just transition"
+              ]
+            },
+            "hints": [
+              "Which frameworks structure the policy use?"
+            ],
+            "reveal": "Connect to **Rockström planetary boundaries** (biosphere + land-system already transgressed); **SDG 13/15** + UN-Habitat indicators; **Brundtland sustainable development** framing; **Costanza ecosystem services** valuation (carbon, biodiversity, rainfall, cultural); **REDD+ + voluntary carbon markets** with rigorous additionality + community-benefits standards; **Hickel/degrowth + Raworth doughnut** for global-North demand reduction; **just-transition** for displaced workers. The system should be both a technical product + a politically reflexive infrastructure. Geography's future is exactly this kind of integration."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_front_1",
+        "kind": "multiple_choice",
+        "question": "Why does the integration of Tobler's first law into machine learning matter for modern geography?",
+        "options": [
+          "Random.",
+          "**Waldo Tobler's first law (1970)** — 'everything is related to everything else, but near things are more related than distant things' — is now operationalized inside ML pipelines in three crucial ways. (1) **Spatial inductive bias** — CNNs assume locality (Tobler-like) by construction; Vision Transformers add attention; **graph neural networks** generalize to irregular networks (rivers, roads, social ties); **Gaussian processes + kriging** provide formal Bayesian Tobler models. (2) **Spatial cross-validation** (Roberts et al. 2017 *Ecography*) — random i.i.d. CV inflates accuracy because near pixels leak between train + test; **block CV** with spatial separation is required for honest evaluation. (3) **Foundation models** — **Prithvi (IBM-NASA), Clay, Galileo, GeoCLIP (Hays), GeoLLM (Manvi)** all bake spatial structure into representations. Failure to respect Tobler's law produces inflated accuracy claims + spurious generalization. The first law is no longer just a slogan — it is a structural constraint shaping how AI-for-Earth tools are built + evaluated + deployed.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Tobler's first law (1970) is operationalized in modern ML through: (1) spatial inductive bias (CNNs, ViTs, GNNs, GPs/kriging); (2) spatial cross-validation (Roberts 2017) to avoid i.i.d. leakage; (3) geospatial foundation models (Prithvi, Clay, Galileo, GeoCLIP, GeoLLM). It is a structural constraint, not a slogan — shaping how AI-for-Earth tools are built + evaluated + deployed."
+      },
+      "hints": [
+        "How does Tobler's law enter ML?",
+        "Why does naive CV mislead?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Tobler's first law (1970) enters modern ML through: spatial inductive bias (CNN, ViT, GNN, GP/kriging); spatial cross-validation (Roberts 2017) to avoid i.i.d. leakage; geospatial foundation models (Prithvi, Clay, Galileo, GeoCLIP, GeoLLM). Structural constraint shaping AI-for-Earth pipelines, not just a slogan."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_front_1",
+        "kind": "scenario",
+        "question": "Designing the next-decade research agenda for a geography department",
+        "prompt": "You chair a geography department + must propose the next-decade research agenda. Integrate the modern + critical frontier: (1) **Digital + geospatial infrastructure** — Google Earth Engine + Microsoft Planetary Computer + STAC + COG + Cloud-Optimized workflows; Sentinel + Planet + Maxar data licensing. (2) **AI integration** — geo-NLP (GeoBERT, GeoLM, Manvi LLM place-description); GeoCLIP + Hays visual geolocation; foundation models (Prithvi, Clay, Galileo); Tobler-aware spatial CV; Stein-style anomaly detection; spatial GNNs + GPs. (3) **Land-cover + building + emissions products** — Karra + Dynamic World + WorldCover + Microsoft Buildings + Climate TRACE — for what scientific + policy questions? (4) **Anthropocene + planetary-boundaries science** — Crutzen + Rockström + Costanza ecosystem services. (5) **Critical + decolonial + indigenous geography** — Hunt + Sundberg + Coulthard + Tuck + Yang; CARE Principles + FPIC; co-design with communities; ethical data sovereignty. (6) **Environmental + climate justice** — Bullard + Robinson + Heglar; partnerships with frontline communities; Loss + Damage research. (7) **Place-based methods (Pink)** — sensory + visual + digital ethnography paired with quantitative. (8) **Curricular + hiring strategy** — balance AI/data + theory + ethnography + critical + regional + physical. (9) **Equity in geographic knowledge production** — South-South partnerships, decolonized syllabi, accessible publishing. Deliver a 10-page research-agenda memo + 3-year hiring + curriculum plan."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_front_1",
+        "kind": "math_expression",
+        "question": "Microsoft Building Footprints contains ~1.4 × 10⁹ buildings; Google Open Buildings adds ~1.8 × 10⁹ in Africa + South Asia + SE Asia. Estimate the global total (assume modest overlap of 0.4 × 10⁹) in billions.",
+        "acceptedAnswers": [
+          "2.8",
+          "~2.8",
+          "2.8 billion",
+          "2.8e9"
+        ],
+        "hint": "Total ≈ 1.4 + 1.8 − 0.4 = 2.8 × 10⁹ ≈ 2.8 billion buildings. Over a billion of these were under-mapped before 2018, transforming urban + humanitarian + emissions analytics in low-income regions."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_front_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, integrate digital + AI + critical futures of geography, naming at least eight figures + describing how their threads combine.",
+        "rubric": "Mentions: digital — Google Earth (2005), OSM (**Coast** 2004), Mapillary, Landsat, **Sentinel** (Copernicus), **Planet** PlanetScope, Maxar, GEDI, GRACE-FO; AI land-cover — **Karra** + Dynamic World + WorldCover; Microsoft Building Footprints + Google Open Buildings; Overture Maps; UN-Habitat UMF + Climate TRACE + Atlas of Inequalities. AI + geography — geo-NLP (GeoBERT, GeoLM); **Stein** anomaly detection; **Tobler** 1st law operationalized as spatial CV + inductive bias; **Hays** GeoCLIP visual geolocation; **Manvi** LLM place-description; foundation models (Prithvi, Clay, Galileo). Critical futures — late **Harvey** + **Massey**; **Hunt** indigenous geographies; **Sundberg** decolonial; **Robinson** climate justice; **Bullard** environmental justice; **Pink** sensory + visual ethnography. Threads combine: planetary-scale data + AI need spatial-statistical rigor (Tobler), Anthropocene + planetary-boundaries science (Crutzen + Rockström), + critical, indigenous, decolonial, justice politics + place-based methods — geography as discipline of integration."
+      }
+    }
+  ]
+}

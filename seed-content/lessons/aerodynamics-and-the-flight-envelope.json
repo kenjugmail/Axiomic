@@ -1,0 +1,137 @@
+{
+  "slug": "aerodynamics-and-the-flight-envelope",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "intro",
+    "objectives": [
+      "Apply the lift equation to compute stall speed and load factor in banked turns.",
+      "Identify the major V-speeds and their significance for safe aircraft operation.",
+      "Describe the V-n diagram and explain why load factor limits define the flight envelope."
+    ],
+    "prereqs": [
+      "aviation-history-and-principles-of-flight"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The lift equation — coefficients, stall, and the drag polar",
+      "body": "Building on the four forces and Bernoulli's equation, we now make aerodynamics **quantitative**. The lift equation:\n$$L = \\frac{1}{2} \\rho v^2 S C_L$$\ndeserves a close reading of each term.\n\n**Air density $\\rho$**: At ISA (International Standard Atmosphere, codified by **ICAO** in **1952**) sea level, $\\rho_0 = 1.225$ kg/m³. Density falls with altitude — at **10,000 ft (3,048 m)** density is roughly 0.905 kg/m³, about 74 % of sea-level value. A wing producing the same lift at altitude must fly faster to compensate for the lower $\\rho$. This is the reason **true airspeed (TAS)** exceeds **indicated airspeed (IAS)** at altitude: the pitot-static system senses dynamic pressure $q = \\frac{1}{2}\\rho v^2$, not true speed.\n\n**Coefficient of lift $C_L$**: A dimensionless number that summarises how efficiently the wing is converting dynamic pressure into lift. For most airfoils $C_L$ rises nearly linearly with **angle of attack (AoA) $\\alpha$** at a rate of approximately $2\\pi$ per radian (the thin-airfoil theory result of **Max Munk**, NACA, 1920s, and **Hermann Glauert**, RAE, 1926). The relationship $C_L \\approx 2\\pi \\alpha$ holds until the **critical angle of attack** — typically **15°–18°** for most light aircraft wings (the exact value depends on airfoil profile and Reynolds number).\n\n**The aerodynamic stall** occurs when AoA exceeds the critical value. Above that angle, the boundary layer (the thin layer of air in contact with the wing surface, a concept formalised by **Ludwig Prandtl** at Göttingen in **1904**) separates from the upper surface. Separated flow is turbulent and generates far less lift — $C_L$ drops sharply. The FAA's **Airplane Flying Handbook (FAA-H-8083-3B)** defines a stall as \"a condition where the wings can no longer produce sufficient lift to sustain flight at that angle of attack.\" Critically, a wing can stall **at any airspeed and any attitude** — only AoA matters, not speed or nose position. The stall speed $V_S$ at 1g is the **minimum IAS** at which $C_{L,\\text{max}}$ produces exactly enough lift to support the aircraft's weight.\n\n**Drag** has two main components:\n1. **Parasite drag** (also called profile drag or zero-lift drag): skin friction + pressure drag due to the aircraft's shape — grows with $v^2$. A clean jet aircraft like the **Learjet 23** (1963) has far lower parasite drag than a fixed-gear trainer like the **Cessna 172 Skyhawk** (1955).\n2. **Induced drag**: a by-product of lift itself. Generating lift requires downwash, which tilts the local lift vector rearward. Induced drag $D_i = \\frac{2W^2}{\\rho v^2 S \\pi e AR}$ where $e$ is the Oswald efficiency factor and $AR$ is the wing **aspect ratio** (span² / area). Induced drag falls as speed increases (inverse-square relationship). A long, slender sailplane wing — the **Schempp-Hirth Nimbus-4** has an AR of 37 — minimises induced drag and achieves glide ratios exceeding 60:1.\n\n**The drag polar** is the graph of $C_L$ vs $C_D$: a parabolic curve. The point of minimum drag-to-lift ratio (maximum **L/D**, equivalently minimum drag angle) defines the speed for best glide and, for a jet, best range. For a typical training aircraft such as the **Cessna 172**, $L/D_{\\text{max}} \\approx 9$–$10$ at around 65–70 KIAS. For a high-performance sailplane, $L/D_{\\text{max}}$ can exceed 50.\n\n**Ground effect**: When a wing operates within approximately one wingspan of the ground, the downwash is suppressed by the surface, reducing induced drag by up to **50 %**. Ground effect allows an aircraft to fly at speeds below its free-air stall speed — a known hazard during the takeoff roll and landing flare. The **de Havilland Canada DHC-4 Caribou** (1958), with its high lift wing, was notorious for 'floating' in ground effect during landing."
+    },
+    {
+      "kind": "text",
+      "title": "V-speeds — the pilot's speed vocabulary",
+      "body": "The aviation community has standardised a vocabulary of **V-speeds** (from German *Velocity*) published in the **FAA Pilot's Operating Handbook (POH)** and the **Type Certificate Data Sheet (TCDS)** for each aircraft type. They are printed on airspeed indicator arcs and memorised by every student pilot.\n\n**Stall speeds**:\n- $V_S$ — **stall speed** (or minimum steady flight speed) in the clean configuration at maximum gross weight, 1g. The lower limit of the **white arc** on the ASI.\n- $V_{S0}$ — stall speed in the **landing configuration** (flaps and gear down). The lower limit of the **white arc**.\n- $V_{S1}$ — stall speed in a **specified configuration** (typically clean). Lower limit of the **green arc**.\n\n**Maneuvering and structural speeds**:\n- $V_A$ — **maneuvering speed**: the speed below which full deflection of a single control surface will not exceed the aircraft's structural limit load factor. Above $V_A$, full control inputs can overstress the airframe. $V_A$ decreases with weight because a lighter aircraft stalls before reaching the structural limit at lower speeds. Published in the **POH** for multiple weights.\n- $V_B$ — **design speed for maximum gust intensity**: used for turbulent-air penetration in transport-category aircraft per **14 CFR Part 25** (FAR 25).\n- $V_{FE}$ — **maximum flap-extended speed**: the upper limit of the white arc.\n- $V_{LO}$ — **maximum landing-gear operating speed**: fastest speed at which the gear may be extended or retracted.\n- $V_{LE}$ — **maximum landing-gear-extended speed**: fastest speed with gear hanging down.\n- $V_{NO}$ — **maximum structural cruising speed**: upper limit of the green arc. May be exceeded only in smooth air.\n- $V_{NE}$ — **never-exceed speed**: the red radial line. Exceeding $V_{NE}$ risks flutter, structural failure, or loss of control.\n\n**Performance speeds**:\n- $V_X$ — **best angle of climb**: the speed that gives the most altitude gain per unit of horizontal distance. Useful for clearing obstacles after takeoff. $V_X$ increases slightly with altitude.\n- $V_Y$ — **best rate of climb**: the speed that gives the most altitude gain per unit of time. $V_Y$ decreases with altitude and converges with $V_X$ at the aircraft's **absolute ceiling**.\n- $V_{REF}$ (or $V_\\text{ref}$) — **reference landing speed**: typically $1.3 \\times V_{S0}$, the target threshold crossing speed.\n- $V_2$ — **takeoff safety speed** (transport category per **14 CFR Part 25**): the minimum speed at which the aircraft is controllable and can continue a takeoff after engine failure.\n\n**Regulations**:\n- **14 CFR Part 23** (FAR 23) governs the airworthiness standards for **normal, utility, acrobatic, and commuter category** airplanes (revised 2017 to a performance-based standard).\n- **14 CFR Part 25** governs **transport-category** airplanes (Boeing 737, Airbus A320, etc.).\n- The **EASA CS-23** and **CS-25** are the European equivalents, maintained by the **European Union Aviation Safety Agency** (EASA, established **2002**).\n\nFor the **Cessna 172S** (Lycoming IO-360-L2A engine, MTOW 2,550 lb), representative values are: $V_{S0} = 44$ KIAS, $V_A = 97$ KIAS (at gross), $V_{FE} = 85$ KIAS, $V_{NO} = 129$ KIAS, $V_{NE} = 163$ KIAS, $V_Y = 74$ KIAS, $V_X = 65$ KIAS."
+    },
+    {
+      "kind": "text",
+      "title": "Load factor, the V-n diagram, and the flight envelope",
+      "body": "**Load factor** $n$ is defined as the ratio of the lift the wing produces to the aircraft's weight:\n$$n = \\frac{L}{W}$$\n\nIn straight and level flight, $n = 1$ (1g). In a **coordinated banked turn**, the wing must produce extra lift to provide both the vertical component (supporting weight) and the horizontal component (centripetal force). Geometry gives:\n$$n = \\frac{1}{\\cos\\phi}$$\nwhere $\\phi$ is the **bank angle**. At **60° bank**, $n = \\frac{1}{\\cos 60°} = \\frac{1}{0.5} = 2.0$ — the occupants feel **twice their body weight**. At **75° bank**, $n \\approx 3.86$. At **80° bank**, $n \\approx 5.76$. Stall speed also increases with load factor:\n$$V_{S,n} = V_S \\sqrt{n}$$\nAt $n = 2$, stall speed increases by $\\sqrt{2} \\approx 41\\%$.\n\n**Structural load limits** (from **FAR 23 / 14 CFR Part 23**):\n- **Normal category**: $+3.8g$ positive, $-1.52g$ negative.\n- **Utility category**: $+4.4g$ positive, $-1.76g$ negative.\n- **Acrobatic category**: $+6.0g$ positive, $-3.0g$ negative.\n- Transport category (FAR 25): $+2.5g$ positive minimum at light weights, reduced at heavier weights.\n- A **safety factor** of **1.5** is applied to limit loads to get ultimate loads — the structure must survive ultimate load without failure, though it may deform permanently.\n\n**The V-n diagram** (velocity-load factor diagram, also called the **flight envelope**) plots load factor (vertical axis) against **equivalent airspeed (EAS)** (horizontal axis). The envelope has four boundaries:\n1. **Stall boundary** (left/curved): as speed decreases, maximum achievable $n$ drops because $C_{L,\\text{max}}$ caps the lift. The stall boundary is the parabolic curve $n = \\frac{\\frac{1}{2}\\rho v^2 S C_{L,\\text{max}}}{W}$.\n2. **Positive structural limit** (top horizontal line): the certificated positive limit load factor.\n3. **Negative structural limit** (bottom horizontal line): the certificated negative limit load factor.\n4. **$V_{NE}$ boundary** (right vertical line): speed limit beyond which flutter or structural divergence may occur.\n\nThe **maneuvering speed $V_A$** is the intersection of the positive structural limit line and the stall boundary — the highest speed at which a full positive-g pull-up will cause the aircraft to stall before exceeding the structural limit. **Operating above $V_A$ in turbulence is dangerous** because turbulence-induced angle-of-attack spikes at high speed can impose loads exceeding structural limits.\n\n**Gust loads**: The FAA's **AC 23.341** and AC 25.341 specify the gust envelope overlay on the V-n diagram. A sharp-edged vertical gust of **±30 ft/s** at cruise and **±15 ft/s** at $V_{NE}$ is the standard design criterion for normal-category aircraft.\n\n**Ground effect** (revisited quantitatively): Within height $h \\approx 0.1 \\times b$ (10% of wingspan), induced drag can be reduced by up to 47.6% (the **Wieselsberger ground effect factor**, 1922). At height equal to one full wingspan, the reduction falls to about 1.4%.\n\nMastering the V-n diagram and load-factor arithmetic is required for the **FAA Private Pilot Knowledge Test** (PAR), the **Instrument Rating Knowledge Test** (IRA), and the **Commercial Pilot Knowledge Test** (CAX). The **Pilot's Handbook of Aeronautical Knowledge (FAA-H-8083-25B)**, Chapter 5 (Aerodynamics of Flight), is the authoritative free reference."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_aero_1",
+        "kind": "math_expression",
+        "question": "A Cessna 172 has a gross weight of $W = 2{,}550$ lb and a stall speed of $V_S = 44$ KIAS (clean, 1g). What is the stall speed in knots in a 60° banked turn? Use $V_{S,n} = V_S \\sqrt{n}$ and $n = 1/\\cos(60°)$. Round to the nearest knot.",
+        "acceptedAnswers": [
+          "62",
+          "62 KIAS",
+          "62 knots",
+          "62.2",
+          "62.2 KIAS"
+        ],
+        "hint": "Step 1: $n = 1/\\cos(60°) = 1/0.5 = 2.0$. Step 2: $V_{S,n} = 44 \\times \\sqrt{2} = 44 \\times 1.4142 \\approx 62.2$ KIAS. Round to 62 knots."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_aero_1",
+        "kind": "multiple_choice",
+        "question": "What is the maneuvering speed $V_A$, and why does it **decrease** as aircraft weight decreases?",
+        "options": [
+          "$V_A$ is the never-exceed speed; it decreases at lower weights because the engine produces less thrust.",
+          "$V_A$ is the maximum structural cruising speed; it decreases at lower weights because the green arc shifts.",
+          "$V_A$ is the speed below which full single-control-surface deflection will not overstress the airframe; it decreases at lower weights because a lighter aircraft will stall at a lower speed, meaning the stall boundary intersects the structural limit at a lower airspeed.",
+          "$V_A$ is the best rate of climb speed; it decreases at lower weights because the engine load decreases."
+        ],
+        "correctIndex": 2,
+        "explanation": "$V_A$ is the design maneuvering speed — the highest speed at which full deflection of a single primary control surface (aileron, elevator, or rudder — but not all simultaneously) will cause the aircraft to stall before the airframe reaches its structural limit load factor. The stall is protective: it caps the load before structural damage occurs. $V_A$ is defined by the intersection of the stall boundary and the positive structural limit on the V-n diagram.\n\nWhy does $V_A$ decrease with weight? Because the stall speed itself is proportional to $\\sqrt{W}$: $V_S = \\sqrt{\\frac{2W}{\\rho S C_{L,\\text{max}}}}$. A lighter aircraft stalls at a lower airspeed. The stall boundary — a parabolic curve on the V-n diagram — therefore shifts left (to lower speeds) as weight decreases. The intersection of this boundary with the (fixed) structural limit line moves to a lower airspeed — hence a lower $V_A$.\n\nThis is not intuitive: pilots sometimes assume a lighter load means more margin. In fact, flying a light aircraft at the published (heavy-weight) $V_A$ could allow a full control input to exceed the structural limit before stall occurs — exactly backward from the intended protection. The FAA requires $V_A$ values for multiple weights to be published in the POH when there are significant weight differences (per FAR 23 / 14 CFR 23.335). The Cessna 172S POH, for example, lists $V_A$ = 97 KIAS at 2,550 lb, 89 KIAS at 2,100 lb, and 81 KIAS at 1,600 lb."
+      },
+      "hints": [
+        "Think about the V-n diagram and the stall boundary's position at lighter weights.",
+        "Stall speed is proportional to the square root of weight."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "$V_A$ is the maneuvering speed — the speed below which full single-surface control deflection causes a stall before structural overload. Stall speed scales as $\\sqrt{W}$: at lower weight, stall speed is lower, the stall boundary on the V-n diagram shifts left, and the intersection with the structural limit (defining $V_A$) moves to a lower airspeed. The Cessna 172S POH lists three different $V_A$ values for three different weights as a result."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_aero_1",
+        "kind": "guided_derivation",
+        "question": "Derive the stall speed at load factor n from first principles",
+        "goal": "Starting from the lift equation $L = \\frac{1}{2}\\rho v^2 S C_L$ and the definition $n = L/W$, derive an expression for the stall speed at load factor $n$ and show it is $V_{S,n} = V_S\\sqrt{n}$.",
+        "steps": [
+          {
+            "prompt": "At the 1g stall, lift equals weight and $C_L = C_{L,\\text{max}}$. Write the expression for $V_S$ (1g stall speed) from the lift equation.",
+            "motivation": "Establish the baseline 1g stall speed.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "V_S = sqrt(2W / (rho S C_L_max))",
+                "V_S = sqrt(2W/(rho*S*CLmax))",
+                "sqrt(2W / rho S CL_max)"
+              ]
+            },
+            "hints": [
+              "Set L = W, solve the lift equation for v."
+            ],
+            "reveal": "At 1g stall: $L = W = \\frac{1}{2}\\rho V_S^2 S C_{L,\\text{max}}$. Solving for $V_S$: $V_S = \\sqrt{\\frac{2W}{\\rho S C_{L,\\text{max}}}}$. This is the minimum speed in level flight at the aircraft's current weight."
+          },
+          {
+            "prompt": "Now at load factor $n$, lift must equal $nW$ and $C_L$ is still at $C_{L,\\text{max}}$ (stall condition). Write the expression for $V_{S,n}$.",
+            "motivation": "Apply the same reasoning at a different load factor.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "V_Sn = sqrt(2nW / (rho S C_L_max))",
+                "sqrt(2nW/(rho*S*CLmax))"
+              ]
+            },
+            "hints": [
+              "Replace W with nW in the lift equation at stall."
+            ],
+            "reveal": "At load factor $n$: $nW = \\frac{1}{2}\\rho V_{S,n}^2 S C_{L,\\text{max}}$. Solving: $V_{S,n} = \\sqrt{\\frac{2nW}{\\rho S C_{L,\\text{max}}}}$."
+          },
+          {
+            "prompt": "Take the ratio $V_{S,n} / V_S$ and simplify to show it equals $\\sqrt{n}$.",
+            "motivation": "Derive the clean scaling law.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "V_Sn / V_S = sqrt(n)",
+                "sqrt(n)",
+                "ratio = sqrt(n)"
+              ]
+            },
+            "hints": [
+              "Most terms cancel in the ratio."
+            ],
+            "reveal": "$\\frac{V_{S,n}}{V_S} = \\frac{\\sqrt{\\frac{2nW}{\\rho S C_{L,\\text{max}}}}}{\\sqrt{\\frac{2W}{\\rho S C_{L,\\text{max}}}}} = \\sqrt{\\frac{2nW}{2W}} = \\sqrt{n}$. Therefore $V_{S,n} = V_S \\sqrt{n}$. This is the fundamental stall-speed scaling law used throughout airline operations and aerobatic flight limits."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_aero_1",
+        "kind": "scenario",
+        "question": "Turbulence encounter above $V_A$",
+        "prompt": "You are flying a Cessna 172S at 4,500 ft MSL, 110 KIAS (above $V_A$ = 97 KIAS at gross weight), in what seemed like smooth air. Suddenly you encounter moderate turbulence. A flight instructor in the right seat says 'Don't touch the controls — just let it ride.' A student pilot asks: 'But shouldn't we slow down? And why can't we use the controls to damp the bumps?' Using the V-n diagram and your knowledge of load factor, stall speed scaling, and the structural purpose of $V_A$, explain to the student: (1) why the instructor's advice is correct, (2) what the risk of full control input above $V_A$ is, and (3) what you should have done before entering the turbulent area."
+      }
+    }
+  ]
+}

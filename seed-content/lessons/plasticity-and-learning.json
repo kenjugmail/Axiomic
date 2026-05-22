@@ -1,0 +1,152 @@
+{
+  "slug": "plasticity-and-learning",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Mechanize LTP/LTD.",
+      "Apply STDP.",
+      "Explain systems consolidation."
+    ],
+    "prereqs": [
+      "synapses-and-neurotransmission"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "LTP + LTD: the cellular basis of memory",
+      "body": "**Long-Term Potentiation (LTP)**: long-lasting (hours to days in vitro; lifelong in vivo) increase in synaptic strength following high-frequency stimulation (HFS, e.g., 100 Hz for 1 s) or theta-burst stimulation. Discovered by **Bliss + Lømo (1973 J. Physiol)** in anesthetized rabbit dentate gyrus — a watershed paper. Provided the first plausible cellular substrate for Hebb's 1949 'cells that fire together wire together' postulate.\n\n**Cardinal properties of CA1 LTP**:\n- **Cooperativity**: requires multiple coactive inputs to depolarize the postsynaptic neuron enough to relieve NMDAR Mg²⁺ block.\n- **Associativity**: a weak input can be potentiated if paired with a strong input (the cellular substrate of classical conditioning).\n- **Input specificity**: only stimulated synapses potentiate (within the dendritic compartment); non-stimulated synapses on the same neuron are spared.\n- **Persistence**: early LTP (E-LTP, ~1-3 h, protein-synthesis-independent) → late LTP (L-LTP, hours-days, requires transcription + translation; PKA → CREB → Arc/Zif268/BDNF).\n\n**Induction at CA3-CA1 (Schaffer collateral)**:\n1. High-frequency stimulation releases glutamate → AMPA EPSPs summate.\n2. Postsynaptic depolarization expels Mg²⁺ from NMDA pore.\n3. NMDA opens → Ca²⁺ influx into spine head (local, ~µM).\n4. High Ca²⁺ → **CaMKII** autophosphorylates at T286 → constitutively active → phosphorylates GluA1 S831 + drives AMPA insertion into PSD.\n5. Spine grows (actin remodeling via Cdc42/Rac → Arp2/3); structural LTP visualized by Yasuda 2-photon glutamate uncaging.\n6. PKA + CREB drive transcription for L-LTP; Arc/Arg3.1 IEG locks in changes.\n\n**Expression mechanisms**:\n- Insertion of AMPARs into PSD (TARP γ8/stargazin auxiliary subunits guide trafficking).\n- Phosphorylation of existing AMPARs increases single-channel conductance.\n- Sometimes presynaptic enhancement (NO retrograde signal; controversial in mammals).\n- Structural enlargement of spine (mushroom-shaped spines = strongest).\n\n**Long-Term Depression (LTD)**:\n- **NMDA-LTD**: prolonged low-frequency stimulation (1 Hz, 15 min) → moderate Ca²⁺ → preferentially activates **protein phosphatase 1 (PP1)** + calcineurin (PP2B) → dephosphorylates GluA1 → AMPA endocytosis (clathrin-AP2 + Hsc70). Mechanism complementary to LTP.\n- **mGluR-LTD**: group I mGluR (mGluR1/5) → PLC → IP₃ + DAG → local protein synthesis (FMRP-regulated). Disrupted in **Fragile X** (FMR1 silencing) → excessive mGluR-LTD.\n- **Cerebellar LTD** (Ito 1982): at parallel fiber-Purkinje cell synapse; CF complex spike + PF coactivation → AMPA endocytosis via PKC. Motor learning substrate.\n- **Endocannabinoid-LTD**: postsynaptic 2-AG/anandamide → retrograde → CB1 → presynaptic ↓ release.\n\n**Metaplasticity** = 'plasticity of plasticity'. The **BCM rule** (Bienenstock + Cooper + Munro 1982) introduced a sliding threshold θ_M: depolarization above θ_M → LTP, below → LTD; θ_M itself rises with recent activity, preventing runaway. Implemented molecularly via GluN2A/GluN2B subunit ratio shifts + kinase/phosphatase balance — Mark Bear's lab has carried this through development + visual deprivation experiments.\n\n**E-LTP vs L-LTP**: the synaptic-tagging-and-capture hypothesis (Frey + Morris 1997): a stimulated synapse sets a 'tag' (local Arc/PKM?); newly synthesized plasticity-related proteins (PRPs) — produced anywhere on the cell — are captured at tagged synapses. Resolves how cell-wide protein synthesis can still yield input-specific persistent LTP."
+    },
+    {
+      "kind": "text",
+      "title": "STDP + the Hebbian rule made precise",
+      "body": "**Hebb's postulate** (1949 *The Organization of Behavior*): 'When an axon of cell A is near enough to excite cell B and repeatedly or persistently takes part in firing it, some growth process or metabolic change takes place in one or both cells such that A's efficiency, as one of the cells firing B, is increased.' Plain-English: **fire together, wire together**. For decades a hypothesis without mechanism; LTP supplied the mechanism, STDP supplied the timing rule.\n\n**Spike-Timing-Dependent Plasticity (STDP)** — formalized by **Markram + Sakmann (1997)** + **Bi + Poo (1998 J. Neurosci)** in cultured hippocampal neurons + cortical slice. They paired pre + postsynaptic spikes at controlled intervals Δt = t_post - t_pre and measured Δ in EPSC amplitude.\n\n**The STDP window** (canonical Hebbian):\n- **Pre-before-post** (Δt = +5 to +20 ms): **LTP**; magnitude peaks at small Δt + decays exponentially (τ ≈ 20 ms).\n- **Post-before-pre** (Δt = -5 to -20 ms): **LTD**; similar window τ ≈ 20-40 ms.\n- Δt > ±50 ms: no change.\n- Window is causal — only when presynaptic activity predicts postsynaptic firing does the synapse strengthen.\n\n**Mechanism**: back-propagating action potentials (bAPs, Stuart + Sakmann 1994) invade dendrites + reach spines; bAP arrival shortly after presynaptic glutamate fully depolarizes the spine + relieves Mg²⁺ block → high NMDA Ca²⁺ → CaMKII → LTP. Reversed order = AP arrives first then small synaptic depolarization → moderate Ca²⁺ → PP1 → LTD.\n\n**Variations + species**:\n- **Anti-Hebbian STDP**: at electric-fish ELL + cerebellar Purkinje cells, post-before-pre potentiates — opposite sign. Sensory predictive cancellation.\n- **Symmetric STDP** at some cortical inhibitory synapses (LTP at both Δt signs).\n- **Triplet rules** (Pfister + Gerstner 2006): pairs alone miss frequency dependence; triplet/quadruplet models reconcile pair STDP with rate-dependent LTP.\n- **Voltage-based STDP** (Clopath, Gerstner): postsynaptic voltage rather than spike timing as the proximate variable.\n\n**Calcium control hypothesis** (Lisman 1989; Shouval, Bear, Cooper 2002 'Unified theory'): a single Ca²⁺ concentration variable maps to LTD (moderate) vs LTP (high) vs no change (low). Threshold model unifies STDP, BCM, frequency-dependent plasticity into one Ca²⁺-readout machine. CaMKII + PP1 are the dual readers (Jim Lisman).\n\n**Anti-Hebbian inhibitory plasticity** (Vogels + Sprekeler + Gerstner 2011): inhibitory synapses adjust to balance excitation — homeostatic detailed balance, prevents runaway, models cortical E/I ratio.\n\n**Hebbian learning + neural networks**: STDP is the biological inspiration for Hopfield nets, Boltzmann machines, more recently spiking neural networks + neuromorphic chips (Intel Loihi, IBM TrueNorth). Backpropagation in ANNs is non-local + non-biological; biological-plausibility candidates include feedback alignment (Lillicrap), equilibrium propagation (Bengio + Scellier), predictive coding learning rules — STDP-derived. STDP also underlies reservoir computing + liquid state machines (Maass).\n\n**Homeostatic plasticity** (Turrigiano + Nelson 1998): synaptic scaling multiplies all synapses by a factor to keep neuron's firing rate near target — prevents Hebbian runaway. Achieved via TNF-α, retinoic acid, BDNF, GluA2 trafficking; sleep + waking modulate homeostatic scale (Tononi's Synaptic Homeostasis Hypothesis — SHY).\n\n**Inhibitory plasticity** (Castillo, Maffei labs): GABAergic synapses also plastic — chloride reversal via KCC2/NKCC1 + presynaptic GABA release. Critical for cortical excitation/inhibition (E/I) balance."
+    },
+    {
+      "kind": "text",
+      "title": "Systems consolidation: from synapse to behavior",
+      "body": "**Memory taxonomy** (Squire + Larry):\n- **Declarative (explicit)**: episodic (events) + semantic (facts); hippocampus + medial temporal lobe.\n- **Non-declarative (implicit)**: skills + habits (basal ganglia + cerebellum); priming (neocortex); classical conditioning (amygdala for fear, cerebellum for motor); non-associative (habituation, sensitization — Eric Kandel's Aplysia work, Nobel 2000).\n- **Working memory** (Baddeley + Hitch): minutes; prefrontal sustained activity + dynamic synaptic.\n\n**Patient HM (Henry Molaison, 1953-2008)**: bilateral medial temporal lobectomy by William Beecher Scoville for intractable epilepsy. Severe anterograde amnesia for declarative memories with intact short-term memory + procedural learning (mirror-tracing). Brenda Milner's longitudinal study (1957+ McGill) established hippocampus as essential for forming new declarative memories. HM is the most-studied single subject in neuroscience.\n\n**Standard consolidation theory** (Squire + Alvarez 1995; McClelland + McNaughton + O'Reilly 1995 complementary learning systems):\n- New episodic memories initially require hippocampus (fast learning, pattern separation in dentate gyrus, completion in CA3 attractor).\n- Repeated reactivation gradually trains the neocortex (slow, distributed) to store the memory autonomously.\n- After consolidation, remote memories are hippocampus-independent.\n\n**Multiple trace theory** (Nadel + Moscovitch 1997): every retrieval re-encodes a new hippocampal trace; vivid + detailed episodic memories remain hippocampus-dependent indefinitely. Resolved partially by **trace transformation theory** (Winocur + Moscovitch): episodic stays in HC; gist abstracted to neocortex.\n\n**Sleep + replay**:\n- **Sharp-wave ripples (SWRs)** in CA1 (~150-250 Hz, ~100 ms): György Buzsáki's signature electrophysiological event during slow-wave sleep + quiet wakefulness; replay of waking activity sequences compressed ~20×.\n- **Reactivation** (Wilson + McNaughton 1994 first replay paper): place-cell sequences from prior maze runs reactivated during subsequent sleep — the cellular signature of memory consolidation.\n- Suppressing SWRs during sleep impairs memory (Girardeau + Zugaro 2009).\n- **Spindle-ripple coupling**: thalamocortical spindles (~12 Hz) couple to ripples during slow oscillations → coordinated hippocampal-neocortical transfer.\n- **REM sleep**: also important; spaced + non-spaced REM bouts (Maquet, Stickgold).\n- **Synaptic Homeostasis Hypothesis (SHY)** (Tononi + Cirelli): waking potentiates synapses globally; sleep downscales selectively to maintain SNR + energy efficiency.\n\n**Engram cells**: physical substrate of memory. Optogenetic dissection by Tonegawa, Josselyn, Silva labs:\n- Tag active neurons during learning (c-fos-Cre × ChR2 mice).\n- Reactivate later → memory recall in absence of original cue (Liu, Ramirez, Tonegawa 2012 Science).\n- Memory traces distributed across HC + amygdala + neocortex.\n- False-memory creation by optogenetically pairing a benign context with footshock-tagged amygdala engram (Ramirez et al. 2013).\n- Tonegawa's Nobel was 1987 (immunology, not memory) but his MIT engram lab pioneered the modern engram approach.\n\n**Reconsolidation**: retrieved memories enter a labile state requiring re-stabilization (protein synthesis-dependent); Nader + LeDoux 2000. Therapeutic implication: pharmacologically interfering with reconsolidation could erase pathological memories (PTSD); propranolol + ketamine + memory-update protocols clinically tested.\n\n**Diseases of memory + plasticity**:\n- **Alzheimer's disease**: hippocampal + entorhinal cortex degeneration; Aβ + tau pathology; impaired LTP (Selkoe + Hardy amyloid hypothesis); anti-Aβ antibodies (lecanemab, donanemab) FDA-approved 2023-24.\n- **Mild cognitive impairment**: early HC volume loss on MRI.\n- **Frontotemporal dementia**: tau + TDP-43 + progranulin.\n- **Korsakoff syndrome**: thiamine deficiency, mammillary body damage; profound anterograde amnesia in alcohol use disorder.\n- **PTSD**: aberrant reconsolidation of fear memories; amygdala hyperactivity + HC atrophy.\n- **Schizophrenia**: NMDAR hypofunction hypothesis; PV-interneuron deficits.\n- **Autism + Fragile X**: aberrant mGluR-LTD; mTOR signaling.\n- **Age-related memory loss**: HC LTP magnitude declines; synaptic loss; can be partially rescued by exercise + cognitive engagement."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_plast_1",
+        "kind": "guided_derivation",
+        "question": "Trace LTP from spike to AMPA insertion",
+        "goal": "Starting from a 100-Hz tetanus at a CA3-CA1 Schaffer synapse, walk through the molecular cascade producing E-LTP.",
+        "steps": [
+          {
+            "prompt": "Step 1: presynaptic + early postsynaptic events.",
+            "motivation": "AMPA-driven depolarization first.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Glu release → AMPA EPSPs summate → depolarize spine + dendrite to relieve NMDA Mg²⁺ block"
+              ]
+            },
+            "hints": [
+              "Why must AMPA fire first?"
+            ],
+            "reveal": "Presynaptic terminals release glutamate. AMPA receptors activate fast → EPSPs summate over 10-20 ms during 100-Hz train → spine + dendritic membrane depolarizes from -65 to -20 mV. This depolarization expels Mg²⁺ from the NMDA pore (Mg²⁺ block voltage-dependent; relieved above ~-40 mV). NMDA is the gatekeeper."
+          },
+          {
+            "prompt": "Step 2: NMDA activation + Ca²⁺ influx.",
+            "motivation": "The plasticity-triggering current.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "NMDA opens → Ca²⁺ enters spine head → local [Ca²⁺] rises to ~5-20 µM"
+              ]
+            },
+            "hints": [
+              "Ca²⁺ enters via NMDA + via VGCC; spine compartmentalizes."
+            ],
+            "reveal": "With Mg²⁺ relieved + glutamate + glycine/D-serine present, NMDA channel opens. ~10% of NMDA current is Ca²⁺. Spine head (~1 fL volume) buffered by parvalbumin/calbindin still reaches [Ca²⁺] ~5-20 µM transiently (vs ~100 nM baseline). Additional Ca²⁺ via Cav1.3 L-type + CICR from spine ER. Spine compartmentalization (narrow neck) keeps Ca²⁺ local — input specificity of LTP."
+          },
+          {
+            "prompt": "Step 3: CaMKII activation.",
+            "motivation": "The memory kinase.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Ca²⁺/calmodulin → CaMKII activation → autophosphorylation at T286 → constitutively active even after Ca²⁺ falls"
+              ]
+            },
+            "hints": [
+              "Why does CaMKII matter? Its autonomy property."
+            ],
+            "reveal": "Ca²⁺/calmodulin binds CaMKII (12-mer holoenzyme of α + β subunits). Autophosphorylation at Thr286 in autoinhibitory domain → kinase remains active even after Ca²⁺/CaM dissociates ('Ca²⁺-independent' or autonomous activity). This bistable kinase has long been proposed as a 'memory molecule' (Lisman 1985+). CaMKII binds GluN2B + translocates to PSD; phosphorylates GluA1 S831; phosphorylates stargazin/TARP."
+          },
+          {
+            "prompt": "Step 4: AMPA insertion + spine remodeling.",
+            "motivation": "Expression of LTP.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "AMPA exocytosis from intracellular pool; spine head enlarges; structural LTP"
+              ]
+            },
+            "hints": [
+              "Yasuda + Kasai uncaging visualizes spine growth."
+            ],
+            "reveal": "Phosphorylated GluA1 + TARPs recruit AMPARs from recycling endosomes to extrasynaptic membrane → lateral diffusion + trapping at PSD via PSD-95 + stargazin. AMPA single-channel conductance also rises with S831 phos. Spine head grows (actin polymerization via Cdc42 → Arp2/3) — structural LTP visualized by Yasuda + Kasai's 2-photon glutamate uncaging at single spines. For L-LTP: PKA + CREB → transcription of Arc, Zif268, BDNF, Homer; new proteins captured at tagged synapses (Frey + Morris synaptic tagging hypothesis)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_plast_1",
+        "kind": "multiple_choice",
+        "question": "Why is the discovery of LTP (Bliss + Lømo 1973) considered a watershed moment in neuroscience?",
+        "options": [
+          "Wrong.",
+          "Bliss + Lømo's 1973 J. Physiol paper showed that brief high-frequency stimulation of the perforant path → dentate gyrus in anesthetized rabbits produced a persistent (hours) increase in synaptic strength — the first demonstration of long-lasting, activity-dependent synaptic plasticity in the mammalian brain. This provided a plausible cellular substrate for Hebb's 1949 'fire-together-wire-together' postulate (which had been a speculation lacking mechanism) and a candidate for the cellular basis of learning + memory. Decades of subsequent work tied LTP to behavioral memory (Richard Morris's water maze + NMDAR-blocked LTP impairs spatial learning, 1986), revealed the molecular cascade (NMDA → Ca²⁺ → CaMKII → AMPA insertion), and connected it to STDP, metaplasticity, sleep replay, and disease (Alzheimer's, Fragile X). Bliss + Lømo did not win a Nobel for LTP (it has been on shortlists for years) but the field they founded shaped modern cognitive + clinical neuroscience.",
+          "Wrong.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Bliss + Lømo 1973 first showed long-lasting activity-dependent synaptic plasticity (LTP) in rabbit dentate gyrus — the first plausible mammalian substrate for Hebb 1949's 'fire together, wire together' postulate. Founded the cellular-and-molecular memory field; led to NMDA → Ca²⁺ → CaMKII → AMPA insertion cascade; Morris (1986) tied NMDA-LTP to behavioral spatial learning. Connects to STDP, metaplasticity, sleep replay, Alzheimer's, Fragile X."
+      },
+      "hints": [
+        "What had Hebb 1949 proposed?",
+        "Why did 1973 matter so much?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Bliss + Lømo (1973) first showed long-lasting activity-dependent synaptic plasticity (LTP) in mammalian brain (rabbit dentate gyrus). Provided the first cellular substrate for Hebb 1949 'fire-together wire-together'. Led to NMDA → Ca²⁺ → CaMKII → AMPA insertion cascade; Morris (1986) linked NMDAR-LTP to behavioral memory; connects to STDP, metaplasticity, sleep replay, and disease (Alzheimer's, Fragile X). The founding observation of cellular + molecular memory neuroscience."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_plast_1",
+        "kind": "scenario",
+        "question": "A pharmaceutical company proposes a CaMKII inhibitor for chronic neuropathic pain.",
+        "prompt": "Explain why CaMKII is a rational target (its role in LTP at dorsal-horn spinal synapses sensitizing pain pathways) but also why systemic inhibition is dangerous (its essential role in hippocampal memory, cardiac excitation-contraction coupling, vascular smooth muscle). What would you suggest for selectivity (allosteric site, tissue-restricted delivery, isoform selectivity α vs β vs δ)? Discuss CaMKII's role as a 'memory molecule' (Lisman bistable model) and why the field has been cautious about pharmacology."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_plast_1",
+        "kind": "math_expression",
+        "question": "Write the simplest STDP weight-update rule: Δw as a function of pre-post spike interval Δt = t_post - t_pre using exponential window with amplitudes A+ (LTP) and A- (LTD) and time constants τ+ and τ-.",
+        "acceptedAnswers": [
+          "Δw = A+ exp(-Δt/τ+) for Δt > 0; -A- exp(Δt/τ-) for Δt < 0",
+          "Δw = A_+ e^{-Δt/τ_+} if Δt>0 else -A_- e^{Δt/τ_-}"
+        ],
+        "hint": "Asymmetric exponential window in Δt; positive Δt = LTP, negative = LTD."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_plast_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how cellular LTP/LTD plus sleep replay together implement systems consolidation of episodic memory.",
+        "rubric": "Mentions: Hebb 1949 'fire together, wire together' formalized at synapse by LTP (Bliss + Lømo 1973) + STDP (Bi + Poo 1998). Hippocampus rapidly encodes episodic memories via NMDAR-CaMKII-AMPA insertion (fast-learning system, McClelland complementary learning theory). During subsequent slow-wave sleep, CA1 sharp-wave ripples (Buzsáki) replay waking sequences compressed ~20×; spindle-ripple coupling coordinates hippocampal-neocortical dialog. Repeated replay drives Hebbian plasticity in neocortex → memory becomes hippocampus-independent (standard consolidation theory; Squire). Multiple trace theory (Nadel + Moscovitch) refines: episodic detail stays HC-dependent; gist transfers. Engram cells (Tonegawa, Josselyn, Silva) tagged + manipulated optogenetically to demonstrate distributed storage. Sleep also downscales globally (Tononi SHY) to maintain SNR. Failures: Alzheimer's hippocampal degeneration, PTSD aberrant reconsolidation, Korsakoff thiamine-deficient amnesia all illustrate the system's clinical relevance."
+      }
+    }
+  ]
+}

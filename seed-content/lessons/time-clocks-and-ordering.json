@@ -1,0 +1,173 @@
+{
+  "slug": "time-clocks-and-ordering",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Reason about physical clocks + NTP + TrueTime.",
+      "Apply Lamport timestamps + vector clocks + version vectors.",
+      "Design with hybrid logical clocks + interval tree clocks."
+    ],
+    "prereqs": [
+      "distsys-foundations-and-models"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Physical clocks: NTP, drift, leap seconds, and TrueTime",
+      "body": "**Physical clocks** measure wall-clock time using a local oscillator (quartz, OCXO, rubidium, cesium). Two problems for distributed systems: **drift** (cumulative deviation from true time) + **skew** (instantaneous offset between nodes).\n\n**Drift rates**:\n- **Consumer quartz**: 10-100 ppm (~1-10 s/day).\n- **OCXO (oven-controlled)**: 0.01-0.1 ppm (datacenter switches).\n- **Rubidium**: 0.001 ppm (cell towers, finance).\n- **Cesium / hydrogen maser**: ~10⁻¹² to 10⁻¹⁵ (national standards).\n- **Optical lattice**: <10⁻¹⁸ (next generation).\n\n**Network Time Protocol (NTP)** (Mills 1985-): hierarchical synchronization protocol. **Stratum 0** = atomic / GPS reference; stratum N gets time from stratum N-1. Algorithm: exchange 4 timestamps (t1, t2, t3, t4) → compute one-way delay δ = ((t4-t1) - (t3-t2))/2 + offset θ = ((t2-t1) + (t3-t4))/2. Filters use Marzullo + clock-discipline algorithms.\n- **Typical accuracy**: 1-10 ms over WAN, ~100 μs over LAN.\n- **chronyd**, **ntpd**, **systemd-timesyncd** — common implementations.\n- **PTP (Precision Time Protocol, IEEE 1588)**: sub-microsecond over LAN with hardware timestamping.\n\n**Clock skew failure modes**:\n- **Slewing vs stepping**: NTP slews (gradual adjustment) when off by <128 ms; steps (discontinuous jump) when larger.\n- **Time can go backward** after a step — devastating for log-replay + cache TTL + token expiration.\n- **Cloudflare 2017 leap-second incident** — DNS recursive resolver crashed because Go's `time.Now()` went backwards.\n\n**Leap seconds**: inserted (~once every 1-3 yr) to keep UTC aligned with UT1 (Earth's rotation, slowing irregularly). Bugs from leap seconds include 2012 Linux kernel hang, 2017 Cloudflare crash. **Smeared time** (Google, Amazon) spreads the leap second over ~24 h to avoid discontinuities. **Leap second to be retired ~2035** (IAU 2022 vote).\n\n**Google TrueTime** (Spanner, Corbett et al. 2012 OSDI): API exposing time as an **interval** TT.now() → [earliest, latest] with bounded uncertainty ε (typically 1-7 ms). Implementation: GPS antennas + atomic clocks (rubidium) per datacenter; time daemons survey + bound uncertainty. Spanner uses TT to assign globally consistent commit timestamps + 'commit wait' for external consistency (linearizability across regions).\n\n**GPS as a time source**: each satellite carries 4 atomic clocks; signal carries time-of-flight ns-level precision when in view. Vulnerable to jamming + spoofing; some datacenters keep rubidium holdovers.\n\n**Practical advice**:\n- Never rely on cross-node wall-clock comparisons.\n- Use monotonic clocks for elapsed-time measurements (`CLOCK_MONOTONIC`, `time.monotonic()`, `Instant`).\n- For ordering events across nodes, use logical clocks (next slide)."
+    },
+    {
+      "kind": "text",
+      "title": "Logical clocks: Lamport timestamps + vector clocks + version vectors",
+      "body": "**Lamport timestamps** (Lamport 1978, 'Time, Clocks, and the Ordering of Events in a Distributed System' — most cited distsys paper ever). Define the **happens-before relation** →:\n1. If a + b are on the same process + a precedes b, then a → b.\n2. If a is a send + b the matching receive, then a → b.\n3. Transitive closure.\n\n**Lamport clock rule**:\n- Each process maintains a counter L_p.\n- On local event: L_p ← L_p + 1.\n- On send: include L_p with message.\n- On receive m with timestamp L_m: L_p ← max(L_p, L_m) + 1.\n\n**Property**: a → b ⟹ L(a) < L(b). The converse does **not** hold — Lamport clocks cannot detect concurrency. Used for total order (combine with process ID as tiebreaker).\n\n**Vector clocks** (Mattern 1988; Fidge 1988): each process maintains a vector V_p of length N (one entry per node).\n- Local event on p: V_p[p] ← V_p[p] + 1.\n- Send: include V_p.\n- Receive m with V_m: V_p[i] ← max(V_p[i], V_m[i]) for all i; then V_p[p] ← V_p[p] + 1.\n\n**Ordering**: V_a ≤ V_b iff ∀i V_a[i] ≤ V_b[i]; V_a < V_b iff V_a ≤ V_b ∧ V_a ≠ V_b. Two events are **concurrent** iff neither V_a ≤ V_b nor V_b ≤ V_a.\n\n**Property**: a → b ⟺ V(a) < V(b). Vector clocks **characterize** causality exactly. Cost: O(N) space + bandwidth per message.\n\n**Version vectors** (Parker et al. 1983) — vector clocks for replica state, not individual events. Used in Dynamo, Riak, CouchDB to detect write conflicts. Each replica i maintains its own counter; updates by client x bump V_x[i].\n\n**Dotted version vectors** (Preguiça 2010) — refinement separating client + replica IDs to handle false concurrency in sloppy quorums.\n\n**Interval tree clocks (ITC)** (Almeida, Baquero, Fonte 2008): vector clocks that support dynamic membership without preallocated IDs. Forks + joins partition the ID space recursively. Useful for systems where nodes come + go (mobile, P2P).\n\n**Use cases for logical clocks**:\n- **Causal ordering** of multicasts (ISIS, ABCAST/CBCAST — Birman + Joseph 1987).\n- **Distributed debugging** + global snapshots (Chandy-Lamport 1985).\n- **Conflict detection** in eventual-consistency systems.\n- **CRDT operation ordering** (PNCounter, OR-Set use version vectors internally).\n- **Causal+ consistency** (COPS, Lloyd et al. 2011)."
+    },
+    {
+      "kind": "text",
+      "title": "Hybrid logical clocks + interval tree clocks + practical ordering",
+      "body": "**Hybrid logical clocks (HLC)** (Kulkarni, Demirbas et al. 2014, OPODIS): combine physical + logical timestamps into one 64-bit timestamp. Captures causality (like Lamport) + stays close to wall-clock time (like NTP).\n\n**HLC update rule** (sketch):\n- Local event on node j: ℓ_j ← max(pt_j, ℓ_j); if ℓ_j unchanged, c_j ← c_j + 1; else c_j ← 0. Timestamp = ⟨ℓ_j, c_j⟩.\n- Send: include ⟨ℓ_j, c_j⟩.\n- Receive ⟨ℓ_m, c_m⟩: ℓ_j' ← max(ℓ_j, ℓ_m, pt_j); update c_j with appropriate tiebreaker.\n\nHere pt_j is the physical clock + ℓ_j the HLC time field + c_j the counter. Bounded drift from pt → ℓ_j ≤ pt_j + δ where δ is the NTP skew bound.\n\n**Why HLC?** Vector clocks are O(N); plain Lamport drifts from real time. HLC is **constant-size**, **monotonic**, **close to wall clock**, + **preserves happens-before**. Adopted by **CockroachDB**, **YugabyteDB**, **MongoDB** for transaction timestamps + change feeds. Spanner uses TrueTime intervals instead, but HLC is the open-source counterpart.\n\n**Interval Tree Clocks (ITC)** revisited — algorithm details:\n- ID portion is a **binary tree** representing the share of the timestamp space owned by a node.\n- Event portion is a similar tree representing happens-before order.\n- `fork()` splits a node's ID into two; `join()` merges them back. `event()` advances the local stamp; `peek()` summarizes for sending.\n- Supports infinitely many dynamic participants in bounded average size.\n\n**Bloom clocks** (Ramabaja 2019) — probabilistic vector clocks for very-large-scale systems where ⟨N⟩ is millions. Trade exactness for compactness.\n\n**Total ordering vs causal ordering**:\n- **Total order** (e.g., via consensus): every node sees every event in the same order. Needed for state-machine replication.\n- **Causal order**: respects → but allows concurrent events to be delivered in any order on each node. Sufficient for many CRDTs + causal+ stores (COPS, Eiger).\n- **FIFO order**: messages from one sender delivered in send order. Weakest useful order.\n\n**Global snapshots** (Chandy-Lamport 1985, 'Distributed Snapshots: Determining Global States'): take a consistent cut of a running system via marker messages — basis of distributed checkpointing, deadlock detection, garbage collection.\n\n**External consistency** (linearizability with real-time order, Lamport 1979; Herlihy-Wing 1990): an operation that finishes before another begins must appear earlier in the total order. Achievable via Spanner's TrueTime + commit-wait or via lease-based stale-read protection (Kleppmann).\n\n**Practical recipes**:\n- **MVCC databases**: assign each transaction an HLC or TrueTime stamp; use it for snapshot reads + consistent ordering.\n- **CDC streams**: HLC across shards lets consumers reconstruct a globally causally-consistent log.\n- **Distributed tracing** (Dapper, OpenTelemetry): use process-local monotonic clocks + propagate trace IDs + spans; reconcile timestamps offline.\n- **Idempotency keys**: combine client ID + logical or wall-clock seq + Lamport timestamp to dedupe retries."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_clk_1",
+        "kind": "guided_derivation",
+        "question": "Order events with Lamport + vector clocks",
+        "goal": "3 processes P1, P2, P3. Events: P1 sends m to P2 (a); P2 receives m (b); P2 sends m' to P3 (c); P3 receives m' (d); P1 does local event (e). Compute Lamport + vector timestamps.",
+        "steps": [
+          {
+            "prompt": "Initial Lamport counters all 0. After a (P1 send m): what is L(a)?",
+            "motivation": "Apply local event rule.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "L(a) = 1"
+              ]
+            },
+            "hints": [
+              "Local event increments by 1."
+            ],
+            "reveal": "L_P1 increments from 0 to 1. L(a) = 1. The message m carries L=1 to P2."
+          },
+          {
+            "prompt": "P2 receives m with L=1. What is L(b)?",
+            "motivation": "Apply receive rule.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "L(b) = 2"
+              ]
+            },
+            "hints": [
+              "max(L_p, L_m) + 1."
+            ],
+            "reveal": "L_P2 ← max(0, 1) + 1 = 2. L(b) = 2. Verifies a → b ⟹ L(a) < L(b). For c (next event on P2), L_P2 becomes 3."
+          },
+          {
+            "prompt": "With vector clocks (N=3), what is V(d) = V after P3 receives m' from P2?",
+            "motivation": "Vector receive rule.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "V(d) = [1, 2, 1]",
+                "[1,2,1]"
+              ]
+            },
+            "hints": [
+              "Track V at each step.",
+              "Receive merges + increments local."
+            ],
+            "reveal": "V_P1 after a = [1,0,0]; message m carries [1,0,0]. V_P2 after b = max([0,0,0],[1,0,0]) + own = [1,1,0]. V_P2 after c (send m') = [1,2,0]; m' carries [1,2,0]. V_P3 after d = max([0,0,0],[1,2,0]) + own = [1,2,1]. So V(d) = [1, 2, 1]."
+          },
+          {
+            "prompt": "Is e (local event on P1, after a) concurrent with d?",
+            "motivation": "Concurrency check.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "yes; V(e) = [2,0,0] and V(d) = [1,2,1] are incomparable"
+              ]
+            },
+            "hints": [
+              "Concurrent iff neither V ≤ the other."
+            ],
+            "reveal": "V(e) = [2,0,0]. Compare to V(d) = [1,2,1]: V(e)[0] > V(d)[0] but V(e)[1] < V(d)[1] → incomparable. So **e ∥ d** (concurrent). Vector clocks correctly detect e + d have no causal relationship — P1's local event happened independently of the m → m' chain."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_clk_1",
+        "kind": "multiple_choice",
+        "question": "Why do CockroachDB + YugabyteDB use hybrid logical clocks (HLC) instead of plain vector clocks or wall-clock time?",
+        "options": [
+          "Random choice.",
+          "HLC (Kulkarni et al. 2014) gives **constant-size** monotonic timestamps that **track wall-clock time within bounded skew** + **respect happens-before causality** — combining the best of Lamport + NTP. Vector clocks are O(N) — impractical for systems with thousands of nodes + transactions per second. Plain wall-clock time violates monotonicity under NTP step + cannot detect causality. HLC enables MVCC snapshot reads + cross-shard transactions + change feeds with bounded ordering guarantees. CockroachDB uses HLC for transaction commit timestamps + global ordering; YugabyteDB similarly. MongoDB uses HLC for ClusterTime + causal-consistency sessions. Spanner's TrueTime is the proprietary alternative requiring GPS + atomic hardware; HLC is the open-source equivalent assuming bounded NTP skew.",
+          "It's faster than nothing.",
+          "Wall clock is enough."
+        ],
+        "correctIndex": 1,
+        "explanation": "HLC (Kulkarni 2014) is constant-size, monotonic, tracks wall-clock within bounded NTP skew, + preserves happens-before. Used in CockroachDB, YugabyteDB, MongoDB for MVCC + cross-shard transactions. Open-source alternative to Spanner's TrueTime."
+      },
+      "hints": [
+        "Compare to vector clocks size.",
+        "What does it preserve?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "HLC: constant size + monotonic + tracks wall clock + respects causality. Used in CockroachDB, YugabyteDB, MongoDB. Open-source alternative to Spanner's TrueTime."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_clk_1",
+        "kind": "scenario",
+        "question": "Production scenario: an audit log shows two events with identical wall-clock timestamps from different services. How do you reliably order them for legal compliance?",
+        "options": [
+          "Use HLC or Lamport timestamps across services + tiebreak by service ID; or in Spanner-like systems use TrueTime intervals.",
+          "Trust wall clock entirely.",
+          "Random tiebreak.",
+          "Ignore the audit log."
+        ],
+        "correctIndex": 0,
+        "explanation": "Wall-clock ties happen routinely with millisecond NTP precision; never trust them for ordering. Use **Lamport** (with process-ID tiebreaker) or **HLC** for cross-service causal + total order. For external consistency across regions, use **TrueTime intervals** (Spanner) or **HLC** + commit-wait. Audit logs should also carry **trace ID** + **span ID** (OpenTelemetry) + an **idempotency key**. The Cloudflare 2017 outage is a cautionary tale of relying on wall-clock monotonicity."
+      },
+      "hints": [
+        "Lamport with tiebreaker; HLC across services.",
+        "What about external consistency?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Use HLC or Lamport with tiebreak (process ID). For external consistency, TrueTime intervals + commit-wait. Add trace IDs + idempotency keys."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_clk_1",
+        "kind": "math_expression",
+        "question": "If NTP skew bound is δ = 7 ms + a Spanner commit-wait policy requires the transaction to wait until TT.now().earliest > commit_timestamp, what is the minimum commit-wait duration in ms?",
+        "acceptedAnswers": [
+          "14",
+          "14 ms",
+          "2δ",
+          "2 * 7"
+        ],
+        "hints": [
+          "Wait must cover full uncertainty window.",
+          "TT interval is ±δ."
+        ],
+        "explanation": "TrueTime returns [earliest, latest] = [pt - δ, pt + δ]. To guarantee external consistency, Spanner commits at time t = TT.now().latest then waits until TT.now().earliest > t, i.e., ≈ 2δ in the worst case. With δ=7 ms, wait ≈ 14 ms. This 'commit wait' is the price of linearizability across regions; tighter δ (better GPS/atomic clocks) shrinks the wait, increasing throughput. Modern Spanner deployments report δ ≈ 1-2 ms typical."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_clk_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why distributed systems need logical time even when wall clocks are 'good enough'.",
+        "rubric": "Mentions: wall clocks (NTP-synced) have millisecond skew + can step backwards + can't detect causality. Lamport (1978) defined happens-before → + showed logical counters preserve it for total ordering. Vector clocks (Mattern 1988, Fidge 1988) extend to characterize causality exactly — needed for conflict detection in eventual-consistency systems (Dynamo, Riak version vectors). HLC (Kulkarni 2014) combines physical + logical, used in CockroachDB, YugabyteDB, MongoDB for MVCC. TrueTime (Spanner 2012) uses GPS + atomic clocks + bounded uncertainty intervals for external consistency. ITC (Almeida 2008) supports dynamic membership. Use cases: causal multicast (ISIS), CRDTs, snapshots (Chandy-Lamport 1985), debugging, audit logs, idempotency. Without logical clocks, distributed systems cannot reason reliably about ordering, conflicts, or causality — even with perfect wall clocks, we still need to know which event happened *because* of which."
+      }
+    }
+  ]
+}

@@ -1,0 +1,139 @@
+{
+  "slug": "zk-foundations-and-history",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Trace the origins of zero-knowledge from GMR 1985 through Fiat-Shamir 1986.",
+      "State completeness, soundness, and zero-knowledge with simulator-based definitions.",
+      "Distinguish computational/statistical/perfect ZK and interactive vs non-interactive variants."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The birth of zero-knowledge: GMR, GMW, Babai, and the Ali Baba cave",
+      "body": "**Goldwasser, Micali, Rackoff (GMR) 1985** — *The Knowledge Complexity of Interactive Proof Systems* — introduced **zero-knowledge proofs** as a refinement of interactive proofs. The seminal definition: a proof system reveals **no knowledge** beyond the truth of the statement. Shafi Goldwasser + Silvio Micali received the Turing Award (2012) in large part for this work; the paper was rejected three times before publication.\n\n**Babai 1985** independently introduced **Arthur-Merlin games** (AM) — public-coin interactive proofs. Together with GMR's general interactive proofs (IP), this launched **interactive complexity theory**. Key result: IP = PSPACE (Shamir 1990).\n\n**Goldreich, Micali, Wigderson (GMW) 1986** — *Proofs that Yield Nothing But Their Validity* — showed that **every NP statement has a zero-knowledge proof**, assuming one-way functions exist (specifically, via commitment schemes). Their construction reduces any NP problem to **graph 3-coloring** + gives a ZK protocol for it. This was the moment ZK became universal: anything verifiable can be proved in zero knowledge.\n\n**Ali Baba cave analogy (Quisquater + Guillou 1989)** — *How to Explain Zero-Knowledge Protocols to Your Children*: Peggy (prover) enters a ring-shaped cave with a magic door at the back, openable only with a secret word. Victor (verifier) waits outside, then shouts which side (left/right) Peggy should emerge from. If Peggy knows the word, she always exits the requested side. If she doesn't, she has 50% chance per round of being caught. Repeat n times → soundness error 2^(-n). Victor learns Peggy knows the password but learns nothing about the password itself.\n\n**Why ZK mattered**: classical cryptography used to be **either secret (encryption) or revealing (signatures)**. ZK opened a third axis: **prove things about secrets without revealing them**. Foundations for: identification protocols, anonymous credentials, secure multi-party computation, blockchain privacy, verifiable computation, and the entire modern privacy stack."
+    },
+    {
+      "kind": "text",
+      "title": "Foundational definitions: completeness, soundness, zero-knowledge, simulator",
+      "body": "An **interactive proof system** for language L ⊆ {0,1}* is a pair (P, V) of interactive Turing machines (prover P, verifier V) such that on common input x, after exchanging messages, V outputs accept/reject.\n\n**Completeness**: if x ∈ L, then Pr[V accepts when interacting with honest P] ≥ 2/3 (or ≥ 1 - negl(n) for cryptographic settings).\n\n**Soundness**: if x ∉ L, then for **any** (possibly cheating) prover P*, Pr[V accepts] ≤ 1/3 (or ≤ negl(n)). For **arguments of knowledge** (AoK), we strengthen this: an extractor can recover a witness from any successful prover.\n\n**Zero-knowledge (the simulator paradigm)**: for every PPT verifier V*, there exists a PPT **simulator** S such that the distribution of transcripts produced by S(x) (no witness, no prover access) is computationally indistinguishable from the real transcripts of (P, V*) interactions. Symbolically: View_{V*}(P(w), V*(x)) ≈_c S(x).\n\nThe simulator paradigm is **the** definitional trick: anything V* learns from the proof, it could have computed by itself (running S). Hence the proof leaks nothing.\n\n**Honest-verifier ZK (HVZK)**: simulation succeeds only if V follows protocol. Easier to prove + suffices for many constructions.\n\n**Malicious-verifier ZK**: simulation succeeds even against cheating V*. The 'real' security notion.\n\n**Auxiliary-input + black-box ZK**: technical strengthenings handling concurrent + composition settings.\n\n**Witness indistinguishability (WI)** (Feige + Shamir 1990): a weaker but composable cousin. If two witnesses w₁, w₂ both prove x ∈ L, V cannot tell which the prover used. Foundation for the **FS paradigm** in identification schemes."
+    },
+    {
+      "kind": "text",
+      "title": "Computational vs statistical vs perfect ZK; interactive vs non-interactive (Fiat-Shamir)",
+      "body": "**Three levels of zero-knowledge** (by indistinguishability strength):\n\n- **Perfect ZK (PZK)**: real + simulated transcripts have **identical** distributions. Strongest. Examples: Schnorr's protocol for discrete log; quadratic residuosity (GMR).\n- **Statistical ZK (SZK)**: distributions are statistically close (negligible statistical distance). Implies security even against unbounded V*. SZK is a fascinating complexity class containing Graph Isomorphism + Quadratic Residuosity; closed under complement.\n- **Computational ZK (CZK)**: distributions are computationally indistinguishable (only PPT V* fooled). Most flexible — used in NP-complete ZK protocols (GMW 1986).\n\n**Interactive vs non-interactive**:\n\n- **Interactive (IZK)**: prover + verifier exchange messages. The 1980s setting.\n- **Non-interactive (NIZK)**: prover sends a single message (the proof) + verifier checks. Requires a **common reference string (CRS)** or **random oracle**. Blum, Feldman, Micali (1988) defined NIZK in the CRS model.\n\n**Fiat-Shamir transform (1986)**: convert any **public-coin** interactive protocol (where V's messages are just random bits) into a non-interactive one by replacing V's challenges with **hashes of the transcript so far**: c = H(x, message₁, message₂, ...). Originally for identification → signatures. Security holds in the **Random Oracle Model (ROM)** where H is treated as an idealized random function.\n\n**Examples of Fiat-Shamir**:\n- **Schnorr identification → Schnorr signatures** (used in BIP-340 Bitcoin Taproot 2021).\n- **Σ-protocols → NIZK proofs**: foundational for SNARKs.\n- **Picnic, Dilithium**: post-quantum signatures via FS on NIZK.\n\n**Caveats**: FS in the **standard model** (without random oracles) is fragile — Goldwasser + Kalai (2003) showed examples where FS is insecure outside ROM. Modern protocols carefully include the **entire context** in hashes (domain separation, full statement, public parameters) to avoid attacks like the **Frozen Heart** vulnerabilities (2022) found in Bulletproofs, PlonK, and Spartan implementations.\n\n**ZK today** spans: SNARKs/STARKs (universal verifiable computation), Σ-protocols (efficient identification), threshold signatures, MPC, blockchain rollups, zkML, verifiable randomness. The 1985-86 papers are arguably among the most consequential of theoretical CS."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_zk_simulator",
+        "kind": "guided_derivation",
+        "question": "Build a simulator for the Ali Baba cave protocol",
+        "goal": "Show that the cave protocol is zero-knowledge by constructing a simulator that produces transcripts indistinguishable from real ones, without knowing the password.",
+        "steps": [
+          {
+            "prompt": "Real transcript: Peggy enters cave (random side L or R), Victor shouts side (L or R), Peggy emerges (always correct if she knows password). Describe the transcript.",
+            "motivation": "Frame the transcript.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "transcript = (entry side, victor's challenge, exit side)"
+              ]
+            },
+            "hints": [
+              "Three observable events per round."
+            ],
+            "reveal": "Real transcript per round: (entry_side ∈ {L,R}, challenge ∈ {L,R}, exit_side = challenge). Peggy walks in random side, Victor shouts, Peggy exits the requested side."
+          },
+          {
+            "prompt": "Simulator strategy: simulator does not know the password but wants to produce identically distributed transcripts. How?",
+            "motivation": "Rewinding trick.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "guess challenge first, then choose entry side accordingly; if wrong, rewind"
+              ]
+            },
+            "hints": [
+              "Pick the challenge first, then pretend Peggy entered the matching side."
+            ],
+            "reveal": "Simulator picks challenge c ∈ {L,R} uniformly at random, then sets entry_side = c (Peggy 'enters' the side Victor will demand). If real V* is honest (random challenge), this matches; if V* is malicious + chooses challenge based on entry, simulator rewinds V* to before entry-side commitment + retries. Expected 2 trials per round."
+          },
+          {
+            "prompt": "Why does this prove zero-knowledge?",
+            "motivation": "Conclude simulation argument.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "simulator produces same distribution as real protocol without knowing the password, so the protocol reveals no information about the password"
+              ]
+            },
+            "hints": [
+              "If anyone can produce the transcript without the secret, the transcript has no info about the secret."
+            ],
+            "reveal": "If a poly-time simulator can produce indistinguishable transcripts without the witness, then the transcripts contain **no computationally extractable information** about the witness. Anything V* could derive from a real proof, it could derive from simulation — hence learns nothing new. This is **the** zero-knowledge argument template, used in GMR, GMW, Schnorr, and onward."
+          }
+        ],
+        "finalResult": "Simulator paradigm = the defining trick of zero-knowledge. Soundness keeps cheating provers out; the simulator keeps the verifier from learning anything. The cave protocol with n rounds has soundness error 2^(-n) + perfect zero-knowledge."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_zk_simulator_purpose",
+        "kind": "multiple_choice",
+        "question": "What is the purpose of the simulator in the GMR 1985 definition of zero-knowledge?",
+        "options": [
+          "To execute the prover faster.",
+          "To produce transcripts indistinguishable from real proofs without knowing the witness — proving the verifier learns nothing new from a real interaction.",
+          "To detect cheating provers.",
+          "To compress proofs."
+        ],
+        "correctIndex": 1,
+        "explanation": "Goldwasser, Micali, Rackoff (1985) defined ZK via the **simulator paradigm**: a protocol is zero-knowledge if for every (possibly cheating) verifier V*, there exists a poly-time simulator S that produces transcripts indistinguishable from real (P, V*) interactions — without access to the witness. Implication: anything V* learns from real proofs, it could have computed alone via S. Hence the proof leaks no information about the witness."
+      },
+      "hints": [
+        "Think about what 'learns nothing' formally means.",
+        "Simulator works without the witness."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Simulator paradigm (GMR 1985): for every PPT V*, ∃ PPT simulator S such that View_{V*}(P(w), V*(x)) ≈_c S(x). Since S has no witness yet produces identical transcripts, the real transcript carries no extractable info about w. This formalizes 'zero knowledge' and is the heart of every ZK proof."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_zk_fiat_shamir",
+        "kind": "scenario",
+        "question": "Fiat-Shamir gone wrong: the Frozen Heart vulnerabilities",
+        "prompt": "In 2022, multiple production ZK implementations (Bulletproofs, PlonK, Spartan) were found to have **Fiat-Shamir** flaws — challenge hashes failed to include all relevant public values, allowing an attacker to forge proofs. Explain (1) what Fiat-Shamir does, (2) why omitting transcript context breaks soundness, (3) what defensive engineering practice prevents this."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_zk_soundness",
+        "kind": "math_expression",
+        "question": "Ali Baba cave protocol: after n independent rounds, what is the soundness error (probability that a cheating prover convinces V)?",
+        "acceptedAnswers": [
+          "2^(-n)",
+          "1/2^n",
+          "(1/2)^n",
+          "2**(-n)"
+        ],
+        "hint": "Each round catches a cheater with probability 1/2; rounds are independent."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "eb_zk_history",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why zero-knowledge proofs were a conceptual breakthrough in 1985, and how Fiat-Shamir 1986 transformed the field practically.",
+        "rubric": "Mentions: GMR 1985 introduced the simulator paradigm — prove statements while revealing nothing beyond truth. Before ZK, crypto was binary (encrypt or sign). ZK opened a third axis: prove things about secrets. GMW 1986 showed all of NP has ZK proofs (assuming one-way functions). Fiat-Shamir 1986 converted interactive Σ-protocols into non-interactive signatures + proofs by hashing the transcript for the verifier's challenge — security in ROM. This enabled practical identification schemes, signatures (Schnorr, Ed25519, BIP-340), and ultimately modern SNARKs. Sets up modern privacy infrastructure: zkRollups, anonymous credentials, MPC, zkML."
+      }
+    }
+  ]
+}

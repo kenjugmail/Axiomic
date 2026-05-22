@@ -19,13 +19,13 @@
     {
       "kind": "text",
       "title": "One softmax = one relation",
-      "body": "A single attention head outputs, for query token $i$, one weighting over keys — it can express precisely **one** way of relating $i$ to the rest. But consider \"The keys to the cabinets **are** on the table\": at \"are\", the model must *simultaneously* track subject–verb agreement (→ \"keys\", to choose *are* vs *is*) **and** any coreference/locative structure. One head, one weighting, cannot encode both relations for the same query. You need several attentions running in parallel, each free to specialize."
+      "body": "A single attention head outputs, for query token $i$, one weighting over keys — it can express precisely **one** way of relating $i$ to the rest. But consider \"The keys to the cabinets **are** on the table\": at \"are\", the model must *simultaneously* track subject–verb agreement (→ \"keys\", to choose *are* vs *is*) **and** any coreference/locative structure. One head, one weighting, cannot encode both relations for the same query. You need several attentions running in parallel, each free to specialize.\n\nThe broader history of attention reaches back to **Dzmitry Bahdanau**, Kyunghyun Cho, and **Yoshua Bengio**, whose *\"Neural Machine Translation by Jointly Learning to Align and Translate\"* (ICLR 2015) introduced the first differentiable attention mechanism: a decoder RNN that, at each generation step, computed a soft alignment over encoder hidden states. **Minh-Thang Luong**, Hieu Pham, and **Christopher Manning** refined this in *\"Effective Approaches to Attention-based Neural Machine Translation\"* (EMNLP 2015), introducing the dot-product and general alignment score functions. These sequence-to-sequence attention mechanisms worked, but remained tethered to recurrent networks — one step at a time. The key insight of **Ashish Vaswani**, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan Gomez, Łukasz Kaiser, and Illia Polosukhin in *\"Attention Is All You Need\"* (NeurIPS 2017) was to dispense with recurrence entirely and make attention the sole computational primitive — achieving better parallelism, better scaling, and ultimately better models."
     },
     {
       "kind": "text",
       "title": "Run attention h times in parallel — the construction",
-      "body": "Multi-head attention splits the model dimension $d_{model}$ into $h$ subspaces of size $d_k=d_{model}/h$. For head $t$: project with its own $W^Q_t,W^K_t,W^V_t\\in\\mathbb{R}^{d_{model}\\times d_k}$, run scaled dot-product attention, get an $n\\times d_k$ output. Concatenate the $h$ head outputs back to $n\\times d_{model}$ and mix with one output projection $W^O\\in\\mathbb{R}^{d_{model}\\times d_{model}}$. Key parameter fact: because each head works in a $d_k=d_{model}/h$ subspace, total parameters are ~the same as a single full-width attention — you buy *diversity of relations* at ~no extra parameter cost, only a reshape.",
-      "viz": "attention-heatmap-explorer",
+      "body": "Multi-head attention splits the model dimension $d_{model}$ into $h$ subspaces of size $d_k=d_{model}/h$. For head $t$: project with its own $W^Q_t,W^K_t,W^V_t\\in\\mathbb{R}^{d_{model}\\times d_k}$, run **scaled dot-product attention**, get an $n\\times d_k$ output. Concatenate the $h$ head outputs back to $n\\times d_{model}$ and mix with one output projection $W^O\\in\\mathbb{R}^{d_{model}\\times d_{model}}$. Key parameter fact: because each head works in a $d_k=d_{model}/h$ subspace, total parameters are ~the same as a single full-width attention — you buy *diversity of relations* at ~no extra parameter cost, only a reshape.\n\nThe **scaling factor $1/\\sqrt{d_k}$** in scaled dot-product attention ($\\text{softmax}(QK^T/\\sqrt{d_k})V$) was also introduced by Vaswani et al. (2017). Without it, in high dimensions the dot products $QK^T$ grow in magnitude proportionally to $d_k$, pushing softmax into regions where gradients become extremely small (near-one-hot distributions). Dividing by $\\sqrt{d_k}$ keeps the pre-softmax logits in a well-conditioned range regardless of dimension size.\n\nIn the original **Vaswani et al. (2017)** architecture, $h=8$ heads with $d_{model}=512$, giving $d_k=d_v=64$ per head. This specific configuration was used in the base model; the large model used $d_{model}=1024$ with $h=16$.",
+      "viz": "attention-heatmap",
       "vizProps": {
         "presetIndex": 2
       }
@@ -37,7 +37,7 @@
     {
       "kind": "text",
       "title": "The shapes, end to end (h=8, d_model=512)",
-      "body": "$d_k=512/8=64$. Per head: $Q_t,K_t,V_t$ are $n\\times 64$; $\\text{head}_t=\\text{Attn}(Q_t,K_t,V_t)$ is $n\\times 64$. Concatenate 8 heads → $n\\times 512$; apply $W^O$ ($512\\times512$) → $n\\times 512$. Output width equals input width, so blocks stack unchanged. Formally $\\text{MultiHead}(X)=\\text{Concat}(\\text{head}_1,\\dots,\\text{head}_h)\\,W^O$, $\\text{head}_t=\\text{Attn}(XW^Q_t,XW^K_t,XW^V_t)$. Derive it:"
+      "body": "$d_k=512/8=64$ (Vaswani et al., 2017 base model). Per head: $Q_t,K_t,V_t$ are $n\\times 64$; $\\text{head}_t=\\text{Attn}(Q_t,K_t,V_t)$ is $n\\times 64$. Concatenate 8 heads → $n\\times 512$; apply $W^O$ ($512\\times512$) → $n\\times 512$. Output width equals input width, so blocks stack unchanged. Formally $\\text{MultiHead}(X)=\\text{Concat}(\\text{head}_1,\\dots,\\text{head}_h)\\,W^O$, $\\text{head}_t=\\text{Attn}(XW^Q_t,XW^K_t,XW^V_t)$. Derive it:"
     },
     {
       "kind": "question",
@@ -108,7 +108,7 @@
     {
       "kind": "text",
       "title": "A catalog of learned specializations",
-      "body": "Empirically, trained models grow *reproducible* head types: **previous-token** heads (attend to $i-1$), **positional** heads, **syntactic** heads (verb→subject, noun→determiner), **coreference** heads (pronoun→antecedent), and the celebrated **induction heads** — a two-head circuit implementing \"…[A][B]…[A] → predict [B]\" that is now believed to be a primary mechanism behind *in-context learning*. The reproducibility of these circuits across models and seeds is the empirical bedrock of mechanistic interpretability; multi-head attention is *why* the model has the capacity to host many such circuits at once."
+      "body": "Empirically, trained models grow *reproducible* head types: **previous-token** heads (attend to $i-1$), **positional** heads, **syntactic** heads (verb→subject, noun→determiner), **coreference** heads (pronoun→antecedent), and the celebrated **induction heads** — a two-head circuit implementing \"…[A][B]…[A] → predict [B]\" that is now believed to be a primary mechanism behind *in-context learning* (Olsson et al., 2022). The reproducibility of these circuits across models and seeds is the empirical bedrock of mechanistic interpretability; multi-head attention is *why* the model has the capacity to host many such circuits at once.\n\nEarly interpretability work by **Jesse Vig** and **Yonatan Belinkov** (*\"Analyzing the Structure of Attention in a Transformer Language Model\"*, 2019) and by **Kevin Clark**, **Urvashi Khandelwal**, **Omer Levy**, and **Christopher Manning** (*\"What Does BERT Look at? An Analysis of BERT's Attention\"*, 2019) demonstrated that specific heads in BERT specialize for syntactic relations — determiners, coreferents, direct objects — providing the first empirical grounding for what the head structure was actually computing."
     },
     {
       "kind": "question",
@@ -133,8 +133,8 @@
     {
       "kind": "text",
       "title": "Grouped-query attention (GQA) and why it exists",
-      "body": "At inference, autoregressive decoding caches K and V for every past token, every head — the **KV-cache**. Its size $\\propto n\\cdot h\\cdot d_k$ and it dominates memory and bandwidth for long contexts (often *the* serving bottleneck). **Multi-query attention** shares a single K/V across *all* query heads (tiny cache, some quality loss). **Grouped-query attention** is the practical middle: groups of query heads share one K/V head — e.g. 32 query heads → 8 KV heads → 4× smaller cache with near-zero quality loss. This is why Llama-2-70B, Mistral, and most modern served LLMs use GQA. It changes only K/V head count, not the math you derived.",
-      "viz": "attention-heatmap-explorer",
+      "body": "At inference, autoregressive decoding caches K and V for every past token, every head — the **KV-cache**. Its size $\\propto n\\cdot h\\cdot d_k$ and it dominates memory and bandwidth for long contexts (often *the* serving bottleneck).\n\n**Multi-query attention (MQA)** was introduced by **Noam Shazeer** in *\"Fast Transformer Decoding: One Write-Head is All You Need\"* (arXiv 2019). It shares a single K/V pair across *all* query heads — tiny cache, noticeably faster decoding, some quality loss at large scale.\n\n**Grouped-query attention (GQA)** was introduced by **Joshua Ainslie**, James Lee-Thorp, Michiel de Jong, Yury Zemlyanskiy, Federico Lebrón, and Sumit Sanghai in *\"GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints\"* (EMNLP 2023). GQA is the practical middle ground: groups of query heads share one K/V head — e.g. 32 query heads → 8 KV heads → 4× smaller cache with near-zero quality loss. This is why **LLaMA-2-70B**, **Mistral-7B**, **Falcon**, and most modern served LLMs use GQA rather than full MHA or MQA. It changes only K/V head count, not the forward-pass math you derived.",
+      "viz": "attention-heatmap",
       "vizProps": {
         "presetIndex": 0
       }
@@ -162,7 +162,7 @@
     {
       "kind": "text",
       "title": "The trap: 'just make the one head bigger'",
-      "body": "A tempting non-fix for \"the model can't capture enough relations\": keep $h=1$ but enlarge $d_k$ to the full $d_{model}$ (same parameter count). It does **not** help — a single softmax still yields one weighting per query regardless of its dimensionality. Capacity for *simultaneous distinct relations* comes from the *number of heads*, not the width of one. Diagnose:"
+      "body": "A tempting non-fix for \"the model can't capture enough relations\": keep $h=1$ but enlarge $d_k$ to the full $d_{model}$ (same parameter count). It does **not** help — a single softmax still yields one weighting per query regardless of its dimensionality. Capacity for *simultaneous distinct relations* comes from the *number of heads*, not the width of one.\n\nThis was empirically confirmed by ablations in **Vaswani et al. (2017)** (Table 3 of *\"Attention Is All You Need\"*): reducing to a single head while keeping $d_{model}$ the same caused consistent quality degradation on WMT English-German translation, confirming that head count — not head width — drives representational diversity. Diagnose:"
     },
     {
       "kind": "question",
@@ -239,7 +239,7 @@
     {
       "kind": "text",
       "title": "What to carry forward",
-      "body": "Multi-head = $h$ parallel attentions in $d_{model}/h$ subspaces, concatenated and mixed by $W^O$ — many relations at once for ~the same parameters; GQA shrinks the KV-cache for serving. Attention is now complete. Next: **positional encoding** — restoring order to a permutation-equivariant operation."
+      "body": "Multi-head attention (Vaswani, Shazeer, et al., NeurIPS 2017) = $h$ parallel attentions in $d_{model}/h$ subspaces, concatenated and mixed by $W^O$ — many relations at once for ~the same parameters. The $1/\\sqrt{d_k}$ scaling prevents softmax saturation in high dimensions. Head specializations (syntactic, coreference, induction) emerge from training and are reproducible across seeds and models. MQA (Shazeer, 2019) and GQA (Ainslie et al., 2023) reduce the KV-cache for efficient serving. The lineage: Bahdanau et al. (2015) + Luong et al. (2015) → Vaswani et al. (2017) → modern LLMs. Attention is now complete. Next: **positional encoding** — restoring order to a permutation-equivariant operation."
     }
   ]
 }

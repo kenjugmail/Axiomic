@@ -1,0 +1,137 @@
+{
+  "slug": "groundwater-and-darcys-law",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Distinguish confined and unconfined aquifers and define porosity, specific yield, and the water table.",
+      "State and apply Darcy's law Q = -KA dh/dl and interpret hydraulic conductivity.",
+      "Explain transient flow to a pumping well using the Theis solution and the cone of depression."
+    ],
+    "prereqs": [
+      "infiltration-and-soil-water"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Aquifers, porosity, and the water table",
+      "body": "**Groundwater** is the water that occupies the **saturated zone** beneath the water table, filling the pores and fractures of soil and rock. It is the planet's largest accessible store of liquid freshwater — vastly exceeding all rivers and lakes combined — and supplies roughly half of humanity's drinking water and much of its irrigation. The scientific study of subsurface water is **hydrogeology**.\n\nA geologic unit that can store and transmit usable quantities of water is an **aquifer**. Units that store water but transmit it only very slowly are **aquitards** (e.g., clay or shale); those that neither store nor transmit are **aquicludes**. Aquifers come in two principal types:\n\n- An **unconfined aquifer** has the **water table** as its upper boundary — the surface where pore-water pressure equals atmospheric pressure. The water table is free to rise and fall, and the aquifer is recharged directly by infiltration from above. A well drilled into it fills to the level of the water table.\n- A **confined (artesian) aquifer** is sandwiched between two confining layers and holds water under pressure greater than atmospheric. A well penetrating a confined aquifer rises above the top of the aquifer to the level of the **potentiometric surface** (the imaginary surface to which water would rise); if that surface is above the ground, water flows out unaided as a **flowing artesian well**. The term *artesian* derives from **Artois** in northern France, where such wells were famously drilled in the 12th century.\n\nThe capacity of a porous medium to hold water is its **porosity** $n$, the fraction of total volume occupied by voids: $n = V_v / V_{\\text{total}}$. Loose sand and gravel have porosities of **0.25–0.40**, while solid crystalline rock may be under 0.01 (except along fractures). But not all pore water can be drained by gravity. The fraction that *will* drain freely is the **specific yield** $S_y$; the fraction retained by capillary and adsorptive forces against gravity is the **specific retention** $S_r$. They sum to porosity: $n = S_y + S_r$. Clay has high porosity but low specific yield (it holds water tenaciously), whereas coarse sand has high specific yield. Specific yield is what matters for how much usable water an unconfined aquifer can supply.\n\nIn a confined aquifer, water is released not by draining pores but by the **elastic expansion** of water and **compression** of the aquifer matrix as pressure drops; this is quantified by the much smaller **storativity** (storage coefficient) $S$, often $10^{-5}$ to $10^{-3}$. The distinction matters enormously: a confined aquifer yields water from pressure changes propagating rapidly across great distances, while an unconfined aquifer yields water by physically dewatering pore space near the well. These storage concepts, together with the flow law we treat next, are the foundation of every groundwater calculation."
+    },
+    {
+      "kind": "text",
+      "title": "Darcy's law — the foundation of groundwater flow",
+      "body": "Modern quantitative hydrogeology begins with a single experiment. In **1856**, the French engineer **Henry Darcy** (1803-1858), while designing the public water-supply filters and fountains of the city of **Dijon**, ran a series of careful experiments passing water through vertical columns of sand. Reporting them in an appendix to his treatise *Les Fontaines Publiques de la Ville de Dijon*, Darcy found that the volumetric flow rate through the sand was **proportional to the cross-sectional area** and to the **head difference** across the column, and **inversely proportional to the column length**. This empirical proportionality is **Darcy's law**, the **Ohm's law of groundwater**:\n\n$$Q = -K A \\frac{dh}{dl}$$\n\nHere $Q$ is the volumetric discharge ($\\text{m}^3/\\text{s}$), $A$ is the cross-sectional area perpendicular to flow ($\\text{m}^2$), $\\frac{dh}{dl}$ is the **hydraulic gradient** (the change in hydraulic head $h$ per unit distance $l$ along the flow path, dimensionless), and $K$ is the **hydraulic conductivity** ($\\text{m/s}$), a property of *both* the porous medium and the fluid. The **negative sign** is essential physics: water flows from high head to low head, in the direction of *decreasing* head, so flow opposes the positive gradient.\n\nDividing through by area gives the **Darcy flux** or **specific discharge** $q = Q/A = -K\\,dh/dl$, which has units of velocity but is *not* the true velocity of water particles. Because water only moves through the pore space (a fraction $n$ of the cross-section), the actual **average linear (seepage) velocity** is larger: $v = q / n_e$, where $n_e$ is the **effective porosity**. Confusing the Darcy flux with the seepage velocity is a classic and consequential error — it matters greatly when predicting how fast a contaminant will travel.\n\nThe **hydraulic head** $h$ that drives Darcy flow is the sum of **elevation head** $z$ and **pressure head** $\\psi = p/\\rho g$: $h = z + p/(\\rho g)$. (The velocity-head term of the full Bernoulli equation is negligible in slow groundwater.) Head is measured directly in the field by the water level in a **piezometer** or monitoring well; **contour maps of head** (equipotential lines) reveal the direction of flow, which is everywhere perpendicular to the equipotentials, from high head to low.\n\n**Hydraulic conductivity** $K$ spans an astonishing **thirteen orders of magnitude** across earth materials: clean gravel may exceed $10^{-1}\\ \\text{m/s}$, sand around $10^{-4}$, silt $10^{-7}$, and unfractured granite or clay below $10^{-11}\\ \\text{m/s}$. It can be separated into an **intrinsic permeability** $k$ (a property of the medium's pore geometry alone) and the fluid properties via $K = k\\rho g / \\mu$, where $\\mu$ is dynamic viscosity. Combining Darcy's law with **mass conservation** for a confined aquifer yields the **groundwater flow equation**, a diffusion-type partial differential equation; in the steady, homogeneous case it reduces to **Laplace's equation** $\\nabla^2 h = 0$. Solving these equations — analytically for simple geometries, numerically (e.g., with the USGS code **MODFLOW**) for real ones — is the daily work of the hydrogeologist."
+    },
+    {
+      "kind": "text",
+      "title": "Wells, the cone of depression, and the Theis solution",
+      "body": "Pumping a well perturbs the aquifer. As water is withdrawn, the head near the well drops, creating a **cone of depression** — a roughly conical lowering of the water table (unconfined) or potentiometric surface (confined) centered on the well. The vertical drop in head at any location is the **drawdown** $s$. The cone deepens and widens with continued pumping until either it reaches a steady state (balanced by recharge or capture) or pumping stops. The radius over which drawdown is detectable is the **radius of influence**, and where two wells' cones overlap, their drawdowns add — **well interference**.\n\nFor **steady-state** radial flow to a fully penetrating well in a confined aquifer, the **Thiem equation** (after **Günther Thiem**, 1906) relates the pumping rate $Q$ to drawdowns at two radii:\n\n$$Q = \\frac{2\\pi T (h_2 - h_1)}{\\ln(r_2 / r_1)}$$\n\nwhere $T = K b$ is the **transmissivity** (hydraulic conductivity times the saturated thickness $b$, units $\\text{m}^2/\\text{s}$), and $h_1, h_2$ are heads at radial distances $r_1, r_2$. Transmissivity measures how much water an aquifer of its full thickness can transmit and is the single most useful aquifer parameter for water-supply work.\n\nMost real pumping is **transient** — drawdown changes with time before any steady state is reached. The landmark solution is due to the American hydrologist **Charles Vernon Theis** (1900-1987), who in **1935**, by analogy to the mathematics of **heat conduction** (with help from the mathematician **Clarence Lubin**), derived the drawdown response of a confined aquifer to a constant-rate well. The **Theis equation** is:\n\n$$s = \\frac{Q}{4\\pi T}\\, W(u), \\qquad u = \\frac{r^2 S}{4 T t}$$\n\nwhere $s$ is drawdown at radius $r$ and time $t$, $Q$ is the constant pumping rate, $T$ is transmissivity, $S$ is storativity, and $W(u)$ is the **well function** (an exponential integral, $W(u) = \\int_u^\\infty \\frac{e^{-x}}{x}\\,dx$). The dimensionless argument $u$ shrinks with time and grows with distance, so drawdown increases as pumping continues and decreases away from the well. The Theis solution revolutionized hydrogeology: by matching field drawdown-versus-time data to the **Theis type curve**, an engineer can solve *inverse* problems — extracting the aquifer's transmissivity $T$ and storativity $S$ from a **pumping (aquifer) test**. Later refinements include the **Cooper–Jacob** (1946) straight-line approximation, valid for small $u$ (long times), which simplifies the analysis to a semi-log plot, and the **Hantush–Jacob** (1955) **leaky-aquifer** solution for systems with a contributing aquitard.\n\nThese tools carry real-world weight. **Over-pumping** lowers water tables, dries up springs and wetlands, induces **saltwater intrusion** in coastal aquifers, and — where confined aquifers are depleted — causes irreversible **land subsidence** as compressed clays lose pore volume (famously in California's San Joaquin Valley and in Mexico City). Sustainable groundwater management requires balancing withdrawals against recharge, and every such calculation rests on Darcy's 1856 law and the Theis 1935 solution."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hyd4_1",
+        "kind": "multiple_choice",
+        "question": "A well drilled into a confined aquifer has water that rises above the top of the aquifer, sometimes flowing out at the surface without pumping. What explains this?",
+        "options": [
+          "The aquifer is unconfined, so the water rises only to the water table.",
+          "The confined aquifer holds water under pressure greater than atmospheric, so water rises to the potentiometric surface — and flows freely if that surface lies above the ground (an artesian well).",
+          "The water is heated geothermally and expands upward out of the well.",
+          "Specific yield in the aquifer exceeds 1.0, forcing water out."
+        ],
+        "correctIndex": 1,
+        "explanation": "A confined aquifer is bounded above by a confining layer and holds water at pressure above atmospheric. Water in a well rises to the potentiometric surface — the level to which the pressurized water would rise. If that surface is above the land surface, the well flows on its own (a flowing artesian well), named for the Artois region of France. An unconfined aquifer, by contrast, has water rising only to the water table. Specific yield is a fraction and cannot exceed 1."
+      },
+      "hints": [
+        "Confined aquifers are pressurized between confining layers.",
+        "The level water rises to is the potentiometric surface, not the water table."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Confinement keeps the aquifer at greater-than-atmospheric pressure, so water rises to the potentiometric surface; if that surface is above ground the well flows artesian. The answer is B."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_hyd4_1",
+        "kind": "math_expression",
+        "question": "Using Darcy's law for discharge magnitude Q = K·A·(dh/dl), an aquifer has hydraulic conductivity K = 0.0005 m/s, a flow cross-sectional area A = 200 m^2, and a hydraulic gradient dh/dl = 0.02 (dimensionless). What is the discharge Q in m^3/s?",
+        "acceptedAnswers": [
+          "0.002",
+          "0.002 m3/s",
+          "0.002 m^3/s",
+          "2e-3"
+        ],
+        "hint": "Multiply: Q = 0.0005 × 200 × 0.02 = 0.002 m^3/s."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hyd4_2",
+        "kind": "multiple_choice",
+        "question": "The Darcy flux (specific discharge) q = Q/A is often called a 'Darcy velocity,' but the actual average velocity of water particles in the aquifer is larger. Why?",
+        "options": [
+          "Because water accelerates as it leaves the well screen.",
+          "Because water moves only through the pore space, a fraction n_e of the cross-sectional area, so the true seepage velocity v = q / n_e exceeds the Darcy flux.",
+          "Because hydraulic conductivity increases with depth.",
+          "Because the negative sign in Darcy's law doubles the speed."
+        ],
+        "correctIndex": 1,
+        "explanation": "The Darcy flux q = Q/A divides discharge by the *total* cross-sectional area, including the solid grains through which no water flows. Since water actually travels only through the connected pores (effective porosity n_e, typically 0.2-0.4), the real average linear (seepage) velocity is v = q / n_e, which is several times larger than q. Mistaking the Darcy flux for the true velocity badly underestimates how fast a contaminant plume moves."
+      },
+      "hints": [
+        "Water cannot flow through the solid grains.",
+        "Divide the flux by the effective porosity to get the real velocity."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "The Darcy flux uses total area, but flow is confined to the pores (fraction n_e), so the actual seepage velocity v = q/n_e is larger. The answer is B. This matters for contaminant travel-time estimates."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_hyd4_1",
+        "kind": "scenario",
+        "question": "Interpreting a pumping test and a deepening cone of depression",
+        "prompt": "A municipal water utility installs a production well in a confined sand-and-gravel aquifer and runs a constant-rate pumping test, measuring drawdown over time in a nearby observation well. Explain how the Theis solution (with its well function W(u), transmissivity T, and storativity S) lets the hydrogeologist extract T and S from the drawdown-versus-time data. Then a second production well is added 300 m away and pumped simultaneously; describe what happens to the cone of depression and the drawdown at each well (well interference). Finally, explain two long-term consequences the utility should monitor if total withdrawals chronically exceed recharge."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_hyd4_2",
+        "kind": "math_expression",
+        "question": "Transmissivity is defined as T = K·b, where K is hydraulic conductivity and b is the saturated aquifer thickness. An aquifer has K = 0.0008 m/s and saturated thickness b = 25 m. What is the transmissivity T in m^2/s?",
+        "acceptedAnswers": [
+          "0.02",
+          "0.02 m2/s",
+          "0.02 m^2/s",
+          "2e-2"
+        ],
+        "hint": "Multiply: T = 0.0008 × 25 = 0.02 m^2/s."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hyd4_3",
+        "kind": "multiple_choice",
+        "question": "Why does pumping water from a CONFINED aquifer release water even though no pores are being drained of water?",
+        "options": [
+          "Pores are in fact drained instantly throughout the entire aquifer.",
+          "Lowering the pressure causes elastic expansion of the water and compression of the aquifer skeleton, releasing a small volume quantified by the storativity S; pore drainage (specific yield) governs UNconfined aquifers instead.",
+          "Confined aquifers contain no water until pumping begins.",
+          "The well function W(u) physically generates new water."
+        ],
+        "correctIndex": 1,
+        "explanation": "A confined aquifer stays fully saturated; it does not dewater near the well. Instead, when the head (pressure) drops, the slightly compressible water expands and the aquifer matrix compresses, squeezing out a small amount of water. This elastic release is measured by the storativity (storage coefficient) S, which is tiny (10^-5 to 10^-3). In an unconfined aquifer, by contrast, water is released by physically draining pore space, governed by the much larger specific yield. Chronic confined-aquifer compression can cause irreversible land subsidence."
+      },
+      "hints": [
+        "Confined aquifers stay saturated — they do not dewater.",
+        "Think elastic expansion of water and compression of the matrix; that is storativity."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "In a confined aquifer the head drop elastically expands the water and compresses the matrix, releasing water measured by storativity S (very small). Pore drainage (specific yield) applies to unconfined aquifers. The answer is B."
+    }
+  ]
+}

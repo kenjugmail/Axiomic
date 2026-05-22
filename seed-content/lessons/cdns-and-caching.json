@@ -16,6 +16,8 @@
     {
       "kind": "text",
       "title": "CDN topology + edge caching",
+      "viz": "cache-hierarchy",
+      "vizProps": {},
       "body": "A CDN (Content Delivery Network) is a globally-distributed set of servers ('edges') that cache content close to users. When a user requests `example.com/asset.png`:\n\n1. DNS routes them to the closest CDN edge (via anycast or geo-DNS).\n2. Edge checks cache: hit → serve from edge (10-30ms). Miss → fetch from origin (50-300ms) + cache + serve.\n\nMajor CDNs (Cloudflare, Fastly, CloudFront) have 100-300+ edge locations globally. Edges in Tokyo, Sydney, Sao Paulo, etc. mean a user anywhere is within ~30ms of an edge.\n\nThe combination of edge caching + far less origin traffic = the primary CDN value proposition. Static assets are cached for 1+ year (with versioned URLs). Dynamic content with shorter TTLs benefits less but still wins via TLS termination + DDoS protection at the edge."
     },
     {

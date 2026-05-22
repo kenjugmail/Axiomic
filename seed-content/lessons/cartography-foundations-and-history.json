@@ -1,0 +1,156 @@
+{
+  "slug": "cartography-foundations-and-history",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Trace the history of cartography from Anaximander to digital GIS.",
+      "Distinguish topographic, topological, and information design traditions.",
+      "Apply Tobler's first law + Tufte's design principles to map reasoning."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "From clay tablets to the Renaissance — 2500 years of mapmaking",
+      "body": "Cartography is the art + science + craft of representing the spatial world on a surface. It is older than writing in many traditions + has been continuously reinvented across cultures.\n\n**Ancient origins**:\n- **Anaximander of Miletus (6th c BCE)** is credited with the first known world map — a circular Greek oikoumene with Aegean at center + ringed by Ocean. His student **Hecataeus** refined it. Babylonian clay tablets (Imago Mundi ~600 BCE) + Egyptian funerary maps show parallel non-Greek traditions.\n- **Eratosthenes (~240 BCE)** measured Earth's circumference to within ~15% using sun-angle shadows at Alexandria + Syene. The geometric foundation of geodesy was laid.\n- **Ptolemy's *Geographia* (~150 CE)** — eight books cataloging ~8000 places by latitude + longitude, with projection instructions (conic + modified). Lost to the Latin West for a millennium; recovered ~1400 CE via Byzantine + Arabic transmission. When **Jacopo d'Angelo** translated it into Latin in 1406, it ignited the Renaissance cartographic revolution.\n\n**Islamic + medieval cartography**:\n- **Al-Idrisi's *Tabula Rogeriana* (1154 CE)** — produced in Sicily for King Roger II — synthesized Greek + Arab + Norman geographic knowledge. South at top (an Arab convention). Comprehensive coverage of Eurasia + North Africa.\n- **Mappae mundi**: T-O maps with Jerusalem at center, Asia top, Europe + Africa below — symbolic + theological rather than geographic.\n- **Fra Mauro's map (~1450, Venice)** — a Camaldolese monk's spectacular world map, ~2 m diameter, oriented south-up. Synthesizes Ptolemy, Marco Polo, Portuguese explorers, Arabic sources. The last great pre-printing world map + arguably the high-water mark of medieval cartography.\n- **Portolan charts (13th-16th c)** — Mediterranean coastal charts with rhumb lines radiating from compass roses. Highly accurate for navigation; survive in ~180 examples (e.g., the 1375 Catalan Atlas).\n\n**The Renaissance + Age of Discovery**:\n- **Martin Waldseemüller (1507)** — produced the *Universalis Cosmographia*, the first map to label the New World 'America' (after Amerigo Vespucci). The only surviving copy was bought by the U.S. Library of Congress for $10M in 2003.\n- **Gerardus Mercator (1569)** — published his world map *Nova et Aucta Orbis Terrae Descriptio* using the **Mercator projection**: a conformal cylindrical projection where loxodromes (rhumb lines) appear as straight lines. Revolutionary for navigation; still dominant 450 years later (Google + Bing + OSM all use Web Mercator EPSG:3857).\n- **Abraham Ortelius (1570)** — published *Theatrum Orbis Terrarum*, considered the first modern atlas. Anticipated continental drift (Wegener 1912) in noting fit of African + South American coasts.\n- **Willem Blaeu + the Dutch Golden Age (17th c)** — Amsterdam was the cartographic capital; the Blaeu *Atlas Maior* (1665) is the most lavish atlas ever produced."
+    },
+    {
+      "kind": "text",
+      "title": "From topography to topology — national surveys + the Tube map revolution",
+      "body": "**The age of national surveys (18th-19th c)**:\n- **Cassini family (France, 1683-1789)** — four generations triangulated all France, producing the Carte de Cassini (1:86400, 182 sheets). The first scientific topographic map of a nation. Established geodetic triangulation as the foundation of mapping.\n- **Ordnance Survey (Britain, founded 1791)** — military mapping of Scotland after Jacobite rebellion, expanded to all of Britain. One-inch maps + the National Grid. Now produces OS MasterMap (vector) + OS OpenData. Model for national mapping agencies worldwide.\n- **USGS (United States, founded 1879)** — produces the iconic 7.5-minute quadrangle series (1:24000) + The National Map digital products + 3DEP lidar elevation. Joined by analogous agencies in every country (IGN France, BKG Germany, GSI Japan, Survey of India, etc.).\n- **International Map of the World (IMW)** — proposed 1891, aimed for 1:1M global coverage on a single projection. Never completed; superseded by digital data.\n\n**Beck's 1933 London Tube map — the topological turn**:\n- **Harry Beck**, a draughtsman at London Underground Signals Office, redrew the Tube map in 1931-33 — straightening lines to 45° + 90° angles + uniformly spacing stations. Topology preserved; geometry abandoned. Initially rejected as 'too revolutionary'; printed as a trial in 1933 — instantly popular.\n- The Beck map is the canonical example of **topological cartography**: connectivity + sequence matter; absolute position does not. The principle now governs subway maps worldwide (NYC, Tokyo, Moscow), airline route maps, network diagrams, circuit schematics.\n- Tradeoff: passengers using the Tube map to plan walks above-ground are misled — Bond Street + Marble Arch are 250 m apart but appear adjacent. Modern apps (Citymapper) bridge topological + geographic views.\n\n**Information design + the 20th century**:\n- **Edward Tufte** (Yale; *The Visual Display of Quantitative Information* 1983, *Envisioning Information* 1990, *Visual Explanations* 1997) elevated maps + diagrams into design theory. **Data-ink ratio** + **chartjunk** + small multiples + Charles Minard's 1869 map of Napoleon's Russian campaign (called 'probably the best statistical graphic ever drawn').\n- **John Snow's 1854 cholera map** of Broad Street, London — dot density of cholera deaths revealed proximity to the Broad Street pump. The founding example of epidemiological mapping + spatial analysis.\n- **Jacques Bertin** — French cartographer; *Sémiologie Graphique* (1967) introduced the seven **visual variables**: position, size, value, texture, color, orientation, shape. Foundational for thematic cartography.\n\n**Tobler's first law of geography (1970)**:\n- **Waldo Tobler**: 'Everything is related to everything else, but near things are more related than distant things.'\n- This deceptively simple statement is the foundation of spatial autocorrelation, geostatistics, kriging, spatial interpolation. Without it, spatial prediction would be impossible.\n- Tobler's other contributions: the Tobler hiking function (walking speed vs. slope), pycnophylactic interpolation, dasymetric mapping."
+    },
+    {
+      "kind": "text",
+      "title": "GIScience + the digital revolution",
+      "body": "**The GIS revolution (1960s-present)**:\n- **Roger Tomlinson (Canada, 1960s)** — 'father of GIS' — built the Canada Geographic Information System (CGIS) to inventory Canadian land. First operational digital GIS.\n- **Harvard Laboratory for Computer Graphics (1965-91)** under Howard Fisher + Nick Chrisman + Geoffrey Dutton — produced SYMAP + GRID + ODYSSEY — the intellectual incubator of GIS. Many alumni founded the field.\n- **Esri (Jack + Laura Dangermond, founded 1969)** — Environmental Systems Research Institute. Released **ARC/INFO** in 1981 (vector + topology) + ArcView + ArcGIS. Dominant commercial GIS. Esri also pioneered **shapefile** (1990s) — still ubiquitous despite being officially deprecated.\n- **GRASS GIS (1982, US Army CERL)** — open-source raster GIS. Still active.\n- **PostGIS (2001, Refractions Research)** — spatial extension to PostgreSQL. Backbone of modern spatial backends.\n- **QGIS (2002, Gary Sherman)** — open-source desktop GIS; now mature alternative to ArcGIS.\n- **Google Maps (2005)** + **OpenStreetMap (2004, Steve Coast)** — democratized digital cartography. Slippy maps + tile architecture + crowdsourced data transformed who makes + uses maps.\n\n**GIScience as discipline**:\n- **Michael Goodchild** (UCSB) coined **GIScience (geographic information science)** in 1992 to distinguish the scientific study of spatial concepts + algorithms from the technology (GIS = geographic information systems). His work on spatial accuracy, VGI (volunteered geographic information), Tobler's law operationalization.\n- **Robert McMaster** (Minnesota) — pioneer of **digital cartography + map generalization** algorithms — automated line simplification, displacement, classification.\n- **NCGIA (National Center for Geographic Information + Analysis)** — funded by NSF 1988, established the academic foundations of GIScience.\n- **University Consortium for Geographic Information Science (UCGIS)** — coordinates the academic GIScience community.\n- Key journals: *Cartography + Geographic Information Science* (CaGIS), *International Journal of GIS*, *Annals of the AAG*, *Transactions in GIS*.\n\n**Modern themes**:\n- **Critical cartography** — Wood, Harley, Crampton — maps as instruments of power, not neutral representations.\n- **Volunteered geographic information (VGI)** — OSM, citizen science, mobile crowdsourcing.\n- **Geovisualization** — interactive, multi-scale, animated, 3D, immersive.\n- **Cloud GIS + serverless** — Google Earth Engine, AWS Open Data, Microsoft Planetary Computer.\n- **AI-assisted mapping** — Microsoft AI for Earth building footprints, SegmentAnything for remote sensing, Overture Maps.\n\n**Cartography is not dead**:\nThe rise of digital + AI has not eliminated the craft — it has shifted it. Style design (Stamen, CARTO, Mapbox), interactive narrative (NYT, FT, Pudding), 3D + VR mapping, scientific viz of climate + epidemiology — all demand cartographic expertise. The principles of Tufte, Bertin, Tobler, Imhof remain the foundation; the tools evolved. The rest of this path explores the modern apparatus: projections + geodesy (Lesson 2), GIS data + operations (Lesson 3), thematic design (Lesson 4), terrain (Lesson 5), web maps (Lesson 6), spatial analysis (Lesson 7), + the AI + ethics frontier (Lesson 8)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_cart_1",
+        "kind": "guided_derivation",
+        "question": "Eratosthenes' measurement of Earth's circumference (~240 BCE)",
+        "goal": "At noon on the summer solstice, Eratosthenes measured the sun directly overhead at Syene (no shadow in a well), + a shadow at Alexandria with sun ~7.2° from vertical. Distance Syene-Alexandria ~5000 stadia. Compute Earth's circumference.",
+        "steps": [
+          {
+            "prompt": "What geometric assumption converts the shadow angle to a fraction of Earth's circumference?",
+            "motivation": "Set up the geometry.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Sun rays parallel + Earth spherical; shadow angle = central angle at Earth's center",
+                "parallel rays + sphere"
+              ]
+            },
+            "hints": [
+              "Why are the rays parallel?"
+            ],
+            "reveal": "Two assumptions: (1) the Sun is far enough that its rays at Earth are essentially parallel (Sun-Earth distance ~150 Gm vs. Earth radius ~6.4 Mm); (2) Earth is a sphere. Then the angle of the shadow at Alexandria equals the **central angle** subtended at Earth's center between Syene + Alexandria. The 7.2° shadow corresponds to a 7.2° arc of Earth's surface."
+          },
+          {
+            "prompt": "If 7.2° corresponds to 5000 stadia, what is the full circumference (360°)?",
+            "motivation": "Scale up.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "C = 5000 × (360/7.2) = 250000 stadia",
+                "250000 stadia"
+              ]
+            },
+            "hints": [
+              "Simple proportion."
+            ],
+            "reveal": "$C = 5000 \\times (360/7.2) = 5000 \\times 50 = 250000$ stadia. Eratosthenes' answer."
+          },
+          {
+            "prompt": "The stadion length is debated (157-185 m). Compute C in km using both extremes + compare to modern value (40075 km).",
+            "motivation": "Quantify accuracy.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "39250-46250 km; modern 40075; ~2-15% error",
+                "within ~15%"
+              ]
+            },
+            "hints": [
+              "250000 × stadion."
+            ],
+            "reveal": "Lower bound: $250000 \\times 157 = 39.25 \\times 10^{6}$ m = **39250 km**. Upper bound: $250000 \\times 185 = 46.25 \\times 10^{6}$ m = **46250 km**. Modern circumference = 40075 km. Best estimate (Egyptian stadion ~157 m) → 39250 km → **~2% error**. Remarkable for a measurement made with shadow sticks + walking-pace estimates ~2200 years ago."
+          },
+          {
+            "prompt": "Why does this matter for cartography?",
+            "motivation": "Foundational significance.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Established quantitative geodesy + made coordinate cartography possible",
+                "founded geodesy"
+              ]
+            },
+            "hints": [
+              "What enables latitude + longitude maps?"
+            ],
+            "reveal": "Eratosthenes' result established that Earth's size could be measured by surveying — the founding moment of **geodesy**. Once you know Earth's size + shape, you can build coordinate systems (latitude + longitude, used by Ptolemy ~400 years later), map projections, + scaled topographic surveys. Modern WGS84 + ITRF + GPS are direct intellectual descendants. Without geodesy, cartography reduces to qualitative sketches; with it, you have rigorous quantitative representation of the spatial world."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_cart_1",
+        "kind": "multiple_choice",
+        "question": "What makes Harry Beck's 1933 London Tube map a landmark in cartography?",
+        "options": [
+          "It was the most accurate geographic map of London ever made.",
+          "**Harry Beck's 1933 London Tube map** abandoned geographic fidelity in favor of **topological clarity** — straightening lines to 45°/90° angles + uniformly spacing stations + ignoring above-ground positions. What matters for a Tube traveler is **connectivity** (which station connects to which line) + **sequence** (which stop is next) — not Euclidean distance. Beck, a Signals Office draughtsman, was first rejected as 'too revolutionary' but the 1933 trial was an immediate hit. The map established **topological cartography** as a legitimate alternative to topographic representation — connectivity + sequence as primary, geometry as secondary. It is the canonical template for subway maps worldwide (NYC, Tokyo, Moscow, Paris), airline route maps, network diagrams, even circuit schematics. The principle is general: when the user's task is following a network, the topology is what matters. The cost is misleading users about above-ground distances — Bond Street + Marble Arch are 250 m apart on the ground but look adjacent on the map. Modern apps blend topological + geographic views.",
+          "It introduced the Mercator projection.",
+          "Random."
+        ],
+        "correctIndex": 1,
+        "explanation": "Beck's 1933 Tube map abandoned geographic geometry for topological clarity — connectivity + sequence matter, absolute position does not. Established topological cartography as a discipline; template for subway + transit + network maps worldwide. Tradeoff: misleading for above-ground navigation."
+      },
+      "hints": [
+        "What did Beck sacrifice + what did he preserve?",
+        "Why has it become the template?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Beck's 1933 London Tube map established topological cartography — preserved connectivity + sequence, abandoned geographic positions. Now the canonical template for subway + transit + network diagrams worldwide. Illustrates the central cartographic insight: design for the user's task."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_cart_1",
+        "kind": "scenario",
+        "question": "Designing a map for a wildfire-response agency",
+        "prompt": "A regional wildfire response agency commissions you to design a real-time wildfire situational-awareness map for incident commanders + the public. Apply the lessons of cartographic history + theory. Address: (1) **target users + tasks** — commanders need topology (which roads connect, which evacuation routes are open) + topography (fire-line position, slope, fuel); the public needs containment status + evacuation zones. How do Beck's topology vs. Ordnance Survey topography traditions inform two distinct views? (2) **Projection choice** — Web Mercator for web display vs. an equal-area projection (Albers conic for the US) for analysis. Why might you serve both? (3) **Symbology + Bertin's visual variables** — how would you encode fire intensity (color value), wind direction (orientation), evacuation zones (color hue), incident command posts (shape)? (4) **Tufte's data-ink + Tobler's first law** — strip chartjunk, but recognize that fire risk is spatially autocorrelated — neighbor cells matter. (5) **Critical cartography** — whose evacuation gets prioritized? How does the map encode + potentially obscure equity? (6) **GIScience apparatus** — sources: VIIRS active-fire satellite detections, USGS 3DEP elevation, OSM + USGS roads, Cal Fire incident feeds. (7) **John Snow lesson** — what spatial pattern in the map might reveal an unrecognized hazard (e.g., wind alley) the way Snow's dot map revealed the Broad Street pump? Deliver a design memo that critically integrates all eight themes."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_cart_1",
+        "kind": "math_expression",
+        "question": "Eratosthenes' shadow at Alexandria is 7.2° from vertical at noon on the solstice. The Alexandria-Syene distance is 800 km. Compute Earth's circumference (in km, to nearest 100 km).",
+        "acceptedAnswers": [
+          "40000",
+          "40000 km",
+          "~40000",
+          "40000.0"
+        ],
+        "hint": "$C = 800 \\times (360 / 7.2) = 800 \\times 50 = 40000$ km. The modern value is 40075 km — a remarkable 0.2% agreement (with hindsight-favorable assumed distance)."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_cart_1",
+        "kind": "explain_back",
+        "prompt": "In ≤130 words, narrate the arc of cartography from Anaximander to digital GIS — naming at least six figures + identifying the key conceptual turns.",
+        "rubric": "Mentions: **Anaximander (6th c BCE)** first world map; **Eratosthenes** founded geodesy; **Ptolemy's *Geographia* (~150 CE)** projected coordinate cartography; **Al-Idrisi's Tabula Rogeriana (1154)** + **Fra Mauro (~1450)** Islamic + late-medieval syntheses; **Waldseemüller (1507)** named America; **Mercator (1569)** projection still dominant for navigation + web maps; **Cassini + Ordnance Survey + USGS** national topographic surveys; **John Snow (1854)** founded spatial epidemiology; **Harry Beck (1933)** Tube map established topological cartography; **Tufte** + **Bertin** data-ink + visual variables; **Tobler (1970) first law of geography** (near things more related than distant); **Goodchild** named GIScience (1992); **McMaster** digital cartography + map generalization; **Tomlinson + Esri + QGIS + PostGIS + Google Maps + OSM** — modern apparatus. Conceptual turns: from sketch to coordinate (Ptolemy), from regional to projected global (Mercator), from topography to topology (Beck), from paper to digital (GIS), from authoritative to crowdsourced (OSM). Concludes: every era's tools change; the principles of clear, accurate, ethically aware spatial representation are continuous."
+      }
+    }
+  ]
+}

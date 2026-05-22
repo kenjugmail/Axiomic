@@ -22,7 +22,8 @@ export type CorpusKind =
   | "news_article"
   | "research_paper"
   | "wiki_page"
-  | "grant";
+  | "grant"
+  | "lesson";
 
 export function hashContent(text: string): string {
   return createHash("sha256").update(text).digest("hex").slice(0, 32);

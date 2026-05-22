@@ -1,0 +1,159 @@
+{
+  "slug": "species-interactions-and-macarthur",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Analyze competition via Lotka-Volterra + R* rule.",
+      "Apply MacArthur consumer-resource theory.",
+      "Survey predation + mutualism dynamics."
+    ],
+    "prereqs": [
+      "population-ecology-and-leslie"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "MacArthur consumer-resource theory + competitive exclusion",
+      "body": "**Species interactions** are the engine of community ecology. Two species can compete (–/–), one consume the other (+/–), be mutualistic (+/+), commensal (+/0), amensal (–/0), or neutral (0/0). Most communities mix all six.\n\n**Competitive exclusion principle** (**Georgy Gause 1934** *The Struggle for Existence*; sometimes traced to Grinnell 1904 or Volterra 1928): two species competing for a single limiting resource cannot indefinitely coexist — the better competitor excludes the other. Gause's classic *Paramecium aurelia* + *P. caudatum* + *P. bursaria* chemostat experiments showed this; *P. caudatum* outcompetes *P. aurelia* on standard medium.\n\n**Lotka-Volterra competition** (**Alfred Lotka 1925** + **Vito Volterra 1926**, building on Verhulst):\n\n  dN_1/dt = r_1 N_1 (1 – (N_1 + α_(12) N_2)/K_1)\n  dN_2/dt = r_2 N_2 (1 – (N_2 + α_(21) N_1)/K_2)\n\n**α_(ij) = competition coefficient** = per capita effect of species j on species i, relative to intraspecific effect. Phase-plane analysis gives 4 outcomes from the K_1, K_2, α_12, α_21 inequalities: species 1 wins, species 2 wins, founder effect (either wins depending on initial conditions), stable coexistence (when intraspecific competition exceeds interspecific — niche differentiation).\n\n**MacArthur consumer-resource model** (**Robert MacArthur 1970**; in *Geographical Ecology* 1972): mechanistic alternative to phenomenological L-V. Multiple consumers compete by exploiting shared resources whose dynamics are explicitly modeled. Each consumer i has resource-uptake rates c_ij + mortality m_i; each resource j has supply rate S_j + intrinsic dynamics. Equilibrium analysis gives **niche-differentiation** + **coexistence-via-trade-off** as emergent. Foundation for modern community ecology.\n\nVisualize: **R\\* rule (Tilman 1982 *Resource Competition*)**: the species that survives at the lowest equilibrium resource concentration R\\* wins on that resource alone. With multiple limiting resources, **zero net growth isoclines (ZNGIs)** in resource-space + **consumption vectors** + **supply points** determine coexistence — geometry of competition. Multiple species coexist only if each is best at suppressing one limiting resource + trade-off prevents single dominance. Tilman's diatom + Daphnia + plant experiments confirmed.\n\n**Niche differentiation + character displacement** (Brown + Wilson 1956): species that overlap in resource use evolve divergence (beak size, body size) in sympatry. Galápagos finches (Schluter + Grant 1984; Grant + Grant 2006 *Daphne Major* drought selection). Stickleback benthic-limnetic pairs (Schluter 1993). Anolis lizards (Losos 2009).\n\n**Modern coexistence theory** (Chesson 2000): coexistence requires stabilizing mechanisms (intraspecific > interspecific competition) > average fitness differences. Modern coexistence theory unifies niche + neutral views (Adler 2007; Hubbell 2001 — see communities lesson).",
+      "viz": "macarthur-consumer-resource",
+      "vizProps": {
+        "resources": 2,
+        "consumers": 2
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Predation: Lotka-Volterra + Holling functional responses",
+      "body": "**Lotka-Volterra predator-prey** (Lotka 1925 + Volterra 1926, independently — Volterra explaining post-WWI Adriatic fish + predator oscillations):\n\n  dN/dt = rN – aNP          (prey)\n  dP/dt = εaNP – mP         (predator)\n\nN = prey density, P = predator density, a = attack rate (linear functional response), ε = conversion efficiency, m = predator mortality. Equilibrium: N* = m/(εa), P* = r/a. Trajectories are **neutrally stable cycles** around (N*, P*) — oscillations whose amplitude depends on initial conditions (a structurally unstable feature; small perturbations break the cycle).\n\nClassic empirical pattern: **lynx–snowshoe hare cycles** (Elton 1924 from Hudson Bay Co. fur records; 9-10 yr cycles; Krebs experimental enclosures 1995). **Voles + lemmings** 3-5 yr cycles.\n\n**Holling functional responses** (**C. S. Holling 1959**): how a predator's consumption rate (f) varies with prey density (N):\n- **Type I (linear)**: f = aN, no saturation. Suitable for filter feeders; only valid at low N.\n- **Type II (saturating)**: f = aN / (1 + ahN), where h = handling time. Most predators. Foundation of *Rosenzweig-MacArthur* model (1963) — adds prey logistic + predator saturation, producing limit cycles + the *paradox of enrichment* (Rosenzweig 1971): enriching prey K destabilizes.\n- **Type III (sigmoid)**: f = aN² / (1 + ahN²). Predator switches between prey or learns to find. Important for prey refuge + stability.\n\n**Numerical response** (Solomon 1949): predator population growth as function of prey density. **Total response** = functional × numerical.\n\n**Rosenzweig-MacArthur** (1963):\n\n  dN/dt = rN(1 – N/K) – aNP/(1 + ahN)\n  dP/dt = εaNP/(1 + ahN) – mP\n\nThis model gives stable equilibrium, limit cycles, or paradox of enrichment depending on K. Hopf bifurcation at intermediate K. Foundation of theoretical predator-prey dynamics.\n\n**SIR + epidemiology** (Kermack-McKendrick 1927) is structurally equivalent to predator-prey — disease as predation. Cross-reference P42 marine Lotka-Volterra applications (zooplankton-phytoplankton).\n\n**Top-down vs bottom-up control** (Hairston-Smith-Slobodkin 1960 HSS; see food-webs lesson): predators regulate prey vs resources limit prey. Both operate; trophic cascades demonstrate top-down.\n\n**Optimal foraging** (MacArthur + Pianka 1966; Charnov 1976 marginal value theorem): predators maximize energy intake rate; explains diet breadth + patch use + giving-up density."
+    },
+    {
+      "kind": "text",
+      "title": "Mutualism + facilitation + the network view",
+      "body": "**Mutualism** (+/+): partners' fitness mutually increased. Long-undervalued (early ecology dominated by competition + predation); **Judith Bronstein 1994, 2015** review revived the topic. Mutualisms are everywhere + structure ecosystems.\n\n**Major classes**:\n- **Pollination**: flowering plants × bees + birds + bats + flies. ~90% of flowering plants animal-pollinated; 1/3 of human food. Pollinator decline = ecosystem crisis (Potts 2010; Goulson 2015).\n- **Seed dispersal**: plants × frugivores; >50% of tropical trees animal-dispersed.\n- **Mycorrhizae**: fungi × plant roots; ~80-90% of plant species; **arbuscular (AM)** + **ectomycorrhizal (ECM)**. Plants give carbon; fungi give N + P + water. Wood-wide-web (Simard 1997, 2018 *Finding the Mother Tree*).\n- **Rhizobia + legumes**: N-fixing bacteria in root nodules; basis of agroecology.\n- **Coral-zooxanthellae** (see P42); lichens (algae + fungi); termites + flagellates; ruminants + gut microbes.\n- **Cleaner fish** (see P42); ant-acacia (Janzen 1966); yucca-yucca moth (obligate).\n\n**Functional response of mutualism**: typically saturating (each partner has limits). Modeling needs care — pure L-V mutualism produces unrealistic infinite growth; saturation + costs required (May 1976; Holland + DeAngelis 2010).\n\n**Mutualistic networks** (Bascompte + Jordano 2007 *Plant-Pollinator Interactions*): bipartite networks of plants × pollinators or plants × seed-dispersers show **nested** structure (specialists interact with subsets of generalists' partners) + **modular** structure (compartments). High nestedness predicts stability + biodiversity maintenance (Thébault + Fontaine 2010). Mutualistic networks are robust to random loss but vulnerable to targeted loss of generalists.\n\n**Facilitation**: positive effects without obligate mutualism. **Bertness + Callaway 1994**: facilitation dominant in stressful environments (the 'stress gradient hypothesis'); cushion plants in alpine, nurse plants in deserts, oysters in salt marsh, kelp creating habitat.\n\n**Holobiont concept** (Margulis 1991; Bordenstein 2015): organism + microbiome as a single evolutionary + ecological unit. Coral + zooxanthellae + bacteria; human + gut microbiome; plant + endophytes.\n\n**Co-evolution + the geographic mosaic** (Thompson 2005): species-pair coevolution varies across space; reciprocal selection + coevolutionary 'hotspots' + 'coldspots'. Pollinator-flower morphology matching; predator-prey arms races.\n\n**Network ecology + frontier**: ecological networks (food webs + mutualistic + parasite + competition) increasingly analyzed jointly; multilayer + temporal networks; AI + computer vision for camera-trap + acoustic interaction inference (see frontier lesson)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_comm_1",
+        "kind": "guided_derivation",
+        "question": "Apply Tilman's R* rule to a two-species nitrogen competition",
+        "goal": "Predict outcome of competition between two diatoms differing only in N-uptake half-saturation constant K_s.",
+        "steps": [
+          {
+            "prompt": "Each diatom has Monod growth μ_i = μ_max,i · N/(K_s,i + N) and loss rate m_i. Equilibrium R* for species i?",
+            "motivation": "Set growth = loss.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "R*_i = K_s,i · m_i / (μ_max,i – m_i)"
+              ]
+            },
+            "hints": [
+              "Solve μ_max·R/(K_s+R) = m."
+            ],
+            "reveal": "Setting μ_max·R/(K_s+R) = m → R = K_s·m/(μ_max – m). This is the equilibrium resource concentration that species i can persist at when alone."
+          },
+          {
+            "prompt": "Species A: μ_max=1.0/d, K_s=0.2 µM N, m=0.1/d. R*_A?",
+            "motivation": "Compute R*.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "R*_A ≈ 0.022 µM",
+                "0.022"
+              ]
+            },
+            "hints": [
+              "0.2 × 0.1 / (1.0 – 0.1)"
+            ],
+            "reveal": "R*_A = 0.2 × 0.1 / 0.9 ≈ 0.0222 µM. Species A draws N down to ~22 nM."
+          },
+          {
+            "prompt": "Species B: μ_max=1.0/d, K_s=0.4 µM N, m=0.1/d. R*_B?",
+            "motivation": "Compare R*.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "R*_B ≈ 0.044 µM",
+                "0.044"
+              ]
+            },
+            "hints": [
+              "0.4 × 0.1 / 0.9."
+            ],
+            "reveal": "R*_B = 0.4 × 0.1 / 0.9 ≈ 0.0444 µM. Species B's higher K_s gives a higher R*."
+          },
+          {
+            "prompt": "Who wins competition, and can they coexist?",
+            "motivation": "Apply R* rule.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "A wins; no coexistence on single resource"
+              ]
+            },
+            "hints": [
+              "Lower R* wins (Tilman 1982)."
+            ],
+            "reveal": "A wins (lower R* = 0.022 < 0.044) — A draws N below B's persistence threshold. No coexistence on a single limiting resource (Gause 1934 + Tilman 1982). Coexistence requires ≥2 limiting resources with each species best at suppressing a different one, plus consumption-vector geometry (Tilman ZNGI analysis). MacArthur consumer-resource framework generalizes."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_comm_1",
+        "kind": "multiple_choice",
+        "question": "Why is the MacArthur consumer-resource framework (1970) preferred over phenomenological Lotka-Volterra competition?",
+        "options": [
+          "Random.",
+          "L-V competition uses phenomenological coefficients α_ij that are observable but not mechanistic — they bundle multiple processes (resource overlap, interference, apparent competition) into one number that may not generalize across contexts. MacArthur (1970) instead models resources explicitly, with consumer uptake rates + resource dynamics. From the mechanistic model you can: derive α as emergent from resource overlap; predict outcome from independent measurements; extend to multiple resources (ZNGI analysis, Tilman 1982 R* rule); incorporate stoichiometry + storage (Grover, Klausmeier-Litchman); integrate with stoichiometric ecology + ecosystem models. Modern community ecology (Chesson 2000; Letten 2017) is built on this mechanistic foundation. L-V remains useful as a fitted summary but lacks predictive transferability.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "L-V uses phenomenological α; MacArthur (1970) makes the resource layer explicit, giving mechanism, transferability, and natural extension to multi-resource + stoichiometric + Tilman R* + ZNGI analyses. Foundation of modern community ecology (Chesson 2000)."
+      },
+      "hints": [
+        "Phenomenological vs mechanistic.",
+        "Multi-resource extension."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "L-V's α_ij are observed phenomenological coefficients; MacArthur (1970) makes resources explicit + lets α emerge from resource overlap. The consumer-resource framework generalizes to multi-resource (Tilman R* + ZNGI), stoichiometric, and modern coexistence theory (Chesson 2000)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_comm_1",
+        "kind": "scenario",
+        "question": "Diagnosing the paradox of enrichment",
+        "prompt": "A reservoir manager adds nutrients to boost zooplankton-fish yield, and observes that the lake develops large-amplitude phytoplankton-zooplankton oscillations and a fish-kill event. Using Rosenzweig-MacArthur dynamics, what's happening, and what would you recommend to restore stability?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_comm_1",
+        "kind": "math_expression",
+        "question": "A Holling type II predator has attack rate a = 0.5 /day and handling time h = 0.2 day. At prey density N = 30 prey/m², what is the per-predator consumption rate (prey/day) to 2 decimals?",
+        "acceptedAnswers": [
+          "3.75",
+          "3.75 prey/day"
+        ],
+        "hint": "f = aN / (1 + ahN) = 0.5·30 / (1 + 0.5·0.2·30) = 15 / (1+3) = 15/4 = 3.75 prey/day. Note saturation: maximum f = 1/h = 5; at N=30 we're 75% saturated."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_comm_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why MacArthur + Tilman + Lotka-Volterra together form the backbone of community ecology.",
+        "rubric": "Mentions: Lotka (1925) + Volterra (1926) gave phenomenological competition + predator-prey equations with stable coexistence/exclusion outcomes + neutral cycles. Gause (1934) experimentally validated competitive exclusion. MacArthur (1970) consumer-resource theory provides mechanistic foundation — α_ij emerges from resource overlap. Tilman (1982) R* rule + ZNGI geometry explains coexistence via multi-resource trade-offs. Holling (1959) functional responses + Rosenzweig-MacArthur (1963) introduce saturation + paradox of enrichment. Modern coexistence theory (Chesson 2000) unifies stabilizing + equalizing mechanisms. Mutualism (Bronstein) + facilitation (Bertness + Callaway 1994 stress gradient) + network ecology (Bascompte + Jordano 2007) complete the picture. Together these give predictive, mechanistic, transferable community theory + foundation for conservation, fisheries, biocontrol, pollinator policy."
+      }
+    }
+  ]
+}

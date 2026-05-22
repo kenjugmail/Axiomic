@@ -1,0 +1,162 @@
+{
+  "slug": "geodesy-coordinate-systems-and-projections",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish geoid, ellipsoid, datum, + coordinate reference system.",
+      "Classify projections by surface + property; reason about distortion.",
+      "Choose a projection for a given mapping purpose."
+    ],
+    "prereqs": [
+      "cartography-foundations-and-history"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Geodesy: the shape of the Earth + reference frames",
+      "body": "Maps lie. Specifically, every map of more than a few kilometers necessarily distorts the world, because Earth is not flat — + Earth is not even a perfect sphere. **Geodesy** is the science of measuring + representing Earth's shape, orientation, + gravity field. Modern cartography rests on geodesy.\n\n**Earth's shape — three approximations**:\n- **Sphere** — adequate for low-precision cartography; ~0.3% flattening error.\n- **Ellipsoid (oblate spheroid)** — rotation flattens Earth; equatorial radius ~6378.137 km, polar radius ~6356.752 km. Flattening $f \\approx 1/298.257$. Used for all serious geodesy.\n- **Geoid** — the equipotential surface of Earth's gravity field that coincides with mean sea level (extended under continents). Deviates ±100 m from the ellipsoid due to mass anomalies (mountains, mantle density variations). **Sea level is geoidal, not ellipsoidal** — a critical distinction for elevation (orthometric vs. ellipsoidal heights). GRACE + GOCE satellite missions mapped the geoid to centimeter precision.\n\n**Reference ellipsoids + datums**:\n- A **datum** = ellipsoid + its orientation + position relative to Earth. Different datums shift coordinates by tens of meters.\n- **WGS84 (World Geodetic System 1984)** — global ellipsoid + datum used by GPS. Realized in **WGS84-G2139** (2021 epoch). Equatorial radius $a = 6378137.0$ m exactly; $1/f = 298.257223563$.\n- **NAD27 → NAD83 → NATRF2022** — North American datums; the **NAD27 → NAD83 shift** of ~200 m flummoxed early GIS users. A house's coordinates change as the datum changes; the house doesn't move.\n- **ITRF (International Terrestrial Reference Frame)** — the geodetic gold standard. Updated periodically (ITRF2014, ITRF2020) to track plate motion (cm/yr) + post-glacial rebound. WGS84 + ITRF agree at the cm level.\n- **EPSG codes** — the universal numeric registry for coordinate reference systems, maintained by the **European Petroleum Survey Group** (now IOGP). Key codes: **4326 (WGS84 geographic, lat/lon)**, **3857 (Web Mercator)**, **4269 (NAD83)**, **2154 (Lambert-93 France)**, **27700 (British National Grid OSGB36)**, **32633 (UTM zone 33N WGS84)**. Every GIS tool uses EPSG codes; lookup at spatialreference.org or epsg.io.\n\n**GPS + the realization of WGS84**:\n- GPS positions are reported in WGS84 by default. The **WGS84-G2139** realization (effective 2021) re-aligned WGS84 to ITRF2014 epoch 2016.0 at the cm level. Plate motion means coordinates drift; modern surveying tracks the epoch as well as the datum.\n- Differential GPS + RTK (real-time kinematic) achieve cm-level positions; PPP (precise point positioning) does so without a base station.\n- The European **Galileo** + Russian **GLONASS** + Chinese **BeiDou** + Japanese **QZSS** systems all integrate into multi-GNSS receivers.\n\n**Datum shifts in practice**:\n- A 1990s shapefile in NAD27 + a 2024 GPS track in WGS84 will misalign by up to 200 m. **PROJ** + **GDAL** handle datum transformations via NTv2 grid files; never compose datum changes by hand.",
+      "viz": "map-projections",
+      "vizProps": {
+        "projection": "mercator"
+      }
+    },
+    {
+      "kind": "text",
+      "title": "Projection families: cylindrical, conic, azimuthal, pseudo-cylindrical",
+      "body": "A **map projection** is a continuous function from the ellipsoid (or sphere) to a plane. By the **Gauss Theorema Egregium** — the curvature of the ellipsoid is intrinsic + nonzero, so no flat map can preserve all of distance, angle, area simultaneously. Every projection is a tradeoff.\n\n**Properties (you can preserve any one)**:\n- **Conformal** — preserves local angles + shapes (but distorts area). Examples: Mercator, Lambert Conformal Conic, Stereographic.\n- **Equal-area (equivalent)** — preserves area (but distorts shape + angle). Examples: Albers, Mollweide, Sinusoidal, Equal Earth.\n- **Equidistant** — preserves distance along certain lines (typically meridians + a few parallels). Examples: Plate Carrée, Azimuthal Equidistant.\n- **Compromise** — preserves nothing exactly, balances distortion. Examples: Robinson, Winkel-Tripel, Natural Earth.\n\n**Cylindrical projections** — project from sphere onto a cylinder tangent or secant at the equator (or any great circle, → oblique Mercator):\n- **Mercator (1569)** — conformal cylindrical. Loxodromes are straight lines. Catastrophically distorts polar areas (Greenland looks larger than Africa; in reality Africa is 14× larger). Standard for marine navigation + (in its EPSG:3857 Web Mercator variant) all major web map providers.\n- **Web Mercator (EPSG:3857)** — Mercator on a spherical Earth (not ellipsoidal) for computational simplicity. Used by Google Maps, OpenStreetMap, Bing, Mapbox. Distortion at poles becomes infinite — Web Mercator typically clips at ±85.05° latitude.\n- **Transverse Mercator** — cylinder tangent to a meridian. **UTM (Universal Transverse Mercator)** divides the world into 60 6°-wide zones; each zone has a separate transverse Mercator projection optimized for that strip. Standard for topographic mapping + GPS waypoints.\n- **Plate Carrée (EPSG:4326)** — equirectangular, lat/lon as Cartesian coordinates. Not equal-area; not conformal. Often used as a baseline for raster data + global imagery.\n\n**Conic projections** — project onto a cone tangent or secant to a parallel. Good for mid-latitude regions extended east-west.\n- **Lambert Conformal Conic** — conformal; the FAA's standard for U.S. sectional aeronautical charts; EPSG:2154 (Lambert-93 France).\n- **Albers Equal-Area Conic** — equal-area; standard for U.S. thematic maps (EPSG:5070 NAD83 / Conus Albers).\n\n**Azimuthal (planar) projections** — project onto a plane tangent at a point. Good for polar regions or hemispheric views centered on a place.\n- **Stereographic** — conformal; used for polar charts.\n- **Orthographic** — Earth as seen from infinity; not invertible (only half-sphere visible). Used in textbooks + globes.\n- **Azimuthal Equidistant** — distances from the center are true; used in the UN logo + radio-distance charts.\n\n**Pseudo-cylindrical + compromise projections** — for global thematic + reference maps:\n- **Mollweide** — equal-area; ellipse-shaped; standard for global thematic maps.\n- **Sinusoidal** — equal-area, simple math.\n- **Robinson** — compromise; popular for National Geographic style world maps (1988-1998).\n- **Winkel-Tripel** — compromise; National Geographic's choice since 1998. Low overall distortion.\n- **Goode homolosine (interrupted)** — equal-area; cuts ocean to keep continent shapes faithful.\n- **Equal Earth (Šavrič, Patterson + Jenny 2018)** — modern equal-area replacement for Robinson; aesthetic + faithful. **Bojan Šavrič** + **Bernhard Jenny** + **Tom Patterson** created it explicitly for thematic mapping in the era of climate + global health communication. Now in major GIS + web map tools.\n\n**Embedded viz**: the **map-projections** visualization lets you switch among Mercator, Equal Earth, Mollweide, Robinson, Winkel-Tripel, + azimuthal projections + see how continents + Tissot indicatrices deform. Try it before continuing."
+    },
+    {
+      "kind": "text",
+      "title": "Distortion analysis, Tissot indicatrix, + choosing a projection",
+      "body": "**The Tissot indicatrix (1859, Nicolas Auguste Tissot)**:\n- Place an infinitesimal circle at each point on Earth; project it to the map. The result is a **Tissot ellipse** whose deformation reveals local distortion.\n- A perfectly conformal projection has circular Tissot ellipses everywhere (size varies, shape doesn't).\n- A perfectly equal-area projection has Tissot ellipses of constant area (shape varies, size doesn't).\n- Plotted Tissot ellipses are the canonical visual diagnostic — every textbook + the map-projections viz in this lesson shows them.\n- The **maximum + minimum scale factors** $a$ + $b$ of the Tissot ellipse along orthogonal directions give the angular distortion $\\omega = 2\\arcsin((a-b)/(a+b))$ + areal distortion $ab$.\n\n**Snyder + the USGS Bulletin 1395 (1987)**:\n- **John P Snyder (1926-1997)** — a USGS cartographer who became the world's leading authority on map projections. His *Map Projections: A Working Manual* (USGS Professional Paper 1395, 1987) is the canonical projection reference + still in print. Free online.\n- Snyder also designed the **Space Oblique Mercator** for Landsat — a projection that follows the satellite ground track + is conformal along the path.\n- His *Flattening the Earth* (1993) is the standard history of map projections.\n\n**Which projection for which purpose?**\n- **Navigation** — Mercator (rhumb lines straight) or great-circle gnomonic. Aviation uses Lambert Conformal Conic.\n- **National topographic mapping** — UTM zones (transverse Mercator) or Lambert Conformal Conic for mid-latitude countries; specific national grids (OSGB36, NAD83 State Plane, Lambert-93).\n- **Continental + global thematic mapping** — equal-area (Equal Earth, Mollweide, Albers regional). **Never Mercator for global thematic maps** — it grossly inflates high latitudes + understates equatorial regions; classic critique by **Arno Peters (1973)** who promoted the Gall-Peters equal-area alternative.\n- **Web maps** — Web Mercator (EPSG:3857) for slippy-map tiles; for analysis, reproject to equal-area or local UTM.\n- **Climate + ecology global data** — equal-area (Mollweide, Equal Earth) or NetCDF in lat/lon + reproject for analysis. NSIDC EASE-Grid for polar.\n- **Polar regions** — polar stereographic (NSIDC) or Lambert azimuthal equal-area.\n- **Single city or region** — local UTM zone or local state-plane / national grid.\n\n**The Web Mercator critique**:\n- Web Mercator is conformal but not equal-area, so global comparisons (e.g., country sizes, deforestation areas, COVID maps) are misleading by default. The cartographic community has long urged web map providers to offer equal-area options; Google Earth + many specialty tools do.\n- The **map-projections** visualization in this lesson is designed so users see this immediately: Greenland (~2.2 M km²) appears larger than Africa (30 M km²) in Mercator. In Equal Earth, the truth is restored.\n\n**Modern tooling**:\n- **PROJ library** (open source, Frank Warmerdam + others) handles ~10000 coordinate transformations; underlying GDAL + QGIS + PostGIS + cartopy + folium.\n- **EPSG.io + spatialreference.org** — lookup any CRS by code.\n- **d3-geo (Mike Bostock)** — JavaScript geo projections including 150+ named projections — the de facto standard for web cartography.\n- **cartopy (Met Office, Python)** — matplotlib + projections, the scientific Python standard.\n\nProjections are a hidden cost of every map. Choose deliberately."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_geo_1",
+        "kind": "guided_derivation",
+        "question": "Compute Mercator distortion + understand its consequence",
+        "goal": "On the Mercator projection, the linear scale factor at latitude φ is $k(\\varphi) = \\sec(\\varphi) = 1/\\cos(\\varphi)$. Greenland's center is ~72° N; Africa's center is ~0°. Compute relative areal distortion + interpret.",
+        "steps": [
+          {
+            "prompt": "If linear scale is $k = \\sec\\varphi$, what is the areal scale factor on the conformal Mercator?",
+            "motivation": "From linear to area.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "k² = sec²(φ)",
+                "sec^2 phi"
+              ]
+            },
+            "hints": [
+              "Conformal → equal scale in all directions; area scales as $k^2$."
+            ],
+            "reveal": "Mercator is conformal, so the scale factor is **the same in every direction at a point**. Linear scale = $\\sec\\varphi$; **areal scale = $\\sec^2\\varphi$**."
+          },
+          {
+            "prompt": "Compute areal scale factor at 0° (Africa center) + at 72° N (Greenland center).",
+            "motivation": "Substitute.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "1 at 0°; sec²(72°) ≈ 10.5 at 72°",
+                "1 vs ~10.5"
+              ]
+            },
+            "hints": [
+              "$\\cos 72° \\approx 0.309$."
+            ],
+            "reveal": "At 0°: $\\sec^2(0) = 1$ (no areal distortion). At 72°: $\\cos(72°) \\approx 0.309$, $\\sec(72°) \\approx 3.236$, $\\sec^2(72°) \\approx 10.47$. Greenland is **inflated by ~10×** on Mercator relative to its actual area; Africa is roughly correct."
+          },
+          {
+            "prompt": "Africa's true area is ~30.4 M km²; Greenland's ~2.17 M km². What is the ratio (true) + what does Mercator show?",
+            "motivation": "Quantify the visual lie.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Africa is ~14× Greenland in reality; Mercator makes Greenland look ~1.5× Africa or comparable",
+                "true ratio 14; Mercator inverts it"
+              ]
+            },
+            "hints": [
+              "30.4/2.17 ≈ 14."
+            ],
+            "reveal": "True ratio = $30.4 / 2.17 \\approx 14$ — Africa is **fourteen times** larger than Greenland. On Mercator: Greenland's apparent area is $\\sim 2.17 \\times 10.47 \\approx 22.7$ M km², comparable to Africa's. The map **inverts the size relationship visually** — generations of textbook readers internalized Greenland as continent-sized + Africa as small. This is the canonical case for not using Mercator for global thematic maps."
+          },
+          {
+            "prompt": "Which projection should replace Web Mercator for global comparisons + why?",
+            "motivation": "Choose an alternative.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Equal Earth (Šavrič 2018) or Mollweide — equal-area for global thematic maps",
+                "equal-area projection"
+              ]
+            },
+            "hints": [
+              "Equal-area preserves areal relationships."
+            ],
+            "reveal": "**Equal Earth (Šavrič, Patterson + Jenny 2018)** or **Mollweide** or **Robinson** for compromise. Equal Earth was designed explicitly to replace Web Mercator + Robinson for modern global thematic cartography. NASA, the Washington Post, BBC + others have adopted it for climate + COVID + population maps. The Goode interrupted homolosine is another faithful equal-area option when continent-shape fidelity is paramount."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_geo_1",
+        "kind": "multiple_choice",
+        "question": "What does the **Tissot indicatrix** reveal about a map projection + what does **conformal vs. equal-area** mean operationally?",
+        "options": [
+          "Random.",
+          "The **Tissot indicatrix (Tissot 1859)** plots how a small circle on the ellipsoid distorts into an ellipse on the map at each location. Maximum + minimum semi-axes $a$, $b$ encode angular distortion $\\omega = 2\\arcsin((a-b)/(a+b))$ + areal distortion $ab$. **Conformal projection**: $a = b$ everywhere (circles stay circles); local angles preserved; size varies. Examples: Mercator, Lambert Conformal Conic, Stereographic. **Equal-area (equivalent) projection**: $ab = 1$ everywhere (ellipse area constant); area preserved; shape distorted. Examples: Albers, Mollweide, Sinusoidal, Equal Earth. By **Gauss's Theorema Egregium** the sphere has nonzero intrinsic curvature → no flat projection can be simultaneously conformal AND equal-area; choose one. Compromise projections (Robinson, Winkel-Tripel, Natural Earth) preserve neither exactly + balance distortion. Operationally: choose **conformal for navigation + shape-critical tasks** (charts, local topography); choose **equal-area for thematic + global comparisons** (population, area-based statistics). **John P Snyder's USGS Professional Paper 1395 (1987)** is the canonical reference + remains the working manual.",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Tissot indicatrix plots how circles deform to ellipses on a projection. Conformal: circles stay circles (shape preserved, area varies). Equal-area: ellipse area constant (area preserved, shape distorts). Theorema Egregium forbids preserving both. Choose conformal for shape-critical, equal-area for thematic. Snyder USGS 1395 is canonical."
+      },
+      "hints": [
+        "What property is preserved in each case?",
+        "What does Gauss say?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Tissot indicatrix reveals local distortion via deformation of small circles. Conformal: circles stay circles, shape preserved, area varies (Mercator). Equal-area: ellipse area constant, area preserved, shape varies (Mollweide, Equal Earth). Gauss Theorema Egregium forbids both. Snyder USGS 1395 (1987) is the canonical reference."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_geo_1",
+        "kind": "scenario",
+        "question": "Choose projections for a multi-purpose Pacific Northwest GIS",
+        "prompt": "You're the GIS architect for an environmental NGO managing watershed conservation across the U.S. Pacific Northwest (Oregon + Washington + Idaho + British Columbia). Your data inventory includes: (a) stream networks (vector), (b) Landsat surface reflectance (raster, EPSG:32610 UTM 10N), (c) USGS 3DEP elevation (1-m lidar), (d) climate normals (lat/lon NetCDF, 1-km), (e) population (vector census blocks), (f) salmon-spawning aerial surveys (KML points), (g) web map tiles (Web Mercator EPSG:3857). Tasks: (1) compute watershed contributing areas (need equal-area for areal accuracy); (2) display interactive web maps to donors; (3) produce print thematic atlas pages; (4) cross-border analysis with Canadian data (NAD83(CSRS)); (5) regulatory submissions (state-plane required). Design a **projection strategy**: which CRSs to store data in, which to compute in, which to display in. Address: (1) why Web Mercator is wrong for area calculations; (2) why UTM zone 10 N + 11 N split the area + how you handle the boundary; (3) the role of **Albers Equal-Area Conic (EPSG:5070 NAD83 Conus Albers)** as a regional analysis projection; (4) the **WGS84 → NAD83** transformation (NTv2 grid via PROJ); (5) how the **Šavrič Equal Earth** could be used for continental-scale donor reports; (6) tooling — PROJ + GDAL + PostGIS + QGIS + Esri. Deliver a memo + a CRS workflow diagram."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_geo_1",
+        "kind": "math_expression",
+        "question": "On the Mercator projection, the linear scale factor at latitude φ is $k = \\sec\\varphi$. Compute the areal scale factor at 60° N (to 1 decimal place).",
+        "acceptedAnswers": [
+          "4.0",
+          "4",
+          "4.00",
+          "sec²(60°) = 4"
+        ],
+        "hint": "$\\cos 60° = 0.5$, $\\sec 60° = 2$, $\\sec^2 60° = 4$. Areas at 60° N (London, Stockholm, Anchorage) are inflated 4× on Mercator."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_geo_1",
+        "kind": "explain_back",
+        "prompt": "In ≤140 words, explain (1) why map projections are necessary + why they always distort; (2) the four projection families + their use cases; (3) how to pick a projection.",
+        "rubric": "Mentions: Earth is a (nearly) ellipsoidal body; flat maps require projection. **Gauss Theorema Egregium**: the sphere has nonzero intrinsic curvature; no flat projection preserves all of shape, area, distance — choose one. **Datum + ellipsoid + CRS**: WGS84 + EPSG codes. **Four families**: (1) cylindrical (Mercator, Web Mercator EPSG:3857, UTM, Plate Carrée); (2) conic (Lambert Conformal Conic, Albers Equal-Area); (3) azimuthal (stereographic, orthographic, azimuthal equidistant); (4) pseudo-cylindrical + compromise (Mollweide, Robinson, Winkel-Tripel, Equal Earth (Šavrič 2018), Goode homolosine). **Tissot indicatrix** reveals distortion at every point; conformal = shape preserved (Mercator); equal-area = area preserved (Mollweide, Equal Earth). **Snyder's USGS Bulletin 1395 (1987)** is the canonical reference. **How to choose**: navigation → Mercator; topography → UTM or LCC; thematic global → Equal Earth or Mollweide; polar → polar stereographic; never use Web Mercator for area-based comparisons (Greenland vs. Africa is the canonical illustration). Concludes: every projection is a tradeoff; pick consciously."
+      }
+    }
+  ]
+}

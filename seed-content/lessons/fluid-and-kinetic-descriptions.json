@@ -1,0 +1,155 @@
+{
+  "slug": "fluid-and-kinetic-descriptions",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Compare Vlasov + fluid.",
+      "Derive MHD.",
+      "Apply Braginskii."
+    ],
+    "prereqs": [
+      "single-particle-motion"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Kinetic description: Vlasov + Boltzmann",
+      "body": "**Phase-space distribution function** f_s(x, v, t) for species s: number density per unit 6D phase space. Macroscopic moments:\n- **Number density**: n_s = ∫ f_s d³v.\n- **Bulk velocity**: u_s = (1/n_s) ∫ v f_s d³v.\n- **Pressure tensor**: P_s = m_s ∫ (v - u_s)(v - u_s) f_s d³v.\n- **Heat flux**: q_s = (m_s/2) ∫ (v - u_s)² (v - u_s) f_s d³v.\n\n**Klimontovich equation** (exact, microscopic — sum of δ-functions): contains all discrete-particle correlations. Averaging over particle ensembles + truncating the **BBGKY hierarchy** (Bogoliubov-Born-Green-Kirkwood-Yvon) gives kinetic equations.\n\n**Vlasov equation** (Anatoly Vlasov 1938) — collisionless mean-field kinetic equation:\n$$\\frac{\\partial f_s}{\\partial t} + \\mathbf{v}\\cdot\\nabla f_s + \\frac{q_s}{m_s}(\\mathbf{E} + \\mathbf{v}\\times\\mathbf{B})\\cdot\\frac{\\partial f_s}{\\partial \\mathbf{v}} = 0$$\n\nE + B include both **external + self-consistent fields** from Maxwell coupled to charges + currents. Valid when collisions are negligible (Λ ≫ 1 + short timescales). **Liouville theorem**: f is constant along trajectories — phase-space density is incompressible under Hamiltonian flow.\n\n**Boltzmann equation** adds collision operator C[f]:\n$$\\frac{Df_s}{Dt} = C[f_s]$$\n\nFor weakly-coupled plasma: **Landau collision operator** (Lev Landau 1936) for Coulomb collisions — dominated by **small-angle deflections** (large impact parameters); reduces to **Fokker-Planck form** with drag + diffusion in velocity space. **Coulomb logarithm**:\n$$\\ln\\Lambda = \\ln\\frac{\\lambda_D}{b_{min}} \\sim 10\\text{–}20$$\n\nb_min = max(quantum λ_dB, classical b_90°). The Coulomb log appears in essentially **every transport coefficient** (resistivity, viscosity, conductivity, slowing-down time, equilibration). ITER fusion plasma: ln Λ ~ 17. Solar wind: ln Λ ~ 25.\n\n**Gyrokinetics** (Frieman + Chen 1982 + many): reduce 6D Vlasov to 5D by averaging over fast gyromotion when r_L ≪ L⊥. Foundation of modern turbulence simulation: **GENE, GYRO, GS2, GKW, GKEYLL, XGC**. Massive HPC codes; recovered most of edge + core tokamak transport via ITG, ETG, TEM micro-instabilities."
+    },
+    {
+      "kind": "text",
+      "title": "Fluid description: two-fluid + ideal MHD",
+      "body": "**Fluid description**: take velocity moments of Vlasov/Boltzmann + close the hierarchy.\n\n**Two-fluid equations** (separate electron + ion fluids):\n- **Continuity**: ∂n_s/∂t + ∇·(n_s u_s) = 0.\n- **Momentum**: m_s n_s (∂u_s/∂t + u_s·∇u_s) = q_s n_s (E + u_s × B) - ∇·P_s + R_s.\n- **Energy** (pressure or temperature equation): (3/2)(∂p_s/∂t + u_s·∇p_s) + (5/2) p_s ∇·u_s = ∇·q_s + Q_s.\n- **Maxwell** equations close the system: ∇×B = μ₀j; ∇×E = -∂B/∂t; etc.\n\n**One-fluid Magnetohydrodynamics (MHD)** — single conducting fluid with mass density ρ, velocity v, pressure p, current j:\n- **Continuity**: ∂ρ/∂t + ∇·(ρv) = 0.\n- **Momentum**: ρ(∂v/∂t + v·∇v) = -∇p + j × B + ρg.\n- **Ohm's law (resistive)**: E + v × B = ηj + (1/ne)j × B - ∇p_e/ne + (m_e/ne²)∂j/∂t (full generalized Ohm's law has Hall + electron pressure + inertia terms).\n- **Ideal MHD** sets η = 0 + drops Hall + inertia: **E + v × B = 0**.\n- **Induction equation**: ∂B/∂t = ∇ × (v × B) + (η/μ₀) ∇²B.\n\n**Frozen-in flux theorem** (Hannes Alfvén 1942; Nobel Physics 1970 'For fundamental work + discoveries in magnetohydrodynamics with fruitful applications in different parts of plasma physics'): in ideal MHD, magnetic flux through a comoving surface is conserved. Field lines move with the fluid. Foundation of solar/astrophysical MHD — explains why solar magnetic fields are carried with stellar convection + the heliospheric magnetic field is dragged outward by solar wind (Parker spiral).\n\n**Magnetic pressure + tension**:\n$$\\mathbf{j} \\times \\mathbf{B} = -\\nabla\\frac{B^2}{2\\mu_0} + \\frac{(\\mathbf{B}\\cdot\\nabla)\\mathbf{B}}{\\mu_0}$$\n\nFirst term: isotropic **magnetic pressure** B²/2μ₀. Second: **tension** along field lines (like stretched rubber bands). Drives Alfvén waves + the pinch effect: a current-carrying plasma column pinches under its own j × B.\n\n**Plasma β = p_thermal / p_magnetic**: low-β (β ≪ 1) — field dominates, force-free + tokamak edge; high-β (β ~ 1) — pressure dominates, accretion + ICF; β > 1 not magnetically confinable in simple geometry. Tokamak core β ~ few%; spherical tokamaks (MAST, ST40) reach β ~ 40%."
+    },
+    {
+      "kind": "text",
+      "title": "Transport: Braginskii + classical vs neoclassical vs turbulent",
+      "body": "**Braginskii equations** (Stanislav Braginskii **1965** classic review) — closure of two-fluid equations with collisional transport coefficients valid when ω_c τ_c ≫ 1 (magnetized) + λ_mfp/L ≪ 1 (collisional). Treats anisotropy: transport coefficients differ along vs across B by enormous factors.\n\n**Spitzer resistivity** (Lyman Spitzer 1953):\n$$\\eta_\\parallel = \\frac{m_e \\nu_{ei}}{n_e e^2} \\approx 5.2\\times10^{-5} \\frac{Z\\ln\\Lambda}{T_e^{3/2}[\\text{eV}]} \\text{ Ω·m}$$\n\nT^{-3/2} scaling — hot plasmas are extremely conductive! For T_e = 10 keV: η ~ 10⁻⁸ Ω·m (10× more conductive than copper). Limits how fast you can ramp tokamak current + drives the reconnection rate.\n\n**Thermal conductivity**:\n- Parallel: χ_∥ ∝ T_e^{5/2} (Spitzer-Härm); enormous — equilibrates temperatures along field lines almost instantaneously.\n- Perpendicular: χ_⊥ classical ~ ρ_L² ν_ei (random-walk Larmor steps); tiny — basis of magnetic confinement.\n\n**Classical vs neoclassical vs turbulent transport**:\n- **Classical**: based on collisions + Larmor-radius steps. Predicts confinement orders of magnitude better than observed.\n- **Neoclassical** (Galeev + Sagdeev + Hinton-Hazeltine, late 1960s-70s): includes **banana orbits** of trapped particles in toroidal geometry → step size = banana width ~ √ε × ρ_pol ≫ ρ_L → larger D_⊥. Three regimes: collisionless (banana), plateau, Pfirsch-Schlüter (collisional). **Bootstrap current** is a neoclassical phenomenon — pressure-gradient-driven parallel current crucial for steady-state tokamaks.\n- **Turbulent / anomalous transport** (dominates in practice): driven by drift-wave instabilities — **ITG (ion temperature gradient), ETG (electron), TEM (trapped electron), MHD-driven**. χ_anom ~ ρ_s² c_s / L_T (gyro-Bohm scaling). Reviews: **Horton 1999 RMP, Garbet 2010 RMP**. Transport is 10-100× neoclassical in tokamaks.\n\n**L-H transition** (ASDEX, **Wagner 1982**): at threshold heating power, edge transport collapses → **edge transport barrier (ETB)** → pedestal forms → confinement doubles (H-mode). Mechanism: sheared E×B flow suppresses turbulence (Biglari-Diamond-Terry shear suppression). ITER + SPARC operate in H-mode.\n\n**ELMs (Edge Localized Modes)**: peeling-ballooning instability of pedestal → bursty heat pulses onto divertor — major ITER risk; mitigated by RMPs + pellet pacing + small-ELM regimes (QH-mode, EDA-H, I-mode, negative triangularity).\n\n**Stellarator transport**: 3D geometry creates non-conserved μ + large ripple losses; **W7-X optimization** (Nührenberg + Zille) achieves quasi-isodynamic configurations with near-tokamak neoclassical confinement + turbulence suppression."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_mhd_1",
+        "kind": "guided_derivation",
+        "question": "Derive ideal MHD induction equation + frozen-flux",
+        "goal": "Starting from Ohm's law + Faraday's law, derive ∂B/∂t = ∇×(v×B) + show flux is frozen-in.",
+        "steps": [
+          {
+            "prompt": "Write ideal MHD Ohm's law.",
+            "motivation": "Starting point.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "E + v × B = 0",
+                "E = -v × B"
+              ]
+            },
+            "hints": [
+              "Set resistivity, Hall, inertia, electron-pressure terms to zero."
+            ],
+            "reveal": "Ideal Ohm's law: **E + v × B = 0**. Equivalent to infinite conductivity (η → 0) — no E in fluid rest frame. Valid when magnetic Reynolds number Rm = LU/η ≫ 1, which holds in essentially all astrophysics + tokamak core."
+          },
+          {
+            "prompt": "Combine with Faraday ∇×E = -∂B/∂t.",
+            "motivation": "Eliminate E.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "∂B/∂t = ∇×(v×B)",
+                "dB/dt = curl(v cross B)"
+              ]
+            },
+            "hints": [
+              "E = -v×B → ∇×E = -∇×(v×B)."
+            ],
+            "reveal": "∇×E = ∇×(-v×B) = -∇×(v×B). Combining with Faraday: -∂B/∂t = -∇×(v×B), i.e. **∂B/∂t = ∇×(v×B)** — the **ideal induction equation**. With finite resistivity add (η/μ₀)∇²B (diffusion)."
+          },
+          {
+            "prompt": "Compute d/dt of flux Φ = ∫ B·dA through a comoving surface.",
+            "motivation": "Show dΦ/dt = 0.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "dΦ/dt = ∫(∂B/∂t)·dA + ∮(B × v)·dℓ = 0 by Stokes"
+              ]
+            },
+            "hints": [
+              "Convective derivative of surface integral has two terms: ∂B/∂t inside + motion of boundary."
+            ],
+            "reveal": "dΦ/dt = ∫(∂B/∂t)·dA + ∮ B·(v × dℓ) = ∫(∂B/∂t)·dA - ∮(v×B)·dℓ = ∫(∂B/∂t)·dA - ∫∇×(v×B)·dA (Stokes) = ∫[∂B/∂t - ∇×(v×B)]·dA = **0** by induction equation. **Flux is frozen into the fluid**."
+          },
+          {
+            "prompt": "Physical interpretation + a real-world example.",
+            "motivation": "Why frozen flux matters.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "field lines move with fluid; solar wind drags B outward → Parker spiral"
+              ]
+            },
+            "hints": [
+              "Field is tied to fluid motion. Where do we see this?"
+            ],
+            "reveal": "Field lines are **frozen** into the conducting fluid + carried with it. Flux tubes are material surfaces. Examples: (1) **Parker spiral** (Eugene Parker 1958) — solar wind drags solar B outward, creating Archimedean spiral at 1 AU at ~45° to radial; (2) **flux freezing in stellar convection** generates dynamos + sunspots; (3) **tokamak frozen-in flux** preserves topology except at reconnection sites; (4) **accretion disks** transport angular momentum via frozen-in magnetic stress (MRI). Breaks down when ideal MHD fails — e.g. **reconnection** (Sweet-Parker, Petschek, Hall), shocks, sheaths."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mhd_1",
+        "kind": "multiple_choice",
+        "question": "When is the Vlasov (collisionless kinetic) equation appropriate vs the MHD (fluid) description?",
+        "options": [
+          "Wrong.",
+          "Use **Vlasov** when (i) the distribution function is non-Maxwellian (beams, runaways, energetic particles, mirror loss cones), (ii) **wave-particle resonance** matters (Landau damping, cyclotron damping, transit-time damping), (iii) **finite-Larmor-radius** effects matter (drift waves, ITG/ETG turbulence — gyrokinetics), (iv) collisions are too rare (ω τ_c ≪ 1) for fluid closure. Use **MHD** when (i) scale L ≫ ρ_L + L ≫ λ_mfp (fluid limit), (ii) timescales ≫ ω_c⁻¹, (iii) global topology + force balance dominate (tokamak equilibrium, jets, dynamos, reconnection at large scale). **Hybrid models** (fluid electrons + kinetic ions) bridge them — used in reconnection + space-plasma simulations (iPic3D, HVM, VPIC). Modern fusion turbulence requires **gyrokinetic** simulation (GENE, GYRO, GS2, XGC); MHD covers equilibrium + macroscopic instabilities (sawteeth, NTMs, disruptions).",
+          "Random.",
+          "Magic."
+        ],
+        "correctIndex": 1,
+        "explanation": "Vlasov is needed for non-Maxwellian f, wave-particle resonance (Landau damping), finite-Larmor-radius (gyrokinetics), or rare-collision regimes. MHD applies at large scales + long times where the fluid limit holds + global force balance + topology matter. Hybrid models bridge the two for reconnection + space plasmas."
+      },
+      "hints": [
+        "When does Maxwellian closure fail?",
+        "What scales does each cover?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Vlasov is needed when f is non-Maxwellian, wave-particle resonance is essential (Landau damping), finite-Larmor-radius matters, or collisions are too rare for fluid closure. MHD works at scales ≫ ρ_L + λ_mfp + timescales ≫ ω_c⁻¹ — for equilibrium, jets, dynamos, large-scale reconnection. Hybrid kinetic-ion / fluid-electron models cover intermediate regimes."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mhd_1",
+        "kind": "scenario",
+        "question": "Spitzer resistivity + tokamak current penetration",
+        "prompt": "You ramp the plasma current in a tokamak at 1 MA/s. The plasma column has R = 6 m, a = 2 m, T_e = 5 keV core / 100 eV edge. Estimate (a) Spitzer η at core vs edge; (b) the resistive timescale τ_R = μ₀ a²/η; (c) implications for current ramp-up + bootstrap current; (d) why current cannot diffuse arbitrarily fast → role of non-inductive current drive (NBI, LH, EC) for steady-state operation."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mhd_1",
+        "kind": "math_expression",
+        "question": "Write the ideal MHD induction equation.",
+        "acceptedAnswers": [
+          "dB/dt = curl(v cross B)",
+          "∂B/∂t = ∇×(v×B)",
+          "partial B / partial t = nabla x (v x B)"
+        ],
+        "hint": "Faraday combined with E = -v × B."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_mhd_1",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain the hierarchy from exact Klimontovich → Vlasov → fluid → MHD + when each level is appropriate.",
+        "rubric": "Mentions: Klimontovich = exact microscopic; ensemble-average → BBGKY hierarchy; truncation gives **Vlasov** (collisionless mean-field) or **Boltzmann/Landau/Fokker-Planck** (with Coulomb collisions, ln Λ ~ 10-20). Velocity moments of Vlasov + closure give **two-fluid** (electron + ion) equations, then **MHD** (single fluid). Hierarchy each adds assumptions: Vlasov assumes mean-field + drops correlations; fluid assumes near-Maxwellian + closes moments via collisional closures (Braginskii 1965, Spitzer 1953); MHD additionally assumes scale ≫ ρ_L. Use Vlasov/gyrokinetic for turbulence + wave-particle resonance + non-Maxwellian; MHD for equilibrium + large-scale instabilities (sawteeth, kinks, NTMs). Concludes: choice of description depends on scale separations (L/ρ_L, ω/ω_c, ν τ) — modern fusion + astrophysics combine all levels via multi-scale + hybrid codes (GENE, XGC, M3D, NIMROD, JOREK)."
+      }
+    }
+  ]
+}

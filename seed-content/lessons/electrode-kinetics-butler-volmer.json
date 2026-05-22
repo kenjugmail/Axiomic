@@ -1,0 +1,166 @@
+{
+  "slug": "electrode-kinetics-butler-volmer",
+  "meta": {
+    "timeMinutes": 26,
+    "difficulty": "advanced",
+    "objectives": [
+      "Derive + apply the Butler-Volmer equation.",
+      "Use Tafel plots to extract i₀ + α.",
+      "Account for mass transport via Levich/RDE/Cottrell.",
+      "Connect to Marcus theory of electron transfer."
+    ],
+    "prereqs": [
+      "electrochem-foundations"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Butler-Volmer: the master kinetic law",
+      "body": "Equilibrium electrochemistry (Nernst) tells us where reactions sit at zero net current. Kinetics tells us how fast charge flows when we *drive* the electrode away from equilibrium. The master equation is **Butler-Volmer (BV)** — John Alfred Valentine Butler (1924) + Max Volmer (1930) — a transition-state-theory-style law that combines anodic + cathodic Faradaic currents:\n\n  i = i₀·[exp(αₐ·F·η/RT) - exp(-α_c·F·η/RT)]\n\nwith α_a + α_c = 1 (sum to one for a one-step n=1 transfer; symmetry factor α ≡ α_c, usually ≈ 0.5).\n\n**Symbols**:\n- **i** = net current density (A/cm²).\n- **i₀** = exchange current density — the equal anodic + cathodic currents flowing at equilibrium. Logs across decades: Pt-H₂ HER in acid ~10⁻³ A/cm²; OER on PtO ~10⁻⁹ A/cm² — explains why OER overpotentials are large.\n- **η** = overpotential = E_applied - E_eq. Positive η drives oxidation (anodic), negative drives reduction.\n- **α** = symmetry factor (charge-transfer coefficient) — slope of the activation-energy curve at the transition state. Usually 0.3-0.7.\n- F/RT at 25 °C ≈ 38.94 V⁻¹; (RT/F) ≈ 25.69 mV.\n\n**Two limiting regimes**:\n\n1. **Small η** (|η| << RT/F ≈ 25 mV): expand exponentials → i ≈ i₀·(F/RT)·η — linear regime, useful for impedance + EIS analysis. Charge-transfer resistance R_ct = RT/(nFi₀).\n\n2. **Large η** (|η| >> RT/F): one branch dominates. For anodic:\n\n   i ≈ i₀·exp(α_a·F·η/RT)  →  ln i = ln i₀ + (α_a F/RT)·η\n\nThis is the **Tafel equation**: η = a + b·log|i|, where Tafel slope b = 2.303·RT/(α_aF) — at 25 °C, 59 mV/decade if α = 1 or ~118 mV/decade if α = 0.5. Empirically pre-dates BV (Tafel 1905). Linear-log plots of |i| vs η give i₀ (intercept) + α (slope).\n\n**Modern relevance**:\n- **HER on Pt** (Hydrogen Evolution Reaction): Tafel slopes 30 mV/dec (Volmer-Tafel mechanism rate-limited by Tafel step) or 120 mV/dec (Volmer rate-limited).\n- **OER on IrO₂/RuO₂/NiFe** (Oxygen Evolution): 60-120 mV/dec; central to water electrolysis.\n- **Battery electrodes** rely on BV kinetics for charge/discharge polarization.\n- **Corrosion** — mixed-potential theory uses two BV curves intersecting (Evans diagram).\n\n**The PDE coupling**: BV alone assumes well-stirred bulk. Real currents combine with mass transport (next slide)."
+    },
+    {
+      "kind": "text",
+      "title": "Mass transport: Levich, RDE, Cottrell",
+      "body": "Real electrochemistry is *Faradaic kinetics* coupled to *mass transport*. At a stationary planar electrode in a beaker, diffusion alone supplies reactant — the diffusion layer δ thickens with time and current decays as 1/√t.\n\n**Cottrell equation** (Frederick Gardner Cottrell 1903) — step the potential from no-reaction to a value driving the reaction (diffusion-limited); the resulting transient current:\n\n  i(t) = nFAc·√(D/(πt))\n\n- A = electrode area; c = bulk concentration; D = diffusion coefficient.\n- i ∝ 1/√t — fundamental fingerprint of diffusion control.\n- Used to extract D from a chronoamperogram via i·√t = constant.\n\n**Rotating Disc Electrode (RDE)** — spin the electrode at angular frequency ω. Solution is dragged along centrifugally; a steady-state diffusion-convection layer of *fixed* thickness δ ∝ ω^(-1/2) forms. Reproducible mass transport, no time decay.\n\n**Levich equation** (Veniamin Levich 1942) — steady-state limiting current at RDE:\n\n  i_L = 0.620·nFAc·D^(2/3)·ν^(-1/6)·ω^(1/2)\n\n- ν = kinematic viscosity of electrolyte.\n- Plot of i_L vs ω^(1/2) gives Levich plot — linear → diffusion-limited; deviation → mixed kinetics. Slope gives D × n × A × c.\n\n**Koutecky-Levich (K-L) analysis** — when kinetics + transport both matter:\n\n  1/i = 1/i_k + 1/i_L = 1/i_k + 1/(B·ω^(1/2))\n\nwith B = 0.620·nFAc·D^(2/3)·ν^(-1/6). Plot 1/i vs 1/ω^(1/2) at fixed η — intercept gives the kinetic current i_k (free of transport), slope gives n via B. Standard way to extract electron-transfer numbers + intrinsic kinetics for catalysis. Crucial for ORR (4 e⁻ desired vs 2 e⁻ H₂O₂ pathway).\n\n**Diffusion layer δ** — at planar steady-state ≈ D/m_t where m_t = mass-transfer coefficient. Stirring + RDE reduce δ → boost mass-transport limits.\n\n**Rotating Ring-Disc Electrode (RRDE)** — disc + concentric ring; products of disc reaction sweep to ring, where they can be detected → quantifies intermediates (e.g., H₂O₂ in ORR).\n\n**Practical implications**:\n- Below i₀, kinetic-limited; current rises with η.\n- Approaching i_L, transport-limited; current plateaus.\n- For diffusion-limited current at quiescent flat electrode: linear sweep gives the classic peak-shaped voltammogram (Randles-Ševčík for reversible CV)."
+    },
+    {
+      "kind": "text",
+      "title": "Adsorption, multi-step mechanisms, Marcus theory",
+      "body": "**Adsorption matters** — many electrode reactions proceed via surface-adsorbed intermediates.\n\n**HER (acidic)** — two-step:\n1. **Volmer step**: H⁺ + e⁻ → H_ads (charge transfer + adsorption).\n2. Either **Heyrovský**: H_ads + H⁺ + e⁻ → H₂ (electrochemical desorption); or **Tafel**: 2H_ads → H₂ (chemical desorption).\n- Tafel slopes diagnose rate-limiting step: 120 mV/dec → Volmer; 40 mV/dec → Heyrovský; 30 mV/dec → Tafel.\n- Pt has near-zero ΔG_H_ads — sits at the Sabatier optimum of the volcano plot.\n\n**OER (acidic)** — four-electron, four-proton, multiple intermediates (OH_ads → O_ads → OOH_ads → O₂). Scaling relations among ΔG values impose a thermodynamic overpotential floor ~370 mV (Rossmeisl, Norskov). Why OER is the rate-limiting side of water splitting.\n\n**Frumkin correction** — at charged electrodes, the potential at the plane of closest approach (Outer Helmholtz Plane, OHP) differs from the bulk by φ₂. The kinetic driving force isn't η but η - φ₂. Frumkin (1933) extended BV:\n\n  i = i₀·exp[-z_i·Fφ₂/RT]·[exp(αF(η-φ₂)/RT) - exp(-α_c F(η-φ₂)/RT)]\n\nMatters at low ionic strength + charged species.\n\n**Marcus theory of electron transfer** (Rudolph A. Marcus 1956, Nobel Chemistry 1992) — quantum-mechanical treatment of *homogeneous* + heterogeneous outer-sphere ET:\n\n  ΔG‡ = (λ + ΔG°)²/(4λ)\n\n- λ = reorganization energy (inner-sphere bond changes + outer-sphere solvent reorganization).\n- ΔG° = driving force.\n- **Normal region** (-ΔG° < λ): rate increases with -ΔG°.\n- **Marcus inverted region** (-ΔG° > λ): rate decreases — counterintuitively, more driving force slows ET! Confirmed by Closs + Miller 1984 in intramolecular ET.\n\n**Heterogeneous Marcus-Hush-Chidsey** — applies Marcus to electrode reactions; predicts BV-like behavior at small η, departing at high η (no inverted region for metal electrodes, because the Fermi sea provides a continuum of states). For semiconductor electrodes (TiO₂, Si), inverted region can appear.\n\n**Biological electron transfer** — Marcus framework underpins photosynthesis (PSII charge separation), respiration (Complex III, IV, cyt c → CcO), nitrogen fixation. Long-range tunneling via DNA, proteins (Beratan-Onuchic pathway theory; Gray's azurin/cyt c studies).\n\n**Why this matters for batteries + catalysts** — designing better electrodes = lowering activation barriers for the rate-determining elementary step + balancing intermediate-binding energies (volcano plots, scaling relations). Active sites at edges, defects, single-atom dopants tune ΔG_adsorbed selectively. The hunt for non-Pt OER + HER catalysts uses Marcus + Sabatier reasoning systematically.",
+      "viz": "butler-volmer-curve",
+      "vizProps": {
+        "i0": 0.001,
+        "alpha": 0.5
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bv_tafel",
+        "kind": "guided_derivation",
+        "question": "Derive the Tafel equation from Butler-Volmer",
+        "goal": "Show that in the large-overpotential limit, BV reduces to the Tafel form η = a + b·log|i| with b = 2.303·RT/(αF).",
+        "steps": [
+          {
+            "prompt": "Start with the BV equation. Write it for net current i in terms of i₀, α_a, α_c, F, η, R, T.",
+            "motivation": "BV master equation.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "i = i0*(exp(α_a F η/RT) - exp(-α_c F η/RT))",
+                "i = i_0 [exp(αFη/RT) - exp(-αFη/RT)]"
+              ]
+            },
+            "hints": [
+              "Two exponentials, one anodic one cathodic."
+            ],
+            "reveal": "i = i₀·[exp(α_a·Fη/RT) - exp(-α_c·Fη/RT)]."
+          },
+          {
+            "prompt": "For large positive η, which term dominates and what does the equation reduce to?",
+            "motivation": "Anodic Tafel branch.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "i ≈ i_0 exp(α_a F η/RT)",
+                "anodic exponential"
+              ]
+            },
+            "hints": [
+              "Cathodic exponential becomes negligible."
+            ],
+            "reveal": "When η >> RT/F (~25 mV), exp(-α_c Fη/RT) → 0, so i ≈ i₀·exp(α_a Fη/RT)."
+          },
+          {
+            "prompt": "Take natural log of both sides and solve for η.",
+            "motivation": "Tafel form (with ln).",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "η = (RT/α_a F)(ln i - ln i_0)",
+                "η = (RT/α F)·ln(i/i_0)"
+              ]
+            },
+            "hints": [
+              "ln i = ln i₀ + (α_a F/RT)·η, then isolate η."
+            ],
+            "reveal": "ln i = ln i₀ + (α_a F/RT)·η, so η = (RT/α_a F)·ln(i/i₀)."
+          },
+          {
+            "prompt": "Convert to log₁₀ and identify the Tafel slope b. Compute b at 25 °C for α_a = 0.5.",
+            "motivation": "Practical Tafel slope.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "b = 2.303 RT/(α_a F)",
+                "118 mV/decade",
+                "~0.118 V/dec"
+              ]
+            },
+            "hints": [
+              "ln 10 ≈ 2.303.",
+              "RT/F ≈ 25.69 mV at 298 K."
+            ],
+            "reveal": "η = (2.303·RT/(α_a F))·log₁₀(i/i₀) ⇒ Tafel slope b = 2.303·RT/(α_a F). At 25 °C with α = 0.5: b = (2.303·0.02569)/0.5 ≈ 0.118 V/decade = 118 mV/decade. With α = 1 (concerted multi-step), b ≈ 59 mV/decade."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\eta = a + b \\log_{10}|i|, \\quad b = \\frac{2.303\\,RT}{\\alpha_a F}}$$\n\nTafel plots of log|i| vs η give i₀ from the intercept (extrapolated to η = 0) and α from the slope. Diagnostic of rate-limiting step in multi-step reactions (HER, OER, ORR). Pre-dated BV by 25 years (Tafel 1905)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bv_marcus",
+        "kind": "multiple_choice",
+        "question": "What is the 'Marcus inverted region' and why was it counterintuitive?",
+        "options": [
+          "A region in a phase diagram.",
+          "In Marcus theory of electron transfer, the activation barrier is ΔG‡ = (λ + ΔG°)²/(4λ). In the *normal* region (-ΔG° < λ), increasing the driving force -ΔG° lowers the barrier and speeds the reaction. But when -ΔG° > λ, *further* increasing the driving force makes the parabolas cross past the optimum, raising ΔG‡ and SLOWING ET. Marcus predicted this in 1956; experimental confirmation took until Closs + Miller 1984 with intramolecular ET in rigid donor-spacer-acceptor molecules. Nobel Chemistry 1992. Has implications for photosynthesis (rapid charge separation but slow back-ET = high quantum yield), molecular electronics, semiconductor electrochemistry.",
+          "An optical illusion in voltammetry.",
+          "An error in the original derivation."
+        ],
+        "correctIndex": 1,
+        "explanation": "Marcus's parabolic-free-energy model predicts that beyond -ΔG° = λ, ET slows with more driving force. Closs + Miller (1984) confirmed it experimentally in rigid donor-spacer-acceptor molecules. Marcus won the 1992 Chemistry Nobel. The inverted region is central to why photosynthesis is so efficient: rapid forward ET into the inverted regime for back-ET maintains charge separation."
+      },
+      "hints": [
+        "Parabolic intersection geometry.",
+        "More driving force can slow ET."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Marcus's ΔG‡ = (λ + ΔG°)²/(4λ) is parabolic in driving force; minimum at -ΔG° = λ. Beyond, barrier grows. Counterintuitive but real (Closs + Miller 1984). Nobel 1992."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_bv_tafel_diagnose",
+        "kind": "scenario",
+        "question": "Diagnose an HER mechanism",
+        "prompt": "A new MoS₂ catalyst shows a Tafel slope of 40 mV/decade for HER in acid. Which rate-determining step is implicated, and how would you cross-check?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_bv_rt_over_f",
+        "kind": "math_expression",
+        "question": "Compute RT/F at 25 °C (298.15 K) in millivolts. R = 8.314 J/(mol·K), F = 96485 C/mol. Round to 2 decimals.",
+        "acceptedAnswers": [
+          "25.69",
+          "25.7",
+          "25.693"
+        ],
+        "hint": "(8.314·298.15)/96485 in volts, then × 1000."
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bv",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain why electrode kinetics need Butler-Volmer + how Tafel + Marcus deepen the picture.",
+        "rubric": "Mentions: BV is the master kinetic law i = i₀[exp(αₐFη/RT) - exp(-α_cFη/RT)] — combines forward + reverse Faradaic currents activated by overpotential η. Exchange current i₀ sets intrinsic kinetic activity (Pt-H₂ ~10⁻³ A/cm²; OER ~10⁻⁹). At large |η|, BV → Tafel (linear log|i| vs η), giving Tafel slope b = 2.303RT/(αF); diagnoses rate-determining step (30/40/120 mV/dec for HER). Mass transport (Cottrell, Levich, K-L) couples kinetics to convection-diffusion; RDE separates them. Marcus (Nobel 1992) provides the quantum-mechanical picture: ΔG‡ = (λ + ΔG°)²/(4λ), with the famous inverted region. Frumkin corrects for OHP. Together: BV + Tafel + Marcus = the modern toolkit for catalysis, batteries, corrosion, sensors."
+      }
+    }
+  ]
+}

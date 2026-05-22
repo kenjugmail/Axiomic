@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   ArrowUp,
   BookOpen,
+  Columns,
   Eye,
   HelpCircle,
   List as ListIcon,
@@ -21,6 +22,7 @@ import type { LessonSlide } from "@axiomic/types";
 import { MarkdownRenderer } from "../components/MarkdownRenderer";
 import { AiDraftSlideDialog } from "../components/lesson/AiDraftSlideDialog";
 import { LessonPreviewModal } from "../components/lesson/LessonPreviewModal";
+import { InlineSlidePreview } from "../components/lesson/InlineSlidePreview";
 import { VizPicker, VIZ_CATALOG } from "../components/lesson/VizPicker";
 import { MarkdownToolbar } from "../components/composer/MarkdownToolbar";
 import { useAuthStore } from "../stores/auth";
@@ -72,6 +74,20 @@ export function LessonEditPage() {
   } | null>(null);
   const [slidesDrawerOpen, setSlidesDrawerOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [splitView, setSplitView] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("axiomic.lessonEdit.splitView") === "1";
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem("axiomic.lessonEdit.splitView", splitView ? "1" : "0");
+    } catch {
+      void 0;
+    }
+  }, [splitView]);
   const [aiDraftKind, setAiDraftKind] = useState<"text" | "question" | null>(
     null,
   );
@@ -631,6 +647,15 @@ export function LessonEditPage() {
             <Eye className="w-3.5 h-3.5" strokeWidth={2} />
             <span className="hidden sm:inline">Preview</span>
           </button>
+          <button
+            onClick={() => setSplitView((v) => !v)}
+            className={`inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md hover:bg-accent/40 ${splitView ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+            title={splitView ? "Hide split-view preview" : "Show split-view preview"}
+            aria-pressed={splitView}
+          >
+            <Columns className="w-3.5 h-3.5" strokeWidth={2} />
+            <span className="hidden sm:inline">Split</span>
+          </button>
           {pathSlug && nodeSlug && (
             <Link
               to={`/paths/${pathSlug}/lessons/${nodeSlug}/analytics`}
@@ -737,7 +762,7 @@ export function LessonEditPage() {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto grid lg:grid-cols-[260px_1fr] min-h-[calc(100vh-7rem)]">
+      <div className={`max-w-7xl mx-auto grid min-h-[calc(100vh-7rem)] ${splitView ? "lg:grid-cols-[220px_1fr_1fr]" : "lg:grid-cols-[260px_1fr]"}`}>
         {/* Slide list — desktop sidebar (mobile uses the drawer below) */}
         <aside className="hidden lg:block border-r border-border">
           <nav className="sticky top-[calc(3.5rem+3.5rem+0.25rem)] py-4 max-h-[calc(100vh-7.25rem)] overflow-y-auto">
@@ -852,6 +877,18 @@ export function LessonEditPage() {
             </div>
           )}
         </div>
+
+        {/* Split-view preview pane (desktop only) */}
+        {splitView && (
+          <aside className="hidden lg:block border-l border-border px-4 py-6">
+            <div className="sticky top-[calc(3.5rem+3.5rem+0.25rem)] max-h-[calc(100vh-7.25rem)] overflow-y-auto">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
+                <Eye className="w-3 h-3" strokeWidth={2} /> Live preview · slide {activeIdx + 1}
+              </div>
+              <InlineSlidePreview slide={slide} />
+            </div>
+          </aside>
+        )}
       </div>
 
       {/* Mobile slide-list bottom sheet */}

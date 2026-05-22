@@ -37,6 +37,89 @@ const MM1Queue = lazy(() => import("../../../../packages/viz/src/components/MM1Q
 const LotkaVolterra = lazy(() => import("../../../../packages/viz/src/components/LotkaVolterra").then(m => ({ default: m.LotkaVolterra })));
 const RadiocarbonDecay = lazy(() => import("../../../../packages/viz/src/components/RadiocarbonDecay").then(m => ({ default: m.RadiocarbonDecay })));
 const AlignmentMatrix = lazy(() => import("../../../../packages/viz/src/components/AlignmentMatrix").then(m => ({ default: m.AlignmentMatrix })));
+const RamachandranPlot = lazy(() => import("../../../../packages/viz/src/components/RamachandranPlot").then(m => ({ default: m.RamachandranPlot })));
+const HodgkinHuxleyAP = lazy(() => import("../../../../packages/viz/src/components/HodgkinHuxleyAP").then(m => ({ default: m.HodgkinHuxleyAP })));
+const LawsonCriterion = lazy(() => import("../../../../packages/viz/src/components/LawsonCriterion").then(m => ({ default: m.LawsonCriterion })));
+const BandStructure = lazy(() => import("../../../../packages/viz/src/components/BandStructure").then(m => ({ default: m.BandStructure })));
+const VortexShedding = lazy(() => import("../../../../packages/viz/src/components/VortexShedding").then(m => ({ default: m.VortexShedding })));
+const IceSheetDynamics = lazy(() => import("../../../../packages/viz/src/components/IceSheetDynamics").then(m => ({ default: m.IceSheetDynamics })));
+const RetrosynthesisTree = lazy(() => import("../../../../packages/viz/src/components/RetrosynthesisTree").then(m => ({ default: m.RetrosynthesisTree })));
+const TanabeSuganoDiagram = lazy(() => import("../../../../packages/viz/src/components/TanabeSuganoDiagram").then(m => ({ default: m.TanabeSuganoDiagram })));
+const ButlerVolmerCurve = lazy(() => import("../../../../packages/viz/src/components/ButlerVolmerCurve").then(m => ({ default: m.ButlerVolmerCurve })));
+const PreferentialAttachment = lazy(() => import("../../../../packages/viz/src/components/PreferentialAttachment").then(m => ({ default: m.PreferentialAttachment })));
+const ZKProofVerification = lazy(() => import("../../../../packages/viz/src/components/ZKProofVerification").then(m => ({ default: m.ZKProofVerification })));
+const RaftLogReplication = lazy(() => import("../../../../packages/viz/src/components/RaftLogReplication").then(m => ({ default: m.RaftLogReplication })));
+const ManhattanPlot = lazy(() => import("../../../../packages/viz/src/components/ManhattanPlot").then(m => ({ default: m.ManhattanPlot })));
+const MacArthurConsumerResource = lazy(() => import("../../../../packages/viz/src/components/MacArthurConsumerResource").then(m => ({ default: m.MacArthurConsumerResource })));
+const KinshipDiagram = lazy(() => import("../../../../packages/viz/src/components/KinshipDiagram").then(m => ({ default: m.KinshipDiagram })));
+const ForwardKinematicsArm = lazy(() => import("../../../../packages/viz/src/components/ForwardKinematicsArm").then(m => ({ default: m.ForwardKinematicsArm })));
+const GroupOrbits = lazy(() => import("../../../../packages/viz/src/components/GroupOrbits").then(m => ({ default: m.GroupOrbits })));
+const FriedmannEquation = lazy(() => import("../../../../packages/viz/src/components/FriedmannEquation").then(m => ({ default: m.FriedmannEquation })));
+const SchellingSegregation = lazy(() => import("../../../../packages/viz/src/components/SchellingSegregation").then(m => ({ default: m.SchellingSegregation })));
+const BigFiveRadar = lazy(() => import("../../../../packages/viz/src/components/BigFiveRadar").then(m => ({ default: m.BigFiveRadar })));
+const CivilizationTimeline = lazy(() => import("../../../../packages/viz/src/components/CivilizationTimeline").then(m => ({ default: m.CivilizationTimeline })));
+const TruthTable = lazy(() => import("../../../../packages/viz/src/components/TruthTable").then(m => ({ default: m.TruthTable })));
+const VotingSystems = lazy(() => import("../../../../packages/viz/src/components/VotingSystems").then(m => ({ default: m.VotingSystems })));
+const ClonalSelection = lazy(() => import("../../../../packages/viz/src/components/ClonalSelection").then(m => ({ default: m.ClonalSelection })));
+const GradientDescent2D = lazy(() => import("../../../../packages/viz/src/quiz/GradientDescent2D").then(m => ({ default: m.GradientDescent2D })));
+const SamplingTemperatureLab = lazy(() => import("../../../../packages/viz/src/components/SamplingTemperatureLab").then(m => ({ default: m.SamplingTemperatureLab })));
+const CrystalLattice = lazy(() => import("../../../../packages/viz/src/components/CrystalLattice").then(m => ({ default: m.CrystalLattice })));
+const BrillouinZone = lazy(() => import("../../../../packages/viz/src/components/BrillouinZone").then(m => ({ default: m.BrillouinZone })));
+const PhononDispersion = lazy(() => import("../../../../packages/viz/src/components/PhononDispersion").then(m => ({ default: m.PhononDispersion })));
+const PrecedentNetwork = lazy(() => import("../../../../packages/viz/src/components/PrecedentNetwork").then(m => ({ default: m.PrecedentNetwork })));
+const ForgettingCurve = lazy(() => import("../../../../packages/viz/src/components/ForgettingCurve").then(m => ({ default: m.ForgettingCurve })));
+const BacterialGrowthCurve = lazy(() => import("../../../../packages/viz/src/components/BacterialGrowthCurve").then(m => ({ default: m.BacterialGrowthCurve })));
+const AlleleFrequencyDrift = lazy(() => import("../../../../packages/viz/src/components/AlleleFrequencyDrift").then(m => ({ default: m.AlleleFrequencyDrift })));
+const HarmonicSeries = lazy(() => import("../../../../packages/viz/src/components/HarmonicSeries").then(m => ({ default: m.HarmonicSeries })));
+const ZoningGrid = lazy(() => import("../../../../packages/viz/src/components/ZoningGrid").then(m => ({ default: m.ZoningGrid })));
+const ExtinctionTimeline = lazy(() => import("../../../../packages/viz/src/components/ExtinctionTimeline").then(m => ({ default: m.ExtinctionTimeline })));
+const UtilityIndifference = lazy(() => import("../../../../packages/viz/src/components/UtilityIndifference").then(m => ({ default: m.UtilityIndifference })));
+const StructuralLoadFlow = lazy(() => import("../../../../packages/viz/src/components/StructuralLoadFlow").then(m => ({ default: m.StructuralLoadFlow })));
+const PopulationPyramid = lazy(() => import("../../../../packages/viz/src/components/PopulationPyramid").then(m => ({ default: m.PopulationPyramid })));
+const MapProjections = lazy(() => import("../../../../packages/viz/src/components/MapProjections").then(m => ({ default: m.MapProjections })));
+const ShotComposition = lazy(() => import("../../../../packages/viz/src/components/ShotComposition").then(m => ({ default: m.ShotComposition })));
+const KeplerOrbits = lazy(() => import("../../../../packages/viz/src/components/KeplerOrbits").then(m => ({ default: m.KeplerOrbits })));
+const EpidemicCurve = lazy(() => import("../../../../packages/viz/src/components/EpidemicCurve").then(m => ({ default: m.EpidemicCurve })));
+const KoppenClimate = lazy(() => import("../../../../packages/viz/src/components/KoppenClimate").then(m => ({ default: m.KoppenClimate })));
+const AllianceNetwork = lazy(() => import("../../../../packages/viz/src/components/AllianceNetwork").then(m => ({ default: m.AllianceNetwork })));
+const GrowthChart = lazy(() => import("../../../../packages/viz/src/components/GrowthChart").then(m => ({ default: m.GrowthChart })));
+const DoseResponseCurve = lazy(() => import("../../../../packages/viz/src/components/DoseResponseCurve").then(m => ({ default: m.DoseResponseCurve })));
+const DnaElectropherogram = lazy(() => import("../../../../packages/viz/src/components/DnaElectropherogram").then(m => ({ default: m.DnaElectropherogram })));
+const ComparativeAnatomy = lazy(() => import("../../../../packages/viz/src/components/ComparativeAnatomy").then(m => ({ default: m.ComparativeAnatomy })));
+const BeatGrid = lazy(() => import("../../../../packages/viz/src/components/BeatGrid").then(m => ({ default: m.BeatGrid })));
+const VitalSignsMonitor = lazy(() => import("../../../../packages/viz/src/components/VitalSignsMonitor").then(m => ({ default: m.VitalSignsMonitor })));
+const FlavorWheel = lazy(() => import("../../../../packages/viz/src/components/FlavorWheel").then(m => ({ default: m.FlavorWheel })));
+const AirfoilPolar = lazy(() => import("../../../../packages/viz/src/components/AirfoilPolar").then(m => ({ default: m.AirfoilPolar })));
+const LedgerTAccounts = lazy(() => import("../../../../packages/viz/src/components/LedgerTAccounts").then(m => ({ default: m.LedgerTAccounts })));
+const CropYieldResponse = lazy(() => import("../../../../packages/viz/src/components/CropYieldResponse").then(m => ({ default: m.CropYieldResponse })));
+const SurvivalCurve = lazy(() => import("../../../../packages/viz/src/components/SurvivalCurve").then(m => ({ default: m.SurvivalCurve })));
+const BtreeVsLsm = lazy(() => import("../../../../packages/viz/src/components/BtreeVsLsm").then(m => ({ default: m.BtreeVsLsm })));
+const KeyExchange = lazy(() => import("../../../../packages/viz/src/components/KeyExchange").then(m => ({ default: m.KeyExchange })));
+const VirtualMemory = lazy(() => import("../../../../packages/viz/src/components/VirtualMemory").then(m => ({ default: m.VirtualMemory })));
+const CacheHierarchy = lazy(() => import("../../../../packages/viz/src/components/CacheHierarchy").then(m => ({ default: m.CacheHierarchy })));
+const DagPipeline = lazy(() => import("../../../../packages/viz/src/components/DagPipeline").then(m => ({ default: m.DagPipeline })));
+const QuorumReplication = lazy(() => import("../../../../packages/viz/src/components/QuorumReplication").then(m => ({ default: m.QuorumReplication })));
+const ToothAnatomy = lazy(() => import("../../../../packages/viz/src/components/ToothAnatomy").then(m => ({ default: m.ToothAnatomy })));
+const EnergyBalance = lazy(() => import("../../../../packages/viz/src/components/EnergyBalance").then(m => ({ default: m.EnergyBalance })));
+const ForceVelocityCurve = lazy(() => import("../../../../packages/viz/src/components/ForceVelocityCurve").then(m => ({ default: m.ForceVelocityCurve })));
+const EventLoop = lazy(() => import("../../../../packages/viz/src/components/EventLoop").then(m => ({ default: m.EventLoop })));
+const RenderPipeline = lazy(() => import("../../../../packages/viz/src/components/RenderPipeline").then(m => ({ default: m.RenderPipeline })));
+const WcagContrast = lazy(() => import("../../../../packages/viz/src/components/WcagContrast").then(m => ({ default: m.WcagContrast })));
+const GalaxyRotationCurve = lazy(() => import("../../../../packages/viz/src/components/GalaxyRotationCurve").then(m => ({ default: m.GalaxyRotationCurve })));
+const HubbleExpansion = lazy(() => import("../../../../packages/viz/src/components/HubbleExpansion").then(m => ({ default: m.HubbleExpansion })));
+const CpuScheduler = lazy(() => import("../../../../packages/viz/src/components/CpuScheduler").then(m => ({ default: m.CpuScheduler })));
+const XrayAttenuation = lazy(() => import("../../../../packages/viz/src/components/XrayAttenuation").then(m => ({ default: m.XrayAttenuation })));
+const SeismicWaves = lazy(() => import("../../../../packages/viz/src/components/SeismicWaves").then(m => ({ default: m.SeismicWaves })));
+const Audiogram = lazy(() => import("../../../../packages/viz/src/components/Audiogram").then(m => ({ default: m.Audiogram })));
+const CipherModes = lazy(() => import("../../../../packages/viz/src/components/CipherModes").then(m => ({ default: m.CipherModes })));
+const KeyStretching = lazy(() => import("../../../../packages/viz/src/components/KeyStretching").then(m => ({ default: m.KeyStretching })));
+const AstExplorer = lazy(() => import("../../../../packages/viz/src/components/AstExplorer").then(m => ({ default: m.AstExplorer })));
+const ControlFlowGraph = lazy(() => import("../../../../packages/viz/src/components/ControlFlowGraph").then(m => ({ default: m.ControlFlowGraph })));
+const TraceWaterfall = lazy(() => import("../../../../packages/viz/src/components/TraceWaterfall").then(m => ({ default: m.TraceWaterfall })));
+const ConsistentHashing = lazy(() => import("../../../../packages/viz/src/components/ConsistentHashing").then(m => ({ default: m.ConsistentHashing })));
+const Hydrograph = lazy(() => import("../../../../packages/viz/src/components/Hydrograph").then(m => ({ default: m.Hydrograph })));
+const IronCarbonDiagram = lazy(() => import("../../../../packages/viz/src/components/IronCarbonDiagram").then(m => ({ default: m.IronCarbonDiagram })));
+const EyeRefraction = lazy(() => import("../../../../packages/viz/src/components/EyeRefraction").then(m => ({ default: m.EyeRefraction })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -78,6 +161,89 @@ export const VIZ_NAMES = [
   "lotka-volterra",
   "radiocarbon-decay",
   "alignment-matrix",
+  "ramachandran-plot",
+  "hodgkin-huxley-ap",
+  "lawson-criterion",
+  "band-structure",
+  "vortex-shedding",
+  "ice-sheet-dynamics",
+  "retrosynthesis-tree",
+  "tanabe-sugano-diagram",
+  "butler-volmer-curve",
+  "preferential-attachment",
+  "zk-proof-verification",
+  "raft-log-replication",
+  "manhattan-plot",
+  "macarthur-consumer-resource",
+  "kinship-diagram",
+  "forward-kinematics-arm",
+  "group-orbits",
+  "friedmann-equation",
+  "schelling-segregation",
+  "big-five-radar",
+  "civilization-timeline",
+  "truth-table",
+  "voting-systems",
+  "clonal-selection",
+  "gradient-descent-2d",
+  "sampling-temperature-lab",
+  "crystal-lattice",
+  "brillouin-zone",
+  "phonon-dispersion",
+  "precedent-network",
+  "forgetting-curve",
+  "bacterial-growth-curve",
+  "allele-frequency-drift",
+  "harmonic-series",
+  "zoning-grid",
+  "extinction-timeline",
+  "utility-indifference",
+  "structural-load-flow",
+  "population-pyramid",
+  "map-projections",
+  "shot-composition",
+  "kepler-orbits",
+  "epidemic-curve",
+  "koppen-climate",
+  "alliance-network",
+  "growth-chart",
+  "dose-response-curve",
+  "dna-electropherogram",
+  "comparative-anatomy",
+  "beat-grid",
+  "vital-signs-monitor",
+  "flavor-wheel",
+  "airfoil-polar",
+  "ledger-t-accounts",
+  "crop-yield-response",
+  "survival-curve",
+  "btree-vs-lsm",
+  "key-exchange",
+  "virtual-memory",
+  "cache-hierarchy",
+  "dag-pipeline",
+  "quorum-replication",
+  "tooth-anatomy",
+  "energy-balance",
+  "force-velocity-curve",
+  "event-loop",
+  "render-pipeline",
+  "wcag-contrast",
+  "galaxy-rotation-curve",
+  "hubble-expansion",
+  "cpu-scheduler",
+  "xray-attenuation",
+  "seismic-waves",
+  "audiogram",
+  "cipher-modes",
+  "key-stretching",
+  "ast-explorer",
+  "control-flow-graph",
+  "trace-waterfall",
+  "consistent-hashing",
+  "hydrograph",
+  "iron-carbon-diagram",
+  "eye-refraction",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -117,6 +283,89 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "lotka-volterra": LotkaVolterra,
   "radiocarbon-decay": RadiocarbonDecay,
   "alignment-matrix": AlignmentMatrix,
+  "ramachandran-plot": RamachandranPlot,
+  "hodgkin-huxley-ap": HodgkinHuxleyAP,
+  "lawson-criterion": LawsonCriterion,
+  "band-structure": BandStructure,
+  "vortex-shedding": VortexShedding,
+  "ice-sheet-dynamics": IceSheetDynamics,
+  "retrosynthesis-tree": RetrosynthesisTree,
+  "tanabe-sugano-diagram": TanabeSuganoDiagram,
+  "butler-volmer-curve": ButlerVolmerCurve,
+  "preferential-attachment": PreferentialAttachment,
+  "zk-proof-verification": ZKProofVerification,
+  "raft-log-replication": RaftLogReplication,
+  "manhattan-plot": ManhattanPlot,
+  "macarthur-consumer-resource": MacArthurConsumerResource,
+  "kinship-diagram": KinshipDiagram,
+  "forward-kinematics-arm": ForwardKinematicsArm,
+  "group-orbits": GroupOrbits,
+  "friedmann-equation": FriedmannEquation,
+  "schelling-segregation": SchellingSegregation,
+  "big-five-radar": BigFiveRadar,
+  "civilization-timeline": CivilizationTimeline,
+  "truth-table": TruthTable,
+  "voting-systems": VotingSystems,
+  "clonal-selection": ClonalSelection,
+  "gradient-descent-2d": GradientDescent2D,
+  "sampling-temperature-lab": SamplingTemperatureLab,
+  "crystal-lattice": CrystalLattice,
+  "brillouin-zone": BrillouinZone,
+  "phonon-dispersion": PhononDispersion,
+  "precedent-network": PrecedentNetwork,
+  "forgetting-curve": ForgettingCurve,
+  "bacterial-growth-curve": BacterialGrowthCurve,
+  "allele-frequency-drift": AlleleFrequencyDrift,
+  "harmonic-series": HarmonicSeries,
+  "zoning-grid": ZoningGrid,
+  "extinction-timeline": ExtinctionTimeline,
+  "utility-indifference": UtilityIndifference,
+  "structural-load-flow": StructuralLoadFlow,
+  "population-pyramid": PopulationPyramid,
+  "map-projections": MapProjections,
+  "shot-composition": ShotComposition,
+  "kepler-orbits": KeplerOrbits,
+  "epidemic-curve": EpidemicCurve,
+  "koppen-climate": KoppenClimate,
+  "alliance-network": AllianceNetwork,
+  "growth-chart": GrowthChart,
+  "dose-response-curve": DoseResponseCurve,
+  "dna-electropherogram": DnaElectropherogram,
+  "comparative-anatomy": ComparativeAnatomy,
+  "beat-grid": BeatGrid,
+  "vital-signs-monitor": VitalSignsMonitor,
+  "flavor-wheel": FlavorWheel,
+  "airfoil-polar": AirfoilPolar,
+  "ledger-t-accounts": LedgerTAccounts,
+  "crop-yield-response": CropYieldResponse,
+  "survival-curve": SurvivalCurve,
+  "btree-vs-lsm": BtreeVsLsm,
+  "key-exchange": KeyExchange,
+  "virtual-memory": VirtualMemory,
+  "cache-hierarchy": CacheHierarchy,
+  "dag-pipeline": DagPipeline,
+  "quorum-replication": QuorumReplication,
+  "tooth-anatomy": ToothAnatomy,
+  "energy-balance": EnergyBalance,
+  "force-velocity-curve": ForceVelocityCurve,
+  "event-loop": EventLoop,
+  "render-pipeline": RenderPipeline,
+  "wcag-contrast": WcagContrast,
+  "galaxy-rotation-curve": GalaxyRotationCurve,
+  "hubble-expansion": HubbleExpansion,
+  "cpu-scheduler": CpuScheduler,
+  "xray-attenuation": XrayAttenuation,
+  "seismic-waves": SeismicWaves,
+  "audiogram": Audiogram,
+  "cipher-modes": CipherModes,
+  "key-stretching": KeyStretching,
+  "ast-explorer": AstExplorer,
+  "control-flow-graph": ControlFlowGraph,
+  "trace-waterfall": TraceWaterfall,
+  "consistent-hashing": ConsistentHashing,
+  "hydrograph": Hydrograph,
+  "iron-carbon-diagram": IronCarbonDiagram,
+  "eye-refraction": EyeRefraction,
 };
 
 interface VizEmbedProps {

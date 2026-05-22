@@ -1,0 +1,162 @@
+{
+  "slug": "electrochemical-cells-and-batteries",
+  "meta": {
+    "timeMinutes": 22,
+    "difficulty": "advanced",
+    "objectives": [
+      "Distinguish galvanic vs electrolytic + primary vs secondary cells.",
+      "Compute + compare battery metrics (Wh/kg, Wh/L, C-rate, SOC).",
+      "Survey classical chemistries — Pb-acid, NiCd, NiMH, primary Li, alkaline."
+    ],
+    "prereqs": [
+      "electrochem-foundations"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Galvanic vs electrolytic + primary vs secondary",
+      "body": "**Galvanic cell** — spontaneous chemistry drives charge through the external circuit. ΔG < 0; E > 0. Outputs electrical energy. Examples: any battery in discharge, fuel cell, corroding metal.\n\n**Electrolytic cell** — external power source drives a non-spontaneous reaction. ΔG > 0; need to *apply* a voltage > E_eq plus overpotentials. Inputs electrical energy. Examples: water electrolysis (H₂ + O₂), chlor-alkali (Cl₂ + NaOH from brine; >75 Mt/yr), Hall-Héroult Al smelting (Charles Hall + Paul Héroult 1886 — 3-5% of global electricity), electroplating, electrorefining of Cu.\n\nA rechargeable battery is galvanic on discharge, electrolytic on charge. The same cell — direction of current reverses.\n\n**Primary vs secondary**:\n- **Primary** = non-rechargeable. Use once, dispose. Alkaline AA, primary Li (CR2032 watch cells, Li-SO₂, Li-thionyl chloride for backup power).\n- **Secondary** = rechargeable. Pb-acid, NiCd, NiMH, Li-ion, flow batteries, redox flow.\n\n**Daniell cell revisited** — historic: Zn(s)|ZnSO₄||CuSO₄|Cu(s); E° = 1.10 V; powered Victorian telegraphs (~1840-1880). Bulky, leaky, but reliable. Replaced by Leclanché cells.\n\n**Leclanché cell (1866)** — Georges Leclanché's Zn-MnO₂ wet cell; evolved into the **zinc-carbon dry cell** (Carl Gassner 1886) — paste electrolyte, sealed; the AA you knew as a kid before alkaline. ~1.5 V, low capacity, leaks.\n\n**Alkaline cell** (Lewis Urry 1955-1959 at Eveready/Energizer) — Zn-MnO₂ in KOH electrolyte (alkaline) instead of NH₄Cl/ZnCl₂. Higher capacity, better high-current performance, less leaky. Dominant primary cell.\n\n**Edison cell (1901)** — Thomas Edison's NiFe alkaline rechargeable; durable but low-voltage (1.2 V) + low efficiency. Used in early electric vehicles + mine carts.\n\n**A battery is multiple cells** — stack/series for voltage, parallel for current. A '12 V car battery' = 6 × 2.1 V Pb-acid cells in series. A laptop pack = many Li-ion cells in series-parallel."
+    },
+    {
+      "kind": "text",
+      "title": "Battery metrics: Wh/kg, C-rate, SOC, cycle life",
+      "body": "**Energy density** — energy stored per unit mass (gravimetric, Wh/kg) or volume (volumetric, Wh/L). Dominant figure of merit for portable + automotive.\n- Pb-acid: ~30-40 Wh/kg, 60-100 Wh/L.\n- NiCd: ~40-60 Wh/kg.\n- NiMH: ~60-100 Wh/kg.\n- Alkaline primary: ~140 Wh/kg.\n- Li-ion (NMC): ~250 Wh/kg, 600-700 Wh/L (state-of-art commercial).\n- Primary Li: ~300+ Wh/kg.\n- Theoretical Li-S: ~2600 Wh/kg active material; Li-air: ~3500 Wh/kg.\n- Gasoline: ~13000 Wh/kg (chemical; ICE only ~3000 Wh/kg useful).\n\n**Power density** — W/kg, W/L; how fast energy can be delivered. Trades off with energy: supercapacitors ~10 kW/kg but only 5 Wh/kg. EV cells balance both.\n\n**C-rate** — current normalized to capacity. **1C** = current that drains/fills the rated capacity in 1 hour. A 3 Ah cell at 1C = 3 A. 2C = 30-minute discharge; C/10 = 10-hour. High-C operation worsens polarization (BV overpotentials) + heating + accelerates degradation.\n\n**Coulombic efficiency** (CE) = Q_discharge/Q_charge for a cycle. High-quality Li-ion: 99.9%+. CE < 100% implies parasitic side reactions (SEI growth, electrolyte decomposition, Li plating). Cumulative CE loss bounds cycle life — 99% CE → only 50% capacity after ~70 cycles.\n\n**Energy efficiency** = E_discharge/E_charge — lower than CE because voltage hysteresis (overpotentials in/out) wastes energy as heat. Li-ion ~95%; lead-acid ~80%; flow batteries ~70-80%.\n\n**State of Charge (SOC)** — fraction of remaining capacity (0-100%). Estimated by Coulomb counting (∫i·dt), voltage lookup (OCV-SOC curve), or model-based observers (extended Kalman filter on equivalent-circuit + EIS data). Critical for BMS (battery management system) accuracy.\n\n**Depth of Discharge (DOD)** = 1 - SOC. Cycle life depends heavily on DOD — shallow DOD (e.g., 50% rather than 100%) can multiply cycle life 5-10x. Why EV BMS keeps you between 10-90% even when '100%' is shown.\n\n**Cycle life** — cycles until capacity drops to 80% of original. Pb-acid: 200-500 (deep), 1500-3000 (float/shallow). NiMH: 500-1500. Li-ion NMC: 1000-2000 (full DOD), 5000+ (shallow). LFP: 3000-10000 (LFP is the king of cycle life). Calendar life — degradation just sitting; matters as much as cycle life for stationary storage.\n\n**Self-discharge** — charge lost while sitting. Pb-acid ~5%/month; NiMH ~30%/month (Eneloop low-self-discharge variants ~1%/month); Li-ion ~2-3%/month at room temperature. Worse hot.\n\n**Internal resistance** — sum of ionic + electronic + interfacial resistances. R_int × i = IR drop; reduces usable voltage especially at high C-rate. Pulse-discharge tests + EIS quantify R_int; growth signals degradation."
+    },
+    {
+      "kind": "text",
+      "title": "Classical chemistries — Pb-acid to Li primaries",
+      "body": "**Lead-acid (Gaston Planté 1859)** — Pb anode, PbO₂ cathode, H₂SO₄ electrolyte. Cell: Pb + PbO₂ + 2H₂SO₄ ⇌ 2PbSO₄ + 2H₂O. E° ≈ 2.04 V. Cheap, recyclable (99% recycled in US — most successful circular economy of any product). SLI (Starter, Lights, Ignition) automotive (~$30B/yr market). Heavy + low energy density; tolerant of abuse + cold. Variants: flooded, AGM (absorbed glass mat), gel. Sulfation (PbSO₄ crystal growth) is the main degradation mode.\n\n**Nickel-Cadmium (NiCd)** — Waldemar Jungner 1899. Cd anode, NiOOH cathode, KOH electrolyte. ~1.2 V. Robust, fast-charge tolerant, deep-cycling. **Memory effect** (charge near a low point repeatedly → apparent capacity loss; really a voltage-depression effect specific to NiCd). Cd toxic — phased out in EU under RoHS (2006). Aviation + some military still use it for cold/abuse tolerance.\n\n**Nickel-Metal Hydride (NiMH)** — Stanford Ovshinsky + Masahiko Oshitani 1980s; commercialized late 1980s. MH anode (hydrogen-absorbing alloy LaNi₅, AB₅, AB₂), NiOOH cathode, KOH. ~1.2 V. Replaced NiCd in consumer + Toyota Prius (1997 — first mass-market hybrid used NiMH for 15+ years before LFP/NMC). Eneloop (Sanyo 2005) — low-self-discharge NiMH that revolutionized rechargeable AA. Memory effect minimal.\n\n**Alkaline primary** — Zn|MnO₂|KOH. ~1.5 V. Capacity 2-3 Ah for AA. Cheap, shelf-stable (10 yr). Dominant primary cell — billions sold annually. Duracell + Energizer.\n\n**Primary Li chemistries** — multiple, each tuned for use:\n- **Li/MnO₂** (CR123, CR2032 coin) — cameras, watches, BIOS backup, sensors. 3 V.\n- **Li/CFx** (carbon monofluoride) — high energy ~700 Wh/kg, long shelf life, but slow rate. Implantable devices, military.\n- **Li/SOCl₂** (thionyl chloride) — highest energy primary, 500-700 Wh/kg, 3.6 V, decades of shelf life. Smart meters, oil-well sensors, military. Liquid SOCl₂ is the cathode + solvent.\n- **Li/SO₂** — high rate variant for cold/military.\n- **Li/I₂** — solid-state, ~25-yr life, near-zero self-discharge. Cardiac pacemakers since 1972 (Wilson Greatbatch). Saves lives daily.\n\n**Zn-air primary + secondary** — Zn anode, O₂ from air at cathode (porous carbon + catalyst). Very high energy density ~400 Wh/kg (since cathode is free air). Hearing aids — disposable button cells. Rechargeable Zn-air still under development (OER instability + Zn dendrites).\n\n**Why Li primaries dominate niches** — Li's E° = -3.04 V + low atomic weight (6.94 g/mol) maximize gravimetric energy. Non-aqueous electrolytes (carbonates, SOCl₂) avoid the 1.23 V water window. Sealed packaging avoids self-discharge.\n\n**A note on safety + recycling** — primary Li has thermal runaway risk if crushed/short-circuited; aviation regs treat them carefully. Pb is toxic but the 99% recycling rate makes it sustainable. Li-ion recycling is far less mature (~5% globally; Redwood Materials, Li-Cycle, Hydrovolt are scaling)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_bat_energy",
+        "kind": "guided_derivation",
+        "question": "Estimate gravimetric energy density of a hypothetical cell",
+        "goal": "Given E_cell = 3.7 V and theoretical capacity 200 mAh/g (active mass only), compute the active-material-level Wh/kg and explain why pack-level is much lower.",
+        "steps": [
+          {
+            "prompt": "Active-material energy density = capacity × voltage. Plug in 200 mAh/g and 3.7 V.",
+            "motivation": "Wh/kg of active.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "740 Wh/kg",
+                "0.74 kWh/kg",
+                "740"
+              ]
+            },
+            "hints": [
+              "200 mAh/g × 3.7 V = ? in Wh/kg.",
+              "200 mAh/g = 0.2 Ah/g; × 3.7 V = 0.74 Wh/g = 740 Wh/kg."
+            ],
+            "reveal": "200 mAh/g × 3.7 V = 740 Wh/kg of active material — this is the *theoretical* electrode-level energy."
+          },
+          {
+            "prompt": "Pack-level is lower because of binder, conductive carbon, current collectors (Cu + Al foil), separator, electrolyte, casing, tab, BMS, thermal management. Estimate the fraction of mass that's active material in a typical Li-ion cell.",
+            "motivation": "Mass overhead.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "30-40%",
+                "~35%",
+                "around 1/3"
+              ]
+            },
+            "hints": [
+              "Most cell mass is non-active."
+            ],
+            "reveal": "Typical Li-ion cell: cathode active ~25-30% of cell mass; anode active ~15%; total active ~40%. Cell-level capacity ~50% of active-material theoretical for many practical chemistries."
+          },
+          {
+            "prompt": "If active is 40% of cell mass + we achieve 60% of theoretical at the cell level, what's cell-level energy?",
+            "motivation": "Cell level.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~180 Wh/kg",
+                "180",
+                "~200"
+              ]
+            },
+            "hints": [
+              "740 × 0.40 × 0.60."
+            ],
+            "reveal": "740 × 0.40 × 0.60 ≈ 178 Wh/kg cell — matches typical commercial NMC cells (~250 Wh/kg with better utilization)."
+          },
+          {
+            "prompt": "Pack-level adds ~30-40% more mass (modules, BMS, cooling, structure). Estimate.",
+            "motivation": "Pack level.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "~120 Wh/kg",
+                "120",
+                "~130"
+              ]
+            },
+            "hints": [
+              "Pack-to-cell ratio ~0.65-0.75."
+            ],
+            "reveal": "Cell-to-pack mass ratio is typically ~70% for EV packs. 180 × 0.70 ≈ 126 Wh/kg pack. Tesla 4680 + CATL Qilin + BYD blade are pushing cell-to-pack >0.80 with structural packs."
+          }
+        ],
+        "finalResult": "$$\\boxed{\\text{Active: 740 Wh/kg} \\rightarrow \\text{Cell: ~180 Wh/kg} \\rightarrow \\text{Pack: ~125 Wh/kg}}$$\n\nWhy energy-density claims must specify level — active-material, cell, module, or pack. EV brochures usually quote pack. Headline lab numbers usually quote active material. ~5x difference!"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_bat_c_rate",
+        "kind": "multiple_choice",
+        "question": "A 5 Ah cell is discharged at 10 A. Express the discharge rate as a C-rate.",
+        "options": [
+          "0.5 C.",
+          "2 C — the C-rate is current/capacity = 10 A / 5 Ah = 2 h⁻¹, conventionally written 2 C. 1 C would drain in 1 hr; 2 C drains in 30 minutes. High C-rates increase polarization (Butler-Volmer overpotentials) + ohmic heating + accelerated degradation (Li plating risk on graphite anodes during fast charge).",
+          "10 C.",
+          "0.2 C."
+        ],
+        "correctIndex": 1,
+        "explanation": "C-rate = current/capacity. 10 A / 5 Ah = 2 C. The cell discharges in 30 minutes at this rate. Higher C-rates degrade cells faster + waste more energy to heat."
+      },
+      "hints": [
+        "C-rate = current/capacity."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "10 A / 5 Ah = 2 C."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_bat_choose",
+        "kind": "scenario",
+        "question": "Pick a primary chemistry for a remote pipeline sensor",
+        "prompt": "You need a battery for a remote pipeline corrosion sensor: 20-year design life, very low average current (μA), occasional pulse current (mA), -40 to +50 °C operating range. Which primary Li chemistry would you choose and why?"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_bat_ce",
+        "kind": "math_expression",
+        "question": "A Li-ion cell has Coulombic efficiency 99.5% per cycle. What fraction of original capacity remains after 200 cycles (assuming losses compound)? Round to 2 decimals.",
+        "acceptedAnswers": [
+          "0.37",
+          "0.367",
+          "0.3679"
+        ],
+        "hint": "0.995^200 ≈ ?"
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_bat_metrics",
+        "kind": "explain_back",
+        "prompt": "In ≤120 words, explain how Wh/kg, C-rate, SOC, cycle life, and Coulombic efficiency together characterize a battery + why pack-level vs active-material energy can differ by 5x.",
+        "rubric": "Mentions: gravimetric energy density Wh/kg = capacity × voltage. C-rate = current/capacity normalizes rate (1C = full drain in 1 hr). SOC = state-of-charge fraction; Coulomb-counting or model-based estimation. Cycle life = cycles to 80% capacity; depends on DOD, C-rate, temperature. Coulombic efficiency = Q_discharge/Q_charge ~99.9% for Li-ion; cumulative losses bound cycle life. Energy efficiency < CE due to voltage hysteresis. Pack-level << active-material because of binder, conductive C, current collectors, separator, electrolyte, casing, BMS, cooling, structure — active is only ~40% of cell mass, cell-to-pack ratio ~70%, utilization ~60%, multiplying to give pack/active ~5x ratio. Why brochure specs must always state level."
+      }
+    }
+  ]
+}
