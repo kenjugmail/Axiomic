@@ -39,6 +39,9 @@ jobs:
           bun run db:migrate
           bun run db:seed
 
+      - name: Validate prereq graph
+        run: bun run check:prereqs
+
       - name: Unit tests
         run: bun run test
 
