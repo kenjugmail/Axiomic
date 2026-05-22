@@ -1,0 +1,109 @@
+{
+  "slug": "heat-treatment-and-ttt-diagrams",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Describe annealing, normalizing, quenching, and tempering and their effects on microstructure.",
+      "Read TTT and CCT diagrams and explain martensite formation by diffusionless shear.",
+      "Quantify hardenability using the Jominy end-quench test."
+    ],
+    "prereqs": [
+      "phase-diagrams-and-transformations"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The four classical heat treatments",
+      "body": "**Heat treatment** is the controlled heating and cooling of a metal to achieve a desired microstructure and set of properties without changing its shape. For steels, four operations form the classical repertoire, all built on the iron-carbon transformations.\n\n- **Annealing** (full annealing): heat the steel above the upper critical temperature (the **A3** or **Acm** line) to form homogeneous austenite, then cool very slowly, usually in the furnace. Slow cooling allows full carbon diffusion, producing coarse, equilibrium **pearlite** and **proeutectoid ferrite**. Annealing maximizes ductility and machinability, relieves internal stresses, and softens work-hardened metal. Subtypes include **process annealing**, **stress-relief annealing**, and **spheroidizing**, in which prolonged heating just below A1 coalesces cementite into spheroids for optimum machinability of high-carbon steels.\n- **Normalizing**: austenitize as for annealing, then cool in still **air** — faster than furnace cooling but slower than quenching. The faster rate produces finer pearlite and a more uniform, refined grain structure, giving higher strength and toughness than annealing. Normalizing is the standard treatment to refine the coarse grains left by casting, forging, or welding.\n- **Quenching** (hardening): austenitize, then cool very rapidly in water, brine, oil, or polymer. Rapid cooling suppresses carbon diffusion entirely, transforming austenite into **martensite**, a very hard but brittle phase. The quench medium sets the cooling rate: brine is the most severe, then water, then oil, then air.\n- **Tempering**: reheat the quenched, martensitic steel to an intermediate temperature (typically 150 to 650 degrees C) and hold, then cool. Tempering allows the supersaturated carbon in martensite to precipitate as fine carbides, relieving internal stress and trading some hardness for greatly improved **toughness** and ductility. The combination of quenching followed by tempering — called **quench and temper (Q&T)** — is the workhorse process for producing tough, strong structural and tool steels.\n\nThe scientific basis for predicting which microstructure results from a given cooling path was established by **Edgar Collins Bain** and **Davenport** at the United States Steel laboratories in the 1930s, who introduced the isothermal transformation diagram. The **Jominy** end-quench test, the **Grossmann** hardenability factors, and the modern alloy design that flows from them all rest on these foundations. Heat treatment is where the equilibrium phase diagram meets the real-world clock of diffusion."
+    },
+    {
+      "kind": "text",
+      "title": "TTT and CCT diagrams: the kinetics of transformation",
+      "body": "Because austenite decomposition is governed by **diffusion**, what microstructure forms depends not only on temperature but on **time**. This is captured by the **Time-Temperature-Transformation (TTT)** diagram, also called the **isothermal transformation (IT)** diagram, introduced by **Bain** and **Davenport** in 1930. A TTT diagram plots temperature (vertical) against logarithmic time (horizontal) and shows, for a steel rapidly cooled to and held at a fixed temperature, when transformation begins and ends.\n\nThe characteristic shape is a pair of **C-curves** (the 'nose' diagram). At temperatures just below the eutectoid (727 degrees C), transformation to **coarse pearlite** is slow because, although diffusion is fast, the driving force (undercooling) is small. At lower temperatures the driving force grows but diffusion slows; the competition produces a **nose** — the temperature of fastest transformation, typically around 540 degrees C for plain-carbon eutectoid steel. Above the nose, austenite forms pearlite (coarse to fine as temperature drops). Below the nose, it forms **bainite**, a fine non-lamellar aggregate of ferrite and cementite discovered by and named for Bain — **upper bainite** (feathery) and **lower bainite** (acicular). The kinetics follow the **Johnson-Mehl-Avrami-Kolmogorov (JMAK)** equation $f = 1 - \\exp(-kt^n)$.\n\nTwo horizontal lines mark the **martensite** range: the **martensite start temperature $M_s$** (around 220 degrees C for eutectoid steel) and the **martensite finish $M_f$**. Martensite forms only on continued cooling below $M_s$, not isothermally.\n\nReal industrial quenches cool *continuously*, not isothermally, so engineers use the related **Continuous-Cooling-Transformation (CCT)** diagram. On a CCT diagram, superimposed cooling curves show the outcome of a given cooling rate. A key parameter is the **critical cooling rate** — the slowest rate that misses the nose entirely and produces fully martensitic steel. If a cooling curve passes to the *left* of the nose, transformation to pearlite or bainite is avoided and martensite results; if it cuts through the nose, a mixed microstructure forms. Alloying elements such as **chromium**, **molybdenum**, **manganese**, and **nickel** shift the C-curves to the *right* (longer times), making it easier to form martensite at slower cooling rates. This shift is the essence of **hardenability**, the subject of the Jominy test."
+    },
+    {
+      "kind": "text",
+      "title": "Martensite, hardenability, and the Jominy test",
+      "body": "**Martensite** is the hard constituent that gives quenched steel its strength. It forms by a **diffusionless**, cooperative shear of the austenite lattice: when cooling is fast enough that carbon atoms cannot diffuse out of solution, the FCC austenite transforms by a coordinated shuffle into a **body-centered tetragonal (BCT)** structure, with the trapped carbon distorting the cube into a tetragonal cell. Because no atomic diffusion occurs, martensite forms almost at the speed of sound and is **athermal** — its amount depends on how far below $M_s$ the steel is cooled, not on time. The tetragonal distortion and high dislocation density make martensite extremely hard; its hardness rises sharply with carbon content, reaching above **65 HRC** (Rockwell C) in high-carbon steels. The mechanism was elucidated by **Gustav Tammann**, by the crystallographic theory of **Bain** (the **Bain strain**), and by the phenomenological theory of **Wechsler, Lieberman, and Read** in the 1950s.\n\nFreshly formed martensite is brittle and contains high residual stresses, so it is almost always **tempered**. On tempering, the supersaturated carbon precipitates first as transition **epsilon-carbide**, then as fine cementite, progressively softening the structure into **tempered martensite** — an exceptionally tough combination of fine carbides in a ferrite matrix. Excessive tempering, or certain alloy steels held in specific temperature ranges, can cause **temper embrittlement**.\n\nThe practical question is: how *deeply* into a part will martensite form on quenching? The surface always cools fastest; the interior may cool too slowly to miss the TTT nose. **Hardenability** is the capacity of a steel to harden in depth, and it is distinct from maximum hardness (which depends mainly on carbon content). It is measured by the **Jominy end-quench test**, standardized as **ASTM A255** and developed by **Walter Jominy** and **A. L. Boegehold** in 1938. A standard cylindrical bar, austenitized, is mounted vertically and quenched by a jet of water striking only its bottom end. This produces a continuous gradient of cooling rate from the rapidly cooled quenched end to the slowly cooled far end. After quenching, a flat is ground along the bar and **Rockwell C hardness** is measured at intervals. The resulting **Jominy hardenability curve** (hardness versus distance from the quenched end) characterizes the steel: a flat curve that stays hard far from the end indicates high hardenability. Alloying with **chromium, molybdenum, manganese, nickel, and boron** dramatically increases hardenability by shifting the CCT curves to longer times. The related **Grossmann ideal critical diameter ($D_I$)** quantifies the same property as the bar diameter that would just harden to 50% martensite at the center in an ideal quench. Together, the Jominy curve and Grossmann factors let designers select a steel that will harden fully throughout a part of given section size."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ht_martensite",
+        "kind": "multiple_choice",
+        "question": "Which statement best describes the formation of martensite in steel?",
+        "options": [
+          "It forms by slow diffusion of carbon over long times at high temperature.",
+          "It forms by a diffusionless shear of austenite into a body-centered-tetragonal structure when cooling is fast enough to trap carbon.",
+          "It is the equilibrium product of slow furnace cooling.",
+          "It forms only by holding steel isothermally just below the eutectoid temperature."
+        ],
+        "correctIndex": 1,
+        "explanation": "Martensite forms by a diffusionless, athermal shear transformation. When austenite is quenched fast enough that carbon cannot diffuse out, the FCC lattice shears into a supersaturated body-centered-tetragonal cell. Its amount depends on undercooling below Ms, not on time, distinguishing it from the diffusion-controlled pearlite and bainite."
+      },
+      "hints": [
+        "Note the word 'quench' implies speed, not slow diffusion.",
+        "The carbon is trapped, distorting the cube into a tetragonal cell."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Martensite is the product of a diffusionless (athermal) shear of austenite, giving a carbon-supersaturated body-centered-tetragonal structure (option B). Because no diffusion occurs, it forms nearly instantaneously and its fraction depends on how far below Ms the steel is cooled. Slow cooling (options A, C) yields equilibrium pearlite/ferrite; isothermal holding below the nose (option D) yields bainite or pearlite, not martensite."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ht_jominy",
+        "kind": "scenario",
+        "question": "Interpreting a Jominy curve for part selection",
+        "prompt": "Two steels, a plain-carbon AISI 1040 and an alloy AISI 4140 (with chromium and molybdenum), have the same 0.40% carbon and therefore similar surface hardness when fully quenched, but their Jominy curves differ sharply: the 1040 curve drops off rapidly with distance from the quenched end, while the 4140 curve stays high much farther along the bar. You must specify a steel for a large-diameter axle that must be hard throughout its cross-section. Explain which steel to choose and why, referring to hardenability, the role of the alloying elements in shifting the CCT nose, and the difference between hardenability and maximum hardness."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_ht_temper",
+        "kind": "math_expression",
+        "question": "A tempering schedule uses the Hollomon-Jaffe tempering parameter P = T(C + log t), with T in kelvin, t in hours, and C = 20. For a temper at T = 600 K held for t = 1 hour, compute P. (Note log 1 = 0.)",
+        "acceptedAnswers": [
+          "12000",
+          "12000 ",
+          "1.2e4",
+          "12,000"
+        ],
+        "hint": "log(1) = 0, so P = T(C + 0) = 600 * 20 = 12000."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_ht_process",
+        "kind": "multiple_choice",
+        "question": "A steel part is austenitized and then cooled in still air rather than in a furnace or a quench bath. Which heat treatment is this, and what is the typical effect?",
+        "options": [
+          "Full annealing, which produces the coarsest pearlite and lowest hardness",
+          "Normalizing, which refines grain size and gives finer pearlite, higher strength than annealing",
+          "Quenching, which produces fully martensitic structure",
+          "Tempering, which precipitates carbides from martensite"
+        ],
+        "correctIndex": 1,
+        "explanation": "Air cooling from the austenitizing temperature is normalizing. It cools faster than furnace annealing but slower than a liquid quench, producing finer pearlite and a refined, uniform grain structure with higher strength and toughness than the annealed condition. It is the standard remedy for the coarse grains left by casting, forging, or welding."
+      },
+      "hints": [
+        "Air cooling is intermediate in rate between furnace cooling and a water quench.",
+        "Faster than annealing means finer pearlite."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Still-air cooling after austenitizing is normalizing (option B). Its cooling rate exceeds furnace annealing but is far below a quench, so it forms fine pearlite and refines grain size, giving a uniform structure with strength and toughness above the annealed state. Full annealing (A) uses slow furnace cooling for maximum softness; quenching (C) forms martensite; tempering (D) follows a quench."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_ht_ttt",
+        "kind": "scenario",
+        "question": "Reading a cooling path on a TTT/CCT diagram",
+        "prompt": "You have the CCT diagram for a eutectoid steel showing the pearlite and bainite C-curves with a nose near 540 degrees C, plus the Ms and Mf lines near 220 degrees C and below. You quench a thin section so fast that its cooling curve passes entirely to the left of the nose, and a thick section so slowly that its cooling curve cuts through the nose. Predict the room-temperature microstructure of each section, explain the concept of the critical cooling rate, and describe how adding chromium and molybdenum would change the outcome for the thick section."
+      }
+    }
+  ]
+}

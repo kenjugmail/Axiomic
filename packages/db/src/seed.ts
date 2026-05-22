@@ -4221,6 +4221,66 @@ function seedMasteryPaths() {
     ],
   });
 
+  // Triplet 19 — Hydrologist. The water cycle from Perrault through
+  // precipitation/ET, infiltration, groundwater, streamflow, floods, water
+  // quality, to remote-sensing + climate hydrology.
+  seedMasteryPath({
+    slug: "hydrologist",
+    title: "Hydrologist",
+    description:
+      "The water cycle from Pierre Perrault through precipitation + evapotranspiration, infiltration, groundwater (Darcy), streamflow + the unit hydrograph, flood-frequency analysis, water quality, to the remote-sensing + climate-hydrology frontier.",
+    nodes: [
+      { slug: "hydrology-history-and-the-hydrograph", title: "History + the Hydrograph", level: "apprentice", order: 1, pages: [], prereqs: [], description: "Perrault, Mariotte, Halley, Horton; the hydrologic cycle + the storm hydrograph — peak discharge, lag time, baseflow (interactive)." },
+      { slug: "precipitation-and-evapotranspiration", title: "Precipitation + Evapotranspiration", level: "apprentice", order: 2, pages: [], prereqs: ["hydrology-history-and-the-hydrograph"], description: "Precipitation measurement, the water balance P = Q + ET + ΔS, evaporation/transpiration, the Penman–Monteith equation." },
+      { slug: "infiltration-and-soil-water", title: "Infiltration + Soil Water", level: "practitioner", order: 3, pages: [], prereqs: ["precipitation-and-evapotranspiration"], description: "Horton's infiltration equation, the Green–Ampt model, field capacity vs wilting point, the vadose zone, Richards' equation." },
+      { slug: "groundwater-and-darcys-law", title: "Groundwater + Darcy's Law", level: "practitioner", order: 4, pages: [], prereqs: ["infiltration-and-soil-water"], description: "Confined vs unconfined aquifers, porosity, Darcy's law Q = −KA·dh/dl, hydraulic conductivity, the Theis well solution." },
+      { slug: "streamflow-and-watershed-hydrology", title: "Streamflow + Watershed Hydrology", level: "specialist", order: 5, pages: [], prereqs: ["groundwater-and-darcys-law"], description: "Watersheds, the rational method Q = CiA, Sherman's unit hydrograph, stream gauging + rating curves, time of concentration." },
+      { slug: "floods-and-frequency-analysis", title: "Floods + Frequency Analysis", level: "expert", order: 6, pages: [], prereqs: ["streamflow-and-watershed-hydrology"], description: "Flood-frequency analysis (Gumbel), return period + the 100-year flood, Muskingum flood routing." },
+      { slug: "water-quality-and-contaminant-transport", title: "Water Quality + Contaminant Transport", level: "expert", order: 7, pages: [], prereqs: ["groundwater-and-darcys-law"], description: "The advection–dispersion equation, point vs non-point pollution, the hyporheic zone, eutrophication + TMDLs." },
+      { slug: "frontiers-remote-sensing-and-climate-hydrology", title: "Remote Sensing + Climate Hydrology", level: "researcher", order: 8, pages: [], prereqs: ["floods-and-frequency-analysis"], description: "Satellite hydrology (GRACE, SWOT), distributed models (SWAT, VIC), the intensifying water cycle, ML streamflow forecasting." },
+    ],
+  });
+
+  // Triplet 19 — Metallurgist. Steel science from Bessemer + the iron–carbon
+  // diagram through crystal defects, phase transformations, heat treatment,
+  // mechanical properties, failure, extraction, to advanced alloys.
+  seedMasteryPath({
+    slug: "metallurgist",
+    title: "Metallurgist",
+    description:
+      "Steel + metals science from the Bessemer process and the iron–carbon diagram through crystal structures + defects, phase transformations, heat treatment, mechanical properties, failure/fatigue/creep, extractive metallurgy, to the additive + advanced-alloy frontier.",
+    nodes: [
+      { slug: "metallurgy-history-and-the-iron-carbon-diagram", title: "History + the Iron–Carbon Diagram", level: "apprentice", order: 1, pages: [], prereqs: [], description: "Bessemer, Sorby, Roberts-Austen; the Fe–C phase diagram + the eutectoid (0.76% C, 727°C) → pearlite (interactive)." },
+      { slug: "crystal-structures-and-defects", title: "Crystal Structures + Defects", level: "apprentice", order: 2, pages: [], prereqs: ["metallurgy-history-and-the-iron-carbon-diagram"], description: "BCC/FCC/HCP lattices, point defects, dislocations (Taylor–Orowan–Polanyi), grain boundaries, slip systems, the Burgers vector." },
+      { slug: "phase-diagrams-and-transformations", title: "Phase Diagrams + Transformations", level: "practitioner", order: 3, pages: [], prereqs: ["crystal-structures-and-defects"], description: "Binary diagrams, the lever rule, eutectic/eutectoid/peritectic, the Gibbs phase rule, austenite → pearlite/ferrite/cementite." },
+      { slug: "heat-treatment-and-ttt-diagrams", title: "Heat Treatment + TTT Diagrams", level: "practitioner", order: 4, pages: [], prereqs: ["phase-diagrams-and-transformations"], description: "Annealing, normalizing, quench + temper, TTT/CCT diagrams, martensite, hardenability + the Jominy test." },
+      { slug: "mechanical-properties-and-strengthening", title: "Mechanical Properties + Strengthening", level: "specialist", order: 5, pages: [], prereqs: ["crystal-structures-and-defects"], description: "Stress–strain, yield/UTS, the Hall–Petch relation, work hardening, solid-solution + precipitation strengthening." },
+      { slug: "failure-fatigue-and-creep", title: "Failure, Fatigue + Creep", level: "expert", order: 6, pages: [], prereqs: ["mechanical-properties-and-strengthening"], description: "Ductile vs brittle fracture, Griffith theory, fatigue (Wöhler S–N), the ductile–brittle transition, high-T creep." },
+      { slug: "extractive-and-physical-metallurgy", title: "Extractive + Physical Metallurgy", level: "expert", order: 7, pages: [], prereqs: ["heat-treatment-and-ttt-diagrams"], description: "The blast furnace, Hall–Héroult aluminium, refining, casting + solidification, powder metallurgy, key alloy families." },
+      { slug: "frontiers-additive-and-advanced-alloys", title: "Additive + Advanced Alloys", level: "researcher", order: 8, pages: [], prereqs: ["failure-fatigue-and-creep"], description: "Metal 3D printing (SLM), high-entropy alloys, metallic glasses, titanium + nickel superalloys, ICME." },
+    ],
+  });
+
+  // Triplet 19 — Optometrist. Vision from Alhazen + Helmholtz through eye
+  // optics, anatomy, acuity testing, binocular vision, ocular disease,
+  // corrective options, to AI + vision-science frontiers.
+  seedMasteryPath({
+    slug: "optometrist",
+    title: "Optometrist",
+    description:
+      "Vision science from Ibn al-Haytham + Helmholtz through the optics of the eye + refractive error, ocular anatomy, acuity + refraction testing, binocular vision + accommodation, ocular disease, corrective options, to the AI + vision-science frontier.",
+    nodes: [
+      { slug: "optometry-history-and-eye-refraction", title: "History + Eye Refraction", level: "apprentice", order: 1, pages: [], prereqs: [], description: "Alhazen, Kepler, Helmholtz, Snellen, Donders; the eye as an optical system — diopters, emmetropia/myopia/hyperopia (interactive)." },
+      { slug: "optics-of-the-eye-and-refractive-error", title: "Optics + Refractive Error", level: "apprentice", order: 2, pages: [], prereqs: ["optometry-history-and-eye-refraction"], description: "Cornea + lens power (~60 D), myopia/hyperopia/astigmatism/presbyopia, near + far points, Gullstrand's schematic eye." },
+      { slug: "ocular-anatomy-and-physiology", title: "Ocular Anatomy + Physiology", level: "practitioner", order: 3, pages: [], prereqs: ["optics-of-the-eye-and-refractive-error"], description: "Cornea, aqueous humor, iris + pupil, the crystalline lens, the retina (rods/cones/fovea), the optic nerve, intraocular pressure." },
+      { slug: "visual-acuity-and-refraction-testing", title: "Visual Acuity + Refraction Testing", level: "practitioner", order: 4, pages: [], prereqs: ["ocular-anatomy-and-physiology"], description: "Snellen vs LogMAR, retinoscopy, autorefraction, the phoropter + Jackson cross-cylinder, reading a sphere/cylinder/axis Rx." },
+      { slug: "binocular-vision-and-accommodation", title: "Binocular Vision + Accommodation", level: "specialist", order: 5, pages: [], prereqs: ["visual-acuity-and-refraction-testing"], description: "Helmholtz accommodation, convergence + the AC/A ratio, phorias vs tropias, strabismus, amblyopia, stereopsis." },
+      { slug: "ocular-disease-and-diagnosis", title: "Ocular Disease + Diagnosis", level: "expert", order: 6, pages: [], prereqs: ["ocular-anatomy-and-physiology"], description: "Glaucoma (tonometry, the optic disc), cataract, AMD, diabetic retinopathy; the slit lamp, OCT, fundus photography." },
+      { slug: "contact-lenses-and-corrective-options", title: "Contact Lenses + Corrective Options", level: "expert", order: 7, pages: [], prereqs: ["binocular-vision-and-accommodation"], description: "Spectacle + contact-lens design, refractive surgery (LASIK, PRK, SMILE), intraocular lenses, orthokeratology, myopia control." },
+      { slug: "frontiers-ai-and-vision-science", title: "AI + Vision-Science Frontiers", level: "researcher", order: 8, pages: [], prereqs: ["ocular-disease-and-diagnosis"], description: "AI fundus screening (IDx-DR), retinal gene therapy (Luxturna), retinal implants, adaptive optics, teleoptometry, the myopia epidemic." },
+    ],
+  });
+
   seedExamPrepPaths();
 }
 

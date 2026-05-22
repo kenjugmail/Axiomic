@@ -75,6 +75,9 @@ import { AstExplorer } from "../src/components/AstExplorer";
 import { ControlFlowGraph } from "../src/components/ControlFlowGraph";
 import { TraceWaterfall } from "../src/components/TraceWaterfall";
 import { ConsistentHashing } from "../src/components/ConsistentHashing";
+import { Hydrograph } from "../src/components/Hydrograph";
+import { IronCarbonDiagram } from "../src/components/IronCarbonDiagram";
+import { EyeRefraction } from "../src/components/EyeRefraction";
 
 const VIZ_COMPONENTS = {
   KinshipDiagram,
@@ -142,6 +145,9 @@ const VIZ_COMPONENTS = {
   ControlFlowGraph,
   TraceWaterfall,
   ConsistentHashing,
+  Hydrograph,
+  IronCarbonDiagram,
+  EyeRefraction,
 };
 
 describe("viz components — SSR smoke tests", () => {

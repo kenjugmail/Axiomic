@@ -1,0 +1,110 @@
+{
+  "slug": "phase-diagrams-and-transformations",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Read binary phase diagrams and apply the lever rule to find phase amounts.",
+      "Distinguish eutectic, eutectoid, and peritectic reactions and apply the Gibbs phase rule.",
+      "Trace the transformations of the iron-carbon system from austenite to ferrite, cementite, and pearlite."
+    ],
+    "prereqs": [
+      "metallurgy-history-and-the-iron-carbon-diagram",
+      "crystal-structures-and-defects"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Binary phase diagrams and the Gibbs phase rule",
+      "body": "A **phase diagram** is a map of which **phases** are thermodynamically stable as a function of composition, temperature, and (usually fixed) pressure. The intellectual foundation is the **Gibbs phase rule**, derived by **Josiah Willard Gibbs** between 1875 and 1878:\n\n$$F = C - P + 2$$\n\nHere $C$ is the number of chemical **components**, $P$ the number of **phases** in equilibrium, and $F$ the number of **degrees of freedom** — the independent variables (temperature, pressure, composition) one may change without altering the number of phases. For a **binary** (two-component) system at fixed pressure, the rule reduces to the **condensed phase rule** $F = C - P + 1$. With one phase present ($P=1$), $F=2$: both temperature and composition are free. With two phases ($P=2$), $F=1$: fixing temperature fixes the compositions of both phases. With three phases ($P=3$), $F=0$: an **invariant point** at fixed temperature and composition.\n\nThe **isomorphous system** is the simplest binary diagram, occurring when two metals are completely soluble in each other in both liquid and solid states — for example **copper-nickel** or **germanium-silicon**. Such a diagram has just two boundary curves: the **liquidus**, above which everything is liquid, and the **solidus**, below which everything is solid. Between them lies a two-phase liquid-plus-solid region. The **Hume-Rothery rules**, formulated by **William Hume-Rothery**, predict complete solid solubility only when the two metals have similar atomic radii (within about 15%), the same crystal structure, similar electronegativity, and the same valence. When these conditions fail, the components instead form **limited solid solutions**, **intermetallic compounds**, or eutectic systems.\n\nAn important real effect during freezing is **coring** (microsegregation): because solid and liquid have different compositions along the tie-line, and diffusion in the solid is slow, the first solid to form is richer in the high-melting component than the last. The result is a chemically inhomogeneous grain that must be removed by a **homogenization anneal**. The principle behind controlled freezing, **constitutional supercooling**, was analyzed by **William Tiller**, **John Cahn**, and co-workers in 1953 and governs the formation of dendrites in castings. Phase diagrams are thus not abstractions but the working maps from which every casting, weld, and heat treatment is planned."
+    },
+    {
+      "kind": "text",
+      "title": "The lever rule and the three-phase reactions",
+      "body": "Within any two-phase region of a binary diagram, two quantities must be read at a given temperature. A horizontal **tie-line** (also called a **conode**) drawn across the two-phase field intersects the two phase boundaries; the intersections give the **compositions** of the two coexisting phases. The relative *amounts* of the phases are then given by the **lever rule**.\n\nIf the overall alloy composition is $C_0$, and the two phases have compositions $C_\\alpha$ and $C_\\beta$ (with $C_\\alpha < C_0 < C_\\beta$), then the mass fraction of each phase is found by treating the tie-line as a lever balanced at $C_0$:\n\n$$W_\\alpha = \\frac{C_\\beta - C_0}{C_\\beta - C_\\alpha}, \\qquad W_\\beta = \\frac{C_0 - C_\\alpha}{C_\\beta - C_\\alpha}$$\n\nThe fraction of each phase is proportional to the length of the lever arm on the *opposite* side of $C_0$ — a frequent source of student error. The lever rule is simply a statement of **conservation of mass** for the solute.\n\nBinary diagrams also feature **invariant reactions**, where three phases coexist at a single temperature ($F = 0$). The three most important are:\n\n- **Eutectic**: one liquid transforms on cooling into two solids, $L \\rightarrow \\alpha + \\beta$. Classic example: the **lead-tin** solder system, eutectic at 61.9 wt% Sn and 183 degrees C; also the **aluminium-silicon** casting alloys. A eutectic alloy melts and freezes at a single temperature, lower than either pure component.\n- **Eutectoid**: one solid transforms into two solids, $\\gamma \\rightarrow \\alpha + \\beta$. The defining example is the iron-carbon eutectoid at 0.76 wt% C and 727 degrees C, producing **pearlite**.\n- **Peritectic**: a solid and a liquid combine on cooling to form a different solid, $L + \\alpha \\rightarrow \\beta$. The iron-carbon system has a peritectic at about 0.16 wt% C and 1493 degrees C, where liquid plus delta-ferrite yield austenite.\n\nTwo further reactions complete the family: the **monotectic** ($L_1 \\rightarrow \\alpha + L_2$) and the **peritectoid** ($\\alpha + \\beta \\rightarrow \\gamma$, all solid). Recognizing the geometric signature of each — a V-shaped valley for a eutectic-type, an upside-down configuration for a peritectic-type — lets a metallurgist read any diagram at a glance and predict the solidification or solid-state path of an alloy."
+    },
+    {
+      "kind": "text",
+      "title": "Transformations in the iron-carbon system",
+      "body": "The iron-carbon diagram combines several of these features into the most studied phase diagram in engineering. Consider the slow, near-equilibrium cooling of three steels from the austenite field.\n\nA **eutectoid steel** (0.76 wt% C) cooled below 727 degrees C undergoes the **eutectoid reaction** entirely: austenite of 0.76% C transforms into alternating lamellae of **ferrite** (0.022% C) and **cementite** ($Fe_3C$, 6.67% C). This lamellar aggregate is **pearlite**, first interpreted by **Henry Clifton Sorby**. The lever rule applied just below 727 degrees C across the ferrite-cementite tie-line gives the phase fractions: roughly **88% ferrite and 12% cementite** by mass, since $(6.67 - 0.76)/(6.67 - 0.022) \\approx 0.89$.\n\nA **hypoeutectoid steel** (say 0.40% C) first crosses the **A3 line**, where **proeutectoid ferrite** nucleates at the prior austenite grain boundaries. As temperature falls, more ferrite forms and the remaining austenite is enriched in carbon, tracking along the A3 line toward 0.76% C. At 727 degrees C the remaining austenite, now at the eutectoid composition, transforms to pearlite. The final microstructure is therefore networks of soft proeutectoid ferrite separating islands of pearlite. The lever rule applied just above 727 degrees C predicts how much of each: the proeutectoid ferrite fraction is $(0.76 - 0.40)/(0.76 - 0.022) \\approx 0.49$.\n\nA **hypereutectoid steel** (say 1.2% C) instead first crosses the **Acm line**, where **proeutectoid cementite** forms, typically as a brittle network along grain boundaries; the remaining austenite depletes toward 0.76% C and then transforms to pearlite at 727 degrees C. The grain-boundary cementite network is a classic embrittlement concern, addressed in practice by **spheroidizing** anneals.\n\nThe **kinetics** of these transformations — how fast they happen — are as important as the equilibrium positions. The decomposition of austenite is a **nucleation-and-growth** process governed by carbon diffusion, described quantitatively by the **Johnson-Mehl-Avrami-Kolmogorov (JMAK)** equation, $f = 1 - \\exp(-kt^n)$, where $f$ is the fraction transformed. Slow cooling allows full diffusion and yields coarse pearlite; faster cooling yields fine pearlite or **bainite**; quenching suppresses diffusion entirely and produces **martensite**, a topic for the heat-treatment lesson. Thus the equilibrium iron-carbon diagram tells us *what* phases are stable, while transformation kinetics tell us *which* we actually get for a given cooling history."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_pd_lever",
+        "kind": "math_expression",
+        "question": "A plain-carbon steel of 0.40 wt% C is cooled to just above 727 degrees C, where austenite (0.76% C) coexists with proeutectoid ferrite (0.022% C). Using the lever rule, find the mass fraction of proeutectoid ferrite. Give a decimal to two places.",
+        "acceptedAnswers": [
+          "0.49",
+          "0.49 ",
+          "0.488",
+          "49%"
+        ],
+        "hint": "W_ferrite = (C_austenite - C0)/(C_austenite - C_ferrite) = (0.76 - 0.40)/(0.76 - 0.022) = 0.36/0.738 = 0.49."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_pd_reaction",
+        "kind": "multiple_choice",
+        "question": "A reaction in which a single solid phase decomposes on cooling into two different solid phases is called a:",
+        "options": [
+          "Eutectic reaction",
+          "Peritectic reaction",
+          "Eutectoid reaction",
+          "Monotectic reaction"
+        ],
+        "correctIndex": 2,
+        "explanation": "A eutectoid reaction is solid -> solid + solid (gamma -> alpha + Fe3C in steel). A eutectic is liquid -> solid + solid. A peritectic is liquid + solid -> solid. A monotectic is liquid -> solid + a second liquid. The '-oid' suffix signals an all-solid analogue of the corresponding liquid-involving reaction."
+      },
+      "hints": [
+        "The '-oid' suffix denotes an all-solid reaction.",
+        "Think of the iron-carbon transformation at 727 degrees C that produces pearlite."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "An all-solid decomposition of one solid into two solids is a eutectoid reaction (option C), exemplified by austenite -> ferrite + cementite at the iron-carbon eutectoid (0.76% C, 727 C), producing pearlite. The eutectic involves a liquid; the peritectic combines liquid and solid into a new solid; the monotectic yields a solid plus a second liquid."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_pd_gibbs",
+        "kind": "scenario",
+        "question": "Applying the Gibbs phase rule at the eutectoid",
+        "prompt": "Consider the iron-carbon system at the eutectoid point, where austenite, ferrite, and cementite coexist. Treating it as a binary (two-component: Fe and C) system at fixed pressure, apply the condensed Gibbs phase rule F = C - P + 1 to determine the degrees of freedom when all three phases are present. Explain why this implies the eutectoid transformation must occur at a fixed temperature (727 degrees C) and fixed phase compositions, and contrast this with a single-phase austenite region where temperature and composition can vary independently."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_pd_lever_arm",
+        "kind": "multiple_choice",
+        "question": "In applying the lever rule, the mass fraction of a given phase is proportional to:",
+        "options": [
+          "The tie-line length on the same side as that phase's composition",
+          "The tie-line length on the opposite side of the overall composition from that phase",
+          "The total length of the tie-line",
+          "The temperature above the eutectoid"
+        ],
+        "correctIndex": 1,
+        "explanation": "The lever rule weights each phase by the opposite lever arm. The fraction of phase alpha is (C_beta - C0)/(C_beta - C_alpha), i.e. the distance from the overall composition C0 to the far phase boundary C_beta, divided by the full tie-line length. Using the same-side arm is the classic sign error."
+      },
+      "hints": [
+        "Picture a seesaw balanced at the overall composition C0.",
+        "More of a phase means C0 sits closer to that phase's composition, so the opposite arm is longer."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Like a balanced lever pivoted at C0, the amount of each phase is proportional to the length of the arm reaching to the OPPOSITE phase boundary: W_alpha = (C_beta - C0)/(C_beta - C_alpha). Hence option B. Choosing the same-side arm inverts the fractions, the most common mistake. The denominator is the total tie-line span, ensuring the fractions sum to one."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_pd_coring",
+        "kind": "scenario",
+        "question": "Coring in a slowly cast copper-nickel ingot",
+        "prompt": "An apprentice casts a 70Cu-30Ni isomorphous alloy and, after sectioning and etching, observes that the centers of the grains appear nickel-rich while the grain edges are copper-rich, even though the bulk composition is uniform. Explain why this microsegregation (coring) arises from the difference between the liquidus and solidus compositions along the tie-line during freezing, why solid-state diffusion is too slow to erase it during normal cooling, and what heat treatment the apprentice should apply to homogenize the casting."
+      }
+    }
+  ]
+}

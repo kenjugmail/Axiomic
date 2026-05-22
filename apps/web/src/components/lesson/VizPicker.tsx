@@ -824,6 +824,27 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "💍",
     tags: ["distributed-systems", "sharding", "consistent-hashing", "dynamo", "vnodes"],
   },
+  {
+    name: "hydrograph",
+    label: "Storm hydrograph",
+    description: "Rainfall → streamflow response with peak discharge + lag time; compare urban / forested / flashy basins and slide the rainfall depth.",
+    thumb: "🌧️",
+    tags: ["hydrology", "hydrograph", "runoff", "flood", "watershed"],
+  },
+  {
+    name: "iron-carbon-diagram",
+    label: "Iron–carbon diagram",
+    description: "The Fe–C phase diagram with the eutectoid point; pick a carbon content to read off the room-temperature microstructure (ferrite / pearlite / cementite).",
+    thumb: "⚙️",
+    tags: ["metallurgy", "steel", "phase-diagram", "eutectoid", "pearlite"],
+  },
+  {
+    name: "eye-refraction",
+    label: "Eye refraction",
+    description: "Where light focuses in myopic / hyperopic / normal eyes; dial a corrective lens in diopters until the focal point lands on the retina.",
+    thumb: "👁️",
+    tags: ["optometry", "myopia", "hyperopia", "diopters", "lens"],
+  },
 ];
 
 interface Props {

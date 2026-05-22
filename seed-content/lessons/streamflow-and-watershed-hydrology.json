@@ -1,0 +1,135 @@
+{
+  "slug": "streamflow-and-watershed-hydrology",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Define a watershed and characterize basin properties that shape its runoff response.",
+      "Apply the rational method Q = CiA and the unit hydrograph concept for runoff estimation.",
+      "Explain stream gauging, rating curves, and the time of concentration."
+    ],
+    "prereqs": [
+      "hydrology-history-and-the-hydrograph"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Watersheds — the fundamental hydrologic unit",
+      "body": "The **watershed** (also called the **drainage basin** or **catchment**) is the organizing unit of surface hydrology. It is the entire area of land that drains to a single **outlet** — every drop of precipitation falling within it, if it becomes runoff, ultimately passes that one point. The boundary separating one watershed from its neighbors is the **drainage divide** (the *watershed divide*), which follows the ridgelines of highest elevation; in the United States the **Continental Divide** of the Rocky Mountains separates basins draining to the Atlantic from those draining to the Pacific. Watersheds **nest** hierarchically: a small tributary's catchment sits inside a larger river basin, which sits inside a still larger one, all the way up to continental-scale basins like the **Mississippi** or the **Amazon**.\n\nA watershed's **morphometry** — its measurable geometry — strongly controls how it converts rainfall into streamflow:\n\n- **Drainage area** $A$: the single most important variable; larger basins produce larger total discharge but, all else equal, more subdued, attenuated flood peaks.\n- **Basin shape**: an elongated basin spreads runoff arrival in time (lower, broader peak), while a compact, circular basin concentrates it (higher, sharper peak).\n- **Slope and relief**: steeper basins shed water faster, with shorter lag times and flashier hydrographs.\n- **Drainage density**: total channel length per unit area; high density means a dense channel network that delivers water quickly.\n- **Channel network structure**, classified by the **Strahler stream-order** system (after **Arthur Strahler**, 1952, building on **Robert Horton's** 1945 ordering): the smallest unbranched headwater channels are **first order**; two first-order streams join to form a **second-order** stream, and so on. The **Mississippi** is a tenth-order river.\n\nMany of these regularities were first quantified by Horton in his landmark 1945 paper *Erosional Development of Streams and Their Drainage Basins*, which established **Horton's laws** — empirical relationships (the law of stream numbers, the law of stream lengths) showing that drainage networks are remarkably self-similar, with stream number decreasing geometrically and stream length increasing geometrically with order. These laws hinted at the **fractal** geometry of river networks later formalized by **Benoit Mandelbrot** and developed in the influential synthesis of **Ignacio Rodríguez-Iturbe** and **Andrea Rinaldo** (*Fractal River Basins*, 1997).\n\nUnderstanding the watershed is the prerequisite for every practical question in surface hydrology: How big a culvert is needed to pass the runoff from a 5 km^2 catchment? How will paving a subdivision change downstream flooding? How much water can a reservoir expect from its contributing basin? Each requires translating rainfall over the basin into discharge at the outlet — the central problem of **rainfall–runoff modeling**, to which we now turn through two classic methods."
+    },
+    {
+      "kind": "text",
+      "title": "The rational method and the unit hydrograph",
+      "body": "Two enduring methods convert rainfall into design discharge: the **rational method** for a single peak, and the **unit hydrograph** for the full storm response.\n\nThe **rational method** is the oldest and simplest peak-flow formula, traceable to **Thomas Mulvaney** (Ireland, 1851) and **Emil Kuichling** (United States, 1889). It states that the peak discharge from a small catchment is:\n\n$$Q = C\\, i\\, A$$\n\nwhere $Q$ is the peak discharge, $C$ is the dimensionless **runoff coefficient** (the fraction of rainfall that becomes runoff: near 0.1 for permeable woodland, 0.9 for paved surfaces), $i$ is the **rainfall intensity** (depth per time) for a storm whose duration equals the **time of concentration**, and $A$ is the drainage area. In consistent SI units $Q$ comes out in m^3/s when $i$ is in m/s and $A$ in m^2; in common practice a unit-conversion constant is folded in (e.g., $Q = 0.278\\, C i A$ with $i$ in mm/h and $A$ in km^2). The method's key assumptions are that rainfall is uniform over the basin and constant for the storm duration, and that the peak occurs when the *entire* basin is contributing simultaneously — which happens only after a time equal to the **time of concentration** (defined on the next slide). The rational method is appropriate for **small** urban catchments (conventionally under a few km^2) and is the standard tool for sizing storm sewers and culverts; it is *not* suited to large or complex basins.\n\nFor the complete shape of the storm response — not just the peak — the foundational concept is the **unit hydrograph**, introduced by the American engineer **LeRoy K. Sherman** in **1932**. A unit hydrograph (UH) is defined as the **direct-runoff hydrograph resulting from one unit (e.g., 1 cm or 1 inch) of effective rainfall** falling **uniformly** over the basin during a **specified duration** (e.g., a 1-hour UH). It is, in effect, the basin's characteristic 'fingerprint' response to a standardized pulse of rain. Sherman's insight rests on treating the watershed as a **linear, time-invariant system**, which gives the unit hydrograph two powerful properties:\n\n- **Proportionality (linearity)**: if 1 cm of effective rain produces a given hydrograph, then 3 cm of effective rain produces a hydrograph with ordinates exactly 3 times as large.\n- **Superposition**: the response to a sequence of rainfall pulses is the *sum* of the appropriately lagged and scaled unit hydrographs from each pulse.\n\nMathematically, this makes runoff a **convolution** of the effective-rainfall sequence with the unit hydrograph: $Q_n = \\sum_{m} P_m\\, U_{n-m+1}$, the discrete **convolution equation**. From an observed storm one can derive the basin's unit hydrograph (deconvolution); conversely, given the unit hydrograph and a design rainfall, one can synthesize the design flood hydrograph. Where no observed storms exist, **synthetic unit hydrographs** are estimated from basin characteristics — the methods of **Franklin Snyder** (1938) and the **SCS (NRCS) dimensionless unit hydrograph** are the best known. The unit-hydrograph framework dominated 20th-century flood hydrology and remains embedded in standard software such as **HEC-HMS**."
+    },
+    {
+      "kind": "text",
+      "title": "Measuring streamflow — gauging, rating curves, and time of concentration",
+      "body": "Every rainfall–runoff method must ultimately be checked against **measured discharge**, yet discharge — volume per unit time — cannot be read off an instrument directly. The art of measuring it is **stream gauging**. The classical field method applies the **velocity–area principle**: divide the channel cross-section into vertical subsections, measure the **flow velocity** in each (traditionally with a **current meter** such as the **Price AA meter**, lowered to the **0.6-depth** point or averaged at 0.2 and 0.8 depth), measure each subsection's width and depth to get its area, and sum the products:\n\n$$Q = \\sum_{i} v_i\\, a_i$$\n\nModern gauging increasingly uses the **Acoustic Doppler Current Profiler (ADCP)**, which measures a full velocity profile across the channel from a moving boat using the **Doppler shift** of sound reflected off particles in the water, and **acoustic velocity meters** for continuous monitoring.\n\nBut measuring discharge directly every day is impractical, so hydrologists exploit the fact that **stage** — the water-surface elevation, easily and continuously recorded by a float, pressure transducer, or radar sensor in a **stilling well** — is related to discharge. By making many simultaneous measurements of stage and discharge across a range of flows, an agency builds a **stage–discharge rating curve** (or simply **rating curve**): an empirical function $Q = f(h)$, often a power law $Q = a(h - h_0)^b$. Once the rating is established, the continuously recorded stage is converted to a continuous discharge record. The **United States Geological Survey (USGS)** operates a national network of more than 8,000 such stream gauges, the backbone of American water-resources data. Rating curves must be periodically re-measured because channels shift, scour, and fill — a phenomenon called **rating shift** — and they are notoriously uncertain at the highest flows, which are dangerous and rare to measure directly.\n\nA concept that ties the gauged hydrograph back to the rainfall–runoff methods is the **time of concentration** $t_c$ — the time required for water to travel from the **hydraulically most remote** point in the watershed to the outlet. It is the moment at which the *entire* basin first contributes simultaneously to flow at the outlet, and it is the critical storm duration assumed in the rational method (a storm shorter than $t_c$ never engages the whole basin; a longer storm adds no new contributing area). Many empirical formulas estimate $t_c$ from basin geometry; the most widely used is the **Kirpich equation** (1940):\n\n$$t_c = 0.0078\\, L^{0.77}\\, S^{-0.385}$$\n\nwhere $t_c$ is in minutes, $L$ is the flow-path length in feet, and $S$ is the channel slope (dimensionless). Other approaches include the **NRCS lag method** and the **kinematic-wave** time-of-concentration formulas. Time of concentration shortens dramatically with **urbanization** — smooth pavements and storm sewers speed water to the outlet — which is precisely why developed basins produce higher, earlier flood peaks. Together, gauging, rating curves, and time of concentration close the loop between the theoretical hydrograph and the real, measured river."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hyd5_1",
+        "kind": "multiple_choice",
+        "question": "What is a watershed (drainage basin)?",
+        "options": [
+          "The single channel of the main-stem river only, excluding tributaries.",
+          "The entire area of land that drains to a common outlet, bounded by the drainage divide along the highest ridgelines.",
+          "Any region where groundwater is found below the water table.",
+          "The portion of a river that is artificially confined by levees."
+        ],
+        "correctIndex": 1,
+        "explanation": "A watershed is the complete land area that contributes runoff to a single outlet point. Its boundary, the drainage divide, follows the ridgelines of highest elevation, separating it from adjacent basins. Watersheds nest hierarchically, with small catchments draining into progressively larger river basins. This area-to-outlet definition is the fundamental unit for nearly all surface-water analysis, from culvert sizing to flood forecasting."
+      },
+      "hints": [
+        "Think about all the land that sheds water to one point.",
+        "Its edge follows the high ridgelines (the divide)."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "A watershed is all the land draining to a single outlet, bounded by the divide along the ridgelines. The answer is B. The main channel alone, groundwater zones, and leveed reaches are all narrower or unrelated concepts."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_hyd5_1",
+        "kind": "math_expression",
+        "question": "Using the rational method in SI base units, Q = C·i·A, a parking lot has runoff coefficient C = 0.9, design rainfall intensity i = 0.00002 m/s, and area A = 50000 m^2. What is the peak discharge Q in m^3/s?",
+        "acceptedAnswers": [
+          "0.9",
+          "0.9 m3/s",
+          "0.9 m^3/s"
+        ],
+        "hint": "Multiply: Q = 0.9 × 0.00002 × 50000 = 0.9 m^3/s."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hyd5_2",
+        "kind": "multiple_choice",
+        "question": "LeRoy Sherman's unit hydrograph (1932) treats the watershed as a linear, time-invariant system. One consequence is the proportionality (linearity) property. What does it state?",
+        "options": [
+          "Doubling the basin area doubles the lag time.",
+          "If 1 cm of effective rainfall produces a given direct-runoff hydrograph, then 3 cm of effective rainfall (of the same duration) produces a hydrograph with all ordinates exactly 3 times as large.",
+          "The peak discharge is always proportional to the square of the rainfall intensity.",
+          "Baseflow scales linearly with the number of tributaries."
+        ],
+        "correctIndex": 1,
+        "explanation": "Linearity (proportionality) means the runoff response scales directly with the depth of effective rainfall: if 1 cm yields a certain hydrograph, then 3 cm of the same-duration effective rainfall yields a hydrograph whose ordinates are all multiplied by 3. Combined with superposition (responses to successive rainfall pulses add up after appropriate lagging), this lets the unit hydrograph be convolved with any effective-rainfall sequence to produce the storm hydrograph. These two properties are the heart of Sherman's 1932 method."
+      },
+      "hints": [
+        "Linearity means output scales directly with input depth.",
+        "3 cm of rain over the same duration gives 3× the ordinates."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "The proportionality property: scaling the effective rainfall depth scales the hydrograph ordinates by the same factor (3 cm gives 3× ordinates of the 1 cm UH). The answer is B. Superposition then handles multi-pulse storms by summing lagged, scaled unit hydrographs."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_hyd5_1",
+        "kind": "scenario",
+        "question": "Building and trusting a rating curve at an ungauged-flood site",
+        "prompt": "A state agency installs a continuous stage recorder in a stilling well at a river site and makes a dozen direct discharge measurements with an ADCP across low and moderate flows to build a stage–discharge rating curve. A record-breaking flood then occurs, with stage far above any directly measured flow. Explain how the rating curve converts the continuously recorded stage into a discharge record, why extrapolating the rating to the unprecedented flood stage is uncertain, and what physical channel changes (scour, fill, overbank flow) could make the curve shift. Describe one practical step the agency could take to reduce the uncertainty of the extreme-flow estimate."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_hyd5_2",
+        "kind": "math_expression",
+        "question": "Stream gauging by the velocity–area method: a channel section has three subsections with (velocity, area) of (0.5 m/s, 2 m^2), (1.2 m/s, 3 m^2), and (0.8 m/s, 1 m^2). Using Q = Σ v_i·a_i, what is the total discharge Q in m^3/s?",
+        "acceptedAnswers": [
+          "5.4",
+          "5.4 m3/s",
+          "5.4 m^3/s"
+        ],
+        "hint": "Compute each product and sum: (0.5×2) + (1.2×3) + (0.8×1) = 1.0 + 3.6 + 0.8 = 5.4 m^3/s."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hyd5_3",
+        "kind": "multiple_choice",
+        "question": "Why does the time of concentration matter for the rational method, and why does urbanization usually shorten it?",
+        "options": [
+          "It is the time for the river to dry up; urbanization lengthens it by adding water.",
+          "It is the travel time from the most remote point to the outlet — the moment the whole basin first contributes; urbanization shortens it because smooth pavements and storm sewers move water faster, raising and advancing flood peaks.",
+          "It is the time between two consecutive storms; urbanization has no effect on it.",
+          "It is the duration of baseflow recession; urbanization triples it."
+        ],
+        "correctIndex": 1,
+        "explanation": "The time of concentration is the time water needs to travel from the hydraulically most remote point of the basin to the outlet — the instant at which the entire watershed contributes simultaneously. The rational method assumes the design storm lasts exactly this long so the whole basin is engaged at the peak. Urbanization replaces rough, vegetated, infiltrating surfaces with smooth impervious pavement and efficient storm-sewer conveyance, speeding flow and shortening t_c. A shorter t_c means a more intense design rainfall and a higher, earlier flood peak — the hydrologic signature of development."
+      },
+      "hints": [
+        "It is a travel time from the farthest point to the outlet.",
+        "Pavement and pipes move water faster than vegetated ground."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Time of concentration is the travel time from the most remote point to the outlet — when the whole basin contributes. The rational method's design storm equals it. Urbanization speeds flow (smooth surfaces, sewers), shortening t_c and producing higher, earlier peaks. The answer is B."
+    }
+  ]
+}

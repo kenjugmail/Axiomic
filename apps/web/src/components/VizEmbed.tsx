@@ -117,6 +117,9 @@ const AstExplorer = lazy(() => import("../../../../packages/viz/src/components/A
 const ControlFlowGraph = lazy(() => import("../../../../packages/viz/src/components/ControlFlowGraph").then(m => ({ default: m.ControlFlowGraph })));
 const TraceWaterfall = lazy(() => import("../../../../packages/viz/src/components/TraceWaterfall").then(m => ({ default: m.TraceWaterfall })));
 const ConsistentHashing = lazy(() => import("../../../../packages/viz/src/components/ConsistentHashing").then(m => ({ default: m.ConsistentHashing })));
+const Hydrograph = lazy(() => import("../../../../packages/viz/src/components/Hydrograph").then(m => ({ default: m.Hydrograph })));
+const IronCarbonDiagram = lazy(() => import("../../../../packages/viz/src/components/IronCarbonDiagram").then(m => ({ default: m.IronCarbonDiagram })));
+const EyeRefraction = lazy(() => import("../../../../packages/viz/src/components/EyeRefraction").then(m => ({ default: m.EyeRefraction })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -238,6 +241,9 @@ export const VIZ_NAMES = [
   "control-flow-graph",
   "trace-waterfall",
   "consistent-hashing",
+  "hydrograph",
+  "iron-carbon-diagram",
+  "eye-refraction",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -357,6 +363,9 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "control-flow-graph": ControlFlowGraph,
   "trace-waterfall": TraceWaterfall,
   "consistent-hashing": ConsistentHashing,
+  "hydrograph": Hydrograph,
+  "iron-carbon-diagram": IronCarbonDiagram,
+  "eye-refraction": EyeRefraction,
 };
 
 interface VizEmbedProps {

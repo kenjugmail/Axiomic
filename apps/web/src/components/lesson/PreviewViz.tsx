@@ -573,6 +573,21 @@ const LazyConsistentHashing = lazy(() =>
     (m) => ({ default: m.ConsistentHashing }),
   ),
 );
+const LazyHydrograph = lazy(() =>
+  import("../../../../../packages/viz/src/components/Hydrograph").then(
+    (m) => ({ default: m.Hydrograph }),
+  ),
+);
+const LazyIronCarbonDiagram = lazy(() =>
+  import("../../../../../packages/viz/src/components/IronCarbonDiagram").then(
+    (m) => ({ default: m.IronCarbonDiagram }),
+  ),
+);
+const LazyEyeRefraction = lazy(() =>
+  import("../../../../../packages/viz/src/components/EyeRefraction").then(
+    (m) => ({ default: m.EyeRefraction }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -859,6 +874,12 @@ function VizByName({
       return <LazyTraceWaterfall {...(props as object)} />;
     case "consistent-hashing":
       return <LazyConsistentHashing {...(props as object)} />;
+    case "hydrograph":
+      return <LazyHydrograph {...(props as object)} />;
+    case "iron-carbon-diagram":
+      return <LazyIronCarbonDiagram {...(props as object)} />;
+    case "eye-refraction":
+      return <LazyEyeRefraction {...(props as object)} />;
     default:
       return null;
   }

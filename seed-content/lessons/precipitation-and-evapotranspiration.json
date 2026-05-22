@@ -1,0 +1,135 @@
+{
+  "slug": "precipitation-and-evapotranspiration",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Classify precipitation types and compare rain-gauge, weather-radar, and satellite measurement methods.",
+      "Apply the catchment water-balance equation P = Q + ET + ΔS and explain each term.",
+      "Distinguish evaporation, transpiration, and evapotranspiration, and use the Penman–Monteith equation to relate potential and actual ET."
+    ],
+    "prereqs": [
+      "hydrology-history-and-the-hydrograph"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Precipitation — formation, types, and the act of measuring rain",
+      "body": "**Precipitation** is the source term for nearly all freshwater hydrology — the water that the entire cycle subsequently routes, stores, and returns to the atmosphere. It forms when atmospheric water vapor condenses onto **cloud condensation nuclei**, the droplets or ice crystals grow heavy enough to overcome updrafts, and they fall under gravity. The microphysics follows two pathways: the **Bergeron–Findeisen process** (named for **Tor Bergeron** and **Walter Findeisen**), in which ice crystals grow at the expense of supercooled water droplets in mixed-phase clouds, dominant in mid-latitudes; and the **collision–coalescence process**, in which larger droplets sweep up smaller ones, dominant in warm tropical clouds.\n\nMeteorologists classify precipitation by its **lifting mechanism** — the way air is forced to rise, cool, and condense:\n\n- **Convective precipitation**: intense surface heating drives buoyant updrafts; produces localized, high-intensity thunderstorms and the sharp, flashy hydrographs of summer cloudbursts.\n- **Orographic precipitation**: air is forced up over a mountain barrier, cooling and raining out on the windward slope, leaving a dry **rain shadow** on the leeward side. This is why the windward Western Ghats or the Pacific Northwest Cascades are wet while their interiors are arid.\n- **Frontal (cyclonic) precipitation**: warm and cold air masses meet along a front; the lighter warm air is lifted, producing the widespread, longer-duration rainfall of mid-latitude storm systems.\n\nThe **forms** of precipitation include rain, **drizzle**, snow, sleet, **graupel** (soft hail), and **hail**, distinguished by the temperature profile through which the falling hydrometeor passes.\n\n**Measuring precipitation** is deceptively hard. The classic instrument is the **rain gauge** — a calibrated collector reported as a depth (mm) over the gauge mouth. The standard recording type is the **tipping-bucket rain gauge**, in which a small seesaw bucket tips and records an electrical pulse after each fixed increment (e.g., 0.2 mm) of catch. Gauges suffer **wind-induced undercatch** (turbulence over the orifice deflects droplets, especially snow), **evaporation loss**, and the fundamental limitation of being **point measurements** that must be interpolated across an area. Spatial averaging methods include the **arithmetic mean**, **Thiessen polygons** (area-weighting each gauge by its nearest-neighbor polygon, after **Alfred H. Thiessen**), and the **isohyetal method** (drawing contours of equal rainfall).\n\n**Weather radar** estimates rainfall remotely by transmitting microwave pulses and measuring the backscattered power, the **reflectivity** $Z$. The empirical **Marshall–Palmer Z–R relationship**, $Z = a R^{b}$ (typically $Z = 200 R^{1.6}$, after **J. S. Marshall** and **W. M. Palmer**, 1948), converts reflectivity into rainfall rate $R$. Radar gives superb spatial and temporal coverage but needs gauge calibration. At the largest scales, **satellite precipitation** products — the **Tropical Rainfall Measuring Mission (TRMM)**, launched 1997, and its successor the **Global Precipitation Measurement (GPM)** mission, launched 2014 — provide near-global estimates, indispensable over oceans and ungauged regions."
+    },
+    {
+      "kind": "text",
+      "title": "The catchment water balance",
+      "body": "Once precipitation reaches the surface, the **water-balance equation** governs where it goes. For a **catchment** (drainage basin) over a defined period, conservation of mass requires:\n\n$$P = Q + ET + \\Delta S$$\n\nwhere $P$ is precipitation input, $Q$ is streamflow (and any other outflow) leaving the basin, $ET$ is **evapotranspiration** returned to the atmosphere, and $\\Delta S$ is the change in water stored within the basin (soil moisture, groundwater, snowpack, surface water, and interception). Every term has units of depth (mm) when normalized by basin area, or volume when not. This is the rigorous, modern form of the accounting **Pierre Perrault** performed by hand on the Seine basin in 1674.\n\nEach term hides important sub-processes:\n\n- **Interception**: rain caught by leaves and stems and evaporated before it ever reaches the ground; in dense forest this can intercept **10–40%** of gross rainfall.\n- **Depression storage**: water trapped in surface hollows that later infiltrates or evaporates rather than running off.\n- **Infiltration**: entry of water into the soil, feeding soil moisture and, deeper down, groundwater recharge.\n- **Overland flow** and **interflow**: the fast lateral movement of water over and through the shallow soil that becomes storm runoff $Q$.\n\nThe great value of the water balance is its **closure**: if you can measure any three of the four terms, you can solve for the fourth. Hydrologists routinely estimate hard-to-measure $ET$ as a **residual**: $ET = P - Q - \\Delta S$. Over a **long averaging period** in a basin with no secular trend, the storage term averages to nearly zero ($\\Delta S \\approx 0$), and the **long-term water balance** collapses to:\n\n$$P \\approx Q + ET$$\n\nThis simple partition — rainfall splits into what runs off and what evaporates — underlies the empirical **Budyko framework** (after the Soviet climatologist **Mikhail Budyko**, 1956, 1974). Budyko showed that the long-term evaporative fraction $ET/P$ is controlled chiefly by the **aridity index** $E_p/P$, the ratio of **potential evapotranspiration** $E_p$ to precipitation. The **Budyko curve** is bounded by two physical limits: an **energy limit**, where evaporation cannot exceed the available energy ($ET \\le E_p$), and a **water limit**, where evaporation cannot exceed the available water ($ET \\le P$). Real catchments worldwide cluster remarkably tightly along this curve, a triumph of large-scale hydrologic reasoning.\n\nUnderstanding the water balance is intensely practical. It tells a reservoir operator how much inflow to expect, tells a farmer the irrigation deficit, and tells a water manager whether a basin is being depleted ($\\Delta S < 0$, as in over-pumped aquifers). The dominant unknown in most balances is the return flux to the atmosphere — evapotranspiration — which we treat next."
+    },
+    {
+      "kind": "text",
+      "title": "Evaporation, transpiration, and the Penman–Monteith equation",
+      "body": "**Evapotranspiration** ($ET$) is the combined return of water to the atmosphere by two distinct processes. **Evaporation** ($E$) is the phase change of liquid water to vapor from open water, bare soil, and wet surfaces. **Transpiration** ($T$) is the loss of water vapor through the **stomata** — microscopic pores — of plant leaves, drawn up from the roots by the tension of the transpiration stream. Because the two are difficult to separate in the field, hydrologists usually treat their sum, $ET$.\n\nEvaporation requires three things: a supply of **energy** (chiefly **net radiation** $R_n$) to provide the latent heat of vaporization; a **vapor-pressure deficit** between the wet surface and the overlying air (the drier the air, the stronger the demand); and a means of **turbulent transport** (wind) to carry vapor away before the air saturates. The maximum rate the atmosphere could extract from a freely watered surface is the **potential evapotranspiration** ($PET$ or $E_p$); the rate actually achieved when water is limited is the **actual evapotranspiration** ($AET$). In a desert, $PET$ is huge but $AET$ is tiny because there is no water to evaporate.\n\nThe foundational physics was set out by the British scientist **Howard Penman** (1909-1984) in his 1948 paper, which combined the **energy balance** and the **aerodynamic (mass-transfer)** approaches into a single **combination equation** that requires no surface-temperature measurement. **John Monteith** (1929-2012) generalized it in 1965 to vegetated surfaces by introducing a **canopy (surface) resistance** $r_s$ alongside the **aerodynamic resistance** $r_a$. The result is the celebrated **Penman–Monteith equation**:\n\n$$\\lambda E = \\frac{\\Delta (R_n - G) + \\rho_a c_p \\frac{(e_s - e_a)}{r_a}}{\\Delta + \\gamma \\left(1 + \\frac{r_s}{r_a}\\right)}$$\n\nHere $\\lambda E$ is the **latent heat flux** (energy used in evaporation), $\\Delta$ is the slope of the saturation vapor-pressure curve with temperature, $R_n$ is net radiation, $G$ is soil heat flux, $\\rho_a$ is air density, $c_p$ is the specific heat of air, $(e_s - e_a)$ is the **vapor-pressure deficit**, $\\gamma$ is the **psychrometric constant**, and $r_s$, $r_a$ are the surface and aerodynamic resistances. The numerator's first term is the **radiation (energy-supply)** contribution; the second is the **aerodynamic (atmospheric-demand)** contribution.\n\nThe **Food and Agriculture Organization (FAO)** standardized a specific form, the **FAO-56 Penman–Monteith** method (Allen et al., 1998), to compute a **reference evapotranspiration** $ET_0$ for a hypothetical well-watered grass surface. Crop-specific actual rates are then obtained with a **crop coefficient** $K_c$: $ET_c = K_c \\cdot ET_0$. Where data are sparse, simpler empirical methods are used — the temperature-based **Thornthwaite** (1948) and **Hargreaves** equations, and the radiation-based **Priestley–Taylor** (1972) equation, which approximates $\\lambda E \\approx \\alpha \\frac{\\Delta}{\\Delta + \\gamma}(R_n - G)$ with $\\alpha \\approx 1.26$ for wet surfaces. These methods, anchored by Penman and Monteith's physics, let hydrologists close the water balance and quantify the largest outgoing flux in most catchments."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hyd2_1",
+        "kind": "multiple_choice",
+        "question": "A moist air mass is forced to rise over a mountain range, cooling and raining out on the windward slope, leaving a dry 'rain shadow' on the leeward side. This is which type of precipitation?",
+        "options": [
+          "Convective precipitation",
+          "Orographic precipitation",
+          "Frontal (cyclonic) precipitation",
+          "Drizzle from a warm stratus deck"
+        ],
+        "correctIndex": 1,
+        "explanation": "Orographic precipitation results when terrain forces air upward; the air cools adiabatically, condenses, and rains on the windward side, descending dry on the leeward side to create a rain shadow. Convective precipitation is driven by surface heating and buoyant updrafts (thunderstorms); frontal precipitation arises where warm and cold air masses meet and the warm air is lifted along the front."
+      },
+      "hints": [
+        "The lifting mechanism here is the mountain barrier itself.",
+        "'Oros' is Greek for mountain."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Air pushed up and over a mountain cools, condenses, and precipitates on the windward slope; the descending leeward air is dry, creating the rain shadow. That mechanism is orographic lifting, so the answer is B."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_hyd2_1",
+        "kind": "math_expression",
+        "question": "Weather radar reports a reflectivity of Z = 200 mm^6/m^3. Using the Marshall–Palmer relation Z = 200 R^1.6, solve for the rainfall rate R in mm/h.",
+        "acceptedAnswers": [
+          "1",
+          "1 mm/h",
+          "1mm/h"
+        ],
+        "hint": "Set 200 = 200 R^1.6, so R^1.6 = 1, which means R = 1 mm/h (since 1 raised to any power is 1)."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hyd2_2",
+        "kind": "multiple_choice",
+        "question": "In a hot desert, the potential evapotranspiration (PET) is very high but the actual evapotranspiration (AET) is very low. Why?",
+        "options": [
+          "The atmosphere lacks the energy to evaporate water in deserts.",
+          "There is abundant water but the air is too humid to accept more vapor.",
+          "Atmospheric demand for water (energy and vapor-pressure deficit) is large, but there is almost no available surface water to actually evaporate, so AET is water-limited.",
+          "Transpiration is impossible because deserts contain no plants of any kind."
+        ],
+        "correctIndex": 2,
+        "explanation": "PET is the rate the atmosphere could extract from a freely watered surface — in a desert this is enormous because of intense radiation, high temperature, and a large vapor-pressure deficit. But AET is the rate actually achieved, which is capped by the available water. With little water present, AET is far below PET: the system is water-limited, not energy-limited. This gap between PET and AET is exactly what the Budyko aridity framework formalizes."
+      },
+      "hints": [
+        "Distinguish what the atmosphere demands from what the surface can supply.",
+        "Deserts have plenty of evaporative energy but almost no water."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "PET reflects atmospheric demand (lots of energy and a big vapor-pressure deficit) — high in deserts. AET reflects what is actually evaporated, limited by water availability — near zero in deserts. The mismatch is a water limitation, option C."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_hyd2_1",
+        "kind": "scenario",
+        "question": "Closing a basin water balance with sparse data",
+        "prompt": "You manage a 450 km^2 mountain catchment with a single reliable stream gauge at the outlet and three rain gauges of differing elevation. You have no direct measurement of evapotranspiration. Over a five-year period the gauges suggest mean annual precipitation around 1400 mm and the outlet records mean annual streamflow equivalent to 900 mm of depth. Explain how you would estimate the mean annual evapotranspiration using the water-balance equation, what assumption about ΔS makes this possible over five years, why area-weighting the rain gauges (e.g., with Thiessen polygons or an isohyetal map) matters in mountainous terrain, and how you might independently check your ET estimate against a potential-ET calculation from Penman–Monteith."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_hyd2_2",
+        "kind": "math_expression",
+        "question": "Using crop coefficients, actual crop evapotranspiration is ET_c = K_c × ET_0. A maize field has a mid-season crop coefficient K_c = 1.15 and the reference evapotranspiration is ET_0 = 6.0 mm/day. What is ET_c in mm/day?",
+        "acceptedAnswers": [
+          "6.9",
+          "6.9 mm/day",
+          "6.9mm/day"
+        ],
+        "hint": "Multiply directly: ET_c = 1.15 × 6.0."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hyd2_3",
+        "kind": "multiple_choice",
+        "question": "What did John Monteith add to Howard Penman's combination equation to make it applicable to vegetated surfaces?",
+        "options": [
+          "A net-radiation term that Penman had omitted.",
+          "A canopy (surface) resistance term r_s, representing the resistance of plant stomata to water-vapor loss, alongside the aerodynamic resistance r_a.",
+          "The psychrometric constant γ.",
+          "A correction for wind-induced undercatch in rain gauges."
+        ],
+        "correctIndex": 1,
+        "explanation": "Penman (1948) combined the energy-balance and aerodynamic approaches for open-water and wet surfaces. Monteith (1965) extended this to plant canopies by introducing the canopy or surface resistance r_s, which accounts for stomatal control of transpiration. The full Penman–Monteith equation therefore contains both the aerodynamic resistance r_a (turbulent transport) and the surface resistance r_s (stomatal/physiological control). Net radiation and the psychrometric constant were already part of Penman's formulation."
+      },
+      "hints": [
+        "Plants control transpiration through their stomata — that is a resistance.",
+        "Penman handled open water; Monteith handled leaves."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Monteith's contribution was the surface (canopy) resistance r_s, capturing stomatal control of vapor loss from vegetation. Combined with Penman's aerodynamic resistance r_a, this yields the Penman–Monteith equation. The answer is B."
+    }
+  ]
+}

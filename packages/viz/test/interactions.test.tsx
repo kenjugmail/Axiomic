@@ -48,6 +48,9 @@ import { AstExplorer } from "../src/components/AstExplorer";
 import { ControlFlowGraph } from "../src/components/ControlFlowGraph";
 import { TraceWaterfall } from "../src/components/TraceWaterfall";
 import { ConsistentHashing } from "../src/components/ConsistentHashing";
+import { Hydrograph } from "../src/components/Hydrograph";
+import { IronCarbonDiagram } from "../src/components/IronCarbonDiagram";
+import { EyeRefraction } from "../src/components/EyeRefraction";
 
 let h: VizHarness | null = null;
 afterEach(() => {
@@ -259,5 +262,20 @@ describe("viz interactions", () => {
   test("ConsistentHashing: switching node count moves the active highlight", () => {
     h = mountViz(createElement(ConsistentHashing));
     expectSelectionMoves(h, "3 nodes", "5 nodes");
+  });
+
+  test("Hydrograph: switching basin moves the active highlight", () => {
+    h = mountViz(createElement(Hydrograph));
+    expectSelectionMoves(h, "Urban", "Flashy");
+  });
+
+  test("IronCarbonDiagram: switching alloy moves the active highlight", () => {
+    h = mountViz(createElement(IronCarbonDiagram));
+    expectSelectionMoves(h, "Mild steel 0.2%", "Cast iron 3%");
+  });
+
+  test("EyeRefraction: switching condition moves the active highlight", () => {
+    h = mountViz(createElement(EyeRefraction));
+    expectSelectionMoves(h, "Emmetropia", "Myopia");
   });
 });

@@ -1,0 +1,135 @@
+{
+  "slug": "hydrology-history-and-the-hydrograph",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "intro",
+    "objectives": [
+      "Trace the birth of quantitative hydrology through Pierre Perrault, Edme Mariotte, and Edmond Halley.",
+      "Describe the components of the hydrologic cycle and the principle of mass conservation that governs it.",
+      "Interpret a storm hydrograph, identifying peak discharge, time-to-peak, lag time, the rising and falling limbs, and baseflow separation."
+    ],
+    "prereqs": []
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "From myth to measurement — the birth of quantitative hydrology",
+      "viz": "hydrograph",
+      "vizProps": {},
+      "body": "**Hydrology** is the science of water: its occurrence, circulation, distribution, and physical and chemical properties throughout the Earth system. The word comes from the Greek *hydor* (water) + *logos* (study). For most of recorded history the origin of rivers and springs was a genuine mystery. The Greek philosopher **Aristotle** (384-322 BCE), in his *Meteorologica*, argued that rivers could not be fed by rain because — he wrongly believed — rainfall was far too meager to sustain the great rivers. He proposed instead that water condensed inside mountain caverns from subterranean air. This **subterranean-condensation hypothesis** dominated European thought for nearly two thousand years.\n\nThe decisive break came in 17th-century France. **Pierre Perrault** (1611-1680), a Parisian lawyer and administrator, performed the first rigorous **water balance** of a drainage basin. In his 1674 treatise *De l'origine des fontaines* (\"On the Origin of Springs\"), Perrault measured the annual rainfall over the upper **Seine River** basin and compared it against the river's discharge. He found that precipitation supplied roughly **six times** more water than the river carried away — proving conclusively that rainfall was more than sufficient to feed rivers and springs. This single act of measurement is widely regarded as the founding moment of **quantitative hydrology**.\n\nPerrault's contemporary **Edme Mariotte** (c. 1620-1684), a member of the French *Académie des Sciences*, refined and extended the work. Mariotte made careful gauging measurements of the Seine at the **Pont Royal** in Paris, estimating discharge from cross-sectional area and current velocity. His posthumous *Traité du mouvement des eaux* (1686) confirmed Perrault's conclusion with better data and established the empirical method of comparing input (rainfall) against output (streamflow).\n\nThe third pillar was the English astronomer **Edmond Halley** (1656-1742), better known for the comet that bears his name. Halley turned attention to the **evaporation** half of the cycle. In experiments reported to the **Royal Society** in 1687 and 1691, he measured the evaporation rate from a heated pan of water scaled to the area of the **Mediterranean Sea**, and estimated that evaporation from the Mediterranean alone could supply all the rivers draining into it — with water vapor carried inland by winds, condensed as rain over mountains, and returned to the sea by rivers. Halley thereby closed the loop, articulating a continuous, self-sustaining circulation of water.\n\nTogether Perrault, Mariotte, and Halley replaced two millennia of speculation with a quantitative, conservation-based picture: water that falls as rain is the same water that flows in rivers and rises again as vapor. This is the **hydrologic cycle**, and its mathematics is simply the bookkeeping of where water goes."
+    },
+    {
+      "kind": "text",
+      "title": "The hydrologic cycle and the water-balance equation",
+      "body": "The **hydrologic cycle** (or **water cycle**) is the continuous movement of water among the atmosphere, the land surface, the subsurface, and the oceans, driven by **solar energy** and **gravity**. There is no beginning and no end; water is neither created nor destroyed on human timescales, only moved and transformed among phases. The principal **fluxes** (rates of water movement) are:\n\n- **Precipitation** ($P$): water reaching the surface as rain, snow, sleet, or hail.\n- **Evaporation** ($E$): liquid water converting to vapor from open water, soil, and wet surfaces.\n- **Transpiration** ($T$): water vapor released through the stomata of plants; combined with evaporation it is called **evapotranspiration** ($ET$).\n- **Infiltration**: water entering the soil through the surface.\n- **Runoff** and **streamflow** ($Q$): water flowing over the land and through channels toward the sea.\n- **Percolation** and **groundwater flow**: subsurface movement that eventually feeds springs and rivers.\n\nThe principal **storages** (reservoirs) are the oceans (which hold roughly **97%** of all Earth's water), glaciers and ice caps, groundwater, lakes and rivers, soil moisture, and atmospheric vapor. Of the small fraction that is fresh, most is locked in **ice** or deep **groundwater**; the rivers and lakes that humans rely on most directly are a tiny sliver of the total.\n\nThe organizing principle of all hydrology is **conservation of mass**. For any defined region (a lake, a soil column, or an entire **drainage basin**) over a chosen time period, the change in stored water must equal inflows minus outflows:\n\n$$\\frac{dS}{dt} = I - O$$\n\nwhere $S$ is storage, $I$ is total inflow, and $O$ is total outflow. Applied to a watershed over a fixed interval and written in finite-difference form, this becomes the famous **water-balance equation**:\n\n$$P = Q + ET + \\Delta S$$\n\nwhere $P$ is precipitation, $Q$ is streamflow leaving the basin, $ET$ is evapotranspiration, and $\\Delta S$ is the change in water stored (in soil, groundwater, snowpack, and surface water). This is exactly the accounting Perrault performed by hand in 1674. Over a long period in a basin with no net storage change, $\\Delta S \\approx 0$ and the equation simplifies to $P \\approx Q + ET$, meaning rainfall is partitioned between what runs off and what returns to the atmosphere.\n\nThe **runoff ratio** $Q/P$ — the fraction of precipitation that becomes streamflow — varies enormously: it may be under **0.1** in a hot, vegetated, permeable basin where most rain evaporates or infiltrates, and over **0.7** in a steep, rocky, or urbanized catchment where water sheds quickly. Understanding how a given storm is partitioned into runoff versus losses is the central practical problem of **surface-water hydrology**, and the tool we use to study it is the **hydrograph**."
+    },
+    {
+      "kind": "text",
+      "title": "Anatomy of the storm hydrograph",
+      "body": "A **hydrograph** is a graph of **discharge** $Q$ (the volume of water passing a point per unit time, in $\\text{m}^3/\\text{s}$, called *cumecs*) plotted against time at a specific location on a stream. A **storm hydrograph** (or *flood hydrograph*) shows how a stream responds to an individual rainfall event, and reading it is a foundational skill in hydrology. The systematic study of infiltration and storm runoff was pioneered by the American hydrologist **Robert E. Horton** (1875-1945), whose 1933 and 1945 papers established how rainfall is partitioned at the surface and how overland flow assembles into a flood wave. The term **Hortonian overland flow** — runoff generated when rainfall intensity exceeds the soil's infiltration capacity — honors his contribution.\n\nThe key features of a storm hydrograph are:\n\n- **Baseflow**: the slow, sustained discharge that the stream carries between storms, supplied by groundwater draining into the channel. On the hydrograph it is the low, gently declining flow before the storm and the level the stream eventually returns to.\n- **Rising limb**: the steeply ascending portion as storm runoff arrives and discharge climbs rapidly. Its steepness reflects how quickly the basin delivers water.\n- **Peak discharge** ($Q_p$): the maximum flow rate reached during the event — the single most important number for flood design.\n- **Time-to-peak** ($t_p$): the time from the start of the rising limb (or from the centroid of rainfall) to the peak discharge.\n- **Falling limb** (or **recession limb**): the gradual decline after the peak as the basin drains. It is typically less steep than the rising limb and often follows an approximately exponential **recession curve**.\n- **Lag time** ($t_L$): the time between the **centroid of the rainfall** (the rain's center of mass on the time axis) and the **peak discharge**. Lag time summarizes the basin's response speed.\n\nA crucial analytical step is **baseflow separation**: dividing the hydrograph into the **quickflow** (storm response) on top and the **baseflow** (groundwater contribution) underneath. Several conventions exist — the **straight-line method**, the **fixed-base method**, and the **variable-slope method** — all of which draw a line beneath the storm peak to apportion the total flow. The area between the separation line and the hydrograph curve, integrated over time, equals the **volume of direct runoff**:\n\n$$V_{\\text{runoff}} = \\int (Q - Q_{\\text{base}})\\, dt$$\n\nDividing that runoff volume by the basin area gives the **runoff depth** in millimeters, which can be compared directly against the rainfall depth.\n\nThe **shape** of a hydrograph encodes the character of a watershed. A **flashy** hydrograph — a steep rising limb, a high sharp peak, and a short lag time — indicates a small, steep, or **urbanized** basin with impervious surfaces (concrete and asphalt prevent infiltration, so water reaches the channel fast). A **subdued** hydrograph — a gentle rise, a low broad peak, and a long lag time — indicates a large, flat, forested, or highly permeable basin that stores and slowly releases water. Factors that flatten the peak and lengthen lag include vegetation, permeable soils, gentle slopes, and large basin area; factors that sharpen the peak include urbanization, deforestation, steep slopes, saturated antecedent soil moisture, and high rainfall intensity. This is why **land-use change** — paving a watershed — measurably raises flood peaks, a result first quantified systematically in the urban-hydrology studies that built on Horton's foundations."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hyd1_1",
+        "kind": "multiple_choice",
+        "question": "What did Pierre Perrault demonstrate in his 1674 treatise De l'origine des fontaines?",
+        "options": [
+          "That rivers are fed by water condensing inside mountain caverns, as Aristotle had proposed.",
+          "That annual precipitation over the Seine basin was several times larger than the river's discharge, proving rainfall is more than sufficient to feed rivers and springs.",
+          "That evaporation from the Mediterranean Sea supplies all the rivers draining into it.",
+          "That groundwater flow obeys a linear relationship between flux and the hydraulic gradient."
+        ],
+        "correctIndex": 1,
+        "explanation": "Perrault measured rainfall over the upper Seine basin and compared it against the river's discharge, finding precipitation supplied roughly six times more water than the river carried away. This refuted Aristotle's subterranean-condensation hypothesis and is regarded as the founding measurement of quantitative hydrology. The Mediterranean evaporation work was Edmond Halley's (1687-1691); the linear flux-gradient law is Darcy's (1856) and comes much later."
+      },
+      "hints": [
+        "The treatise concerned the origin of springs and rivers, studied via the Seine basin.",
+        "Perrault's contribution was a measured comparison of rainfall against streamflow — a water balance."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Perrault gauged the Seine's discharge and tallied the rainfall over its upper basin. Because rainfall vastly exceeded the river flow (by about a factor of six), he proved rain alone could account for rivers and springs — overturning Aristotle. This is option B. Halley later closed the cycle with his evaporation experiments, and Mariotte refined Perrault's gauging."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_hyd1_1",
+        "kind": "math_expression",
+        "question": "Over one year a watershed receives P = 1200 mm of precipitation, loses ET = 700 mm to evapotranspiration, and has a negligible change in storage (ΔS ≈ 0). Using the water-balance equation P = Q + ET + ΔS, what is the streamflow depth Q in millimeters?",
+        "acceptedAnswers": [
+          "500",
+          "500 mm",
+          "500mm"
+        ],
+        "hint": "Rearrange to Q = P - ET - ΔS. With ΔS = 0, Q = 1200 - 700."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hyd1_2",
+        "kind": "multiple_choice",
+        "question": "On a storm hydrograph, what is the 'lag time'?",
+        "options": [
+          "The time between the start of rainfall and the moment the rain stops.",
+          "The time between the centroid (center of mass) of the rainfall and the peak discharge.",
+          "The total duration of the falling (recession) limb.",
+          "The time the stream takes to return all the way down to its pre-storm baseflow."
+        ],
+        "correctIndex": 1,
+        "explanation": "Lag time is conventionally defined as the interval between the centroid of the effective rainfall and the time of peak discharge. It is a compact measure of how quickly a basin converts rainfall into a flood peak. Small, steep, or urbanized basins have short lag times (flashy response); large, flat, forested basins have long lag times. Note that some texts measure lag to the centroid of the runoff rather than the peak, but the rainfall-centroid-to-peak definition is the standard introductory one."
+      },
+      "hints": [
+        "It connects something about the rainfall to something about the discharge peak.",
+        "Think 'center of the rain' to 'top of the flood.'"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Lag time = (time of peak discharge) - (time of the rainfall centroid). It captures the basin's response speed in a single number. Flashy urban basins: short lag. Subdued forested basins: long lag. The answer is B."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_hyd1_1",
+        "kind": "scenario",
+        "question": "Comparing two hydrographs after urbanization",
+        "prompt": "A 30 km^2 watershed is gauged for years while it is mostly forested, then again a decade later after half of it has been paved over for a suburban development. The same 50 mm rainstorm falls on the basin before and after. Describe how you would expect the storm hydrograph to change between the two events: address peak discharge, time-to-peak, lag time, the steepness of the rising limb, and the runoff ratio Q/P. Explain the physical mechanism (infiltration capacity, impervious surfaces, Hortonian overland flow) that drives each change, and state one flood-management implication for the community downstream."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_hyd1_2",
+        "kind": "math_expression",
+        "question": "After baseflow separation, the direct-runoff volume from a storm is 1.8 million cubic metres (1.8 x 10^6 m^3) over a basin of area 12 km^2 (1.2 x 10^7 m^2). What is the runoff depth in millimetres? (Depth = volume / area; remember 1 m = 1000 mm.)",
+        "acceptedAnswers": [
+          "150",
+          "150 mm",
+          "150mm"
+        ],
+        "hint": "Depth in metres = 1.8e6 / 1.2e7 = 0.15 m. Convert: 0.15 m x 1000 = 150 mm."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hyd1_3",
+        "kind": "multiple_choice",
+        "question": "A stream's discharge between storms is sustained by slow drainage of groundwater into the channel. On a hydrograph, this component is called:",
+        "options": [
+          "Peak discharge",
+          "The rising limb",
+          "Baseflow",
+          "Quickflow (direct runoff)"
+        ],
+        "correctIndex": 2,
+        "explanation": "Baseflow is the sustained, slowly declining discharge supplied by groundwater seeping into the channel between storm events. During a storm, the hydrograph rises above baseflow due to quickflow (direct runoff); baseflow separation is the process of distinguishing the groundwater-fed baseflow underneath from the storm-driven quickflow on top. Peak discharge is the maximum flow during the event, and the rising limb is the ascending portion of the storm response."
+      },
+      "hints": [
+        "It is the flow present even when no rain has fallen recently.",
+        "Its source is groundwater, not the current storm."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Between storms, the only thing keeping a perennial stream flowing is groundwater draining into it — this is baseflow. The answer is C. Baseflow separation partitions a storm hydrograph into this groundwater contribution and the storm-driven quickflow above it."
+    }
+  ]
+}

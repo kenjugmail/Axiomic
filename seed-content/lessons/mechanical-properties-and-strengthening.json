@@ -1,0 +1,110 @@
+{
+  "slug": "mechanical-properties-and-strengthening",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Interpret the engineering stress-strain curve and identify yield and ultimate tensile strength.",
+      "Apply the Hall-Petch relation to quantify grain-size strengthening.",
+      "Compare work hardening, solid-solution strengthening, and precipitation strengthening."
+    ],
+    "prereqs": [
+      "crystal-structures-and-defects",
+      "heat-treatment-and-ttt-diagrams"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The stress-strain curve",
+      "body": "The mechanical behavior of a metal is most directly revealed by the **tensile test**, in which a standard specimen is pulled at a controlled rate while force and elongation are recorded. Dividing force by the original cross-sectional area gives **engineering stress** $\\sigma = F/A_0$, and dividing elongation by the original gauge length gives **engineering strain** $\\varepsilon = \\Delta L / L_0$. The resulting **stress-strain curve** is the fingerprint of the material.\n\nAt small strains the curve is linear and **elastic**: stress is proportional to strain through **Hooke's law**, $\\sigma = E\\varepsilon$, where $E$ is the **Young's modulus** (elastic modulus), named for **Thomas Young** (1807). Steel has $E \\approx 200$ GPa, aluminium about 70 GPa, copper about 117 GPa. Elastic deformation is fully recoverable and reflects the stretching of interatomic bonds. The lateral contraction during stretching is governed by **Poisson's ratio**, about 0.3 for most metals.\n\nBeyond the **yield point**, the metal deforms **plastically** — permanently. The **yield strength $\\sigma_y$** marks the onset of plastic flow; because many metals lack a sharp yield, it is conventionally defined by the **0.2% offset** method, drawing a line parallel to the elastic region offset by 0.002 strain. Some materials, notably mild steel, show a distinct **upper and lower yield point** and **Luders bands**, associated with carbon atoms pinning dislocations (the **Cottrell atmosphere**, after **Alan Cottrell**).\n\nAs plastic strain increases, the stress required rises — this is **work hardening** (strain hardening). The curve climbs to a maximum, the **ultimate tensile strength (UTS)**, the highest engineering stress the material sustains. Beyond the UTS the specimen forms a localized **neck**; engineering stress falls (because the load drops even as true stress in the shrinking neck rises) until **fracture**. The total strain at fracture measures **ductility**, reported as **percent elongation** and **percent reduction in area**.\n\nTwo further properties are read from the curve. **Toughness** is the total area under the stress-strain curve — the energy absorbed per unit volume before fracture. **Resilience** is the area under the elastic portion only. **True stress** and **true strain**, which use the instantaneous area, are related to engineering values by $\\sigma_T = \\sigma(1+\\varepsilon)$ and $\\varepsilon_T = \\ln(1+\\varepsilon)$, and the work-hardening region obeys the **Hollomon equation** $\\sigma_T = K\\varepsilon_T^n$, where $n$ is the **strain-hardening exponent**. Hardness tests (**Brinell**, **Rockwell**, **Vickers**) provide a fast, semi-quantitative proxy: for steels, the tensile strength in MPa is roughly 3.45 times the **Brinell hardness number**."
+    },
+    {
+      "kind": "text",
+      "title": "The Hall-Petch relation: strength from grain refinement",
+      "body": "Plastic flow in metals occurs by the glide of **dislocations**. Anything that impedes dislocation motion raises the yield strength. The most universally useful obstacle is the **grain boundary**, because a dislocation gliding in one grain cannot continue smoothly into a neighbor with a different crystal orientation; it piles up against the boundary. The stress concentration of a **dislocation pile-up** must reach a critical value before slip is transmitted to the next grain.\n\nThis leads to one of the most important quantitative laws in metallurgy, the **Hall-Petch relation**, established independently by **Eric Octavius Hall** (1951) and **Norman James Petch** (1953):\n\n$$\\sigma_y = \\sigma_0 + k\\,d^{-1/2}$$\n\nHere $\\sigma_y$ is the yield strength, $d$ is the average **grain diameter**, $\\sigma_0$ is the **friction stress** (the intrinsic resistance of the lattice to dislocation motion, including solid-solution contributions), and $k$ is the **Hall-Petch coefficient**, a material constant reflecting the strength of the grain-boundary barrier. The crucial message is that **finer grains give stronger metals**: halving the grain diameter increases the grain-boundary contribution by a factor of $\\sqrt{2}$.\n\nGrain refinement is uniquely valuable because it is the only common strengthening mechanism that *simultaneously raises strength and toughness* — most others trade ductility for strength. This is why **normalizing** and controlled **thermomechanical processing** to refine grain size are central to modern steelmaking, and why **grain refiners** (such as titanium-boron master alloys in aluminium, or aluminium and niobium additions that pin austenite grain boundaries in steel) are added during solidification. The **ASTM grain size number** $G$ quantifies grain size logarithmically: $N = 2^{G-1}$ grains per square inch at 100x magnification.\n\nThe Hall-Petch law has limits. As grains shrink into the **nanocrystalline** regime (below roughly 10 to 30 nanometers), the conventional pile-up model breaks down because grains are too small to support pile-ups. Experiments then show an **inverse Hall-Petch** effect, where further refinement *softens* the metal as deformation shifts to **grain-boundary sliding**, a phenomenon studied extensively since the 1990s. Nonetheless, across the engineering range of micrometers to tens of nanometers, the Hall-Petch relation remains the foundational tool for understanding why grain size is one of a metallurgist's most powerful design variables. Related boundary strengthening arises from **twin boundaries**, exploited in advanced **nano-twinned copper** to achieve very high strength with retained ductility."
+    },
+    {
+      "kind": "text",
+      "title": "Work, solid-solution, and precipitation strengthening",
+      "body": "Beyond grain refinement, metallurgists deploy three further strengthening mechanisms, all of which work by obstructing dislocations.\n\n**Work hardening (strain hardening)** raises strength through plastic deformation itself. As a metal is deformed, the dislocation density rises (from about $10^{10}$ to over $10^{15}$ lines per square meter), and dislocations increasingly entangle and obstruct one another. The flow stress scales with the square root of dislocation density through **Taylor's equation**, $\\tau = \\tau_0 + \\alpha G b \\sqrt{\\rho}$, where $G$ is the shear modulus, $b$ the Burgers vector magnitude, $\\rho$ the dislocation density, and $\\alpha$ a constant near 0.5, after **Geoffrey Ingram Taylor**. Cold-rolling, drawing, and forging all exploit work hardening, though it can be reversed by **annealing** through **recovery, recrystallization, and grain growth**.\n\n**Solid-solution strengthening** uses dissolved solute atoms to impede dislocation glide. A solute atom that differs in size from the host creates a local strain field that interacts elastically with the strain field of a dislocation, requiring extra stress to move it past. The strengthening typically scales with the square root of solute concentration, $\\Delta\\sigma \\propto c^{1/2}$. **Substitutional** solutes (such as nickel, manganese, chromium, or zinc in their host metals) and especially **interstitial** solutes (carbon and nitrogen in iron, which produce strong asymmetric strain fields) both contribute. Brass (copper-zinc) and bronze (copper-tin) are classic solid-solution-strengthened alloys.\n\n**Precipitation hardening (age hardening)** is the most potent mechanism, discovered serendipitously by **Alfred Wilm** around 1906 in the aluminium-copper alloy that became **Duralumin**, and explained by the discovery of **Guinier-Preston (GP) zones** by **Andre Guinier** and **George Dawson Preston** in 1938. The alloy is **solution-treated** to dissolve the solute into a single-phase solid solution, then **quenched** to retain a supersaturated solution, then **aged** at a moderate temperature so that a fine, dense dispersion of second-phase **precipitates** forms. Dislocations must either **shear** through coherent precipitates or **bow around** them by the **Orowan mechanism**, named for **Egon Orowan**: the bowing stress is $\\tau \\approx Gb/L$, where $L$ is the precipitate spacing. Maximum strength occurs at **peak aging**, when precipitate size and spacing are optimal; **overaging** coarsens the precipitates (per **Ostwald ripening**) and softens the alloy. Precipitation hardening underlies the high strength of aerospace aluminium alloys (the 2000 and 7000 series), nickel-base **superalloys** strengthened by the ordered **gamma-prime** phase $Ni_3(Al,Ti)$, and **maraging steels**. In practice, real engineering alloys combine all four mechanisms — grain refinement, work hardening, solid solution, and precipitation — superposing their contributions to the yield strength."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_mp_hallpetch",
+        "kind": "math_expression",
+        "question": "A steel obeys the Hall-Petch relation with sigma_0 = 150 MPa and k = 0.70 MPa*m^(1/2). For an average grain diameter d = 25 micrometers (25e-6 m), compute the yield strength in MPa. Round to the nearest 10 MPa. (Note d^(-1/2) = 1/sqrt(25e-6) = 200 m^(-1/2).)",
+        "acceptedAnswers": [
+          "290",
+          "290 MPa",
+          "290MPa",
+          "~290"
+        ],
+        "hint": "d^(-1/2) = 1/sqrt(25e-6) = 1/0.005 = 200. sigma_y = 150 + 0.70*200 = 150 + 140 = 290 MPa."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mp_uts",
+        "kind": "multiple_choice",
+        "question": "On an engineering stress-strain curve, the ultimate tensile strength corresponds to:",
+        "options": [
+          "The stress at which the elastic region ends and plastic flow begins",
+          "The maximum engineering stress, after which necking begins and engineering stress falls",
+          "The stress at final fracture of the specimen",
+          "The slope of the linear elastic portion"
+        ],
+        "correctIndex": 1,
+        "explanation": "The ultimate tensile strength (UTS) is the peak of the engineering stress-strain curve. Up to that point, work hardening lets the material carry increasing load uniformly; at the UTS, deformation localizes into a neck, the load-bearing area drops, and engineering stress declines until fracture. The end of the elastic region is the yield strength; the slope of the elastic line is Young's modulus."
+      },
+      "hints": [
+        "It is the highest point on the engineering curve.",
+        "Necking begins right at this peak."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "UTS is the maximum engineering stress (option B). Before it, uniform plastic deformation continues because work hardening compensates for area loss; at the peak, a neck forms, the area shrinks faster than the metal hardens, and engineering stress decreases to the fracture point. Yield strength marks the elastic-plastic transition; Young's modulus is the elastic slope; fracture stress is a separate, lower value on the engineering curve."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mp_grain",
+        "kind": "scenario",
+        "question": "Why grain refinement is the favored strengthening route for structural steel",
+        "prompt": "A structural-steel producer wants to raise the yield strength of a pipeline steel without sacrificing the toughness needed to resist brittle fracture in cold climates. Among the available options (cold working, adding interstitial carbon, precipitation hardening, and grain refinement via controlled rolling and microalloying with niobium), explain why grain refinement is uniquely attractive. Use the Hall-Petch relation in your reasoning, and contrast grain refinement with the other mechanisms in terms of their effect on the strength-toughness trade-off."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_mp_precip",
+        "kind": "multiple_choice",
+        "question": "In precipitation (age) hardening, why does overaging reduce strength relative to the peak-aged condition?",
+        "options": [
+          "The precipitates dissolve completely, returning to a solid solution",
+          "The precipitates coarsen and their spacing increases, so dislocations bow around them more easily (Orowan stress falls as L grows)",
+          "The grain size decreases sharply",
+          "The dislocation density drops to zero"
+        ],
+        "correctIndex": 1,
+        "explanation": "Overaging coarsens the precipitates by Ostwald ripening: large particles grow at the expense of small ones, increasing the inter-particle spacing L. Since the Orowan bowing stress scales as Gb/L, a larger L lowers the stress needed for dislocations to bypass the particles, reducing strength. The precipitates do not fully dissolve at the aging temperature, and grain size and dislocation density are not the controlling factors here."
+      },
+      "hints": [
+        "Think about how the Orowan stress depends on precipitate spacing L.",
+        "Coarsening means fewer, larger, more widely spaced particles."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Overaging coarsens precipitates (Ostwald ripening), widening the spacing L. Because the Orowan bypass stress is approximately Gb/L, a larger L makes it easier for dislocations to bow around particles, so strength falls (option B). Peak aging corresponds to the optimal fine spacing. The particles remain present (not dissolved), so option A is wrong, and grain size and dislocation density are not the operative variables."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_mp_duralumin",
+        "kind": "scenario",
+        "question": "Diagnosing an aluminium alloy that strengthened on its own",
+        "prompt": "Alfred Wilm famously found around 1906 that an aluminium-copper alloy, weak immediately after quenching from high temperature, became markedly stronger after sitting at room temperature for several days. Explain this natural aging in terms of solution treatment, retention of a supersaturated solid solution by quenching, and the subsequent formation of Guinier-Preston zones. Describe how a modern heat treater would deliberately control this process to reach peak strength, and what would go wrong if the alloy were held too long at an elevated aging temperature."
+      }
+    }
+  ]
+}

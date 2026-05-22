@@ -1,0 +1,135 @@
+{
+  "slug": "water-quality-and-contaminant-transport",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "advanced",
+    "objectives": [
+      "Describe solute transport via the advection–dispersion equation and its component processes.",
+      "Distinguish point and non-point source pollution and explain the regulatory total maximum daily load.",
+      "Explain the hyporheic zone and the dynamics of eutrophication in surface waters."
+    ],
+    "prereqs": [
+      "groundwater-and-darcys-law"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Solute transport and the advection–dispersion equation",
+      "body": "Water carries dissolved and suspended substances — nutrients, salts, metals, pesticides, pathogens, and industrial chemicals — and predicting where those **solutes** go is the core problem of **contaminant transport hydrology**. Whether the medium is a river, a lake, or an aquifer, three fundamental processes move and reshape a plume of contamination:\n\n- **Advection**: the bulk transport of a solute carried along by the moving water at the average flow velocity. In groundwater this velocity is the **seepage velocity** $v = q/n_e$ (the Darcy flux divided by the effective porosity), not the slower Darcy flux itself. Advection moves the *center of mass* of a plume.\n- **Dispersion**: the spreading of the solute about its advancing center of mass. It has two parts. **Molecular diffusion**, described by **Fick's law** (Adolf Fick, 1855), is the random thermal spreading from high to low concentration; it dominates only at very low velocities. **Mechanical (hydrodynamic) dispersion** is the far larger spreading caused by the tortuous, variable-speed paths water takes through a heterogeneous medium — some flow paths are faster, some slower, some longer, smearing the plume. The two combine into the **hydrodynamic dispersion coefficient** $D$.\n- **Reaction and retardation**: chemical and biological transformations — **sorption** onto solids, **radioactive decay**, **biodegradation**, precipitation — that change the mass of solute. **Sorption** in particular slows a plume relative to the water, quantified by the **retardation factor** $R = 1 + \\rho_b K_d / n$, where $K_d$ is the distribution coefficient.\n\nCombining advection, dispersion, and reaction with mass conservation gives the governing **advection–dispersion equation (ADE)**, the central equation of transport. In one dimension for a conservative (non-reacting) solute it reads:\n\n$$\\frac{\\partial C}{\\partial t} = D\\,\\frac{\\partial^2 C}{\\partial x^2} - v\\,\\frac{\\partial C}{\\partial x}$$\n\nwhere $C$ is the solute concentration, $t$ is time, $x$ is distance along the flow path, $v$ is the seepage (advective) velocity, and $D$ is the dispersion coefficient. The first term on the right is the **dispersive (diffusion-like) flux** that spreads the plume; the second is the **advective flux** that translates it downstream. Adding a reaction term (e.g., $-\\lambda C$ for first-order decay) and the retardation factor handles reactive solutes. The ADE is a **partial differential equation** of the same family as the heat equation; for simple geometries it has analytic solutions (the classic **Ogata–Banks** solution of 1961 for a continuous source gives an error-function concentration front), while real, heterogeneous sites are modeled numerically with codes such as **MT3DMS** coupled to MODFLOW. A practical subtlety is **scale dependence**: the effective dispersivity measured in the field tends to *grow* with the travel distance because larger plumes sample more geological heterogeneity — a phenomenon central to the **stochastic** transport theories of **Gedeon Dagan** and **Lynn Gelhar** in the 1980s."
+    },
+    {
+      "kind": "text",
+      "title": "Point and non-point pollution, the hyporheic zone, and eutrophication",
+      "body": "Water-quality management begins by classifying the *source* of pollution. **Point-source pollution** enters from a single, identifiable, localized discharge — a factory outfall pipe, a sewage-treatment-plant effluent, a leaking storage tank. Because point sources are discrete and measurable, they are comparatively easy to regulate and treat; in the United States they are permitted under the **National Pollutant Discharge Elimination System (NPDES)** created by the **Clean Water Act of 1972**. **Non-point-source (NPS) pollution**, by contrast, originates from diffuse, spread-out activities across the landscape — fertilizer and pesticide runoff from farm fields, nutrients from lawns, sediment from construction sites, oil and salt washed off urban streets. NPS pollution is far harder to control because it has no single pipe to plug; it is mobilized by storm runoff and varies with land use, rainfall, and season. Today NPS pollution — especially **agricultural nutrient runoff** — is the leading cause of water-quality impairment in many developed nations.\n\nBetween the surface stream and the groundwater lies a biogeochemically critical mixing zone: the **hyporheic zone** (from Greek *hypo* 'under' + *rheos* 'flow'). This is the saturated sediment beneath and beside a streambed where **surface water and groundwater exchange** — channel water pushes down into the bed at riffles and upwells back into the channel at pools, driven by pressure variations along the bed. The hyporheic zone is a **bioreactor**: the long, slow flow paths through organic-rich, microbially active sediments make it a hotspot for **denitrification** (microbial conversion of nitrate to inert nitrogen gas), removal of organic carbon, and attenuation of contaminants. A healthy hyporheic zone can substantially cleanse water passing through it; channelization and bed clogging that sever this exchange diminish a stream's natural self-purification capacity. The concept was central to the development of stream ecology and the **River Continuum Concept** (Vannote et al., 1980) and remains an active frontier in **ecohydrology**.\n\nThe most consequential water-quality problem driven by nutrient pollution is **eutrophication** — the over-enrichment of a water body with nutrients, chiefly **nitrogen (N)** and **phosphorus (P)**. In most freshwater lakes, **phosphorus is the limiting nutrient** (a result established by **David Schindler's** whole-lake experiments at the **Experimental Lakes Area** in Ontario, 1970s), while nitrogen often limits coastal marine systems. Excess nutrients trigger explosive growth of algae and cyanobacteria — an **algal bloom**. When the bloom dies, its decomposition by bacteria consumes dissolved oxygen, producing **hypoxia** (low oxygen) or **anoxia** (no oxygen) in bottom waters. The resulting **dead zones** kill fish and benthic life; the seasonal hypoxic zone in the **Gulf of Mexico**, fed by **Mississippi River** nutrient loads, regularly exceeds the area of several U.S. states. **Harmful algal blooms (HABs)** can also release toxins dangerous to humans and animals, as in the 2014 **Toledo, Ohio** drinking-water crisis on **Lake Erie**. Combating eutrophication means controlling both point and non-point nutrient sources — the practical mechanism for which is the subject of the next slide."
+    },
+    {
+      "kind": "text",
+      "title": "Total maximum daily loads and the management framework",
+      "body": "How does a regulator translate a water-quality goal into enforceable limits on the many sources discharging into a river? The central tool in U.S. water-quality law is the **Total Maximum Daily Load (TMDL)** — a quantitative pollution budget for an impaired water body. The TMDL framework flows from **Section 303(d)** of the **Clean Water Act**, which requires each state to identify waters that fail to meet their **water-quality standards** (the **303(d) list** of impaired waters) and to develop, for each impaired water and each pollutant, the maximum pollutant load the water can receive while still meeting its standards.\n\nA TMDL is, at heart, a **mass-balance allocation**. The total allowable load is partitioned among all contributing sources plus a safety buffer:\n\n$$\\text{TMDL} = \\sum \\text{WLA} + \\sum \\text{LA} + \\text{MOS}$$\n\nwhere **WLA** is the **wasteload allocation** apportioned to **point sources** (implemented through their NPDES discharge permits), **LA** is the **load allocation** apportioned to **non-point sources** and to natural background, and **MOS** is an explicit **margin of safety** to account for uncertainty in the relationship between loads and water quality. The load is expressed as a mass per time (e.g., kg of phosphorus per day) and is often made **flow-dependent**, since a river can assimilate more pollutant at high flow than at low flow.\n\nComputing the loads ties everything in this lesson together. Engineers use **water-quality models** that couple the advection–dispersion equation with reaction kinetics to predict in-stream concentrations from a given load. The most venerable is the **Streeter–Phelps equation** (H. W. Streeter and Earle B. Phelps, **1925**), which describes the **dissolved-oxygen sag curve** downstream of an organic-waste discharge by balancing **deoxygenation** (oxygen consumed by microbial breakdown of **biochemical oxygen demand**, BOD) against **reaeration** (oxygen replenished from the atmosphere). The minimum-oxygen point of the sag curve reveals whether a discharge will violate the dissolved-oxygen standard. Modern comprehensive models such as the U.S. EPA's **QUAL2K** (rivers) and **WASP** simulate many interacting constituents — nutrients, algae, BOD, dissolved oxygen, temperature, pathogens.\n\nThe regulatory and scientific architecture is global. Europe's **Water Framework Directive (2000/60/EC)** sets a binding goal of 'good ecological status' for all water bodies and organizes management by **river-basin district**. The recurring theme is that achieving water-quality goals requires controlling the diffuse, non-point sources that the comparatively simple point-source permitting of the 1970s left largely untouched. That challenge — diffuse nutrient pollution from agriculture and urban runoff, mobilized by the very rainfall–runoff processes covered earlier in this path — remains the defining water-quality problem of the 21st century, and the TMDL is the principal accounting instrument used to confront it."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hyd7_1",
+        "kind": "multiple_choice",
+        "question": "In the advection–dispersion equation, which process is responsible for moving the CENTER OF MASS of a contaminant plume downstream at the average flow velocity?",
+        "options": [
+          "Dispersion",
+          "Advection",
+          "Sorption",
+          "Radioactive decay"
+        ],
+        "correctIndex": 1,
+        "explanation": "Advection is the bulk transport of solute carried along by the moving water; it translates the plume's center of mass downstream at the average (seepage) velocity v. Dispersion spreads the plume about that center of mass (it does not move the center). Sorption retards the plume relative to the water and decay reduces solute mass, but neither is the bulk-transport mechanism. In the ADE, advection is the -v(∂C/∂x) term and dispersion is the D(∂²C/∂x²) term."
+      },
+      "hints": [
+        "One process translates the plume; another spreads it.",
+        "The bulk flow of water carries the center of mass — that is advection."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Advection carries the plume's center of mass downstream at the average velocity; dispersion only spreads it about that center. The answer is B."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_hyd7_1",
+        "kind": "math_expression",
+        "question": "In groundwater the advective (seepage) velocity is v = q / n_e, where q is the Darcy flux and n_e is the effective porosity. If the Darcy flux is q = 0.6 m/day and the effective porosity is n_e = 0.25, what is the seepage velocity v in m/day?",
+        "acceptedAnswers": [
+          "2.4",
+          "2.4 m/day",
+          "2.4m/day"
+        ],
+        "hint": "Divide: v = 0.6 / 0.25 = 2.4 m/day. Note this is faster than the Darcy flux."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hyd7_2",
+        "kind": "multiple_choice",
+        "question": "Which of the following is the clearest example of NON-POINT-source water pollution?",
+        "options": [
+          "Treated effluent discharged from a single sewage-treatment-plant outfall pipe.",
+          "A factory's wastewater released through one permitted discharge point.",
+          "Fertilizer and pesticide runoff washing off many farm fields across a watershed during a rainstorm.",
+          "A leaking underground storage tank at a single gas station."
+        ],
+        "correctIndex": 2,
+        "explanation": "Non-point-source pollution comes from diffuse, spread-out sources across the landscape, mobilized by runoff — fertilizer and pesticide runoff from many farm fields is the textbook example. The other three (a sewage outfall, a factory discharge pipe, and a single leaking tank) are all discrete, identifiable point sources, regulated in the U.S. through NPDES permits. Non-point sources are far harder to control because there is no single discharge point to treat, which is why diffuse agricultural runoff remains the leading cause of water-quality impairment."
+      },
+      "hints": [
+        "Point sources have a single identifiable discharge location.",
+        "Diffuse runoff from across a landscape is non-point."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Diffuse fertilizer/pesticide runoff from many fields is non-point. The outfall pipe, factory discharge, and single leaking tank are all point sources. The answer is C."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_hyd7_1",
+        "kind": "scenario",
+        "question": "Diagnosing a lake dead zone and crafting a nutrient TMDL",
+        "prompt": "A shallow lake develops thick summer cyanobacteria blooms followed by fish kills in its bottom waters, and the state lists it as impaired. Monitoring shows high phosphorus loads, most arriving in storm runoff from surrounding farmland with a smaller contribution from a town's wastewater plant. Explain the eutrophication mechanism linking phosphorus loading to the bottom-water hypoxia and fish kills. Then describe how a phosphorus TMDL would be structured using TMDL = ΣWLA + ΣLA + MOS — which sources get a wasteload allocation versus a load allocation, why the non-point agricultural load is the harder one to reduce, and why a margin of safety is included. Note one role the lake's or inflow stream's hyporheic/benthic processes could play in the phosphorus budget."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_hyd7_2",
+        "kind": "math_expression",
+        "question": "A river's phosphorus TMDL is allocated as TMDL = ΣWLA + ΣLA + MOS. The point-source wasteload allocations total ΣWLA = 12 kg/day, the non-point load allocations total ΣLA = 30 kg/day, and the margin of safety is MOS = 3 kg/day. What is the total maximum daily load in kg/day?",
+        "acceptedAnswers": [
+          "45",
+          "45 kg/day",
+          "45kg/day"
+        ],
+        "hint": "Add the three components: 12 + 30 + 3 = 45 kg/day."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hyd7_3",
+        "kind": "multiple_choice",
+        "question": "Why is the hyporheic zone considered important for a stream's natural water quality?",
+        "options": [
+          "It is the deepest part of the ocean where no exchange occurs.",
+          "It is the saturated streambed sediment where surface water and groundwater exchange, and its slow flow through organic-rich, microbially active sediment makes it a hotspot for processes like denitrification and contaminant attenuation.",
+          "It is the layer of the atmosphere where precipitation forms.",
+          "It is a synthetic liner used in landfills to prevent leakage."
+        ],
+        "correctIndex": 1,
+        "explanation": "The hyporheic zone is the saturated sediment beneath and beside a streambed where channel water and groundwater mix, driven by pressure variations along the bed (downwelling at riffles, upwelling at pools). Its long, slow flow paths through organic-rich, microbially active sediment make it a biogeochemical bioreactor — a hotspot for denitrification (nitrate to N2 gas), organic-carbon removal, and contaminant attenuation. A healthy hyporheic zone enhances a stream's self-purification, so clogging or channelizing the bed reduces that natural cleansing capacity."
+      },
+      "hints": [
+        "Think of the mixing zone in the streambed sediments.",
+        "Slow flow through active sediment removes nitrate and other contaminants."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "The hyporheic zone is the streambed mixing zone of surface water and groundwater; its slow, microbially active flow paths drive denitrification and contaminant attenuation, cleansing the water. The answer is B."
+    }
+  ]
+}

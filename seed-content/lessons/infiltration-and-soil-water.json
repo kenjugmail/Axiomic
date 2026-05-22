@@ -1,0 +1,135 @@
+{
+  "slug": "infiltration-and-soil-water",
+  "meta": {
+    "timeMinutes": 24,
+    "difficulty": "core",
+    "objectives": [
+      "Define infiltration capacity and apply Horton's infiltration equation and the Green–Ampt model.",
+      "Distinguish field capacity, wilting point, and plant-available water in the soil profile.",
+      "Describe the vadose zone and the role of Richards' equation in unsaturated flow."
+    ],
+    "prereqs": [
+      "precipitation-and-evapotranspiration"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "Infiltration capacity and Horton's equation",
+      "body": "**Infiltration** is the process by which water at the land surface enters the soil. It is the critical partition point of the hydrologic cycle: water that infiltrates becomes soil moisture and groundwater recharge, while water that the surface cannot accept becomes **overland flow** and storm runoff. The maximum rate at which a given soil can absorb water under specified conditions is the **infiltration capacity** $f_c$ (units of depth per time, mm/h). When rainfall intensity is below the infiltration capacity, all the rain soaks in. When rainfall intensity exceeds the infiltration capacity, the excess ponds and runs off — the mechanism the American hydrologist **Robert E. Horton** (1875-1945) identified and which now bears his name: **Hortonian (infiltration-excess) overland flow**.\n\nA defining feature of infiltration is that capacity **declines with time** during a storm. At the start, a dry soil draws water in rapidly because of strong **capillary suction** (matric potential gradients) acting in addition to gravity, and because air-filled pore space is abundant. As the soil wets, the suction gradient weakens, pores fill, and the rate decays toward a constant value approximately equal to the **saturated hydraulic conductivity** $K_s$, where gravity alone drives flow. Horton captured this decay in his classic empirical **Horton infiltration equation** (1933, 1940):\n\n$$f(t) = f_c + (f_0 - f_c)\\, e^{-k t}$$\n\nwhere $f(t)$ is the infiltration capacity at time $t$, $f_0$ is the **initial** (maximum, dry-soil) infiltration capacity, $f_c$ is the **final** (steady-state) capacity, and $k$ is a soil-specific decay constant ($\\text{h}^{-1}$). The curve starts high at $f_0$, decays exponentially, and asymptotes to $f_c$. Integrating $f(t)$ over the storm gives the **cumulative infiltration** $F(t)$ — the total depth absorbed.\n\nA crucial subtlety is the difference between the **infiltration capacity** (the potential rate) and the **actual infiltration rate** (what truly enters). The actual rate equals the rainfall intensity until the moment the rainfall intensity first exceeds the falling capacity — the **time of ponding** $t_p$ — after which the actual rate follows the capacity curve and the excess becomes runoff. A common student error is to apply the decaying capacity curve from the storm's start; in reality the soil only begins to limit infiltration once ponding occurs.\n\nInfiltration capacity is governed by many factors: **soil texture** (sands infiltrate fast, clays slowly), **soil structure** and **macropores** (root channels and worm burrows can dominate), **antecedent moisture** (a wet soil has lower $f_0$), surface **crusting** and compaction, vegetation and litter cover, and the presence of a **frozen** or hydrophobic layer. Horton's equation is empirical and elegant but does not derive from soil physics; for a physically based description we turn to the Green–Ampt model and, ultimately, Richards' equation."
+    },
+    {
+      "kind": "text",
+      "title": "The Green–Ampt model and the physics of a wetting front",
+      "body": "While Horton's equation fits the *shape* of an infiltration curve, the **Green–Ampt model** (after **W. Heber Green** and **G. A. Ampt**, 1911) derives infiltration from physical principles. It remains one of the most widely used infiltration models in hydrologic engineering more than a century after its publication.\n\nGreen and Ampt idealized infiltration into a dry soil as a sharp **wetting front** — a clean boundary that advances downward, with **saturated** soil above it and **dry** soil (at the initial moisture content) below it, like a piston of water pushing into the column. This 'sharp-front' or 'plug-flow' approximation lets us apply **Darcy's law** (the same law that governs groundwater) across the wetted zone. The driving force is the sum of the **ponded depth** at the surface, the **gravity head** equal to the depth of the front $L$, and the **suction head** $\\psi_f$ pulling water into the dry soil at the front. The resulting **Green–Ampt infiltration-rate equation** is:\n\n$$f = K_s \\left( 1 + \\frac{\\psi_f\\, \\Delta\\theta}{F} \\right)$$\n\nwhere $f$ is the infiltration rate, $K_s$ is the saturated hydraulic conductivity, $\\psi_f$ is the **wetting-front suction head** (a negative-pressure, capillary term, taken positive here), $\\Delta\\theta = \\theta_s - \\theta_i$ is the difference between saturated and initial volumetric moisture contents (the 'storage' the front fills), and $F$ is the cumulative infiltrated depth. Early in the event $F$ is small, so the suction term dominates and $f$ is large; as $F$ grows the suction term shrinks and $f \\to K_s$, recovering the same asymptotic behavior Horton observed — but here from physics rather than curve-fitting. The companion **cumulative form** is implicit in $F$:\n\n$$F = K_s t + \\psi_f\\, \\Delta\\theta \\, \\ln\\!\\left(1 + \\frac{F}{\\psi_f\\, \\Delta\\theta}\\right)$$\n\nwhich is solved iteratively for $F(t)$.\n\nThe great virtue of Green–Ampt is that its parameters — $K_s$, $\\psi_f$, $\\theta_s$ — are **measurable soil properties** rather than empirical fitting constants, and tabulated values exist for standard **USDA soil-texture classes** (sand, loam, silty clay, and so on). This makes it the workhorse for infiltration in widely used models such as the **SCS/NRCS** runoff framework, **HEC-HMS**, and **SWMM** (the Storm Water Management Model).\n\nIt is worth situating infiltration models in the broader **runoff-generation** debate. Hortonian infiltration-excess flow dominates on **arid, crusted, or urbanized** surfaces where rainfall intensity readily beats infiltration capacity. But in **humid, vegetated** catchments with high infiltration capacity, **R. Allan Freeze**, **John Dunne**, and others showed in the 1960s-1970s that runoff more often arises as **saturation-excess overland flow** — rain falling on already-saturated near-stream soils — and as **subsurface stormflow**. This is the **variable source area concept**: the contributing area for runoff expands and contracts with wetness. Knowing which mechanism operates in a given landscape determines which infiltration model is appropriate and how a basin's hydrograph will behave."
+    },
+    {
+      "kind": "text",
+      "title": "Soil water, the vadose zone, and Richards' equation",
+      "body": "Below the surface, water occupies the **vadose zone** (also called the **unsaturated zone** or zone of aeration) — the region between the land surface and the **water table**, where soil pores hold a mix of water and air. Above the water table lies a **capillary fringe** where suction holds water nearly saturated; below the water table is the **saturated zone** of groundwater. The vadose zone is where infiltration, evapotranspiration, root uptake, and recharge all play out, making its physics central to both agriculture and hydrology.\n\nWater in unsaturated soil is held by two energies. The **matric potential** $\\psi$ (a negative pressure, or **suction**/**tension**) arises from capillarity and adsorption of water to particle surfaces — the drier and finer the soil, the more strongly water is held. The **gravitational potential** drives downward drainage. Their sum is the **total hydraulic head** that governs flow. The relationship between how much water a soil holds (the **volumetric water content** $\\theta$) and how tightly it holds it ($\\psi$) is the **soil-water retention curve** (or **soil-water characteristic curve**), commonly described by the **van Genuchten** (1980) or **Brooks–Corey** (1964) parametric models.\n\nThree benchmark moisture states are essential:\n\n- **Saturation** ($\\theta_s$): all pores filled with water.\n- **Field capacity**: the water content retained after gravity drainage has effectively stopped (conventionally near a suction of about $-33\\ \\text{kPa}$, or $-1/3$ bar). This is the upper limit of water a soil holds against gravity.\n- **Permanent wilting point**: the water content at which plants can no longer extract water and wilt irreversibly (conventionally near $-1500\\ \\text{kPa}$, or $-15$ bar).\n\nThe water held between field capacity and wilting point is the **plant-available water (PAW)** — the reservoir crops and natural vegetation actually draw upon. Coarse sands have low PAW (they drain freely); fine-textured loams hold the most available water; heavy clays hold abundant water but much of it is too tightly bound to be available.\n\nThe governing physics of unsaturated flow is **Richards' equation**, derived by the American soil physicist **Lorenzo A. Richards** in 1931 by combining **Darcy's law** (generalized to unsaturated media with a moisture-dependent hydraulic conductivity $K(\\theta)$) with the **continuity (mass-conservation)** equation. In its mixed form for vertical flow it reads:\n\n$$\\frac{\\partial \\theta}{\\partial t} = \\frac{\\partial}{\\partial z}\\left[ K(\\theta)\\left( \\frac{\\partial \\psi}{\\partial z} + 1 \\right) \\right]$$\n\nwhere $z$ is depth (positive downward in the gravity term shown as $+1$), $K(\\theta)$ is the unsaturated hydraulic conductivity (which drops by orders of magnitude as the soil dries and pores empty), and $\\psi(\\theta)$ comes from the retention curve. Richards' equation is **strongly nonlinear** because both $K$ and $\\psi$ depend on $\\theta$, so it almost never has closed-form solutions and is solved **numerically** in modern vadose-zone models such as **HYDRUS**. Conceptually it unifies everything in this lesson: the Green–Ampt model is a sharp-front simplification of Richards' equation, and field capacity and wilting point are simply particular points on the retention curve $\\psi(\\theta)$ that Richards' equation evolves through time."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hyd3_1",
+        "kind": "multiple_choice",
+        "question": "In Horton's infiltration equation f(t) = f_c + (f_0 - f_c)e^(-kt), why does infiltration capacity decline over the course of a storm?",
+        "options": [
+          "Because rainfall intensity always increases during a storm.",
+          "Because as the soil wets up, the capillary suction gradient weakens and air-filled pores fill, so the rate decays from the high dry-soil value f_0 toward a steady value f_c set by gravity-driven flow.",
+          "Because the water table rises to the surface within minutes of any rainfall.",
+          "Because evapotranspiration removes water faster as the storm continues."
+        ],
+        "correctIndex": 1,
+        "explanation": "At the start of a storm a dry soil has strong matric (capillary) suction and abundant empty pore space, giving a high initial infiltration capacity f_0. As water fills the pores, the suction gradient weakens and the rate decays exponentially toward a final capacity f_c that is approximately the saturated hydraulic conductivity K_s, where gravity alone drives flow. Horton's equation is an empirical fit to this decay; the Green–Ampt model reproduces the same behavior from physics."
+      },
+      "hints": [
+        "Think about what changes in the soil as it gets wetter.",
+        "Dry soil pulls water in by suction; wet soil cannot."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "A dry soil infiltrates fast because of strong capillary suction and open pores (high f_0). Wetting weakens suction and fills pores, so capacity decays toward f_c ≈ K_s. That is option B. Rainfall intensity is unrelated to the capacity curve itself."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_hyd3_1",
+        "kind": "math_expression",
+        "question": "A soil has initial infiltration capacity f_0 = 50 mm/h, final capacity f_c = 10 mm/h, and decay constant k = 2 per hour. Using Horton's equation f(t) = f_c + (f_0 - f_c)e^(-kt), what is the infiltration capacity (in mm/h) at t = 0 hours?",
+        "acceptedAnswers": [
+          "50",
+          "50 mm/h",
+          "50mm/h"
+        ],
+        "hint": "At t = 0, e^(-k·0) = e^0 = 1, so f(0) = f_c + (f_0 - f_c)·1 = f_0."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hyd3_2",
+        "kind": "multiple_choice",
+        "question": "Which quantity represents the water available to plants — the reservoir crops actually draw upon?",
+        "options": [
+          "The water held between saturation and field capacity.",
+          "The water held between field capacity and the permanent wilting point.",
+          "All water in the soil, including that below the wilting point.",
+          "Only the water held at suctions more negative than -1500 kPa."
+        ],
+        "correctIndex": 1,
+        "explanation": "Plant-available water (PAW) is the water retained between field capacity (the upper limit held against gravity, near -33 kPa) and the permanent wilting point (near -1500 kPa, below which roots cannot extract water). Water above field capacity drains away by gravity (gravitational water), and water held below the wilting point is bound too tightly for plants to use. Fine-textured loams typically maximize PAW, while sands have little and clays hold much that is unavailable."
+      },
+      "hints": [
+        "It is bounded by two benchmark moisture states.",
+        "Above field capacity it drains; below wilting point plants cannot use it."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Plant-available water = field capacity minus wilting point. Above field capacity water drains under gravity; below wilting point it is held too tightly for roots. The answer is B."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "scn_hyd3_1",
+        "kind": "scenario",
+        "question": "Why two adjacent fields runoff differently in the same storm",
+        "prompt": "Two neighboring agricultural fields receive an identical, intense 40 mm/h thunderstorm. Field A is a deep, well-structured loam with abundant earthworm macropores and a vegetated litter layer; it generates almost no surface runoff. Field B is a compacted, surface-crusted clay that has been recently tilled and left bare; it generates substantial runoff and minor erosion almost immediately. Using the concepts of infiltration capacity, time of ponding, antecedent moisture, and Hortonian (infiltration-excess) overland flow, explain why the two fields behave so differently. Then explain how the Green–Ampt parameters (K_s, wetting-front suction, and the moisture deficit Δθ) would differ between the two soils and how that maps onto the observed runoff."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_hyd3_2",
+        "kind": "math_expression",
+        "question": "A soil has a field capacity volumetric water content of 0.32 and a permanent wilting point of 0.14. If the root zone is 600 mm deep, what is the total plant-available water in the root zone, expressed as a depth in mm? (PAW depth = (θ_FC - θ_WP) × root depth.)",
+        "acceptedAnswers": [
+          "108",
+          "108 mm",
+          "108mm"
+        ],
+        "hint": "(0.32 - 0.14) = 0.18; multiply by 600 mm: 0.18 × 600 = 108 mm."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_hyd3_3",
+        "kind": "multiple_choice",
+        "question": "Richards' equation (Lorenzo Richards, 1931) describes unsaturated flow in the vadose zone. Why is it so difficult to solve analytically?",
+        "options": [
+          "Because it ignores gravity entirely.",
+          "Because it is strongly nonlinear: both the hydraulic conductivity K(θ) and the matric potential ψ depend on the water content θ, which is itself the unknown being solved for.",
+          "Because it applies only below the water table, where conditions are unknown.",
+          "Because it has no relationship to Darcy's law or to mass conservation."
+        ],
+        "correctIndex": 1,
+        "explanation": "Richards' equation combines Darcy's law (generalized to unsaturated media) with mass conservation. Its difficulty is its strong nonlinearity: the unsaturated hydraulic conductivity K(θ) can vary by orders of magnitude with moisture, and the matric potential ψ(θ) is also a nonlinear function from the soil-water retention curve. Because the coefficients depend on the dependent variable θ, closed-form solutions almost never exist, and the equation is solved numerically (e.g., in HYDRUS). It applies in the vadose zone above the water table, and the Green–Ampt model is a sharp-front simplification of it."
+      },
+      "hints": [
+        "Look at what K and ψ depend on.",
+        "When the coefficients of a PDE depend on the unknown itself, it is nonlinear."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Richards' equation is nonlinear because K(θ) and ψ(θ) both depend on θ, the very quantity being solved. That precludes general closed-form solutions and forces numerical methods. The answer is B."
+    }
+  ]
+}
