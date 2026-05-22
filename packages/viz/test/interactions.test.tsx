@@ -18,6 +18,9 @@ import { MapProjections } from "../src/components/MapProjections";
 import { DoseResponseCurve } from "../src/components/DoseResponseCurve";
 import { TruthTable } from "../src/components/TruthTable";
 import { DnaElectropherogram } from "../src/components/DnaElectropherogram";
+import { VitalSignsMonitor } from "../src/components/VitalSignsMonitor";
+import { FlavorWheel } from "../src/components/FlavorWheel";
+import { AirfoilPolar } from "../src/components/AirfoilPolar";
 
 let h: VizHarness | null = null;
 afterEach(() => {
@@ -79,5 +82,20 @@ describe("viz interactions", () => {
     const before = h.html();
     h.click(h.button("Reroll A"));
     expect(h.html()).not.toBe(before);
+  });
+
+  test("VitalSignsMonitor: switching scenario moves the active highlight", () => {
+    h = mountViz(createElement(VitalSignsMonitor));
+    expectSelectionMoves(h, "Normal", "Desaturation");
+  });
+
+  test("FlavorWheel: picking a wine moves the active highlight", () => {
+    h = mountViz(createElement(FlavorWheel));
+    expectSelectionMoves(h, "Cabernet", "Riesling");
+  });
+
+  test("AirfoilPolar: choosing an AoA preset moves the active highlight", () => {
+    h = mountViz(createElement(AirfoilPolar));
+    expectSelectionMoves(h, "Cruise 4°", "Stall 16°");
   });
 });

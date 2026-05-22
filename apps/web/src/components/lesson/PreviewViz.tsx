@@ -423,6 +423,21 @@ const LazyBeatGrid = lazy(() =>
     (m) => ({ default: m.BeatGrid }),
   ),
 );
+const LazyVitalSignsMonitor = lazy(() =>
+  import("../../../../../packages/viz/src/components/VitalSignsMonitor").then(
+    (m) => ({ default: m.VitalSignsMonitor }),
+  ),
+);
+const LazyFlavorWheel = lazy(() =>
+  import("../../../../../packages/viz/src/components/FlavorWheel").then(
+    (m) => ({ default: m.FlavorWheel }),
+  ),
+);
+const LazyAirfoilPolar = lazy(() =>
+  import("../../../../../packages/viz/src/components/AirfoilPolar").then(
+    (m) => ({ default: m.AirfoilPolar }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -649,6 +664,12 @@ function VizByName({
       return <LazyComparativeAnatomy {...(props as object)} />;
     case "beat-grid":
       return <LazyBeatGrid {...(props as object)} />;
+    case "vital-signs-monitor":
+      return <LazyVitalSignsMonitor {...(props as object)} />;
+    case "flavor-wheel":
+      return <LazyFlavorWheel {...(props as object)} />;
+    case "airfoil-polar":
+      return <LazyAirfoilPolar {...(props as object)} />;
     default:
       return null;
   }

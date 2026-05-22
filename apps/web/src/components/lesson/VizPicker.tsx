@@ -614,6 +614,27 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "💃",
     tags: ["choreography", "music", "rhythm", "meter"],
   },
+  {
+    name: "vital-signs-monitor",
+    label: "Vital signs monitor",
+    description: "OR patient monitor — ECG, SpO2 pleth, capnograph + numeric vitals; toggle normal / tachycardia / hypotension / desaturation.",
+    thumb: "🫀",
+    tags: ["surgery", "anesthesia", "ecg", "monitoring"],
+  },
+  {
+    name: "flavor-wheel",
+    label: "Wine flavor wheel",
+    description: "Aroma-family wheel (after Ann Noble, 1984) + acidity/tannin/body/sweetness/alcohol radar; Cabernet / Pinot / Chardonnay / Riesling presets.",
+    thumb: "🍷",
+    tags: ["sommelier", "wine", "sensory", "tasting"],
+  },
+  {
+    name: "airfoil-polar",
+    label: "Airfoil lift curve",
+    description: "Lift coefficient vs angle of attack with stall + drag polar; drag the AoA slider or pick cruise / climb / stall.",
+    thumb: "✈️",
+    tags: ["pilot", "aerodynamics", "lift", "stall"],
+  },
 ];
 
 interface Props {

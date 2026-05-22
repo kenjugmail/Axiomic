@@ -1,0 +1,168 @@
+{
+  "slug": "aircraft-systems-and-powerplant",
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Describe the four-stroke Otto cycle, carburetor icing, mixture leaning, and the dual-magneto ignition system.",
+      "Explain the differences between fixed-pitch and constant-speed propellers and between piston and gas-turbine powerplants.",
+      "Identify the major aircraft systems — fuel, electrical, hydraulic, and pressurization — and their normal operating limits."
+    ],
+    "prereqs": [
+      "aerodynamics-and-the-flight-envelope"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The piston engine — Otto cycle, ignition, and mixture",
+      "body": "The majority of **general aviation (GA)** aircraft are powered by horizontally-opposed, air-cooled **piston engines** manufactured principally by **Lycoming Engines** (founded 1907, Williamsport, Pennsylvania) and **Continental Aerospace Technologies** (formerly **Teledyne Continental Motors**, founded 1905, Mobile, Alabama). These engines operate on the **four-stroke Otto cycle**, named for **Nikolaus Otto** (German, 1832-1891), who built the first practical four-stroke internal combustion engine in **1876**.\n\n**The four strokes**:\n1. **Intake**: The piston moves down; the intake valve opens; a fuel-air mixture is drawn into the cylinder. In a **carbureted** engine (e.g., Lycoming O-320 on the Cessna 172A through R), the carburetor mixes fuel and air using a venturi — the pressure drop in the venturi draws fuel from the float bowl. In a **fuel-injected** engine (e.g., Lycoming IO-360 on the Cessna 172S), fuel is metered directly into the intake port for each cylinder, improving fuel distribution and eliminating carburetor ice.\n2. **Compression**: Both valves closed; piston moves up; mixture is compressed. The **compression ratio** $r_c$ is the ratio of cylinder volume at BDC (bottom dead centre) to volume at TDC (top dead centre). Lycoming O-360: $r_c = 8.5:1$. Continental IO-550: $r_c = 8.5:1$. Higher $r_c$ increases thermal efficiency but demands higher-octane fuel to avoid **detonation** (uncontrolled ignition).\n3. **Power (combustion)**: The spark plug fires (typically slightly **before** TDC — **ignition advance** measured in degrees of crankshaft rotation); the mixture burns; pressure peaks and drives the piston down.\n4. **Exhaust**: The exhaust valve opens; the piston moves up expelling burned gases.\n\n**Carburetor ice** is a critical hazard in GA. When moist air passes through a carburetor venturi, the pressure drop cools the air by up to **20–25 °C** (the Joule-Thomson effect). If dew point is reached, ice forms on the throttle plate and venturi, reducing or blocking airflow — even in air temperatures as high as **+21 °C** at high relative humidity. The **FAA Advisory Circular AC 20-113** charts the danger envelope. Pilots apply **carburetor heat** (a hot-air bypass valve) to melt ice; the characteristic engine roughness followed by a recovery in RPM confirms ice was present.\n\n**Magneto ignition**: GA piston engines use **two independent magneto systems** — left magneto and right magneto — each powering one spark plug per cylinder (two plugs per cylinder, totalling two separate ignition systems). A **magneto** is a self-contained AC generator that requires no aircraft electrical power; it fires as long as the engine is running. The **mag check** before takeoff (dropping the key from BOTH to L only, then R only) verifies each system independently; a typical rpm drop is 75-125 RPM per magneto, with no more than 50 RPM differential between left and right.\n\n**Mixture control** adjusts the fuel-to-air ratio. The stoichiometric (chemically perfect) mixture for aviation gasoline (**100LL avgas**) is approximately **15:1** by mass (air:fuel). As altitude increases, air density drops but the fuel metering remains initially constant — the mixture **enriches**. Pilots **lean** the mixture by reducing fuel flow until peak exhaust gas temperature (EGT), then enrich slightly. Operating on the **lean side of peak EGT** reduces fuel consumption and cylinder head temperature (CHT). **Lycoming** recommends leaning above **3,000 ft MSL** during cruise. Detonation, the enemy of leaning, causes localised uncontrolled combustion that can destroy pistons and cylinder walls in seconds; it is associated with over-lean mixture, high CHT, or low-octane fuel.\n\n**100LL avgas** (low-lead, blue in colour, ASTM D910) remains the dominant GA fuel in North America. Its **octane rating** of 100 motor octane allows higher compression ratios than **mogas** (automobile gasoline, 87-93 AKI). The FAA and **ASTM International** are actively certifying **unleaded replacement fuels** — notably **Swift 100R** and **GAMI G100UL** — under the **Eliminate Aviation Gasoline Lead Emissions (EAGLE)** initiative, with full fleet approval targeted by **2030**."
+    },
+    {
+      "kind": "text",
+      "title": "The propeller, gas turbines, and fuel systems",
+      "body": "**The propeller** converts engine torque into thrust. Each blade is an aerofoil — its chord line is set at a **blade angle** (pitch) relative to the plane of rotation. The effective angle of attack of a blade element depends on the vector sum of its rotational velocity and the aircraft's forward speed.\n\n- **Fixed-pitch propeller**: blade angle is fixed at manufacture, optimised for one combination of speed and RPM. Simple and light; used on trainers such as the **Cessna 172** (Lycoming O-320/O-360 with McCauley or Sensenich 2-blade fixed-pitch prop). Best efficiency at the design point; compromised at other conditions.\n- **Constant-speed propeller**: a **governor** (a flyweight-type hydraulic device) varies blade pitch automatically to maintain a pilot-selected RPM regardless of throttle setting or speed change. Used on higher-performance singles such as the **Beechcraft Bonanza A36** (Continental IO-550-B) and virtually all multi-engine and turboprop aircraft. The pilot sets RPM with the propeller control (blue lever); throttle controls manifold pressure (power). **Overspeed** (governor failure toward flat pitch) and **underspeed** (toward coarse pitch) are both manageable failure modes.\n- **Propeller torque** and **P-factor** (asymmetric thrust): in a single-engine tractor configuration with a clockwise-rotating prop (viewed from the front), torque rolls the aircraft left, and P-factor (downgoing blade on the right at high AoA) yaws it left — hence the left-turning tendencies in climb that student pilots counteract with right rudder. The **critical engine** of a light twin is the left engine for the same reason (**VMC** — minimum control speed with critical engine inoperative).\n\n**Gas turbine engines**:\n\n**Frank Whittle** (British, 1907-1996) patented the jet engine concept in **1930** and ran his first prototype, the **Power Jets W.1**, on **12 April 1937**. Independently, **Hans von Ohain** (German, 1911-1998) designed the **Heinkel HeS 3**, which powered the world's first jet aircraft, the **Heinkel He 178**, on **27 August 1939**. The **Gloster Meteor** (Whittle's engine, entered RAF service **July 1944**) and Germany's **Messerschmitt Me 262** (von Ohain lineage, service **July 1944**) were the first operational jet fighters.\n\nGas turbines operate on the **Brayton cycle** (named after **George Brayton**, American, 1830-1892): continuous flow; intake → **compressor** (raises pressure) → **combustor** (fuel burned continuously) → **turbine** (drives compressor + output shaft) → exhaust. Four turbine variants:\n\n1. **Turbojet**: all thrust from jet exhaust. High specific thrust, poor fuel economy at low speeds. Historical: early jets, the **Boeing 707** original engines.\n2. **Turbofan**: a large fan driven by the turbine moves additional bypass air around the core, generating extra thrust at much better fuel efficiency. **Bypass ratio (BPR)** = bypass airflow / core airflow. High-bypass turbofans (**CFM56-5B** on Airbus A320, BPR ≈ 6:1; **GE90-115B** on Boeing 777-300ER, BPR ≈ 8.4:1) dominate modern airliners. Low-bypass turbofans (**Pratt & Whitney F100** on F-15/F-16, BPR ≈ 0.6:1) suit supersonic fighters.\n3. **Turboprop**: turbine drives a propeller via a reduction gearbox; exhaust contributes 10–15% of total thrust. Excellent fuel economy at speeds below ~450 kt. Examples: **Pratt & Whitney Canada PT6A** (first run **1960**, on virtually every turboprop trainer and commuter), powering the **Beechcraft King Air B200** and **Pilatus PC-12**.\n4. **Turboshaft**: turbine drives a rotor system rather than a propeller — used in helicopters (**Rolls-Royce Allison 250**, **GE T700**) and auxiliary power units (APUs).\n\n**Jet-A fuel** (ASTM D1655, clear to straw-coloured): the standard commercial turbine fuel, flash point ≥ **38 °C**, freeze point ≤ **−47 °C**. **JP-8** is the military equivalent. Jet-A vs 100LL avgas must never be confused — fuelling a piston GA aircraft with Jet-A (misfuelling) causes immediate engine damage; colour-coding (blue for 100LL, clear/straw for Jet-A) and different nozzle sizes under **NFPA 407** help prevent this.\n\n**Aircraft fuel systems** include tanks (integral wing tanks or bladder tanks), fuel pumps (engine-driven + electric boost), fuel selectors (BOTH / LEFT / RIGHT / OFF), gascolators (sediment bowls), and fuel quantity gauges. **FAR 91.151** requires VFR day flights to carry fuel for the planned flight plus **30 minutes** reserve; **FAR 91.167** requires IFR flights to carry fuel plus **45 minutes** at normal cruise after arriving at the destination."
+    },
+    {
+      "kind": "text",
+      "title": "Electrical, hydraulic, and pressurization systems",
+      "body": "Modern aircraft — even simple trainers — are more system-intensive than they appear from the outside. Understanding these systems is required for the **FAA Private Pilot Written Exam** and is tested on every **checkride** per the **Airman Certification Standards (ACS)**.\n\n**Electrical system** (typical GA aircraft such as Cessna 172S):\n- **Alternator**: an engine-driven alternator (28V DC or 14V DC depending on system voltage) charges the battery and powers avionics and lights in normal operation. The **Cessna 172S** uses a 60-amp Prestolite alternator. An alternator failure illuminates the **ALT** warning light and the battery becomes the sole power source — typically giving **30–60 minutes** of avionics operation before exhaustion.\n- **Battery**: a 24V or 12V lead-acid (or optionally lithium) battery provides start power and emergency backup. The **master switch** in most GA aircraft is a split rocker: ALT (alternator field) and BAT (battery contactor) are separate halves.\n- **Bus bar**: electrical loads connect to the main bus and avionics bus via circuit breakers. **Essential bus** on complex aircraft is protected from non-essential load shedding.\n- **Avionics**: modern glass-cockpit aircraft (Garmin G1000, Garmin G3X Touch) draw substantial current; managing electrical load during alternator failure is a key emergency procedure.\n\n**Hydraulic systems**:\n- Light GA aircraft typically use **no hydraulic system** — brakes are actuated by direct master cylinders (toe brakes on rudder pedals) using hydraulic fluid (**MIL-H-5606**, red mineral oil).\n- Retractable-gear aircraft (Beechcraft Retractable, Piper PA-28R Arrow, Cessna 172RG Cutlass) use a **hydraulic actuator** driven by an electric pump to extend and retract landing gear.\n- Transport-category aircraft (**Airbus A320**, **Boeing 737**) have three independent hydraulic systems (Green, Blue, Yellow on A320) pressurised to **3,000 PSI** (standard) or **5,000 PSI** (advanced Boeing 787) by engine-driven pumps, electric pumps, ram-air turbines (**RAT**), and PTUs (power transfer units).\n\n**Cabin pressurisation**:\n- Pressurised aircraft — from the **Beechcraft Bonanza B36TC** (turbocharged) to the **Cessna Citation XLS** (jet) to the **Boeing 787** — maintain a lower cabin altitude than the cruising altitude by pumping conditioned bleed air (from engine compressor stages) into a sealed fuselage.\n- **14 CFR 91.211** (FAR 91.211) requires supplemental oxygen above **12,500 ft MSL** for crew and above **15,000 ft MSL** for passengers (for the duration of flight above those altitudes, subject to time thresholds).\n- **Time of useful consciousness (TUC)** at **40,000 ft** is approximately **15–20 seconds**; at 25,000 ft approximately **3–5 minutes**. Cabin pressure loss at altitude — **explosive decompression** or slow leak — demands immediate emergency descent. The **NTSB** investigated the **Helios Airways Flight 522** crash (**14 August 2005**, near Athens, Greece) in which pressurization was inadvertently left in MANUAL/GROUND mode, incapacitating crew and passengers at cruise altitude, leading to a fatal impact.\n- **Cabin differential pressure**: a typical narrow-body airliner maintains a **8.6 PSI** differential (equivalent to a cabin altitude of ~6,000–8,000 ft while cruising at 35,000–39,000 ft). The **Boeing 787 Dreamliner** uses electric compressors instead of engine bleed air for cabin conditioning, enabling a higher cabin pressure altitude of **6,000 ft** vs the 8,000 ft standard of older jets, reducing passenger fatigue.\n- **Pressurisation controllers** set the cabin altitude schedule; **outflow valves** (pneumatically or electrically actuated) regulate the differential by allowing controlled air escape. **Negative pressure relief valves** prevent the cabin from pressurising above ambient on descent."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_sys_1",
+        "kind": "math_expression",
+        "question": "A Lycoming O-360 piston engine has a compression ratio of $r_c = 8.5$. The theoretical thermal efficiency of an Otto-cycle engine is $\\eta = 1 - \\frac{1}{r_c^{\\gamma-1}}$ where $\\gamma = 1.4$ for air. Compute $\\eta$ to two decimal places as a percentage. Use $r_c^{0.4} = 8.5^{0.4} \\approx 2.273$.",
+        "acceptedAnswers": [
+          "56",
+          "56%",
+          "56.0%",
+          "56.0",
+          "0.56"
+        ],
+        "hint": "Compute $\\eta = 1 - 1/2.273 = 1 - 0.440 = 0.560 = 56\\%$. Note: real engines achieve roughly 25-35% due to friction, heat loss, and non-ideal combustion — the Otto-cycle formula gives the theoretical upper bound."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sys_1",
+        "kind": "multiple_choice",
+        "question": "Why does a piston aircraft engine use **two independent magneto systems** rather than a single electronic ignition system powered by the aircraft battery?",
+        "options": [
+          "Two magnetos provide higher spark energy, which improves fuel economy.",
+          "FAA regulations require two magnetos on all aircraft regardless of engine type.",
+          "A magneto is a self-contained generator requiring no external electrical power — if the aircraft battery and alternator both fail, the engine continues to run normally. Two independent systems also provide redundancy against single-magneto failure, and the dual-plug-per-cylinder design gives more complete combustion.",
+          "Magnetos are lighter than electronic ignition units and reduce the total aircraft empty weight by approximately 10 kg."
+        ],
+        "correctIndex": 2,
+        "explanation": "The core reason for magneto ignition in piston aircraft engines is **independence from the aircraft electrical system**. A magneto generates its own alternating current via rotating permanent magnets — it fires as long as the engine crankshaft is turning, regardless of whether the battery is dead, the alternator has failed, or the master switch is off. This is why the ground-check procedure includes verifying the engine *does not stop* when the ignition key is moved to OFF briefly (momentary grounding check) — and why turning the magneto key to OFF shuts the engine: it grounds the magneto points, quenching the spark.\n\nRedundancy is the second benefit. Aviation regulations (14 CFR 23.1165 for normal-category aircraft) require that the ignition system \"not be dependent on any electrical energy from the aircraft\" for aircraft certified in that category. Two separate magnetos (left and right), each firing one of two spark plugs per cylinder, provide protection against a single magneto failure — the engine runs on the remaining one, typically with a small RPM drop (75-125 RPM). The dual-plug design also promotes more complete combustion, slightly improving efficiency and reducing detonation risk.\n\nNote that modern experimental and some certified aircraft are now using **electronic ignition systems** (e.g., **ElectraTech EMag**, **Surefly SureFly**) that incorporate internal backup power, but traditional magnetos remain standard in certified type-certificated GA engines from Lycoming and Continental."
+      },
+      "hints": [
+        "What happens to the engine if the aircraft battery goes flat?",
+        "Think about the word 'self-contained.'"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Magnetos are self-contained AC generators — they require no aircraft electrical power. They fire as long as the engine is turning. This independence means engine operation continues through total electrical failure. Two independent systems (left mag + right mag, each firing one plug per cylinder) provide redundancy against single-magneto failure and promote more complete combustion. This is codified in 14 CFR 23.1165."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_sys_2",
+        "kind": "multiple_choice",
+        "question": "What distinguishes a **turbofan** engine from a **turbojet**, and why have high-bypass turbofans replaced turbojets on modern airliners?",
+        "options": [
+          "A turbofan has two combustion chambers; a turbojet has one. Two combustion chambers produce more thrust.",
+          "A turbofan uses a large fan driven by the turbine to move bypass air around the engine core, generating additional thrust at much higher propulsive efficiency than a turbojet, especially at subsonic speeds. High bypass ratios (6:1 to 12:1) dramatically reduce specific fuel consumption.",
+          "A turbofan compresses air more than a turbojet, allowing higher combustion temperatures and more power.",
+          "A turbofan uses afterburning on every stage; a turbojet does not. Afterburning provides the extra thrust needed for airliner takeoffs."
+        ],
+        "correctIndex": 1,
+        "explanation": "A turbojet passes all ingested air through the compressor, combustor, and turbine, with all thrust coming from the high-velocity hot exhaust. Frank Whittle's Power Jets W.1 (1937) and Hans von Ohain's Heinkel HeS 3 (1939) were pure turbojets. The problem with turbojets at subsonic speeds is poor **propulsive efficiency**: they accelerate a small mass of air to a very high velocity. The thrust equation is $F = \\dot{m}(v_{exit} - v_{inlet})$ — you can get the same thrust by accelerating a **larger** mass to a **smaller** velocity difference, which wastes less kinetic energy in the exhaust. This is the turbofan's fundamental advantage: a large fan (driven by extra turbine stages) moves a much larger airflow around the core ('bypass air') at a moderate velocity increment, while the core continues to drive the fan and provide some jet thrust.\n\nThe **bypass ratio (BPR)** = bypass airflow / core airflow. A modern **CFM56-5B** (Airbus A320) has BPR ≈ 6:1; the **GE90-115B** (Boeing 777-300ER) has BPR ≈ 8.4:1; the **GE9X** (Boeing 777X) has BPR ≈ 10:1. The **Pratt & Whitney PW1000G** geared turbofan (A320neo, A220, E195-E2) achieves BPR ≈ 12:1 by gearing the fan separately from the low-pressure turbine, allowing both to operate at their optimum speeds. The fuel burn reduction from high-bypass turbofans relative to 1960s turbojets is approximately **40–60%** per seat-kilometre — the primary reason for the economic viability of modern commercial aviation."
+      },
+      "hints": [
+        "Think about what the word 'bypass' means — air going around something.",
+        "The thrust equation involves mass flow rate times velocity change."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "A turbofan uses a large fan to move bypass air around the engine core. The bypass ratio (BPR) measures how much more air is bypassed than goes through the core. High BPR gives much higher propulsive efficiency at subsonic speeds — the same thrust is generated by accelerating a larger mass to a smaller velocity, wasting less kinetic energy. Modern high-bypass turbofans (CFM56, GE90, GE9X, PW1000G) reduce fuel burn by 40-60% relative to 1960s turbojets."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_sys_1",
+        "kind": "guided_derivation",
+        "question": "Trace the fuel-air charge through the four Otto-cycle strokes",
+        "goal": "Walk through each stroke of the four-stroke piston cycle for a Lycoming O-360 cylinder, identifying valve states, piston direction, and the thermodynamic event, then state what makes leaning the mixture necessary at high altitude.",
+        "steps": [
+          {
+            "prompt": "Stroke 1 — Intake: what is the piston doing, which valves are open, and what enters the cylinder?",
+            "motivation": "Establish the starting state of the charge.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "piston moves down; intake valve open, exhaust valve closed; fuel-air mixture drawn in from carburetor or fuel injector"
+              ]
+            },
+            "hints": [
+              "The piston is creating a low-pressure region to draw the mixture in."
+            ],
+            "reveal": "Intake stroke: piston moves downward (toward BDC — bottom dead centre). Intake valve open, exhaust valve closed. The partial vacuum draws the fuel-air mixture from the carburetor (or injector nozzle) into the cylinder. In a carbureted engine such as the Lycoming O-320, the mixture ratio is set by the main jet and the pilot's mixture control."
+          },
+          {
+            "prompt": "Stroke 2 — Compression: what happens to pressure and temperature, and what risk does high compression introduce?",
+            "motivation": "Connect compression ratio to detonation risk.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "both valves closed; piston moves up to TDC; mixture is compressed; pressure and temperature rise sharply; high compression risks detonation if octane rating is too low"
+              ]
+            },
+            "hints": [
+              "Higher compression = higher temperature = closer to auto-ignition."
+            ],
+            "reveal": "Compression stroke: both valves closed; piston moves upward toward TDC. The mixture is compressed by ratio r_c = 8.5:1 (O-360), raising both pressure and temperature sharply. If the compressed charge auto-ignites before the spark plug fires — due to low-octane fuel, excessive CHT, or over-lean mixture — detonation occurs: an uncontrolled shock wave that can destroy pistons and cylinder walls within seconds. This is why 100LL avgas (octane 100 motor) is specified."
+          },
+          {
+            "prompt": "Strokes 3 and 4 — Power and Exhaust: what triggers combustion, and how does the exhaust stroke differ from intake?",
+            "motivation": "Complete the cycle and connect to EGT.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "spark plug fires before TDC (ignition advance); burning gases expand driving piston down (power stroke); then exhaust valve opens and piston moves up expelling burned gases (exhaust stroke)"
+              ]
+            },
+            "hints": [
+              "The spark fires slightly before TDC; EGT peaks during or just after the power stroke."
+            ],
+            "reveal": "Power stroke: the spark plug fires several degrees before TDC (ignition advance). The burning mixture expands rapidly, driving the piston toward BDC and rotating the crankshaft. EGT (exhaust gas temperature) peaks near the end of the power stroke — pilots monitor EGT to set mixture. Exhaust stroke: exhaust valve opens, piston moves back to TDC pushing spent gases out. Then the cycle repeats."
+          },
+          {
+            "prompt": "Why must a pilot lean the mixture above 3,000 ft MSL, and what gauge confirms the correct lean setting?",
+            "motivation": "Connect powerplant theory to cockpit procedure.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "air density decreases with altitude so less air mass enters each intake stroke; the fuel metering stays nearly constant, enriching the mixture; leaning reduces fuel flow to restore the stoichiometric ratio; EGT gauge confirms lean point — lean to peak EGT then enrich slightly"
+              ]
+            },
+            "hints": [
+              "Density falls; fuel metering doesn't automatically compensate in carbureted engines."
+            ],
+            "reveal": "At altitude, air density is lower — less air mass enters the cylinder on each intake stroke. Fuel metering (governed by the float bowl or injector) remains nearly constant, so the mixture becomes progressively richer. A rich mixture wastes fuel, runs rough, and deposits carbon. Leaning (reducing fuel flow via the mixture control) restores the stoichiometric ratio (~15:1 air:fuel by mass for 100LL). Pilots lean to peak EGT then enrich by 50-100°F rich of peak for piston cooling, or operate at peak or lean of peak EGT for fuel economy (per GAMI/Lycoming guidance). The EGT gauge — a thermocouple in the exhaust pipe — is the primary instrument for mixture management."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_sys_1",
+        "kind": "explain_back",
+        "prompt": "In 130 words or fewer, explain to a nervous first-time passenger why the aircraft engine won't stop if the battery dies. Name the specific ignition component involved, explain how it works in one sentence, and give the regulatory basis for dual systems.",
+        "rubric": "Must name the magneto as the ignition component and correctly state it generates its own electricity without needing the aircraft battery (self-contained generator using rotating permanent magnets). Must state that two independent magnetos exist (one for each plug per cylinder), providing redundancy. Credit for mentioning 14 CFR 23.1165 or FAR 23 as the regulatory basis. Credit for mentioning the mag check pre-takeoff. Should be reassuring in tone and accurate in content. Should not confuse magneto with alternator or battery."
+      }
+    }
+  ]
+}

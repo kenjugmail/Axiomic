@@ -3978,6 +3978,67 @@ function seedMasteryPaths() {
     ],
   });
 
+  // Triplet 15 — Surgeon. From the birth of survivable surgery
+  // (anaesthesia + antisepsis) through anatomy, hemostasis, anaesthesia,
+  // technique, minimally-invasive + robotic surgery, to transplantation
+  // and the regenerative frontier.
+  seedMasteryPath({
+    slug: "surgeon",
+    title: "Surgeon",
+    description:
+      "From Lister's antisepsis and Halsted's discipline through surgical anatomy, hemostasis, anaesthesia, instrumentation, laparoscopic + robotic surgery, to transplantation and the regenerative frontier.",
+    nodes: [
+      { slug: "surgical-history-and-antisepsis", title: "History + Antisepsis", level: "apprentice", order: 1, pages: [], prereqs: [], description: "Morton's ether 1846 + Lister's carbolic acid 1867 + Semmelweis + Halsted — how surgery became survivable (interactive vital-signs monitor)." },
+      { slug: "surgical-anatomy-and-approach", title: "Surgical Anatomy + Approach", level: "apprentice", order: 2, pages: [], prereqs: ["surgical-history-and-antisepsis"], description: "Fascial layers, Langer's lines, incisions (midline, Pfannenstiel, McBurney), exposure + tissue planes." },
+      { slug: "asepsis-and-the-sterile-field", title: "Asepsis + the Sterile Field", level: "practitioner", order: 3, pages: [], prereqs: ["surgical-anatomy-and-approach"], description: "Autoclave sterilization, scrub + gown + glove, the sterile field, SSI prevention, the WHO Surgical Safety Checklist." },
+      { slug: "hemostasis-and-wound-healing", title: "Hemostasis + Wound Healing", level: "practitioner", order: 4, pages: [], prereqs: ["asepsis-and-the-sterile-field"], description: "Coagulation cascade, ligature vs cautery, suture materials + technique, the four phases of wound healing." },
+      { slug: "anesthesia-and-perioperative-physiology", title: "Anaesthesia + Perioperative Physiology", level: "specialist", order: 5, pages: [], prereqs: ["hemostasis-and-wound-healing"], description: "General/regional/local, airway, agents, intra-op monitoring (ECG/SpO2/capnography), ASA status, malignant hyperthermia." },
+      { slug: "surgical-technique-and-instrumentation", title: "Technique + Instrumentation", level: "specialist", order: 6, pages: [], prereqs: ["anesthesia-and-perioperative-physiology"], description: "Instruments, knots, anastomosis, electrosurgery (the Bovie), staplers + advanced energy devices." },
+      { slug: "minimally-invasive-and-robotic-surgery", title: "Minimally-Invasive + Robotic Surgery", level: "expert", order: 7, pages: [], prereqs: ["surgical-technique-and-instrumentation"], description: "Laparoscopy (Mühe 1985, Mouret 1987), CO2 insufflation, the fulcrum effect, the da Vinci system, NOTES + endoscopy." },
+      { slug: "transplantation-and-surgical-frontiers", title: "Transplantation + Frontiers", level: "researcher", order: 8, pages: [], prereqs: ["minimally-invasive-and-robotic-surgery"], description: "Murray 1954, Barnard 1967, Starzl; immunosuppression + HLA; ERAS; xenotransplantation + the regenerative frontier." },
+    ],
+  });
+
+  // Triplet 15 — Sommelier. Wine from vine to glass: history + the
+  // sommelier craft, viticulture + terroir, varieties, fermentation
+  // chemistry, structure + faults, blind tasting, regions, and service.
+  seedMasteryPath({
+    slug: "sommelier",
+    title: "Sommelier",
+    description:
+      "Wine from vine to glass: the sommelier craft, viticulture + terroir, grape varieties, fermentation chemistry, wine structure + faults, sensory evaluation + blind tasting, regional classification, and food + service.",
+    nodes: [
+      { slug: "wine-history-and-the-sommelier-craft", title: "History + the Sommelier Craft", level: "apprentice", order: 1, pages: [], prereqs: [], description: "Wine from Georgia 6000 BC to the Court of Master Sommeliers + WSET + the 1976 Judgment of Paris (interactive flavor wheel)." },
+      { slug: "viticulture-and-terroir", title: "Viticulture + Terroir", level: "apprentice", order: 2, pages: [], prereqs: ["wine-history-and-the-sommelier-craft"], description: "Vitis vinifera, the growth cycle, terroir (soil/climate/aspect), phylloxera + rootstock, ripeness in Brix." },
+      { slug: "grape-varieties-and-wine-styles", title: "Grape Varieties + Styles", level: "practitioner", order: 3, pages: [], prereqs: ["viticulture-and-terroir"], description: "Noble varieties; still / sparkling / fortified / dessert; the traditional method; blends." },
+      { slug: "vinification-and-fermentation-chemistry", title: "Vinification + Fermentation Chemistry", level: "practitioner", order: 4, pages: [], prereqs: ["grape-varieties-and-wine-styles"], description: "Pasteur + Saccharomyces, the Gay-Lussac equation, red vs white, malolactic fermentation, SO2, oak." },
+      { slug: "wine-chemistry-structure-and-faults", title: "Wine Chemistry, Structure + Faults", level: "specialist", order: 5, pages: [], prereqs: ["vinification-and-fermentation-chemistry"], description: "Acids, tannins/phenolics, balance; faults — TCA cork taint, Brett, oxidation, volatile acidity, reduction." },
+      { slug: "sensory-evaluation-and-blind-tasting", title: "Sensory Evaluation + Blind Tasting", level: "specialist", order: 6, pages: [], prereqs: ["wine-chemistry-structure-and-faults"], description: "The systematic tasting grid; aroma chemistry (pyrazines, terpenes, thiols, rotundone); Ann Noble's Aroma Wheel." },
+      { slug: "wine-regions-and-classification", title: "Regions + Classification", level: "expert", order: 7, pages: [], prereqs: ["sensory-evaluation-and-blind-tasting"], description: "Old vs New World; AOC/INAO, Bordeaux 1855, Burgundy crus, German Prädikat, Italian DOCG, AVAs." },
+      { slug: "wine-and-food-service-and-frontiers", title: "Food, Service + Frontiers", level: "researcher", order: 8, pages: [], prereqs: ["wine-regions-and-classification"], description: "Pairing science, service + glassware, cellaring; climate change, natural/orange/biodynamic wine, closures + scoring." },
+    ],
+  });
+
+  // Triplet 15 — Pilot. Aviation from the four forces and the flight
+  // envelope through systems, instruments, navigation, weather, IFR
+  // operations, to human factors + the safety culture that flies the line.
+  seedMasteryPath({
+    slug: "pilot",
+    title: "Pilot",
+    description:
+      "Aviation from the principles of flight and the flight envelope through aircraft systems, instruments, navigation + airspace, weather, IFR operations + the instrument approach, to human factors and aviation safety.",
+    nodes: [
+      { slug: "aviation-history-and-principles-of-flight", title: "History + Principles of Flight", level: "apprentice", order: 1, pages: [], prereqs: [], description: "The Wright brothers 1903, the four forces, how lift really works, airfoil anatomy (interactive lift-curve)." },
+      { slug: "aerodynamics-and-the-flight-envelope", title: "Aerodynamics + the Flight Envelope", level: "apprentice", order: 2, pages: [], prereqs: ["aviation-history-and-principles-of-flight"], description: "The lift equation, CL vs angle of attack + stall, the drag polar, V-speeds, load factor + the V-n diagram." },
+      { slug: "aircraft-systems-and-powerplant", title: "Aircraft Systems + Powerplant", level: "practitioner", order: 3, pages: [], prereqs: ["aerodynamics-and-the-flight-envelope"], description: "Piston + turbine engines (Whittle, von Ohain), propellers, fuel + electrical + hydraulics, pressurization." },
+      { slug: "flight-instruments-and-the-six-pack", title: "Flight Instruments + the Six-Pack", level: "practitioner", order: 4, pages: [], prereqs: ["aircraft-systems-and-powerplant"], description: "The pitot-static + gyroscopic instruments, the six-pack layout, magnetic-compass errors, the glass cockpit." },
+      { slug: "navigation-and-airspace", title: "Navigation + Airspace", level: "specialist", order: 5, pages: [], prereqs: ["flight-instruments-and-the-six-pack"], description: "VFR/IFR, dead reckoning + the wind triangle, VOR/ILS/GPS, airspace classes, charts + clearances." },
+      { slug: "weather-and-meteorology-for-pilots", title: "Weather + Meteorology", level: "specialist", order: 6, pages: [], prereqs: ["navigation-and-airspace"], description: "METAR/TAF, fronts, icing, thunderstorms + wind shear, density altitude, the standard atmosphere." },
+      { slug: "flight-operations-and-the-instrument-approach", title: "Operations + the Instrument Approach", level: "expert", order: 7, pages: [], prereqs: ["weather-and-meteorology-for-pilots"], description: "The IFR system, SID/STAR + holds, the ILS approach, decision height, ATC, performance + weight & balance." },
+      { slug: "human-factors-and-aviation-safety", title: "Human Factors + Aviation Safety", level: "researcher", order: 8, pages: [], prereqs: ["flight-operations-and-the-instrument-approach"], description: "CRM (after United 173), Tenerife 1977, automation dependency, AF447, the Swiss-cheese model, SMS + just culture." },
+    ],
+  });
+
   seedExamPrepPaths();
 }
 

@@ -1,0 +1,171 @@
+{
+  "slug": "flight-operations-and-the-instrument-approach",
+  "meta": {
+    "timeMinutes": 28,
+    "difficulty": "advanced",
+    "objectives": [
+      "Trace an IFR flight from clearance and SID through en-route airways, STAR, and a precision instrument approach to the missed approach point.",
+      "Distinguish between precision and non-precision approaches, and state the role of Decision Height versus Minimum Descent Altitude.",
+      "Calculate a weight-and-balance moment and determine whether a loading is within the CG envelope."
+    ],
+    "prereqs": [
+      "weather-and-meteorology-for-pilots"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The IFR system: clearances, SIDs, airways, STARs, and holding",
+      "body": "An IFR flight in controlled airspace does not begin with engine start — it begins with a **clearance**. Before taxiing, the crew contacts **Clearance Delivery** (or, at smaller fields, Ground Control) and receives an ATC IFR clearance structured around the **CRAFT** mnemonic: **C**learance limit (usually destination), **R**oute (as filed, or as amended), **A**ltitude (initial assigned altitude and any step-climb), **F**requency (initial departure frequency), **T**ransponder squawk code. The crew reads back every element; an incomplete readback is challenged by ATC. This procedure is defined in **ICAO Doc 4444 (PANS-ATM)** and implemented in the US through **FAA Order JO 7110.65** (Air Traffic Control).\n\nDeparture from a complex airport uses a **SID (Standard Instrument Departure)** — a charted, published procedure that routes traffic away from the airport via specific waypoints and altitudes. SIDs reduce frequency congestion (the full routing is printed on the chart, not read over the radio) and provide obstacle clearance. Example: the **SAYGE 1 DEPARTURE** from **KJFK** routes aircraft northeast via waypoints CAMRN and MERIT at specific minimum altitudes before joining the en-route structure. SIDs are developed jointly by **FAA Flight Standards** and **FAA Air Traffic Organization** and charted by **Jeppesen** (private) or the **FAA's Aeronautical Information Services** (government, free at aviationweather.gov).\n\nEn-route navigation uses the **airway structure**: **Victor airways** (V-routes, 1,200 ft AGL to FL180) connect VOR/VORTAC stations at widths of 8 nm total (4 nm each side of centerline). Above FL180, **Jet routes (J-routes)** provide similar connectivity for high-altitude IFR. The **RNAV route network (Q-routes and T-routes)** uses GPS/RNAV waypoints and is the growing replacement infrastructure as VORs are decommissioned under the **FAA VOR MON (Minimum Operational Network)** program — a plan to reduce VOR count from ~967 to ~500 while retaining a safety backstop network.\n\nA **holding pattern** is a racetrack-shaped course flown over a fix when an aircraft must delay. Standard holding is right-hand turns, 1-minute legs (or 1.5 minutes above FL140), inbound on the published course. **Entry procedures** (direct, teardrop, parallel) depend on the aircraft's heading relative to the holding course. Maximum holding speeds: 200 KIAS below 6,000 ft, 230 KIAS at 6,001-14,000 ft, 265 KIAS above 14,000 ft (**FAR 91.175** and **ICAO PANS-OPS**). Holding is most commonly encountered: (1) during sequencing delays at busy airports; (2) during weather holds; (3) as a course reversal maneuver before an instrument approach.\n\nArrival into a terminal area uses a **STAR (Standard Terminal Arrival Route)** — the mirror of a SID: a charted routing from the en-route structure down to the final approach fix (FAF). Example: the **LENDY 6 ARRIVAL** into **KJFK** from the southwest routes traffic via waypoints OXONN and LENDY at specific crossing altitudes. **Descent planning** begins at top of descent (TOD): an airliner descends at approximately 3° (5:1 ratio, or 300 ft/nm), planned using the **cruise altitude ÷ 3** rule in tens of thousands of feet to give nm required. For an A320 at FL360 descending to a field at sea level: 36,000 ÷ 3 × 10 ≈ 120 nm required for a 3° descent."
+    },
+    {
+      "kind": "text",
+      "title": "Instrument approaches: precision vs non-precision, DH vs MDA",
+      "body": "An **instrument approach procedure (IAP)** is a published, charted sequence of altitudes and courses that guides an aircraft from the en-route phase to the point where the crew can either see the runway and land, or must execute a missed approach. The **ICAO** classifies approaches into **precision** (provides both lateral and vertical guidance to specific minima) and **non-precision** (lateral guidance only, or advisory vertical guidance).\n\n**Precision approaches**:\n- **ILS (Instrument Landing System)**: the world standard, in use since the 1940s. Localizer (lateral) + Glide Slope (vertical). Minima expressed as **Decision Height (DH)** — the altitude at which the crew must have required visual references or execute a missed approach. CAT I ILS: DH 200 ft AGL, visibility 1/2 sm (RVR 2,400 ft). CAT II: DH 100 ft, RVR 1,200 ft. CAT IIIa/b/c: DH 50 ft/0 ft, RVR 700/150/0 ft. CAT III operations require **autoland** capability and special crew and airport certification.\n- **WAAS LPV (Localizer Performance with Vertical guidance)**: GPS-based; minima equivalent to CAT I ILS (DH as low as 200 ft, visibility 1/2 sm). No ground transmitter required; see Navigation lesson.\n- **GLS (GBAS Landing System)**: uses a **VHF data broadcast** from a **GBAS (Ground-Based Augmentation System)** station at the airport to provide differential GPS corrections within ~30 km; accuracy approaches CAT III. **Honeywell** and **Collins Aerospace** produce certified airborne GBAS receivers; **Frankfurt (EDDF)** was among the first airports to certify GLS approaches for **Airbus A380** operations.\n\n**Non-precision approaches**:\n- **VOR approach**: lateral guidance from a VOR on or near the field. Minima expressed as **MDA (Minimum Descent Altitude)** — the aircraft descends to MDA and levels off (step-down), then flies level until the **Missed Approach Point (MAP)**. No continuous vertical guidance; the pilot cannot descend below MDA until having required visual references. Typical minima: 400-800 ft AGL, visibility 1-2 sm.\n- **RNAV (GPS) approach**: GPS lateral guidance; may have advisory vertical guidance (**LNAV/VNAV** or **LPV**). Without WAAS vertical, flies as LNAV — similar to VOR, with MDA rather than DH.\n- **NDB approach**: ADF guidance; least precise; being phased out. Typical minima 400-600 ft AGL.\n- **VOR/DME, LOC (Localizer only)**: ILS localizer without glideslope; higher minima than full ILS.\n\n**Missed approach**: if at DH (precision) or MAP (non-precision) the required visual references are not established, the crew must execute the published missed approach procedure immediately — climb to a specified altitude, fly a specified course to a holding fix. The decision is binary and time-critical; there is no option to descend below minima to \"look for\" the runway. **FAR 91.175(c)** codifies this: no aircraft may descend below the MDA or continue below DH unless the flight visibility and at least one of the required visual references (approach lights, threshold, touchdown zone, etc.) are clearly visible.\n\n**ATC structure for IFR**:\nFrom preflight to landing, an IFR crew is handed off through a sequence of ATC facilities:\n1. **Clearance Delivery** (pre-taxi)\n2. **Ground Control** (surface movement)\n3. **Local Control / Tower** (takeoff and landing)\n4. **Departure Control** (TRACON — Terminal Radar Approach Control, typically within 40 nm and below 17,000 ft, e.g., **NORCAL TRACON** covering Northern California)\n5. **Center / En-Route** (**ARTCC — Air Route Traffic Control Center**, 21 centers in the contiguous US, e.g., **ZNY (New York Center)**, **ZLA (Los Angeles Center)**, coordinated by the **Air Traffic Control System Command Center (ATCSCC)** in Warrenton, VA)\n6. **Approach Control** (TRACON, inbound)\n7. **Tower** (landing)\n8. **Ground Control** (taxi to gate)\n\nEach sector controller issues altitude, heading, speed assignments and coordinates with adjacent sectors. The system handles approximately **45,000 flights** in US airspace daily."
+    },
+    {
+      "kind": "text",
+      "title": "Performance: takeoff speeds, weight and balance, and the CG envelope",
+      "body": "**Weight and balance** is a safety-critical calculation performed before every flight. An aircraft loaded outside its **CG (Center of Gravity) envelope** — even within its maximum gross weight — can be uncontrollable. The CG envelope is defined by two limits: **forward CG** (limited by elevator authority to raise the nose on landing and rotation) and **aft CG** (limited by longitudinal stability — an aft-loaded aircraft is difficult to recover from a stall because the pitch-down restoring moment is insufficient).\n\nThe calculation uses **moments**:\n$$\\text{Moment} = \\text{Weight (lb)} \\times \\text{Arm (inches from datum)}$$\n$$CG = \\frac{\\sum \\text{Moments}}{\\sum \\text{Weights}}$$\n\nThe datum is an arbitrary reference point forward of the aircraft (e.g., the **Cessna 172S** datum is the firewall; many transport aircraft use the nose or a station forward of it). Every item — pilot, passengers, baggage, fuel — has a published arm. The pilot sums all weights and all moments, then divides total moment by total weight to find the loaded CG. It must fall within the forward and aft CG limits for the total weight, as defined in the **Aircraft Flight Manual (AFM)** or **Pilot's Operating Handbook (POH)**.\n\n**Transport-category takeoff speeds** are defined in **FAR 25 (Transport Category Airworthiness Standards)** and **ICAO Annex 8**:\n- **V1 (Decision Speed)**: the maximum speed at which the crew can abort the takeoff and stop on the remaining runway. Above V1, the crew is committed to fly.\n- **Vr (Rotation Speed)**: the speed at which the pilot pulls back to rotate the nose.\n- **V2 (Takeoff Safety Speed)**: the minimum speed for safe climb in the event of an engine failure after V1; must be maintained to at least 35 ft (screen height) and typically to 400 ft AGL.\n\nThese speeds vary with weight, flap setting, runway condition, pressure altitude, and temperature, and are computed from performance tables or the **FMC (Flight Management Computer)** on modern jets. The **ATIS (Automated Terminal Information Service)** and **OFP (Operational Flight Plan)** provide the conditions needed. The **Runway Analysis** documents produced by airline dispatchers (e.g., using **Jeppesen FliteDeck Pro** or **Lido** software) derive balanced field length — the runway length where the accelerate-go and accelerate-stop distances are equal — and set **V1** accordingly.\n\n**Landing distance** is equally regulated. **FAR 121.195** requires transport-category aircraft under air carrier rules to land within **60% of the available runway length** (the \"60% rule\") in normal conditions, providing a safety margin. The **Runway Condition Reporting (RwyCC)** system — introduced in the US in **2016** via FAA AC 150/5200-30D** and based on the **ICAO Global Reporting Format (GRF)** — standardizes how runway braking action is reported (codes 1-6, replacing \"good/fair/poor/nil\") enabling accurate landing distance calculations for contaminated runways.\n\n**Notable accident context**: **Air Florida Flight 90** (January 13, **1982**, Washington National Airport, **Boeing 737-200**, 78 fatalities) departed with ice on the wings and inoperative engine pressure ratio anti-ice — V-speeds were computed for clean conditions and the crew failed to abort at V1 despite anomalous EPR readings. The aircraft struck the **14th Street Bridge** and fell into the Potomac River. The accident drove FAA **FAR 121.629** (enhanced icing contamination takeoff rules) and the current **\"clean aircraft concept\"** (no-go if ice/snow/frost contamination exists on critical surfaces)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_flt_1",
+        "kind": "math_expression",
+        "question": "A Cessna 172S has the following loading. Use the moment formula $CG = \\sum Moments / \\sum Weights$. Datum is the firewall.\n\n| Item | Weight (lb) | Arm (in) |\n|---|---|---|\n| Empty aircraft | 1,680 | 39.1 |\n| Pilot + front passenger | 380 | 37.0 |\n| Rear passengers | 200 | 73.0 |\n| Baggage | 60 | 95.0 |\n| Fuel 40 gal × 6 lb/gal | 240 | 48.0 |\n\nTotal weight = 2,560 lb. Calculate the total moment (in × lb) and then the CG in inches from the datum. Round CG to one decimal place.",
+        "acceptedAnswers": [
+          "43.2",
+          "43.2 in",
+          "43.2 inches"
+        ],
+        "hint": "Moments: 1680×39.1=65,688; 380×37.0=14,060; 200×73.0=14,600; 60×95.0=5,700; 240×48.0=11,520. Sum=111,568. CG=111,568/2,560=43.58... Round to 43.6. (Accept 43.6 as well — small rounding differences in products.)"
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_flt_1",
+        "kind": "multiple_choice",
+        "question": "What is the key operational difference between Decision Height (DH) on an ILS approach and Minimum Descent Altitude (MDA) on a VOR approach?",
+        "options": [
+          "DH and MDA are both expressed in feet MSL and the pilot may descend below either if visibility is good.",
+          "DH is a decision point on a continuous, stabilized descent — the aircraft must be in a position to continue to a normal landing if visual reference is acquired, or immediately execute a missed approach if not; it cannot level off. MDA is a floor altitude on a step-down approach — the aircraft levels off at MDA and flies level until the Missed Approach Point (MAP), then must climb. This distinction matters because a DH approach (ILS, LPV) requires a continuous descent profile, meaning the aircraft arrives at DH in a stabilized, on-glidepath attitude. If visual reference is not acquired at DH, there is physically no time to level off — the missed approach must be initiated immediately. An MDA approach allows the aircraft to fly level at MDA searching for visual reference up to the MAP, but the crew can never descend below MDA even momentarily. The governing regulation is **FAR 91.175(c)**, which prohibits descending below DH or MDA without the required visual references and flight visibility. Confusion between DH and MDA procedures contributed to several controlled-flight-into-terrain accidents, prompting the FAA to mandate **CFIT awareness training** under **HBAT 95-10** and later **AC 120-71**.",
+          "DH applies only to CAT II and CAT III operations; VFR pilots use MDA.",
+          "MDA is always lower than DH for the same runway and visibility conditions."
+        ],
+        "correctIndex": 1,
+        "explanation": "DH = continuous glide path, decision only at that altitude. MDA = level-off altitude; fly until MAP then missed approach or land. FAR 91.175(c) governs both. A pilot may never descend below either without required visual references."
+      },
+      "hints": [
+        "One involves leveling off; the other does not.",
+        "DH is on a glideslope; MDA is not."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "On a precision approach (ILS/LPV), the aircraft follows a continuous glidepath and DH is the altitude at which the decision is made — land or miss. There is no level-off. On a non-precision approach, the aircraft descends in step-downs to MDA, then flies level at MDA until the published MAP, at which point a missed approach must be executed if the runway is not visible. FAR 91.175(c) is the controlling regulation."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_flt_1",
+        "kind": "guided_derivation",
+        "question": "Trace an IFR flight from start to touchdown",
+        "goal": "An Airbus A320 is departing KJFK for KLAX. Walk through the ATC handoff sequence and key procedure types from engine start to landing rollout, naming the correct ATC facility at each phase.",
+        "steps": [
+          {
+            "prompt": "Pre-taxi: what clearance is received, from whom, and what does CRAFT stand for?",
+            "motivation": "Establish the authorization to fly the route.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "IFR clearance from Clearance Delivery; CRAFT = Clearance limit, Route, Altitude, Frequency, Transponder"
+              ]
+            },
+            "hints": [
+              "The first radio call before taxiing."
+            ],
+            "reveal": "Before taxiing, the crew calls Clearance Delivery and receives an IFR clearance containing: Clearance limit (KLAX), Route (as filed or amended), Altitude (initial assigned altitude, e.g., climb and maintain 5,000, expect FL390), Frequency (departure, e.g., 135.9), Transponder squawk (e.g., 3421). The crew reads back all elements."
+          },
+          {
+            "prompt": "After takeoff, who handles the aircraft and what procedure routes it from the airport to the en-route structure?",
+            "motivation": "Transition from terminal to en-route.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Departure Control (TRACON); the aircraft flies a SID (Standard Instrument Departure) to join the en-route airways"
+              ]
+            },
+            "hints": [
+              "Terminal Radar Approach Control handles departures."
+            ],
+            "reveal": "After handoff from Tower, Departure Control (part of the New York TRACON, N90) vectors the aircraft or the FMC flies the filed SID — e.g., the HAPIE 6 DEPARTURE — to an en-route fix where the aircraft joins a Jet route or RNAV Q-route westbound toward KLAX."
+          },
+          {
+            "prompt": "En route across the country: which ATC facilities are involved and what type of routes?",
+            "motivation": "En-route phase.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "ARTCC Centers (ZNY, ZOB, ZID, ZKC, ZDV, ZLA); Jet routes (J-routes) or RNAV Q-routes"
+              ]
+            },
+            "hints": [
+              "ARTCC = Air Route Traffic Control Center; there are 21 in the contiguous US."
+            ],
+            "reveal": "The aircraft is handed off sequentially across ARTCC Centers: New York Center (ZNY), Cleveland (ZOB), Indianapolis (ZID), Kansas City (ZKC), Denver (ZDV), Los Angeles (ZLA). Each Center hands off to the next at sector boundaries. The aircraft flies filed Jet routes (J6, J80 etc.) or RNAV Q-routes in the RNP structure at FL390."
+          },
+          {
+            "prompt": "Descending into KLAX: what procedure brings the aircraft from the en-route structure to the final approach fix?",
+            "motivation": "Arrival transition.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "A STAR (Standard Terminal Arrival Route); Approach Control (SoCal TRACON) then sequences to the ILS"
+              ]
+            },
+            "hints": [
+              "The mirror image of a SID."
+            ],
+            "reveal": "ZLA hands the aircraft to SoCal TRACON (SCT). The aircraft flies a filed STAR — e.g., the SADDE 6 ARRIVAL — descending via published altitudes to an initial approach fix. SoCal sequences the aircraft, then hands off to LAX Approach Control for the ILS."
+          },
+          {
+            "prompt": "On the ILS: what are the two beam components and what is the minimum DH for a CAT I ILS?",
+            "motivation": "Precision approach mechanics.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "Localizer (lateral) and Glide Slope (vertical); DH = 200 ft AGL for CAT I"
+              ]
+            },
+            "hints": [
+              "One beam is horizontal, one is vertical."
+            ],
+            "reveal": "The ILS has two components: the Localizer (108-112 MHz, aligned with runway centerline, provides lateral guidance) and the Glide Slope (~330 MHz, angled 3° above horizontal, provides vertical guidance). CAT I minima: DH 200 ft AGL, visibility 1/2 sm (RVR 2,400 ft). At DH, if visual references are established, the crew lands; if not, missed approach is executed immediately."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_flt_2",
+        "kind": "multiple_choice",
+        "question": "What does V1 (Decision Speed) mean in transport-category takeoff operations?",
+        "options": [
+          "The speed at which the aircraft rotates to the takeoff attitude.",
+          "The maximum speed at which the crew can initiate an aborted takeoff and stop within the remaining runway distance. Above V1, the takeoff must continue regardless of failures, because insufficient runway remains to stop safely. V1 is computed from balanced field length analysis — the runway length where the accelerate-stop distance (abort at V1) equals the accelerate-go distance (continue on one engine to screen height). V1 varies with aircraft weight, flap setting, temperature, altitude, runway slope, and contamination. It is always at or below Vr (rotation speed) and V2 (takeoff safety speed). In the **Air Florida Flight 90** accident (January 13, 1982, Boeing 737-200, Washington National, 78 fatalities), the crew observed abnormal EPR indications before V1 and failed to abort — a contributing factor was that the first officer's call of \"God, look at that\" and hesitation were not treated as an abort command by the captain, illustrating how CRM failures compound technical anomalies. Modern **Boeing 737 MAX** and **Airbus A320neo** FMCs compute V1/Vr/V2 automatically from OFP data.",
+          "The speed at which the landing gear is retracted after takeoff.",
+          "The speed below which the aircraft can safely fly on one engine."
+        ],
+        "correctIndex": 1,
+        "explanation": "V1 is the go/no-go decision speed, derived from balanced field length. Below V1, abort is possible; above V1, commit to fly. It is not a rotation speed (that is Vr) and not a minimum engine-out climb speed (that is V2)."
+      },
+      "hints": [
+        "It is a maximum abort speed, not a minimum something.",
+        "Think about what happens to the runway remaining above this speed."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "V1 is the go/no-go speed: the crew must abort below it, must continue above it. Balanced field length sets V1 at the point where abort distance = continue distance. FAR 25.107 defines V1, Vr, V2 for transport-category aircraft certification."
+    }
+  ]
+}

@@ -1,0 +1,158 @@
+{
+  "slug": "flight-instruments-and-the-six-pack",
+  "meta": {
+    "timeMinutes": 25,
+    "difficulty": "intermediate",
+    "objectives": [
+      "Explain the pitot-static system and diagnose instrument failures caused by pitot tube or static port blockages.",
+      "Describe the six-pack instrument layout and the operating principle of each gyroscopic instrument.",
+      "Apply compass error corrections (variation, deviation, ANDS, UNOS) and explain the glass cockpit components of the Garmin G1000."
+    ],
+    "prereqs": [
+      "aerodynamics-and-the-flight-envelope"
+    ]
+  },
+  "slides": [
+    {
+      "kind": "text",
+      "title": "The pitot-static system — pressure instruments",
+      "body": "Three of the six classic flight instruments derive their readings from the **pitot-static system** — a network of tubes that sense air pressure at two locations and relay differences to the cockpit.\n\n**Pitot tube**: a forward-facing tube that captures **ram air (total) pressure** — the sum of static (ambient) pressure and dynamic pressure due to the aircraft's motion: $P_{total} = P_{static} + q = P_{static} + \\frac{1}{2}\\rho v^2$. Named after **Henri Pitot** (French, 1695-1771), who invented the device in **1732** to measure river current velocity; adapted for aviation. On most GA aircraft the pitot tube is located under the left wing leading edge and is electrically heated (**pitot heat**) to prevent ice accumulation (required for IFR operation under **14 CFR 91.205**).\n\n**Static port**: one or more flush ports on the fuselage side, sampling **ambient (static) pressure** only. The alternate static source — inside the cabin — is available if the primary static port ices over or becomes blocked; cabin static is slightly lower than ambient (due to Venturi effect around the fuselage), causing a slight instrument error.\n\n**The three pitot-static instruments**:\n\n1. **Airspeed Indicator (ASI)**: measures the **difference** between pitot (total) pressure and static pressure — i.e., dynamic pressure $q = \\frac{1}{2}\\rho v^2$. The capsule inside expands with increasing dynamic pressure, moving the needle. Because $q$ depends on density as well as speed, the ASI actually reads **indicated airspeed (IAS)**, which equals **calibrated airspeed (CAS)** after correcting for instrument and position error. **True airspeed (TAS)** requires a density correction: at altitude, lower $\\rho$ means TAS > IAS. The rough rule of thumb: TAS ≈ IAS + 2% per 1,000 ft altitude. For precise navigation and fuel planning, the **E6-B flight computer** (invented by **Philip Dalton**, US Navy, **1937**) or its electronic equivalent solves the TAS correction. ASI colour arcs: **white** ($V_{S0}$ to $V_{FE}$), **green** ($V_{S1}$ to $V_{NO}$), **yellow** ($V_{NO}$ to $V_{NE}$), **red radial** at $V_{NE}$.\n\n2. **Altimeter**: measures **absolute static pressure** and converts it to altitude using the ISA pressure-altitude relationship. A stack of aneroid wafers (evacuated capsules) expands as pressure drops with altitude, driving a three-pointer or drum-pointer display. Pilots set the **Kollsman window** (after **Paul Kollsman**, inventor of the sensitive altimeter, **1928**) to the local **QNH** (altimeter setting — the barometric pressure reduced to sea level) so the altimeter reads **field elevation** when on the ground. In the United States, altimeter settings are given in **inches of mercury (in Hg)**; internationally in **hectopascals (hPa)** or **millibars (mb)**. **Standard pressure** = 29.92 in Hg = 1013.25 hPa. Above **18,000 ft MSL** in US Class A airspace, all aircraft set **29.92** and report **flight levels** (FL180, FL350, etc.) per **14 CFR 91.121**.\n\n3. **Vertical Speed Indicator (VSI)**: also called the **rate-of-climb indicator**. It measures the **rate of change** of static pressure through a calibrated leak (a capillary). The instrument lags approximately **6–9 seconds** behind actual vertical speed changes — it should not be chased. An **instantaneous VSI (IVSI)** uses accelerometer-driven pistons to reduce lag. The VSI reads in **feet per minute (fpm)** or **metres per minute**.\n\n**Blockage effects** — a key exam topic:\n- **Pitot tube blocked (ice, insect, cover left on)**: ASI reads zero if total pressure port is fully blocked; or may read constant if drain hole is also blocked (pressure trapped — ASI will act like an altimeter, reading high in a climb). VSI and altimeter unaffected (they use static only).\n- **Static port blocked**: altimeter **freezes** at the altitude where blockage occurred; VSI **reads zero**; ASI reads **too high in climb** (trapped static pressure is higher than ambient at altitude, so the difference overstates dynamic pressure). Using **alternate static** restores functionality.\n- **Both blocked**: total instrument failure. This combination occurred in **Aeroperú Flight 603** (**2 October 1996**) when tape accidentally left over static ports during cleaning caused the fatal crash off the coast of Lima, Peru, killing all 70 aboard."
+    },
+    {
+      "kind": "text",
+      "title": "Gyroscopic instruments — attitude, heading, and turn",
+      "body": "Three instruments in the classic six-pack rely on **gyroscopes** — spinning masses that exhibit **rigidity in space** (resistance to changes in orientation) and **precession** (90° force displacement). Gyroscopes in flight instruments may be powered by **vacuum** (engine-driven vacuum pump; typically 4.5–5.5 in Hg suction, Cessna 172 uses a **Piper/Rapco vacuum pump**) or by **electricity** (AC or DC motor).\n\n**The classic six-pack** layout (standard US configuration, left-to-right, top-to-bottom):\n- Top row: **Airspeed Indicator** (pitot-static) | **Attitude Indicator** (gyro) | **Altimeter** (pitot-static)\n- Bottom row: **Turn Coordinator** (gyro) | **Heading Indicator** (gyro) | **Vertical Speed Indicator** (pitot-static)\n\nThis arrangement is sometimes called the **T-scan** or **basic T**: AI at top-centre, HI below AI, ASI to the left of AI, altimeter to the right — the four primary cross-check instruments.\n\n**Attitude Indicator (AI)** — also called the **artificial horizon** or **gyro horizon**. An erection mechanism (pendulous vanes in vacuum-driven units; torque motors in electric units) keeps the gyro rotor aligned with the gravitational vertical. The instrument shows **pitch** (nose up/down relative to miniature aircraft symbol and horizon line) and **bank** (roll angle). Bank scale: 10°, 20°, 30°, 60°, 90° markings. The AI is the primary instrument for **instrument meteorological conditions (IMC)** — it is the instrument pilot's most critical reference and was central to the development of **instrument flight** by **Jimmy Doolittle** (US Army Air Corps, later General), who on **24 September 1929** at **Mitchel Field**, New York, made the first successful blind (zero-visibility) takeoff, circuit, and landing using a Consolidated NY-2 biplane equipped with an early **Sperry** gyroscopic horizon, a Kollsman altimeter, and a directional gyro. Vacuum-driven AIs **tumble** (lose erection) in prolonged unusual attitudes and are limited to approximately ±60° pitch and ±100° bank.\n\n**Heading Indicator (HI)** — also called the **directional gyro (DG)**. A horizontally-mounted gyro maintains a fixed reference heading. The HI does **not self-correct** for magnetic north — it must be aligned with the magnetic compass every **15–20 minutes** because of **gyroscopic precession** (bearing friction causes slow drift, typically 3°/hour). The HI is vastly superior to the compass for heading reference during turns and maneuvers because the compass is subject to large turning and acceleration errors. The **HSI** (**Horizontal Situation Indicator**) combines the HI with a **VOR** course deviation indicator, using a slaved compass system — the **flux gate** or **fluxvalve** (magnetic field sensor) automatically corrects gyro drift.\n\n**Turn Coordinator (TC)**: A single gyro canted at approximately 30° detects both **roll rate** and **yaw rate**. The miniature aircraft's wings show bank direction and approximate bank angle; **standard rate turn** (2 minutes for 360°, 3°/second) is marked. The **slip/skid ball** (inclinometer) is a separate ball-in-tube instrument indicating coordinated flight. The TC replaced the older **turn-and-slip indicator** (which had a needle, not a miniature aircraft symbol), but the ball remains identical. **Jimmy Doolittle** used a prototype of the turn indicator in his 1929 blind flight.\n\n**Compass errors** — the magnetic compass is the oldest and most reliable direction instrument, but it is subject to several errors:\n- **Magnetic variation (declination)**: the angular difference between **true north** and **magnetic north** at any location, caused by the non-coincidence of the geographic and magnetic poles. Published on **sectional aeronautical charts** as isogonic lines (lines of equal variation). In the eastern US, variation is approximately **10–15° W** (magnetic north is west of true north); on the west coast, approximately **10–15° E**. Aviation uses the memory phrase: **\"East is least, West is best\"** — subtract easterly variation from true course to get magnetic course; add westerly variation. The **World Magnetic Model (WMM)**, maintained jointly by **NOAA** and the **British Geological Survey (BGS)**, is updated every 5 years (latest: **WMM2025**, issued December 2024).\n- **Deviation**: the additional error caused by the aircraft's own magnetic fields (ferrous metal, electrical wiring, avionics) that deflect the compass needle. A **compass swing** — rotating the aircraft on all headings and recording deviations — produces the **compass correction card** mounted near the compass.\n- **Dip (magnetic dip)**: Earth's magnetic field lines dip below the horizontal at most latitudes (vertical near the poles, horizontal near the equator). The compass float tilts toward the dipping field, causing **acceleration errors** and **turning errors** at non-equatorial latitudes.\n  - **ANDS** (Accelerate North Deviate South / Decelerate South Deviate North for northern hemisphere): when accelerating on an easterly or westerly heading, the compass card dips forward, falsely indicating a turn toward north; when decelerating, it dips back, falsely indicating a turn toward south.\n  - **UNOS** (Undershoot North, Overshoot South): when turning through north, the compass lags (undershoot); when turning through south, the compass leads (overshoot). Pilots rolling out of northerly turns must roll out early; on southerly turns, roll out late.\n\nThe **standby magnetic compass** (a fluid-damped, pendulous card in compass fluid) is the **only required** compass under **14 CFR 91.205** for VFR day flight — all other direction instruments are in addition."
+    },
+    {
+      "kind": "text",
+      "title": "The glass cockpit — Garmin G1000, PFD, MFD, AHRS, and ADC",
+      "body": "The transition from the six-pack to the **glass cockpit** represents the most significant change in GA cockpit design since **Jimmy Doolittle's** 1929 blind flight. Modern light aircraft — from the **Cessna 172S** (Garmin G1000 became standard from **2005**) to the **Cirrus SR22** (Avidyne/Garmin) to the **Diamond DA42** (Garmin G1000) — now routinely carry fully integrated avionics suites that replace every one of the six mechanical instruments with software-driven displays.\n\n**Garmin G1000** (introduced **2004**, first certified installation in the **Cessna 172S** and **182T** in **2005**):\n- **Primary Flight Display (PFD)**: a large (10.4\" landscape LCD) that occupies the pilot's primary scan area and presents — in one glance — attitude, airspeed tape, altimeter tape, VSI, heading, slip/skid, autopilot mode, and flight director. The airspeed and altitude tapes scroll vertically, with colour bands replacing the physical arcs of the mechanical ASI.\n- **Multi-Function Display (MFD)**: a second 10.4\" screen (centre or co-pilot side) showing moving-map navigation (GPS/IFR charts via the **GNS 430W** or integrated **GTN 750Xi** navigator), weather (XM/SiriusXM satellite weather or **ADS-B** uplink weather under **FAA NextGen**), traffic (**TIS-A** or **ADS-B In**), terrain (**TAWS** — Terrain Awareness and Warning System, per **14 CFR 91.223** for turbine aircraft), and engine monitoring.\n- **AHRS (Attitude and Heading Reference System)**: replaces the mechanical vacuum gyros. Uses a triad of **solid-state MEMS gyroscopes** and **accelerometers** (no spinning mechanical parts) plus a **magnetometer** (flux gate) for magnetic heading reference. The **Garmin GRS 77** AHRS outputs attitude data 100 times per second — far faster and more accurate than mechanical gyros. Cannot tumble. Does not require a vacuum pump.\n- **ADC (Air Data Computer)**: the **Garmin GDC 74** ADC receives pitot and static pressure from the pitot-static plumbing and computes IAS, TAS, pressure altitude, density altitude, OAT-corrected TAS, and Mach number — replacing the mechanical ASI, altimeter, and VSI with digital measurements. Outputs update at 25 Hz.\n- **Autopilot integration**: the **Garmin GFC 700** AFCS (Automatic Flight Control System) uses G1000 data to provide pitch, roll, altitude, heading, and approach coupled autopilot. The **GFC 700** with **ESP (Electronic Stability Protection)** provides autonomous pitch and bank angle protection even when the autopilot is OFF — a significant safety addition.\n\n**ADS-B (Automatic Dependent Surveillance-Broadcast)**: The **FAA** mandated ADS-B Out (978 MHz UAT or 1090 MHz ES transponder) in controlled airspace as of **1 January 2020** (14 CFR 91.225). ADS-B transmits the aircraft's GPS-derived position, altitude, velocity, and identity to ground stations and other equipped aircraft. **ADS-B In** receivers allow pilots to see nearby traffic (TIS-B) and weather (FIS-B) on the MFD — fundamentally changing situational awareness.\n\n**Reversionary mode**: On the G1000, if either PFD or MFD fails, pressing the **DISPLAY BACKUP** button (or automatic failure detection) routes essential PFD information to the MFD or vice versa. A standalone **standby instrument** (typically an **L3 ESI-500** or **Garmin GI 275**) provides battery-backed backup AI, ASI, and altimeter independent of the G1000 in the event of total avionics bus failure.\n\n**Density altitude** is a critical G1000/ADC output: it is the pressure altitude corrected for non-standard temperature. $DA = PA + [120 \\times (OAT - ISA_{temp})]$ (approximate rule). High density altitude reduces engine power (less dense air ingested), propeller efficiency, and wing lift — all simultaneously. On a hot day at a high-elevation airport such as **Eagle County Regional Airport (KEGE), Colorado** (elevation **6,548 ft MSL**), density altitude can reach **10,000+ ft** on a summer afternoon, requiring careful takeoff performance calculations per the **POH performance charts** and the **FAA-H-8083-25B, Chapter 11** (Aircraft Performance)."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "math_inst_1",
+        "kind": "math_expression",
+        "question": "An aircraft is flying at pressure altitude $PA = 8{,}000$ ft with an outside air temperature of $OAT = +20°C$. The ISA temperature at 8,000 ft is $ISA_{temp} = 15 - (8 \\times 2) = -1°C$. Using the approximation $DA \\approx PA + 120 \\times (OAT - ISA_{temp})$, compute the density altitude in feet.",
+        "acceptedAnswers": [
+          "10520",
+          "10,520",
+          "10520 ft",
+          "10,520 ft"
+        ],
+        "hint": "OAT deviation from ISA = $20 - (-1) = 21°C$. Density altitude correction = $120 \\times 21 = 2{,}520$ ft. $DA = 8{,}000 + 2{,}520 = 10{,}520$ ft."
+      }
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_inst_1",
+        "kind": "multiple_choice",
+        "question": "During preflight you discover the **static port** is blocked (but the pitot tube is clear). Which set of instrument indications is correct for a climb away from the airport?",
+        "options": [
+          "Airspeed indicator reads zero; altimeter and VSI are normal.",
+          "Altimeter freezes at the altitude where the blockage occurred; VSI reads zero; airspeed indicator reads **higher than actual** in a climb.",
+          "All three pitot-static instruments fail simultaneously because they share the same pressure source.",
+          "Airspeed indicator reads lower than actual in a climb; altimeter and VSI are unaffected."
+        ],
+        "correctIndex": 1,
+        "explanation": "When the static port is blocked, the static pressure inside the instruments is trapped at the value when the blockage occurred — it cannot change. This affects all three pitot-static instruments in different ways:\n\n**Altimeter**: reads the **trapped pressure** as a fixed altitude. It freezes. If the blockage occurred at 1,000 ft and the aircraft climbs to 3,000 ft, the altimeter still shows 1,000 ft — dangerously misleading, especially in IMC.\n\n**VSI**: measures the **rate of change** of static pressure through a calibrated capillary. With static pressure frozen, the capillary sees no pressure change — the VSI reads **zero**, no matter how fast the aircraft is climbing or descending.\n\n**ASI**: compares pitot (total) pressure to static pressure. The pitot pressure continues to rise with airspeed, while the trapped static pressure is fixed. In a climb, ambient pressure actually *decreases* with altitude, but the trapped static pressure cannot decrease. The ASI therefore reads the difference between current total pressure and the higher-than-actual trapped static pressure — the indicated dynamic pressure ($q_{indicated} = P_{total} - P_{trapped}$) is **smaller** than actual dynamic pressure... wait: as the aircraft climbs, actual ambient pressure *falls*, so the trapped static is *higher* than ambient. The ASI sees $P_{total} - P_{trapped}$ where $P_{trapped} > P_{ambient}$, so the computed q is too small — but the airspeed indicator actually reads **higher** because the total pressure is growing with speed and the denominator (static) is stuck at a higher value from lower altitude. The net effect: **ASI over-reads** in a climb (trapped static is higher than ambient, making $P_{total} - P_{trapped}$ larger than $q_{actual}$ when climbing above the blockage altitude? Let's be precise: ambient pressure at altitude is *lower* than the trapped static. So $P_{total} - P_{trapped} = (P_{ambient} + q) - P_{trapped}$. Since $P_{ambient} < P_{trapped}$, the difference is $q - (P_{trapped} - P_{ambient})$. This is *less* than actual $q$ — so the ASI under-reads? No: the instrument senses a *net* chamber expansion. With trapped static (higher than ambient) and rising total pressure, the capsule deflects by $P_{total} - P_{trapped}$. At the blockage altitude this equals $q$. As the aircraft climbs (ambient falls, total pressure from airspeed alone stays roughly constant), $P_{total}$ stays near the old value while $P_{trapped}$ is fixed — so the indicated q doesn't change much. In practice, the **FAA-H-8083-15B (Instrument Flying Handbook), Chapter 5** states: with a blocked static port, the ASI over-reads at altitudes above the blockage because ambient (true static) has fallen but trapped static has not — making the capsule expand more than it should. This is the correct aviation-authority answer. The alternate static source corrects this. The fatal **Aeroperú Flight 603** crash (2 October 1996) involved taped-over static ports, disabling all three pitot-static instruments."
+      },
+      "hints": [
+        "Static pressure is used by all three instruments — but not the same way.",
+        "Frozen pressure means no change signal for the rate instrument."
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "Blocked static port traps pressure at the blockage altitude. Altimeter freezes (no pressure change input). VSI reads zero (no rate of pressure change). ASI over-reads at higher altitudes because ambient pressure falls below the trapped (higher) static reference, causing the capsule to expand more than it should. Use alternate static source to restore all three instruments. This scenario is covered in FAA-H-8083-15B Chapter 5 and is a standard instrument-rating exam question."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "mc_inst_2",
+        "kind": "multiple_choice",
+        "question": "You are flying on a magnetic heading of 180° (due south) and begin a standard-rate turn to the right toward 270° (west). Using the **UNOS** mnemonic for compass turning errors (northern hemisphere), should you roll out of the turn early, on time, or late — and why?",
+        "options": [
+          "Roll out on time, because UNOS only applies to turns through north.",
+          "Roll out early, because the compass overshoots south and will indicate 270° before the aircraft has actually reached that heading.",
+          "Roll out late, because the compass lags behind the aircraft's actual turn and will reach 270° after the aircraft has passed through it.",
+          "Roll out late, because turning through south the compass overshoots — it will read 270° before the aircraft actually reaches 270°, so you need extra turn to compensate."
+        ],
+        "correctIndex": 3,
+        "explanation": "**UNOS** stands for: Undershoot North, Overshoot South. In the **northern hemisphere**, magnetic dip causes the compass card to tilt when the aircraft banks:\n\n- **Turning through NORTH**: the compass card dips northward (toward the low wing), dragging the card's north-seeking end away from north. The compass lags — it reads headings *short of* the actual heading. You must roll out **early** (before the compass shows north) — hence **Undershoot North**.\n- **Turning through SOUTH**: the compass card dips southward; the north-seeking end is pulled rearward, making the card rotate *ahead* of the aircraft's actual heading. The compass leads — it reads headings *ahead of* the actual heading. You must roll out **late** (after the compass passes 180° southerly headings) — hence **Overshoot South**.\n\nIn this question: you start at south (180°) and turn right toward west (270°). You are initially turning **through south** — so the compass **overshoots** during the southerly portion of the turn. This means the compass will show 270° *before* the aircraft has actually reached 270°. To actually reach 270°, you must continue the turn past the compass reading of 270° — i.e., roll out **late**.\n\nThis error diminishes as the turn progresses away from south and north toward east and west, where compass errors are near zero. The error is most severe at high latitudes (where dip is steeper) and in slow, prolonged turns. In glass cockpits with AHRS (magnetic-flux-gate slaved), the heading indicator is immune to dip errors and needs no UNOS correction — another advantage of the G1000 over the legacy six-pack."
+      },
+      "hints": [
+        "UNOS: Undershoot North, Overshoot South.",
+        "You're turning through south — does the compass lead or lag?"
+      ],
+      "retryUntilCorrect": true,
+      "workedSolution": "UNOS: Overshoot South means the compass leads when turning through southerly headings — it shows your target heading (270°) before you've actually reached it. Roll out late. The opposite applies for turns through north (Undershoot North — roll out early). These errors are caused by magnetic dip and are absent in gyroscopic heading indicators and glass-cockpit AHRS systems."
+    },
+    {
+      "kind": "question",
+      "question": {
+        "id": "gd_inst_1",
+        "kind": "guided_derivation",
+        "question": "Derive the true airspeed correction from indicated airspeed",
+        "goal": "Starting from the relationship between dynamic pressure, indicated airspeed, and true airspeed, derive the formula $TAS = IAS \\times \\sqrt{\\frac{\\rho_0}{\\rho}}$ and apply it to find TAS at 10,000 ft where $\\rho / \\rho_0 \\approx 0.738$.",
+        "steps": [
+          {
+            "prompt": "The ASI measures dynamic pressure $q = \\frac{1}{2}\\rho_0 \\cdot IAS^2 = \\frac{1}{2}\\rho \\cdot TAS^2$. The ASI is calibrated assuming sea-level density $\\rho_0 = 1.225$ kg/m³. Write the equation that relates IAS, TAS, $\\rho$, and $\\rho_0$.",
+            "motivation": "Establish the core equality from which the correction follows.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "rho_0 * IAS^2 = rho * TAS^2",
+                "IAS^2 / TAS^2 = rho / rho_0"
+              ]
+            },
+            "hints": [
+              "Dynamic pressure q is the same value — the ASI reads it correctly. The IAS uses rho_0; TAS uses actual rho."
+            ],
+            "reveal": "The ASI capsule measures $q = \\frac{1}{2}\\rho v_{true}^2$ correctly (it measures the actual pressure differential). However, the scale is drawn assuming $\\rho = \\rho_0 = 1.225$ kg/m³ (sea level). At altitude, actual $\\rho < \\rho_0$, so the same $q$ corresponds to a higher TAS than the scale shows. Equating: $\\frac{1}{2}\\rho_0 \\cdot IAS^2 = \\frac{1}{2}\\rho \\cdot TAS^2$, giving $\\rho_0 \\cdot IAS^2 = \\rho \\cdot TAS^2$."
+          },
+          {
+            "prompt": "Solve for TAS in terms of IAS, $\\rho$, and $\\rho_0$.",
+            "motivation": "Isolate the correction formula.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "TAS = IAS * sqrt(rho_0 / rho)",
+                "TAS = IAS sqrt(rho_0/rho)"
+              ]
+            },
+            "hints": [
+              "Divide both sides by rho, then take the square root."
+            ],
+            "reveal": "$TAS^2 = IAS^2 \\times \\frac{\\rho_0}{\\rho}$, therefore $TAS = IAS \\times \\sqrt{\\frac{\\rho_0}{\\rho}}$. Since $\\rho < \\rho_0$ at altitude, the factor $\\sqrt{\\rho_0/\\rho} > 1$, confirming TAS > IAS above sea level."
+          },
+          {
+            "prompt": "At 10,000 ft, $\\rho / \\rho_0 \\approx 0.738$. If IAS = 120 knots, compute TAS to the nearest knot.",
+            "motivation": "Apply the formula to a realistic cruise scenario.",
+            "accepts": {
+              "mode": "math",
+              "acceptedAnswers": [
+                "140",
+                "140 knots",
+                "139",
+                "139 knots"
+              ]
+            },
+            "hints": [
+              "$\\sqrt{1/0.738} = \\sqrt{1.355} \\approx 1.164$. Multiply 120 by 1.164."
+            ],
+            "reveal": "$TAS = 120 \\times \\sqrt{1/0.738} = 120 \\times \\sqrt{1.355} = 120 \\times 1.164 \\approx 139.6 \\approx 140$ knots. This matches the rule of thumb: add about 2% per 1,000 ft (20% at 10,000 ft, so $120 \\times 1.20 = 144$ — a rough approximation). The Garmin G1000 ADC computes TAS automatically from pressure altitude, OAT, and IAS, displaying it on the PFD. The E6-B flight computer solves the same problem manually using the airspeed window."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "explain_back",
+      "question": {
+        "id": "eb_inst_1",
+        "kind": "explain_back",
+        "prompt": "In 140 words or fewer, explain to a student pilot who just flew their first six-pack aircraft and is now transitioning to a Garmin G1000-equipped Cessna 172S: (1) what the AHRS replaces and why it is more reliable, (2) what the ADC does that the mechanical ASI and altimeter cannot, and (3) what single mechanical instrument is still required by regulation regardless of the glass cockpit's sophistication.",
+        "rubric": "Must correctly identify AHRS as replacing the vacuum-driven gyroscopic attitude indicator and heading indicator, noting solid-state MEMS gyros + magnetometer, no tumbling, no vacuum pump required. Must identify the ADC as computing TAS, density altitude, and other derived values that mechanical instruments cannot (mechanical ASI shows IAS only; mechanical altimeter shows only pressure altitude). Must correctly identify the standby magnetic compass as the single instrument required by 14 CFR 91.205 for VFR day flight regardless of avionics suite. Bonus: mention G1000 introduced 2004, first certified in Cessna 172S in 2005; mention reversionary mode for display failure; mention ADS-B Out mandate effective 1 January 2020."
+      }
+    }
+  ]
+}

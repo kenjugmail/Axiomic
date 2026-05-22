@@ -45,6 +45,9 @@ import { DoseResponseCurve } from "../src/components/DoseResponseCurve";
 import { DnaElectropherogram } from "../src/components/DnaElectropherogram";
 import { ComparativeAnatomy } from "../src/components/ComparativeAnatomy";
 import { BeatGrid } from "../src/components/BeatGrid";
+import { VitalSignsMonitor } from "../src/components/VitalSignsMonitor";
+import { FlavorWheel } from "../src/components/FlavorWheel";
+import { AirfoilPolar } from "../src/components/AirfoilPolar";
 
 const VIZ_COMPONENTS = {
   KinshipDiagram,
@@ -82,6 +85,9 @@ const VIZ_COMPONENTS = {
   DnaElectropherogram,
   ComparativeAnatomy,
   BeatGrid,
+  VitalSignsMonitor,
+  FlavorWheel,
+  AirfoilPolar,
 };
 
 describe("viz components — SSR smoke tests", () => {

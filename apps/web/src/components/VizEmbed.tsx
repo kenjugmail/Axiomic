@@ -87,6 +87,9 @@ const DoseResponseCurve = lazy(() => import("../../../../packages/viz/src/compon
 const DnaElectropherogram = lazy(() => import("../../../../packages/viz/src/components/DnaElectropherogram").then(m => ({ default: m.DnaElectropherogram })));
 const ComparativeAnatomy = lazy(() => import("../../../../packages/viz/src/components/ComparativeAnatomy").then(m => ({ default: m.ComparativeAnatomy })));
 const BeatGrid = lazy(() => import("../../../../packages/viz/src/components/BeatGrid").then(m => ({ default: m.BeatGrid })));
+const VitalSignsMonitor = lazy(() => import("../../../../packages/viz/src/components/VitalSignsMonitor").then(m => ({ default: m.VitalSignsMonitor })));
+const FlavorWheel = lazy(() => import("../../../../packages/viz/src/components/FlavorWheel").then(m => ({ default: m.FlavorWheel })));
+const AirfoilPolar = lazy(() => import("../../../../packages/viz/src/components/AirfoilPolar").then(m => ({ default: m.AirfoilPolar })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -178,6 +181,9 @@ export const VIZ_NAMES = [
   "dna-electropherogram",
   "comparative-anatomy",
   "beat-grid",
+  "vital-signs-monitor",
+  "flavor-wheel",
+  "airfoil-polar",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -267,6 +273,9 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "dna-electropherogram": DnaElectropherogram,
   "comparative-anatomy": ComparativeAnatomy,
   "beat-grid": BeatGrid,
+  "vital-signs-monitor": VitalSignsMonitor,
+  "flavor-wheel": FlavorWheel,
+  "airfoil-polar": AirfoilPolar,
 };
 
 interface VizEmbedProps {
