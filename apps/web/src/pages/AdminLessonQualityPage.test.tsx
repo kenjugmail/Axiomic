@@ -137,4 +137,78 @@ describe("AdminLessonQualityPage", () => {
     );
     expect(titles).toEqual(["Rich Lesson", "Thin Lesson"]);
   });
+
+  test("the By-path view rolls lessons up per path, weakest-first, and drills in", async () => {
+    // Two paths so grouping is non-trivial; re-stub fetch for this test.
+    const mk = (
+      pathSlug: string,
+      pathTitle: string,
+      nodeSlug: string,
+      composite: number,
+    ) => ({
+      nodeSlug,
+      pathSlug,
+      pathTitle,
+      title: nodeSlug,
+      level: "apprentice",
+      slideCount: 6,
+      textSlideCount: 3,
+      questionSubkindCount: 3,
+      totalBodyWords: 700,
+      nameDropCount: 18,
+      hasViz: false,
+      composite,
+      flags: composite < 80 ? ["NO_VIZ"] : [],
+    });
+    const payload = {
+      lessons: [
+        mk("easy-path", "Easy Path", "e1", 90),
+        mk("easy-path", "Easy Path", "e2", 80),
+        mk("hard-path", "Hard Path", "h1", 40),
+        mk("hard-path", "Hard Path", "h2", 60),
+      ],
+      summary: { total: 4, scored: 4, missing: 0, avg: 68, median: 80, flaggedCount: 2 },
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(JSON.stringify(payload), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      ),
+    );
+
+    const r = renderPage();
+    root = r.root;
+    container = r.container;
+    await flush();
+
+    // Switch to the By-path view.
+    const byPath = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent === "By path",
+    )!;
+    act(() => {
+      (byPath as HTMLElement).click();
+    });
+
+    // Two path rows, weakest avg first: Hard Path (avg 50) before Easy (85).
+    const rowTexts = Array.from(container.querySelectorAll("tbody tr")).map(
+      (tr) => tr.textContent ?? "",
+    );
+    expect(rowTexts[0]).toContain("Hard Path");
+    expect(rowTexts[1]).toContain("Easy Path");
+    // Hard Path's row carries its avg (50) and worst (40).
+    expect(rowTexts[0]).toContain("50");
+    expect(rowTexts[0]).toContain("40");
+
+    // Clicking a path row drills into the lesson view filtered to it.
+    act(() => {
+      (container!.querySelector("tbody tr") as HTMLElement).click();
+    });
+    const filter = container!.querySelector("input") as HTMLInputElement;
+    expect(filter.value).toBe("hard-path");
+    const lessonRows = Array.from(container!.querySelectorAll("tbody tr"));
+    expect(lessonRows.length).toBe(2); // only hard-path's two lessons
+  });
 });

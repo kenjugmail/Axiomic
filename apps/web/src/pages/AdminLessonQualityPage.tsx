@@ -45,6 +45,23 @@ type SortKey =
   | "textSlideCount"
   | "questionSubkindCount";
 
+type PathSortKey = "avg" | "median" | "worst" | "count" | "flaggedPct" | "noVizPct";
+
+interface PathRollup {
+  pathSlug: string;
+  pathTitle: string;
+  count: number;
+  avg: number;
+  median: number;
+  worst: number;
+  flaggedPct: number;
+  noVizPct: number;
+}
+
+function median(sortedAsc: number[]): number {
+  return sortedAsc.length ? sortedAsc[Math.floor(sortedAsc.length / 2)] : 0;
+}
+
 function scoreClasses(c: number): string {
   if (c >= 80) return "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400";
   if (c >= 60) return "bg-amber-500/15 text-amber-600 dark:text-amber-400";
@@ -85,6 +102,9 @@ export function AdminLessonQualityPage() {
   const [sortKey, setSortKey] = useState<SortKey>("composite");
   const [sortAsc, setSortAsc] = useState(true);
   const [query, setQuery] = useState("");
+  const [view, setView] = useState<"lesson" | "path">("lesson");
+  const [pathSortKey, setPathSortKey] = useState<PathSortKey>("avg");
+  const [pathSortAsc, setPathSortAsc] = useState(true);
 
   const load = async () => {
     setError(null);
@@ -125,6 +145,41 @@ export function AdminLessonQualityPage() {
     );
   }, [data, sortKey, sortAsc, query]);
 
+  // Per-path rollup, computed client-side from the same rows. Surfaces
+  // whole-path weakness (a path can have a fine average but a brutal
+  // worst node). Default sort: avg ascending (weakest paths first).
+  const pathRows = useMemo<PathRollup[]>(() => {
+    if (!data) return [];
+    const groups = new Map<string, LessonRow[]>();
+    for (const l of data.lessons) {
+      const arr = groups.get(l.pathSlug);
+      if (arr) arr.push(l);
+      else groups.set(l.pathSlug, [l]);
+    }
+    const out: PathRollup[] = [];
+    for (const [pathSlug, ls] of groups) {
+      const comps = ls.map((x) => x.composite).sort((a, b) => a - b);
+      const sum = comps.reduce((s, x) => s + x, 0);
+      const flagged = ls.filter((x) => x.flags.length > 0).length;
+      const noViz = ls.filter((x) => !x.hasViz).length;
+      out.push({
+        pathSlug,
+        pathTitle: ls[0].pathTitle,
+        count: ls.length,
+        avg: Math.round(sum / ls.length),
+        median: median(comps),
+        worst: comps[0],
+        flaggedPct: Math.round((100 * flagged) / ls.length),
+        noVizPct: Math.round((100 * noViz) / ls.length),
+      });
+    }
+    return out.sort((a, b) =>
+      pathSortAsc
+        ? a[pathSortKey] - b[pathSortKey]
+        : b[pathSortKey] - a[pathSortKey],
+    );
+  }, [data, pathSortKey, pathSortAsc]);
+
   if (user && user.role !== "admin") {
     return (
       <div className="max-w-3xl mx-auto px-4 py-12">
@@ -164,6 +219,39 @@ export function AdminLessonQualityPage() {
       {arrow(sortKeyName)}
     </th>
   );
+
+  const togglePathSort = (key: PathSortKey) => {
+    if (key === pathSortKey) {
+      setPathSortAsc((v) => !v);
+    } else {
+      setPathSortKey(key);
+      // Ascending for the score-like keys (weakest first); descending
+      // for "more is worse" percentages + count.
+      setPathSortAsc(key === "avg" || key === "median" || key === "worst");
+    }
+  };
+
+  const PathSortableTh = ({
+    label,
+    sortKeyName,
+  }: {
+    label: string;
+    sortKeyName: PathSortKey;
+  }) => (
+    <th
+      className="px-2 py-2 text-right font-medium cursor-pointer select-none hover:text-foreground"
+      onClick={() => togglePathSort(sortKeyName)}
+    >
+      {label}
+      {pathSortKey === sortKeyName ? (pathSortAsc ? " ▲" : " ▼") : ""}
+    </th>
+  );
+
+  // Jump from a path row into the lesson view, filtered to that path.
+  const drillIntoPath = (pathSlug: string) => {
+    setQuery(pathSlug);
+    setView("lesson");
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
@@ -207,19 +295,40 @@ export function AdminLessonQualityPage() {
             <SummaryCard label="Missing content" value={data.summary.missing} />
           </section>
 
-          <div className="mb-3">
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Filter by title, path, or node slug…"
-              className="w-full sm:w-80 px-3 py-1.5 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-            <span className="text-xs text-muted-foreground ml-3">
-              {rows.length} shown
+          <div className="flex items-center gap-3 mb-3 flex-wrap">
+            <div className="inline-flex rounded-md border border-border overflow-hidden text-xs">
+              {(["lesson", "path"] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setView(v)}
+                  className={`px-3 py-1.5 ${
+                    view === v
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-accent/40"
+                  }`}
+                >
+                  {v === "lesson" ? "By lesson" : "By path"}
+                </button>
+              ))}
+            </div>
+            {view === "lesson" && (
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Filter by title, path, or node slug…"
+                className="w-full sm:w-80 px-3 py-1.5 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            )}
+            <span className="text-xs text-muted-foreground">
+              {view === "lesson"
+                ? `${rows.length} lessons`
+                : `${pathRows.length} paths`}
             </span>
           </div>
 
+          {view === "lesson" && (
           <div className="overflow-x-auto rounded-md border border-border">
             <table className="w-full text-sm">
               <thead className="bg-muted/40 text-muted-foreground text-xs">
@@ -302,6 +411,67 @@ export function AdminLessonQualityPage() {
               </tbody>
             </table>
           </div>
+          )}
+
+          {view === "path" && (
+            <div className="overflow-x-auto rounded-md border border-border">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/40 text-muted-foreground text-xs">
+                  <tr>
+                    <th className="px-2 py-2 text-left font-medium">Path</th>
+                    <PathSortableTh label="Avg" sortKeyName="avg" />
+                    <PathSortableTh label="Median" sortKeyName="median" />
+                    <PathSortableTh label="Worst" sortKeyName="worst" />
+                    <PathSortableTh label="Lessons" sortKeyName="count" />
+                    <PathSortableTh label="% flagged" sortKeyName="flaggedPct" />
+                    <PathSortableTh label="% no-viz" sortKeyName="noVizPct" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {pathRows.map((p) => (
+                    <tr
+                      key={p.pathSlug}
+                      onClick={() => drillIntoPath(p.pathSlug)}
+                      className="border-t border-border hover:bg-accent/20 cursor-pointer"
+                    >
+                      <td className="px-2 py-2">
+                        <span className="font-medium">{p.pathTitle}</span>
+                        <div className="text-[11px] text-muted-foreground">
+                          {p.pathSlug}
+                        </div>
+                      </td>
+                      <td className="px-2 py-2 text-right">
+                        <span
+                          className={`inline-block rounded px-2 py-0.5 font-semibold tabular-nums ${scoreClasses(
+                            p.avg,
+                          )}`}
+                        >
+                          {p.avg}
+                        </span>
+                      </td>
+                      <td className="px-2 py-2 text-right tabular-nums">{p.median}</td>
+                      <td className="px-2 py-2 text-right">
+                        <span
+                          className={`inline-block rounded px-2 py-0.5 font-semibold tabular-nums ${scoreClasses(
+                            p.worst,
+                          )}`}
+                        >
+                          {p.worst}
+                        </span>
+                      </td>
+                      <td className="px-2 py-2 text-right tabular-nums">{p.count}</td>
+                      <td className="px-2 py-2 text-right tabular-nums">
+                        {p.flaggedPct}%
+                      </td>
+                      <td className="px-2 py-2 text-right tabular-nums">
+                        {p.noVizPct}%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </>
       )}
     </div>

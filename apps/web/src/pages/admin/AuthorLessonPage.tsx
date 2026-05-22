@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Sparkles, AlertTriangle, Check, Copy, Save, Undo2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { api, type MasteryPath } from "../../lib/api";
 import { PreviewViz } from "../../components/lesson/PreviewViz";
 
@@ -201,6 +202,12 @@ export function AuthorLessonPage() {
         <p className="text-muted-foreground">
           Generate a canonical-schema lesson JSON from a topic + objectives. The output is validated against the same schema that gates every lesson in seed-content/lessons/. Copy the JSON to a new file once it looks right.
         </p>
+        <Link
+          to="/admin/quality"
+          className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-2"
+        >
+          View the lesson quality dashboard →
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
