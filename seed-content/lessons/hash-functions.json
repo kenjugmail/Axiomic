@@ -13,6 +13,8 @@
     {
       "kind": "text",
       "title": "The three properties of a cryptographic hash",
+      "viz": "key-stretching",
+      "vizProps": {},
       "body": "A cryptographic hash function $H: \\{0,1\\}^* \\to \\{0,1\\}^n$ should satisfy three properties:\n\n1. **Preimage resistance**: given $h$, infeasible to find any $m$ with $H(m) = h$. Cost: $O(2^n)$ brute force.\n2. **Second-preimage resistance**: given $m_1$, infeasible to find $m_2 \\neq m_1$ with $H(m_1) = H(m_2)$. Cost: $O(2^n)$.\n3. **Collision resistance**: infeasible to find any $m_1 \\neq m_2$ with $H(m_1) = H(m_2)$. Cost: $O(2^{n/2})$ (birthday bound — much weaker than the others).\n\nThe birthday attack on collisions means: for $n = 128$ output (e.g., MD5), collisions are findable in $2^{64}$ work — feasible. For $n = 256$ (SHA-256, BLAKE3): $2^{128}$ — currently infeasible.\n\nProduction default for new code: **SHA-256 or BLAKE3**. Avoid MD5 (broken collisions since 2004) and SHA-1 (broken in 2017). The transition cost across the industry has taken decades; new code starts with the right primitive from day one."
     },
     {

@@ -69,6 +69,12 @@ import { CpuScheduler } from "../src/components/CpuScheduler";
 import { XrayAttenuation } from "../src/components/XrayAttenuation";
 import { SeismicWaves } from "../src/components/SeismicWaves";
 import { Audiogram } from "../src/components/Audiogram";
+import { CipherModes } from "../src/components/CipherModes";
+import { KeyStretching } from "../src/components/KeyStretching";
+import { AstExplorer } from "../src/components/AstExplorer";
+import { ControlFlowGraph } from "../src/components/ControlFlowGraph";
+import { TraceWaterfall } from "../src/components/TraceWaterfall";
+import { ConsistentHashing } from "../src/components/ConsistentHashing";
 
 const VIZ_COMPONENTS = {
   KinshipDiagram,
@@ -130,6 +136,12 @@ const VIZ_COMPONENTS = {
   XrayAttenuation,
   SeismicWaves,
   Audiogram,
+  CipherModes,
+  KeyStretching,
+  AstExplorer,
+  ControlFlowGraph,
+  TraceWaterfall,
+  ConsistentHashing,
 };
 
 describe("viz components — SSR smoke tests", () => {

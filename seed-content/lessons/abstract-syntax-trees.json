@@ -15,6 +15,8 @@
     {
       "kind": "text",
       "title": "AST vs CST: shape the tree you'll actually use",
+      "viz": "ast-explorer",
+      "vizProps": {},
       "body": "The parser can build two related trees:\n\n- **CST (Concrete Syntax Tree, aka parse tree)**: lossless 1:1 with the source. Every parenthesis, every comma, every whitespace span. Used by formatters (prettier, rustfmt) + refactoring tools that need to preserve trivia.\n- **AST (Abstract Syntax Tree)**: drops syntactic noise. `(1 + 2)` and `1 + 2` produce the SAME AST node `BinOp(+, 1, 2)`. Easier to traverse, smaller, the right shape for semantic analysis.\n\nMost compilers build an AST directly (skipping the explicit CST). Tools like Roslyn (.NET), rust-analyzer, swift-syntax build CSTs because they need to preserve formatting.\n\nAST design pattern in Rust/Swift/OCaml/Haskell/TS: discriminated union per category:\n```\ntype Expr =\n  | Num(value: number)\n  | Ident(name: string)\n  | BinOp(op: string, left: Expr, right: Expr)\n  | Call(callee: Expr, args: Expr[])\n  | If(cond: Expr, then: Expr, else: Expr)\n  | ...\n```\nIn languages without sum types, use a base class + subclasses. The TS/JS world uses tagged unions: `{ type: 'BinOp', op: '+', left, right }`."
     },
     {

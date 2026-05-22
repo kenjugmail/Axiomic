@@ -782,6 +782,48 @@ export const VIZ_CATALOG: VizCatalogEntry[] = [
     thumb: "👂",
     tags: ["audiology", "hearing", "audiogram", "presbycusis", "speech-banana"],
   },
+  {
+    name: "cipher-modes",
+    label: "Block cipher modes",
+    description: "ECB vs CBC vs CTR on a bitmap — watch the 'ECB penguin' pattern leak under ECB and vanish under chaining/counter modes.",
+    thumb: "🔏",
+    tags: ["cryptography", "ecb", "cbc", "block-cipher", "modes"],
+  },
+  {
+    name: "key-stretching",
+    label: "Password key stretching",
+    description: "Work factor (bcrypt/PBKDF2) + salt vs an attacker's GPU guess rate and crack time; slide the cost to watch seconds become millennia.",
+    thumb: "🔑",
+    tags: ["security", "password-hashing", "bcrypt", "salt", "key-stretching"],
+  },
+  {
+    name: "ast-explorer",
+    label: "Lexer → AST",
+    description: "Source text → tokens → abstract syntax tree; see how operator precedence is encoded by the tree's shape.",
+    thumb: "🌳",
+    tags: ["compilers", "lexer", "parser", "ast", "precedence"],
+  },
+  {
+    name: "control-flow-graph",
+    label: "Control-flow graph",
+    description: "Basic blocks + edges for if/else, loops (back edge), and early return, with SSA φ-nodes at merge points.",
+    thumb: "🔀",
+    tags: ["compilers", "cfg", "ssa", "basic-blocks", "optimization"],
+  },
+  {
+    name: "trace-waterfall",
+    label: "Trace waterfall",
+    description: "Distributed-trace spans on a shared time axis; spot a slow dependency on the critical path vs an N+1 query staircase.",
+    thumb: "🌊",
+    tags: ["observability", "tracing", "spans", "opentelemetry", "latency"],
+  },
+  {
+    name: "consistent-hashing",
+    label: "Consistent hashing",
+    description: "Keys + servers on a hash ring; adding a node remaps only ~1/N keys, and virtual nodes even out the per-node load.",
+    thumb: "💍",
+    tags: ["distributed-systems", "sharding", "consistent-hashing", "dynamo", "vnodes"],
+  },
 ];
 
 interface Props {

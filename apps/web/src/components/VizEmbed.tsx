@@ -111,6 +111,12 @@ const CpuScheduler = lazy(() => import("../../../../packages/viz/src/components/
 const XrayAttenuation = lazy(() => import("../../../../packages/viz/src/components/XrayAttenuation").then(m => ({ default: m.XrayAttenuation })));
 const SeismicWaves = lazy(() => import("../../../../packages/viz/src/components/SeismicWaves").then(m => ({ default: m.SeismicWaves })));
 const Audiogram = lazy(() => import("../../../../packages/viz/src/components/Audiogram").then(m => ({ default: m.Audiogram })));
+const CipherModes = lazy(() => import("../../../../packages/viz/src/components/CipherModes").then(m => ({ default: m.CipherModes })));
+const KeyStretching = lazy(() => import("../../../../packages/viz/src/components/KeyStretching").then(m => ({ default: m.KeyStretching })));
+const AstExplorer = lazy(() => import("../../../../packages/viz/src/components/AstExplorer").then(m => ({ default: m.AstExplorer })));
+const ControlFlowGraph = lazy(() => import("../../../../packages/viz/src/components/ControlFlowGraph").then(m => ({ default: m.ControlFlowGraph })));
+const TraceWaterfall = lazy(() => import("../../../../packages/viz/src/components/TraceWaterfall").then(m => ({ default: m.TraceWaterfall })));
+const ConsistentHashing = lazy(() => import("../../../../packages/viz/src/components/ConsistentHashing").then(m => ({ default: m.ConsistentHashing })));
 
 // Names exposed here are also surfaced in the wiki editor's viz-picker.
 // Keep the catalog ordered by topic adjacency rather than alphabetically
@@ -226,6 +232,12 @@ export const VIZ_NAMES = [
   "xray-attenuation",
   "seismic-waves",
   "audiogram",
+  "cipher-modes",
+  "key-stretching",
+  "ast-explorer",
+  "control-flow-graph",
+  "trace-waterfall",
+  "consistent-hashing",
 ] as const;
 
 const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
@@ -339,6 +351,12 @@ const VIZ_REGISTRY: Record<string, React.LazyExoticComponent<React.ComponentType
   "xray-attenuation": XrayAttenuation,
   "seismic-waves": SeismicWaves,
   "audiogram": Audiogram,
+  "cipher-modes": CipherModes,
+  "key-stretching": KeyStretching,
+  "ast-explorer": AstExplorer,
+  "control-flow-graph": ControlFlowGraph,
+  "trace-waterfall": TraceWaterfall,
+  "consistent-hashing": ConsistentHashing,
 };
 
 interface VizEmbedProps {

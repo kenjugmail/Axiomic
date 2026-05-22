@@ -543,6 +543,36 @@ const LazyAudiogram = lazy(() =>
     (m) => ({ default: m.Audiogram }),
   ),
 );
+const LazyCipherModes = lazy(() =>
+  import("../../../../../packages/viz/src/components/CipherModes").then(
+    (m) => ({ default: m.CipherModes }),
+  ),
+);
+const LazyKeyStretching = lazy(() =>
+  import("../../../../../packages/viz/src/components/KeyStretching").then(
+    (m) => ({ default: m.KeyStretching }),
+  ),
+);
+const LazyAstExplorer = lazy(() =>
+  import("../../../../../packages/viz/src/components/AstExplorer").then(
+    (m) => ({ default: m.AstExplorer }),
+  ),
+);
+const LazyControlFlowGraph = lazy(() =>
+  import("../../../../../packages/viz/src/components/ControlFlowGraph").then(
+    (m) => ({ default: m.ControlFlowGraph }),
+  ),
+);
+const LazyTraceWaterfall = lazy(() =>
+  import("../../../../../packages/viz/src/components/TraceWaterfall").then(
+    (m) => ({ default: m.TraceWaterfall }),
+  ),
+);
+const LazyConsistentHashing = lazy(() =>
+  import("../../../../../packages/viz/src/components/ConsistentHashing").then(
+    (m) => ({ default: m.ConsistentHashing }),
+  ),
+);
 
 function VizSkeleton() {
   return (
@@ -817,6 +847,18 @@ function VizByName({
       return <LazySeismicWaves {...(props as object)} />;
     case "audiogram":
       return <LazyAudiogram {...(props as object)} />;
+    case "cipher-modes":
+      return <LazyCipherModes {...(props as object)} />;
+    case "key-stretching":
+      return <LazyKeyStretching {...(props as object)} />;
+    case "ast-explorer":
+      return <LazyAstExplorer {...(props as object)} />;
+    case "control-flow-graph":
+      return <LazyControlFlowGraph {...(props as object)} />;
+    case "trace-waterfall":
+      return <LazyTraceWaterfall {...(props as object)} />;
+    case "consistent-hashing":
+      return <LazyConsistentHashing {...(props as object)} />;
     default:
       return null;
   }

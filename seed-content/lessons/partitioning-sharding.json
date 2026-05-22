@@ -15,6 +15,8 @@
     {
       "kind": "text",
       "title": "Range, hash, and consistent hashing",
+      "viz": "consistent-hashing",
+      "vizProps": {},
       "body": "**Range partitioning**: split the key space into contiguous ranges, assign each range to a partition. Postgres native, MongoDB sharded, HBase. Good for range queries (`SELECT WHERE user_id BETWEEN 1000 AND 2000`); a single partition can be hot if access is skewed.\n\n**Hash partitioning**: hash the key, take modulo $N$ (or use consistent hashing). Cassandra default, DynamoDB. Spreads load uniformly; kills range queries (a range scan must hit every partition).\n\n**Consistent hashing** (Karger 1997): both keys AND partitions hash to positions on a ring; a key is assigned to the next partition clockwise. Adding/removing a partition only moves ~$1/N$ of keys (vs hash-mod which moves almost everything). Dynamo, Cassandra, Memcached's libketama all use consistent hashing under the hood.\n\nProduction systems often layer both: hash partitioning at the top (load distribution), range partitioning within each shard (range queries on a per-shard basis)."
     },
     {

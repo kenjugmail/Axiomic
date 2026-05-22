@@ -15,6 +15,8 @@
     {
       "kind": "text",
       "title": "AES-128, the high-level structure",
+      "viz": "cipher-modes",
+      "vizProps": {},
       "body": "**AES** (Advanced Encryption Standard, 2001) operates on 16-byte (128-bit) blocks. Three key sizes: AES-128 (10 rounds), AES-192 (12 rounds), AES-256 (14 rounds).\n\nEach round transforms the 16-byte state through 4 steps:\n1. **SubBytes**: byte-wise substitution through a fixed S-box. Provides **confusion** (non-linearity).\n2. **ShiftRows**: cyclic shift of each row of the 4×4 state matrix. Provides **diffusion** within rows.\n3. **MixColumns**: matrix multiplication of each column over $\\mathbb{F}_{256}$. Provides cross-row diffusion.\n4. **AddRoundKey**: XOR with the round key (derived from the master key via key schedule).\n\nLast round skips MixColumns. The first AddRoundKey is before round 1 (pre-whitening).\n\n**Why these specific operations**:\n- S-box: maximal non-linearity. The Rijndael S-box (Daemen-Rijmen) is the inverse function in $\\mathbb{F}_{256}$ composed with an affine map.\n- MixColumns: matrix chosen to be MDS (Maximum Distance Separable) — any 1-byte input change diffuses to all 4 output bytes."
     },
     {

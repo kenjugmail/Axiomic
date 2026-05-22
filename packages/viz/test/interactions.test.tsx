@@ -42,6 +42,12 @@ import { CpuScheduler } from "../src/components/CpuScheduler";
 import { XrayAttenuation } from "../src/components/XrayAttenuation";
 import { SeismicWaves } from "../src/components/SeismicWaves";
 import { Audiogram } from "../src/components/Audiogram";
+import { CipherModes } from "../src/components/CipherModes";
+import { KeyStretching } from "../src/components/KeyStretching";
+import { AstExplorer } from "../src/components/AstExplorer";
+import { ControlFlowGraph } from "../src/components/ControlFlowGraph";
+import { TraceWaterfall } from "../src/components/TraceWaterfall";
+import { ConsistentHashing } from "../src/components/ConsistentHashing";
 
 let h: VizHarness | null = null;
 afterEach(() => {
@@ -223,5 +229,35 @@ describe("viz interactions", () => {
   test("Audiogram: switching hearing pattern moves the active highlight", () => {
     h = mountViz(createElement(Audiogram));
     expectSelectionMoves(h, "Normal", "Presbycusis");
+  });
+
+  test("CipherModes: switching mode moves the active highlight", () => {
+    h = mountViz(createElement(CipherModes));
+    expectSelectionMoves(h, "ECB", "CTR");
+  });
+
+  test("KeyStretching: switching scheme moves the active highlight", () => {
+    h = mountViz(createElement(KeyStretching));
+    expectSelectionMoves(h, "Fast hash", "bcrypt cost 12");
+  });
+
+  test("AstExplorer: switching expression moves the active highlight", () => {
+    h = mountViz(createElement(AstExplorer));
+    expectSelectionMoves(h, "2 + 3 * 4", "x = 5");
+  });
+
+  test("ControlFlowGraph: switching example moves the active highlight", () => {
+    h = mountViz(createElement(ControlFlowGraph));
+    expectSelectionMoves(h, "if / else", "while loop");
+  });
+
+  test("TraceWaterfall: switching scenario moves the active highlight", () => {
+    h = mountViz(createElement(TraceWaterfall));
+    expectSelectionMoves(h, "Healthy", "N+1 queries");
+  });
+
+  test("ConsistentHashing: switching node count moves the active highlight", () => {
+    h = mountViz(createElement(ConsistentHashing));
+    expectSelectionMoves(h, "3 nodes", "5 nodes");
   });
 });
