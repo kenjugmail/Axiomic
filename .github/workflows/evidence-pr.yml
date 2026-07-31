@@ -1,0 +1,85 @@
+name: Functional Atlas v1 PR evidence
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  evidence:
+    name: ${{ matrix.study }}
+    strategy:
+      fail-fast: false
+      matrix:
+        study: [controlled, gpt2, pythia]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      HF_HOME: ${{ github.workspace }}/.cache/huggingface
+      TOKENIZERS_PARALLELISM: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore exact source
+        run: python research/functional-atlas-v1.0.0/restore_source.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: research/functional-atlas-v1.0.0/requirements-evidence.txt
+      - name: Install locked environment
+        working-directory: research/functional-atlas-v1.0.0
+        run: |
+          set -euxo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install torch==2.13.0 --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -r requirements-evidence.txt
+          python -m pip install -e . --no-deps
+          mkdir -p artifacts
+          python -m pip freeze > artifacts/pip-freeze-${{ matrix.study }}.txt
+      - name: Run study
+        working-directory: research/functional-atlas-v1.0.0
+        run: |
+          set -euxo pipefail
+          case "${{ matrix.study }}" in
+            controlled)
+              /usr/bin/time -v python -m pytest -q 2>&1 | tee artifacts/pytest.log
+              /usr/bin/time -v python -m experiments.run_drfsp_controlled --output results/drfsp_controlled 2>&1 | tee artifacts/drfsp.log
+              /usr/bin/time -v python -m experiments.run_afa_controlled --output results/afa_controlled 2>&1 | tee artifacts/afa.log
+              ;;
+            gpt2)
+              /usr/bin/time -v python -m experiments.run_gpt2_sanity --output results/gpt2_sanity 2>&1 | tee artifacts/gpt2.log
+              ;;
+            pythia)
+              /usr/bin/time -v python -m experiments.run_pythia_atlas --output results/pythia_atlas 2>&1 | tee artifacts/pythia.log
+              ;;
+          esac
+      - name: Environment manifest
+        working-directory: research/functional-atlas-v1.0.0
+        run: |
+          python - <<'PY'
+          import json, os, platform, torch
+          from pathlib import Path
+          study = os.environ['STUDY']
+          Path(f'artifacts/environment-{study}.json').write_text(json.dumps({
+            'git_sha': os.environ['GITHUB_SHA'], 'study': study,
+            'python': platform.python_version(), 'platform': platform.platform(),
+            'torch': torch.__version__, 'device': 'cpu'
+          }, indent=2))
+          PY
+        env:
+          STUDY: ${{ matrix.study }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: functional-atlas-${{ matrix.study }}-${{ github.sha }}
+          path: |
+            research/functional-atlas-v1.0.0/results
+            research/functional-atlas-v1.0.0/artifacts
+          if-no-files-found: error
+          retention-days: 90
