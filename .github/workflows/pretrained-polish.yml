@@ -7,12 +7,14 @@ on:
       - '.github/workflows/pretrained-polish.yml'
       - 'research/functional-atlas-v1.0.0/source.b64.part*'
       - 'research/functional-atlas-v1.0.0/manifest.json'
+      - 'research/functional-atlas-v1.0.0/run_pythia70m_audit.py'
   pull_request:
     branches: [main]
     paths:
       - '.github/workflows/pretrained-polish.yml'
       - 'research/functional-atlas-v1.0.0/source.b64.part*'
       - 'research/functional-atlas-v1.0.0/manifest.json'
+      - 'research/functional-atlas-v1.0.0/run_pythia70m_audit.py'
   workflow_dispatch:
 
 permissions:
@@ -38,6 +40,7 @@ jobs:
           python research/functional-atlas-v1.0.0/restore_source.py
       - name: Install runtime
         run: |
+          set -euxo pipefail
           python -m pip install --upgrade pip
           python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
           python -m pip install 'transformers==4.57.6' safetensors sentencepiece numpy scipy pandas scikit-learn matplotlib PyYAML
@@ -45,6 +48,7 @@ jobs:
       - name: Run GPT-2 Small multi-domain compression sanity test
         working-directory: research/functional-atlas-v1.0.0
         run: |
+          set -euxo pipefail
           mkdir -p artifacts
           python -m pip freeze > artifacts/pip-freeze-gpt2.txt
           /usr/bin/time -v python -m experiments.run_gpt2_sanity \
@@ -76,8 +80,11 @@ jobs:
         run: |
           set -euxo pipefail
           python research/functional-atlas-v1.0.0/restore_source.py
+          cp research/functional-atlas-v1.0.0/run_pythia70m_audit.py \
+             research/functional-atlas-v1.0.0/experiments/run_pythia70m_audit.py
       - name: Install runtime
         run: |
+          set -euxo pipefail
           python -m pip install --upgrade pip
           python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
           python -m pip install 'transformers==4.57.6' safetensors sentencepiece numpy scipy pandas scikit-learn matplotlib PyYAML
@@ -85,6 +92,7 @@ jobs:
       - name: Run Pythia-70M raw-neuron and SAE audit
         working-directory: research/functional-atlas-v1.0.0
         run: |
+          set -euxo pipefail
           mkdir -p artifacts
           python -m pip freeze > artifacts/pip-freeze-pythia.txt
           /usr/bin/time -v python -m experiments.run_pythia70m_audit \
