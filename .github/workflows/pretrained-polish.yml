@@ -1,0 +1,109 @@
+name: Functional Atlas pretrained polish
+
+on:
+  push:
+    branches: [functional-atlas-v1.0.0-arxiv]
+    paths:
+      - '.github/workflows/pretrained-polish.yml'
+      - 'research/functional-atlas-v1.0.0/polish.patch.gz.b64'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  HF_HOME: ${{ github.workspace }}/.cache/huggingface
+  TOKENIZERS_PARALLELISM: 'false'
+  PIP_DISABLE_PIP_VERSION_CHECK: '1'
+
+jobs:
+  gpt2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Restore and patch exact source
+        run: |
+          set -euxo pipefail
+          python research/functional-atlas-v1.0.0/restore_source.py
+          base64 --decode research/functional-atlas-v1.0.0/polish.patch.gz.b64 | gzip -dc > /tmp/polish.patch
+          cd research/functional-atlas-v1.0.0
+          patch -p1 < /tmp/polish.patch
+      - name: Install runtime
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
+          python -m pip install 'transformers==4.57.6' safetensors sentencepiece numpy scipy pandas scikit-learn matplotlib PyYAML
+          python -m pip install -e research/functional-atlas-v1.0.0 --no-deps
+      - name: Run GPT-2 Small multi-domain compression sanity test
+        working-directory: research/functional-atlas-v1.0.0
+        run: |
+          mkdir -p artifacts
+          python -m pip freeze > artifacts/pip-freeze-gpt2.txt
+          /usr/bin/time -v python -m experiments.run_gpt2_sanity \
+            --output results/gpt2_polish \
+            --model openai-community/gpt2 \
+            --layer 5 \
+            --calibration-chunks 1 \
+            --evaluation-chunks 2 \
+            --sequence-length 64 2>&1 | tee artifacts/gpt2-polish.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: functional-atlas-gpt2-polish-${{ github.sha }}
+          path: |
+            research/functional-atlas-v1.0.0/results/gpt2_polish
+            research/functional-atlas-v1.0.0/artifacts/gpt2-polish.log
+            research/functional-atlas-v1.0.0/artifacts/pip-freeze-gpt2.txt
+          if-no-files-found: error
+          retention-days: 90
+
+  pythia:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Restore and patch exact source
+        run: |
+          set -euxo pipefail
+          python research/functional-atlas-v1.0.0/restore_source.py
+          base64 --decode research/functional-atlas-v1.0.0/polish.patch.gz.b64 | gzip -dc > /tmp/polish.patch
+          cd research/functional-atlas-v1.0.0
+          patch -p1 < /tmp/polish.patch
+      - name: Install runtime
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
+          python -m pip install 'transformers==4.57.6' safetensors sentencepiece numpy scipy pandas scikit-learn matplotlib PyYAML
+          python -m pip install -e research/functional-atlas-v1.0.0 --no-deps
+      - name: Run Pythia-70M raw-neuron and SAE audit
+        working-directory: research/functional-atlas-v1.0.0
+        run: |
+          mkdir -p artifacts
+          python -m pip freeze > artifacts/pip-freeze-pythia.txt
+          /usr/bin/time -v python -m experiments.run_pythia70m_audit \
+            --output results/pythia_polish \
+            --model EleutherAI/pythia-70m-deduped \
+            --layer 3 \
+            --samples 400 \
+            --max-length 40 \
+            --raw-top-k 64 \
+            --sae-width-a 96 \
+            --sae-width-b 128 \
+            --sae-steps 100 2>&1 | tee artifacts/pythia-polish.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: functional-atlas-pythia-polish-${{ github.sha }}
+          path: |
+            research/functional-atlas-v1.0.0/results/pythia_polish
+            research/functional-atlas-v1.0.0/artifacts/pythia-polish.log
+            research/functional-atlas-v1.0.0/artifacts/pip-freeze-pythia.txt
+          if-no-files-found: error
+          retention-days: 90
