@@ -8,6 +8,7 @@ on:
       - 'research/functional-atlas-v1.0.0/source.b64.part*'
       - 'research/functional-atlas-v1.0.0/manifest.json'
       - 'research/functional-atlas-v1.0.0/run_pythia70m_audit.py'
+      - 'research/functional-atlas-v1.0.0/natural_text_model.py'
   pull_request:
     branches: [main]
     paths:
@@ -15,6 +16,7 @@ on:
       - 'research/functional-atlas-v1.0.0/source.b64.part*'
       - 'research/functional-atlas-v1.0.0/manifest.json'
       - 'research/functional-atlas-v1.0.0/run_pythia70m_audit.py'
+      - 'research/functional-atlas-v1.0.0/natural_text_model.py'
   workflow_dispatch:
 
 permissions:
@@ -82,6 +84,8 @@ jobs:
           python research/functional-atlas-v1.0.0/restore_source.py
           cp research/functional-atlas-v1.0.0/run_pythia70m_audit.py \
              research/functional-atlas-v1.0.0/experiments/run_pythia70m_audit.py
+          cp research/functional-atlas-v1.0.0/natural_text_model.py \
+             research/functional-atlas-v1.0.0/fac/natural_text_model.py
       - name: Install runtime
         run: |
           set -euxo pipefail
