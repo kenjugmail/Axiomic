@@ -6,6 +6,11 @@ on:
     paths:
       - 'research/gaussian-hierarchy-v1.4/**'
       - '.github/workflows/gaussian-hierarchy-v14.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'research/gaussian-hierarchy-v1.4/**'
+      - '.github/workflows/gaussian-hierarchy-v14.yml'
   workflow_dispatch:
 
 permissions:
@@ -34,6 +39,10 @@ jobs:
       - name: Run GPT-2 hierarchy experiment
         run: |
           set -euxo pipefail
+          # Use an exact nested tree cut: each requested width is a cut of one
+          # convergent hierarchy, rather than over-clustering and re-ranking.
+          sed -i 's/def cut_tree(prep, keep: int, extra: int = 96):/def cut_tree(prep, keep: int, extra: int = 0):/' \
+            research/gaussian-hierarchy-v1.4/run_gpt2_gaussian_hierarchy.py
           mkdir -p research/gaussian-hierarchy-v1.4/artifacts
           python -m pip freeze > research/gaussian-hierarchy-v1.4/artifacts/pip-freeze.txt
           /usr/bin/time -v python research/gaussian-hierarchy-v1.4/run_gpt2_gaussian_hierarchy.py \
