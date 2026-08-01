@@ -42,6 +42,8 @@ jobs:
           base64 --decode research/gaussian-hierarchy-v1.4/run_gpt2_gaussian_hierarchy_v2.py.gz.b64 \
             | gzip -dc > research/gaussian-hierarchy-v1.4/run_gpt2_gaussian_hierarchy_v2.py
           python -m py_compile research/gaussian-hierarchy-v1.4/run_gpt2_gaussian_hierarchy_v2.py
+          sha256sum research/gaussian-hierarchy-v1.4/run_gpt2_gaussian_hierarchy_v2.py \
+            > research/gaussian-hierarchy-v1.4/executed-source.sha256
       - name: Run GPT-2 hierarchy experiment
         run: |
           set -euxo pipefail
@@ -60,5 +62,7 @@ jobs:
           path: |
             research/gaussian-hierarchy-v1.4/results/gpt2
             research/gaussian-hierarchy-v1.4/artifacts
+            research/gaussian-hierarchy-v1.4/run_gpt2_gaussian_hierarchy_v2.py
+            research/gaussian-hierarchy-v1.4/executed-source.sha256
           if-no-files-found: error
           retention-days: 90
