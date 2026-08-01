@@ -5,12 +5,14 @@ on:
     branches: [functional-atlas-v1.0.0-arxiv]
     paths:
       - '.github/workflows/pretrained-polish.yml'
-      - 'research/functional-atlas-v1.0.0/polish.patch.gz.b64'
+      - 'research/functional-atlas-v1.0.0/source.b64.part*'
+      - 'research/functional-atlas-v1.0.0/manifest.json'
   pull_request:
     branches: [main]
     paths:
       - '.github/workflows/pretrained-polish.yml'
-      - 'research/functional-atlas-v1.0.0/polish.patch.gz.b64'
+      - 'research/functional-atlas-v1.0.0/source.b64.part*'
+      - 'research/functional-atlas-v1.0.0/manifest.json'
   workflow_dispatch:
 
 permissions:
@@ -30,13 +32,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Restore and patch exact source
+      - name: Restore exact source
         run: |
           set -euxo pipefail
           python research/functional-atlas-v1.0.0/restore_source.py
-          base64 --decode research/functional-atlas-v1.0.0/polish.patch.gz.b64 | gzip -dc > /tmp/polish.patch
-          cd research/functional-atlas-v1.0.0
-          patch -p1 < /tmp/polish.patch
       - name: Install runtime
         run: |
           python -m pip install --upgrade pip
@@ -73,13 +72,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Restore and patch exact source
+      - name: Restore exact source
         run: |
           set -euxo pipefail
           python research/functional-atlas-v1.0.0/restore_source.py
-          base64 --decode research/functional-atlas-v1.0.0/polish.patch.gz.b64 | gzip -dc > /tmp/polish.patch
-          cd research/functional-atlas-v1.0.0
-          patch -p1 < /tmp/polish.patch
       - name: Install runtime
         run: |
           python -m pip install --upgrade pip
