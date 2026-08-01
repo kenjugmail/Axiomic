@@ -83,3 +83,45 @@ jobs:
             research/functional-atlas-v1.0.0/artifacts
           if-no-files-found: error
           retention-days: 90
+
+  gaussian-hierarchy:
+    name: gaussian-hierarchy-gpt2
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      HF_HOME: ${{ github.workspace }}/.cache/huggingface
+      TOKENIZERS_PARALLELISM: 'false'
+      PIP_DISABLE_PIP_VERSION_CHECK: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install runtime
+        run: |
+          set -euxo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install torch==2.13.0 --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install 'transformers==4.57.6' safetensors sentencepiece numpy scipy pandas
+      - name: Run Gaussian-refined hierarchical GPT-2 compression
+        run: |
+          set -euxo pipefail
+          sed -i 's/def cut_tree(prep, keep: int, extra: int = 96):/def cut_tree(prep, keep: int, extra: int = 0):/' \
+            research/gaussian-hierarchy-v1.4/run_gpt2_gaussian_hierarchy.py
+          mkdir -p research/gaussian-hierarchy-v1.4/artifacts
+          python -m pip freeze > research/gaussian-hierarchy-v1.4/artifacts/pip-freeze.txt
+          /usr/bin/time -v python research/gaussian-hierarchy-v1.4/run_gpt2_gaussian_hierarchy.py \
+            --output research/gaussian-hierarchy-v1.4/results/gpt2 \
+            --model openai-community/gpt2 \
+            --layer 5 \
+            --length 64 \
+            --cal-chunks 2 \
+            --eval-chunks 4 2>&1 | tee research/gaussian-hierarchy-v1.4/artifacts/run.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gaussian-hierarchy-v14-gpt2-${{ github.sha }}
+          path: |
+            research/gaussian-hierarchy-v1.4/results/gpt2
+            research/gaussian-hierarchy-v1.4/artifacts
+          if-no-files-found: error
+          retention-days: 90
