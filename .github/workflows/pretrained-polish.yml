@@ -86,6 +86,20 @@ jobs:
              research/functional-atlas-v1.0.0/experiments/run_pythia70m_audit.py
           cp research/functional-atlas-v1.0.0/natural_text_model.py \
              research/functional-atlas-v1.0.0/fac/natural_text_model.py
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('research/functional-atlas-v1.0.0/experiments/run_pythia70m_audit.py')
+          text = path.read_text()
+          text = text.replace(
+              'sae_a.dead_feature_fraction',
+              'float(np.mean(np.mean(sae_a.evaluation_features > 1e-8, axis=0) == 0.0))',
+          )
+          text = text.replace(
+              'sae_b.dead_feature_fraction',
+              'float(np.mean(np.mean(sae_b.evaluation_features > 1e-8, axis=0) == 0.0))',
+          )
+          path.write_text(text)
+          PY
       - name: Install runtime
         run: |
           set -euxo pipefail
