@@ -1,0 +1,74 @@
+name: Gaussian hierarchical DR-FSP v1.5 repeated GPT-2
+
+on:
+  push:
+    branches: [functional-atlas-v1.0.0-arxiv]
+    paths:
+      - 'research/gaussian-hierarchy-v1.5/**'
+      - '.github/workflows/gaussian-hierarchy-v15-repeated.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'research/gaussian-hierarchy-v1.5/**'
+      - '.github/workflows/gaussian-hierarchy-v15-repeated.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  HF_HOME: ${{ github.workspace }}/.cache/huggingface
+  TOKENIZERS_PARALLELISM: 'false'
+  PIP_DISABLE_PIP_VERSION_CHECK: '1'
+
+jobs:
+  repeated-gpt2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install runtime
+        run: |
+          set -euxo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
+          python -m pip install 'transformers==4.57.6' safetensors sentencepiece numpy scipy pandas
+      - name: Restore frozen experiment files
+        run: |
+          set -euxo pipefail
+          ROOT=research/gaussian-hierarchy-v1.5
+          base64 --decode "$ROOT/run_gpt2_repeated_hierarchy.py.gz.b64" | gzip -dc > "$ROOT/run_gpt2_repeated_hierarchy.py"
+          base64 --decode "$ROOT/code_calibration.txt.gz.b64" | gzip -dc > "$ROOT/code_calibration.txt"
+          base64 --decode "$ROOT/code_evaluation.txt.gz.b64" | gzip -dc > "$ROOT/code_evaluation.txt"
+          python -m py_compile "$ROOT/run_gpt2_repeated_hierarchy.py"
+          sha256sum "$ROOT/run_gpt2_repeated_hierarchy.py" "$ROOT/code_calibration.txt" "$ROOT/code_evaluation.txt" > "$ROOT/source-sha256.txt"
+      - name: Run repeated GPT-2 study
+        run: |
+          set -euxo pipefail
+          ROOT=research/gaussian-hierarchy-v1.5
+          mkdir -p "$ROOT/artifacts"
+          python -m pip freeze > "$ROOT/artifacts/pip-freeze.txt"
+          /usr/bin/time -v python "$ROOT/run_gpt2_repeated_hierarchy.py" \
+            --output "$ROOT/results/gpt2_repeated" \
+            --code-calibration "$ROOT/code_calibration.txt" \
+            --code-evaluation "$ROOT/code_evaluation.txt" \
+            --layers 2 5 8 \
+            --splits 3 \
+            --length 64 \
+            --calibration-chunks 4 \
+            --evaluation-chunks 8 2>&1 | tee "$ROOT/artifacts/run.log"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gaussian-hierarchy-v15-repeated-gpt2-${{ github.sha }}
+          path: |
+            research/gaussian-hierarchy-v1.5/results/gpt2_repeated
+            research/gaussian-hierarchy-v1.5/artifacts
+            research/gaussian-hierarchy-v1.5/source-sha256.txt
+            research/gaussian-hierarchy-v1.5/run_gpt2_repeated_hierarchy.py
+            research/gaussian-hierarchy-v1.5/code_calibration.txt
+            research/gaussian-hierarchy-v1.5/code_evaluation.txt
+          if-no-files-found: error
+          retention-days: 90
