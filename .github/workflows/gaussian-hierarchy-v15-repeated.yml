@@ -40,9 +40,9 @@ jobs:
         run: |
           set -euxo pipefail
           ROOT=research/gaussian-hierarchy-v1.5
-          base64 --decode "$ROOT/run_gpt2_repeated_hierarchy.py.gz.b64" | gzip -dc > "$ROOT/run_gpt2_repeated_hierarchy.py"
-          base64 --decode "$ROOT/code_calibration.txt.gz.b64" | gzip -dc > "$ROOT/code_calibration.txt"
-          base64 --decode "$ROOT/code_evaluation.txt.gz.b64" | gzip -dc > "$ROOT/code_evaluation.txt"
+          gzip -dc "$ROOT/run_gpt2_repeated_hierarchy.py.gz" > "$ROOT/run_gpt2_repeated_hierarchy.py"
+          gzip -dc "$ROOT/code_calibration.txt.gz" > "$ROOT/code_calibration.txt"
+          gzip -dc "$ROOT/code_evaluation.txt.gz" > "$ROOT/code_evaluation.txt"
           python -m py_compile "$ROOT/run_gpt2_repeated_hierarchy.py"
           sha256sum "$ROOT/run_gpt2_repeated_hierarchy.py" "$ROOT/code_calibration.txt" "$ROOT/code_evaluation.txt" > "$ROOT/source-sha256.txt"
       - name: Run repeated GPT-2 study
