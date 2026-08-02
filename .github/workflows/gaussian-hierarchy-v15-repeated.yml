@@ -1,4 +1,4 @@
-name: Gaussian hierarchical DR-FSP v1.5 repeated GPT-2
+name: Gaussian hierarchical DR-FSP v1.5 corrected repeated GPT-2
 
 on:
   push:
@@ -36,7 +36,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
           python -m pip install 'transformers==4.57.6' safetensors sentencepiece numpy scipy pandas
-      - name: Restore and patch the validated v1.4 runner
+      - name: Restore and patch the validated runner
         run: |
           set -euxo pipefail
           ROOT=research/gaussian-hierarchy-v1.5
@@ -51,7 +51,6 @@ jobs:
           end = s.index('\n\ndef chunks(', start)
           replacement = '''def corpora(root: Path, cache: Path):
               texts = {k: strip_gutenberg(download(v, cache / f"{k}.txt")) for k, v in GUTENBERG.items()}
-              # Frozen external code corpora from the CPython v3.13.0 tag.
               code_cal = download(
                   "https://raw.githubusercontent.com/python/cpython/v3.13.0/Lib/statistics.py",
                   cache / "cpython-statistics-v3.13.0.py",
@@ -74,9 +73,18 @@ jobs:
           s = s.replace('args.cal_chunks,64)', 'args.cal_chunks,args.cal_offset)')
           s = s.replace('args.eval_chunks,128)', 'args.eval_chunks,args.eval_offset)')
           s = s.replace('bootstraps=12,seed=20260801)', 'bootstraps=24,seed=args.sketch_seed)')
+          # v1.5 correction: sample variance estimates calibration sensitivity;
+          # bootstrap count controls Monte Carlo precision only.  gamma=1/36
+          # independently controls the shrinkage variance scale.
+          old = 'observation_var = sample_var / bootstraps'
+          new = 'observation_var = (1.0 / 36.0) * sample_var'
+          if old not in s:
+              raise RuntimeError('expected legacy variance line not found')
+          s = s.replace(old, new)
           p.write_text(s)
           PY
           python -m py_compile "$ROOT/runner.py"
+          grep -n 'observation_var' "$ROOT/runner.py"
           sha256sum "$ROOT/runner.py" > "$ROOT/source-sha256.txt"
       - name: Run three layers and three disjoint corpus offsets
         run: |
@@ -143,12 +151,15 @@ jobs:
               'code_calibration_source': 'CPython v3.13.0 Lib/statistics.py',
               'code_evaluation_source': 'CPython v3.13.0 Lib/pathlib/__init__.py',
               'n_layer_split_trials': 9,
+              'bootstrap_draws': 24,
+              'variance_temperature': 0.027777777777777776,
+              'variance_semantics': 'gamma times bootstrap sample variance; not divided by bootstrap count',
           }, indent=2))
           print(summary.to_string(index=False))
           PY
       - uses: actions/upload-artifact@v4
         with:
-          name: gaussian-hierarchy-v15-repeated-gpt2-${{ github.sha }}
+          name: gaussian-hierarchy-v15-corrected-repeated-gpt2-${{ github.sha }}
           path: |
             research/gaussian-hierarchy-v1.5/results/gpt2_repeated
             research/gaussian-hierarchy-v1.5/artifacts
