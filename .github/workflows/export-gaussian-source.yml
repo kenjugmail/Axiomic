@@ -1,0 +1,31 @@
+name: Export Gaussian hierarchy source snapshot
+
+on:
+  push:
+    branches: [functional-atlas-v1.0.0-arxiv]
+    paths:
+      - '.github/workflows/export-gaussian-source.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decode exact executed source
+        run: |
+          set -euxo pipefail
+          mkdir -p exported-source
+          base64 --decode research/gaussian-hierarchy-v1.4/run_gpt2_gaussian_hierarchy_v2.py.gz.b64 \
+            | gzip -dc > exported-source/run_gpt2_gaussian_hierarchy_executed.py
+          sha256sum exported-source/run_gpt2_gaussian_hierarchy_executed.py > exported-source/SHA256SUMS.txt
+          python -m py_compile exported-source/run_gpt2_gaussian_hierarchy_executed.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gaussian-hierarchy-executed-source-${{ github.sha }}
+          path: exported-source
+          if-no-files-found: error
+          retention-days: 90

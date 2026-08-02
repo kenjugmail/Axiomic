@@ -1,0 +1,68 @@
+name: Gaussian hierarchical DR-FSP v1.4 experiment
+
+on:
+  push:
+    branches: [functional-atlas-v1.0.0-arxiv]
+    paths:
+      - 'research/gaussian-hierarchy-v1.4/**'
+      - '.github/workflows/gaussian-hierarchy-v14.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'research/gaussian-hierarchy-v1.4/**'
+      - '.github/workflows/gaussian-hierarchy-v14.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  HF_HOME: ${{ github.workspace }}/.cache/huggingface
+  TOKENIZERS_PARALLELISM: 'false'
+  PIP_DISABLE_PIP_VERSION_CHECK: '1'
+
+jobs:
+  gpt2-hierarchy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install runtime
+        run: |
+          set -euxo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
+          python -m pip install 'transformers==4.57.6' safetensors sentencepiece numpy scipy pandas
+      - name: Restore experiment source
+        run: |
+          set -euxo pipefail
+          base64 --decode research/gaussian-hierarchy-v1.4/run_gpt2_gaussian_hierarchy_v2.py.gz.b64 \
+            | gzip -dc > research/gaussian-hierarchy-v1.4/run_gpt2_gaussian_hierarchy_v2.py
+          python -m py_compile research/gaussian-hierarchy-v1.4/run_gpt2_gaussian_hierarchy_v2.py
+          sha256sum research/gaussian-hierarchy-v1.4/run_gpt2_gaussian_hierarchy_v2.py \
+            > research/gaussian-hierarchy-v1.4/executed-source.sha256
+      - name: Run GPT-2 hierarchy experiment
+        run: |
+          set -euxo pipefail
+          mkdir -p research/gaussian-hierarchy-v1.4/artifacts
+          python -m pip freeze > research/gaussian-hierarchy-v1.4/artifacts/pip-freeze.txt
+          /usr/bin/time -v python research/gaussian-hierarchy-v1.4/run_gpt2_gaussian_hierarchy_v2.py \
+            --output research/gaussian-hierarchy-v1.4/results/gpt2 \
+            --model openai-community/gpt2 \
+            --layer 5 \
+            --length 64 \
+            --cal-chunks 2 \
+            --eval-chunks 4 2>&1 | tee research/gaussian-hierarchy-v1.4/artifacts/run.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gaussian-hierarchy-v14-gpt2-${{ github.sha }}
+          path: |
+            research/gaussian-hierarchy-v1.4/results/gpt2
+            research/gaussian-hierarchy-v1.4/artifacts
+            research/gaussian-hierarchy-v1.4/run_gpt2_gaussian_hierarchy_v2.py
+            research/gaussian-hierarchy-v1.4/executed-source.sha256
+          if-no-files-found: error
+          retention-days: 90

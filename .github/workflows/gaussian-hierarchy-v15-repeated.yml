@@ -1,0 +1,169 @@
+name: Gaussian hierarchical DR-FSP v1.5 corrected repeated GPT-2
+
+on:
+  push:
+    branches: [functional-atlas-v1.0.0-arxiv]
+    paths:
+      - 'research/gaussian-hierarchy-v1.5/**'
+      - '.github/workflows/gaussian-hierarchy-v15-repeated.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'research/gaussian-hierarchy-v1.5/**'
+      - '.github/workflows/gaussian-hierarchy-v15-repeated.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  HF_HOME: ${{ github.workspace }}/.cache/huggingface
+  TOKENIZERS_PARALLELISM: 'false'
+  PIP_DISABLE_PIP_VERSION_CHECK: '1'
+
+jobs:
+  repeated-gpt2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install runtime
+        run: |
+          set -euxo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
+          python -m pip install 'transformers==4.57.6' safetensors sentencepiece numpy scipy pandas
+      - name: Restore and patch the validated runner
+        run: |
+          set -euxo pipefail
+          ROOT=research/gaussian-hierarchy-v1.5
+          mkdir -p "$ROOT"
+          base64 --decode research/gaussian-hierarchy-v1.4/run_gpt2_gaussian_hierarchy_v2.py.gz.b64 \
+            | gzip -dc > "$ROOT/runner.py"
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('research/gaussian-hierarchy-v1.5/runner.py')
+          s = p.read_text()
+          start = s.index('def corpora(root: Path, cache: Path):')
+          end = s.index('\n\ndef chunks(', start)
+          replacement = '''def corpora(root: Path, cache: Path):
+              texts = {k: strip_gutenberg(download(v, cache / f"{k}.txt")) for k, v in GUTENBERG.items()}
+              code_cal = download(
+                  "https://raw.githubusercontent.com/python/cpython/v3.13.0/Lib/statistics.py",
+                  cache / "cpython-statistics-v3.13.0.py",
+              )
+              code_eval = download(
+                  "https://raw.githubusercontent.com/python/cpython/v3.13.0/Lib/pathlib/__init__.py",
+                  cache / "cpython-pathlib-v3.13.0.py",
+              )
+              return {
+                  "prose": (texts["alice"], texts["pride"]),
+                  "dialogue": (texts["hamlet"], texts["romeo"]),
+                  "code": (code_cal, code_eval),
+              }
+          '''
+          s = s[:start] + replacement + s[end:]
+          s = s.replace(
+              'ap.add_argument("--length",type=int,default=64);ap.add_argument("--cal-chunks",type=int,default=2);ap.add_argument("--eval-chunks",type=int,default=4)',
+              'ap.add_argument("--length",type=int,default=64);ap.add_argument("--cal-chunks",type=int,default=4);ap.add_argument("--eval-chunks",type=int,default=8);ap.add_argument("--cal-offset",type=int,default=64);ap.add_argument("--eval-offset",type=int,default=128);ap.add_argument("--sketch-seed",type=int,default=20260801)'
+          )
+          s = s.replace('args.cal_chunks,64)', 'args.cal_chunks,args.cal_offset)')
+          s = s.replace('args.eval_chunks,128)', 'args.eval_chunks,args.eval_offset)')
+          s = s.replace('bootstraps=12,seed=20260801)', 'bootstraps=24,seed=args.sketch_seed)')
+          # v1.5 correction: sample variance estimates calibration sensitivity;
+          # bootstrap count controls Monte Carlo precision only.  gamma=1/36
+          # independently controls the shrinkage variance scale.
+          old = 'observation_var = sample_var / bootstraps'
+          new = 'observation_var = (1.0 / 36.0) * sample_var'
+          if old not in s:
+              raise RuntimeError('expected legacy variance line not found')
+          s = s.replace(old, new)
+          p.write_text(s)
+          PY
+          python -m py_compile "$ROOT/runner.py"
+          grep -n 'observation_var' "$ROOT/runner.py"
+          sha256sum "$ROOT/runner.py" > "$ROOT/source-sha256.txt"
+      - name: Run three layers and three disjoint corpus offsets
+        run: |
+          set -euxo pipefail
+          ROOT=research/gaussian-hierarchy-v1.5
+          mkdir -p "$ROOT/results/gpt2_repeated" "$ROOT/artifacts"
+          python -m pip freeze > "$ROOT/artifacts/pip-freeze.txt"
+          for layer in 2 5 8; do
+            for split in 0 1 2; do
+              cal_offset=$((64 + split * 4096))
+              eval_offset=$((128 + split * 8192))
+              seed=$((20260801 + layer * 100 + split))
+              out="$ROOT/results/gpt2_repeated/layer_${layer}_split_${split}"
+              /usr/bin/time -v python "$ROOT/runner.py" \
+                --output "$out" \
+                --model openai-community/gpt2 \
+                --layer "$layer" \
+                --length 64 \
+                --cal-chunks 4 \
+                --eval-chunks 8 \
+                --cal-offset "$cal_offset" \
+                --eval-offset "$eval_offset" \
+                --sketch-seed "$seed" 2>&1 | tee "$ROOT/artifacts/layer_${layer}_split_${split}.log"
+            done
+          done
+      - name: Aggregate repeated results
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          import pandas as pd
+          root = Path('research/gaussian-hierarchy-v1.5/results/gpt2_repeated')
+          frames = []
+          manifests = []
+          for p in sorted(root.glob('layer_*_split_*/raw_results.csv')):
+              layer = int(p.parent.name.split('_')[1])
+              split = int(p.parent.name.split('_')[3])
+              df = pd.read_csv(p)
+              df.insert(0, 'split', split)
+              df.insert(0, 'layer', layer)
+              frames.append(df)
+              manifests.append(json.loads((p.parent / 'summary.json').read_text()))
+          raw = pd.concat(frames, ignore_index=True)
+          raw.to_csv(root / 'raw_results_all.csv', index=False)
+          summary = raw.groupby(['method', 'width_reduction']).agg(
+              n_trials=('worst_relative_ppl_change', 'size'),
+              worst_ppl_change_mean=('worst_relative_ppl_change', 'mean'),
+              worst_ppl_change_sd=('worst_relative_ppl_change', 'std'),
+              mean_ppl_change_mean=('mean_relative_ppl_change', 'mean'),
+              mean_ppl_change_sd=('mean_relative_ppl_change', 'std'),
+              worst_layer_risk_mean=('worst_layer_risk', 'mean'),
+              worst_layer_risk_sd=('worst_layer_risk', 'std'),
+              total_parameter_reduction_mean=('parameter_reduction_total_fraction', 'mean'),
+          ).reset_index()
+          summary.to_csv(root / 'summary.csv', index=False)
+          (root / 'manifest.json').write_text(json.dumps({
+              'status': 'completed',
+              'model': manifests[0]['model'],
+              'resolved_revision': manifests[0]['resolved_revision'],
+              'layers': [2, 5, 8],
+              'splits': 3,
+              'calibration_tokens_per_domain_per_trial': 256,
+              'evaluation_tokens_per_domain_per_trial': 512,
+              'code_calibration_source': 'CPython v3.13.0 Lib/statistics.py',
+              'code_evaluation_source': 'CPython v3.13.0 Lib/pathlib/__init__.py',
+              'n_layer_split_trials': 9,
+              'bootstrap_draws': 24,
+              'variance_temperature': 0.027777777777777776,
+              'variance_semantics': 'gamma times bootstrap sample variance; not divided by bootstrap count',
+          }, indent=2))
+          print(summary.to_string(index=False))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gaussian-hierarchy-v15-corrected-repeated-gpt2-${{ github.sha }}
+          path: |
+            research/gaussian-hierarchy-v1.5/results/gpt2_repeated
+            research/gaussian-hierarchy-v1.5/artifacts
+            research/gaussian-hierarchy-v1.5/source-sha256.txt
+            research/gaussian-hierarchy-v1.5/runner.py
+          if-no-files-found: error
+          retention-days: 90
