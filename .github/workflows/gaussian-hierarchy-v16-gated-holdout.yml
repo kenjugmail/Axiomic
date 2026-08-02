@@ -1,0 +1,155 @@
+name: DR-FSP v1.6 validation-gated Gaussian holdout
+
+on:
+  push:
+    branches: [functional-atlas-v1.0.0-arxiv]
+    paths:
+      - 'research/gaussian-hierarchy-v1.6/**'
+      - '.github/workflows/gaussian-hierarchy-v16-gated-holdout.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'research/gaussian-hierarchy-v1.6/**'
+      - '.github/workflows/gaussian-hierarchy-v16-gated-holdout.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  HF_HOME: ${{ github.workspace }}/.cache/huggingface
+  TOKENIZERS_PARALLELISM: 'false'
+  PIP_DISABLE_PIP_VERSION_CHECK: '1'
+
+jobs:
+  gated-holdout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install frozen runtime
+        run: |
+          set -euxo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
+          python -m pip install 'transformers==4.57.6' safetensors sentencepiece numpy scipy pandas
+      - name: Restore and verify runner
+        run: |
+          set -euxo pipefail
+          ROOT=research/gaussian-hierarchy-v1.6
+          gzip -dc "$ROOT/run_gpt2_gated_holdout.py.gz" > "$ROOT/run_gpt2_gated_holdout.py"
+          python -m py_compile "$ROOT/run_gpt2_gated_holdout.py"
+          sha256sum "$ROOT/run_gpt2_gated_holdout.py" > "$ROOT/source-sha256.txt"
+          test "$(cut -d' ' -f1 "$ROOT/source-sha256.txt")" = "ffd56417bef86b54397f068540578e3aa9cb3f3fc177c0e44caea37b7511f0e1"
+      - name: Run untouched layers and corpora
+        run: |
+          set -euxo pipefail
+          ROOT=research/gaussian-hierarchy-v1.6
+          CACHE="$ROOT/corpus_cache"
+          mkdir -p "$ROOT/results/gated_holdout" "$ROOT/artifacts" "$CACHE"
+          python -m pip freeze > "$ROOT/artifacts/pip-freeze.txt"
+          for layer in 1 6 10; do
+            for split in 0 1 2; do
+              cal_offset=$((64 + split * 4096))
+              eval_offset=$((128 + split * 8192))
+              seed=$((20260802 + layer * 100 + split))
+              out="$ROOT/results/gated_holdout/layer_${layer}_split_${split}"
+              /usr/bin/time -v python "$ROOT/run_gpt2_gated_holdout.py" \
+                --output "$out" \
+                --cache-dir "$CACHE" \
+                --model openai-community/gpt2 \
+                --revision 607a30d783dfa663caf39e06633721c8d4cfcd7e \
+                --layer "$layer" \
+                --length 64 \
+                --cal-chunks 4 \
+                --eval-chunks 8 \
+                --cal-offset "$cal_offset" \
+                --eval-offset "$eval_offset" \
+                --sketch-seed "$seed" 2>&1 | tee "$ROOT/artifacts/layer_${layer}_split_${split}.log"
+            done
+          done
+      - name: Aggregate holdout results
+        run: |
+          set -euxo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          import pandas as pd
+
+          root = Path('research/gaussian-hierarchy-v1.6/results/gated_holdout')
+          frames = []
+          alpha_rows = []
+          manifests = []
+          for path in sorted(root.glob('layer_*_split_*/raw_results.csv')):
+              parts = path.parent.name.split('_')
+              layer = int(parts[1])
+              split = int(parts[3])
+              frame = pd.read_csv(path)
+              frame.insert(0, 'split', split)
+              frame.insert(0, 'layer', layer)
+              frames.append(frame)
+              manifest = json.loads((path.parent / 'summary.json').read_text())
+              manifests.append(manifest)
+              for reduction, diag in manifest['diagnostics'].items():
+                  alpha_rows.append({
+                      'layer': layer,
+                      'split': split,
+                      'width_reduction': int(reduction) / 100,
+                      'selected_alpha': diag['selected_alpha'],
+                      'validation_worst_risk': diag['validation_worst_risk'],
+                      'raw_gaussian_jaccard': diag['raw_gaussian_jaccard'],
+                      'raw_gated_jaccard': diag['raw_gated_jaccard'],
+                      'alpha_validation_risks': json.dumps(diag['alpha_validation_risks']),
+                  })
+          raw = pd.concat(frames, ignore_index=True)
+          raw.to_csv(root / 'raw_results_all.csv', index=False)
+          alpha = pd.DataFrame(alpha_rows)
+          alpha.to_csv(root / 'selected_alphas.csv', index=False)
+          summary = raw.groupby(['method', 'width_reduction']).agg(
+              n_trials=('worst_relative_ppl_change', 'size'),
+              worst_ppl_change_mean=('worst_relative_ppl_change', 'mean'),
+              worst_ppl_change_sd=('worst_relative_ppl_change', 'std'),
+              mean_ppl_change_mean=('mean_relative_ppl_change', 'mean'),
+              mean_ppl_change_sd=('mean_relative_ppl_change', 'std'),
+              worst_layer_risk_mean=('worst_layer_risk', 'mean'),
+              worst_layer_risk_sd=('worst_layer_risk', 'std'),
+              total_parameter_reduction_mean=('parameter_reduction_total_fraction', 'mean'),
+          ).reset_index()
+          summary.to_csv(root / 'summary.csv', index=False)
+          alpha_summary = alpha.groupby(['width_reduction', 'selected_alpha']).size().reset_index(name='count')
+          alpha_summary.to_csv(root / 'alpha_frequency.csv', index=False)
+          manifest = {
+              'status': 'completed',
+              'model': manifests[0]['model'],
+              'requested_revision': manifests[0]['requested_revision'],
+              'resolved_revision': manifests[0]['resolved_revision'],
+              'layers': [1, 6, 10],
+              'splits': 3,
+              'n_layer_split_trials': 9,
+              'calibration_tokens_per_domain_per_trial': 256,
+              'fit_tokens_per_domain_per_trial': 192,
+              'validation_tokens_per_domain_per_trial': 64,
+              'evaluation_tokens_per_domain_per_trial': 512,
+              'alpha_grid': [0.0, 0.25, 0.5, 0.75, 1.0],
+              'variance_temperature': 1.0 / 36.0,
+              'selection_rule': 'minimum held-out calibration-split worst normalized layer risk; ties favor lower alpha',
+              'corpora': manifests[0]['corpora'],
+              'runner_sha256': 'ffd56417bef86b54397f068540578e3aa9cb3f3fc177c0e44caea37b7511f0e1',
+          }
+          (root / 'manifest.json').write_text(json.dumps(manifest, indent=2))
+          print(summary.to_string(index=False))
+          print('\nSelected alpha frequencies:\n', alpha_summary.to_string(index=False))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: drfsp-v16-gated-holdout-${{ github.sha }}
+          path: |
+            research/gaussian-hierarchy-v1.6/results/gated_holdout
+            research/gaussian-hierarchy-v1.6/artifacts
+            research/gaussian-hierarchy-v1.6/source-sha256.txt
+            research/gaussian-hierarchy-v1.6/run_gpt2_gated_holdout.py
+          if-no-files-found: error
+          retention-days: 90
