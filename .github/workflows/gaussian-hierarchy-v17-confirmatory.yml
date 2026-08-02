@@ -1,0 +1,344 @@
+name: Gaussian hierarchical DR-FSP v1.7 confirmatory holdout
+
+on:
+  push:
+    branches: [functional-atlas-v1.0.0-arxiv]
+    paths:
+      - '.github/workflows/gaussian-hierarchy-v17-confirmatory.yml'
+      - '.github/workflows/gaussian-hierarchy-v16-gated-holdout.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/gaussian-hierarchy-v17-confirmatory.yml'
+      - '.github/workflows/gaussian-hierarchy-v16-gated-holdout.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  HF_HOME: ${{ github.workspace }}/.cache/huggingface
+  TOKENIZERS_PARALLELISM: 'false'
+  PIP_DISABLE_PIP_VERSION_CHECK: '1'
+
+jobs:
+  confirmatory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install runtime
+        run: |
+          set -euxo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
+          python -m pip install 'transformers==4.57.6' safetensors sentencepiece numpy scipy pandas
+      - name: Extract validated gate helpers and write confirmatory runner
+        run: |
+          set -euxo pipefail
+          ROOT=research/gaussian-hierarchy-v1.7
+          mkdir -p "$ROOT"
+          python - <<'PY'
+          from pathlib import Path
+          source=Path('.github/workflows/gaussian-hierarchy-v16-gated-holdout.yml').read_text().splitlines()
+          marker='cat > "$ROOT/gated_holdout.py" <<\'PY\''
+          start=next(i for i,line in enumerate(source) if line.strip()==marker)+1
+          end=next(i for i in range(start,len(source)) if source[i]=='          PY')
+          lines=[]
+          for line in source[start:end]:
+              lines.append(line[10:] if line.startswith('          ') else line)
+          Path('research/gaussian-hierarchy-v1.7/gate_helpers.py').write_text('\n'.join(lines)+'\n')
+          PY
+          cat > "$ROOT/confirmatory.py" <<'PY'
+          from __future__ import annotations
+
+          import argparse
+          import copy
+          import gc
+          import importlib.util
+          import json
+          import math
+          import platform
+          import time
+          from pathlib import Path
+
+          import numpy as np
+          import pandas as pd
+          import torch
+          from scipy.cluster.hierarchy import cut_tree
+
+          HERE=Path(__file__).resolve().parent
+          spec=importlib.util.spec_from_file_location('gate',HERE/'gate_helpers.py')
+          gate=importlib.util.module_from_spec(spec)
+          assert spec.loader is not None
+          spec.loader.exec_module(gate)
+          Env=gate.Env
+
+          MODEL_ID=gate.MODEL_ID
+          MODEL_REVISION=gate.MODEL_REVISION
+          ALPHAS=(0.0,0.25,0.5,0.75,1.0)
+          REDUCTIONS=(0.25,0.50,0.60)
+          METHODS=('magnitude','wanda','robust_capacity','raw_exact_tree','fixed_gaussian_exact_tree','validation_gated_exact_tree')
+          URLS={
+              'time_machine':'https://www.gutenberg.org/files/35/35-0.txt',
+              'war_worlds':'https://www.gutenberg.org/files/36/36-0.txt',
+              'julius_caesar':'https://www.gutenberg.org/files/1522/1522-0.txt',
+              'king_lear':'https://www.gutenberg.org/files/1532/1532-0.txt',
+              'code_cal':'https://raw.githubusercontent.com/python/cpython/v3.13.0/Lib/http/client.py',
+              'code_eval':'https://raw.githubusercontent.com/python/cpython/v3.13.0/Lib/email/parser.py',
+          }
+
+          def corpora(cache:Path):
+              return {
+                  'prose':(
+                      gate.strip_gutenberg(gate.download(URLS['time_machine'],cache/'time-machine-35.txt')),
+                      gate.strip_gutenberg(gate.download(URLS['war_worlds'],cache/'war-worlds-36.txt')),
+                  ),
+                  'dialogue':(
+                      gate.strip_gutenberg(gate.download(URLS['julius_caesar'],cache/'julius-caesar-1522.txt')),
+                      gate.strip_gutenberg(gate.download(URLS['king_lear'],cache/'king-lear-1532.txt')),
+                  ),
+                  'code':(
+                      gate.download(URLS['code_cal'],cache/'cpython-v3.13.0-http-client.py'),
+                      gate.download(URLS['code_eval'],cache/'cpython-v3.13.0-email-parser.py'),
+                  ),
+              }
+
+          def exact_representatives(active:np.ndarray,tree:np.ndarray,raw_vectors:np.ndarray,keep:int)->np.ndarray:
+              if keep>len(active):
+                  raise ValueError(f'keep={keep} exceeds active units={len(active)}')
+              labels=cut_tree(tree,n_clusters=[keep]).reshape(-1)
+              raw_norm=np.linalg.norm(raw_vectors,axis=1)
+              reps=[]
+              for label in np.unique(labels):
+                  members=active[np.where(labels==label)[0]]
+                  if len(members)==1:
+                      reps.append(int(members[0])); continue
+                  vectors=raw_vectors[members]
+                  cos=gate.cosine_matrix(vectors)
+                  centrality=cos.mean(axis=1)+1e-3*np.log1p(raw_norm[members])
+                  reps.append(int(members[np.argmax(centrality)]))
+              reps=np.asarray(reps,dtype=int)
+              if len(reps)!=keep:
+                  raise RuntimeError(f'exact cut returned {len(reps)} representatives, expected {keep}')
+              return np.sort(reps)
+
+          def tree_for_alpha(raw,gaussian,uncertainty,alpha):
+              return gate.make_tree(raw,gaussian,uncertainty,alpha)
+
+          def subsets_from_one_tree(raw,active,tree,width:int):
+              return {
+                  reduction:exact_representatives(active,tree,raw,width-int(round(width*reduction)))
+                  for reduction in REDUCTIONS
+              }
+
+          def combine_envs(fit:list[Env],validation:list[Env])->list[Env]:
+              result=[]
+              for a,b in zip(fit,validation,strict=True):
+                  if a.name!=b.name: raise ValueError('environment mismatch')
+                  result.append(Env(a.name,np.concatenate([a.A,b.A]),np.concatenate([a.Y,b.Y])))
+              return result
+
+          def relative_ppl(model,ids,base_ppl,device):
+              values={name:gate.base.perplexity(model,tokens,device) for name,tokens in ids.items()}
+              relative={name:(values[name]-base_ppl[name])/base_ppl[name] for name in values}
+              return values,relative
+
+          def gate_alpha_by_validation_ppl(model,fit_envs,validation_ids,base_validation_ppl,raw,gaussian,uncertainty,width,device):
+              records={}
+              best_alpha=ALPHAS[0];best_score=float('inf');best_subsets=None
+              for alpha in ALPHAS:
+                  active,tree=tree_for_alpha(raw,gaussian,uncertainty,alpha)
+                  subsets=subsets_from_one_tree(raw,active,tree,width)
+                  per_width={}
+                  for reduction,subset in subsets.items():
+                      B,_,_=gate.base.minimax_refit(fit_envs,subset,iterations=10)
+                      compressed=copy.deepcopy(model)
+                      gate.base.rebuild(compressed,model._drfsp_layer,subset,B)
+                      _,relative=relative_ppl(compressed,validation_ids,base_validation_ppl,device)
+                      per_width[f'{reduction:.2f}']=float(max(relative.values()))
+                      del compressed;gc.collect()
+                  # One alpha for one hierarchy. Mean validation damage across all cuts.
+                  score=float(np.mean(list(per_width.values())))
+                  records[f'{alpha:.2f}']={'score':score,'per_width':per_width,'subsets':{f'{r:.2f}':[int(x) for x in s] for r,s in subsets.items()}}
+                  if score<best_score-1e-12:
+                      best_alpha=alpha;best_score=score;best_subsets=subsets
+              assert best_subsets is not None
+              return float(best_alpha),float(best_score),best_subsets,records
+
+          def main():
+              ap=argparse.ArgumentParser()
+              ap.add_argument('--output',type=Path,required=True)
+              ap.add_argument('--layer',type=int,required=True)
+              ap.add_argument('--split',type=int,required=True)
+              ap.add_argument('--length',type=int,default=64)
+              ap.add_argument('--fit-chunks',type=int,default=6)
+              ap.add_argument('--validation-chunks',type=int,default=3)
+              ap.add_argument('--evaluation-chunks',type=int,default=12)
+              ap.add_argument('--fit-offset',type=int,required=True)
+              ap.add_argument('--validation-offset',type=int,required=True)
+              ap.add_argument('--evaluation-offset',type=int,required=True)
+              ap.add_argument('--sketch-seed',type=int,required=True)
+              ap.add_argument('--variance-temperature',type=float,default=1/36)
+              ap.add_argument('--cache',type=Path,required=True)
+              args=ap.parse_args();args.output.mkdir(parents=True,exist_ok=True)
+              from transformers import AutoModelForCausalLM,AutoTokenizer,__version__ as transformers_version
+              device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+              tok=AutoTokenizer.from_pretrained(MODEL_ID,revision=MODEL_REVISION)
+              model=AutoModelForCausalLM.from_pretrained(MODEL_ID,revision=MODEL_REVISION,dtype=torch.float32).to(device).eval()
+              model._drfsp_layer=args.layer
+              data=corpora(args.cache)
+              fit_ids={name:gate.chunks(tok,pair[0],args.length,args.fit_chunks,args.fit_offset) for name,pair in data.items()}
+              val_ids={name:gate.chunks(tok,pair[0],args.length,args.validation_chunks,args.validation_offset) for name,pair in data.items()}
+              eval_ids={name:gate.chunks(tok,pair[1],args.length,args.evaluation_chunks,args.evaluation_offset) for name,pair in data.items()}
+              fit_A={name:gate.base.collect_activations(model,tokens,args.layer,device) for name,tokens in fit_ids.items()}
+              val_A={name:gate.base.collect_activations(model,tokens,args.layer,device) for name,tokens in val_ids.items()}
+              eval_A={name:gate.base.collect_activations(model,tokens,args.layer,device) for name,tokens in eval_ids.items()}
+              mlp=model.transformer.h[args.layer].mlp
+              incoming=mlp.c_fc.weight.detach().float().cpu().numpy().astype(np.float64)
+              outgoing=mlp.c_proj.weight.detach().float().cpu().numpy().astype(np.float64)
+              fit_envs=[Env(name,A,A@outgoing) for name,A in fit_A.items()]
+              val_envs=[Env(name,A,A@outgoing) for name,A in val_A.items()]
+              eval_envs=[Env(name,A,A@outgoing) for name,A in eval_A.items()]
+              refit_envs=combine_envs(fit_envs,val_envs)
+              raw,gaussian,_,uncertainty=gate.corrected_operator_sketches(
+                  fit_envs,outgoing,rank=24,probes=4,bootstrap_draws=24,
+                  variance_temperature=args.variance_temperature,seed=args.sketch_seed,
+              )
+              width=outgoing.shape[0]
+              raw_active,raw_tree=tree_for_alpha(raw,gaussian,uncertainty,0.0)
+              gaussian_active,gaussian_tree=tree_for_alpha(raw,gaussian,uncertainty,1.0)
+              raw_subsets=subsets_from_one_tree(raw,raw_active,raw_tree,width)
+              gaussian_subsets=subsets_from_one_tree(raw,gaussian_active,gaussian_tree,width)
+              base_val_ppl={name:gate.base.perplexity(model,tokens,device) for name,tokens in val_ids.items()}
+              selected_alpha,validation_score,gated_subsets,gate_records=gate_alpha_by_validation_ppl(
+                  model,fit_envs,val_ids,base_val_ppl,raw,gaussian,uncertainty,width,device
+              )
+              base_test_ppl={name:gate.base.perplexity(model,tokens,device) for name,tokens in eval_ids.items()}
+              base_params=sum(p.numel() for p in model.parameters())
+              rows=[]
+              for reduction in REDUCTIONS:
+                  keep=width-int(round(width*reduction))
+                  candidates={
+                      'magnitude':gate.base.diagonal_subset(fit_envs,outgoing,incoming,keep,'magnitude'),
+                      'wanda':gate.base.diagonal_subset(fit_envs,outgoing,incoming,keep,'wanda'),
+                      'robust_capacity':gate.base.diagonal_subset(fit_envs,outgoing,incoming,keep,'robust_capacity'),
+                      'raw_exact_tree':raw_subsets[reduction],
+                      'fixed_gaussian_exact_tree':gaussian_subsets[reduction],
+                      'validation_gated_exact_tree':gated_subsets[reduction],
+                  }
+                  for method in METHODS:
+                      subset=candidates[method]
+                      started=time.perf_counter()
+                      B,q,seen=gate.base.minimax_refit(refit_envs,subset,iterations=10)
+                      held=gate.base.risks(eval_envs,subset,B)
+                      compressed=copy.deepcopy(model)
+                      gate.base.rebuild(compressed,args.layer,subset,B)
+                      test_ppl,relative=relative_ppl(compressed,eval_ids,base_test_ppl,device)
+                      params=sum(p.numel() for p in compressed.parameters())
+                      row={
+                          'layer':args.layer,'split':args.split,'method':method,'width_reduction':reduction,
+                          'retained_width':len(subset),'selected_alpha':selected_alpha if method=='validation_gated_exact_tree' else (0.0 if method=='raw_exact_tree' else (1.0 if method=='fixed_gaussian_exact_tree' else np.nan)),
+                          'gate_validation_score':validation_score,
+                          'worst_layer_risk':float(held.max()),'mean_layer_risk':float(held.mean()),
+                          'worst_relative_ppl_change':float(max(relative.values())),'mean_relative_ppl_change':float(np.mean(list(relative.values()))),
+                          'parameter_reduction_total_fraction':1-params/base_params,'runtime_seconds':time.perf_counter()-started,
+                      }
+                      for domain in base_test_ppl:
+                          row[f'base_ppl_{domain}']=base_test_ppl[domain]
+                          row[f'compressed_ppl_{domain}']=test_ppl[domain]
+                          row[f'relative_ppl_change_{domain}']=relative[domain]
+                          row[f'heldout_layer_risk_{domain}']=float(held[[e.name for e in eval_envs].index(domain)])
+                      rows.append(row)
+                      del compressed;gc.collect()
+              pd.DataFrame(rows).to_csv(args.output/'raw_results.csv',index=False)
+              (args.output/'gate_records.json').write_text(json.dumps({'selected_alpha':selected_alpha,'validation_score':validation_score,'candidates':gate_records},indent=2))
+              manifest={
+                  'status':'completed','model':MODEL_ID,'resolved_revision':MODEL_REVISION,'layer':args.layer,'split':args.split,
+                  'device':str(device),'python':platform.python_version(),'torch':torch.__version__,'transformers':transformers_version,
+                  'fit_tokens_per_domain':args.length*args.fit_chunks,'validation_tokens_per_domain':args.length*args.validation_chunks,
+                  'evaluation_tokens_per_domain':args.length*args.evaluation_chunks,'bootstrap_draws':24,
+                  'variance_temperature':args.variance_temperature,'alpha_grid':list(ALPHAS),'selected_alpha':selected_alpha,
+                  'selection_metric':'mean worst-domain validation perplexity change across 25%, 50%, 60% exact cuts',
+                  'corpora':URLS,'exact_nested_cuts':True,'one_alpha_per_trial':True,'subsets_frozen_after_validation':True,
+              }
+              (args.output/'manifest.json').write_text(json.dumps(manifest,indent=2))
+              print(pd.DataFrame(rows)[['method','width_reduction','selected_alpha','worst_layer_risk','worst_relative_ppl_change']].to_string(index=False))
+              print(json.dumps(manifest,indent=2))
+
+          if __name__=='__main__':main()
+          PY
+          python -m py_compile "$ROOT/gate_helpers.py" "$ROOT/confirmatory.py"
+          sha256sum "$ROOT/gate_helpers.py" "$ROOT/confirmatory.py" > "$ROOT/source-sha256.txt"
+      - name: Run predeclared confirmatory layers and corpora
+        run: |
+          set -euxo pipefail
+          ROOT=research/gaussian-hierarchy-v1.7
+          mkdir -p "$ROOT/results/confirmatory" "$ROOT/artifacts" "$ROOT/corpus_cache"
+          python -m pip freeze > "$ROOT/artifacts/pip-freeze.txt"
+          for layer in 3 7 11; do
+            for split in 0 1 2; do
+              fit_offset=$((64 + split * 6144))
+              validation_offset=$((2048 + split * 6144))
+              evaluation_offset=$((128 + split * 12288))
+              seed=$((20260803 + layer * 100 + split))
+              out="$ROOT/results/confirmatory/layer_${layer}_split_${split}"
+              /usr/bin/time -v python "$ROOT/confirmatory.py" \
+                --output "$out" --layer "$layer" --split "$split" --length 64 \
+                --fit-chunks 6 --validation-chunks 3 --evaluation-chunks 12 \
+                --fit-offset "$fit_offset" --validation-offset "$validation_offset" --evaluation-offset "$evaluation_offset" \
+                --sketch-seed "$seed" --variance-temperature 0.027777777777777776 \
+                --cache "$ROOT/corpus_cache" 2>&1 | tee "$ROOT/artifacts/layer_${layer}_split_${split}.log"
+            done
+          done
+      - name: Aggregate confirmatory results
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          import pandas as pd
+          root=Path('research/gaussian-hierarchy-v1.7/results/confirmatory')
+          frames=[];manifests=[];gates=[]
+          for p in sorted(root.glob('layer_*_split_*/raw_results.csv')):
+              frames.append(pd.read_csv(p));manifest=json.loads((p.parent/'manifest.json').read_text());manifests.append(manifest)
+              record=json.loads((p.parent/'gate_records.json').read_text())
+              gates.append({'layer':manifest['layer'],'split':manifest['split'],'selected_alpha':record['selected_alpha'],'validation_score':record['validation_score']})
+          raw=pd.concat(frames,ignore_index=True);raw.to_csv(root/'raw_results_all.csv',index=False)
+          pd.DataFrame(gates).to_csv(root/'gate_decisions.csv',index=False)
+          summary=raw.groupby(['method','width_reduction']).agg(
+              n_trials=('worst_relative_ppl_change','size'),
+              worst_ppl_change_mean=('worst_relative_ppl_change','mean'),
+              worst_ppl_change_sd=('worst_relative_ppl_change','std'),
+              mean_ppl_change_mean=('mean_relative_ppl_change','mean'),
+              mean_ppl_change_sd=('mean_relative_ppl_change','std'),
+              worst_layer_risk_mean=('worst_layer_risk','mean'),
+              worst_layer_risk_sd=('worst_layer_risk','std'),
+              total_parameter_reduction_mean=('parameter_reduction_total_fraction','mean'),
+          ).reset_index();summary.to_csv(root/'summary.csv',index=False)
+          final_manifest={
+              'status':'completed','model':manifests[0]['model'],'resolved_revision':manifests[0]['resolved_revision'],
+              'layers':[3,7,11],'splits':3,'n_layer_split_trials':9,
+              'fit_tokens_per_domain_per_trial':384,'validation_tokens_per_domain_per_trial':192,
+              'evaluation_tokens_per_domain_per_trial':768,'bootstrap_draws':24,'variance_temperature':1/36,
+              'alpha_grid':[0,0.25,0.5,0.75,1],
+              'selection_metric':'mean worst-domain validation perplexity change across all three exact nested cuts',
+              'exact_nested_cuts':True,'one_alpha_per_trial':True,'subsets_frozen_after_validation':True,
+              'method_development_layers':[2,5,8],'first_holdout_layers':[1,6,10],'confirmatory_layers':[3,7,11],
+          }
+          (root/'manifest.json').write_text(json.dumps(final_manifest,indent=2))
+          print(summary.to_string(index=False));print(pd.DataFrame(gates).to_string(index=False))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gaussian-hierarchy-v17-confirmatory-${{ github.sha }}
+          path: |
+            research/gaussian-hierarchy-v1.7/results/confirmatory
+            research/gaussian-hierarchy-v1.7/artifacts
+            research/gaussian-hierarchy-v1.7/source-sha256.txt
+            research/gaussian-hierarchy-v1.7/gate_helpers.py
+            research/gaussian-hierarchy-v1.7/confirmatory.py
+          if-no-files-found: error
+          retention-days: 90
